@@ -44,7 +44,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   are visible to later lines.
 - `Literal` / `Literals` / `Pattern` / `TokenType` compare single tokens with `===` / regex -- cheap.
 - Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-10-04, after P3 of precedence-and-types
-  halved it):  Card.spell (121 lines) ~12ms, Solitaire.spell (259 lines) ~32ms, whole Solitaire project ~55ms.
+  halved it):  Card.spell (121 lines) ~12ms, Solitaire.spell (259 lines) ~32ms, whole Solitaire project ~55ms;
+  ~60ms after P5 (typed calls, return types).
   Compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
   `parser.rules` rebuilds after mid-parse `addRule()`s:  38 per project parse, ~1ms total -- not worth optimizing.
 - "What can come NEXT?" -- `parser.expectedAfter(input, ruleName, scope)` parses a half-typed line in
@@ -73,6 +74,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     after an expression is an `expression_suffix`, e.g. `list_membership_test`.
 - Three slot kinds:
   - `{x:expression}` -- everything:  statements, slots closed by a word (`position of {x} in`), method-call arguments
+    (but see "a statement and an operand" below)
   - `{x:arithmetic_expression}` -- `+ - * /` only, stops before a comparison:  `absolute value`, `round`
     (bound `Precedence.takesSum`)
   - `{x:operand}` -- a prefix's LAST slot (`the first card of {list:operand}`), and every suffix's right side
@@ -83,6 +85,14 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     A postfix pops like an infix, so `x + y is empty` => `isEmpty(x + y)`.
   - NOT `priority`, which only breaks a `Choice`'s tie (see "Rules and matching") -- e.g. a user's quoted alias
     (priority 20) beats a built-in suffix matching the same words.
+- A statement and an operand:  a rule aliased both `statement` and `expression` that says
+  `@proto static operandInExpressions = true` (`SpellStatement`) is registered TWICE by `SpellParser.addRule()`
+  (`addStatementAndOperand()`):  as the statement, its syntax as is, and as an `operand`, a twin whose LAST
+  `{x:expression}` slot is `{x:operand}`, its `statementRule` pointing back.  Method calls and `wait for` do:
+  - statement `notify x + y` => `notify(x + y)`;  `if double x is 4` => `double(x) == 4`
+  - statement `wait for x is 1` => `await (x == 1)`;  `if wait for x is 1` => `await x == 1`
+  - `scope.addRule()` records only the statement rule, so a project's declarations write ONE rule;  loading it
+    registers both again.  Editors map a twin back with `SpellStatement.statementRuleOf()`.
 - Give-back (`Sequence`, see "Rules and matching") lets a full `{x:expression}` slot before a word work:
   `remove {thisArg:expression} of {callArgs:expression}` on `remove the card of the pile`.
 - Expecting mode:  out of tokens after the operand or a suffix, the loop records `expression_suffix` as only
@@ -100,7 +110,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `match.datatype` memoizes `rule.getDatatype(match)` -- default the rule's `@proto static datatype`;  about a dozen
   rules override it, reading ONLY `match.data` and child matches' datatypes:
   - `variable` / `SpellIdentifier`:  its `scopeVar`'s `datatype`;  `its_property` / `property_expression`:  the
-    member they read (`data.member`);  `DynamicMethodRule`:  its method record's `returns` (`data.method`)
+    member they read (`data.member`);  `DynamicMethodRule`:  its method record's `returns` (`data.method`),
+    which the parser infers -- see "Return types" below
   - `new_thing` / `create_thing` / `new_list`:  the type made;  list rules:  the item type (`data.itemType`), the
     list's type, or `number`
   - `compound_expression`:  `getAST()`'s shunting-yard again, over datatypes -- each suffix's
@@ -116,7 +127,27 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     (`MethodScope.itDatatype`);  a loop's item and `it`, and a `where`'s, as the list's item type;
     `on ... with a card`'s `card`
   - `a deck is a list of cards`:  `Card`, as the `Deck` `TypeScope`'s `itemType`
-- First datatype wins:  a record's datatype is set when it's declared, never widened.
+- First datatype wins:  a record's datatype is set when it's declared, never widened.  The one exception:  a getter's
+  property, and a method's `returns`, are set once the BODY has parsed -- see "Return types".
+- Return types:  `commitStatement()` runs `rule.mutateScopeAfterBody()` once a statement's body has parsed (inline or
+  nested).  `MethodDefinition` sets its record's `returns`, `property_value_getter` its property's `datatype` (if it
+  declared it, and nothing gave it one), each journaled (`P.ParseJournal.assign()`), from
+  `SpellStatement.getReturnedDatatype()`:
+  - an inline EXPRESSION body (`the value of a card is its rank`):  that expression's datatype
+  - else every `return` in the body (`getReturned()`, `return_statement`'s), inside `if`s too, but NOT in a body
+    with a `MethodScope` of its own, e.g. a loop's -- that compiles to a callback.  All the same => that;  none, or
+    a mix => unknown.  A bare `return` is `nothing`.
+  - a call's datatype reads it lazily:  `data.method.returns`.  A recursive call, parsed before its body ends, is
+    unknown.
+- Typed calls:  a call rule (`DynamicMethodRule`, `MethodInfixRule`) is `specialize()`d with its method's owner `of`
+  and `params`, as statics `thisType` / `paramTypes`.  Its `parse()` rejects a match whose argument's datatype is
+  KNOWN and can't be the parameter's (`scope.couldBeA()`:  neither is the other or a sub-type of it, no stubs) --
+  `put the chip on the pot` finds Chip's `put`, `add the card to the deck` falls past a user's
+  `to add a card to a pile` to the built-in `spellCore.append(deck, card)`.  Unknown always fits.
+  - `MethodInfixRule` checks only its right side:  a suffix can't see its left while parsing.  A `MethodPostfixRule`
+    checks nothing.
+  - Declarations need nothing new:  `of` / `params` are the method record's, in the same comment;  loading hands
+    `specialize()` the whole of it.
 - Probe ledger (`src/grammar.probes.test.ts`), "datatypes":  what a set of expressions and sinks are.
 
 ## Adding an expression rule
@@ -149,6 +180,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   4. `commitStatement()` -- the ONLY place a parsed statement changes scope, and only for the line's winner:
      - `mutateScope()` on the statement, then on each inline statement inside it, outermost first
      - if the rule takes a nested body and the next item is a `BlockToken` => `parseNestedBlock()`
+     - `mutateScopeAfterBody()` on the statement, e.g. a method records what it returns -- its result kept as the
+       line's `data.afterBody`
 - `SpellStatement` (`packages/spell/src/rules/Statement.ts`):
   - A body keyword ending `syntax` -- `{statement_body}`, `{expression_body}`, etc, see `BODY_KEYWORDS` -- or a choice of them,
     is taken OUT of `rules` into `rule.bodySpec` at construction.
@@ -195,11 +228,17 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - each new variable holds its value's `datatype` -- see "Datatypes"
   - types:  `create_type`, `create_list_type` (`classes.ts`, which sets `itemType` too);  a type mentioned before
     its own line is a `stub`, which its real declaration later claims (`TypeScope.claim()`, journaled)
+  - BEFORE a project's files parse, every type they declare is stubbed (`parser.stubDeclaredTypes()`, from
+    `SpellParser.typesDeclaredIn()`:  a scan for lines starting `a card is`, `create a type called hand`), so a line
+    can name a type declared further down or in a later file.  `P.IncrementalProject` and `parseSpellProject()`
+    both do.  An edit which changes WHICH types a file declares re-parses the whole project.
   - `is a <type>` (`is_a`) names a KNOWN type -- built in, imported, declared or stubbed earlier -- else it's
     a parse error, e.g. `is a crad`.  A type first mentioned in an `is a` above its own declaration is one too.
   - properties:  every property statement records the property in its type's `variables`, with `declaredBy` and
     its datatype (`TypeScope.declareProperty()`) -- read by `the X of Y` / `its X` (`getMember()`) for their
-    datatype, and by editors.  A getter is still `changesScope: "internal"`:  the datatype it'd give is P5's.
+    datatype, and by editors.  A getter's datatype is what it returns, set once its body has parsed (see
+    "Datatypes", "Return types"), so a getter changes scope as any declaration does:  editing its line re-parses
+    what follows.
     An enumerated one (`define_property_has`) also adds constants for each value,
     a plural `classVariables` entry (e.g. `Suits`), AND a rule
 - Every record a `mutateScope()` adds -- `ScopeVariable`, `ScopeConstant`, `TypeScope`, `ScopeMethod`, `ScopeRule` -- carries
@@ -219,7 +258,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - quoted aliases (`a card "is face up" if ...`):  `quoted_type_expression` (`methods.ts`) adds an
     `expression_suffix` rule, a `MethodPostfixRule` / `MethodInfixRule`;  a quoted formula (`a card "is the (rank)
     of (suits)" for its ranks and its suits`):  `quoted_property_formula` (`classes.ts`), a `QuotedPropertyRule`
-  - methods (`to turn (a card) over`):  `MethodDefinition` adds a rule (`methods.ts`), its call site, AND a
+  - methods (`to turn a card over` ~== `to turn (a card) over`):  a signature's `a|an <KNOWN type>` is a typed
+    parameter (`bare_type_arg`), as `(a card)` is;  a word that isn't a type, or anything after `the`, stays words
+    (`to make a mess`, `to reset the stock pile`).  `MethodDefinition` adds a rule (`methods.ts`), its call site, AND a
     `P.ScopeMethod` record (`addMethod()`):  in its type's `methods` if this project declares the type, else in the
     project's, with `of` (a free function, or a method of a built-in or imported type -- whose lists every
     project shares).  A call (`DynamicMethodRule`) finds its record while parsing (`MethodDefinition.findMethod()`).
@@ -335,7 +376,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     - ONE item's indented body changed => `"body"`:  rewind to `parser.getBodyMark()` (taken by `commitStatement()`
       just before the body parsed), `SpellParser.reparseBody()` => `BlockLine.reparseBody()`, then replay every
       later entry -- later items + files are kept.  Kept tokens after it are moved (`Tokenizer.moveTokens()`).
-      Only if nothing in old or new body `changesGlobalScope()`, and the body's nested scope isn't the header's.
+      Only if nothing in old or new body `changesGlobalScope()`, the body's nested scope isn't the header's, and
+      its statement's `mutateScopeAfterBody()` records the same as before (`data.afterBody`), e.g. the method still
+      returns a `number`:  later lines may read it.
     - anything else:  rewind to the item holding the first change -- or the one BEFORE it, if the change starts
       with an indented block that item may now take -- and re-parse from there.  Once back in step with the
       unchanged items at the end, `canKeepFrom()`:
@@ -426,12 +469,16 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   (see Rules and matching).  Each expectation offers the rest of a method call as a snippet, the names that fit
   it -- by the `highlightAs` of the rules it can start with (`firstKinds()`), never rule names -- and its words.
   What only `continues` something complete, e.g. operators, only when the word being typed starts it.
+- A method's parameters come from its `P.ScopeMethod` record (`SpellLanguageService.slotNames()`:  the receiver by
+  its type, the rest by `params`) -- never from parens in its name, which a paren-free signature hasn't got.
+  Signature help's parameter ranges are where its `method_signature` found each argument (`data.argMatches`).
 - Signature help is `signatureHelp()`, from the same parse:  the INNERMOST call to one of the project's methods
   anything was waiting in (next, or `within`), its arguments its call rule's `{subrules}`, the active one counted
   from where it was waiting.
 - Quick fix (`codeActions()`):  words that didn't parse get "Define `to <phrase>`" -- the phrase a whole line, or
   a statement that parsed (an inline body's too) PLUS the words left over after it:  `shuffle the deck 3 times`.
-  Its words become a signature, each longest run that parses as an expression a parameter, inserted above its
+  Its words become a signature, each longest run that parses as an expression a parameter -- a type's name
+  paren-free (`to shuffle a deck (number) times`) -- inserted above its
   top-level statement, as a method is only visible AFTER it.  Once defined, the longest match wins, so the line
   parses as the new method.  NOT for a phrase that's just unfinished (`expectedAfter()` again):  `set x to`.
 - Code lens (`codeLens()`):  "N references" above each type and method, counted only when an editor resolves it

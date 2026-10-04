@@ -101,9 +101,7 @@ export class TypeScope extends BlockScope {
    * - Its `datatype` if the statement gives one, e.g. `number`:  a later `the X of Y` reads it (`getMember()`), as
    *   do editors.  Compiled output still comes from each statement's own AST.
    * - The FIRST declaration of a name wins, as for types:  a later getter for the same property adds nothing.
-   * - NOTE: spell's getter rule is `changesScope: "internal"`, so editing one doesn't re-parse the getters after it.
-   *   Rename the first of two getters for one property and the property has no record until the second re-parses
-   *   -- editors then find it by name instead.
+   * - A getter's `datatype` comes once its body has parsed -- what it returns, see spell's `property_value_getter`.
    */
   declareProperty(name: string, declaredBy: P.Match, datatype?: string): void {
     const existing = this.variables.get(name, "LOCAL_ONLY")

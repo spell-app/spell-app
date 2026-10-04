@@ -351,6 +351,11 @@ type GetMatchData = {
 class return_statement extends SpellStatement<"expression?|body?"> {
   @proto static alias = "statement"
 
+  /** We return what follows `return`, or what's indented under it -- see `SpellStatement.getReturnedDatatype()`. */
+  getReturned(match: P.MatchFor<this>): { value: P.Match | undefined } {
+    return { value: match.groups.expression || this.getBody(match) }
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTReturnStatement {
     const result = match.groups.expression || this.getBody(match)
     return new P.ASTReturnStatement(match, { value: result?.AST as P.ASTExpression | undefined })

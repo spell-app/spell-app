@@ -1,3 +1,4 @@
+import { proto } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import -- rules are constructed while the `SP` barrel is still loading.
 import { BODY_KEYWORDS, type StatementBodySpec } from "$/spell/spell.types"
@@ -20,6 +21,21 @@ export class SpellStatement<
 > extends P.Sequence<Groups, MatchData> {
   /** What we take as a body, from the body keyword which ended our `syntax`.  `undefined` => no body. */
   declare bodySpec: StatementBodySpec | undefined
+  /**
+   * `true`:  used INSIDE an expression, our LAST slot -- a trailing `{x:expression}` -- takes an `operand` instead,
+   * so it stops before an operator.  As a statement it keeps the whole expression:
+   * - `notify x + y` => `notify(x + y)`, but `if double x is 4` => `double(x) == 4`
+   * - `wait for x is 1` => `await (x == 1)`, but `if wait for x is 1` => `(await x) == 1`
+   * - Only for a rule aliased both `statement` and `expression`:  `SpellParser.addRule()` registers it as the
+   *   statement, plus a twin of it as the expression -- see `SpellParser.addStatementAndOperand()`.
+   */
+  declare operandInExpressions: boolean
+  @proto static operandInExpressions = false
+  /**
+   * In the expression twin `operandInExpressions` makes:  the statement rule it's the twin of -- the one
+   * `scope.addRule()` recorded.  See `SpellStatement.statementRuleOf()`.
+   */
+  declare statementRule: P.Rule | undefined
   /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
   declare readonly Props: SpellStatementProps
 
@@ -129,6 +145,65 @@ export class SpellStatement<
     return result
   }
 
+  /**
+   * SIDE EFFECT hook:  change scope once our BODY has parsed, e.g. a method records what it returns.
+   * - Run by `commitStatement()`, after `mutateScope()` and the body.  Default:  nothing.
+   * - Returns what it recorded, as a string, if anything:  `BlockLine.reparseBody()` compares it, so an edit to the
+   *   body which changes it re-parses what follows.
+   */
+  mutateScopeAfterBody(_match: P.Match): string | undefined {
+    return undefined
+  }
+
+  /**
+   * If `match` RETURNS from the method it's in, e.g. `return the card`:  `{ value }`, the returned expression's
+   * match -- `undefined` for a bare `return`.  `undefined` if it doesn't return.  See `getReturnedDatatype()`.
+   * - Default:  it doesn't.  `return_statement` overrides.
+   */
+  getReturned(_match: P.Match): { value: P.Match | undefined } | undefined {
+    return undefined
+  }
+
+  /**
+   * What our body RETURNS, e.g. `Card` for a body whose every `return` returns a card -- `undefined` if unknown.
+   * - An inline EXPRESSION body (`the value of a card is its rank`):  that expression's datatype.
+   * - Otherwise its `return` statements' (`getReturned()`), wherever they are -- inside an `if`, say -- but NOT
+   *   inside a body with a method scope of its own, e.g. a loop's:  that compiles to a callback, whose `return` is its
+   *   own.  All the same => that;  none, or any other mix => unknown.  A bare `return` is `nothing`.
+   * - Reads ONLY matches:  call it once the body has parsed, e.g. from `mutateScopeAfterBody()`.
+   */
+  getReturnedDatatype(match: P.Match): P.Datatype | undefined {
+    const body = this.getBody(match)
+    if (!body) return undefined
+    if (!body.is(Block) && this.bodySpec?.inlineAs === "expression") return body.datatype
+    const returned = new Set<P.Datatype | undefined>()
+    visit(body)
+    return returned.size === 1 ? [...returned][0] : undefined
+
+    /** Note the datatype of each `return` in `item`, a block, line or statement. */
+    function visit(item: P.Match | undefined) {
+      if (!item) return
+      if (item.is(Block)) {
+        for (const child of item.matched) if (child instanceof P.Match) visit(child)
+        return
+      }
+      const statement = item.rule instanceof SpellStatement ? item : (item.data as { statement?: P.Match }).statement
+      if (!(statement?.rule instanceof SpellStatement)) return
+      const result = statement.rule.getReturned(statement)
+      if (result) returned.add(result.value ? result.value.datatype : "nothing")
+      // a callback's `return`s are its own
+      else if (!(statement.nestedScope instanceof P.MethodScope)) visit(statement.rule.getBody(statement))
+    }
+  }
+
+  /**
+   * The rule `rule` stands for:  if it's the expression twin of a statement rule (see `operandInExpressions`), that
+   * statement rule -- else `rule` itself.  e.g. for editors, mapping a call back to the method's `P.ScopeRule`.
+   */
+  static statementRuleOf(rule: P.Rule): P.Rule {
+    return (rule instanceof SpellStatement && rule.statementRule) || rule
+  }
+
   /** Our syntax's groups, plus `body` if we take one. */
   getGroupSpecEntries(): P.GroupSpecEntry[] {
     const entries = super.getGroupSpecEntries()
@@ -169,6 +244,7 @@ export type SpellStatementProps = Prettify<
  *   - `bodyMark` in the parser's journal, if it has one, so incremental parsing can re-parse just the body
  *     -- see `P.IncrementalParse`
  *   - parse the body in its nested scope
+ * - `mutateScopeAfterBody()` on it, e.g. a method records what its body returns
  * - NOTE: this is the ONLY place a parsed statement changes scope.  Candidates which lose the line
  *   never do, so their types / rules / variables can't leak.  Call it for any statement you parse on
  *   its own and keep, e.g. a JSX `on...` handler.
@@ -178,11 +254,12 @@ export function commitStatement(statement: P.Match, nextItem?: P.Token): Committ
   mutateScopeForInlineStatements(statement)
 
   const committed: CommittedStatement = {}
-  if (statement.rule instanceof SpellStatement && statement.rule.bodySpec && nextItem instanceof P.BlockToken) {
+  if (!(statement.rule instanceof SpellStatement)) return committed
+  if (statement.rule.bodySpec && nextItem instanceof P.BlockToken) {
     committed.bodyMark = statement.scope.parser?.journal?.mark()
     committed.body = statement.rule.parseNestedBlock(statement, nextItem)
   }
-
+  committed.afterBody = statement.rule.mutateScopeAfterBody(statement)
   return committed
 }
 
@@ -192,6 +269,8 @@ export type CommittedStatement = {
   body?: P.Match
   /** Journal mark just before the nested body was parsed, if there's a journal. */
   bodyMark?: P.JournalMark
+  /** What `mutateScopeAfterBody()` recorded, if anything. */
+  afterBody?: string
 }
 
 /**

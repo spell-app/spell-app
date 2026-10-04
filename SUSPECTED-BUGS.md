@@ -18,6 +18,19 @@ Entry format:  `` - `path/to/file.ts` `symbol()`: what looks wrong, why, and how
 
 ## spell
 
+- [V] `packages/spell/src/rules/methods.ts` `MethodDefinition.getRule()`:  a signature that STARTS with its receiver --
+  `to (a card) flips: ...`, or paren-free `to a card flips: ...` -- THROWS while parsing ("Rule 'flips' starts with an
+  expression, so it would recurse forever"):  its call rule `{thisArg:expression} flips` is aliased `expression`, so
+  `SpellParser.getNamesForRule()` registers it as an `operand` and refuses.  The project's whole parse fails
+  (`project.parseError`).  Since P3 of precedence-and-types (the operand check);  found in P5.  Prove:  parse
+  `a card is a thing\nto (a card) flips: print 1` with `parseSpellProject()`.  Fix:  register such a call as a statement
+  only, or as an `expression_suffix`.
+- [V] `packages/spell/src/rules/classes.ts` `QuotedPropertyRule.compileASTExpression()`:  a quoted formula naming a
+  property that isn't there -- the Solitaire fixture's Card.spell with `a card "is a (rank)" for its ranksx` --
+  THROWS while compiling a line using it (`Cannot read properties of undefined (reading 'value')`, `rhs` is
+  `undefined`), rather than a parse error.  Not touched by precedence-and-types P5;  it's the one "threw" in
+  `IncrementalProject.test.ts`'s Card.spell edits (a full parse throws the same, so the test passes).
+
 Collected as `parser`'s "Suspected bugs found during documentation pass".
 
 Collected 2026-09-19 while documenting `src/` per `AGENTS.md`.  Everything you annotated `>>` has been

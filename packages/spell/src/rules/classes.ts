@@ -879,15 +879,36 @@ type PropertyValueEitherGroups = P.GroupsFor<"type_property", P.Match<P.GroupsFo
  */
 class property_value_getter extends SpellStatement<"property|type|body?"> {
   @proto static alias = "statement"
-  // Its `mutateScope()` only records the property, which nothing parsed later reads:
-  // editing a getter's body needn't re-parse the rest of the project.
-  @proto static changesScope: P.ScopeChanges = "internal"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type" }
 
-  /** SIDE EFFECT:  records the property on its type, for editors -- see `P.TypeScope.declareProperty()`. */
+  /**
+   * SIDE EFFECT:  records the property on its type -- see `P.TypeScope.declareProperty()`.
+   * - Later lines read it, e.g. `the value of the card`'s datatype:  so editing a getter's line re-parses what
+   *   follows (plan doc D9).  An edit to its indented body does only if what it returns changes -- see
+   *   `mutateScopeAfterBody()`.
+   */
   mutateScope(match: P.MatchFor<this>) {
     const { type, property } = match.groups
     getKnownType(type).declareProperty(`${property.value}`, match)
+  }
+
+  /**
+   * SIDE EFFECT:  now our body has parsed, what it returns is the property's `datatype` -- if we declared it, and
+   * nothing gave it one first, e.g. `a card has a value as number`.  See `getReturnedDatatype()`.
+   * - Journaled.  Returns it, so `BlockLine.reparseBody()` can tell when an edit changes it.
+   */
+  mutateScopeAfterBody(match: P.MatchFor<this>): string | undefined {
+    const { type, property } = match.groups
+    const datatype = this.getReturnedDatatype(match)
+    const variable = getKnownType(type).variables.get(`${property.value}`, "LOCAL_ONLY")
+    // ours:  noted on our match, or the match we're a re-bodied clone of -- see `P.ScopeList.noteDeclared()`
+    const declared = (match.data as { declared?: unknown[] }).declared
+    const isOurs =
+      !!declared && (variable?.declaredBy?.data as { declared?: unknown[] } | undefined)?.declared === declared
+    if (datatype && variable && isOurs && !variable.datatype) {
+      P.ParseJournal.assign(match.scope.parser?.journal, variable, { datatype })
+    }
+    return datatype
   }
   /** Nested scope for the getter body -- maps `its`/`it` to `this` so the body can say `its name`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {

@@ -12,7 +12,7 @@ the value of a pile is:
 // "move" a card
 // NOTE: use this rather than `add` to make sure card is only in one pile at a time
 // if you `wait for: move the card to the pile` the move will be animated
-to move (a card) to (a pile)
+to move a card to a pile
 	if the pile of the card is defined: remove the card from its pile
 	set the pile of the card to the pile
 	add the card to the pile

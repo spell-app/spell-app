@@ -106,6 +106,27 @@ export class Scope extends Derivative {
       .find((type) => type.itemType)?.itemType
   }
 
+  /**
+   * Could a value of datatype `actual` be a `wanted`, e.g. an argument for a parameter?  `false` only when SURE it
+   * can't:  both known, and neither is the other or a sub-type of it -- a `Deck` for a `Pile`, `text` for a `number`.
+   * - Unknown either side:  `true`.  So is `nothing`:  any value may be missing.
+   * - A super-type could be:  a `list` may hold a `Pile`, a `number` may be an `integer`.
+   * - A stub anywhere up either type's chain, or a super-type we can't find:  `true`, we can't be sure.
+   * - A lookup:  call it WHILE PARSING, never from `getAST()` / `getDatatype()`.
+   */
+  couldBeA(actual: P.Datatype | undefined, wanted: P.Datatype | undefined): boolean {
+    if (!actual || !wanted || actual === "nothing") return true
+    const actualType = this.getType(actual)
+    const wantedType = this.getType(wanted)
+    if (!actualType || !wantedType || !isSure(actualType) || !isSure(wantedType)) return true
+    return actualType.isA(wantedType) || wantedType.isA(actualType)
+
+    /** Do we know all of `type`'s chain:  no stubs, every super-type found? */
+    function isSure(type: P.TypeScope): boolean {
+      return type.chain().every((it) => !it.stub && (!it.superType || !!it.superTypeScope()))
+    }
+  }
+
   ////////////////
   // ## Parsing
   ////////////////

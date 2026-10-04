@@ -99,10 +99,10 @@
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/function:create a task (with title as text, completed as a choice)", line: [17, 23],
+      path: "project:Todos - Form Based/file:todo.spell/function:create a new task (with title as text, completed as a choice)", line: [17, 23],
       section: "Todo app example",
       rules: [
-        { name: "create_a_task", syntax: "create a task (with {props:object_literal_properties})?" }
+        { name: "create_a_new_task", syntax: "create a new task (with {props:object_literal_properties})?" }
       ]
     }
   ]

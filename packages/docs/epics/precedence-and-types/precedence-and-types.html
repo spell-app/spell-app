@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Precedence and Types</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p5"
-                >next: P5 · Typed Calls, Signatures</ui-label
+              ><ui-label basic color="grey" icon="circle outline" href="#p6"
+                >next: P6 · Multi-word Members</ui-label
               ></span
             >
           </header></ui-sticky
@@ -47,6 +47,32 @@
           >
         </ui-list>
 
+        <ui-section id="overnight" header="Overnight · 2026-10-04" data-bedtime="active" sticky collapsible dividing>
+          <ui-icon slot="icon" name="calendar"></ui-icon>
+          <p class="overnight-summary">
+            Running P4-P9 unattended on branch <code>precedence-and-types</code>, since
+            <time datetime="2026-10-04T03:21-04:00">2026-10-04 03:21</time>.
+          </p>
+          <ui-section id="overnight-phases" header="Phases" sticky collapsible dividing>
+            <ul class="overnight-phases">
+              <li>
+                <b>P4</b> b11d7c65 datatype on every match, TypeScope members, method records, is a takes known types,
+                choice bug fixed; checks: parser/spell/lsp/cli green, speed +10%; <a href="#j10">J10</a>,
+                <a href="#j11">J11</a>, <a href="#j12">J12</a>, <a href="#j13">J13</a>, <a href="#j14">J14</a>,
+                <a href="#j15">J15</a>
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
+            <ul class="overnight-problems">
+              <li>
+                <a href="#p4">P4</a>: `is a` counts a later-declared type only if something earlier stubbed it --
+                narrower than <a href="#d32">D32</a> (<a href="#j10">J10</a>, <a href="#i5">I5</a>); fixing first thing
+                in <a href="#p5">P5</a>
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
@@ -62,7 +88,7 @@
               plan before we start anything.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 12h-17h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 9h-12h left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <ul>
               <li>
@@ -314,7 +340,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="4" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -425,7 +451,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 5-7h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p4" data-phase="4" data-status="done" header="P4 · Types Plumbed" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p4"
+            data-phase="4"
+            data-status="done"
+            header="P4 · Types Plumbed"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -460,19 +495,23 @@
                 <code>yarn ts &amp;&amp; yarn lint &amp;&amp; yarn test</code>; fixtures re-blessed, diff READ;
                 <code>speedTest()</code> on HEAD and the change; <code>PARSING.md</code> updated;
                 <code>yarn vscode</code>; stop for review.</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j10">J10</a> <a href="#j11">J11</a> <a href="#j12">J12</a>
+                <a href="#j13">J13</a> <a href="#j14">J14</a> <a href="#j15">J15</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
             id="p5"
             data-phase="5"
-            data-status="todo"
+            data-status="done"
             header="P5 · Typed Calls, Signatures"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> paren-free typed parameters; call rules reject a confident type mismatch; parser infers
@@ -499,7 +538,11 @@
                 <code>yarn ts &amp;&amp; yarn lint &amp;&amp; yarn test</code>; fixtures re-blessed, diff READ;
                 <code>speedTest()</code> on HEAD and the change; <code>PARSING.md</code> updated;
                 <code>yarn vscode</code>; stop for review.</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-5h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 3-5h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j16">J16</a> <a href="#j17">J17</a> <a href="#j18">J18</a>
+                <a href="#j19">J19</a> <a href="#j20">J20</a> <a href="#j21">J21</a> <a href="#j22">J22</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -2208,7 +2251,7 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j10" data-status="open"
+            ><ui-item id="j10" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j10">J10</a>
@@ -2387,6 +2430,208 @@ the first card of {list:NAME}
                       Built-in suffixes default to <code>datatype: "choice"</code> on <code>InfixOperatorSuffix</code>:
                       every suffix is a test unless it says otherwise (<code>+ - * /</code>, <code>as upper case</code>,
                       <code>as a &lt;type&gt;</code>, <code>X if C otherwise Y</code>).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j16" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j16">J16</a>
+                  <span class="plan-title"
+                    >P5: a typed call rejects only when the two types are unrelated</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose <code>scope.couldBeA(actual, wanted)</code>: a call is rejected only when the argument's
+                    datatype is known and NEITHER type is the other or a sub-type of it -- a <code>Deck</code> for a
+                    <code>Pile</code>, <code>text</code> for a <code>number</code>, a <code>Chip</code> for a
+                    <code>Card</code>. A super-type fits (a <code>list</code> may hold a <code>Pile</code>, a
+                    <code>number</code> may be an <code>integer</code>, a <code>thing</code> may be a
+                    <code>Card</code>), as does <code>nothing</code>, an unknown type, or a chain with a stub or an
+                    unfound super-type. Why: D6 says reject only on a CONFIDENT mismatch, and a super-typed value may
+                    well be the sub-type.
+                  </p>
+                  <ul>
+                    <li>chosen: unrelated types only</li>
+                    <li>
+                      other: strict -- the argument must be the parameter type or a sub-type (rejects
+                      <code>list</code> for <code>Pile</code>)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j17" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j17">J17</a>
+                  <span class="plan-title"
+                    >P5: every call, not just one-argument ones, takes an operand in its LAST slot inside an
+                    expression</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    D24 / D27 say a ONE-argument call. Built as one generic flag,
+                    <code>@proto static operandInExpressions</code> on <code>SpellStatement</code>:
+                    <code>SpellParser.addRule()</code> registers such a rule as the statement, plus an expression twin
+                    whose LAST <code>{x:expression}</code> slot is <code>{x:operand}</code>. That bounds the trailing
+                    slot of a two-argument call too (<code>if give the card to the pile is ...</code>): its earlier
+                    slots are closed by a word already. <code>DynamicMethodRule</code> and <code>await</code> say it;
+                    nothing else does (<code>draw_thing</code>, <code>repeat</code> ... keep their whole expression).
+                  </p>
+                  <ul>
+                    <li>chosen: the last slot of any call, one mechanism for calls and <code>wait for</code></li>
+                    <li>other: only one-argument calls</li>
+                    <li>other: two special cases, one per rule</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j18" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j18">J18</a>
+                  <span class="plan-title"
+                    >P5: declarations write ONE call rule; the expression twin is rebuilt on loading</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    D27 said the saved declaration lists BOTH rules. The twin is derived at registration from the one
+                    rule (its class says <code>operandInExpressions</code>, its syntax ends in
+                    <code>{x:expression}</code>), so loading a declaration through <code>scope.addRule()</code> makes
+                    both again: no change to the saved format, and the importer still rebuilds both (pinned in
+                    <a
+                      href="../../../spell/src/SpellDeclarations.test.ts"
+                      target="src-packages-spell-src-spelldeclarations-test-ts"
+                      ><code>SpellDeclarations.test.ts</code></a
+                    >
+                    and
+                    <a
+                      href="../../../spell/src/rules/methods.export.test.ts"
+                      target="src-packages-spell-src-rules-methods-export-test-ts"
+                      ><code>methods.export.test.ts</code></a
+                    >). Editors map a twin back to its record with <code>SpellStatement.statementRuleOf()</code>.
+                  </p>
+                  <ul>
+                    <li>chosen: derive at registration (D11: simplest)</li>
+                    <li>other: list both rules in <code>SPELL: DECLARES</code></li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j19" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j19">J19</a>
+                  <span class="plan-title"
+                    >P5: forward types by a line scan; an edit that changes which types a file declares re-parses the
+                    project</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fixing I5 / J10 (D32): before any file parses, <code>parser.stubDeclaredTypes()</code> stubs each
+                    type the files declare, found by <code>SpellParser.typesDeclaredIn()</code> -- lines STARTING
+                    <code>a card is</code> or <code>create a type called hand</code>. Its declaration then claims the
+                    stub. <code>P.IncrementalProject</code> compares each file's declared names on every update: changed
+                    =&gt; rewind to before the stubs and re-parse everything (~50ms on Solitaire). The scan needs only
+                    <code>a card is</code>, not <code>a card is a thing</code>, so a half-typed declaration (<code
+                      >a card is a</code
+                    >) keeps the editor's keep-last-good path.
+                  </p>
+                  <ul>
+                    <li>chosen: pre-scan + whole-project re-parse on a change (rare)</li>
+                    <li>other: re-parse only the files above the change -- more incremental machinery</li>
+                    <li>
+                      other: accept any word after <code>is a</code>, report unknown ones after the project parses
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j20" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j20">J20</a>
+                  <span class="plan-title"
+                    >P5: return types -- bare `return` is `nothing`, loop bodies don't count, a getter now changes
+                    scope</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      a method / getter returns what all its <code>return</code>s return, if all agree; none or a mix
+                      =&gt; unknown. A bare <code>return</code> counts as <code>nothing</code>, so
+                      <code>set up a deck</code> (only bare returns) returns <code>nothing</code>.
+                    </li>
+                    <li>
+                      <code>return</code>s inside a body with its own <code>MethodScope</code> (a loop, a callback) are
+                      skipped: they compile to a callback's return.
+                    </li>
+                    <li>
+                      an inline EXPRESSION body is what it returns, e.g. <code>the name of a card is ...</code> =&gt;
+                      <code>text</code>.
+                    </li>
+                    <li>
+                      a getter's inferred type becomes its property's <code>datatype</code> only if the getter declared
+                      the property and nothing gave it one (first datatype wins). So
+                      <code>property_value_getter</code> lost <code>changesScope: "internal"</code>: editing a getter's
+                      line re-parses what follows (D9); an edit to its BODY does only if the type changes.
+                    </li>
+                    <li>
+                      Declarations gain <code>returns</code> / <code>datatype</code> keys on the fixture and live
+                      examples: additions only (D37).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j21" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j21">J21</a>
+                  <span class="plan-title"
+                    >P5: Todos examples renamed `to create a task` =&gt; `to create a new task`; quoted aliases
+                    paren-free too</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    D2 turns <code>to create a task (with title as text)</code> (a free function making a task) into
+                    <code>Task.create()</code>, and its calls <code>create a task with title = ...</code> into the
+                    built-in <code>new Task(...)</code>, which never adds it to the app: both Todos examples would
+                    silently break. Renamed to <code>to create a new task</code> (+ its calls); compiled output
+                    identical bar the name. Beyond the brief: the Solitaire examples' quoted aliases
+                    <code>"can pick up (a card)"</code> / <code>"can play (a card)"</code> are paren-free too (output
+                    identical bar their names). Calculator and FizzBuzz recompiled: unchanged.
+                  </p>
+                  <ul>
+                    <li>other: leave the Todos examples broken until reviewed</li>
+                    <li>other: <code>to add a task</code> -- also a typed parameter</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j22" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j22">J22</a>
+                  <span class="plan-title"
+                    >P5: language server -- the receiver is named by its type; a bare argument's type word is a
+                    parameter</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Snippet / signature-help names come from the method's <code>P.ScopeMethod</code>: the receiver
+                      (<code>{thisArg}</code>) as its type in instance case, the rest from <code>params</code>. So
+                      <code>to show (thing as a card)</code>'s receiver is now <code>card</code>, not
+                      <code>thing</code>.
+                    </li>
+                    <li>
+                      Signature help's parameter ranges come from where <code>method_signature</code> found each
+                      argument (<code>data.argMatches</code>), so <code>(a card)</code> and <code>a card</code> both
+                      work.
+                    </li>
+                    <li>
+                      Highlighting: in <code>to give a card to a pile</code>, <code>card</code> / <code>pile</code> are
+                      <code>parameter</code>, <code>a</code> stays a keyword; the paren form is unchanged (<code
+                        >card</code
+                      >
+                      a type).
                     </li>
                   </ul></ui-content
                 ></ui-accordion
@@ -2611,6 +2856,67 @@ the first card of {list:NAME}
                   <p>Unknown is compatible with everything, so none of this changes what parses.</p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c11">C11</a>
+                  <span class="plan-title"
+                    >P5: a typed parameter rejects a literal of the wrong type -- `notify 1` for `(message as text)` is
+                    no longer a call to it</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    D6 working as decided, but visible: with <code>to notify (message as text)</code>,
+                    <code>notify 1</code> now falls through to the built-in <code>spellCore.notify(1)</code>; a call
+                    with no fallback becomes a parse error. The rule test pinning the old reading flipped (methods.ts,
+                    "typed call"). No fixture or live example changed.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c12">C12</a>
+                  <span class="plan-title">P5: quoted aliases check only their right side</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>MethodInfixRule</code> rejects a right side of the wrong type; neither it nor
+                    <code>MethodPostfixRule</code> can check its LEFT side: a suffix doesn't see it while parsing. Two
+                    types with the same quoted alias (<code>"is ready"</code>) still collide as before -- the earlier
+                    rule wins.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c13">C13</a>
+                  <span class="plan-title"
+                    >P5: `a &lt;known type&gt;` in a QUOTED signature is a parameter too</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Quoted signatures re-parse as <code>method_signature</code>, so
+                    <code>a card "is a thing" if</code> (with <code>thing</code> a type) would now read as an infix
+                    alias taking a thing, not a postfix one. No example or fixture does this;
+                    <code>"is a face card"</code>, <code>"is a bug"</code> are words (no such types).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c14">C14</a>
+                  <span class="plan-title"
+                    >P5: datatypes still unknown for a recursive call, and a call before its method's body ends</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A call's datatype is its method's <code>returns</code>, set once the body has parsed: a call INSIDE
+                    the method's own body is unknown (memoized). Unknown fits everything, so nothing stops parsing.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2643,7 +2949,7 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t3" data-status="open"
+            ><ui-item id="t3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t3">T3</a>
@@ -2671,6 +2977,19 @@ the first card of {list:NAME}
                     and <code>packages/ui/site/_assets/spell.en-*.js</code> still carry the old rule names
                     (<code>simple_expression</code>). Highlighting is unaffected; rebuild with
                     <code>yarn docs:update</code> and the UI site build when next convenient.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t5">T5</a>
+                  <span class="plan-title">P5: try the Todos examples in the app</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Both Todos examples' <code>to create a task</code> is now <code>to create a new task</code> (see the
+                    P5 judgement). <code>yarn start</code> in packages/app: add / remove tasks in Todos and Todos - Form
+                    Based.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2791,7 +3110,7 @@ the first card of {list:NAME}
                   </ol></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i5" data-status="open"
+            ><ui-item id="i5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i5">I5</a>
@@ -2805,6 +3124,24 @@ the first card of {list:NAME}
                     No live example or fixture does this today (all checked). If it matters: pre-scan each project's
                     files for <code>(a|an) X is (a|an) ...</code> / <code>create a type called X</code> and stub those
                     names before parsing -- new mechanism, and edits that add a type would need re-scanning.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i6">I6</a>
+                  <span class="plan-title"
+                    >A signature starting with its receiver crashes the parse: to a card flips</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Its call rule <code>{thisArg:expression} flips</code> is aliased <code>expression</code>, so
+                    <code>SpellParser.getNamesForRule()</code> registers it as an operand and throws (left recursion
+                    guard, P3) -- the whole project fails to parse. True of <code>to (a card) flips</code> since P3;
+                    paren-free signatures make it easier to write. Logged in SUSPECTED-BUGS.md (spell). Fix: register
+                    such a call as a statement only, or as an <code>expression_suffix</code>. Not fixed in P5: no
+                    example does it.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -3317,6 +3654,57 @@ the first card of {list:NAME}
                   on every match (P.Datatype, P.typeName), TypeScope itemType/chain/isA/getMember, ScopeMethod records,
                   is_a known types, choice bug fixed; checks: parser 411, spell 833, lsp 97, cli 132 green; speed 60.1ms
                   / BENCH 60.3ms (+10%)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:21-04:00">2026-10-04 03:21</time></ui-date> Bedtime started:
+                  P4-P9</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:21-04:00">2026-10-04 03:21</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:41-04:00">2026-10-04 03:41</time></ui-date> I5 closed: P4: `is
+                  a &lt;type&gt;` above that type's own declaration is a parse error (J10)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:41-04:00">2026-10-04 03:41</time></ui-date> J10 closed: P4:
+                  `is a` forward references count through stubs only</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:41-04:00">2026-10-04 03:41</time></ui-date> T3 closed: P5:
+                  `buildSignatureData()` tells keywords from args by match length</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:01-04:00">2026-10-04 04:01</time></ui-date> P5
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:01-04:00">2026-10-04 04:01</time></ui-date> P5 done:
+                  paren-free typed params, typed call rules, return inference, calls + wait for bounded inside
+                  expressions, is a forward types (I5), LSP reads params; checks: parser 411, spell 850, lsp 101, cli
+                  132, core 388 green; speed 60.7ms / BENCH 59.6ms</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

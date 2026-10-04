@@ -114,6 +114,7 @@
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:value", line: 15,
+      detail: "number",
       section: "properties of cards",
       description: "value as a derivation of rank"
     },
@@ -195,31 +196,37 @@
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:name", line: 34,
+      detail: "text",
       section: "aliases",
       description: "name as a derivation of name/suit"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:short_suit", line: [36, 41],
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:short_rank", line: [43, 46],
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:short_direction", line: [48, 50],
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:short_name", line: 52,
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:state", line: 54,
+      detail: "text",
       section: "aliases"
     },
     {
-      path: "project:Solitaire/file:Card.spell/type:Card/method:turn (a card) face up", line: [60, 62],
+      path: "project:Solitaire/file:Card.spell/type:Card/method:turn a card face up", line: [60, 62],
       section: "actions",
       description: "Turn card face up or face down\nNote that this will animate if you `wait for turn the card face up`",
       rules: [
@@ -227,14 +234,14 @@
       ]
     },
     {
-      path: "project:Solitaire/file:Card.spell/type:Card/method:turn (a card) face down", line: [63, 65],
+      path: "project:Solitaire/file:Card.spell/type:Card/method:turn a card face down", line: [63, 65],
       section: "actions",
       rules: [
         { name: "turn_face_down", syntax: "turn {thisArg:expression} face down" }
       ]
     },
     {
-      path: "project:Solitaire/file:Card.spell/type:Card/method:turn (a card) over", line: [69, 72],
+      path: "project:Solitaire/file:Card.spell/type:Card/method:turn a card over", line: [69, 72],
       section: "actions",
       description: "Flip card to opposite direction\nNote that this will animate if you `wait for turn the card face up`",
       rules: [
@@ -242,14 +249,14 @@
       ]
     },
     {
-      path: "project:Solitaire/file:Card.spell/type:Card/method:draw (a card)", line: [74, 81],
+      path: "project:Solitaire/file:Card.spell/type:Card/method:draw a card", line: [74, 81],
       section: "actions",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Card.spell/type:Card/method:move (a card) to (a pile)", line: [15, 19],
+      path: "project:Solitaire/file:Card.spell/type:Card/method:move a card to a pile", line: [15, 19],
       section: "Pile of playing cards",
       uri: "spell:/@system:examples:Solitaire/Pile.spell",
       description: "\"move\" a card\nNOTE: use this rather than `add` to make sure card is only in one pile at a time\nif you `wait for: move the card to the pile` the move will be animated",
@@ -258,7 +265,7 @@
       ]
     },
     {
-      path: "project:Solitaire/file:Card.spell/type:Card/method:play (a card)", line: [111, 138],
+      path: "project:Solitaire/file:Card.spell/type:Card/method:play a card", line: [111, 138],
       section: "actions",
       uri: "spell:/@system:examples:Solitaire/Solitaire.spell",
       rules: [
@@ -283,14 +290,14 @@
       section: "Deck:   US standard card deck (without jokers currently)"
     },
     {
-      path: "project:Solitaire/file:Deck.spell/type:Deck/method:set up (a deck)", line: [5, 11],
+      path: "project:Solitaire/file:Deck.spell/type:Deck/method:set up a deck", line: [5, 11],
       section: "Deck:   US standard card deck (without jokers currently)",
       rules: [
         { name: "set_up", syntax: "set up {thisArg:expression}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Deck.spell/type:Deck/method:display (a deck)", line: [13, 17],
+      path: "project:Solitaire/file:Deck.spell/type:Deck/method:display a deck", line: [13, 17],
       section: "Deck:   US standard card deck (without jokers currently)",
       rules: [
         { name: "display", syntax: "display {thisArg:expression}" }
@@ -319,10 +326,12 @@
     },
     {
       path: "project:Solitaire/file:Pile.spell/type:Pile/property:value", line: [8, 10],
+      detail: "number",
       section: "Pile of playing cards"
     },
     {
       path: "project:Solitaire/file:Pile.spell/type:Pile/property:state", line: [22, 26],
+      detail: "text",
       section: "Pile of playing cards"
     },
     {
@@ -342,10 +351,11 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/type:Game/property:state", line: [66, 70],
+      detail: "list",
       section: "actions"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Game/method:draw (a game)", line: [218, 254],
+      path: "project:Solitaire/file:Solitaire.spell/type:Game/method:draw a game", line: [218, 254],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -379,14 +389,14 @@
       description: "set up stock pile: unplayed cards"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Stock_Pile/method:can pick up (a card)", line: 17,
+      path: "project:Solitaire/file:Solitaire.spell/type:Stock_Pile/method:can pick up a card", line: 17,
       section: "set up all piles",
       rules: [
         { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Stock_Pile/method:draw (a stock-pile)", line: [207, 211],
+      path: "project:Solitaire/file:Solitaire.spell/type:Stock_Pile/method:draw a stock-pile", line: [207, 211],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -404,14 +414,14 @@
       description: "set up discards: where played cards go when turning over stock"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Discard_Pile/method:can pick up (a card)", line: 23,
+      path: "project:Solitaire/file:Solitaire.spell/type:Discard_Pile/method:can pick up a card", line: 23,
       section: "set up all piles",
       rules: [
         { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Discard_Pile/method:draw (a discard-pile)", line: [213, 216],
+      path: "project:Solitaire/file:Solitaire.spell/type:Discard_Pile/method:draw a discard-pile", line: [213, 216],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -429,21 +439,21 @@
       description: "set up foundation piles: where we build up from ace => king"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:can pick up (a card)", line: 29,
+      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:can pick up a card", line: 29,
       section: "set up all piles",
       rules: [
         { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:can play (a card)", line: [30, 31],
+      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:can play a card", line: [30, 31],
       section: "set up all piles",
       rules: [
         { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:draw (a foundation)", line: [193, 200],
+      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:draw a foundation", line: [193, 200],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -461,21 +471,21 @@
       description: "set up tableau piles: vertical piles where we arrange from king to ace"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:can pick up (a card)", line: 45,
+      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:can pick up a card", line: 45,
       section: "set up all piles",
       rules: [
         { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:can play (a card)", line: [46, 49],
+      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:can play a card", line: [46, 49],
       section: "set up all piles",
       rules: [
         { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:draw (a tableau)", line: [202, 205],
+      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:draw a tableau", line: [202, 205],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }

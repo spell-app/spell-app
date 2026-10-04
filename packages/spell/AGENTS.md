@@ -97,6 +97,10 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     `is`, `can`, `will`, `has` so far;  a translation registers its own, e.g.
     `addRule(Negatable.specialize({ ruleName: "es" }), { syntax: "(es|(negated:no es))" })` --
     forms in its `negated` group are the negated ones.
+- A rule which is a statement AND an expression, ending in a whole `{x:expression}` (a method call, `wait for`):
+  `@proto static operandInExpressions = true` makes that last slot an `operand` when it's used INSIDE an expression,
+  so `if double x is 4` => `double(x) == 4` while the statement `notify x + y` keeps `notify(x + y)`.
+  `SpellParser.addRule()` registers the statement and an expression twin -- see "Expressions" in `PARSING.md`.
 - A statement with a BODY -- an inline statement, or an indented block under it -- says so with a body
   keyword at the END of its `syntax`, e.g. `if {condition:expression} (then|:)? {statement_body}?`:
   - `{statement_body}` ~== `({inline_statement}|{nested_statements})`
@@ -152,8 +156,10 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   NEVER override `getGroupsForMatch()` to add derived values.
 - In `match.data`, use `NONE` (from `$/util`) for "looked, not found" rather than `null`;  name scope lookups
   `scopeVar` / `scopeConstant` / `scopeType`.
-- ONLY `mutateScope()` changes scope.  `getAST()` MUST be pure:  NEVER change scope, NEVER look it up -- ASTs are
-  built lazily, when scope may have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
+- ONLY `mutateScope()` changes scope -- and, for what a statement knows only once its BODY has parsed (e.g. what a
+  method returns), `mutateScopeAfterBody()`, which returns what it recorded so an edit changing it re-parses what
+  follows.  `getAST()` MUST be pure:  NEVER change scope, NEVER look it up -- ASTs are built lazily, when scope may
+  have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
 - A rule built WHILE PARSING goes through `scope.addRule(RuleClass, definition, match)` -- never `parser.addRule()`
   directly -- so the scope records the class + definition pair and can hand on the rules it created.
 - A `mutateScope()` that adds a scope record -- a variable, constant, type, rule or `ScopeMethod` -- passes

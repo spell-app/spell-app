@@ -57,21 +57,21 @@ the state of a card is: its short-rank + its short-suit + its short-direction
 
 // Turn card face up or face down
 // Note that this will animate if you `wait for turn the card face up`
-to turn (a card) face up: 
+to turn a card face up: 
 	set its direction to up
 	pause for 50 msec
-to turn (a card) face down: 
+to turn a card face down: 
 	set its direction to down
 	pause for 50 msec
 
 // Flip card to opposite direction
 // Note that this will animate if you `wait for turn the card face up`
-to turn (a card) over:
+to turn a card over:
 	if its direction is up: turn it face down
 	otherwise: turn it face up
 	pause for 50 msec
 
-to draw (a card):
+to draw a card:
 	set className to "Card face-" + its direction + " "	+ its rank + " " + its suit + " ui button compact fluid "
 	if it is face down 
 		return <div onClick={fire event card-click with card = it} className={className}><i className="fitted bicycle icon"/></div>

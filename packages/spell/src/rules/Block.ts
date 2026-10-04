@@ -239,4 +239,6 @@ export type BlockMatchData = {
   bodyErrorsAt?: number
   /** On a `line` match with a nested body:  journal mark just before the body was parsed, if journaled. */
   bodyMark?: P.JournalMark
+  /** On a `line` match:  what its statement's `mutateScopeAfterBody()` recorded, if anything. */
+  afterBody?: string
 }

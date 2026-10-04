@@ -12,7 +12,7 @@ import { SpellParser } from "$/spell/SpellParser"
 // Structural rule classes, registered directly below.
 import { Block, type DocComment } from "./Block"
 import { BlockLine, blank_line } from "./BlockLine"
-import { commitStatement } from "./Statement"
+import { commitStatement, SpellStatement } from "./Statement"
 
 // The following define "modules" of rule sets, which will be combined below.
 import { core } from "./core"
@@ -60,6 +60,8 @@ export { Negatable }
 export { type DocComment }
 /** Export so anything which parses a statement on its own can lock it in, e.g. `SpellParser.commit()`. */
 export { commitStatement }
+/** Export so editors can map a call's expression twin to its statement rule -- see `SpellStatement.statementRuleOf()`. */
+export { SpellStatement }
 /** Export so `SpellParser`'s incremental parsing hooks can narrow to them. */
 export { Block, BlockLine }
 
