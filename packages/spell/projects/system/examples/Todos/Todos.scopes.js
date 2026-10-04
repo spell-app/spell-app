@@ -56,38 +56,23 @@
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/property:filter", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/enumeration:Filters", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/constant:all", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/constant:active", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/constant:completed", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/method:draw (a todos-app)", line: [37, 62],

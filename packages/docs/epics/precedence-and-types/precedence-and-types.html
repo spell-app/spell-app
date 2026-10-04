@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Precedence and Types</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p6"
-                >next: P6 · Multi-word Members</ui-label
+              ><ui-label basic color="grey" icon="circle outline" href="#p7"
+                >next: P7 · Built-in Member Tables</ui-label
               ></span
             >
           </header></ui-sticky
@@ -61,6 +61,12 @@
                 <a href="#j11">J11</a>, <a href="#j12">J12</a>, <a href="#j13">J13</a>, <a href="#j14">J14</a>,
                 <a href="#j15">J15</a>
               </li>
+              <li>
+                <b>P5</b> 9f40e24f paren-free typed params, typed call rules, return types, calls / wait for bounded
+                inside expressions, is a forward types; checks: all green, speed +11%; <a href="#j16">J16</a>,
+                <a href="#j17">J17</a>, <a href="#j18">J18</a>, <a href="#j19">J19</a>, <a href="#j20">J20</a>,
+                <a href="#j21">J21</a>, <a href="#j22">J22</a>
+              </li>
             </ul>
           </ui-section>
           <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
@@ -69,6 +75,11 @@
                 <a href="#p4">P4</a>: `is a` counts a later-declared type only if something earlier stubbed it --
                 narrower than <a href="#d32">D32</a> (<a href="#j10">J10</a>, <a href="#i5">I5</a>); fixing first thing
                 in <a href="#p5">P5</a>
+              </li>
+              <li>
+                <a href="#p5">P5</a>: declarations save ONE call rule and rebuild its expression twin on load, not both
+                as <a href="#d27">D27</a> said (<a href="#j18">J18</a>); every call's last slot is bounded inside
+                expressions, not only one-argument calls (<a href="#j17">J17</a>)
               </li>
             </ul>
           </ui-section>
@@ -88,7 +99,7 @@
               plan before we start anything.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 9h-12h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 6h-8h left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <ul>
               <li>
@@ -340,7 +351,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -503,6 +514,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p5"
             data-phase="5"
             data-status="done"
@@ -548,13 +560,13 @@
           <ui-section
             id="p6"
             data-phase="6"
-            data-status="todo"
+            data-status="done"
             header="P6 · Multi-word Members"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>the short rank of a card is:</code>; members resolved through the reader's type;
@@ -569,7 +581,12 @@
                 <code>yarn ts &amp;&amp; yarn lint &amp;&amp; yarn test</code>; fixtures re-blessed, diff READ;
                 <code>speedTest()</code> on HEAD and the change; <code>PARSING.md</code> updated;
                 <code>yarn vscode</code>; stop for review.</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j23">J23</a> <a href="#j24">J24</a> <a href="#j25">J25</a>
+                <a href="#j26">J26</a> <a href="#j27">J27</a> <a href="#j28">J28</a> <a href="#j29">J29</a>
+                <a href="#j30">J30</a> <a href="#j31">J31</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -2636,6 +2653,247 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j23" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j23">J23</a>
+                  <span class="plan-title"
+                    >P6: `the X of Y` is ONE rule, resolved else loose -- not split like known_variable / variable</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose one <code>property_expression</code> (<code
+                      >the {property:member_words} of {expression:operand}</code
+                    >, priority 1) which resolves the words through the operand's type, else takes ONE unblacklisted
+                    word loose, else rejects -- over the plan's two rules (a resolved
+                    <code>known_property_expression</code> beside a loose one). Why: two rules parse every
+                    <code>the X of Y</code>'s operand twice, recursively; measured +3.5ms (6%) on the Solitaire BENCH.
+                    Same readings either way (D5 holds).
+                  </p>
+                  <ul>
+                    <li>
+                      <code>its</code> stays split: resolved <code>its_known_property</code> (priority 1, longest
+                      declared run) and loose <code>its_property</code> (priority 0). Merged, the loose read takes ONE
+                      of several words, so at priority 1 it would beat <code>its last card</code>, the ordinal. No
+                      operand, so no double parse.
+                    </li>
+                    <li>Option: split as planned, at +6% parse time.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j24" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j24">J24</a>
+                  <span class="plan-title"
+                    >P6: a declared member read is priority 1 -- beats the ordinal and loose reads, NOT `the position
+                    of` / `the number of` / `the biggest of`</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose priority 1 for <code>property_expression</code> and <code>its_known_property</code> over
+                    something high, e.g. 20 like a quoted alias. Why: a Choice ranks priority BEFORE length, so a high
+                    priority would let a type declaring <code>position</code> take
+                    <code>the position of the card</code> out of
+                    <code>the position of the card in the pile</code> (list_position, priority 3) and leave
+                    <code>in the pile</code> unparsed.
+                  </p>
+                  <ul>
+                    <li>
+                      1 still settles D5's case: a deck's declared <code>last card</code> beats the ordinal
+                      <code>the last card of</code> (probe M2), and the loose read.
+                    </li>
+                    <li>
+                      Option: higher, so a declared member also beats list_length / list_position / max / min reading
+                      the same words.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j25" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j25">J25</a>
+                  <span class="plan-title">P6: member_words' stop list, and any case</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The design's list (<code
+                      >of the a an is has have in to and or if where as with whose for from then else otherwise</code
+                    >) plus <code>not into on by at isnt are was</code>, compared lower-cased. And any case, not
+                    lower-case first like <code>property</code>: a class variable is Type_Case (<code>Card Suits</code
+                    >). Safe, as a read only takes words its type declares, and a declaration's words sit between fixed
+                    ones.
+                  </p>
+                  <ul>
+                    <li>
+                      Option: the design's list only -- <code>its rank not ...</code>-style phrasings would then run on.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j26" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j26">J26</a>
+                  <span class="plan-title"
+                    >P6: the enumeration table passes with two readings -- `the suits of the card` =&gt; `Card.Suits`,
+                    and a new `list_count`</span
+                  > </ui-title
+                ><ui-content
+                  ><p>CODE-DEBT's table (now deleted) needed every way to reach an enumeration to work. Chose:</p>
+                  <ul>
+                    <li>
+                      <code>the suits of the card</code> / <code>its suits</code>: the resolved read finds the
+                      enumeration's instance twin and compiles to its type's class variable, <code>Card.Suits</code> --
+                      over defining an instance <code>suits</code> at runtime.
+                    </li>
+                    <li>
+                      <code>the number of card suits</code>: a new rule <code>list_count</code>,
+                      <code>the? number of {list:operand}</code> (priority 3), taking an operand whose datatype is a
+                      list -- else <code>the number of x</code> stays <code>x.number</code>. Over waiting for P7's
+                      built-in member tables (<code>number</code> of a list).
+                    </li>
+                    <li>
+                      <code>card suits</code>, <code>bank-account account-types</code>: <code>class_member</code>,
+                      priority 20 as the per-enumeration rule had.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j27" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j27">J27</a>
+                  <span class="plan-title"
+                    >P6: the article in a property declaration is optional; with-jokers keeps its dash</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>define_property_has</code>'s <code>(a|an|a property)</code> is now optional, so the probe's
+                    <code>a card has short rank as text</code> parses. Live Deck.spell:
+                    <code>a deck has with-jokers as yes or no</code> -- kept the dashed word (<code>with</code> is
+                    structural, so <code>with jokers</code> can't be a member's words) and dropped the article, which
+                    read oddly.
+                  </p>
+                  <ul>
+                    <li>Options: rename it (<code>jokers</code>), or keep <code>a with-jokers</code>.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j28" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j28">J28</a>
+                  <span class="plan-title"
+                    >P6: auto-declare only on a type the PROJECT declares -- not a built-in or imported one</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose to declare <code>X</code> at <code>set the X of Y to V</code> only when <code>Y</code>'s type
+                    came from this project's source (not a stub, has <code>declaredBy</code>) -- over any known type, as
+                    the plan's wording allowed. Why: a built-in type lives in the shared root scope, an imported one in
+                    the import layer -- shared, and outside the journal, so a record there would outlive the edit that
+                    made it (see the SUSPECTED-BUGS entry on <code>declareProperty()</code> for built-in / imported
+                    types).
+                  </p>
+                  <ul>
+                    <li>
+                      Cost: Solitaire-import's <code>set the name of cards-to-move ...</code>, on an imported
+                      <code>Pile</code>, stays a plain field (not reactive); Solitaire from source gets a declared one.
+                      So the test "the app compiles the same against the library's declarations as against its sources"
+                      now strips that one auto-declaration before comparing.
+                    </li>
+                    <li>
+                      Option: emit the declaration for an imported type too, without a scope record (deduped per file).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j29" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j29">J29</a>
+                  <span class="plan-title"
+                    >P6: an auto-declared property compiles at its file's top -- or after its class, in the same file --
+                    with the set's SPELL: DECLARES comment there, not on the set line</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Two departures from plan item 5:</p>
+                  <ul>
+                    <li>
+                      Placement: at the setting file's top, EXCEPT when the type's class is declared in that same file
+                      -- then right after it. Why: a class can't be patched above its own declaration (<code
+                        >Deck.declareProp(...)</code
+                      >
+                      before <code>export class Deck</code> throws). e.g. Deck.spell's <code>is_set_up</code> follows
+                      <code>class Deck</code>; Pile.spell's <code>Card.pile</code> is at its top.
+                    </li>
+                    <li>
+                      The <code>set</code>'s <code>SPELL: DECLARES</code> comment sits on that declaration, NOT the
+                      <code>set</code> line. Why: the set is usually in a method's body, whose AST is memoized and KEPT
+                      when an edit above only moves it -- the incremental suite caught its <code>defined</code> offsets
+                      going stale. A file's AST is built afresh each compile. It also puts the comment on the code that
+                      declares the property.
+                    </li>
+                    <li>
+                      Option: the comment on the set line without <code>defined</code> (no source location for
+                      importers).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j30" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j30">J30</a>
+                  <span class="plan-title"
+                    >P6: editors show a member as written -- ScopeVariable.words, and a pack entry's name</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A property's record keeps its compiled name (<code>short_rank</code>) as <code>name</code> -- scope
+                    keys, declarations and scope-pack paths stay as they were -- and its words as written, if different,
+                    as <code>words</code> (<code>short rank</code>, <code>short-suit</code>). Hover, completion and the
+                    Type Explorer show <code>words</code>; a scope pack entry gains <code>name</code> when it differs
+                    from its path's. So the Type Explorer and <code>spell describe</code> now list
+                    <code>short-suit</code> where they listed <code>short_suit</code>.
+                  </p>
+                  <ul>
+                    <li>
+                      Option: path by words -- breaks the runner, which matches compiled code to entries by
+                      <code>property: "short_rank"</code>.
+                    </li>
+                    <li>
+                      Completion after <code>the </code> offers EVERY visible type's properties: what's typed doesn't
+                      know yet what it reads from.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j31" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j31">J31</a>
+                  <span class="plan-title"
+                    >P6: old rule: enumeration declarations are skipped at load; an auto-declared property records V's
+                    datatype, not nothing</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Loading skips <code>rule: "enumeration"</code> (<code>LEGACY_ENUMERATION_RULE</code> in
+                      SpellDeclarations.ts) rather than keep a shim class: <code>class_member</code> reads any type's
+                      class variables, so there's nothing to rebuild. The repo's compiled libraries were regenerated
+                      (D37).
+                    </li>
+                    <li>
+                      <code>set the X of Y to nothing</code> declares X with no datatype (and no runtime type check),
+                      rather than <code>nothing</code>. The check is the value type as is (<code>text</code>),
+                      <code>list</code> for any list, a class by its runtime name.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2914,6 +3172,59 @@ the first card of {list:NAME}
                   ><p>
                     A call's datatype is its method's <code>returns</code>, set once the body has parsed: a call INSIDE
                     the method's own body is unknown (memoized). Unknown fits everything, so nothing stops parsing.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c15">C15</a>
+                  <span class="plan-title"
+                    >P6: a multi-word read needs its operand's type -- `the short rank of x`, x untyped, is a parse
+                    error</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    D5 as built: several words must be declared on the type of what's read, so an operand whose datatype
+                    is unknown (an untyped argument <code>(x)</code>, a value from JavaScript) can't take a multi-word
+                    read. The dashed spelling still reads loose: <code>the short-rank of x</code> =&gt;
+                    <code>x.short_rank</code>. Same for <code>its short rank</code> where <code>it</code>'s type is
+                    unknown.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c16" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c16">C16</a>
+                  <span class="plan-title"
+                    >P6: an imported or built-in type's undeclared property stays a plain field</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    See J28. Solitaire-import's <code>set the name of cards-to-move to ...</code>, on
+                    <code>Pile</code> imported from compiled Solitaire, compiles to
+                    <code>cards_to_move.name = ...</code>, not reactive -- while Solitaire, from source, declares
+                    <code>Pile.name</code> at the top of Solitaire.spell. Also: a read ABOVE the first
+                    <code>set</code> reads the property loose (same JavaScript, no datatype).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c17" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c17">C17</a>
+                  <span class="plan-title"
+                    >P6: spell speed reads 69ms, but 29 of its tests are new -- on HEAD's tests it's 60.9ms</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn spell speed --json</code> times every rule unit test; P6 adds 29 (657 vs 628), several
+                    compiling a multi-line setup each. Medians of 3: 69.0ms all tests; 60.9ms with P6's new test blocks
+                    blanked (633 tests); HEAD (P5) 56.75ms on its 628. Against the after-P3 baseline (54.5ms) that's
+                    +12% like for like, +27% raw. The project BENCH, the real-world number: 59.0ms vs HEAD 58.2ms (P3
+                    baseline 55.2ms). Fix tried: merging the resolved and loose <code>the X of Y</code> reads (J23) took
+                    BENCH from 61.5ms back to 59.0ms.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -3705,6 +4016,49 @@ the first card of {list:NAME}
                   paren-free typed params, typed call rules, return inference, calls + wait for bounded inside
                   expressions, is a forward types (I5), LSP reads params; checks: parser 411, spell 850, lsp 101, cli
                   132, core 388 green; speed 60.7ms / BENCH 59.6ms</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:01-04:00">2026-10-04 04:01</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:43-04:00">2026-10-04 04:43</time></ui-date> P6 (bedtime
+                  agent): multi-word members built -- member_words; property_expression resolves through the reader's
+                  type, else one loose word (one rule, J23); its_known_property / its_property; class_member replaces
+                  EnumerationRule (CODE-DEBT entry deleted); list_count; auto-declare at first set (own types only, J28;
+                  at the file's top or after its class, J29); LSP hover / definition / completion / Type Explorer show
+                  members as written; live Card / Deck say short rank etc, regenerated. Probes M1-M5 + datatypes. BENCH
+                  59.0ms (HEAD 58.2ms); spell speed 69.0ms with 29 new tests, 60.9ms without (C17). J23-J31,
+                  C15-C17.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:43-04:00">2026-10-04 04:43</time></ui-date> P6 built by the
+                  bedtime agent: multi-word members, see J23-J31 and C15-C17</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:45-04:00">2026-10-04 04:45</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:45-04:00">2026-10-04 04:45</time></ui-date> P6 done:
+                  member_words, multi-word getters/reads resolved through the type, class_member replaces
+                  EnumerationRule, auto-declare at first set; checks: parser 411, spell 885, lsp 105, cli 132 green;
+                  BENCH 59.0ms, speed 69.0ms raw (60.9 like for like)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

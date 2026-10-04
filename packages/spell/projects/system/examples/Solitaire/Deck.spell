@@ -13,7 +13,7 @@ to set up a deck
 to display a deck
 	set card-names to a new list
 	for each card in the deck
-		add the short-name of the card to card-names
+		add the short name of the card to card-names
 	echo "deck: " + card-names
 
 to test deck creation
@@ -25,7 +25,7 @@ to test deck creation
 	set the queens to the cards in the deck where the rank of the card is "queen" 
 	expect the number of cards in the queens to be 4
 	expect the name of the bottom card of the deck to be "king-of-spades"
-	expect the short-name of the top card of the deck to be "A♣️"
+	expect the short name of the top card of the deck to be "A♣️"
 
 	echo "the deck before shuffling:"
 	display the deck

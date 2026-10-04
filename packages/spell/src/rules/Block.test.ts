@@ -85,11 +85,10 @@ describe("compiling docstrings and headings", () => {
     // in a class body too
     const property = compile("a card is a thing\n\n// card ranks\ncards have a rank as one of ace or king")
     const propertyDoc = property.indexOf("  /** card ranks */")
-    expect(property.slice(propertyDoc, propertyDoc + 6)).toEqual([
+    expect(property.slice(propertyDoc, propertyDoc + 5)).toEqual([
       "  /** card ranks */",
       "  /*! SPELL: DECLARES {",
-      '    property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card",',
-      "    enumeration: [\"'ace'\", \"'king'\"],",
+      '    property: "rank", classVariable: "Ranks", of: "Card", enumeration: ["\'ace\'", "\'king\'"],',
       "  } */",
       "  static Ranks = ['ace', 'king']"
     ])

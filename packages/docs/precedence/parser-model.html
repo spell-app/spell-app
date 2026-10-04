@@ -1498,6 +1498,25 @@ constructor(props: SpellExpressionProps) {
               as the statement plus an operand twin. The twin is derived at registration, so declarations still write
               ONE rule (not both, as D27 said) and loading rebuilds both.
             </p>
+            <p>
+              Built (P6): as the table says, plus what it didn't. <code>member_words</code> also stops at
+              <code>not into on by at isnt are was</code>, and takes any case (a class variable is <code>Suits</code>).
+              Resolved reads are <code>property_expression</code> (resolved else loose, ONE rule: J23) /
+              <code>its_known_property</code> at <code>priority: 1</code>, NOT higher: a type declaring
+              <code>position</code> mustn't beat <code>the position of x in</code> (priority 3). A resolved read finds
+              PROPERTIES only, and an enumeration's instance twin compiles to its class variable (<code
+                >the suits of the card</code
+              >
+              =&gt; <code>Card.Suits</code>). <code>its</code> and <code>class_member</code> take the longest declared
+              run by re-parsing with fewer tokens (<code>declaredPrefix()</code>), not by bounding
+              <code>member_words</code>. The CODE-DEBT table's last row, <code>the number of card suits</code>, needed
+              one more rule, <code>list_count</code> (<code>the number of {list:operand}</code>, a list's datatype
+              only). Auto-declare covers only types the PROJECT declares, not built-in or imported ones (they live in
+              shared scopes the journal doesn't cover), and is emitted at the file's top, or just after its type's class
+              if that's in the same file (a class can't be patched above its own declaration), with the
+              <code>set</code>'s <code>SPELL: DECLARES</code> comment there too: a method body's AST is memoized, so a
+              comment inside one keeps stale offsets after an edit above it.
+            </p>
           </ui-section>
 
           <ui-section id="6-3-rules" header="6.3 Rules that change in P4-P8" sticky collapsible dividing>
@@ -1561,7 +1580,12 @@ constructor(props: SpellExpressionProps) {
                   <tr>
                     <td>P6</td>
                     <td><code>property_expression</code></td>
-                    <td>split: a resolved (declared) read, higher priority, and a loose single-word read</td>
+                    <td>
+                      split: a resolved (declared) read, higher priority, and a loose single-word read. Built: ONE rule
+                      doing both, priority 1 (J23, J24); <code>its</code> split, as <code>its_known_property</code> +
+                      <code>its_property</code>; <code>the_property_of</code> and the
+                      <code>property_accessor</code> alias gone
+                    </td>
                   </tr>
                   <tr>
                     <td>P6</td>
@@ -1767,8 +1791,11 @@ constructor(props: SpellExpressionProps) {
               109.6ms. After P3: <code>yarn spell speed --json</code> 54.5ms, BENCH 55.2ms (medians of 3 runs). After
               P4: 60.1ms, BENCH 60.3ms; P3 re-measured the same night: speed 62.3ms, so most of that is the machine.
               After P5: 60.7ms, BENCH 59.6ms; P4 re-measured just before: 55.0ms, BENCH 55.5ms (typed calls compute each
-              argument's datatype while parsing; every call is also an operand twin). Give-back adds parses only to
-              sequences already failing.
+              argument's datatype while parsing; every call is also an operand twin). After P6: BENCH 59.0ms, P5
+              re-measured just before 58.2ms; <code>yarn spell speed</code> 69.0ms, but it times P6's 29 new rule tests
+              too -- 60.9ms with them blanked, P5 56.75ms (plan doc C17). A resolved and a loose
+              <code>the X of Y</code> rule side by side cost 3.5ms more, parsing each operand twice: one rule does both
+              (J23). Give-back adds parses only to sequences already failing.
             </li>
           </ul>
         </ui-section>
@@ -1824,7 +1851,7 @@ constructor(props: SpellExpressionProps) {
 
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
-          <p class="meta">Last checked 2026-10-04 against branch <code>precedence-and-types</code>, P4 as built.</p>
+          <p class="meta">Last checked 2026-10-04 against branch <code>precedence-and-types</code>, P6 as built.</p>
         </footer>
       </main>
     </div>

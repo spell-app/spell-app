@@ -45,9 +45,10 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `Literal` / `Literals` / `Pattern` / `TokenType` compare single tokens with `===` / regex -- cheap.
 - Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-10-04, after P3 of precedence-and-types
   halved it):  Card.spell (121 lines) ~12ms, Solitaire.spell (259 lines) ~32ms, whole Solitaire project ~55ms;
-  ~60ms after P5 (typed calls, return types).
+  ~60ms after P5 (typed calls, return types), ~59ms after P6 (members).
   Compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
-  `parser.rules` rebuilds after mid-parse `addRule()`s:  38 per project parse, ~1ms total -- not worth optimizing.
+  `parser.rules` rebuilds after mid-parse `addRule()`s:  35 per project parse (38 before P6:  no rule per enumeration),
+  ~1ms total -- not worth optimizing.
 - "What can come NEXT?" -- `parser.expectedAfter(input, ruleName, scope)` parses a half-typed line in
   EXPECTING mode (`P.Expectations`), for editor completion:
   - rules record what they were waiting for where they ran out of tokens:  `Sequence` the child it hadn't got to
@@ -109,9 +110,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   plurals) => those words.  `SpellType.mapValue()` uses it too, keeping classes Type_Case for compiled code (`List`).
 - `match.datatype` memoizes `rule.getDatatype(match)` -- default the rule's `@proto static datatype`;  about a dozen
   rules override it, reading ONLY `match.data` and child matches' datatypes:
-  - `variable` / `SpellIdentifier`:  its `scopeVar`'s `datatype`;  `its_property` / `property_expression`:  the
-    member they read (`data.member`);  `DynamicMethodRule`:  its method record's `returns` (`data.method`),
-    which the parser infers -- see "Return types" below
+  - `variable` / `SpellIdentifier`:  its `scopeVar`'s `datatype`;  a member read (`the X of Y`, `its X`, see
+    "Members"):  the member it read (`data.member`), an enumeration's values `list`;  `DynamicMethodRule`:  its
+    method record's `returns` (`data.method`), which the parser infers -- see "Return types" below
   - `new_thing` / `create_thing` / `new_list`:  the type made;  list rules:  the item type (`data.itemType`), the
     list's type, or `number`
   - `compound_expression`:  `getAST()`'s shunting-yard again, over datatypes -- each suffix's
@@ -165,6 +166,31 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   tie going wrong;  then set it, with a one-line why.
 - Always NAME a slot, so `match.groups` keeps its key.  Add one mixed-operator line to the probe ledger,
   `src/grammar.probes.test.ts`.
+
+## Members:  `the short rank of the card`
+
+- A member's NAME is `member_words` (`properties.ts`):  1..N words up to the first structural one (`MEMBER_STOP_WORDS`:
+  `of the a an is has have in to and or if where as with whose for from then else otherwise not ...`) -- NOT the
+  identifier blacklist, so `short` is fine.  `value` is its compiled name, `short_rank`;  `raw` its words, `short rank`.
+  Either spelling, or `short-rank`, finds the same record:  scope lists normalize keys (`snakeCase`).
+- Declarations take `{property:member_words}` (group name kept):  `the short rank of a card is:`, `a card has short
+  rank as text` (article optional), `a cards color is`, `its {property}` in a quoted formula, object literals.  Each
+  records the property with `TypeScope.declareProperty(name, declaredBy, { words, datatype, auto })`.
+- Reads come two ways (plan doc D5), worked out in `parse()`:
+  - RESOLVED:  the words name a PROPERTY the type of what's read declares (`getMember()`, up its super-types).  An
+    enumeration's instance twin compiles to its class variable:  `the suits of the card` => `Card.Suits`.
+  - LOOSE:  ONE word, blacklisted words out, which nothing need declare:  `the is-set-up of it`.  Several undeclared
+    words are NOT a property read, so `the first card of the deck` stays the ordinal rule's.
+  - `the X of Y` is ONE rule doing both, `property_expression` (`the {property:member_words} of
+    {expression:operand}`):  two would parse every operand twice.  `priority: 1`:  a declared `last card` beats the
+    ordinal `the last card of` -- but NOT `the position of` / `the number of` (priority 3).
+  - `its X` is two:  `its_known_property` (resolved, priority 1) takes the LONGEST run `it`'s type declares
+    (`declaredPrefix()`, re-parsing with fewer tokens), e.g. `its short rank + its short suit`;  `its_property` the
+    loose word, at priority 0 so `its last card` stays `its_ordinal`'s.
+- A type's class members:  ONE static rule, `class_member` (`classes.ts`), `{type:known_type} {member:member_words}`
+  -- the longest run that's a class variable of the type, e.g. `card suits includes x` => `Card.Suits`.  Was a rule
+  per enumeration (`EnumerationRule`).  `the number of card suits` counts:  `list_count` takes any operand whose
+  datatype is a list.
 
 ## File => block => line => statement
 
@@ -239,8 +265,13 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     datatype, and by editors.  A getter's datatype is what it returns, set once its body has parsed (see
     "Datatypes", "Return types"), so a getter changes scope as any declaration does:  editing its line re-parses
     what follows.
-    An enumerated one (`define_property_has`) also adds constants for each value,
-    a plural `classVariables` entry (e.g. `Suits`), AND a rule
+    An enumerated one (`define_property_has`) also adds constants for each value, and a plural `classVariables`
+    entry (e.g. `Suits`, with an instance twin in `variables`) -- which ONE static rule, `class_member`, reads
+    for any type:  no rule per enumeration (see "Members").
+  - auto-declared properties:  `set the X of Y to V` (`assignment_statement.declareProperty()`), where `Y`'s type is
+    one the PROJECT declares (not a stub, an import or a built-in) and `X` isn't on it, declares `X` there, `auto`,
+    holding `V`'s datatype -- so it's reactive.  `data.autoDeclared` makes that `set` `"global"`:  see
+    `getScopeChanges(match)` under "Incremental parsing".  Its FILE compiles the declaration -- see "Compile".
 - Every record a `mutateScope()` adds -- `ScopeVariable`, `ScopeConstant`, `TypeScope`, `ScopeMethod`, `ScopeRule` -- carries
   `declaredBy`, the match which declared it (for go-to-definition etc.), and a `ScopeRule` its built
   `instances`, so a call-site `match.rule` maps back to its definition.  `MethodScope` stamps its
@@ -270,8 +301,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - `Parser.addRule()` clears the memoized `rules` map;  next `parser.rules` rebuilds the whole merge.
   - `mergeRule()` is copy-on-write:  existing `Group`s are cloned, never mutated.
   - There is NO `removeRule` -- but `parser.journal` can undo an `addRule()`, see "Incremental parsing".
-  - Generated rules are NAMED classes `specialize()`d with plain-data statics (`EnumerationRule`,
-    `QuotedPropertyRule` in `classes.ts`;  `DynamicMethodRule`, `MethodPostfixRule`, `MethodInfixRule` in
+  - Generated rules are NAMED classes `specialize()`d with plain-data statics (`QuotedPropertyRule` in
+    `classes.ts`;  `DynamicMethodRule`, `MethodPostfixRule`, `MethodInfixRule` in
     `methods.ts`), never closures -- so `SP.SpellDeclarations` can write a project's rules out as data, and
     another project can rebuild them:  each base class says `@proto static importableAs = "<id>"`, which registers
     it for `P.Rule.importableRule(name)` (`Rule.protoDefined()`).
@@ -312,9 +343,13 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - `Block.getAST()` puts a `/*! SPELL: DECLARES {...} */` comment right on each declaring statement's code,
     below any docstring -- indented in its class's body for a class member (`commentFor()`):  ONE flat JS object
     literal, 3-7 lines, merging the scope records it added (`declarationFor()`), e.g.
-    `{ property: "suit", classVariable: "Suits", rule: "enumeration", of: "Card", enumeration: [...] }`.
+    `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`.
     - `rule` is the `importableAs` of the class its rule was `specialize()`d from;  what that took sits beside it,
-      e.g. `output` -- loading passes the whole object to `specialize()`, which picks out its own.
+      e.g. `output` -- loading passes the whole object to `specialize()`, which picks out its own.  Loading SKIPS
+      `rule: "enumeration"`, which a compiler from before P6 of precedence-and-types wrote for each enumeration
+      (`LEGACY_ENUMERATION_RULE`):  no version bump (plan doc D37).
+    - An auto-declared property's (`auto: true`) sits on its declaration at its file's top, NOT on its `set` -- see
+      "Compile".
     - Leaves out what loading works out, e.g. an enumeration's constants, or a rule's owner (`of`, else `output`).
     - `defined: "/Card.spell:222-283"` -- where the statement is:  its character offsets, project-relative.
     - NO line numbers:  a page with no sources matches the code to a scope pack's entry by what it declares,
@@ -393,9 +428,10 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     keeps everything after it:  same `lastGood` => same changes.  Deliberately NOT what a full parse gives.
     NOTE: a header broken so badly it no longer takes its indented body changes size => not kept.
   - file match rebuilt with `parser.assembleFile()` => `Block.assembleBlock()`.
-- `rule.getScopeChanges()`:  `changesScope` if set (`@proto static`), else `undefined` (no
-  `mutateScope()`) or `"global"` (has one -- assume the worst).  `assignment` / `get` say `"internal"`:  their
-  variables go in their own `match.scope`.
+- `rule.getScopeChanges(match)`:  `changesScope` if set (`@proto static`), else `undefined` (no
+  `mutateScope()`) or `"global"` (has one -- assume the worst).  `get` says `"internal"`:  its `it` goes in its own
+  `match.scope`.  A rule may say PER MATCH, reading only `match.data`:  `assignment` is `"internal"` (a variable)
+  unless it auto-declared a property (`data.autoDeclared`), then `"global"` -- so a plain `set x to 1` stays cheap.
 - If an `update()` throws (a rule crashed committing a line), `IncrementalProject.isBroken`:  next update re-parses
   every file from scratch.
 - Cost, Solitaire, vs full parse ~110ms:  body edit ~10ms;  comment / blank line / top-level statement anywhere
@@ -437,6 +473,13 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - A project then does the same across ALL its files (`SpellProject.combineCompiled()`), so `Card.move_to_$pile`
     from `Pile.spell` ends up in `Card.spell`'s class.  So does `compiledFixture()`.  NEVER mutates an AST:  a class
     which gets members is a NEW `P.ASTClassDeclaration` (`withMembers()`).
+  - An AUTO-declared property (see "Scope:  who changes it") compiles ONCE, in the file of the `set` that declared
+    it:  at its top, or just after its type's declaration if that's in the same file (a class isn't defined above
+    its own line) -- `Card.declareProp('pile', { type: 'Pile' })` + `Object.defineProperty(Card.prototype, ...)`,
+    under that `set`'s `SPELL: DECLARES` comment (`Block.autoDeclarations()`, `autoDeclarationAST()`).  A
+    `P.ASTPatchedMember`, NOT a class member, so hoisting never moves it:  it can't change another file's output.
+    Why not on the `set` line:  that may be in a method's body, whose AST is memoized -- an edit above it which only
+    moves it would leave its `defined` offsets stale.  A file's AST is built afresh.
 
 ## Language server
 
@@ -459,7 +502,10 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - definition / references from the scope record a word resolved to while parsing (`data.scopeVar` etc.)
     and that record's `declaredBy`;  method calls from `ScopeRule.instances`;  properties from their type's
     `variables` (`TypeScope.getMember()`), else by name
-  - hover says what a variable holds, its `datatype`, e.g. `variable **card**: Card · argument`
+  - hover says what a variable holds, its `datatype`, e.g. `variable **card**: Card · argument`;  a member by its
+    words as written (`ScopeVariable.words`), e.g. `property **short rank** of Card`
+  - completion offers properties where a member's words can come, e.g. after `the ` -- every visible type's, as
+    written;  the Type Explorer lists them so too (`ScopeEntry.name`, when the path's name -- as compiled -- differs)
 - Formatting is `P.TokenFormatter` (`packages/parser/src/tokenizer/`), indenting with TABS always:  whitespace only, from the tokens -- no
   pretty-printer, the AST is a javascript tree.  Indent LEVELS come from indent widths, not the tokenizer's blocks
   (which nest one per whitespace character).  It re-tokenizes its result and gives up if anything but whitespace

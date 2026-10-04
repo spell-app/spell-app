@@ -113,13 +113,19 @@ describe("SpellDeclarations.importScope()", () => {
   test("the app compiles the same against the library's declarations as against its sources", () => {
     const fromSources = summarize(parseSpellProject(all)).filter(({ path }) => path === "/Solitaire.spell")
     const fromDeclarations = summarize(parseSpellProject(app, { parentScope: importLibrary() }))
-    expect(fromDeclarations).toEqual(fromSources)
+    // bar ONE thing:  `set the name of cards-to-move to ...` declares a pile's `name` only on a type the project
+    // declares itself -- see `assignment_statement.declareProperty()`
+    const autoDeclared =
+      /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", auto: true,\n.*\n\} \*\/\n(.*\n){5}/
+    expect(fromSources[0]!.compiled).toMatch(autoDeclared)
+    const withoutIt = fromSources.map((it) => ({ ...it, compiled: it.compiled?.replace(autoDeclared, "") }))
+    expect(fromDeclarations).toEqual(withoutIt)
   })
 
   test("records where each name came from", () => {
     const { origins } = importLibrary()
     expect(origins.get("Card")).toBe(from)
-    expect(origins.get("Card_Suits")).toBe(from)
+    expect(origins.get("turn_face_up")).toBe(from)
   })
 
   describe("records keep what editors need, with no `declaredBy` -- for a library shipped without sources", () => {
@@ -145,10 +151,11 @@ describe("SpellDeclarations.importScope()", () => {
         detail: "turn_face_up()"
       })
       expect(sourceAt(declared?.declaredAt)).toMatch(/^to turn \(a card\) face up/)
-      // a property's rule says it declared the property
-      expect(imports.rules.get("Card_Suits", "LOCAL_ONLY")?.declared?.declaration).toEqual({
-        kind: "property",
-        name: "suit",
+      // a quoted alias's rule says it declared the method it calls
+      expect(imports.rules.get("is_a_$suit", "LOCAL_ONLY")?.declared?.declaration).toEqual({
+        kind: "method",
+        name: '"is a (suit)"',
+        detail: "is_a_$suit()",
         of: "Card"
       })
     })
@@ -217,7 +224,9 @@ describe("SpellDeclarations.importScope()", () => {
     const { scope } = parseSpellProject([], { parentScope: importLibrary({ import: ["Card"] }) })
     expect(scope.types.get("Card")).toBeDefined()
     expect(scope.parse("card suits", "expression")?.compile()).toBe("Card.Suits")
-    expect(scope.types.get("Pile")).toBeUndefined()
+    expect(scope.types.get("Deck")).toBeUndefined()
+    // ...but what a card's properties hold comes along:  `set the pile of the card to the pile` declared one
+    expect(scope.types.get("Pile")).toBeDefined()
   })
 
   test("a picked type brings the types it depends on", () => {

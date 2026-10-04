@@ -273,6 +273,49 @@ lists.addRule(list_length, {
 })
 
 ////////////////
+// ## `list_count` rule
+//    e.g. "the number of card suits"
+////////////////
+
+/**
+ * Length of something KNOWN to be a list, without naming its items, e.g. `the number of card suits` =>
+ * `spellCore.itemCountOf(Card.Suits)`.
+ * - Rejects the match unless its datatype says it's a list, or a list type, e.g. `Deck` -- else
+ *   `the number of x` stays a property read, `x.number`.
+ * - `priority: 3`, as `list_length`, which wins when it names the items:  it's longer.
+ */
+class list_count extends SpellExpression<"list"> {
+  @proto static priority = 3
+  @proto static datatype = "number"
+
+  /** Only a list -- see class docs. */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match || !scope.getType(match.groups.list.datatype)?.isA("list")) return undefined
+    return match
+  }
+  getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
+    return new P.ASTCoreMethodInvocation(match, { methodName: "itemCountOf", args: [P.matchAST(match.groups.list)] })
+  }
+}
+lists.addRule(list_count, {
+  syntax: "the? number of {list:operand}",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.compile(["a card is a thing", "a card has a suit as one of clubs, diamonds", "set x to 1"].join("\n"))
+      },
+      tests: [
+        ["the number of card suits", "spellCore.itemCountOf(Card.Suits)"],
+        ["the number of [1, 2]", "spellCore.itemCountOf([1, 2])"],
+        { title: "not a list:  a property read", input: "the number of x", output: "x.number" }
+      ]
+    }
+  ]
+})
+
+////////////////
 // ## `list_position` rule
 //    e.g. "position of thing in my-list"
 ////////////////

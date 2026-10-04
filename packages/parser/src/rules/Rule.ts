@@ -73,12 +73,13 @@ import { P } from "$/parser"
  *
  * ### 3. Rule added WHILE PARSING ~== a named class `specialize()`d with plain data, registered on the scope
  * ```ts
- * export class EnumerationRule extends P.Literals {  // behaviour reads ONLY statics...
- *   getAST(match: P.MatchFor<this>) { ... this.typeName ... }
+ * export class QuotedPropertyRule extends InfixOperatorSuffix {  // behaviour reads ONLY statics...
+ *   compileASTExpression(match, ...) { ... this.methodName ... }
  * }
  * match.scope.addRule(
- *   EnumerationRule.specialize({ ruleName: `${typeName}_${groupName}`, typeName, groupName, literals }),
- *   {}                                               // ...so another project can rebuild it from data
+ *   QuotedPropertyRule.specialize({ output: "is_a_$suit", values }),
+ *   { syntax },                                      // ...so another project can rebuild it from data
+ *   match
  * )
  * ```
  * - See `specialize()`, and `SP.SpellDeclarations` for how a project writes these out.
@@ -190,7 +191,7 @@ export abstract class Rule<
     Rule.IMPORTABLE_RULES.set(value, this as unknown as P.RuleClass)
   }
 
-  /** Rule class importable as `name`, e.g. `"enumeration"` => `EnumerationRule` -- see `importableAs`. */
+  /** Rule class importable as `name`, e.g. `"quoted_property"` => `QuotedPropertyRule` -- see `importableAs`. */
   static importableRule(name: string): P.RuleClass | undefined {
     return Rule.IMPORTABLE_RULES.get(name)
   }
@@ -335,7 +336,7 @@ export abstract class Rule<
   /** Rule classes by their `importableAs` name -- filled by `protoDefined()`, read by `importableRule()`. */
   static IMPORTABLE_RULES = new Map<string, P.RuleClass>()
 
-  /** Class `specialize()` made us from, e.g. `EnumerationRule`.  Plain `static`, NOT inherited. */
+  /** Class `specialize()` made us from, e.g. `QuotedPropertyRule`.  Plain `static`, NOT inherited. */
   static specializedFrom?: P.RuleClass
   /**
    * What `specialize()` was CALLED with -- plain data, so a project's declarations can rebuild us.  NOT inherited.
@@ -343,8 +344,8 @@ export abstract class Rule<
    */
   static specializedWith?: P.RuleStatics
   /**
-   * Name another project can rebuild our `specialize()`d rules by, e.g. `"enumeration"` -- see `importableRule()`.
-   * - Set on a base class rules are specialized FROM, e.g. `EnumerationRule`.  NEVER key on a class name
+   * Name another project can rebuild our `specialize()`d rules by, e.g. `"quoted_property"` -- see `importableRule()`.
+   * - Set on a base class rules are specialized FROM, e.g. `QuotedPropertyRule`.  NEVER key on a class name
    *   instead:  names are for people, and change freely.
    * - SIDE EFFECT: `@proto static importableAs = "..."` registers the class, via `protoDefined()`.
    */
@@ -567,8 +568,11 @@ export abstract class Rule<
    * a match could affect anything outside it.
    * - `changesScope` if set, e.g. `changesScope: "internal"` in a definition.
    * - Else `undefined` if we don't override `mutateScope()`, or `"global"` if we do -- assume the worst.
+   * - `match`, if given, is the committed match:  override to say per match, e.g. spell's `set the X of Y to ...`
+   *   is `"global"` only when it declared `X` -- else `"internal"`, so a plain `set x to 1` stays cheap to re-parse.
+   *   Read ONLY `match.data`, as `getAST()` does.
    */
-  getScopeChanges(): P.ScopeChanges | undefined {
+  getScopeChanges(_match?: P.MatchFor<this>): P.ScopeChanges | undefined {
     if (this.changesScope) return this.changesScope
     return this.mutateScope === Rule.prototype.mutateScope ? undefined : "global"
   }

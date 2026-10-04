@@ -33,25 +33,25 @@ a card "is the (rank) of (suits)" for its ranks and its suits
 // name as a derivation of name/suit
 the name of a card is: its rank + "-of-" + its suit
 
-the short-suit of a card is:
+the short suit of a card is:
 	if it is a club return "♣️"
 	if it is a diamond return "♦️"
 	if it is a heart return "♥️"
 	if it is a spade return "♠️"
 	return "?"
 
-the short-rank of a card is:
+the short rank of a card is:
 	if its rank is nothing return "?"
 	if its rank is a number return "" + its rank
 	return the first character of its rank as uppercase
 
-the short-direction of a card is:
+the short direction of a card is:
 	if its direction is up return "+"
 	return "—"
 	
-the short-name of a card is: its short-rank + its short-suit
+the short name of a card is: its short rank + its short suit
 
-the state of a card is: its short-rank + its short-suit + its short-direction
+the state of a card is: its short rank + its short suit + its short direction
 
 ## actions
 
@@ -76,8 +76,8 @@ to draw a card:
 	if it is face down 
 		return <div onClick={fire event card-click with card = it} className={className}><i className="fitted bicycle icon"/></div>
 	return <div onClick={fire event card-click with card = it} className={className +	its color}>
-		{the short-rank of the card + " "}
-		<span className="suit">{the short-suit of the card}</span>
+		{the short rank of the card + " "}
+		<span className="suit">{the short suit of the card}</span>
 	</div>
 
 ## create a card instance with default properties
@@ -89,9 +89,9 @@ to test card setup
 	expect the name of the card to be "queen-of-spades"
 	expect the color of the card to be black
 	expect the value of the card to be 12
-	expect the short-suit of the card to be "♠️"
-	expect the short-rank of the card to be "Q"
-	expect the short-name of the card to be "Q♠️"
+	expect the short suit of the card to be "♠️"
+	expect the short rank of the card to be "Q"
+	expect the short name of the card to be "Q♠️"
 
 	expect the card is face up to be yes
 	expect the card is face down to be no

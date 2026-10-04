@@ -26,7 +26,7 @@ export abstract class Literals<
   static literals?: Array<string | string[] | P.LiteralMatcher>
 
   static {
-    /** Join literals with a single space in-between, by default -- e.g. for `EnumerationRule`. */
+    /** Join literals with a single space in-between, by default. */
     Object.defineProperty(this.prototype, "literalSeparator", {
       value: " ",
       writable: true

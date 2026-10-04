@@ -112,7 +112,7 @@ describe("<ExplorerScreen>", () => {
   test("/ filters the tree as you type -- Esc drops the filter", async () => {
     const filtered = await explore(["/", "s", "u", "i", "t"])
     expect(filtered).toContain("/suit█")
-    expect(filtered).toContain("short_suit")
+    expect(filtered).toContain("short-suit")
     expect(filtered).not.toContain("Deck.spell")
     const dropped = await explore(["/", "s", "u", "i", "t", KEY.escape])
     expect(dropped).toContain("Deck.spell")

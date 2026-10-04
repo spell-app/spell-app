@@ -468,6 +468,58 @@ describe("SpellLanguageService", () => {
     })
   })
 
+  describe("multi-word members", () => {
+    // a getter named by several words -- `short` is on the identifier blacklist -- and a card's test reading it
+    const added = [
+      "the short colour of a card is: its color",
+      "to test short colour",
+      "\tthe card is a new card",
+      "\tprint the short colour of the card"
+    ]
+    const text = `${cardText.trimEnd()}\n${added.join("\n")}\n`
+    const lineOf = (line: string) => text.split("\n").indexOf(line) + 1
+    const getterLine = lineOf(added[0]!)
+    const readLine = lineOf(added[3]!)
+
+    test("hover, on any of its words:  the property, as written", async () => {
+      await withCardText(text, () => {
+        expect(service.diagnostics(card)).toEqual([])
+        for (const word of ["short", "colour"]) {
+          const markdown = (service.hover(card, at(card, readLine, word))!.contents as { value: string }).value
+          expect(markdown).toContain("property **short colour** of Card")
+        }
+      })
+    })
+
+    test("go to definition:  its words in the getter", async () => {
+      await withCardText(text, () => {
+        expect(service.definition(card, at(card, readLine, "colour"))).toEqual([
+          {
+            uri: cardUri,
+            range: { start: { line: getterLine - 1, character: 4 }, end: { line: getterLine - 1, character: 16 } }
+          }
+        ])
+      })
+    })
+
+    test("its type's hover lists it as written", async () => {
+      await withCardText(text, () => {
+        const markdown = (service.hover(card, at(card, 2, "card"))!.contents as { value: string }).value
+        expect(markdown).toMatch(/properties: .*short colour/)
+      })
+    })
+
+    test("completion after `the ` offers properties, as written", async () => {
+      await typedAtEnd("print the ", (position) => {
+        const properties = service
+          .completion(solitaire, position)
+          .filter(({ kind }) => kind === CompletionItemKind.Property)
+          .map(({ label }) => label)
+        expect(properties).toEqual(expect.arrayContaining(["short-suit", "direction", "pile"]))
+      })
+    })
+  })
+
   describe("code lens", () => {
     test("one per type and method declared, on its name -- unresolved until asked", () => {
       const lenses = service.codeLens(card)

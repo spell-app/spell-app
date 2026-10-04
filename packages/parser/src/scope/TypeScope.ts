@@ -98,14 +98,23 @@ export class TypeScope extends BlockScope {
 
   /**
    * Record property `name` as one of our instance `variables`, declared by `declaredBy`.
+   * - `name` is how it compiles, e.g. `short_rank`;  `words` how it's written, if different, e.g. `short rank` --
+   *   either finds it (`getMember()`):  `variables` normalize their keys.
    * - Its `datatype` if the statement gives one, e.g. `number`:  a later `the X of Y` reads it (`getMember()`), as
    *   do editors.  Compiled output still comes from each statement's own AST.
+   * - `auto`:  declared by its first `set`, as its type never declared it -- see `P.ScopeVariable.auto`.
    * - The FIRST declaration of a name wins, as for types:  a later getter for the same property adds nothing.
    * - A getter's `datatype` comes once its body has parsed -- what it returns, see spell's `property_value_getter`.
    */
-  declareProperty(name: string, declaredBy: P.Match, datatype?: string): void {
+  declareProperty(name: string, declaredBy: P.Match, { words, datatype, auto }: DeclarePropertyOptions = {}): void {
     const existing = this.variables.get(name, "LOCAL_ONLY")
-    if (!existing) this.variables.add({ name, datatype, declaredBy })
+    if (!existing) {
+      // only what's there:  a declaration writes out what a record holds -- see spell's `SpellDeclarations`
+      const props: P.ScopeVariableProps = { name, datatype, declaredBy }
+      if (words && words !== name) props.words = words
+      if (auto) props.auto = true
+      this.variables.add(props)
+    }
     // an earlier parse of THIS statement left it:  it's ours again -- see `sameStatement()`
     else if (existing.declaredBy !== declaredBy && TypeScope.sameStatement(existing.declaredBy, declaredBy)) {
       const previous = existing.declaredBy
@@ -221,6 +230,16 @@ export class TypeScope extends BlockScope {
         })
     )
   }
+}
+
+/** What `TypeScope.declareProperty()` takes besides a name -- each optional. */
+export type DeclarePropertyOptions = {
+  /** Its words as written, e.g. `short rank` -- see `P.ScopeVariable.words`. */
+  words?: string
+  /** What it holds, e.g. `number`. */
+  datatype?: P.Datatype
+  /** Declared by its first `set` -- see `P.ScopeVariable.auto`. */
+  auto?: boolean
 }
 
 /** Constructor props for `TypeScope`. */

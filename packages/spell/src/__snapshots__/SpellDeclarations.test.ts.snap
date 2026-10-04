@@ -48,7 +48,6 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       ],
       "of": "Card",
       "property": "rank",
-      "rule": "enumeration",
     },
     {
       "classVariable": "Suits",
@@ -61,7 +60,6 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       ],
       "of": "Card",
       "property": "suit",
-      "rule": "enumeration",
     },
     {
       "constants": [
@@ -87,7 +85,6 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       ],
       "of": "Card",
       "property": "direction",
-      "rule": "enumeration",
     },
     {
       "defined": "/Card.spell:616-658",
@@ -357,6 +354,13 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "syntax": "display {thisArg:expression}",
     },
     {
+      "auto": true,
+      "datatype": "choice",
+      "defined": "/Deck.spell:277-313",
+      "of": "Deck",
+      "property": "is_set_up",
+    },
+    {
       "alias": "statement",
       "defined": "/Deck.spell:468-1036",
       "kind": "function",
@@ -364,6 +368,13 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "test_deck_creation",
       "rule": "method_call",
       "syntax": "test deck creation",
+    },
+    {
+      "auto": true,
+      "datatype": "Pile",
+      "defined": "/Pile.spell:500-536",
+      "of": "Card",
+      "property": "pile",
     },
     {
       "defined": "/Pile.spell:25-50",
@@ -387,6 +398,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "defined": "/Pile.spell:584-748",
       "of": "Pile",
       "property": "state",
+    },
+    {
+      "auto": true,
+      "defined": "/Solitaire.spell:3765-3824",
+      "of": "Pile",
+      "property": "name",
     },
     {
       "defined": "/Solitaire.spell:149-165",

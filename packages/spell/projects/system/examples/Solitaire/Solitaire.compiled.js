@@ -13,7 +13,7 @@ export class Card extends Thing {
   /////////////////////////
   /** card ranks */
   /*! SPELL: DECLARES {
-    property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card",
+    property: "rank", classVariable: "Ranks", of: "Card",
     enumeration: ["'ace'", 2, 3, 4, 5, 6, 7, 8, 9, 10, "'jack'", "'queen'", "'king'"],
     defined: "/Card.spell:126-206",
   } */
@@ -24,7 +24,7 @@ export class Card extends Thing {
 
   /** card suits */
   /*! SPELL: DECLARES {
-    property: "suit", classVariable: "Suits", rule: "enumeration", of: "Card",
+    property: "suit", classVariable: "Suits", of: "Card",
     enumeration: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"],
     defined: "/Card.spell:222-283",
   } */
@@ -54,8 +54,7 @@ export class Card extends Thing {
 
   /** card direction:  up or down */
   /*! SPELL: DECLARES {
-    property: "direction", classVariable: "Directions", rule: "enumeration", of: "Card",
-    enumeration: ["'up'", "'down'"],
+    property: "direction", classVariable: "Directions", of: "Card", enumeration: ["'up'", "'down'"],
     defined: "/Card.spell:534-577",
   } */
   static Directions = ['up', 'down']
@@ -343,9 +342,9 @@ export function test_card_setup() {
     spellCore.expect(card.name, `the name of the card`, "queen-of-spades", `"queen-of-spades"`)
     spellCore.expect(card.color, `the color of the card`, 'black', `black`)
     spellCore.expect(card.value, `the value of the card`, 12, `12`)
-    spellCore.expect(card.short_suit, `the short-suit of the card`, "♠️", `"♠️"`)
-    spellCore.expect(card.short_rank, `the short-rank of the card`, "Q", `"Q"`)
-    spellCore.expect(card.short_name, `the short-name of the card`, "Q♠️", `"Q♠️"`)
+    spellCore.expect(card.short_suit, `the short suit of the card`, "♠️", `"♠️"`)
+    spellCore.expect(card.short_rank, `the short rank of the card`, "Q", `"Q"`)
+    spellCore.expect(card.short_name, `the short name of the card`, "Q♠️", `"Q♠️"`)
     
     spellCore.expect(card.is_face_up, `the card is face up`, true, `yes`)
     spellCore.expect(card.is_face_down, `the card is face down`, false, `no`)
@@ -414,6 +413,16 @@ export class Deck extends List {
     spellCore.echo("deck: " + card_names)
   }
 }
+/*! SPELL: DECLARES {
+  property: "is_set_up", of: "Deck", datatype: "choice", auto: true,
+  defined: "/Deck.spell:275-311",
+} */
+Deck.declareProp('is_set_up', { type: 'choice' })
+Object.defineProperty(Deck.prototype, 'is_set_up', {
+  get() { return this.getProp('is_set_up') },
+  set(value) { this.setProp('is_set_up', value) },
+  configurable: true
+})
 
 /*! SPELL: DECLARES {
   syntax: "test deck creation", output: "test_deck_creation", rule: "method_call",
@@ -436,7 +445,7 @@ export function test_deck_creation() {
     })
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
     spellCore.expect(spellCore.getItemOf(deck, -1).name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemOf(deck, 1).short_name, `the short-name of the top card of the deck`, "A♣️", `"A♣️"`)
+    spellCore.expect(spellCore.getItemOf(deck, 1).short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
     
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
@@ -446,6 +455,16 @@ export function test_deck_creation() {
 }
 test_deck_creation()
 // -----------
+/*! SPELL: DECLARES {
+  property: "pile", of: "Card", datatype: "Pile", auto: true,
+  defined: "/Pile.spell:496-532",
+} */
+Card.declareProp('pile', { type: 'Pile' })
+Object.defineProperty(Card.prototype, 'pile', {
+  get() { return this.getProp('pile') },
+  set(value) { this.setProp('pile', value) },
+  configurable: true
+})
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
@@ -487,6 +506,15 @@ export class Pile extends List {
   }
 }
 // -----------
+/*! SPELL: DECLARES {
+  property: "name", of: "Pile", auto: true,
+  defined: "/Solitaire.spell:3735-3794",
+} */
+Object.defineProperty(Pile.prototype, 'name', {
+  get() { return this.getProp('name') },
+  set(value) { this.setProp('name', value) },
+  configurable: true
+})
 spellCore.heading("Klondike Solitaire Card Game")
 //////////////////////////////////
 // ## Klondike Solitaire Card Game

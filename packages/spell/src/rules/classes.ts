@@ -13,8 +13,9 @@ import { P } from "$/parser"
 import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { getKnownType } from "./types"
-import { InfixOperatorSuffix, Precedence, type SpellExpressionProps } from "./expressions"
+import { InfixOperatorSuffix, Precedence, SpellExpression, type SpellExpressionProps } from "./expressions"
 import { SpellConstant } from "./constants"
+import { declaredPrefix } from "./properties"
 
 /**
  * Ad-hoc fields this module sets/reads on `ScopeVariable` (src/parser/scope/ScopeVariable.ts), for a property
@@ -467,68 +468,84 @@ classes.addRule(type_specifier_yes_or_no, {
 })
 
 ////////////////
-// ## `EnumerationRule` base class
-//    e.g. "card suits", once "a card has a suit as one of clubs, diamonds, hearts, spades" made one
+// ## `class_member` rule
+//    e.g. "card suits", once "a card has a suit as one of clubs, diamonds, hearts, spades" declared `Suits`
 ////////////////
 
 /**
- * `Card Suits` / `card suits` -- an enumerated property's values, e.g. `Card.Suits`.
- * - Never registered as is:  `define_property_has` makes one per enumerated property, with
- *   `EnumerationRule.specialize({ of, classVariable })`.
- * - Reads ONLY its statics, so a project's declarations can rebuild it elsewhere -- see `P.Rule.specialize()`.
+ * `{type} {member words}` -- a class variable of a known type, e.g. `card suits` / `Card Suits` ~== `Card.Suits`,
+ * `bank-account account-types` ~== `Bank_Account.Account_types`.
+ * - ONE rule for every type:  the member resolves through `type`'s `classVariables`, e.g. `Suits` as
+ *   `cards have a suit as one of ...` declares it -- see `define_property_has`.  Was a rule per enumeration.
+ * - The LONGEST run of words the type declares, e.g. `suits` in `card suits includes x`.
+ * - `priority: 20`, as the per-enumeration rule had:  a type's own member beats a longer built-in reading.
  */
-export class EnumerationRule extends P.Literals {
-  @proto static importableAs = "enumeration"
+class class_member extends SpellExpression<"type|member", ClassMemberData> {
   @proto static priority = 20
-  @proto static alias = "expression"
+  @proto static datatype = "list"
 
-  /** Type the enumerated property belongs to, e.g. `Card`. */
-  declare typeName: string
-  /** Pluralized property name, e.g. `Suits` for `suit`. */
-  declare groupName: string
-  /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
-  declare readonly Props: EnumerationRuleProps
-
-  /** TYPE-ONLY: what `specialize()` takes -- see `P.SpecializeWith`. */
-  declare static readonly SpecializeWith: { of: string; classVariable: string }
-  /**
-   * Enumeration class variable `classVariable` of type `of`, e.g. `Card` + `Suits` => `Card_Suits`, matching
-   * `Card Suits` / `card suits`.
-   * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.
-   */
-  static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { of: typeName, classVariable: groupName } = declared as (typeof EnumerationRule)["SpecializeWith"]
-    const literals = [
-      [typeName, typeName.toLowerCase()],
-      [groupName, groupName.toLowerCase()]
-    ]
-    const statics: P.RuleStatics<EnumerationRule> = {
-      ruleName: `${typeName}_${groupName}`,
-      typeName,
-      groupName,
-      literals
-    }
-    return super.specialize(statics, declared) as unknown as T
-  }
-
-  /**
-   * What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`.
-   * - No `syntax`:  we match our `literals`.
-   */
-  static declarationProps({ of, classVariable }: (typeof EnumerationRule)["SpecializeWith"]) {
-    return { of, classVariable }
+  /** Resolve the longest run of our words `type` declares as a class variable -- see class docs. */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match) return undefined
+    const { type, member } = match.groups
+    const typeScope = getKnownType(type)
+    const count = declaredPrefix(member, (words) => !!classVariableOf(typeScope, words))
+    if (!count) return undefined
+    // fewer words than we took:  parse just those -- the type and them
+    if (count < member.length) return this.parse(scope, tokens.slice(0, 1 + count))
+    match.data.classVariable = classVariableOf(typeScope, `${member.raw}`)
+    return match
   }
 
   getAST(match: P.MatchFor<this>): P.ASTPropertyExpression {
+    const { type, member } = match.groups
     return new P.ASTPropertyExpression(match, {
-      object: new P.ASTTypeExpression(match, { raw: this.typeName, name: this.typeName }),
-      property: new P.ASTPropertyLiteral(match, this.groupName)
+      object: P.matchAST<P.ASTTypeExpression>(type),
+      property: match.data.classVariable?.name ?? `${member.value}`
     })
   }
 }
+classes.addRule(class_member, {
+  syntax: "{type:known_type} {member:member_words}",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.compile(
+          [
+            "a card is a thing",
+            "a card has a suit as one of clubs, diamonds",
+            "a bank-account is a thing",
+            "a bank-account has an account-type as one of savings, checking"
+          ].join("\n"),
+          "block"
+        )
+      },
+      tests: [
+        ["card suits", "Card.Suits"],
+        ["Card Suits", "Card.Suits"],
+        ["bank-account account-types", "Bank_Account.Account_types"],
+        { title: "not a class variable", input: "card ranks", output: undefined }
+      ]
+    }
+  ]
+})
 
-/** Props bag accepted by `EnumerationRule` -- `Literals`' own, plus the type + group it enumerates. */
-type EnumerationRuleProps = Prettify<P.LiteralsProps & { typeName: string; groupName: string }>
+/** What `class_member` stashes on its match. */
+type ClassMemberData = {
+  /** Class variable it reads, found while parsing, e.g. `Suits` of `Card`. */
+  classVariable?: P.ScopeVariable
+}
+
+/** Class variable `words` of `type`, or of the nearest super-type declaring it, e.g. `Suits` for a joker's `suits`. */
+function classVariableOf(type: P.TypeScope, words: string): P.ScopeVariable | undefined {
+  for (const it of type.chain()) {
+    const found = it.classVariables.get(words, "LOCAL_ONLY")
+    if (found) return found
+  }
+  return undefined
+}
 
 ////////////////
 // ## `define_property_has` rule
@@ -540,15 +557,15 @@ type EnumerationRuleProps = Prettify<P.LiteralsProps & { typeName: string; group
  * an instance property on `type`, optionally constrained/initialized by a `type_specifier`.
  * - `priority: 10` so this wins over other `{type} has|have ...` -ish statement rules.
  * - SIDE EFFECT: stubs `type` into `scope.types` if not yet declared -- see `P.TypeScope.getOrStub()`.
- * - SIDE EFFECT: when `specifier` is an enumeration, also adds a pluralized class variable (e.g. `Suits`)
- *   holding the raw values, adds string values to `scope.constants`, and registers an `EnumerationRule`
- *   so `Card Suits` / `card suits` resolve to that property -- its `/*! SPELL: DECLARES` comment says so, see
- *   `SP.SpellDeclarations.commentFor()`.
+ * - SIDE EFFECT: when `specifier` is an enumeration, also adds a pluralized class variable (e.g. `Suits`) --
+ *   and its instance twin, so `the suits of the card` finds it -- holding the raw values, and adds string values to
+ *   `scope.constants`.  `card suits` reads it through `class_member`.
+ * - Its name is `member_words`, e.g. `a card has short rank as text`;  the article is optional.
  * - Compiles to a reactive getter / setter pair in its class, its type declared in the class's schema -- see
  *   `P.ASTReactiveProperty` -- e.g. `a player has a name as text` =>
  *   `static { this.declareProp('name', { type: 'text' }) }` + `get name() { return this.getProp('name') }` +
  *   `set name(value) { this.setProp('name', value) }`
- * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `EnumerationRule`.
+ * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `class_member`.
  */
 class define_property_has extends SpellStatement<"type|property|specifier?"> {
   @proto static priority = 10
@@ -563,7 +580,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?"> {
     const typeName = type.value
     const typeScope = P.TypeScope.getOrStub(scope, typeName, match)
     // what its specifier says it holds, e.g. `text`, `choice`, `thing` for `as a new thing`
-    typeScope.declareProperty(`${property.value}`, match, specifier?.datatype)
+    typeScope.declareProperty(`${property.value}`, match, { words: property.raw, datatype: specifier?.datatype })
 
     // If there is a specifier as enumerated values, add rules to match it
     if (specifierAST instanceof P.ASTEnumeration) {
@@ -584,11 +601,6 @@ class define_property_has extends SpellStatement<"type|property|specifier?"> {
       values.forEach((value) => {
         if (typeof value === "string") scope.constants?.add({ name: value, declaredBy: match })
       })
-
-      // Add multi-word identifier rule which returns enumeration, e.g. `card suits` or `Card Suits`.
-      // `scope.addRule()` registers on the parser AND records the class + definition on the scope,
-      // so `print Card suits` finds it via the `expression` alias and the scope can export it later.
-      scope.addRule(EnumerationRule.specialize({ of: typeName, classVariable: groupName }), {}, match)
     }
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
@@ -632,7 +644,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?"> {
   }
 }
 classes.addRule(define_property_has, {
-  syntax: "(a|an) {type:singular_type} has (a|an|a property) {property} {specifier:type_specifier}?",
+  syntax: "(a|an) {type:singular_type} has (a|an|a property)? {property:member_words} {specifier:type_specifier}?",
   tests: [
     {
       compileAs: "block",
@@ -664,16 +676,65 @@ classes.addRule(define_property_has, {
       },
       compileAs: "statement",
       tests: [
+        // every way to reach an enumeration names its class variable -- was CODE-DEBT "Enumerated properties are
+        // reachable under inconsistent names"
         ["print Card suits", "spellCore.console.log(Card.Suits)"],
         ["print card suits", "spellCore.console.log(Card.Suits)"],
+        [
+          "print the suit of the card is in card suits",
+          "spellCore.console.log(spellCore.includes(Card.Suits, card.suit))"
+        ],
         ["print the suit of the card", "spellCore.console.log(card.suit)"],
-        ["print the suits of the card", "spellCore.console.log(card.suits)"]
+        ["print the suits of the card", "spellCore.console.log(Card.Suits)"],
+        ["print the number of card suits", "spellCore.console.log(spellCore.itemCountOf(Card.Suits))"]
+      ]
+    },
+    {
+      title: "an enumeration through `its`, and on a dashed type",
+      beforeEach(scope: P.Scope) {
+        scope.compile(
+          [
+            "a card is a thing",
+            "a card has a suit as one of clubs, diamonds, hearts or spades",
+            "a bank-account is a thing",
+            "a bank-account has an account-type as one of savings or checking"
+          ].join("\n"),
+          "block"
+        )
+      },
+      compileAs: "block",
+      tests: [
+        [
+          ["get a new card", "print its suits"],
+          ["let it = new Card()", "spellCore.console.log(Card.Suits)"]
+        ],
+        ["print bank-account account-types", "spellCore.console.log(Bank_Account.Account_types)"]
+      ]
+    },
+    {
+      title: "a name of several words, blacklisted ones too -- the article is optional",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        scope.compile("a card is a thing", "block")
+      },
+      tests: [
+        [
+          "a card has short rank as text",
+          [
+            "Card.declareProp('short_rank', { type: 'text' })",
+            "Object.defineProperty(Card.prototype, 'short_rank', {",
+            "  get() { return this.getProp('short_rank') },",
+            "  set(value) { this.setProp('short_rank', value) },",
+            "  configurable: true",
+            "})"
+          ]
+        ]
       ]
     }
   ]
 })
 classes.addRule(define_property_has, {
-  syntax: "{type:plural_type} have (a|an|a property) {property} {specifier:type_specifier}?",
+  syntax: "{type:plural_type} have (a|an|a property)? {property:member_words} {specifier:type_specifier}?",
   tests: [
     {
       compileAs: "block",
@@ -741,7 +802,7 @@ class the_property_of_a_thing extends P.Sequence<"property|type"> {
   @proto static alias = "type_property"
 }
 classes.addRule(the_property_of_a_thing, {
-  syntax: "the {property} of (a|an) {type}"
+  syntax: "the {property:member_words} of (a|an) {type}"
 })
 
 ////////////////
@@ -754,7 +815,7 @@ class a_things_property extends P.Sequence<"type|property"> {
   @proto static alias = "type_property"
 }
 classes.addRule(a_things_property, {
-  syntax: "(a|an) {type:plural_type} {property}"
+  syntax: "(a|an) {type:plural_type} {property:member_words}"
 })
 
 ////////////////
@@ -783,7 +844,7 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     const { value, otherValue, type_property } = match.groups
     const { type, property } = type_property.groups
     // make sure type is defined
-    P.TypeScope.getOrStub(scope, type.value, match).declareProperty(`${property.value}`, match)
+    P.TypeScope.getOrStub(scope, type.value, match).declareProperty(`${property.value}`, match, { words: property.raw })
     // `is()` narrows `data` to what `SpellConstant` stashes on its matches.
     // Declare any unknown constant values, and record them on their matches for `SpellConstant.getAST()`.
     for (const constant of [value, otherValue]) {
@@ -889,7 +950,7 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
    */
   mutateScope(match: P.MatchFor<this>) {
     const { type, property } = match.groups
-    getKnownType(type).declareProperty(`${property.value}`, match)
+    getKnownType(type).declareProperty(`${property.value}`, match, { words: property.raw })
   }
 
   /**
@@ -934,7 +995,7 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
   }
 }
 classes.addRule(property_value_getter, {
-  syntax: "the {property} of (a|an) {type:known_type} is :? {expression_body}?",
+  syntax: "the {property:member_words} of (a|an) {type:known_type} is :? {expression_body}?",
   tests: [
     {
       compileAs: "block",
@@ -1241,7 +1302,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
   }
 }
 classes.addRule(quoted_property_formula, {
-  syntax: "(a|an) {type} {alias:text} for [sources:(its {property}) and]",
+  syntax: "(a|an) {type} {alias:text} for [sources:(its {property:member_words}) and]",
   tests: [
     {
       beforeEach(scope: P.Scope) {

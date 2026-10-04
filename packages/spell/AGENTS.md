@@ -84,14 +84,14 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     e.g. `DynamicMethodRule.specialize({ output: "play_fizzbuzz", alias })` -- and the definition is still
     just `{ syntax }`.
     - NEVER a closure class:  its behaviour reads ONLY its statics, so a project's declarations can rebuild it
-      in another project.  Give its base class `@proto static importableAs = "<id>"`, e.g. `"enumeration"`.
+      in another project.  Give its base class `@proto static importableAs = "<id>"`, e.g. `"quoted_property"`.
     - What it's `specialize()`d with is written out as is -- so an importable class overrides `specialize()`
       to take a MINIMAL set, named in `declare static readonly SpecializeWith`, and works out the rest
       for `super.specialize(statics, declared)`.  See `P.SpecializeWith`.
     - Its `static declarationProps(declared, syntax)` says what goes in the declaration -- tune output there.
   - NEVER treat a class name or rule name as a stable identifier -- for saved data, lookups, or anything which
     must survive a rename or a translation.  Names are for people, and change.  Add an explicit property
-    for it instead, e.g. `@proto static importableAs = "enumeration"`.
+    for it instead, e.g. `@proto static importableAs = "quoted_property"`.
   - A word with negated forms is a `Negatable` rule (`expressions.ts`):  `{operator:is}` matches `is` / `is not` /
     `isn't` / `isnt`, and `Negatable.isNegated(operator)` says which -- plain `is` matches just the word.
     `is`, `can`, `will`, `has` so far;  a translation registers its own, e.g.
@@ -160,6 +160,12 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   method returns), `mutateScopeAfterBody()`, which returns what it recorded so an edit changing it re-parses what
   follows.  `getAST()` MUST be pure:  NEVER change scope, NEVER look it up -- ASTs are built lazily, when scope may
   have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
+- What a statement's `mutateScope()` changes, for incremental parsing:  `@proto static changesScope`, or -- when only
+  SOME matches change what later lines see -- override `getScopeChanges(match)`, reading only `match.data`, e.g.
+  `assignment_statement` is `"global"` only when it auto-declared a property.  See "Incremental parsing" in `PARSING.md`.
+- A slot NAMING a member -- a property's declaration, a read of one -- is `{property:member_words}`:  several words,
+  blacklisted ones too, up to a structural word.  A READ resolves them through its type in `parse()`, else rejects;
+  a single undeclared word is the loose `{property}`.  See "Members" in `PARSING.md`.
 - A rule built WHILE PARSING goes through `scope.addRule(RuleClass, definition, match)` -- never `parser.addRule()`
   directly -- so the scope records the class + definition pair and can hand on the rules it created.
 - A `mutateScope()` that adds a scope record -- a variable, constant, type, rule or `ScopeMethod` -- passes

@@ -160,16 +160,19 @@ describe("grammar probes", () => {
 
   test("P6a  multi-word getter", () => {
     expect(probe("the short rank of a card is: return 1")).toMatchInlineSnapshot(`
-      "/* PARSE ERROR: Don't understand "the short rank of a card is: return 1" */
-      ERROR 8:0 Don't understand "the short rank of a card is: return 1""
+      "Object.defineProperty(Card.prototype, 'short_rank', {
+        get() {},
+        configurable: true
+      })
+      /* PARSE ERROR: Don't understand "return 1" */
+      ERROR 8:29 Don't understand "return 1""
     `)
   })
 
   test("P6b  multi-word property read", () => {
     expect(probe("print the short-rank of the card", "print the short rank of the card")).toMatchInlineSnapshot(`
       "spellCore.console.log(card.short_rank)
-      /* PARSE ERROR: Don't understand "print the short rank of the card" */
-      ERROR 9:0 Don't understand "print the short rank of the card""
+      spellCore.console.log(card.short_rank)"
     `)
   })
 
@@ -178,6 +181,7 @@ describe("grammar probes", () => {
   })
 
   test("P7b  setting a property the type never declared", () => {
+    // `Pile.spell`'s own `set the pile of the card to the pile` declared it (P6, epic phase):  reactive
     expect(probe("set the pile of the card to the pile")).toMatchInlineSnapshot(`"card.pile = pile"`)
   })
 
@@ -296,6 +300,91 @@ describe("grammar probes", () => {
       }"
     `)
   })
+
+  ////////////////
+  // ## P6 (epic phase):  multi-word members
+  ////////////////
+
+  test("M1  a multi-word getter, read with `the ... of` and `its`", () => {
+    expect(
+      probe(
+        "the short colour of a card is: its color",
+        "print the short colour of the card",
+        "get the card",
+        "print its short colour + 1"
+      )
+    ).toMatchInlineSnapshot(`
+      "Object.defineProperty(Card.prototype, 'short_colour', {
+        get() {
+          return this.color
+        },
+        configurable: true
+      })
+      spellCore.console.log(card.short_colour)
+      let it = card
+      spellCore.console.log(it.short_colour + 1)"
+    `)
+  })
+
+  test("M2  a declared `last card` beats the ordinal;  undeclared, the ordinal reads it", () => {
+    expect(
+      probe(
+        "the last card of a pile is: its first card",
+        "print the last card of the pile",
+        "print the last card of the deck"
+      )
+    ).toMatchInlineSnapshot(`
+      "Object.defineProperty(Pile.prototype, 'last_card', {
+        get() {
+          return spellCore.getItemOf(this, 1)
+        },
+        configurable: true
+      })
+      spellCore.console.log(pile.last_card)
+      spellCore.console.log(spellCore.getItemOf(deck, -1))"
+    `)
+  })
+
+  test("M3  `a card has short rank as text`:  blacklisted words, no article", () => {
+    expect(probe("a card has long rank as text")).toMatchInlineSnapshot(`
+      "Card.declareProp('long_rank', { type: 'text' })
+      Object.defineProperty(Card.prototype, 'long_rank', {
+        get() { return this.getProp('long_rank') },
+        set(value) { this.setProp('long_rank', value) },
+        configurable: true
+      })"
+    `)
+  })
+
+  test("M4  a type's class member:  every way to reach an enumeration", () => {
+    expect(probe("print card suits includes x", "print the suits of the card", "print the number of card suits"))
+      .toMatchInlineSnapshot(`
+      "spellCore.console.log(spellCore.includes(Card.Suits, x))
+      spellCore.console.log(Card.Suits)
+      spellCore.console.log(spellCore.itemCountOf(Card.Suits))"
+    `)
+  })
+
+  test("M5  setting a property the type never declared declares it, at the top of the setting file", () => {
+    expect(
+      probeWithTop(
+        "set the owner of the card to the pile",
+        "print the owner of the card",
+        "set the owner of the card to x"
+      )
+    ).toMatchInlineSnapshot(`
+      "Card.declareProp('owner', { type: 'Pile' })
+      Object.defineProperty(Card.prototype, 'owner', {
+        get() { return this.getProp('owner') },
+        set(value) { this.setProp('owner', value) },
+        configurable: true
+      })
+      ...
+      card.owner = pile
+      spellCore.console.log(card.owner)
+      card.owner = x"
+    `)
+  })
 })
 
 describe("datatypes", () => {
@@ -323,7 +412,11 @@ describe("datatypes", () => {
         "[1, 2, 3]",
         "x if x > 1 otherwise 2",
         "the name of the card",
-        "the value of the card"
+        "the value of the card",
+        "the short rank of the card",
+        "the suits of the card",
+        "card suits",
+        "the pile of the card"
       )
     ).toMatchInlineSnapshot(`
       "the card  =>  Card
@@ -347,7 +440,11 @@ describe("datatypes", () => {
       [1, 2, 3]  =>  list of numbers
       x if x > 1 otherwise 2  =>  number
       the name of the card  =>  text
-      the value of the card  =>  number"
+      the value of the card  =>  number
+      the short rank of the card  =>  text
+      the suits of the card  =>  list
+      card suits  =>  list
+      the pile of the card  =>  Pile"
     `)
   })
 
@@ -425,6 +522,9 @@ const CARDS = loadFixtureProject("Solitaire").filter((file) => !file.path.endsWi
  *   From another file it compiles to `Chip.prototype...`, as a method on `Card` does.
  */
 const SETUP_TYPES = ["a chip is a thing", "a pot is a list of chips"]
+
+/** What `SETUP`'s first line compiles to -- `probeWithTop()` returns what's above it. */
+const SETUP_START_COMPILED = "export let card = new Card()"
 
 /** Last line of `SETUP`, and what it compiles to -- `probe()` returns what follows it. */
 const SETUP_END = "set y to 2"
@@ -532,4 +632,18 @@ function probe(...lines: string[]): string {
   const output = compiled.slice(compiled.lastIndexOf(SETUP_END_COMPILED) + 1)
   const errors = [...types!.errors, ...file!.errors].map((error) => `ERROR ${error}`)
   return [...output, ...errors].join("\n")
+}
+
+/**
+ * `probe()`, plus what the probe file compiles to ABOVE `SETUP`'s lines, then `...` -- e.g. a property a `set`
+ * declared, which its file declares at its top.
+ */
+function probeWithTop(...lines: string[]): string {
+  const { files } = parseProbe(lines)
+  const compiled = files
+    .at(-1)!
+    .compiled.split("\n")
+    .filter((line) => !DECLARATION_LINE.test(line))
+  const top = compiled.slice(0, compiled.indexOf(SETUP_START_COMPILED))
+  return [...top, "...", probe(...lines)].join("\n")
 }

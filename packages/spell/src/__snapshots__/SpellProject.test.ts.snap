@@ -15,7 +15,7 @@ export class Card extends Thing {
   /////////////////////////
   /** card ranks */
   /*! SPELL: DECLARES {
-    property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card",
+    property: "rank", classVariable: "Ranks", of: "Card",
     enumeration: ["'ace'", 2, 3, 4, 5, 6, 7, 8, 9, 10, "'jack'", "'queen'", "'king'"],
     defined: "/Card.spell:126-206",
   } */
@@ -26,7 +26,7 @@ export class Card extends Thing {
 
   /** card suits */
   /*! SPELL: DECLARES {
-    property: "suit", classVariable: "Suits", rule: "enumeration", of: "Card",
+    property: "suit", classVariable: "Suits", of: "Card",
     enumeration: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"],
     defined: "/Card.spell:222-283",
   } */
@@ -56,8 +56,7 @@ export class Card extends Thing {
 
   /** card direction:  up or down */
   /*! SPELL: DECLARES {
-    property: "direction", classVariable: "Directions", rule: "enumeration", of: "Card",
-    enumeration: ["'up'", "'down'"],
+    property: "direction", classVariable: "Directions", of: "Card", enumeration: ["'up'", "'down'"],
     defined: "/Card.spell:534-577",
   } */
   static Directions = ['up', 'down']
@@ -361,6 +360,16 @@ export class Deck extends List {
     spellCore.echo("deck: " + card_names)
   }
 }
+/*! SPELL: DECLARES {
+  property: "is_set_up", of: "Deck", datatype: "choice", auto: true,
+  defined: "/Deck.spell:277-313",
+} */
+Deck.declareProp('is_set_up', { type: 'choice' })
+Object.defineProperty(Deck.prototype, 'is_set_up', {
+  get() { return this.getProp('is_set_up') },
+  set(value) { this.setProp('is_set_up', value) },
+  configurable: true
+})
 
 /*! SPELL: DECLARES {
   syntax: "test deck creation", output: "test_deck_creation", rule: "method_call",
@@ -398,7 +407,17 @@ test_deck_creation()",
     "path": "/Deck.spell",
   },
   {
-    "compiled": "spellCore.heading("Pile of playing cards")
+    "compiled": "/*! SPELL: DECLARES {
+  property: "pile", of: "Card", datatype: "Pile", auto: true,
+  defined: "/Pile.spell:500-536",
+} */
+Card.declareProp('pile', { type: 'Pile' })
+Object.defineProperty(Card.prototype, 'pile', {
+  get() { return this.getProp('pile') },
+  set(value) { this.setProp('pile', value) },
+  configurable: true
+})
+spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
   type: "Pile", superType: "List", itemType: "Card",
@@ -460,7 +479,16 @@ Card.prototype.move_to_$pile = async function (pile) {
     "path": "/Pile.spell",
   },
   {
-    "compiled": "spellCore.heading("Klondike Solitaire Card Game")
+    "compiled": "/*! SPELL: DECLARES {
+  property: "name", of: "Pile", auto: true,
+  defined: "/Solitaire.spell:3765-3824",
+} */
+Object.defineProperty(Pile.prototype, 'name', {
+  get() { return this.getProp('name') },
+  set(value) { this.setProp('name', value) },
+  configurable: true
+})
+spellCore.heading("Klondike Solitaire Card Game")
 //////////////////////////////////
 // ## Klondike Solitaire Card Game
 //////////////////////////////////

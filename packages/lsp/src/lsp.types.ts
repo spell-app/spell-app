@@ -257,6 +257,11 @@ export type ScopeEntry = ScopeDetails & {
   /** Type:  `path` of its super-type -- it inherits that one's members.  See `buildScopeTree()`. */
   super?: string
   /**
+   * Its name as written, if not the name `path` ends in -- e.g. `short rank` for `.../property:short_rank`.
+   * - Why not in `path`:  a property's path is by its name as it compiles, which the runner matches code by.
+   */
+  name?: string
+  /**
    * One-line summary, e.g. `imported`, a property's datatype.
    * - Default for a type with a `super`:  `is a <Super>`.
    */
@@ -307,7 +312,7 @@ export function parentScopePath(path: string): string {
 /**
  * Tree of `entries` -- in tree order, each after the one it's below -- under a "Spell" root, working out what
  * the entries leave out:
- * - `name` and `kind`, from each `path`
+ * - `name` and `kind`, from each `path` -- `name` from the entry itself, if it says one
  * - `uri`, from the nearest ancestor that has one
  * - a type's `detail`, from its `super`:  `is a <Super>`
  * - `members`:  a type's own children, then what it inherits from each `super` in turn -- one it re-declares
@@ -321,6 +326,7 @@ export function buildScopeTree(entries: ScopeEntry[]): ScopeNode {
   for (const entry of entries) {
     const parent = nodes.get(parentScopePath(entry.path)) ?? root
     const node: ScopeNode = { path: entry.path, ...scopeSegment(entry.path), members: [], children: [] }
+    if (entry.name !== undefined) node.name = entry.name
     if (entry.detail !== undefined) node.detail = entry.detail
     if (entry.section !== undefined) node.section = entry.section
     if (entry.super !== undefined) node.super = entry.super

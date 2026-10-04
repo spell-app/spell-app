@@ -2,16 +2,16 @@
 
 exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
 {
-  "Suits": [
-    {
-      "name": "Card_Suits",
-      "syntax": "(Card|card) (Suits|suits)",
-    },
-  ],
   "draw (a card)": [
     {
       "name": "draw",
       "syntax": "draw {thisArg:expression}",
+    },
+  ],
+  "is a (suit)": [
+    {
+      "name": "is_a_$suit",
+      "syntax": "{operator:is} (a|an) (expression:club|diamond|heart|spade)",
     },
   ],
 }
@@ -46,16 +46,17 @@ exports[`ScopeExplorer > a type's members:  in document order, by file then line
   "method is a (rank)",
   "method is the (rank) of (suits)",
   "property name",
-  "property short_suit",
-  "property short_rank",
-  "property short_direction",
-  "property short_name",
+  "property short-suit",
+  "property short-rank",
+  "property short-direction",
+  "property short-name",
   "property state",
   "method turn (a card) face up",
   "method turn (a card) face down",
   "method turn (a card) over",
   "method draw (a card)",
   "method move (a card) to (a pile)",
+  "property pile",
   "method play (a card)",
 ]
 `;

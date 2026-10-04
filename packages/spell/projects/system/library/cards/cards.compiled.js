@@ -13,7 +13,7 @@ export class Card extends Thing {
   /////////////////////////
   /** card ranks */
   /*! SPELL: DECLARES {
-    property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card",
+    property: "rank", classVariable: "Ranks", of: "Card",
     enumeration: ["'ace'", 2, 3, 4, 5, 6, 7, 8, 9, 10, "'jack'", "'queen'", "'king'"],
     defined: "/Card.spell:125-205",
   } */
@@ -24,7 +24,7 @@ export class Card extends Thing {
 
   /** card suits */
   /*! SPELL: DECLARES {
-    property: "suit", classVariable: "Suits", rule: "enumeration", of: "Card",
+    property: "suit", classVariable: "Suits", of: "Card",
     enumeration: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"],
     defined: "/Card.spell:221-282",
   } */
@@ -54,8 +54,7 @@ export class Card extends Thing {
 
   /** card direction:  up or down */
   /*! SPELL: DECLARES {
-    property: "direction", classVariable: "Directions", rule: "enumeration", of: "Card",
-    enumeration: ["'up'", "'down'"],
+    property: "direction", classVariable: "Directions", of: "Card", enumeration: ["'up'", "'down'"],
     defined: "/Card.spell:533-576",
   } */
   static Directions = ['up', 'down']
@@ -302,8 +301,7 @@ spellCore.heading("A joker: a wild card with no rank or suit -- there's a red on
 export class Joker extends Card {
   /** joker color:  red or black -- set when it's made, as it has no suit to work it out from */
   /*! SPELL: DECLARES {
-    property: "color", classVariable: "Colors", rule: "enumeration", of: "Joker",
-    enumeration: ["'red'", "'black'"],
+    property: "color", classVariable: "Colors", of: "Joker", enumeration: ["'red'", "'black'"],
     defined: "/Card.spell:2835-2877",
   } */
   static Colors = ['red', 'black']
@@ -350,9 +348,9 @@ export function test_card_setup() {
     spellCore.expect(card.name, `the name of the card`, "queen-of-spades", `"queen-of-spades"`)
     spellCore.expect(card.color, `the color of the card`, 'black', `black`)
     spellCore.expect(card.value, `the value of the card`, 12, `12`)
-    spellCore.expect(card.short_suit, `the short-suit of the card`, "♠️", `"♠️"`)
-    spellCore.expect(card.short_rank, `the short-rank of the card`, "Q", `"Q"`)
-    spellCore.expect(card.short_name, `the short-name of the card`, "Q♠️", `"Q♠️"`)
+    spellCore.expect(card.short_suit, `the short suit of the card`, "♠️", `"♠️"`)
+    spellCore.expect(card.short_rank, `the short rank of the card`, "Q", `"Q"`)
+    spellCore.expect(card.short_name, `the short name of the card`, "Q♠️", `"Q♠️"`)
     
     spellCore.expect(card.is_face_up, `the card is face up`, true, `yes`)
     spellCore.expect(card.is_face_down, `the card is face down`, false, `no`)
@@ -389,7 +387,7 @@ export function test_card_setup() {
     
     spellCore.expect(joker.color, `the color of the joker`, 'red', `red`)
     spellCore.expect(joker.name, `the name of the joker`, "red-joker", `"red-joker"`)
-    spellCore.expect(joker.short_name, `the short-name of the joker`, "🃏", `"🃏"`)
+    spellCore.expect(joker.short_name, `the short name of the joker`, "🃏", `"🃏"`)
     spellCore.expect(joker.is_face_up, `the joker is face up`, true, `yes`)
     spellCore.echoTestAction(`turn the joker over`)
     joker.turn_over()
@@ -416,7 +414,7 @@ export class Deck extends List {
   /** with-jokers:  yes to add the red and the black joker when it's set up, after the 52 cards */
   /*! SPELL: DECLARES {
     property: "with_jokers", of: "Deck", datatype: "choice",
-    defined: "/Deck.spell:208-245",
+    defined: "/Deck.spell:208-243",
   } */
   static { this.declareProp('with_jokers', { type: 'choice' }) }
   get with_jokers() { return this.getProp('with_jokers') }
@@ -425,7 +423,7 @@ export class Deck extends List {
   /*! SPELL: DECLARES {
     syntax: "set up {thisArg:expression}", output: "set_up", rule: "method_call", of: "Deck",
     alias: ["statement", "expression"], kind: "method", name: "set up a deck", returns: "nothing",
-    defined: "/Deck.spell:247-616",
+    defined: "/Deck.spell:245-614",
   } */
   set_up() {
     if (this.is_set_up) { return }
@@ -447,7 +445,7 @@ export class Deck extends List {
   /*! SPELL: DECLARES {
     syntax: "display {thisArg:expression}", output: "display", rule: "method_call", of: "Deck",
     alias: ["statement", "expression"], kind: "method", name: "display a deck",
-    defined: "/Deck.spell:618-767",
+    defined: "/Deck.spell:616-765",
   } */
   display() {
     let card_names = new List()
@@ -457,11 +455,21 @@ export class Deck extends List {
     spellCore.echo("deck: " + card_names)
   }
 }
+/*! SPELL: DECLARES {
+  property: "is_set_up", of: "Deck", datatype: "choice", auto: true,
+  defined: "/Deck.spell:578-614",
+} */
+Deck.declareProp('is_set_up', { type: 'choice' })
+Object.defineProperty(Deck.prototype, 'is_set_up', {
+  get() { return this.getProp('is_set_up') },
+  set(value) { this.setProp('is_set_up', value) },
+  configurable: true
+})
 
 /*! SPELL: DECLARES {
   syntax: "test deck creation", output: "test_deck_creation", rule: "method_call",
   alias: "statement", kind: "function", name: "deck creation",
-  defined: "/Deck.spell:769-1419",
+  defined: "/Deck.spell:767-1417",
 } */
 export function test_deck_creation() {
   return spellCore.test('test deck creation', function test_deck_creation() {
@@ -479,7 +487,7 @@ export function test_deck_creation() {
     })
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
     spellCore.expect(spellCore.getItemOf(deck, -1).name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemOf(deck, 1).short_name, `the short-name of the top card of the deck`, "A♣️", `"A♣️"`)
+    spellCore.expect(spellCore.getItemOf(deck, 1).short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
     
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
@@ -501,7 +509,7 @@ test_deck_creation()
 /*! SPELL: DECLARES {
   syntax: "test deck with jokers", output: "test_deck_with_jokers", rule: "method_call",
   alias: "statement", kind: "function", name: "deck with jokers",
-  defined: "/Deck.spell:1440-1824",
+  defined: "/Deck.spell:1438-1822",
 } */
 export function test_deck_with_jokers() {
   return spellCore.test('test deck with jokers', function test_deck_with_jokers() {
@@ -521,6 +529,16 @@ export function test_deck_with_jokers() {
 }
 test_deck_with_jokers()
 // -----------
+/*! SPELL: DECLARES {
+  property: "pile", of: "Card", datatype: "Pile", auto: true,
+  defined: "/Pile.spell:496-532",
+} */
+Card.declareProp('pile', { type: 'Pile' })
+Object.defineProperty(Card.prototype, 'pile', {
+  get() { return this.getProp('pile') },
+  set(value) { this.setProp('pile', value) },
+  configurable: true
+})
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
