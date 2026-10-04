@@ -486,14 +486,22 @@ export class SpellLanguageService {
     return { contents: { kind: MarkupKind.Markdown, value: sections.join("\n\n---\n\n") }, range }
   }
 
-  /** Markdown for `match`'s rule:  its name, syntax, and the first example from its tests. */
+  /**
+   * Markdown for `match`'s rule:  its name, syntax, and the first example from its tests -- then, for a built-in
+   * rule which spells a built-in type's member, e.g. `list_shuffle`, that member and its docs.  See
+   * `SP.BUILT_IN_TYPE_TABLE`.
+   */
   private describeRule(match: P.Match): string {
     const { rule } = match
     const syntax = SpellLanguageService.truncate(rule.toRulexSyntax(), 160)
     const lines = [syntax ? `**${rule.name}** \`${syntax}\`` : `**${rule.name}**`]
     const example = SpellLanguageService.firstExample(rule)
     if (example) lines.push(`e.g. \`${example}\``)
-    return lines.join("  \n")
+    const members = rule.name ? SP.builtInMembersOfRule(rule.name) : []
+    const builtIn = members.map(({ type, member }) =>
+      [`built in:  **${member.words}** of ${type.name}`, member.doc].filter(Boolean).join("\n\n")
+    )
+    return [lines.join("  \n"), ...builtIn].join("\n\n")
   }
 
   /** Markdown for what `subject` is, and where it was declared. */
@@ -709,13 +717,26 @@ export class SpellLanguageService {
    * - Properties only when we know which type they're on.
    */
   docsOf(subject: LSP.SpellSubject): string | undefined {
+    const builtIn = SpellLanguageService.builtInDoc(subject)
+    if (builtIn) return builtIn
     return subject.record && this.docsOfRecord(subject.record, subject.kind === "method")
   }
 
   /** Docstring of what `subject` names, as markdown -- see `docMarkdown()`. */
   docMarkdownOf(subject: LSP.SpellSubject): string | undefined {
+    const builtIn = SpellLanguageService.builtInDoc(subject)
+    if (builtIn) return builtIn
     const doc = subject.record && this.docCommentOfRecord(subject.record, subject.kind === "method")
     return doc && SpellLanguageService.docMarkdown(doc)
+  }
+
+  /**
+   * Docs of a built-in type's member, e.g. a list's `length` -- from its record, as `SP.BUILT_IN_TYPE_TABLE` gave
+   * them:  there's no statement to read them from.
+   */
+  private static builtInDoc(subject: LSP.SpellSubject): string | undefined {
+    const { record } = subject
+    return record instanceof P.ScopeVariable && !record.declaredBy ? record.doc : undefined
   }
 
   /** Docstring of scope record `record`, if its declaration names it -- or always for a method's rule. */
@@ -1500,18 +1521,24 @@ export class SpellLanguageService {
    * - NOT an enumeration's values, e.g. `suits`:  `card suits` reads those.
    */
   private propertyItems(scope: P.Scope): CompletionItem[] {
-    const owners = new Map<string, string[]>()
+    const owners = new Map<string, Array<{ type: string; doc?: string }>>()
     for (const type of SpellLanguageService.visible(scope.types)) {
       for (const property of SpellLanguageService.propertiesOf(type)) {
         const words = SpellLanguageService.memberWords(property.name, property)
-        owners.set(words, [...(owners.get(words) ?? []), type.name])
+        const doc = property.declaredBy ? undefined : property.doc
+        owners.set(words, [...(owners.get(words) ?? []), { type: type.name, doc }])
       }
     }
-    return [...owners].map(([label, types]) => ({
-      label,
-      kind: CompletionItemKind.Property,
-      detail: `property of ${types.join(", ")}`
-    }))
+    return [...owners].map(([label, of]) => {
+      // a built-in's docs, e.g. a text's and a list's `length` -- each type's, if more than one says
+      const docs = of.filter((it) => it.doc).map((it) => (of.length > 1 ? `**${it.type}**:  ${it.doc}` : it.doc))
+      return {
+        label,
+        kind: CompletionItemKind.Property,
+        detail: `property of ${of.map((it) => it.type).join(", ")}`,
+        ...(docs.length ? { documentation: this.markdown(docs.join("\n\n")) } : {})
+      }
+    })
   }
 
   /** Constants visible in `scope`, declared before `offset`. */

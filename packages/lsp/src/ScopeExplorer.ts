@@ -25,11 +25,6 @@ import { LSP } from "$/lsp"
 export class ScopeExplorer {
   /** Describes scope records, as hover would. */
   declare service: LSP.SpellLanguageService
-  /**
-   * Built-in types' pack, documented by hand -- `core`'s `src/spellCore.scopes.js` -- if we can read it.
-   * - A function, asked each tree, so an edit to it shows in the next.  See `addBuiltIns()`.
-   */
-  declare builtIns?: () => LSP.ScopePack | undefined
   /** How to work out each node's details, by path -- from the last `tree()` of each project. */
   #details = new WeakMap<SP.SpellProject, Map<string, () => LSP.ScopeDetails>>()
   /** Details worked out, by the file they're in -- its root match -- then by path.  A new parse, a new cache. */
@@ -37,9 +32,8 @@ export class ScopeExplorer {
   /** Heading comments of each file, by its root match -- see `sectionOf()`.  A new parse, a new cache. */
   #headings = new WeakMap<P.Match, Array<{ start: number; text: string }>>()
 
-  constructor(service: LSP.SpellLanguageService, builtIns?: () => LSP.ScopePack | undefined) {
+  constructor(service: LSP.SpellLanguageService) {
     this.service = service
-    this.builtIns = builtIns
   }
 
   /** Projects `project` imports compiled -- each MUST be parsed before `tree()`, to show their sources. */
@@ -88,9 +82,9 @@ export class ScopeExplorer {
   }
 
   /**
-   * Pack of spell's built-in types, e.g. `Thing` and `List`, from its root scope -- see `LSP.ScopePack`.
-   * - What `core`'s `src/spellCore.scopes.js` starts as, before anyone documents them by hand.
-   * - With `builtIns`, that pack's entries -- plus any built-in type it doesn't know yet, bare.
+   * Pack of spell's built-in types, e.g. `Thing` and `List`, from `SP.BUILT_IN_TYPE_TABLE` -- see `LSP.ScopePack`.
+   * - What `yarn scopes --builtins` writes to `core`'s `src/spellCore.scopes.js`, for pages with no parser:  that
+   *   file is GENERATED, so its docs live in the table.
    */
   exportBuiltIns(): LSP.ScopePack {
     const tree = this.newTree([])
@@ -178,36 +172,70 @@ export class ScopeExplorer {
   }
 
   /**
-   * Built-in types a Type Explorer lists:  spell's classes, from its root scope -- see `SPELL_CLASSES`.
-   * - NOT the rest of its root types, e.g. javascript's `Object`, which spell knows by name but isn't a spell class.
-   *   A project's type made from one says so in its `detail` instead, e.g. `is a Object`.
+   * Built-in types a Type Explorer lists, from the root scope:  those in `SP.BUILT_IN_TYPE_TABLE`, in its order, then
+   * any other spell class (`SPELL_CLASSES`), bare.
+   * - NOT the rest of its root types, e.g. javascript's `Object`, which spell knows by name but isn't a spell class,
+   *   or `integer`, which has no members of its own.  A project's type made from one says so in its `detail`
+   *   instead, e.g. `is a Object`.
    */
   private static builtInTypes(): P.TypeScope[] {
-    return SP.SpellParser.rootScope.types.get().filter((type) => SPELL_CLASSES.includes(type.name))
+    const { types } = SP.SpellParser.rootScope
+    const listed = SP.BUILT_IN_TYPE_TABLE.map((entry) => types.get(entry.name, "LOCAL_ONLY")!)
+    const classes = types.get().filter((type) => SPELL_CLASSES.includes(type.name) && !listed.includes(type))
+    return [...listed, ...classes]
   }
 
   /**
-   * Entries for spell's built-in types -- see `builtInTypes()`.
-   * - Each type's entries -- it, and its members -- from the `builtIns` pack, with their details, if it has any.
-   *   Why:  the types are javascript, so there's no spell to find their docs in.
-   * - Else just the type, bare, as its scope has it -- e.g. one the pack doesn't know yet.
+   * Entries for spell's built-in types -- see `builtInTypes()` -- each followed by its members, from its
+   * `SP.BUILT_IN_TYPE_TABLE` entry, with their docs and the built-in rules which spell them.
+   * - Why the table:  the types are javascript, so there's no spell to find their docs in.
+   * - A type with no entry shows bare, as its scope has it.
    */
   private addBuiltIns(tree: Tree) {
-    const documented = this.builtIns?.()?.entries ?? []
     for (const type of ScopeExplorer.builtInTypes()) {
+      const table = SP.builtInTypeEntry(type.name)
+      if (!table) {
+        this.addType(type, tree)
+        continue
+      }
       const path = tree.typePaths.get(type)!
-      const entries = documented.filter((entry) => entry.path === path || entry.path.startsWith(`${path}/`))
-      if (!entries.length) this.addType(type, tree)
-      for (const { path, name, super: superPath, detail, uri: _uri, ...details } of entries) {
+      const parent = type.chain()[1]
+      const superPath = parent && tree.typePaths.get(parent)
+      tree.entries.push({
+        path,
+        ...(superPath ? { super: superPath } : {}),
+        ...(table.detail ? { detail: table.detail } : {})
+      })
+      tree.details.set(path, () => ScopeExplorer.builtInDetails(table))
+      for (const member of table.members) {
+        const name = member.kind === "property" ? SP.builtInMemberName(member.words) : member.words
+        const memberPath = LSP.scopePath(path, member.kind, name)
         tree.entries.push({
-          path,
-          ...(name ? { name } : {}),
-          ...(superPath ? { super: superPath } : {}),
-          ...(detail ? { detail } : {})
+          path: memberPath,
+          ...(name !== member.words ? { name: member.words } : {}),
+          ...(member.kind === "property" && member.datatype ? { detail: member.datatype } : {})
         })
-        tree.details.set(path, () => details)
+        tree.details.set(memberPath, () => ScopeExplorer.builtInDetails(member))
       }
     }
+  }
+
+  /** Details of a built-in type or member, from its table entry:  its docs, and the rules which spell it. */
+  private static builtInDetails({ doc, rules }: { doc?: string; rules?: string[] }): LSP.ScopeDetails {
+    const syntaxes = ScopeExplorer.builtInRules(rules ?? [])
+    return { ...(doc ? { description: doc } : {}), ...(syntaxes.length ? { rules: syntaxes } : {}) }
+  }
+
+  /**
+   * Built-in rules `names`, each syntax it was registered with, e.g. two for `create_list_type` -- from the live
+   * grammar, so they never go stale.
+   */
+  private static builtInRules(names: string[]): Array<{ name: string; syntax: string }> {
+    return names.flatMap((name) => {
+      const rule = SP.spellParser.rules[name]
+      const instances = rule instanceof P.Group ? rule.rules : rule ? [rule] : []
+      return instances.flatMap((it) => (typeof it.syntax === "string" ? [{ name, syntax: it.syntax }] : []))
+    })
   }
 
   /**

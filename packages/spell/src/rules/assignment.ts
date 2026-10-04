@@ -31,12 +31,25 @@ export const assignment = new SpellParser({ module: "assignment" })
  * - A new variable holds what `value` is, its `datatype`, e.g. `Card` for `the card is a new card`.  An existing
  *   one keeps its own:  the first datatype wins.
  * - SIDE EFFECT: `set the X of Y to V` declares property `X` if `Y`'s type doesn't -- see `declareProperty()`.
+ * - A built-in type's member is read-only, e.g. `set the length of the name to 3`:  a parse error -- see `parse()`.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
 class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
   static ruleName = "assignment"
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "variable", name: "thing" }
+
+  /**
+   * Refused when `thing` reads a built-in type's member, e.g. `the length of the name`:  spell works those out --
+   * its `compile`, e.g. `spellCore.itemCountOf(deck)`, is no place to put a value.  See `SP.BUILT_IN_TYPE_TABLE`.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    const read = match && memberRead(match.groups.thing)
+    if (!match || !(read?.member instanceof P.ScopeVariable) || !read.member.compile) return match
+    const type = read.type ? ` of a ${P.typeName(read.type.name)}` : ""
+    return SpellStatement.refuse(match, `Can't set the ${read.property.raw}${type}:  spell works it out`)
+  }
 
   /**
    * PER MATCH:  `"global"` if it declared a property (`data.autoDeclared`), which later lines -- and files -- read;

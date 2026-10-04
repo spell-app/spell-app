@@ -111,7 +111,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `match.datatype` memoizes `rule.getDatatype(match)` -- default the rule's `@proto static datatype`;  about a dozen
   rules override it, reading ONLY `match.data` and child matches' datatypes:
   - `variable` / `SpellIdentifier`:  its `scopeVar`'s `datatype`;  a member read (`the X of Y`, `its X`, see
-    "Members"):  the member it read (`data.member`), an enumeration's values `list`;  `DynamicMethodRule`:  its
+    "Members"):  the member it read (`data.member`) -- a built-in's from its table entry, e.g. `the length of the
+    name` is a `number` -- an enumeration's values `list`;  `DynamicMethodRule`:  its
     method record's `returns` (`data.method`), which the parser infers -- see "Return types" below
   - `new_thing` / `create_thing` / `new_list`:  the type made;  list rules:  the item type (`data.itemType`), the
     list's type, or `number`
@@ -192,6 +193,35 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   per enumeration (`EnumerationRule`).  `the number of card suits` counts:  `list_count` takes any operand whose
   datatype is a list.
 
+## Built-in types:  `the length of the name`
+
+- `SP.BUILT_IN_TYPE_TABLE` (`src/builtinTypes.ts`) -- DATA, one entry per built-in type with anything to say
+  (`thing`, `list`, `app`, `text`, `date`):  its docs, `itemType` (`text` holds `character`s), and `members`
+  (`SP.BuiltInMember`).  Not a `.spell` file, not statics on runtime classes (plan doc D25).  A type's NAME and
+  super-type stay `P.BUILT_IN_TYPES`' -- the parser's vocabulary;  the entry's `superType` must agree (a test checks).
+- `SpellParser.rootScope` loads it (`loadBuiltInTypes()`) into the root's `TypeScope`s:  each `itemType`, and each
+  member with a `compile` template as a `P.ScopeVariable` holding it (`compile`, `doc`).  So member reads resolve it
+  like any declared property (see "Members"), up the super-type chain:  a `Deck` finds `List`'s `length`.
+- `compile` is how a read compiles, `{it}` what it's read from -- ONE of three forms (`parseCompileTemplate()`):
+  `{it}.length`, `{it}.getFullYear()`, `spellCore.itemCountOf({it})`.  `memberAST()` (`properties.ts`) builds it.
+  So the same words compile per type:  `the length of the name` => `name.length`, `the length of the deck` =>
+  `spellCore.itemCountOf(deck)`.  Its datatype is the member's.  An unknown type still reads loose:  `x.length`.
+- A member with only `rules` (no `compile`) is DOCS for what built-in rules already spell, e.g. `shuffle (a list)`
+  => `list_shuffle`:  their rules compile it, and it's NOT loaded into scope -- a `ScopeMethod` record there would
+  change which method a call finds (P5's typed calls).
+- A project's own declaration wins:  its type is first in the chain, e.g. `the size of a pile is: 52`.
+- Spell's own:  declaring a property on a built-in type (`the length of a text is:`, `things have a tag`) or
+  setting a built-in member (`set the length of the deck to 3`) is refused, with a parse error saying why --
+  the root scope is shared by every project, and no journal records it.  See "Refused statements" below.
+  A METHOD of a built-in type is fine:  its record goes in the project's `methods`.
+- Editors:  hover shows a member's `doc` (and a built-in rule's member, `builtInMembersOfRule()`);  completion
+  offers them with their docs;  the Type Explorer lists the table's types and members, its rules' syntax from the
+  live grammar.  `core`'s `src/spellCore.scopes.js` -- the same, for pages with no parser -- is GENERATED from the
+  table:  `yarn scopes --builtins` in `packages/lsp`, and a test fails until you do.
+- Adding a member:  ONE table entry, plus the `spellCore` method or javascript property its `compile` names --
+  `src/builtinTypes.test.ts` reads each one off a sample value, so it must be real.  Then `yarn scopes --builtins`.
+  Adding a TYPE:  its name in `P.BUILT_IN_TYPES` first, then its entry.
+
 ## File => block => line => statement
 
 - `Block.parse()` (`packages/spell/src/rules/Block.ts`) loops over the root `BlockToken`'s items:
@@ -202,7 +232,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `BlockLine.parse()` (`packages/spell/src/rules/BlockLine.ts`), in order:
   1. blank line => `blank_line`
   2. pop a trailing comment
-  3. parse the rest as `"statement"`;  leftovers become a `parse_error`
+  3. parse the rest as `"statement"`;  leftovers become a `parse_error`.  A statement its rule REFUSED is a
+     `parse_error` already, saying why (`SpellStatement.refuse()`):  the line's error, never committed
   4. `commitStatement()` -- the ONLY place a parsed statement changes scope, and only for the line's winner:
      - `mutateScope()` on the statement, then on each inline statement inside it, outermost first
      - if the rule takes a nested body and the next item is a `BlockToken` => `parseNestedBlock()`
@@ -225,6 +256,10 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     `if`/`else` => new `BlockScope`;  methods, events, property getters, list loops => new `MethodScope`
 - Errors are never thrown.  `parse_error` matches roll up into `match.data.errors` on `line` / `block`
   matches (`Block.getParseErrors()`), and compile to `/* PARSE ERROR: ... */`.
+- Refused statements:  a `parse()` which understood a statement but mustn't take it returns
+  `SpellStatement.refuse(match, message)` -- a `parse_error` match over its tokens, with `message` -- NOT
+  `undefined`, which would say only "Don't understand ...".  `BlockLine` reports it.  Used by the property
+  declarations (`refuseBuiltInType()`, `classes.ts`) and `assignment_statement` -- see "Built-in types".
   - errors inside JSX `{...}` live in the JSX rules' `match.data`, not `matched`;  `BlockLine` gathers them from
     anywhere in its statement (`SpellJSX.parseErrorsIn()`) into `data.errors` too -- reported, but compiled in place
 
@@ -239,7 +274,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `RootScope` adds `types`, `constants`, `rules`.  `ProjectScope` is a `RootScope`, and holds the project's free
   functions' records.  `SpellParser.rootScope` is ONE static root shared by every project:  spell's classes
   (`Thing`, `List`, `App`, `Object`) and every built-in type's NAME (`P.BUILT_IN_TYPES`:  `text`, `number` ...,
-  with super-types, e.g. `integer` is a `number`).
+  with super-types, e.g. `integer` is a `number`), with their members from `SP.BUILT_IN_TYPE_TABLE` -- see
+  "Built-in types".
 - `MethodScope` adds args, plus `this` / `it` alias variables (of type `itDatatype`).
 - `TypeScope` holds instance + class variables, instance methods' records, a list type's `itemType`, and member
   lookup up its super-type chain:  `chain()`, `isA()`, `getMember(words)` -- a property, else a method.
@@ -506,6 +542,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     words as written (`ScopeVariable.words`), e.g. `property **short rank** of Card`
   - completion offers properties where a member's words can come, e.g. after `the ` -- every visible type's, as
     written;  the Type Explorer lists them so too (`ScopeEntry.name`, when the path's name -- as compiled -- differs)
+  - a built-in type's member:  its docs from `SP.BUILT_IN_TYPE_TABLE` (its record's `doc`), in hover and
+    completion;  hovering a built-in rule shows the member it spells.  The Type Explorer's built-in types come from
+    the table too (`ScopeExplorer.addBuiltIns()`) -- see "Built-in types"
 - Formatting is `P.TokenFormatter` (`packages/parser/src/tokenizer/`), indenting with TABS always:  whitespace only, from the tokens -- no
   pretty-printer, the AST is a javascript tree.  Indent LEVELS come from indent widths, not the tokenizer's blocks
   (which nest one per whitespace character).  It re-tokenizes its result and gives up if anything but whitespace

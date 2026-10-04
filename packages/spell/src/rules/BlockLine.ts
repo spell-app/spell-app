@@ -3,6 +3,7 @@ import { SP } from "$/spell"
 import { SpellStatement, commitStatement } from "./Statement"
 import { Block, type BlockMatchData } from "./Block"
 import { SpellJSX } from "./JSX"
+import { ParseError } from "./ParseError"
 
 /**
  * Blank line, compiling to `P.ASTBlankLine` -- generic `P.BlankLine` has no `getAST()` of its own,
@@ -78,7 +79,14 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
 
       // parse the statement (which may parse an inline body as well)
       const unparsed = tokens.slice(start, end)
-      const statement = scope.parser?.parse(unparsed, "statement", scope)
+      let statement = scope.parser?.parse(unparsed, "statement", scope)
+      // a statement its rule refused, saying why -- see `SpellStatement.refuse()`:  an error, never committed
+      if (statement?.is(ParseError)) {
+        errors.push(statement)
+        matched.push(statement)
+        unparsed.splice(0, statement.length)
+        statement = undefined
+      }
       if (statement) {
         lineStatement = statement
         matched.push(statement)

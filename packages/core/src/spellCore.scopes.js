@@ -24,10 +24,20 @@
       detail: "counts from 1",
       description: "Things in order -- `a deck is a list of cards` makes a deck.\n- Counts from 1:  `card 1 of the deck` is the first.  Negative counts from the end, so\n  `card -1 of the deck` is the last -- as is `the last card of the deck`.\n- Reactive, like a thing:  add or remove an item and whatever drew the list redraws.\n- The word for its items is just for reading:  `number of cards in the deck`\n  ~== `number of items in the deck`.\n- Its actions also work on a plain list, e.g. `number of items in [1, 2, 3]`.\n\n```spell\na deck is a list of cards\nset the deck to a new deck\nadd a new card to the deck\nshuffle the deck\nfor each card in the deck\n  set the direction of the card to \"down\"\n```",
       rules: [
-        { name: "create_list_type", syntax: "(a|an) {type} is a list of {instanceType:type}" },
         { name: "create_list_type", syntax: "create a type (named|called) {type} as a list of {instanceType:type}" },
+        { name: "create_list_type", syntax: "(a|an) {type} is a list of {instanceType:type}" },
         { name: "new_list", syntax: "a new (list|List) (of {instanceType:type}?)" }
       ]
+    },
+    {
+      path: "type:List/property:length",
+      detail: "number",
+      description: "How many items it has, e.g. `the length of the deck`.\n- ~== `the size of the deck`, `the number of cards in the deck`."
+    },
+    {
+      path: "type:List/property:size",
+      detail: "number",
+      description: "How many items it has, e.g. `the size of the deck` -- its `length`."
     },
     {
       path: "type:List/method:(a list) has items where",
@@ -126,7 +136,9 @@
       path: "type:List/method:number of (items) in (a list)",
       description: "How many items it has, e.g. `number of cards in the deck`.",
       rules: [
-        { name: "list_length", syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand}" }
+        { name: "list_length", syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand}" },
+        { name: "list_length", syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand} where {inline_expression}?" },
+        { name: "list_count", syntax: "the? number of {list:operand}" }
       ]
     },
     {
@@ -176,6 +188,65 @@
       rules: [
         { name: "start_app", syntax: "start {app:expression}" }
       ]
+    },
+    {
+      path: "type:Text",
+      description: "Words, letters -- anything in quotes, e.g. `\"hello\"`.\n- Counts from 1, as a list does:  `the first character of the name` is its first letter.\n- `+` joins two:  `\"total: \" + x`.\n\n```spell\nset the name to \"Ada\"\nprint the length of the name\nprint the last character of the name\n```"
+    },
+    {
+      path: "type:Text/property:length",
+      detail: "number",
+      description: "How many characters it has, e.g. `the length of the name`.\n- ~== `the number of characters in the name`."
+    },
+    {
+      path: "type:Text/property:characters",
+      detail: "list of characters",
+      description: "Its characters, one by one, as a new list, e.g. `the characters of the name`."
+    },
+    {
+      path: "type:Text/method:character (n) of (a text)",
+      description: "The character at a position, counting from 1, e.g. `character 2 of the name`.\n- Ordinals too:  `the first character of the name`, `the last character of the name`.\n- Nothing if there's no character there.",
+      rules: [
+        { name: "position_expression", syntax: "{arg:singular_identifier} {position:expression} of {expression:operand}" },
+        { name: "ordinal_position_expression", syntax: "the {ordinal} {arg:singular_identifier} (in|of) {expression:operand}" }
+      ]
+    },
+    {
+      path: "type:Text/method:number of characters in (a text)",
+      description: "How many characters it has, e.g. `the number of characters in the name` -- its `length`.",
+      rules: [
+        { name: "list_length", syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand}" },
+        { name: "list_length", syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand} where {inline_expression}?" }
+      ]
+    },
+    {
+      path: "type:Text/method:a random character of (a text)",
+      description: "A character picked at random, e.g. `a random character of the name`.",
+      rules: [
+        { name: "random_item_expression", syntax: "a random {arg:singular_identifier} (of|from|in) {list:operand}" }
+      ]
+    },
+    {
+      path: "type:Text/method:(a text) as upper case",
+      description: "The same text in CAPITALS, e.g. `the name as upper case` -- or `as uppercase`.\n- `as lower case` for small letters.",
+      rules: [
+        { name: "as_uppercase", syntax: "as (upper case|uppercase)" },
+        { name: "as_lowercase", syntax: "as (lower case|lowercase)" }
+      ]
+    },
+    {
+      path: "type:Date",
+      description: "A day and a time of day, e.g. a property declared `as date`:  `a todo has a due date as date`.\n- Its parts are numbers:  `the year of the due date of the todo`."
+    },
+    {
+      path: "type:Date/property:year",
+      detail: "number",
+      description: "Its year, e.g. `2026`."
+    },
+    {
+      path: "type:Date/property:day",
+      detail: "number",
+      description: "Its day of the month, from 1 to 31."
     }
   ]
 }

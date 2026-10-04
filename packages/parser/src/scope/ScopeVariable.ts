@@ -48,6 +48,18 @@ export class ScopeVariable {
    * see spell's `assignment_statement`.
    */
   declare auto: boolean | undefined
+  /**
+   * How a READ of it compiles, if not `<object>.<name>` -- a template, `{it}` standing for what it's read from:
+   * `{it}.length`, `{it}.getFullYear()` or `spellCore.itemCountOf({it})`.
+   * - A built-in type's member, from spell's table of them -- see spell's `BUILT_IN_TYPE_TABLE`.
+   * - NEVER set by a statement:  what a project declares compiles as its own statements say.
+   */
+  declare compile: string | undefined
+  /**
+   * Its docs, as markdown, for a member with no source to read them from:  a built-in type's.
+   * - Anything a project declares has its docstring above its declaring statement instead.
+   */
+  declare doc: string | undefined
 
   /** Create with a string name or `ScopeVariableProps` object. */
   constructor(input: string | ScopeVariableProps) {
@@ -86,4 +98,8 @@ export type ScopeVariableProps = {
   words?: string
   /** See `ScopeVariable.auto`. */
   auto?: boolean
+  /** See `ScopeVariable.compile`. */
+  compile?: string
+  /** See `ScopeVariable.doc`. */
+  doc?: string
 }

@@ -9,6 +9,7 @@
  */
 import { NONE, pluralize, proto, singularize, upperFirst } from "$/util"
 import { P } from "$/parser"
+import { SP } from "$/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -572,6 +573,12 @@ class define_property_has extends SpellStatement<"type|property|specifier?"> {
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type", detail: "specifier" }
 
+  /** Refused on a built-in type -- see `refuseBuiltInType()`. */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    return match && refuseBuiltInType(match, match.groups.type, match.groups.property)
+  }
+
   mutateScope(match: P.MatchFor<this>) {
     const { scope } = match
     const { type, property, specifier } = match.groups
@@ -839,6 +846,14 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     of: "type_property.type"
   }
 
+  /** Refused on a built-in type -- see `refuseBuiltInType()`. */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match) return undefined
+    const { type, property } = match.groups.type_property.groups
+    return refuseBuiltInType(match, type, property)
+  }
+
   mutateScope(match: P.MatchFor<this>) {
     const { scope } = match
     const { value, otherValue, type_property } = match.groups
@@ -941,6 +956,12 @@ type PropertyValueEitherGroups = P.GroupsFor<"type_property", P.Match<P.GroupsFo
 class property_value_getter extends SpellStatement<"property|type|body?"> {
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type" }
+
+  /** Refused on a built-in type -- see `refuseBuiltInType()`. */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    return match && refuseBuiltInType(match, match.groups.type, match.groups.property)
+  }
 
   /**
    * SIDE EFFECT:  records the property on its type -- see `P.TypeScope.declareProperty()`.
@@ -1384,4 +1405,25 @@ type QuotedPropertyFormulaBits = {
 type QuotedPropertyFormulaMatchData = {
   /** Cached result of `getBits()` -- see the type above. */
   bits?: QuotedPropertyFormulaBits
+}
+
+////////////////
+// ## Shared helpers
+//    for the rules declaring a property, e.g. `define_property_has`
+////////////////
+
+/**
+ * `match`, a statement declaring `property` on `type` -- or, when `type` is one of spell's BUILT-IN types, e.g.
+ * `text` or `thing`, a parse error saying it can't be (plan doc caveat C9), e.g. `the length of a text is: ...`.
+ * - Why:  a built-in type's `P.TypeScope` is the shared root scope's, which every project parses against and no
+ *   project's journal records -- a property there would leak into every other project, and outlive its edit.  Its
+ *   members are spell's own, in `SP.BUILT_IN_TYPE_TABLE`.
+ * - A METHOD of a built-in type is fine:  its record goes in the project's `methods` -- see `MethodDefinition`.
+ * - A lookup:  call it WHILE PARSING.
+ */
+function refuseBuiltInType(match: P.Match, type: P.Match, property: P.Match | undefined): P.Match {
+  if (!SP.isBuiltInTypeScope(match.scope.types?.get(`${type.value}`))) return match
+  const words = property ? `"${property.raw}"` : "a property"
+  const message = `Can't add ${words} to ${P.typeName(`${type.value}`)}:  it's built in, and every project shares it`
+  return SpellStatement.refuse(match, message)
 }

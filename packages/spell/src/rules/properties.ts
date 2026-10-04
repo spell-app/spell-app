@@ -5,6 +5,7 @@
 
 import { NONE, proto } from "$/util"
 import { P } from "$/parser"
+import { SP } from "$/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
@@ -233,6 +234,22 @@ properties.addRule(property_expression, {
         ["the short rank of the last card of the deck", "deck.last_card.short_rank"],
         ["the suit of the card", "card.suit"],
         ["the suits of the card", "Card.Suits"]
+      ]
+    },
+    {
+      title: "built in:  as the type's table entry compiles it -- see `SP.BUILT_IN_TYPE_TABLE`",
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add({ name: "name", datatype: "text" })
+        scope.variables?.add({ name: "deck", datatype: "list" })
+        scope.variables?.add({ name: "due", datatype: "date" })
+        scope.variables?.add("bar")
+      },
+      tests: [
+        ["the length of the name", "name.length"],
+        ["the length of the deck", "spellCore.itemCountOf(deck)"],
+        ["the year of the due", "due.getFullYear()"],
+        { title: "unknown type:  a loose read, as before", input: "the length of bar", output: "bar.length" }
       ]
     },
     {
@@ -624,8 +641,10 @@ function memberDatatype(member: P.ScopeVariable | P.ScopeMethod | undefined): P.
 }
 
 /**
- * `object.property` for a resolved read -- or, for an enumerated property's values, its type's class variable,
- * e.g. `Card.Suits` for `the suits of the card`.
+ * `object.property` for a resolved read -- or:
+ * - for an enumerated property's values, its type's class variable, e.g. `Card.Suits` for `the suits of the card`
+ * - for a built-in type's member, what its `compile` template says, e.g. `spellCore.itemCountOf(deck)` for
+ *   `the length of the deck` -- see `builtInMemberAST()`
  */
 function memberAST(match: P.Match<P.AnyGroups, MemberData>, object: P.ASTExpression, property: P.Match) {
   const { member, enumerationOf } = match.data
@@ -633,7 +652,22 @@ function memberAST(match: P.Match<P.AnyGroups, MemberData>, object: P.ASTExpress
     const type = new P.ASTTypeExpression(match, { name: enumerationOf })
     return new P.ASTPropertyExpression(match, { object: type, property: member.name })
   }
+  if (member instanceof P.ScopeVariable && member.compile) return builtInMemberAST(match, object, member.compile)
   return new P.ASTPropertyExpression(match, { object, property: P.asAST<P.ASTPropertyLiteral>(property.AST) })
+}
+
+/**
+ * A built-in type's member read off `object`, as its `compile` template says -- see `SP.BuiltInMember.compile`:
+ * - `{it}.length` => `object.length`
+ * - `{it}.getFullYear()` => `object.getFullYear()`
+ * - `spellCore.itemCountOf({it})` => `spellCore.itemCountOf(object)`
+ * - The table's templates are checked as it loads (`SP.loadBuiltInTypes()`), so one always reads.
+ */
+function builtInMemberAST(match: P.AnyMatch, object: P.ASTExpression, compile: string): P.ASTExpression {
+  const { form, name } = SP.parseCompileTemplate(compile)!
+  if (form === "property") return new P.ASTPropertyExpression(match, { object, property: name })
+  if (form === "method") return new P.ASTScopedMethodInvocation(match, { thing: object, methodName: name })
+  return new P.ASTCoreMethodInvocation(match, { methodName: name, args: [object] })
 }
 
 /**
