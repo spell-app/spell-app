@@ -100,7 +100,11 @@
                     <td>Spell UI</td>
                     <td><code>/ui/</code></td>
                     <td class="no negative">no</td>
-                    <td><code>astro dev</code>, proxied (<code>AstroProxy</code>)</td>
+                    <td>
+                      static pages,
+                      <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a> mounted at
+                      <code>/ui/</code>
+                    </td>
                   </tr>
                   <tr>
                     <td>Epics</td>
@@ -154,8 +158,8 @@
                   <tr>
                     <td><code>yarn serve</code></td>
                     <td>
-                      every server of the checkout, started if need be: <code>ensure</code>, wait for the editor, ask
-                      for <code>/ui/</code> (which starts <code>astro dev</code>); prints each one's port and URL (<a
+                      every server of the checkout, started if need be: <code>ensure</code>, wait for the editor, check
+                      Spell UI's bundle answers (<code>/ui/_assets/site.js</code>); prints each one's port and URL (<a
                         href="../../scripts/serve.mjs"
                         target="src-scripts-serve-mjs"
                         ><code>scripts/serve.mjs</code></a
@@ -445,12 +449,6 @@
                 -- <code>/_server/page</code>: read, replace or patch a page's source
               </li>
               <li>
-                <a href="../server/src/page/AstroProxy.ts" target="src-packages-server-src-page-astroproxy-ts"
-                  ><code>AstroProxy.ts</code></a
-                >
-                -- Spell UI's docs at <code>/ui/</code>, <code>astro dev</code> started on demand
-              </li>
-              <li>
                 <a href="../server/src/page/RunningEpics.ts" target="src-packages-server-src-page-runningepics-ts"
                   ><code>RunningEpics.ts</code></a
                 >
@@ -476,7 +474,11 @@
             <p>
               Browser code, <code>$/server/site</code>: bundled into the docs'
               <a href="_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"><code>spell-ui.js</code></a>
-              and Spell UI's Astro layout.
+              and Spell UI's site bundle (<a
+                href="../ui/site/_assets/site.js"
+                target="src-packages-ui-site-assets-site-js"
+                ><code>packages/ui/site/_assets/site.js</code></a
+              >).
             </p>
             <ul>
               <li>
@@ -664,38 +666,31 @@
             </ol>
           </ui-section>
 
-          <ui-section id="spell-ui-via-astro-dev" header="Spell UI via astro dev" sticky collapsible dividing>
+          <ui-section id="spell-ui-static" header="Spell UI at /ui/" sticky collapsible dividing>
             <ol>
               <li>
-                The first request under <code>/ui</code> starts
-                <code>yarn astro dev --port &lt;free&gt; --host 127.0.0.1 --ignore-lock</code> in
-                <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site</code></a
-                >, logging to
-                <a href="../../.spell-server.astro.log" target="src-spell-server-astro-log"
-                  ><code>.spell-server.astro.log</code></a
-                >; no answer in 60s: 502.
+                <code>/ui/</code> is a second static mount:
+                <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a
+                >, plain <code>.html</code> pages (<code>UI_SITE</code> in
+                <a href="../server/src/page/page.types.ts" target="src-packages-server-src-page-page-types-ts"
+                  ><code>page.types.ts</code></a
+                >). <code>/ui</code> redirects to <code>/ui/</code>, so the pages' relative links resolve.
               </li>
               <li>
-                Requests pass through with the path unchanged (the site's <code>base</code> is <code>/ui</code>) and
-                <code>Host</code> rewritten, so Vite's host check accepts them.
+                The pages load ONE committed bundle, <code>_assets/site.js</code> + <code>site.css</code>, built by
+                <code>yarn site:build</code> in <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                >: no dev server, no build step to view a page.
               </li>
               <li>
-                While it runs, Vite's ROOT dev paths go to it too: in dev, Astro serves modules from the root whatever
-                the <code>base</code> (<code>/@vite/client</code>, <code>/@fs/...</code>, <code>/src/...</code>,
-                <code>/node_modules/.vite/...</code>). None exists at the repo root.
+                Live like the docs: the folder is watched (not <code>_src/</code>, the bundle's entry); a page reloads
+                when it or any CSS / JS changes, so a rebuilt bundle reloads every page. <code>yarn site:dev</code> in
+                <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a> rebuilds the bundle on every
+                source edit, so a library change shows up live. The section editor works on them too: their
+                <code>SPELL_SERVER.file</code> is <code>/packages/ui/site/...</code>.
               </li>
               <li>
-                Websockets: any upgrade under <code>/ui</code>, or carrying the <code>vite-hmr</code> subprotocol, is
-                piped to <code>astro dev</code> -- hot reload works.
-              </li>
-              <li>
-                It stops with the page server (its whole process group).
-                <ul>
-                  <li>
-                    <code>--ignore-lock</code>: otherwise Astro 7, seeing an agent (<code>CLAUDECODE</code>),
-                    backgrounds itself and exits at once
-                  </li>
-                </ul>
+                Until 2026-10-02 this proxied <code>astro dev</code> (<code>AstroProxy</code>); the Astro site was
+                deleted on 2026-10-03 (epic <code>spell-ui-pages</code>, P7).
               </li>
             </ol>
           </ui-section>
@@ -1159,16 +1154,16 @@ export default goalsRoutes</code></pre>
                     <th>why</th>
                   </tr>
                   <tr>
-                    <td>proxy <code>astro dev</code> at <code>/ui/</code>, site <code>base: "/ui"</code></td>
-                    <td>live hot reload, no rebuild lag; cost: a second process</td>
-                  </tr>
-                  <tr>
-                    <td>Vite's root paths and <code>vite-hmr</code> websocket go to it</td>
-                    <td>over running Astro on its own port in an iframe, or a redirect</td>
-                  </tr>
-                  <tr>
-                    <td><code>--ignore-lock</code></td>
-                    <td>keeps <code>astro dev</code> in the foreground, the page server's to stop</td>
+                    <td>
+                      <code>/ui/</code> serves
+                      <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a> as static
+                      pages
+                    </td>
+                    <td>
+                      over proxying <code>astro dev</code> (until 2026-10-02): no second process, no build step to view;
+                      cost: <code>yarn site:build</code> after a library change (or <code>yarn site:dev</code> while
+                      working)
+                    </td>
                   </tr>
                   <tr>
                     <td>two theme toggles on Spell UI pages</td>
@@ -1257,7 +1252,7 @@ export default goalsRoutes</code></pre>
                 no goals buttons and no <code>/ui/</code> until <code>yarn server start</code>.
               </li>
               <li>"Open in VS Code" opens in the LAST FOCUSED VS Code window, not this session's.</li>
-              <li>The header's theme toggle and the Astro site's can disagree.</li>
+              <li>The header's theme toggle and the Spell UI site's can disagree.</li>
               <li>The editor has no site header, and the Editor tab leaves the page server's origin.</li>
             </ul>
           </ui-section>
@@ -1280,19 +1275,17 @@ export default goalsRoutes</code></pre>
             </ul>
           </ui-section>
 
-          <ui-section id="limits-astro" header="astro dev" sticky collapsible dividing>
+          <ui-section id="limits-ui" header="Spell UI" sticky collapsible dividing>
             <ul>
-              <li>A second process, started by the first <code>/ui/</code> request.</li>
               <li>
-                A page server killed with <code>kill -9</code> leaves it running: find it with
-                <code>ps aux | grep "astro dev"</code>.
+                <code>/ui/</code> shows the COMMITTED bundle: a library change shows only after
+                <code>yarn site:build</code> in <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                >.
               </li>
               <li>
-                No Astro lock file (<code>--ignore-lock</code>): <code>yarn site:dev</code> beside it won't notice it.
-              </li>
-              <li>
-                Pre-existing, not from this work: <code>yarn site:check</code> crashes in <code>@volar/kit</code>, and
-                the site's own header row overflows at 390px.
+                <code>_assets/icon-packs</code> is a symlink into
+                <a href="../ui/src/icons/" target="src-packages-ui-src-icons"><code>packages/ui/src/icons/</code></a
+                >: served fine, but a static deploy must copy through it.
               </li>
             </ul>
           </ui-section>

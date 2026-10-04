@@ -10,6 +10,7 @@
  *   inherited tokens (`--_grid-*`), see `ui-grid.css`.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { ONLY_DEVICES } from "./ui-grid.types"
 
@@ -95,6 +96,15 @@ export const gridVocabulary = {
       kind: "multiple",
       values: GRID_REVERSALS,
       description: 'Reverses the column order at these grid widths, e.g. `reversed="mobile tablet vertically"`.'
+    },
+    {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        "What `stackable`, `doubling`, `reversed` and per-device widths measure:  `container` (the default) -- the " +
+        "grid's own width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token " +
+        "decides (`<ui-root stack-with>`).  Rows and columns follow their grid."
     },
     {
       name: "text-align",

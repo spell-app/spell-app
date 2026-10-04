@@ -269,7 +269,8 @@ The built-in packs must be served NEXT TO THE MODULE that contains `BuiltInPacks
 
 - **Library build:**  `BuiltInPacks` is in `dist/core.js`, so `dist/icon-packs/<id>/`.  Package export:
   `@spell-app/ui/icons/*` -> `dist/icon-packs/*`.
-- **Docs site:**  `emitIconPacks("_astro/icon-packs")` beside Astro's chunks.
+- **Docs site:**  `site/_assets/icon-packs`, a symlink to `src/icons/icon-packs/` beside the site bundle's chunks
+  (`scripts/site-bundle.ts`);  a static deploy copies through it (`cp -RL`).
 - **An app that bundles `@spell-app/ui`:**  the bundler moves `BuiltInPacks` away from `node_modules`.  Copy
   `dist/icon-packs/` next to the app's chunks, OR add the packs by URL from wherever they're served
   (`<ui-root icons="/assets/packs/fa7-free/pack.js">`), OR set `BuiltInPacks.base`.

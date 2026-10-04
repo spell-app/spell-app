@@ -71,7 +71,7 @@ describe("ui-items.css source", () => {
       expect(selectors.length).toBeGreaterThan(25)
       expect(selectors.some((selector) => selector.includes(":host(:state(in-items):first-child) > .item"))).toBe(true)
       expect(css).toMatch(/@container \(width < 768px\)/)
-      expect(css).toMatch(/@container style\(--_items-stackable: ?1\)/)
+      expect(css).toMatch(/@container style\(--_items-narrow: ?1\) and style\(--_items-stackable: ?1\)/)
     }
   })
 

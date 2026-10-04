@@ -55,7 +55,10 @@
   .ui.ad:last-child {
     margin: 0;
   }
-  /* Shadow DOM:  the root is always an only child, so the HOST's position decides (as `ui-segment.css`). */
+  /*
+   * In the shadow root the box is ALWAYS its root's first and last child, so the two rules above would zero every
+   * element's margin:  a host between siblings gets its margin back (static class-grammar markup keeps them).
+   */
   :host(:not(:first-child, :last-child)) > .ui.ad {
     margin: var(--_ui-ad-margin);
   }

@@ -46,24 +46,30 @@ export const KINDS = {
   issue: { prefix: "i", list: "issue", live: "open" },
   todo: { prefix: "t", list: "todo", live: "open" },
   test: { prefix: "v", list: "test", live: "open" },
-  decision: { prefix: "d", list: "decision", live: "decided" }
+  decision: { prefix: "d", list: "decision", live: "decided" },
+  judgement: { prefix: "j", list: "judgement", live: "open" }
 }
 
-/** Kinds `summary` reports while open, in the order a reader should act on them. */
-const OPEN_KINDS = ["question", "issue", "caveat", "todo", "test"]
+/**
+ * Kinds `summary` reports while open, in the order a reader should act on them.
+ * - `judgement`:  a choice Claude made without Owen (a `/bedtime` run, an agent mid-phase);  open until he reviews
+ *   it, then `close`d (accepted), or turned into a question.
+ */
+const OPEN_KINDS = ["question", "judgement", "issue", "caveat", "todo", "test"]
 
 /**
  * The sections, in page order, by id (the `<ui-section>`'s, or an old doc's h2's):  `migrate` puts an older doc's
  * sections in this order and renumbers their titles.  `#plan` (summary + phase list) was dropped on 2026-10-01, and `#questions` merged into
  * `#decisions` ("Questions & Decisions").
  */
-const SECTION_ORDER = ["overview", "phases", "decisions", "caveats", "todos", "issues", "tests", "log"]
+const SECTION_ORDER = ["overview", "phases", "decisions", "judgements", "caveats", "todos", "issues", "tests", "log"]
 
 /** Each section's icon, by its id (the template's):  `migrate` gives one to a section that has none. */
 const SECTION_ICONS = {
   overview: "lightbulb",
   phases: "layer group",
   decisions: "gavel",
+  judgements: "compass",
   caveats: "triangle exclamation",
   todos: "list check",
   issues: "bug",
@@ -82,6 +88,16 @@ const PHASE_SECTIONS = "ui-section#phases ui-section[data-phase], #phases-sectio
 const DECISIONS_NOTE =
   "Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, " +
   "don't re-argue without new facts. An answered question sits just above its decision."
+
+/** The `#judgements` section as the template has it:  `migrate` adds it to older docs (`addJudgements()`). */
+const JUDGEMENTS_SECTION = `<ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing>
+          <ui-icon slot="icon" name="compass"></ui-icon>
+          <p class="meta">
+            Choices made without you (a bedtime run, an agent mid-phase):  what was chosen, over what, and why.
+            Open until you review it;  struck = accepted.  Disagree:  say so, and it becomes a question.
+          </p>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>`
 
 /**
  * A phase body's fields:  label and icon.
@@ -610,6 +626,7 @@ ${list}`
     const items = this.migrateItems()
     if (items) changes.push(`${items} items as ui-item, details titled by their line`)
     changes.push(...this.mergeQuestions())
+    if (this.addJudgements()) changes.push("#judgements (Judgement calls) added after Questions & Decisions")
     const bodies = this.migratePhaseBodies()
     if (bodies) changes.push(`${bodies} phase bodies as ui-list`)
     const sections = convertSections(this.document)
@@ -630,6 +647,16 @@ ${list}`
     }
     this.updateProgress()
     return changes
+  }
+
+  /** A doc made before 2026-10-03 gets the template's `#judgements` section, just after `#decisions`, numbered;  added? */
+  addJudgements() {
+    if (this.document.getElementById("judgements")) return false
+    const decisions = this.document.getElementById("decisions")
+    if (!decisions) return false
+    decisions.after(this.document.createTextNode("\n\n        "), this.fragment(JUDGEMENTS_SECTION))
+    this.orderSections()
+    return true
   }
 
   /** A `<ui-section>` among `SECTION_ICONS`' with no icon gets its icon (the template's);  how many. */
@@ -1127,7 +1154,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
                                                    reloads the doc's VS Code tab
-  add <name> question|caveat|issue|todo|test|decision "title" [--details html]    prints the new id
+  add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html]    prints the new id
   decide <name> <Q id> "decision" [--details html]  answer a question:  a decision, the question struck beside it
   close <name> <id>  /  reopen <name> <id>         strike / unstrike an item
   log <name> "text"                                timestamped line in the log

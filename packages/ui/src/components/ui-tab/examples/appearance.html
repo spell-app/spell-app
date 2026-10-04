@@ -1,0 +1,44 @@
+<!--
+  Tab appearance, alignment and equal tabs:  ours (`appearance`, `alignment`, `equal`), not Fomantic's docs.
+  Static class grammar:  the tab list is a menu with the same words;  the `.active` pane shows.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Segmented</h4>
+    <div class="ui segmented menu" role="tablist" aria-label="Segmented">
+      <button class="active item" role="tab" aria-selected="true" id="segmented-examples">Examples</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Usage</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">API</button>
+    </div>
+    <div class="ui active tab segment" role="tabpanel" aria-labelledby="segmented-examples">Examples</div>
+  </section>
+
+  <section>
+    <h4>Segmented, centered, equal</h4>
+    <div class="ui violet segmented equal center aligned menu" role="tablist" aria-label="Segmented centered">
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Day</button>
+      <button class="active item" role="tab" aria-selected="true" id="centered-week">Week</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Month and year</button>
+    </div>
+    <div class="ui active tab segment" role="tabpanel" aria-labelledby="centered-week">Week</div>
+  </section>
+
+  <section>
+    <h4>Pointing, fluid, equal</h4>
+    <div class="ui pointing secondary equal fluid aligned menu" role="tablist" aria-label="Pointing fluid">
+      <button class="active item" role="tab" aria-selected="true" id="fluid-bio">Bio</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Photos and videos</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Friends</button>
+    </div>
+    <div class="ui active tab segment" role="tabpanel" aria-labelledby="fluid-bio">Bio</div>
+  </section>
+
+  <section>
+    <h4>Tabular, right</h4>
+    <div class="ui tabular right aligned top attached menu" role="tablist" aria-label="Tabular right">
+      <button class="active item" role="tab" aria-selected="true" id="right-first">First</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Second</button>
+    </div>
+    <div class="ui bottom attached active tab segment" role="tabpanel" aria-labelledby="right-first">First</div>
+  </section>
+</div>

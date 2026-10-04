@@ -1,0 +1,495 @@
+{
+  "$comment": "Hand-kept facts per family (title, summary, status, mainTag, token-table overrides) and per theme sheet (`themes`:  title), read by `yarn site:data`.  Shape:  `SitePagesFile` in src/docs-components/docs-components.types.ts.  Edit by hand;  a new family is added (seeded) by `yarn site:data`.",
+  "families": {
+    "ui-accordion": {
+      "title": "Accordion",
+      "summary": "An accordion allows users to toggle the display of sections of content.",
+      "status": "done"
+    },
+    "ui-ad": {
+      "title": "Advertisement",
+      "summary": "An ad displays third-party promotional content.",
+      "status": "done"
+    },
+    "ui-breadcrumb": {
+      "title": "Breadcrumb",
+      "summary": "A breadcrumb is used to show hierarchy between content.",
+      "status": "done"
+    },
+    "ui-button": {
+      "title": "Button",
+      "summary": "A button indicates a possible user action.",
+      "status": "done"
+    },
+    "ui-calendar": {
+      "title": "Calendar",
+      "summary": "A calendar lets a user pick a date, a time, or both.",
+      "status": "done"
+    },
+    "ui-card": {
+      "title": "Card",
+      "summary": "A card displays site content in a manner similar to a playing card.",
+      "status": "done",
+      "tokens": {
+        "prefixes": [
+          "--ui-card-",
+          "--ui-cards-"
+        ]
+      }
+    },
+    "ui-checkbox": {
+      "title": "Checkbox",
+      "summary": "A checkbox allows a user to select a value from a small set of options, often binary.",
+      "status": "done"
+    },
+    "ui-code": {
+      "title": "Code",
+      "summary": "Code shows a block of source code coloured by its language, from the element's own text or a file on this site.",
+      "status": "done"
+    },
+    "ui-comment": {
+      "title": "Comment",
+      "summary": "A comment displays user feedback to site content.",
+      "status": "done",
+      "tokens": {
+        "prefixes": [
+          "--ui-comments-",
+          "--ui-comment-"
+        ]
+      }
+    },
+    "ui-container": {
+      "title": "Container",
+      "summary": "A container limits content to a maximum width.",
+      "status": "done"
+    },
+    "ui-dimmer": {
+      "title": "Dimmer",
+      "summary": "A dimmer hides distractions to focus attention on particular content.",
+      "status": "done"
+    },
+    "ui-divider": {
+      "title": "Divider",
+      "summary": "A divider visually segments content into groups.",
+      "status": "done"
+    },
+    "ui-docs-api": {
+      "title": "Docs api",
+      "summary": "An API reference lists a tag's attributes, properties, events, slots, parts, states and texts as tables, from the site's generated data.",
+      "status": "done"
+    },
+    "ui-docs-example": {
+      "title": "Docs example",
+      "summary": "An example shows its own markup live, under a header and description, with the same markup as code a button shows and hides.",
+      "status": "done"
+    },
+    "ui-docs-nav": {
+      "title": "Docs nav",
+      "summary": "A docs nav lists the site's pages and every component, A-Z or by topic, with search and favourites;  the current page is highlighted and scrolled into view.",
+      "status": "done"
+    },
+    "ui-docs-themes": {
+      "title": "Docs themes",
+      "summary": "Theme controls pick the page's theme and its light, dark or system colour scheme, and remember both for the next page.",
+      "status": "done"
+    },
+    "ui-docs-toc": {
+      "title": "Docs table of contents",
+      "summary": "A table of contents lists the page's sections and examples as links, opens the one in view and follows the scroll.",
+      "status": "done"
+    },
+    "ui-docs-tokens": {
+      "title": "Docs tokens",
+      "summary": "A token table lists the CSS custom properties of a component family, or of the whole foundation, with their defaults and a live swatch for each colour;  a playground adds inputs that restyle a live preview.",
+      "status": "done"
+    },
+    "ui-dropdown": {
+      "title": "Dropdown",
+      "summary": "A dropdown allows a user to select a value from a series of options.",
+      "status": "done"
+    },
+    "ui-embed": {
+      "title": "Embed",
+      "summary": "An embed displays content from other websites, like YouTube videos, loaded only when asked for.",
+      "status": "done"
+    },
+    "ui-emoji": {
+      "title": "Emoji",
+      "summary": "An emoji is a glyph used to represent something else.",
+      "status": "done"
+    },
+    "ui-feed": {
+      "title": "Feed",
+      "summary": "A feed presents user activity chronologically.",
+      "status": "done"
+    },
+    "ui-flag": {
+      "title": "Flag",
+      "summary": "A flag is used to represent a political state.",
+      "status": "done"
+    },
+    "ui-flyout": {
+      "title": "Flyout",
+      "summary": "A flyout is a modal that slides in from a side of the page.",
+      "status": "done"
+    },
+    "ui-form": {
+      "title": "Form",
+      "summary": "A form displays a set of related user input fields in a structured way.",
+      "status": "done"
+    },
+    "ui-grid": {
+      "title": "Grid",
+      "summary": "A grid is used to harmonize negative space in a layout.",
+      "status": "done"
+    },
+    "ui-icon": {
+      "title": "Icon",
+      "summary": "An icon is a glyph used to represent something else.",
+      "status": "done"
+    },
+    "ui-image": {
+      "title": "Image",
+      "summary": "An image is a graphic representation of something.",
+      "status": "done"
+    },
+    "ui-include": {
+      "title": "Include",
+      "summary": "An include shows part of another page from this site in this one, loaded at once, when idle or when scrolled into view.",
+      "status": "done"
+    },
+    "ui-input": {
+      "title": "Input",
+      "summary": "An input is a field used to elicit a response from a user.",
+      "status": "done"
+    },
+    "ui-item": {
+      "title": "Item",
+      "summary": "One item for dropdowns, lists and menus, rendered by whatever holds it.",
+      "status": "done"
+    },
+    "ui-items": {
+      "title": "Items",
+      "summary": "A group of items presents a set of site content for display, each an image beside its text.",
+      "status": "done"
+    },
+    "ui-label": {
+      "title": "Label",
+      "summary": "A label displays content classification.",
+      "status": "done"
+    },
+    "ui-list": {
+      "title": "List",
+      "summary": "A list is used to group related content.",
+      "status": "done"
+    },
+    "ui-loader": {
+      "title": "Loader",
+      "summary": "A loader alerts a user to wait for an activity to complete.",
+      "status": "done"
+    },
+    "ui-markdown": {
+      "title": "Markdown",
+      "summary": "Markdown renders GitHub-flavoured markdown -- tables, task lists, code blocks -- from the element's own text or a file on this site.",
+      "status": "done"
+    },
+    "ui-menu": {
+      "title": "Menu",
+      "summary": "A menu displays grouped navigation actions.",
+      "status": "done",
+      "tokens": {
+        "defaults": {
+          "--ui-menu-active-first-radius": "the menu's own corners on that side (by layout)",
+          "--ui-menu-active-last-radius": "the menu's own corners on that side (by layout)"
+        }
+      }
+    },
+    "ui-message": {
+      "title": "Message",
+      "summary": "A message displays information that explains nearby content.",
+      "status": "done"
+    },
+    "ui-modal": {
+      "title": "Modal",
+      "summary": "A modal displays content that temporarily blocks interactions with the main view of a site.",
+      "status": "done",
+      "tokens": {
+        "defaults": {
+          "--ui-modal-width": "95%;  tablets 88%;  then 850px / 900px / 950px by screen (scaled by size)",
+          "--ui-modal-aligned-margin": "5vh;  phones 1em"
+        }
+      }
+    },
+    "ui-nag": {
+      "title": "Nag",
+      "summary": "A nag is a persistent message that stays until dismissed, and can remember the dismissal.",
+      "status": "done"
+    },
+    "ui-parts": {
+      "title": "Content parts",
+      "summary": "Headers, content, descriptions, metas and the other generic parts that cards, items, modals and messages share.",
+      "status": "done",
+      "mainTag": "ui-header",
+      "tokens": {
+        "prefixes": [
+          "--ui-header-"
+        ]
+      }
+    },
+    "ui-placeholder": {
+      "title": "Placeholder",
+      "summary": "A placeholder is used to reserve space for content that soon will appear in a layout.",
+      "status": "done"
+    },
+    "ui-popup": {
+      "title": "Popup",
+      "summary": "A popup displays additional information on top of a page.",
+      "status": "done"
+    },
+    "ui-progress": {
+      "title": "Progress",
+      "summary": "A progress bar shows the progression of a task.",
+      "status": "done"
+    },
+    "ui-rail": {
+      "title": "Rail",
+      "summary": "A rail is used to show accompanying content outside the boundaries of the main view of a site.",
+      "status": "done"
+    },
+    "ui-rating": {
+      "title": "Rating",
+      "summary": "A rating indicates user interest in content.",
+      "status": "done"
+    },
+    "ui-reveal": {
+      "title": "Reveal",
+      "summary": "A reveal displays additional content in place of previous content when activated.",
+      "status": "done"
+    },
+    "ui-root": {
+      "title": "Root",
+      "summary": "A root loads the components inside it on demand, sets their theme, size, icons and emoji, and shows them once they're ready.",
+      "status": "done"
+    },
+    "ui-search": {
+      "title": "Search",
+      "summary": "A search module allows a user to query for results from a selection of data.",
+      "status": "done",
+      "tokens": {
+        "defaults": {
+          "--ui-search-results-max-height": "4 results;  6 / 8 / 12 from 768px / 992px / 1920px"
+        }
+      }
+    },
+    "ui-section": {
+      "title": "Section",
+      "summary": "A section is a titled block of content that can fold away and keep its title in view.",
+      "status": "in-progress"
+    },
+    "ui-segment": {
+      "title": "Segment",
+      "summary": "A segment is used to create a grouping of related content.",
+      "status": "done",
+      "tokens": {
+        "prefixes": [
+          "--ui-segment-"
+        ],
+        "defaults": {
+          "--ui-segment-scrolling-height": "15em;  18em / 24em / 30em on tablet / computer / widescreen"
+        }
+      }
+    },
+    "ui-select": {
+      "title": "Select",
+      "summary": "A select lets a user choose a value from a list, with the platform's own picker.",
+      "status": "done"
+    },
+    "ui-shape": {
+      "title": "Shape",
+      "summary": "A shape is a three dimensional object displayed on a two dimensional plane.",
+      "status": "done",
+      "tokens": {
+        "list": [
+          {
+            "name": "--ui-shape-cube-size",
+            "default": "15em",
+            "description": "Width and height of a cube's faces."
+          },
+          {
+            "name": "--ui-shape-duration",
+            "default": "0.6s",
+            "description": "How long a turn takes."
+          },
+          {
+            "name": "--ui-shape-easing",
+            "default": "ease-in-out",
+            "description": "The turn's easing."
+          },
+          {
+            "name": "--ui-shape-cube-background",
+            "default": "light grey (dark grey in dark mode)",
+            "description": "A cube face's background."
+          }
+        ]
+      }
+    },
+    "ui-sidebar": {
+      "title": "Sidebar",
+      "summary": "A sidebar hides additional content beside a page.",
+      "status": "done",
+      "tokens": {
+        "prefixes": [
+          "--ui-sidebar-",
+          "--ui-pusher-"
+        ]
+      }
+    },
+    "ui-slider": {
+      "title": "Slider",
+      "summary": "A slider allows users to select values within a range.",
+      "status": "done"
+    },
+    "ui-statistic": {
+      "title": "Statistic",
+      "summary": "A statistic emphasizes the current value of an attribute.",
+      "status": "done",
+      "tokens": {
+        "defaults": {
+          "--ui-statistic-value-size": "4 × --ui-font-size;  horizontal 3 ×;  sizes 1.5 × ... 7 ×",
+          "--ui-statistic-text-value-size": "2 × --ui-font-size;  sizes 1 × ... 3 ×"
+        }
+      }
+    },
+    "ui-step": {
+      "title": "Step",
+      "summary": "A step shows the completion status of an activity in a series of activities.",
+      "status": "done",
+      "tokens": {
+        "prefixes": [
+          "--ui-step-",
+          "--ui-steps-"
+        ]
+      }
+    },
+    "ui-sticky": {
+      "title": "Sticky",
+      "summary": "Sticky content stays fixed to the viewport while its container is on screen.",
+      "status": "done"
+    },
+    "ui-tab": {
+      "title": "Tab",
+      "summary": "A tab is a hidden section of content activated by a menu.",
+      "status": "done",
+      "tokens": {
+        "prefixes": [
+          "--ui-tabs-"
+        ]
+      }
+    },
+    "ui-table": {
+      "title": "Table",
+      "summary": "A table displays a collection of data grouped into rows.",
+      "status": "done"
+    },
+    "ui-text": {
+      "title": "Text",
+      "summary": "A text is used to style some inline text with a simple color.",
+      "status": "done"
+    },
+    "ui-toast": {
+      "title": "Toast",
+      "summary": "A toast allows users to receive a short, non-blocking notification.",
+      "status": "done"
+    },
+    "ui-transition": {
+      "title": "Transition",
+      "summary": "A transition is an animation used to show or hide content, or to draw attention to it.",
+      "status": "done"
+    },
+    "ui-visibility": {
+      "title": "Visibility",
+      "summary": "Visibility provides a set of callbacks for when content appears in the viewport.",
+      "status": "done"
+    }
+  },
+  "themes": {
+    "amazon": {
+      "title": "Amazon"
+    },
+    "basic": {
+      "title": "Basic"
+    },
+    "bookish": {
+      "title": "Bookish"
+    },
+    "bootstrap3": {
+      "title": "Bootstrap 3"
+    },
+    "chubby": {
+      "title": "Chubby"
+    },
+    "classic": {
+      "title": "Classic"
+    },
+    "colored": {
+      "title": "Colored"
+    },
+    "dark": {
+      "title": "Dark"
+    },
+    "duo": {
+      "title": "Duo"
+    },
+    "famfamfam": {
+      "title": "Famfamfam"
+    },
+    "fixed-width": {
+      "title": "Fixed width"
+    },
+    "flat": {
+      "title": "Flat"
+    },
+    "fomantic-classic": {
+      "title": "Fomantic classic"
+    },
+    "github": {
+      "title": "GitHub"
+    },
+    "gmail": {
+      "title": "Gmail"
+    },
+    "instagram": {
+      "title": "Instagram"
+    },
+    "material": {
+      "title": "Material"
+    },
+    "pulsar": {
+      "title": "Pulsar"
+    },
+    "raised": {
+      "title": "Raised"
+    },
+    "resetcss": {
+      "title": "Reset CSS"
+    },
+    "round": {
+      "title": "Round"
+    },
+    "rtl": {
+      "title": "RTL"
+    },
+    "striped": {
+      "title": "Striped"
+    },
+    "systemfont": {
+      "title": "System font"
+    },
+    "timeline": {
+      "title": "Timeline"
+    },
+    "twitter": {
+      "title": "Twitter"
+    }
+  }
+}

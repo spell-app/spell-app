@@ -64,8 +64,9 @@ export class StaticHandler {
   resolve(path: string): SRV.Resolved | undefined {
     const mount = this.mounts.find((each) => path.startsWith(each.prefix) || `${path}/` === each.prefix)
     if (!mount) return undefined
-    const rest = path.length < mount.prefix.length ? "" : path.slice(mount.prefix.length - 1)
-    return SRV.resolveInside(mount.dir, rest || "/", mount)
+    // a mount's own folder without its slash (`/ui`):  redirect like any folder, so its pages' relative links resolve
+    if (path.length < mount.prefix.length) return { redirect: `${path}/` }
+    return SRV.resolveInside(mount.dir, path.slice(mount.prefix.length - 1), mount)
   }
 
   /** answer with `file`, through the hooks */

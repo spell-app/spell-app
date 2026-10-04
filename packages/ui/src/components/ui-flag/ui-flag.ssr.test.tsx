@@ -11,10 +11,11 @@ describe("ui-flag static render", () => {
     StaticRender.define(UIFlag)
   })
 
-  it("renders the flag emoji, named by the server's English region names", () => {
+  it("renders the flag emoji, named by the server's English region names;  the country code as a class", () => {
     const html = StaticRender.fragment(`<ui-flag country="fr" size="large"></ui-flag>`)
+    // `fr` after the noun:  the themes' sprite flags (`famfamfam`) key on it
     expect(sorted(html)).toBe(
-      sorted(`<span data-ui="flag" class="ui large flag" part="flag" role="img" aria-label="France">🇫🇷</span>`)
+      sorted(`<span data-ui="flag" class="ui large flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`)
     )
   })
 })

@@ -64,6 +64,12 @@ describe("StaticHandler", () => {
     expect(answer.headers.location).toBe("/docs/")
   })
 
+  it("redirects a mount's own folder without its slash", async () => {
+    const answer = await ask(served.port, "GET", "/element")
+    expect(answer.status).toBe(301)
+    expect(answer.headers.location).toBe("/element/")
+  })
+
   it("runs transforms by extension", async () => {
     const answer = await ask(served.port, "GET", "/app.ts")
     expect(answer.headers["content-type"]).toBe("text/javascript; charset=utf-8")

@@ -329,9 +329,9 @@ function hotElements(): Plugin {
  * Copies the built-in icon packs, `src/icons/icon-packs/**` (SVGs + each `pack.js`), to `<dir>/**` in the build output,
  * next to the chunks, where `BuiltInPacks` looks via `import.meta.url` (`docs/icons.md`, "Shipping icons").
  * - Library build:  `BuiltInPacks` lives in `dist/core.js` (the `core` entry re-exports `$/ui/icons`), so `dist/icon-packs/`.
- * - Docs site:  Astro puts client chunks in `_astro/`, so `emitIconPacks("_astro/icon-packs")` (`site/astro.config.mjs`).
+ * - Docs site:  not this plugin:  `site/_assets/icon-packs` is a symlink to the source folder (`scripts/site-bundle.ts`).
  * - Copied as ASSETS, never bundled:  the runtime imports each `pack.js` by URL, on demand.
- * - Client builds only:  a server / prerender build (Astro's) needs no icon files.
+ * - Client builds only:  a server / prerender build needs no icon files.
  */
 export function emitIconPacks(dir = "icon-packs"): Plugin {
   const root = fileURLToPath(new URL("./src/icons/icon-packs", import.meta.url))

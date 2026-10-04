@@ -2,7 +2,7 @@ import { Converters, NativeFallback, proto, type NativeFallbackRoot, UIT } from 
 
 import { stepsVocabulary } from "./ui-steps.vocabulary.en"
 import { stepVocabulary } from "./ui-step.vocabulary.en"
-import { COMPLETED } from "./ui-step.types"
+import { COMPLETED, COLOR_CLASS_PREFIX } from "./ui-step.types"
 import { ACTIVE, VISUALLY_HIDDEN, LIST } from "$/ui/components/components.types"
 
 /****************
@@ -35,8 +35,10 @@ export class StepFallback extends NativeFallback {
     const alias = selected && !this.flag("selected")
     const href = this.attr("href")
     const disabled = this.flag("disabled")
+    const color = this.attr("color")
+    const extra = [alias ? ACTIVE : "", color ? `${COLOR_CLASS_PREFIX}${color}` : ""].filter(Boolean).join(" ")
     const step = this.create(href === null ? "div" : "a", {
-      class: this.classes(alias ? ACTIVE : undefined),
+      class: this.classes(extra || undefined),
       href: href !== null && !disabled ? href : null,
       target: href !== null ? this.attr("target") : null,
       "aria-disabled": disabled ? "true" : null,

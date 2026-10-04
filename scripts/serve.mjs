@@ -6,8 +6,8 @@
  *   isn't running;  `yarn server stop` stops it, and with it the rest.
  * - The EDITOR (vite, the spell app):  the page server's child (`packages/app/src/server/EditorServer.ts`), started
  *   once the page server listens;  this waits for its record, `.spell-server.editor.json`, to answer.
- * - SPELL UI's docs (`astro dev`):  the page server starts it on the first `/ui/` request (`AstroProxy`);  this
- *   makes that request.
+ * - SPELL UI's docs:  static pages the page server itself serves at `/ui/` (`packages/ui/site/`, no dev server);
+ *   this checks its bundle answers (`/ui/_assets/site.js`, built by `yarn site:build` in `packages/ui`).
  * - Prints one row per server:  name, port, URL, state.  Exit code 1 if any didn't come up.
  * - `node`, so it runs before `yarn install` too;  the page server itself needs this checkout's `node_modules`.
  */
@@ -25,8 +25,8 @@ const EDITOR_FILE = join(ROOT, ".spell-server.editor.json")
 /** How long the editor may take:  vite may be building its dependency cache. */
 const EDITOR_TIMEOUT_MS = 90_000
 
-/** How long `astro dev` may take:  `AstroProxy` itself gives up after 60s. */
-const UI_TIMEOUT_MS = 75_000
+/** How long the Spell UI check may take:  a static file from the page server. */
+const UI_TIMEOUT_MS = 10_000
 
 const rows = []
 const page = ensurePageServer()
@@ -67,15 +67,19 @@ async function editorRow() {
   return { ...row, url: "-", state: "didn't answer:  see .spell-server.editor.log", failed: true }
 }
 
-/** Spell UI docs' row, after asking for `/ui/` (which starts `astro dev`) -- or why not. */
+/** Spell UI docs' row, once its bundle answers -- or why not. */
 async function spellUIRow(base) {
-  const row = { name: "Spell UI docs", url: `${base}/ui/`, what: "astro dev, behind the page server" }
+  const row = { name: "Spell UI docs", url: `${base}/ui/`, what: "static pages, served by the page server" }
   try {
-    const response = await fetch(`${base}/ui/`, { signal: AbortSignal.timeout(UI_TIMEOUT_MS) })
+    const response = await fetch(`${base}/ui/_assets/site.js`, { signal: AbortSignal.timeout(UI_TIMEOUT_MS) })
     if (response.ok) return { ...row, state: "running" }
-    return { ...row, state: `answered ${response.status}:  see .spell-server.astro.log`, failed: true }
+    return {
+      ...row,
+      state: `its bundle answered ${response.status}:  run \`yarn site:build\` in packages/ui`,
+      failed: true
+    }
   } catch (error) {
-    return { ...row, state: `didn't answer (${error.message}):  see .spell-server.astro.log`, failed: true }
+    return { ...row, state: `didn't answer (${error.message}):  see .spell-server.log`, failed: true }
   }
 }
 
