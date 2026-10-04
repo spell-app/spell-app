@@ -39,7 +39,7 @@ test("new:  scratch and epic pages, assets fixed for their depth", () => {
   expect(html).toContain('href="../_assets/details.css"')
   expect(html).toContain('<script src="../_assets/details.js">')
   expect(html).not.toContain("TEMPLATE:")
-  expect(html).toMatch(/Asked \d{4}-\d\d-\d\d\./)
+  expect(html).toMatch(/data-details-asked[^>]*>Asked:  \d{4}-\d\d-\d\d</)
 
   const epic = createPage(docs, "shape", { title: "Shape", epic: "big" })
   expect(epic).toBe(join(docs, "epics/big/details/shape.html"))
