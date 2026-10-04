@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Precedence and Types</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p7"
-                >next: P7 · Built-in Member Tables</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p8">next: P8 · Exclusive Lists</ui-label></span
             >
           </header></ui-sticky
         >
@@ -67,6 +65,11 @@
                 <a href="#j17">J17</a>, <a href="#j18">J18</a>, <a href="#j19">J19</a>, <a href="#j20">J20</a>,
                 <a href="#j21">J21</a>, <a href="#j22">J22</a>
               </li>
+              <li>
+                <b>P6</b> 97305a78 multi-word members resolved through the type, class_member replaces EnumerationRule,
+                auto-declare at first set; checks: green; BENCH +7%, speed test +27% raw (+12% like for like,
+                <a href="#c17">C17</a>); <a href="#j23">J23</a>-<a href="#j31">J31</a>
+              </li>
             </ul>
           </ui-section>
           <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
@@ -80,6 +83,12 @@
                 <a href="#p5">P5</a>: declarations save ONE call rule and rebuild its expression twin on load, not both
                 as <a href="#d27">D27</a> said (<a href="#j18">J18</a>); every call's last slot is bounded inside
                 expressions, not only one-argument calls (<a href="#j17">J17</a>)
+              </li>
+              <li>
+                <a href="#p6">P6</a>: `the X of Y` is ONE rule (resolved, else loose), not the two
+                <a href="#p6">P6</a> described (<a href="#j23">J23</a>); an auto-declared property's SPELL: DECLARES
+                comment sits at the declaration, not the `set` line (<a href="#j29">J29</a>); app element.build.test
+                fails (ui/customElement.js holds Solid), likely pre-existing
               </li>
             </ul>
           </ui-section>
@@ -99,7 +108,7 @@
               plan before we start anything.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 6h-8h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 3h-4h left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <ul>
               <li>
@@ -118,8 +127,10 @@
               </li>
               <li>
                 The argument, in full: design doc
-                <a href="../../precedence/precedence.html" target="precedence">precedence/precedence.html</a> (already
-                in the repo, moved over by solid-migration P8). This plan is its to-do list.
+                <a href="../../precedence/precedence.html" target="src-packages-docs-precedence-precedence-html"
+                  >precedence/precedence.html</a
+                >
+                (already in the repo, moved over by solid-migration P8). This plan is its to-do list.
               </li>
             </ul>
           </ui-section>
@@ -195,7 +206,12 @@
                 Give-back in <code>Sequence</code>: a word that fails because the slot before swallowed it re-parses
                 that slot shorter. Fixes <code>remove the card of the pile</code>. ~35 lines, the only core change.
               </li>
-              <li>The model: <a href="../../precedence/parser-model.html" target="parser-model">Parser Model</a>.</li>
+              <li>
+                The model:
+                <a href="../../precedence/parser-model.html" target="src-packages-docs-precedence-parser-model-html"
+                  >Parser Model</a
+                >.
+              </li>
             </ul>
             <h4 id="o3-types">A datatype on every match</h4>
             <ul>
@@ -351,7 +367,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="6" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="7" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -558,6 +574,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p6"
             data-phase="6"
             data-status="done"
@@ -592,20 +609,23 @@
           <ui-section
             id="p7"
             data-phase="7"
-            data-status="todo"
+            data-status="done"
             header="P7 · Built-in Member Tables"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> the coming built-in types have somewhere to live; same words, different meaning per
                 type</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> new <code>packages/spell/src/builtinTypes.ts</code> (data table loaded into
-                <code>rootScope</code>); Type Explorer pack generated from it (<a
+                ><b>Files:</b> new
+                <a href="../../../spell/src/builtinTypes.ts" target="src-packages-spell-src-builtintypes-ts"
+                  ><code>packages/spell/src/builtinTypes.ts</code></a
+                >
+                (data table loaded into <code>rootScope</code>); Type Explorer pack generated from it (<a
                   href="../../../lsp/src/scopes.ts"
                   target="src-packages-lsp-src-scopes-ts"
                   ><code>packages/lsp/src/scopes.ts</code></a
@@ -617,7 +637,11 @@
                 <code>yarn ts &amp;&amp; yarn lint &amp;&amp; yarn test</code>; fixtures re-blessed, diff READ;
                 <code>speedTest()</code> on HEAD and the change; <code>PARSING.md</code> updated;
                 <code>yarn vscode</code>; stop for review.</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j32">J32</a> <a href="#j33">J33</a> <a href="#j34">J34</a>
+                <a href="#j35">J35</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -1334,7 +1358,9 @@ card.pile = pile</code></pre>
                 ><ui-content
                   ><p>
                     The full comparison:
-                    <a href="../../precedence/parser-model.html#4-binding-power" target="parser-model"
+                    <a
+                      href="../../precedence/parser-model.html#4-binding-power"
+                      target="src-packages-docs-precedence-parser-model-html"
                       >Parser Model §4</a
                     >. In short:
                   </p>
@@ -1372,7 +1398,7 @@ card.pile = pile</code></pre>
                     Both remove the double parse (2<sup>depth</sup> → one parse per level). A is reasoned, not
                     prototyped: a throwaway prototype first is an option (<a
                       href="../../precedence/parser-model.html#q-prototype"
-                      target="parser-model"
+                      target="src-packages-docs-precedence-parser-model-html"
                       >§7 Prototype?</a
                     >).
                   </p></ui-content
@@ -1582,8 +1608,11 @@ card.pile = pile</code></pre>
                   <a class="plan-answer" href="#d25">→ D25</a> </ui-title
                 ><ui-content
                   ><p>
-                    <a href="../../precedence/parser-model.html#6-2-forks" target="parser-model">Parser Model §6.2</a>,
-                    one line each:
+                    <a
+                      href="../../precedence/parser-model.html#6-2-forks"
+                      target="src-packages-docs-precedence-parser-model-html"
+                      >Parser Model §6.2</a
+                    >, one line each:
                   </p>
                   <ol>
                     <li>
@@ -2894,6 +2923,142 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j32" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j32">J32</a>
+                  <span class="plan-title"
+                    >P7: built-in members spelled by RULES (shuffle, the first item of) are docs only -- NOT loaded into
+                    scope as method records</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: a table member with a <code>compile</code> template is loaded as a
+                    <code>P.ScopeVariable</code> on its type (what <code>getMember()</code> finds); a member with only
+                    <code>rules</code>, e.g. <code>shuffle (a list)</code>, stays docs for the Type Explorer and hover.
+                    Over: loading every member, methods as <code>P.ScopeMethod</code> records.
+                  </p>
+                  <ul>
+                    <li>
+                      Why: <code>MethodDefinition.findMethod()</code> looks a call up through
+                      <code>type.getMember()</code>; a built-in <code>add (a thing) to (a list)</code> record on
+                      <code>List</code> would change which method P5's typed calls find.
+                    </li>
+                    <li>
+                      <code>first item</code> / <code>last item</code> / <code>first character</code> stay the ordinal
+                      rule's (any word, any list); text now has <code>itemType: character</code>, so they're typed.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j33" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j33">J33</a>
+                  <span class="plan-title"
+                    >P7 (C9): declaring a property on a built-in type is refused, with a parse error saying why --
+                    Thing, List, App too</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: <code>the length of a text is: 1</code>, <code>things have a tag as text</code> =&gt;
+                    <em>Can't add "tag" to thing: it's built in, and every project shares it</em>. Over: allowing it now
+                    that types have tables (it lands on the shared root <code>TypeScope</code>, which no journal records
+                    and every project sees), or plain rejection ("Don't understand ...").
+                  </p>
+                  <ul>
+                    <li>
+                      New, small: <code>SpellStatement.refuse(match, why)</code> -- a <code>parse()</code> returns a
+                      <code>parse_error</code> match with a message; <code>BlockLine</code> reports it and commits
+                      nothing. One concept, so the error can say why (D11: recorded here).
+                    </li>
+                    <li>
+                      Thing / List / App / Object are refused too: none of the repo's projects declares a property on
+                      one (they compiled to broken code before).
+                    </li>
+                    <li>Methods of a built-in type stay allowed: their records go in the project (J11).</li>
+                    <li>
+                      Setting a built-in member is refused the same way:
+                      <code>set the length of the deck to 3</code> =&gt;
+                      <em>Can't set the length of a list: spell works it out</em>.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j34" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j34">J34</a>
+                  <span class="plan-title"
+                    >P7: the Type Explorer reads built-in types straight from the table; the pack file is only for pages
+                    with no parser</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: <code>ScopeExplorer.addBuiltIns()</code> builds Thing / List / App / Text / Date and their
+                    members from <code>SP.BUILT_IN_TYPE_TABLE</code>, with each rule's syntax from the live grammar;
+                    <code>yarn scopes --builtins</code> writes that out. Dropped <code>ScopeExplorer</code>'s
+                    <code>builtIns</code> argument and <code>SpellDiskWorkspace.builtInsPack()</code>. Over: keeping the
+                    language server reading the generated file.
+                  </p>
+                  <ul>
+                    <li>
+                      One source: the table. A test fails until
+                      <a href="../../../core/src/spellCore.scopes.js" target="src-packages-core-src-spellcore-scopes-js"
+                        ><code>spellCore.scopes.js</code></a
+                      >
+                      is regenerated. Diff read: every hand-written doc kept; adds the new members,
+                      <code>list_length</code>'s <code>where</code> syntax and <code>list_count</code>;
+                      <code>create_list_type</code>'s two syntaxes swap order (the live group's).
+                    </li>
+                    <li>
+                      Side effect: the app's <code>&lt;spell-editor&gt;</code> and the cli's explorer, which never had
+                      the pack, now show the built-ins' docs too.
+                    </li>
+                    <li>
+                      Text and Date now show in every Type Explorer; number, integer, character, choice, nothing don't
+                      (no members yet).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j35" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j35">J35</a>
+                  <span class="plan-title">P7: which members, and the compile template's three forms</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Chose (D34, today's plus the obvious, each REAL): list <code>length</code>, <code>size</code> =&gt;
+                    <code>spellCore.itemCountOf(x)</code>; text <code>length</code> =&gt; <code>x.length</code>,
+                    <code>characters</code> =&gt; <code>spellCore.valuesOf(x)</code>; date <code>year</code> =&gt;
+                    <code>x.getFullYear()</code>, <code>day</code> =&gt; <code>x.getDate()</code>; plus every member the
+                    old hand-written pack documented, and rule-backed docs for text (<code>character (n) of</code>,
+                    <code>number of characters in</code>, <code>a random character of</code>,
+                    <code>as upper case</code>).
+                  </p>
+                  <ul>
+                    <li>
+                      Template forms: <code>{it}.prop</code>, <code>{it}.method()</code>,
+                      <code>spellCore.helper({it})</code> -- no extra arguments. A javascript METHOD with no arguments
+                      counts as a "JS property" (Date has no year property).
+                    </li>
+                    <li>
+                      Left out, as todos: number's <code>absolute value</code> / <code>round</code> (their
+                      <code>spellCore</code> helpers don't exist: suspected bug logged), date
+                      <code>month</code> (javascript counts from 0), text <code>words</code>.
+                    </li>
+                    <li>
+                      NOT list <code>items</code>: <code>the items of the deck</code> reads the List's live array today;
+                      a copy would change it.
+                    </li>
+                    <li>
+                      <code>P.ScopeVariable</code> gains two generic fields, <code>compile</code> and <code>doc</code>,
+                      which only the table sets.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2987,7 +3152,11 @@ the first card of {list:NAME}
                     <code>whose color is red and direction is up</code> (<code>Card.spell</code>:133) works only because
                     <code>direction</code> isn't a known name. P3 doesn't change it; give-back doesn't reach into a
                     <code>Repeat</code>.
-                    <a href="../../precedence/parser-model.html#5-4-edges" target="parser-model">Parser Model §5.4</a>.
+                    <a
+                      href="../../precedence/parser-model.html#5-4-edges"
+                      target="src-packages-docs-precedence-parser-model-html"
+                      >Parser Model §5.4</a
+                    >.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -3065,7 +3234,7 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c9" data-status="open"
+            ><ui-item id="c9" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c9">C9</a>
@@ -3228,6 +3397,21 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c18" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c18">C18</a>
+                  <span class="plan-title"
+                    >P7: hovering a built-in rule shows every member it spells, whatever the operand's type</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    e.g. <code>the number of items in the deck</code> shows both
+                    <code>number of (items) in (a list)</code> and <code>number of characters in (a text)</code>:
+                    <code>list_length</code> spells both. Hover doesn't know the operand's type there. Cosmetic.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -3301,6 +3485,27 @@ the first card of {list:NAME}
                     Both Todos examples' <code>to create a task</code> is now <code>to create a new task</code> (see the
                     P5 judgement). <code>yarn start</code> in packages/app: add / remove tasks in Todos and Todos - Form
                     Based.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t6">T6</a>
+                  <span class="plan-title"
+                    >P7: number members (absolute value, round), date month, text words -- need runtime helpers
+                    first</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Each needs a real <code>spellCore</code> method before it can go in
+                    <code>SP.BUILT_IN_TYPE_TABLE</code>: <code>absoluteValue</code>, <code>round</code> /
+                    <code>roundUp</code> / <code>roundDown</code> (the
+                    <a href="../../../spell/src/rules/math.ts" target="src-packages-spell-src-rules-math-ts"
+                      ><code>math.ts</code></a
+                    >
+                    rules already compile to them -- see SUSPECTED-BUGS), a 1-based month, a <code>wordsOf</code>. Then
+                    one table entry each, and <code>yarn scopes --builtins</code>.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -4059,6 +4264,48 @@ the first card of {list:NAME}
                   member_words, multi-word getters/reads resolved through the type, class_member replaces
                   EnumerationRule, auto-declare at first set; checks: parser 411, spell 885, lsp 105, cli 132 green;
                   BENCH 59.0ms, speed 69.0ms raw (60.9 like for like)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:45-04:00">2026-10-04 04:45</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:06-04:00">2026-10-04 05:06</time></ui-date> C9 closed: P4:
+                  built-in type names are now KNOWN types -- `text`, `number`, `date`, `nothing` ...</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:07-04:00">2026-10-04 05:07</time></ui-date> P7 built:
+                  SP.BUILT_IN_TYPE_TABLE (packages/spell/src/builtinTypes.ts) loaded into the root's TypeScopes; the
+                  length of the name =&gt; name.length, of the deck =&gt; spellCore.itemCountOf(deck); built-in
+                  declarations and sets refused (J33, closes C9); Type Explorer + spellCore.scopes.js generated from the
+                  table (J34, closes the CODE-DEBT entry and J7's workaround). Speed 65.6ms (HEAD 65.9ms), BENCH 57.2ms
+                  (HEAD 58.9ms).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:09-04:00">2026-10-04 05:09</time></ui-date> P7
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:09-04:00">2026-10-04 05:09</time></ui-date> P7 done: built-in
+                  member tables (builtinTypes.ts) for thing/list/app/text/date, members compile per type (name.length vs
+                  itemCountOf(deck)), Type Explorer generated from the table, built-in types refuse new properties;
+                  checks: parser 411, spell 898, lsp 107, cli 132, core 388 green; speed 65.6ms, BENCH 57.2ms (no
+                  regression)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -295,18 +295,6 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-### `yarn scopes --builtins` overwrites the built-in types' hand-written docs
-
-- **Cost**:  running it replaces `packages/core/src/spellCore.scopes.js` -- whose `Thing`, `List` and `App` are
-  documented by hand -- with the bare types.  Only a diff before keeping it saves the docs.
-- **Cause**:  `scopes.ts` makes its `LSP.ScopeExplorer` WITHOUT the built-ins' pack, so `exportBuiltIns()` has only
-  the root scope's bare types to write.  The language server's explorer has the pack, and shows the docs.
-- **Fix**:  give `scopes.ts`'s explorer `() => workspace.builtInsPack()`, as the language server does -- then
-  `--builtins` writes the pack back, plus any new built-in type, bare.  One line.
-- **Pinned at**:  `writeBuiltIns()` and the `NOTE` in the header of `packages/lsp/src/scopes.ts`.
-
----
-
 ### Each `<spell-app>`'s runtime stays in memory for the life of the page
 
 - **Cost**:  adding and removing `<spell-app>`s -- e.g. an app that swaps demos in and out -- keeps every copy of

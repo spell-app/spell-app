@@ -58,14 +58,46 @@ exports[`ScopeExplorer > a type's members:  in document order, by file then line
   "method move (a card) to (a pile)",
   "property pile",
   "method play (a card)",
+  "method draw (a thing)",
 ]
 `;
 
 exports[`ScopeExplorer > root holds the built-in types, then the project:  its files, and what each declares 1`] = `
 "root Spell (built in)
-  type Thing
-  type List
+  type Thing (base type)
+    method draw (a thing)
+  type List (counts from 1)
+    property length (number)
+    property size (number)
+    method (a list) has items where
+    method (a list) starts with (a thing)
+    method a copy of (a list)
+    method a random item of (a list)
+    method add (a thing) to (a list)
+    method draw (a list)
+    method empty (a list)
+    method for each (item) in (a list)
+    method item (n) of (a list)
+    method items (start) to (end) of (a list)
+    method items in (a list) where
+    method merge (lists)
+    method number of (items) in (a list)
+    method position of (a thing) in (a list)
+    method remove (a thing) from (a list)
+    method reverse (a list)
+    method shuffle (a list)
   type App (is a Thing)
+    method start (an app)
+  type Text
+    property length (number)
+    property characters (list of characters)
+    method character (n) of (a text)
+    method number of characters in (a text)
+    method a random character of (a text)
+    method (a text) as upper case
+  type Date
+    property year (number)
+    property day (number)
   project Solitaire
     file Card.spell
       type Card (is a Thing)
@@ -100,9 +132,40 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
 
 exports[`ScopeExplorer of a project importing another, compiled > the imported project shows, with its own files and types, ahead of ours 1`] = `
 "root Spell (built in)
-  type Thing
-  type List
+  type Thing (base type)
+    method draw (a thing)
+  type List (counts from 1)
+    property length (number)
+    property size (number)
+    method (a list) has items where
+    method (a list) starts with (a thing)
+    method a copy of (a list)
+    method a random item of (a list)
+    method add (a thing) to (a list)
+    method draw (a list)
+    method empty (a list)
+    method for each (item) in (a list)
+    method item (n) of (a list)
+    method items (start) to (end) of (a list)
+    method items in (a list) where
+    method merge (lists)
+    method number of (items) in (a list)
+    method position of (a thing) in (a list)
+    method remove (a thing) from (a list)
+    method reverse (a list)
+    method shuffle (a list)
   type App (is a Thing)
+    method start (an app)
+  type Text
+    property length (number)
+    property characters (list of characters)
+    method character (n) of (a text)
+    method number of characters in (a text)
+    method a random character of (a text)
+    method (a text) as upper case
+  type Date
+    property year (number)
+    property day (number)
   project lib (imported)
     file Card.spell
       type Card (is a Thing)

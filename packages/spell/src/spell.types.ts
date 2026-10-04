@@ -242,6 +242,70 @@ export type AutoDeclaredProperty = {
   typeDeclaredBy: P.Match
 }
 
+// ## Built-in types
+
+/**
+ * One built-in type in `SP.BUILT_IN_TYPE_TABLE`:  what it is, and its members -- DATA, read by the parser,
+ * editors and the Type Explorer's pack.  See `builtinTypes.ts`.
+ * - Why data, not a `.spell` file or statics on runtime classes:  nothing to parse at startup, and the parser
+ *   never imports runtime code (plan doc D25).
+ */
+export type BuiltInType = {
+  /** Its datatype, in spell's words, e.g. `text`, `list` -- one of `P.BUILT_IN_TYPES`. */
+  name: P.Datatype
+  /** Its super-type, if any, e.g. `thing` for `app` -- MUST be what `P.BUILT_IN_TYPES` says. */
+  superType?: P.Datatype
+  /** What it holds, if it's a sort of list, e.g. `character` for `text` -- see `P.TypeScope.itemType`. */
+  itemType?: P.Datatype
+  /** One-line summary, for the Type Explorer, e.g. `counts from 1`. */
+  detail?: string
+  /** Its docs, as markdown. */
+  doc?: string
+  /** Built-in rules which make or declare one, e.g. `create_type`, by name. */
+  rules?: string[]
+  /** What it has, in the order the Type Explorer lists them. */
+  members: BuiltInMember[]
+}
+
+/**
+ * One member of a `BuiltInType` -- read through its `compile` template, or written with its own built-in `rules`.
+ * - With `compile`:  a property READ the type of what it's read from resolves, e.g. `the length of the name` =>
+ *   `name.length`, `the length of the deck` => `spellCore.itemCountOf(deck)`.  Loaded into its type's `TypeScope`
+ *   as a `P.ScopeVariable`, so `TypeScope.getMember()` finds it.
+ * - With `rules` (and no `compile`):  docs for what built-in rules already say, e.g. `shuffle (a list)`.  Their
+ *   rules compile them;  NOT loaded into scope -- see `loadBuiltInTypes()`.
+ */
+export type BuiltInMember = {
+  /** Its words, e.g. `length`, `first character`;  a method's with its arguments, e.g. `add (a thing) to (a list)`. */
+  words: string
+  /** What the Type Explorer files it under. */
+  kind: "property" | "method"
+  /** What it is, or returns, in spell's words, e.g. `number`. */
+  datatype?: P.Datatype
+  /** A method's parameters, if it takes any, e.g. `[{ name: "thing" }]`. */
+  params?: P.ScopeParam[]
+  /**
+   * How a read of it compiles -- a template, `{it}` standing for what it's read from.  One of:
+   * - `{it}.length`:  a javascript property
+   * - `{it}.getFullYear()`:  a javascript method, no arguments
+   * - `spellCore.itemCountOf({it})`:  a `spellCore` helper, its one argument
+   * - Pinned to a real property or method by `builtinTypes.test.ts`.  See `parseCompileTemplate()`.
+   */
+  compile?: string
+  /** Built-in rules which spell it, by name, e.g. `list_shuffle` -- their syntax shows in the Type Explorer. */
+  rules?: string[]
+  /** Its docs, as markdown. */
+  doc?: string
+}
+
+/** A `BuiltInMember.compile` template, taken apart -- see `parseCompileTemplate()`. */
+export type CompileTemplate = {
+  /** `property`:  `{it}.name`;  `method`:  `{it}.name()`;  `spellCore`:  `spellCore.name({it})`. */
+  form: "property" | "method" | "spellCore"
+  /** Property or method name, e.g. `length`, `itemCountOf`. */
+  name: string
+}
+
 // ## Declarations
 
 /**

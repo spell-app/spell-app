@@ -59,6 +59,24 @@ export class SpellStatement<
   }
 
   /**
+   * A `parse_error` match in place of statement `match`, saying why spell won't take it -- e.g. a property
+   * declared on a built-in type.
+   * - For a `parse()` which understood what it read, but mustn't accept it:  return this, NOT `undefined`, so the
+   *   error says why, instead of "Don't understand ...".
+   * - `BlockLine` reports it as its line's error, and commits nothing:  the line compiles to the error.
+   */
+  static refuse(match: P.Match, message: string): P.Match {
+    const { scope, tokens } = match
+    return new P.Match({
+      scope,
+      rule: scope.getRuleOrDie("parse_error"),
+      matched: tokens,
+      tokens: [...tokens],
+      message
+    })
+  }
+
+  /**
    * Parse the statement itself -- assume comment was already popped off the end.
    * - If we take an inline body, attempt to parse the rest of the line as that.
    * - `BlockLine.parse()` will worry about extra stuff at the end of the statement.

@@ -23,7 +23,8 @@ export type Datatype = string
 /**
  * Spell's built-in types, by their datatype, with each one's super-type -- the root scope has a `TypeScope` for
  * each (see `SpellParser.rootScope`).
- * - Their members come later (P7 of precedence-and-types).
+ * - Their members -- `the length of the name` -- are spell's, in its `BUILT_IN_TYPE_TABLE`, loaded into these
+ *   `TypeScope`s:  the parser only knows their names.
  * - NOTE: `list`, `thing` and `app` are runtime classes too (`List`, `Thing`, `App`), which compiled code names
  *   in Type_Case.  The rest are plain javascript values.
  */

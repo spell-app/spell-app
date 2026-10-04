@@ -11,6 +11,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 - The runtime compiled spell runs on, `$/core` (`SC`):  the core classes, collections, `Thing` registry,
   console, assertions, `spellCore.scopes.js`.  Compiled programs link against a bundled copy of it,
   `spell-runtime.js`, NOT this source directly.
+- `src/spellCore.scopes.js` is GENERATED -- the built-in types' docs, for pages with no parser -- from spell's
+  `BUILT_IN_TYPE_TABLE` (`../spell/src/builtinTypes.ts`), by `yarn scopes --builtins` in `../lsp`.  NEVER edit it
+  by hand:  edit the table, run that.
 - Depends only on `$/util`.  NEVER import `$/spell` / `$/parser` or anything above.
 - Rendering code here (`ui.ts`, `element()`, `draw`, `Thing` / `List` / `App` components) is Solid work:  READ the
   root's Solid 2 pointer first.

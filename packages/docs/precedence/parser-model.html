@@ -1517,6 +1517,25 @@ constructor(props: SpellExpressionProps) {
               <code>set</code>'s <code>SPELL: DECLARES</code> comment there too: a method body's AST is memoized, so a
               comment inside one keeps stale offsets after an edit above it.
             </p>
+            <p>
+              Built (P7): the table is <code>SP.BUILT_IN_TYPE_TABLE</code> (<a
+                href="../../spell/src/builtinTypes.ts"
+                target="src-packages-spell-src-builtintypes-ts"
+                ><code>packages/spell/src/builtinTypes.ts</code></a
+              >), no new rule. A member with a <code>compile</code> template (<code>{it}.length</code>,
+              <code>{it}.getFullYear()</code>, <code>spellCore.itemCountOf({it})</code>) loads as a
+              <code>ScopeVariable</code> holding it, so the P6 reads resolve it unchanged and only
+              <code>memberAST()</code> learned the template. A member only built-in rules spell (<code>shuffle</code>,
+              <code>the first item of</code>) is docs, NOT a <code>ScopeMethod</code> record: one would change what a
+              typed call finds (plan doc J32). Names and super-types stay <code>P.BUILT_IN_TYPES</code>'; the table adds
+              <code>itemType</code> (text holds <code>character</code>s). Declaring a property on a built-in type, or
+              setting a built-in member, is refused with a parse error saying why -- one small new mechanism,
+              <code>SpellStatement.refuse()</code> (J33, closes C9). The Type Explorer and
+              <a href="../../core/src/spellCore.scopes.js" target="src-packages-core-src-spellcore-scopes-js"
+                ><code>spellCore.scopes.js</code></a
+              >
+              are generated from the table (J34).
+            </p>
           </ui-section>
 
           <ui-section id="6-3-rules" header="6.3 Rules that change in P4-P8" sticky collapsible dividing>

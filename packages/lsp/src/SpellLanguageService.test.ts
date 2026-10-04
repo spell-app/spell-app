@@ -520,6 +520,47 @@ describe("SpellLanguageService", () => {
     })
   })
 
+  describe("built-in members (from `SP.BUILT_IN_TYPE_TABLE`)", () => {
+    // a text's `length`, a list's `length`, and a built-in rule which spells a list's member
+    const added = [
+      'set the title to "Solitaire"',
+      "print the length of the title",
+      "set the hand to a new list",
+      "shuffle the hand"
+    ]
+    const text = `${cardText.trimEnd()}\n${added.join("\n")}\n`
+    const lineOf = (line: string) => text.split("\n").indexOf(line) + 1
+
+    test("hover on a member:  which type's it is, what it is, and its docs", async () => {
+      await withCardText(text, () => {
+        expect(service.diagnostics(card)).toEqual([])
+        const markdown = (service.hover(card, at(card, lineOf(added[1]!), "length"))!.contents as { value: string })
+          .value
+        expect(markdown).toContain("property **length** of Text · a number")
+        expect(markdown).toContain("How many characters it has")
+      })
+    })
+
+    test("hover on a built-in rule:  the member it spells, with its docs", async () => {
+      await withCardText(text, () => {
+        const markdown = (service.hover(card, at(card, lineOf(added[3]!), "shuffle"))!.contents as { value: string })
+          .value
+        expect(markdown).toContain("built in:  **shuffle (a list)** of list")
+        expect(markdown).toContain("Put it in random order")
+      })
+    })
+
+    test("completion after `the ` offers them, with their docs -- each type's", async () => {
+      await typedAtEnd("print the ", (position) => {
+        const length = service.completion(solitaire, position).find(({ label }) => label === "length")!
+        expect(length.detail).toBe("property of List, Text")
+        const docs = (length.documentation as { value: string }).value
+        expect(docs).toMatch(/^\*\*List\*\*:  How many items/)
+        expect(docs).toContain("**Text**:  How many characters")
+      })
+    })
+  })
+
   describe("code lens", () => {
     test("one per type and method declared, on its name -- unresolved until asked", () => {
       const lenses = service.codeLens(card)

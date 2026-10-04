@@ -166,6 +166,11 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - A slot NAMING a member -- a property's declaration, a read of one -- is `{property:member_words}`:  several words,
   blacklisted ones too, up to a structural word.  A READ resolves them through its type in `parse()`, else rejects;
   a single undeclared word is the loose `{property}`.  See "Members" in `PARSING.md`.
+- A built-in type's members (`the length of the name`) are DATA in `SP.BUILT_IN_TYPE_TABLE` (`src/builtinTypes.ts`),
+  NOT rules:  add one there, with the real `spellCore` method or javascript property its `compile` names, then
+  `yarn scopes --builtins` in `../lsp`.  See "Built-in types" in `PARSING.md`.
+- A `parse()` which understood a statement but mustn't take it -- e.g. a property declared on a built-in type --
+  returns `SpellStatement.refuse(match, "why")`, NOT `undefined`:  the line's error then says why.
 - A rule built WHILE PARSING goes through `scope.addRule(RuleClass, definition, match)` -- never `parser.addRule()`
   directly -- so the scope records the class + definition pair and can hand on the rules it created.
 - A `mutateScope()` that adds a scope record -- a variable, constant, type, rule or `ScopeMethod` -- passes

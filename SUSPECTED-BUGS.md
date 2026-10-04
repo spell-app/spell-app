@@ -207,6 +207,15 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   (e.g. in the language server) sees it.  Since P4 of `precedence-and-types` the root also has `Text`, `Number` ...,
   so `the length of a text is:` does it too.  Method records avoid it (judgement J11:  they go in the project's
   `methods`).  From reading the code, NOT run.  Found 2026-10-04.
+  FIXED for BUILT-IN types 2026-10-04 (epic `precedence-and-types` P7, probe B3):  `define_property_has`,
+  `property_value_either` and `property_value_getter` refuse one, with a parse error saying why
+  (`refuseBuiltInType()` in `classes.ts`).  Still open for an IMPORTED type.
+
+- [V] `packages/spell/src/rules/math.ts` `absolute_value` / `round_number`:  compile to `spellCore.absoluteValue()`,
+  `spellCore.round()`, `spellCore.roundUp()`, `spellCore.roundDown()` -- none of which `packages/core` defines (each
+  marked `TODO: implement in spellCore`).  So `the absolute value of x` or `round x` throws a TypeError when it RUNS,
+  though it compiles.  Prove:  run `print round 1.5`.  Found 2026-10-04 (P7 of `precedence-and-types`, which left
+  them out of `BUILT_IN_TYPE_TABLE`:  its test reads every member off a real helper).
 
 ### 2. Server robustness / security
 

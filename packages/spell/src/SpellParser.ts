@@ -145,7 +145,8 @@ export class SpellParser extends P.Parser {
    * - All project scopes point back to this.
    * - Its types:  spell's runtime classes (`SPELL_BASE_TYPES`:  `Object`, `Thing`, `List`, `App`), then every other
    *   built-in type's NAME (`P.BUILT_IN_TYPES`:  `text`, `number` ...), each with its super-type -- so `is a number`
-   *   names a known type, and `integer` is a `number`.  Their members come later.
+   *   names a known type, and `integer` is a `number`.
+   * - Their members -- `the length of the name` -- from `SP.BUILT_IN_TYPE_TABLE`, see `loadBuiltInTypes()`.
    */
   /*@memoize*/
   static get rootScope(): P.RootScope {
@@ -158,6 +159,8 @@ export class SpellParser extends P.Parser {
         if (!existing) scope.types.add({ name, superType })
         else if (superType) existing.superType = typeCase(superType)
       }
+      // their members, docs and item types -- see `BUILT_IN_TYPE_TABLE`
+      SP.loadBuiltInTypes(scope)
       return scope
     })
   }

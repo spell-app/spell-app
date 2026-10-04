@@ -26,6 +26,7 @@ export * from "./SpellJSFile"
 export * from "./SpellCSSFile"
 export * from "./SpellSetup"
 export * from "./SpellParser"
+export * from "./builtinTypes"
 
 /**
  * `spellParser`: shared `SpellParser` instance with spell's "core" rules already applied -- start here if

@@ -385,6 +385,56 @@ describe("grammar probes", () => {
       card.owner = x"
     `)
   })
+
+  ////////////////
+  // ## P7 (epic phase):  built-in member tables
+  ////////////////
+
+  test("B1  the same words on different types:  `the length of` a text, a list", () => {
+    expect(
+      probe(
+        'set the title to "Solitaire"',
+        "print the length of the title",
+        "print the length of the deck",
+        "print the size of the pile",
+        "get the deck",
+        "print its length + 1"
+      )
+    ).toMatchInlineSnapshot(`
+      "export let title = "Solitaire"
+      spellCore.console.log(title.length)
+      spellCore.console.log(spellCore.itemCountOf(deck))
+      spellCore.console.log(spellCore.itemCountOf(pile))
+      let it = deck
+      spellCore.console.log(spellCore.itemCountOf(it) + 1)"
+    `)
+  })
+
+  test("B2  a type's own member beats the built-in one;  an unknown type reads loose", () => {
+    expect(probe("the size of a pile is: 52", "print the size of the pile", "print the length of y"))
+      .toMatchInlineSnapshot(`
+      "Object.defineProperty(Pile.prototype, 'size', {
+        get() {
+          return 52
+        },
+        configurable: true
+      })
+      spellCore.console.log(pile.size)
+      spellCore.console.log(y.length)"
+    `)
+  })
+
+  test("B3  built-in members are spell's own:  no declaring one, no setting one", () => {
+    expect(probe("the length of a text is: 1", "things have a tag as text", "set the length of the deck to 3"))
+      .toMatchInlineSnapshot(`
+      "/* PARSE ERROR: Can't add "length" to text:  it's built in, and every project shares it */
+      /* PARSE ERROR: Can't add "tag" to thing:  it's built in, and every project shares it */
+      /* PARSE ERROR: Can't set the length of a list:  spell works it out */
+      ERROR 8:0 Can't add "length" to text:  it's built in, and every project shares it
+      ERROR 9:0 Can't add "tag" to thing:  it's built in, and every project shares it
+      ERROR 10:0 Can't set the length of a list:  spell works it out"
+    `)
+  })
 })
 
 describe("datatypes", () => {
@@ -476,6 +526,29 @@ describe("datatypes", () => {
       describe x  =>  text
       muddle x  =>  ?
       tally "a"  =>  text"
+    `)
+  })
+
+  test("built-in members (P7):  what the table says each is", () => {
+    expect(
+      datatypesAfter(
+        ['set the title to "Solitaire"'],
+        "the length of the title",
+        "the length of the deck",
+        "the size of the deck",
+        "the characters of the title",
+        "the first character of the title",
+        "a random character of the title",
+        "the length of the first character of the title"
+      )
+    ).toMatchInlineSnapshot(`
+      "the length of the title  =>  number
+      the length of the deck  =>  number
+      the size of the deck  =>  number
+      the characters of the title  =>  list of characters
+      the first character of the title  =>  character
+      a random character of the title  =>  character
+      the length of the first character of the title  =>  number"
     `)
   })
 
