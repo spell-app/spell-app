@@ -24,13 +24,19 @@
           server per checkout built on it, and everything that plugs into it.
         </p>
         <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="epics/unified-server/unified-server.plan.html" target="unified-server"
+              >epic unified-server</a
+            ></ui-item
+          >
           <ui-item icon="user"
             >Written for: anyone opening, editing or serving a page, or adding routes to the page server</ui-item
           >
           <ui-item icon="flag">Status: <ui-label size="mini" color="green">built</ui-label> (P1-P7)</ui-item>
           <ui-item icon="code branch"
             >Checked on: branch <code>unified-server</code>, 2026-10-02, against the code (not just the plan:
-            <a href="epics/unified-server/unified-server.html" target="unified-server">epics/unified-server</a
+            <a href="epics/unified-server/unified-server.plan.html" target="unified-server">epics/unified-server</a
             >)</ui-item
           >
         </ui-list>
@@ -569,7 +575,7 @@
                 Spell's favicon, on every <code>WebServer</code>, live or not: <code>/_server/favicon.svg</code>,
                 <code>/_server/favicon-32.png</code>, <code>/_server/apple-touch-icon.png</code>, and
                 <code>/favicon.ico</code> (the 32px PNG, after the static folders). Made by <code>yarn favicon</code> in
-                <code>packages/server</code> (<a
+                <a href="../server/" target="src-packages-server"><code>packages/server</code></a> (<a
                   href="../server/scripts/favicon.ts"
                   target="src-packages-server-scripts-favicon-ts"
                   ><code>scripts/favicon.ts</code></a
@@ -1071,8 +1077,8 @@ export default goalsRoutes</code></pre>
         <ui-section id="6-why" header="6. Why" sticky collapsible dividing>
           <p>
             The decisions behind it, condensed from the plan doc's
-            <a href="epics/unified-server/unified-server.html#decisions" target="unified-server">Decisions</a> and
-            "Review:" <a href="epics/unified-server/unified-server.html#todos" target="unified-server">todos</a>.
+            <a href="epics/unified-server/unified-server.plan.html#decisions" target="unified-server">Decisions</a> and
+            "Review:" <a href="epics/unified-server/unified-server.plan.html#todos" target="unified-server">todos</a>.
           </p>
 
           <ui-section id="why-shape" header="Shape" sticky collapsible dividing>
@@ -1239,7 +1245,7 @@ export default goalsRoutes</code></pre>
         <ui-section id="7-limits" header="7. Limits" sticky collapsible dividing>
           <p>
             Known costs and open caveats, from the plan doc's
-            <a href="epics/unified-server/unified-server.html#caveats" target="unified-server">Caveats</a>.
+            <a href="epics/unified-server/unified-server.plan.html#caveats" target="unified-server">Caveats</a>.
           </p>
 
           <ui-section id="limits-goals" header="Goals" sticky collapsible dividing>

@@ -24,6 +24,12 @@
           <code>&lt;ui-*&gt;</code> widgets, so every page doubles as a test of the library.
         </p>
         <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="epics/spell-ui-pages/spell-ui-pages.plan.html" target="spell-ui-pages"
+              >epic spell-ui-pages</a
+            ></ui-item
+          >
           <ui-item icon="user"
             >Written for: whoever maintains the site next -- adding a page, a docs element or a theme, or rebuilding the
             bundle</ui-item
@@ -353,7 +359,7 @@
               </li>
               <li>
                 None on menus, button groups, horizontal segments: they already stack by the screen (<a
-                  href="epics/spell-ui-pages/spell-ui-pages.html#j13"
+                  href="epics/spell-ui-pages/spell-ui-pages.plan.html#j13"
                   target="spell-ui-pages"
                   >J13</a
                 >).
@@ -1196,7 +1202,7 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
               <table>
                 <tbody>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d1" target="spell-ui-pages">D1</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d1" target="spell-ui-pages">D1</a></td>
                     <td>
                       Plain HTML, no Astro / MDX: islands are <code>&lt;ui-include&gt;</code>, prose
                       <code>&lt;ui-markdown&gt;</code>, code <code>&lt;ui-code&gt;</code>
@@ -1204,7 +1210,7 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                     <td>the pages exercise the library instead of a framework hiding it</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d7" target="spell-ui-pages">D7</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d7" target="spell-ui-pages">D7</a></td>
                     <td>Served at <code>/ui/</code>, loading a COMMITTED bundle</td>
                     <td>
                       like docs'
@@ -1215,8 +1221,8 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                   </tr>
                   <tr>
                     <td>
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d8" target="spell-ui-pages">D8</a>,
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d32" target="spell-ui-pages">D32</a>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d8" target="spell-ui-pages">D8</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d32" target="spell-ui-pages">D32</a>
                     </td>
                     <td>
                       Header and footer are <code>&lt;ui-include&gt;</code>s; layout is Fomantic's docs grid in widgets,
@@ -1226,14 +1232,14 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                   </tr>
                   <tr>
                     <td>
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d4" target="spell-ui-pages">D4</a>,
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d33" target="spell-ui-pages">D33</a>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d4" target="spell-ui-pages">D4</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d33" target="spell-ui-pages">D33</a>
                     </td>
                     <td>Top tabs are <code>&lt;ui-tabs history&gt;</code>, the hash naming the pane</td>
                     <td>Owen liked the old site's switcher; the hash makes links, reloads and Back land on the tab</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d40" target="spell-ui-pages">D40</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d40" target="spell-ui-pages">D40</a></td>
                     <td>
                       <code>stack-with="container|page"</code>, per element AND page-wide; the site says
                       <code>page</code>
@@ -1245,8 +1251,8 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                   </tr>
                   <tr>
                     <td>
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d41" target="spell-ui-pages">D41</a>-<a
-                        href="epics/spell-ui-pages/spell-ui-pages.html#d43"
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d41" target="spell-ui-pages">D41</a>-<a
+                        href="epics/spell-ui-pages/spell-ui-pages.plan.html#d43"
                         target="spell-ui-pages"
                         >D43</a
                       >
@@ -1261,17 +1267,17 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                     </td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d6" target="spell-ui-pages">D6</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d6" target="spell-ui-pages">D6</a></td>
                     <td>Gaps are logged as issues; fix only tiny local ones</td>
                     <td>the point is to SEE the gaps; a fix only if under ~15 min and inside one widget</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d12" target="spell-ui-pages">D12</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d12" target="spell-ui-pages">D12</a></td>
                     <td>Fomantic's text and images copied, credited in the footer</td>
                     <td>Fomantic-UI and its docs are MIT</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d36" target="spell-ui-pages">D36</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d36" target="spell-ui-pages">D36</a></td>
                     <td>oxfmt skips the site pages</td>
                     <td>
                       it broke markdown inside <code>&lt;script type="text/markdown"&gt;</code>: lines split inside code
@@ -1289,8 +1295,8 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                 <tbody>
                   <tr>
                     <td>
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d21" target="spell-ui-pages">D21</a>,
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d39" target="spell-ui-pages">D39</a>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d21" target="spell-ui-pages">D21</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d39" target="spell-ui-pages">D39</a>
                     </td>
                     <td>
                       <code>components.json</code> generated; <code>pages.json</code> hand-kept, seeded from a new
@@ -1299,29 +1305,29 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                     <td>facts a vocabulary doesn't hold (summary, status) need a durable home now the MDX is gone</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d22" target="spell-ui-pages">D22</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d22" target="spell-ui-pages">D22</a></td>
                     <td>One code-split bundle; <code>icon-packs</code> symlinked, not copied</td>
                     <td>the packs are 8.7 MB in 2,170 files: a copy would double them in git</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d23" target="spell-ui-pages">D23</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d23" target="spell-ui-pages">D23</a></td>
                     <td><code>/ui/</code> is a static mount; <code>AstroProxy</code> deleted</td>
                     <td>no dev server to proxy; pages get live reload and the section editor like docs</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d35" target="spell-ui-pages">D35</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d35" target="spell-ui-pages">D35</a></td>
                     <td><code>site:new</code> fills the template; <code>site:check</code> replaces the Astro check</td>
                     <td>pages are never copied by hand, so the frame stays the same everywhere</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d37" target="spell-ui-pages">D37</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d37" target="spell-ui-pages">D37</a></td>
                     <td><code>site:dev</code> is a watch build of the real bundle, not a Vite dev server</td>
                     <td>
                       pages load the committed bundle, so watching that same build shows exactly what gets committed
                     </td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d38" target="spell-ui-pages">D38</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d38" target="spell-ui-pages">D38</a></td>
                     <td>Vocabularies stay pure data (<code>$/ui/core</code> for types only)</td>
                     <td>
                       <code>site:data</code> and <code>gen:root</code> import every vocabulary in node, where the
@@ -1339,8 +1345,8 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                 <tbody>
                   <tr>
                     <td>
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d2" target="spell-ui-pages">D2</a>,
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d20" target="spell-ui-pages">D20</a>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d2" target="spell-ui-pages">D2</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d20" target="spell-ui-pages">D20</a>
                     </td>
                     <td>
                       Own folder,
@@ -1353,37 +1359,37 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                     </td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d24" target="spell-ui-pages">D24</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d24" target="spell-ui-pages">D24</a></td>
                     <td>Example source: template, then snapshot, then live markup</td>
                     <td>lazy families may have rewritten the light DOM before the example reads it</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d26" target="spell-ui-pages">D26</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d26" target="spell-ui-pages">D26</a></td>
                     <td><code>&lt;ui-docs-api&gt;</code> scrolls to <code>#ui-or</code> by script</td>
                     <td>ids inside a shadow root aren't fragment targets</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d27" target="spell-ui-pages">D27</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d27" target="spell-ui-pages">D27</a></td>
                     <td>Foundation tokens join the data; the playground is an input column in the table</td>
                     <td>one element serves both the family Theming tabs and the theming page</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d28" target="spell-ui-pages">D28</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d28" target="spell-ui-pages">D28</a></td>
                     <td>Theme picker is a floating button dropdown on <code>ThemePreference</code></td>
                     <td>Fomantic's picker is one; every picker on a page stays in step</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d29" target="spell-ui-pages">D29</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d29" target="spell-ui-pages">D29</a></td>
                     <td>Which themes touch which family: worked out at build time</td>
                     <td>reading the sheets in the browser would load every theme chunk to fill one menu</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d31" target="spell-ui-pages">D31</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d31" target="spell-ui-pages">D31</a></td>
                     <td><code>&lt;ui-docs-nav&gt;</code> keeps the Astro site's <code>localStorage</code> keys</td>
                     <td>viewers keep their favourites, view and open topics</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d34" target="spell-ui-pages">D34</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d34" target="spell-ui-pages">D34</a></td>
                     <td><code>&lt;ui-docs-toc&gt;</code>, a new element</td>
                     <td>no widget builds a table of contents from a page</td>
                   </tr>
@@ -1398,8 +1404,8 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                 <tbody>
                   <tr>
                     <td>
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d5" target="spell-ui-pages">D5</a>,
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d13" target="spell-ui-pages">D13</a>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d5" target="spell-ui-pages">D5</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d13" target="spell-ui-pages">D13</a>
                     </td>
                     <td>Port all 25; joypixels left out</td>
                     <td>
@@ -1408,21 +1414,21 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                     </td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d14" target="spell-ui-pages">D14</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d14" target="spell-ui-pages">D14</a></td>
                     <td>
                       <code>resetcss</code> sits in <code>@layer ui.reset</code>, every selector from <code>:root</code>
                     </td>
                     <td>in <code>ui.theme</code> it would beat typography; in shadow roots it must match nothing</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d15" target="spell-ui-pages">D15</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d15" target="spell-ui-pages">D15</a></td>
                     <td>
                       <code>classic</code> is the base, <code>dark</code> a scheme; two <code>UI.styles</code> slots
                     </td>
                     <td>Fomantic themes are deltas on its default look; dark mode is orthogonal to the look</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d16" target="spell-ui-pages">D16</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d16" target="spell-ui-pages">D16</a></td>
                     <td>Themes re-check <code>--ui-&lt;hue&gt;-on</code> for WCAG AA</td>
                     <td>
                       GitHub's and Material's mid-tones fail 4.5:1 with white, so they take ink text, unlike
@@ -1431,19 +1437,19 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                   </tr>
                   <tr>
                     <td>
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d17" target="spell-ui-pages">D17</a>,
-                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d25" target="spell-ui-pages">D25</a>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d17" target="spell-ui-pages">D17</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d25" target="spell-ui-pages">D25</a>
                     </td>
                     <td>Fonts a theme imported are bundled as woff2</td>
                     <td>a constructed sheet can't <code>@import</code></td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d18" target="spell-ui-pages">D18</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d18" target="spell-ui-pages">D18</a></td>
                     <td><code>duo</code> draws what its variables describe</td>
                     <td>in Fomantic 2.9.4 it's a no-op (a loader rule out-specifies it); we port intent</td>
                   </tr>
                   <tr>
-                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d19" target="spell-ui-pages">D19</a></td>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#d19" target="spell-ui-pages">D19</a></td>
                     <td>Theme sheets may write a component's private variation tokens</td>
                     <td>
                       a variation (secondary menu, basic button) has no public token to set; pages still use public
@@ -1461,8 +1467,8 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
           <p>
             Two kinds: gaps in the widgets the pages exposed, and caveats about the site and themes themselves. The full
             lists: the plan doc's
-            <a href="epics/spell-ui-pages/spell-ui-pages.html#o5" target="spell-ui-pages">1.5 Gap report</a> and
-            <a href="epics/spell-ui-pages/spell-ui-pages.html#caveats" target="spell-ui-pages">5. Caveats</a>.
+            <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#o5" target="spell-ui-pages">1.5 Gap report</a> and
+            <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#caveats" target="spell-ui-pages">5. Caveats</a>.
           </p>
 
           <ui-section id="gap-report" header="Widget gaps" sticky collapsible dividing>
@@ -1525,14 +1531,14 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
               <ul>
                 <li>
                   <b>Stacking</b> (P10): <code>stack-with</code>, closing
-                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i49" target="spell-ui-pages">I49</a>,
-                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i58" target="spell-ui-pages">I58</a>,
-                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i82" target="spell-ui-pages">I82</a>; one new,
-                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i131" target="spell-ui-pages">I131</a>.
+                  <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#i49" target="spell-ui-pages">I49</a>,
+                  <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#i58" target="spell-ui-pages">I58</a>,
+                  <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#i82" target="spell-ui-pages">I82</a>; one new,
+                  <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#i131" target="spell-ui-pages">I131</a>.
                 </li>
                 <li>
                   <b>The tab look</b> (P11): <code>appearance</code> / <code>alignment</code> / <code>equal</code>,
-                  closing <a href="epics/spell-ui-pages/spell-ui-pages.html#i24" target="spell-ui-pages">I24</a>.
+                  closing <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#i24" target="spell-ui-pages">I24</a>.
                 </li>
               </ul>
             </ui-message>
@@ -1540,23 +1546,25 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
               <ol>
                 <li><b>One loader option</b> for every <code>loading</code> widget: closes 8 gaps at once.</li>
                 <li>
-                  <b>Fix <a href="epics/spell-ui-pages/spell-ui-pages.html#i7" target="spell-ui-pages">I7</a></b
+                  <b>Fix <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#i7" target="spell-ui-pages">I7</a></b
                   >: <code>&lt;ui-table&gt;</code> is unstyled inside another shadow root, and every docs element works
                   around it.
                 </li>
                 <li>
-                  <b>Icon word order</b> (<a href="epics/spell-ui-pages/spell-ui-pages.html#i23" target="spell-ui-pages"
+                  <b>Icon word order</b> (<a
+                    href="epics/spell-ui-pages/spell-ui-pages.plan.html#i23"
+                    target="spell-ui-pages"
                     >I23</a
                   >): Fomantic's <code>right arrow</code> draws nothing, silently; accept both orders, or warn.
                 </li>
                 <li>
                   <b>A single-choice button group</b> (<a
-                    href="epics/spell-ui-pages/spell-ui-pages.html#i12"
+                    href="epics/spell-ui-pages/spell-ui-pages.plan.html#i12"
                     target="spell-ui-pages"
                     >I12</a
-                  >, <a href="epics/spell-ui-pages/spell-ui-pages.html#i17" target="spell-ui-pages">I17</a>): the site's
-                  light / dark / system switch and the icon-pack switcher are one choice of several, but a screen reader
-                  can't tell which is chosen. Radio semantics on <code>&lt;ui-buttons&gt;</code> closes both.
+                  >, <a href="epics/spell-ui-pages/spell-ui-pages.plan.html#i17" target="spell-ui-pages">I17</a>): the
+                  site's light / dark / system switch and the icon-pack switcher are one choice of several, but a screen
+                  reader can't tell which is chosen. Radio semantics on <code>&lt;ui-buttons&gt;</code> closes both.
                 </li>
               </ol>
             </ui-message>
@@ -1676,8 +1684,8 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
           <ui-icon slot="icon" name="link"></ui-icon>
           <p>
             The plan doc,
-            <a href="epics/spell-ui-pages/spell-ui-pages.html" target="spell-ui-pages"
-              >epics/spell-ui-pages/spell-ui-pages.html</a
+            <a href="epics/spell-ui-pages/spell-ui-pages.plan.html" target="spell-ui-pages"
+              >epics/spell-ui-pages/spell-ui-pages.plan.html</a
             >, is the full record: every decision with its reasoning, every gap with Fomantic's example and the
             workaround, the log.
           </p>
@@ -1685,7 +1693,7 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
             <ui-item>
               <ui-content>
                 <ui-header
-                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#overview" target="spell-ui-pages"
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#overview" target="spell-ui-pages"
                     >Overview</a
                   ></ui-header
                 >
@@ -1699,7 +1707,7 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
             <ui-item>
               <ui-content>
                 <ui-header
-                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#decisions" target="spell-ui-pages"
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#decisions" target="spell-ui-pages"
                     >Questions &amp; Decisions</a
                   ></ui-header
                 >
@@ -1710,7 +1718,7 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
             <ui-item>
               <ui-content>
                 <ui-header
-                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#judgements" target="spell-ui-pages"
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#judgements" target="spell-ui-pages"
                     >Judgement calls</a
                   ></ui-header
                 >
@@ -1725,7 +1733,7 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
             <ui-item>
               <ui-content>
                 <ui-header
-                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#caveats" target="spell-ui-pages"
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#caveats" target="spell-ui-pages"
                     >Caveats</a
                   ></ui-header
                 >
@@ -1736,7 +1744,7 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
             <ui-item>
               <ui-content>
                 <ui-header
-                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#issues" target="spell-ui-pages"
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.plan.html#issues" target="spell-ui-pages"
                     >Issues</a
                   ></ui-header
                 >

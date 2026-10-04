@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Epic Review</title>
+    <title>Epic: Epic Review</title>
     <meta name="description" content="Plan doc:  Epic Review." />
     <link rel="stylesheet" href="../../_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
-  <body class="spell-doc-page plan-doc" data-plan="epic-review">
+  <body data-recent-since="2026-10-04T12:34:30-04:00" class="spell-doc-page plan-doc" data-plan="epic-review">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -23,7 +23,7 @@
         </ui-breadcrumb>
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
-            <h1>Epic Review</h1>
+            <h1>Epic: Epic Review</h1>
             <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
@@ -41,6 +41,10 @@
             >Started <time id="plan-started">2026-10-03</time>, updated
             <time id="plan-updated">2026-10-04</time></ui-item
           >
+          <ui-item icon="book"
+            ><b>Durable doc:</b>
+            <a href="../../epic-review.html" target="src-packages-docs-epic-review-html">Epic Review</a></ui-item
+          >
         </ui-list>
 
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
@@ -52,33 +56,39 @@
             answer calls for goes on a to-do list the next review offers to start; the docs index shows every epic in
             one Epics list with its state.
           </p>
-          <blockquote class="plan-prompt">
-            <p>`/epic review &lt;name&gt;`<br />- If I don't specify name, present list and ask which one I want</p>
-            <p>
-              start state: <br />What do you want to review? radio button modal with plan doc item sections + ("3 / 11
-              outstanding" or "11 reviewed"). Top item in modal should be "Finish Review"
-            </p>
-            <p>I pick one of the sections =&gt; state "review section"</p>
-            <p>"section review" state</p>
-            <p>Show text in chat with e.g. <br />- I4 Something is wrong<br />- I5 Something else</p>
-            <p>
-              Ask text prompt for which I want to review, e.g. "I4, I5", defaulting to ones that have not already been
-              reviewed (formally or informally).
-            </p>
-            <p>
-              I can instead type "show all", "show reviewed", "show open" to swtich filter. (if you have a better way to
-              do this I'm open to it). This re-does "section review" state with filter.
-            </p>
-            <p>
-              Go through each I chose one at a time. Put detailed explanation in chat. If I need a visual, create
-              throwaway web page, show in right sidebar. Figure out your recommendations and present them as options
-              modal.
-            </p>
-            <p>
-              Last options should always be "Defer" or "Exit" which goes back to "section review" (or maybe "start"?).
-            </p>
-            <p>Update plan doc with decisions.</p>
-          </blockquote>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled
+            ><ui-title>Kickoff prompt</ui-title
+            ><ui-content
+              ><blockquote class="plan-prompt">
+                <p>`/epic review &lt;name&gt;`<br />- If I don't specify name, present list and ask which one I want</p>
+                <p>
+                  start state: <br />What do you want to review? radio button modal with plan doc item sections + ("3 /
+                  11 outstanding" or "11 reviewed"). Top item in modal should be "Finish Review"
+                </p>
+                <p>I pick one of the sections =&gt; state "review section"</p>
+                <p>"section review" state</p>
+                <p>Show text in chat with e.g. <br />- I4 Something is wrong<br />- I5 Something else</p>
+                <p>
+                  Ask text prompt for which I want to review, e.g. "I4, I5", defaulting to ones that have not already
+                  been reviewed (formally or informally).
+                </p>
+                <p>
+                  I can instead type "show all", "show reviewed", "show open" to swtich filter. (if you have a better
+                  way to do this I'm open to it). This re-does "section review" state with filter.
+                </p>
+                <p>
+                  Go through each I chose one at a time. Put detailed explanation in chat. If I need a visual, create
+                  throwaway web page, show in right sidebar. Figure out your recommendations and present them as options
+                  modal.
+                </p>
+                <p>
+                  Last options should always be "Defer" or "Exit" which goes back to "section review" (or maybe
+                  "start"?).
+                </p>
+                <p>Update plan doc with decisions.</p>
+              </blockquote></ui-content
+            ></ui-accordion
+          >
           <p class="plan-estimate"><b>Estimate:</b> 10h-13h 30m in all, 0m left</p>
           <ui-section id="o1" header="1.1 The Flow" sticky collapsible dividing>
             <p>
@@ -213,6 +223,7 @@
           >
 
           <ui-section
+            badge="1-1.5h"
             collapsed
             id="p1"
             data-phase="1"
@@ -233,10 +244,11 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> Owen runs /epic review mock in a fresh session, clicks through every state; his notes
                 reshape P2-P4</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-1.5h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2-3h"
             collapsed
             id="p2"
             data-phase="2"
@@ -256,10 +268,11 @@
                 worktree fallback), plan-doc.test.js, _assets/plan-doc.css, templates/epics/plan-doc.md</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> node --test scripts/plan-doc.test.js; plan-doc check on seo, unified-server</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1.5-2h"
             collapsed
             id="p3"
             data-phase="3"
@@ -279,11 +292,12 @@
                 <name>|--all [--apply]), tests</name></ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> Dry runs on seo, unified-server, ui-import; Owen spot-checks before --apply</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
 
           <ui-section
+            badge="2-3h"
             collapsed
             id="p4"
             data-phase="4"
@@ -300,16 +314,30 @@
                 (not reviewed ones ticked). Explain further: a details page kept with the epic, answered there when the
                 options don't fit a popup. Work waiting: 'Start work' into a new worktree. Every /epic session marks
                 what it talks through</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="8cc1ca246380676853764605c522b1695529026a">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/8cc1ca246380676853764605c522b1695529026a"
+                      target="github"
+                      >8cc1ca2</a
+                    >
+                    the real /epic review
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> .claude/skills/epic/SKILL.md (Review; rule in 5. Each phase), review-mock.json (gone),
                 maybe a details spec builder for a section's items</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> Hook tests; a section's checkbox page builds and its answer parses; skill reads end to
                 end</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1.5-2h"
             collapsed
             id="p5"
             data-phase="5"
@@ -325,16 +353,30 @@
                 ><b>Goal:</b> One 'Epics' section in the docs index, running and merged together, with Open | All in its
                 title. Each card's title starts with its state: in progress [3/6], done (green check), planning (blue
                 thought bubble), stalled (yellow pause: phases left, no update for a few days)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="9d78d8e271397f5657c734e0b70d0ee626f7580e">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/9d78d8e271397f5657c734e0b70d0ee626f7580e"
+                      target="github"
+                      >9d78d8e</a
+                    >
+                    one Epics section in the docs index, state marks, Open | All on epic cards
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/docs/scripts/index.js, packages/server/src/page/RunningEpics.ts (folds its cards
                 into Epics), spell-doc-runtime.js (Open | All on the index), plan-doc.css / spell-doc.css</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> Index served by main's page server shows epic-review in Epics with [3/7]; Open hides
                 done ones; check-spell on the index</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1h"
             collapsed
             id="p6"
             data-phase="6"
@@ -349,44 +391,86 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Real review on a copy of unified-server's doc (epics/review-fixture/, deleted after),
                 incl. a queued item started in a worktree and one left for next time</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="bbaf7fac1616fc968ccc65657f77f606fab462a4">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/bbaf7fac1616fc968ccc65657f77f606fab462a4"
+                      target="github"
+                      >bbaf7fa</a
+                    >
+                    dry run; item picker and details pages reworked from Owen's feedback
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"><b>Files:</b> epics/review-fixture/ (temporary)</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> Owen runs it; To test items per state</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+              ><ui-item icon="flask"><b>Verify:</b> Owen runs it; To test items per state</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p7" data-phase="7" data-status="done" header="P7 · Doc Review" sticky collapsible dividing>
+          <ui-section
+            badge="1h"
+            id="p7"
+            data-phase="7"
+            data-status="done"
+            header="P7 · Doc Review"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> Prune, durable doc, changelog, finish</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="92979f457b37abf0a1eb1fe91fc622dfc04d222b">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/92979f457b37abf0a1eb1fe91fc622dfc04d222b"
+                      target="github"
+                      >92979f4</a
+                    >
+                    durable doc, changelog entry, Overview true to what was built
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"><b>Files:</b> packages/docs/epic-review.html, changelog.html</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> check-spell, doc-links pass</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+              ><ui-item icon="flask"><b>Verify:</b> check-spell, doc-links pass</ui-item></ui-list
             >
           </ui-section></ui-section
         >
 
-        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
-          <ui-icon slot="icon" name="gavel"></ui-icon>
-          <p class="meta">
-            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
-            settled, don't re-argue without new facts. An answered question sits just above its decision.
-          </p>
+        <ui-section
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts."
+          id="decisions"
+          header="3. Questions"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
+
           <ui-list class="plan-items" data-kind="decision" divided relaxed
-            ><ui-item id="q1" data-status="done"
+            ><ui-item data-state="old" data-answered id="q1" data-status="canceled"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q1">Q1</a>
-                  <span class="plan-title">Start modal: 4-option cap vs up to 6 entries</span>
-                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                  <span class="plan-title">Start modal: 4-option cap vs up to 6 entries</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d1">
+                    <div class="plan-answer-title">
+                      <b>D1</b> · Start modal: Finish Review + top 3 sections by outstanding; empty hidden; rest named,
+                      via Other
+                    </div>
+                  </div>
+                  <p>
                     The modal (AskUserQuestion) takes <b>at most 4 options</b>, plus the "Other" box it always adds. A
                     plan doc has up to 5 item sections (Questions, Caveats, Todos, Issues, To test), and "Finish Review"
                     takes one slot, so up to 6 don't fit.
                   </p>
                   <p>unified-server today: Issues 2 open, Caveats 9, Todos 18, To test 0, Questions 0.</p>
                   <ui-grid class="spell-pros-cons" columns="3" stackable>
-                    <ui-column
+                    <ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top" color="green">A. Top 3 (recommended)</ui-label>
                         <p>
@@ -413,30 +497,20 @@
                   </ui-grid></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d1" data-status="done"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d1">D1</a>
-                  <span class="plan-title"
-                    >Start modal: Finish Review + top 3 sections by outstanding; empty hidden; rest named, via Other (<a
-                      href="#q1"
-                      >Q1</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><p class="meta">
-                    Answers <a href="#q1">Q1</a>: Start modal: 4-option cap vs up to 6 entries
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q2" data-status="done"
+            ><ui-item data-state="old" data-answered id="q2" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q2">Q2</a>
-                  <span class="plan-title">What counts as reviewed (formally or informally)</span>
-                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                  <span class="plan-title">What counts as reviewed (formally or informally)</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d2">
+                    <div class="plan-answer-title">
+                      <b>D2</b> · Reviewed = review mark, or struck / decided, or linked from a decision. Kept current
+                      by every /epic session from now on; a backfill script (P3) does the one-off walkthrough of old
+                      docs
+                    </div>
+                  </div>
+                  <p>
                     "Reviewed" decides what the default list shows. The prompt says "formally or informally": formally =
                     gone through in <code>/epic review</code>; informally = settled some other way. What can a new
                     session actually see?
@@ -504,30 +578,19 @@
                   </ui-grid></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d2" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d2">D2</a>
-                  <span class="plan-title"
-                    >Reviewed = review mark, or struck / decided, or linked from a decision. Kept current by every /epic
-                    session from now on; a backfill script (P3) does the one-off walkthrough of old docs (<a href="#q2"
-                      >Q2</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><p class="meta">
-                    Answers <a href="#q2">Q2</a>: What counts as reviewed (formally or informally)
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q3" data-status="done"
+            ><ui-item data-state="old" data-answered id="q3" data-status="canceled"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q3">Q3</a>
-                  <span class="plan-title">Section review: how to pick ids and switch filter</span>
-                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                  <span class="plan-title">Section review: how to pick ids and switch filter</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d3">
+                    <div class="plan-answer-title">
+                      <b>D3</b> · Chat reply: ids, go, all, open, reviewed, queued, back ('show X' also works); hint
+                      under every list
+                    </div>
+                  </div>
+                  <p>
                     After the section list, Owen replies in chat (a modal can't take a free list of ids). The question:
                     what words switch the filter.
                   </p>
@@ -563,27 +626,25 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d3" data-status="done"
+            ><ui-item data-state="old" data-answered id="q4" data-status="canceled"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d3">D3</a>
-                  <span class="plan-title"
-                    >Chat reply: ids, go, all, open, reviewed, queued, back ('show X' also works); hint under every list
-                    (<a href="#q3">Q3</a>)</span
-                  ></ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title">Defer and Exit: where each goes</span></ui-title
                 ><ui-content
-                  ><p class="meta">
-                    Answers <a href="#q3">Q3</a>: Section review: how to pick ids and switch filter
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q4" data-status="done"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#q4">Q4</a> <span class="plan-title">Defer and Exit: where each goes</span>
-                  <a class="plan-answer" href="#d4">→ D4</a></ui-title
-                ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d4">
+                    <div class="plan-answer-title">
+                      <b>D4</b> · Item modal (checkbox): Accept &lt;recommendation&gt; (only if one exists), Explore,
+                      Explain further, Defer; exit typed in Other -&gt; section list. After Explore / Explain: &lt;=2
+                      recommendations + Defer + Exit
+                    </div>
+                    <p>
+                      Owen, on the plan: keep it fast. Show the item as clean bullets first; the long explanation and
+                      the visual page only on Explain further.
+                    </p>
+                    <p>Defer: dated (data-deferred), still outstanding, next picked item.</p>
+                  </div>
+                  <p>
                     The item modal: up to 2 recommendations, then Defer, then Exit (4 is the cap; "Other" lets Owen type
                     anything else). Where do Defer and Exit go?
                   </p>
@@ -617,32 +678,20 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d4" data-status="done"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d4">D4</a>
-                  <span class="plan-title"
-                    >Item modal (checkbox): Accept &lt;recommendation&gt; (only if one exists), Explore, Explain
-                    further, Defer; exit typed in Other -&gt; section list. After Explore / Explain: &lt;=2
-                    recommendations + Defer + Exit (<a href="#q4">Q4</a>)</span
-                  > </ui-title
-                ><ui-content
-                  ><p>
-                    Owen, on the plan: keep it fast. Show the item as clean bullets first; the long explanation and the
-                    visual page only on Explain further.
-                  </p>
-                  <p>Defer: dated (data-deferred), still outstanding, next picked item.</p>
-                  <p class="meta">Answers <a href="#q4">Q4</a>: Defer and Exit: where each goes</p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q5" data-status="done"
+            ><ui-item data-state="old" data-answered id="q5" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q5">Q5</a>
-                  <span class="plan-title">Act on answers during review, or at Finish</span>
-                  <a class="plan-answer" href="#d5">→ D5</a></ui-title
+                  <span class="plan-title">Act on answers during review, or at Finish</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d5">
+                    <div class="plan-answer-title">
+                      <b>D5</b> · Work an answer calls for is queued in the doc (data-queued). After a section with
+                      queued items: 'Do this now or keep planning?'. Back at Start with a queue: 'Do this all now?'
+                      -&gt; new worktree + window. Not now: queue stays, a later /epic review picks it up
+                    </div>
+                  </div>
+                  <p>
                     When Owen picks "Fix it now" for an issue, does the review stop and fix code, or only record it?
                   </p>
                   <ui-grid class="spell-pros-cons" columns="2" stackable>
@@ -675,291 +724,494 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d5" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q6" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d5">D5</a>
-                  <span class="plan-title"
-                    >Work an answer calls for is queued in the doc (data-queued). After a section with queued items: 'Do
-                    this now or keep planning?'. Back at Start with a queue: 'Do this all now?' -&gt; new worktree +
-                    window. Not now: queue stays, a later /epic review picks it up (<a href="#q5">Q5</a>)</span
-                  ></ui-title
-                ><ui-content
-                  ><p class="meta">
-                    Answers <a href="#q5">Q5</a>: Act on answers during review, or at Finish
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d6" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d6">D6</a>
+                  ><a class="plan-id" href="#q6">Q6</a>
                   <span class="plan-title"
                     >review is a reserved epic name; the hook passes /epic review untouched (no rename, no block)</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    A review runs from any window, main or a worktree, and must not rename the session to 'review'.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d6">
+                    <div class="plan-answer-title">
+                      <b>D6</b> · review is a reserved epic name; the hook passes /epic review untouched (no rename, no
+                      block)
+                    </div>
+                    <p>
+                      A review runs from any window, main or a worktree, and must not rename the session to 'review'.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d7" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q7" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d7">D7</a>
+                  ><a class="plan-id" href="#q7">Q7</a>
                   <span class="plan-title">P1 is a mockup on canned data, before any real work</span></ui-title
                 ><ui-content
-                  ><p>
-                    Owen asked for a P0 to get the interaction right first; the doc numbers phases from 1, so it's P1.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d7">
+                    <div class="plan-answer-title"><b>D7</b> · P1 is a mockup on canned data, before any real work</div>
+                    <p>
+                      Owen asked for a P0 to get the interaction right first; the doc numbers phases from 1, so it's P1.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d8" data-status="done"
-              ><a class="plan-id" href="#d8">D8</a>
-              <span class="plan-title"
-                >Visual pages: ignored by version control, epics/&lt;name&gt;/review/&lt;id&gt;.html, shown with
-                window.mjs show; plan doc reopened after</span
-              ></ui-item
-            ><ui-item id="d9" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q8" data-status="canceled"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d9">D9</a>
+                  ><a class="plan-id" href="#q8">Q8</a>
+                  <span class="plan-title"
+                    >Visual pages: ignored by version control, epics/&lt;name&gt;/review/&lt;id&gt;.html, shown with
+                    window.mjs show; plan doc reopened after</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d8">
+                    <div class="plan-answer-title">
+                      <b>D8</b> · Visual pages: ignored by version control, epics/&lt;name&gt;/review/&lt;id&gt;.html,
+                      shown with window.mjs show; plan doc reopened after
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q9">Q9</a>
                   <span class="plan-title"
                     >Start modal: titled '&lt;name&gt; Review'; sections by most not reviewed (Issues · 3/5), no ids;
                     over 3: top 2 + More…; Finish Review LAST, above Other</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Owen, trying the P1 mock. Replaces <a href="#d1">D1</a> (Finish first, rest typed in Other). Nothing
-                    can go below Other, so the leftover sections sit behind More….
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d9">
+                    <div class="plan-answer-title">
+                      <b>D9</b> · Start modal: titled '&lt;name&gt; Review'; sections by most not reviewed (Issues ·
+                      3/5), no ids; over 3: top 2 + More…; Finish Review LAST, above Other
+                    </div>
+                    <p>
+                      Owen, trying the P1 mock. Replaces <a href="#d1">D1</a> (Finish first, rest typed in Other).
+                      Nothing can go below Other, so the leftover sections sit behind More….
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d10" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q10" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d10">D10</a>
+                  ><a class="plan-id" href="#q10">Q10</a>
                   <span class="plan-title"
                     >Review commands edit the epic's live doc: its own worktree, else main, else any worktree; never
                     this checkout's copy</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Every worktree holds a COPY of every merged epic from when it branched. Marking reviewed in that
-                    copy would fork the record. So review / defer / queue / unqueue / items look up the doc (findDoc()),
-                    while add / close / phase etc. still edit this checkout's.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d10">
+                    <div class="plan-answer-title">
+                      <b>D10</b> · Review commands edit the epic's live doc: its own worktree, else main, else any
+                      worktree; never this checkout's copy
+                    </div>
+                    <p>
+                      Every worktree holds a COPY of every merged epic from when it branched. Marking reviewed in that
+                      copy would fork the record. So review / defer / queue / unqueue / items look up the doc
+                      (findDoc()), while add / close / phase etc. still edit this checkout's.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d11" data-status="decided"
-              ><a class="plan-id" href="#d11">D11</a>
-              <span class="plan-title"
-                >Questions section lists questions only; the decisions sharing their list are never review items</span
-              > </ui-item
-            ><ui-item id="d12" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q11" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d12">D12</a>
+                  ><a class="plan-id" href="#q11">Q11</a>
+                  <span class="plan-title"
+                    >Questions section lists questions only; the decisions sharing their list are never review
+                    items</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d11">
+                    <div class="plan-answer-title">
+                      <b>D11</b> · Questions section lists questions only; the decisions sharing their list are never
+                      review items
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q12">Q12</a>
                   <span class="plan-title"
                     >Item sections get an 'Open | All' toggle, left of the count; Open hides struck items; remembered
                     per page; All by default</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Owen, looking at the review labels. Runtime: <code>wireItemFilters()</code> in spell-doc-runtime.js
-                    puts a ui-buttons group in the section's actions slot; plan-doc.css orders it before the badge.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d12">
+                    <div class="plan-answer-title">
+                      <b>D12</b> · Item sections get an 'Open | All' toggle, left of the count; Open hides struck items;
+                      remembered per page; All by default
+                    </div>
+                    <p>
+                      Owen, looking at the review labels. Runtime: <code>wireItemFilters()</code> in
+                      spell-doc-runtime.js puts a ui-buttons group in the section's actions slot; plan-doc.css orders it
+                      before the badge.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d13" data-status="decided"
-              ><a class="plan-id" href="#d13">D13</a>
-              <span class="plan-title"
-                >Review label right after the id; 'deferred' carries no date (date on hover)</span
-              ></ui-item
-            ><ui-item id="d14" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q13" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d14">D14</a>
+                  ><a class="plan-id" href="#q13">Q13</a>
+                  <span class="plan-title"
+                    >Review label right after the id; 'deferred' carries no date (date on hover)</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d13">
+                    <div class="plan-answer-title">
+                      <b>D13</b> · Review label right after the id; 'deferred' carries no date (date on hover)
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q14" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q14">Q14</a>
                   <span class="plan-title"
                     >Backfill evidence: Owen's own messages and modals he answered, in the epic's sessions; never Claude
                     Code's injected text</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Excluded: skill bodies, reminders, background agents' notices (they name agents T1, T2 ... and gave
-                    4 false hits on ui-import), compacted-session summaries (1 false hit on ui-component-creation), meta
-                    and sub-agent entries. Dates are local, not the transcripts' UTC.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d14">
+                    <div class="plan-answer-title">
+                      <b>D14</b> · Backfill evidence: Owen's own messages and modals he answered, in the epic's
+                      sessions; never Claude Code's injected text
+                    </div>
+                    <p>
+                      Excluded: skill bodies, reminders, background agents' notices (they name agents T1, T2 ... and
+                      gave 4 false hits on ui-import), compacted-session summaries (1 false hit on
+                      ui-component-creation), meta and sub-agent entries. Dates are local, not the transcripts' UTC.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d15" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q15" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d15">D15</a>
+                  ><a class="plan-id" href="#q15">Q15</a>
                   <span class="plan-title"
                     >Picking a section's items: a details page with a checkbox per item, the not-reviewed ones ticked;
                     Send</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Owen, after the details skill landed. Replaces typing ids and filter words in chat (D3).
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d15">
+                    <div class="plan-answer-title">
+                      <b>D15</b> · Picking a section's items: a details page with a checkbox per item, the not-reviewed
+                      ones ticked; Send
+                    </div>
+                    <p>Owen, after the details skill landed. Replaces typing ids and filter words in chat (D3).</p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d16" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q16" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d16">D16</a>
+                  ><a class="plan-id" href="#q16">Q16</a>
                   <span class="plan-title"
                     >Explain further: a details page kept with the epic (epics/&amp;lt;name&amp;gt;/details/), linked
                     from the decision it leads to; answered on the page when the options don't fit a popup</span
                   ></ui-title
-                ><ui-content><p>Replaces the throwaway review/ pages (D8).</p></ui-content></ui-accordion
+                ><ui-content
+                  ><div class="plan-answer-block" id="d16">
+                    <div class="plan-answer-title">
+                      <b>D16</b> · Explain further: a details page kept with the epic
+                      (epics/&amp;lt;name&amp;gt;/details/), linked from the decision it leads to; answered on the page
+                      when the options don't fit a popup
+                    </div>
+                    <p>Replaces the throwaway review/ pages (D8).</p>
+                  </div></ui-content
+                ></ui-accordion
               ></ui-item
-            ><ui-item id="d17" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q17" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d17">D17</a>
+                  ><a class="plan-id" href="#q17">Q17</a>
                   <span class="plan-title"
                     >One Epics section in the docs index, running and merged together, with Open | All; each card's
                     title starts with its state</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Owen: 'One Epics section, with an Open | All toggle in the header like we just did for issues.'
-                    Before the title: in progress [3/6]; done: a green check in a circle; planning: a blue thought
-                    bubble; stalled: yellow, Claude's pick (a pause: phases left, no update for a few days). New phase
-                    P5 · Epics Index.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d17">
+                    <div class="plan-answer-title">
+                      <b>D17</b> · One Epics section in the docs index, running and merged together, with Open | All;
+                      each card's title starts with its state
+                    </div>
+                    <p>
+                      Owen: 'One Epics section, with an Open | All toggle in the header like we just did for issues.'
+                      Before the title: in progress [3/6]; done: a green check in a circle; planning: a blue thought
+                      bubble; stalled: yellow, Claude's pick (a pause: phases left, no update for a few days). New phase
+                      P5 · Epics Index.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d18" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q18" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d18">D18</a>
+                  ><a class="plan-id" href="#q18">Q18</a>
                   <span class="plan-title"
                     >Epics index: docs:index writes the merged cards plus a slot; the page server puts running epics'
                     cards in it and drops a merged card of the same name</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    One list, no separate Running epics section. Both sides write the same card markup and state mark
-                    (index.js epicState(), RunningEpics.ts stateMark()): each says 'change both'. Stalled: phases left
-                    and the doc's 'updated' date more than 3 days old; for merged epics that's judged when docs:index
-                    runs.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d18">
+                    <div class="plan-answer-title">
+                      <b>D18</b> · Epics index: docs:index writes the merged cards plus a slot; the page server puts
+                      running epics' cards in it and drops a merged card of the same name
+                    </div>
+                    <p>
+                      One list, no separate Running epics section. Both sides write the same card markup and state mark
+                      (index.js epicState(), RunningEpics.ts stateMark()): each says 'change both'. Stalled: phases left
+                      and the doc's 'updated' date more than 3 days old; for merged epics that's judged when docs:index
+                      runs.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d19" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q19" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d19">D19</a>
+                  ><a class="plan-id" href="#q19">Q19</a>
                   <span class="plan-title"
                     >Every plan-doc command but new edits the epic's live doc (its worktree, else main), not just the
                     review commands</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    A review decides, closes and adds items too. From main, reviewing an epic still in its worktree,
-                    decide / close / add would have failed (no doc there), or, from another worktree, edited the stale
-                    copy it took of a merged epic. An epic's own session is unaffected: its own worktree comes first.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d19">
+                    <div class="plan-answer-title">
+                      <b>D19</b> · Every plan-doc command but new edits the epic's live doc (its worktree, else main),
+                      not just the review commands
+                    </div>
+                    <p>
+                      A review decides, closes and adds items too. From main, reviewing an epic still in its worktree,
+                      decide / close / add would have failed (no doc there), or, from another worktree, edited the stale
+                      copy it took of a merged epic. An epic's own session is unaffected: its own worktree comes first.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d20" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q20" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d20">D20</a>
+                  ><a class="plan-id" href="#q20">Q20</a>
                   <span class="plan-title"
                     >Details pages can start with boxes ticked (data-checked; spec option checked)</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    For the item picker: the not-reviewed items start ticked. A small change to the details skill's page
-                    runtime (_assets/details.js) and its spec (scripts/details.js).
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d20">
+                    <div class="plan-answer-title">
+                      <b>D20</b> · Details pages can start with boxes ticked (data-checked; spec option checked)
+                    </div>
+                    <p>
+                      For the item picker: the not-reviewed items start ticked. A small change to the details skill's
+                      page runtime (_assets/details.js) and its spec (scripts/details.js).
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d21" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q21" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d21">D21</a>
+                  ><a class="plan-id" href="#q21">Q21</a>
                   <span class="plan-title"
                     >Exit in an item's modal goes back to the Start modal, not a section list</span
                   > </ui-title
                 ><ui-content
-                  ><p>There's no section list any more: the picker page replaced it (D15).</p></ui-content
+                  ><div class="plan-answer-block" id="d21">
+                    <div class="plan-answer-title">
+                      <b>D21</b> · Exit in an item's modal goes back to the Start modal, not a section list
+                    </div>
+                    <p>There's no section list any more: the picker page replaced it (D15).</p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d22" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q22" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d22">D22</a>
+                  ><a class="plan-id" href="#q22">Q22</a>
                   <span class="plan-title"
                     >Item picker page: titled 'Choose &lt;section&gt; to review', no site header, each item's whole text
                     with its state a badge top right, Select all / none, Open | All</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Owen, in the dry run: the one-line summaries were too dense, and 'More on T3' only repeated them.
-                    Now the item's details as the plan doc has them (links rewritten to work from the page), long ones
-                    clamped at 150px with Show more / Show less; Open (default) hides reviewed items.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d22">
+                    <div class="plan-answer-title">
+                      <b>D22</b> · Item picker page: titled 'Choose &lt;section&gt; to review', no site header, each
+                      item's whole text with its state a badge top right, Select all / none, Open | All
+                    </div>
+                    <p>
+                      Owen, in the dry run: the one-line summaries were too dense, and 'More on T3' only repeated them.
+                      Now the item's details as the plan doc has them (links rewritten to work from the page), long ones
+                      clamped at 150px with Show more / Show less; Open (default) hides reviewed items.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d23" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q23" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d23">D23</a>
+                  ><a class="plan-id" href="#q23">Q23</a>
                   <span class="plan-title"
                     >Every details page: Send pinned to the window's bottom; long option text clamped with Show more; a
                     fold only when it holds more, titled for what it holds</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Changes to the details skill's page runtime (_assets/details.js, details.css) and spec
-                    (scripts/details.js): bare, selectAll, filter, body, badge, done, detailsTitle.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d23">
+                    <div class="plan-answer-title">
+                      <b>D23</b> · Every details page: Send pinned to the window's bottom; long option text clamped with
+                      Show more; a fold only when it holds more, titled for what it holds
+                    </div>
+                    <p>
+                      Changes to the details skill's page runtime (_assets/details.js, details.css) and spec
+                      (scripts/details.js): bare, selectAll, filter, body, badge, done, detailsTitle.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
           >
         </ui-section>
 
-        <ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing>
-          <ui-icon slot="icon" name="compass"></ui-icon>
-          <p class="meta">
-            Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open
-            until you review it; struck = accepted. Disagree: say so, and it becomes a question.
-          </p>
+        <ui-section
+          data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
+          id="judgements"
+          header="4. Judgement calls"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+
           <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
         </ui-section>
 
         <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed
-            ><ui-item id="c1" data-status="open"
-              ><a class="plan-id" href="#c1">C1</a>
-              <span class="plan-title"
-                >Modals cap at 4 options (+ Other): shapes Start, epic list and item modals</span
+            ><ui-item data-state="open" id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title">A question box holds only four choices</span></ui-title
+                ><ui-content
+                  ><p>
+                    The question box Claude asks you in (the AskUserQuestion modal) holds at most 4 options, plus Other.
+                    That limit shapes three of the review's menus.
+                  </p>
+                  <ul>
+                    <li>
+                      The Start menu ("What do you want to review?"): 3 sections or fewer, then "Finish Review"; with
+                      more, the top 2, then "More…" for the rest, then "Finish Review".
+                    </li>
+                    <li>
+                      The epic list ("Which epic do you want to review?"): the top 4, and "More" on the rest, 2 at a
+                      time; any other epic can be typed in Other.
+                    </li>
+                    <li>The modal for each item: Accept, Explore, Explain further, Defer.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>nothing changes: long lists go through "More…", or a details page</li>
+                  </ul></ui-content
+                ></ui-accordion
               ></ui-item
-            ><ui-item id="c2" data-status="open"
-              ><a class="plan-id" href="#c2">C2</a>
-              <span class="plan-title"
-                >Backfill is heuristic: sees only what a transcript or the page shows</span
+            ><ui-item data-state="open" id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">The backfill guesses from what it can see</span></ui-title
+                ><ui-content
+                  ><p>
+                    The backfill (<code>yarn plan-doc backfill</code>) marks old items as reviewed by reading past
+                    sessions. It can only find what a transcript or the page shows, so it misses reviews that left no
+                    trace.
+                  </p>
+                  <ul>
+                    <li>
+                      What counts as evidence (<a
+                        href="../../scripts/review-backfill.js"
+                        target="src-packages-docs-scripts-review-backfill-js"
+                        ><code>review-backfill.js</code></a
+                      >): in one of the epic's sessions, you named the item's id in your own message, or answered a
+                      modal whose question or answer named it.
+                    </li>
+                    <li>
+                      A session "of the epic": titled with its name, working in its worktree, or saved under that
+                      worktree's own project folder.
+                    </li>
+                    <li>
+                      A talk about an item that never named its id isn't found (the caveat below, <a href="#c7">C7</a>).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>nothing changes: a backfill marks fewer items than you actually went through</li>
+                  </ul></ui-content
+                ></ui-accordion
               ></ui-item
-            ><ui-item id="c3" data-status="open"
-              ><a class="plan-id" href="#c3">C3</a>
-              <span class="plan-title"
-                >'Do this now' ends the review's turn (handoff); marks and queue are in the doc, /epic review
-                resumes</span
+            ><ui-item data-state="open" id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">Starting work stops the review</span></ui-title
+                ><ui-content
+                  ><p>
+                    When a review offers to do waiting work now, saying yes moves you to a new window, and the review
+                    stops there. You pick it up again with <code>/epic review &lt;name&gt;</code>.
+                  </p>
+                  <ul>
+                    <li>
+                      The option was "Do this now" when this was written; the skill now calls it "Start work" ("This
+                      review stops until you run <code>/epic review commands</code> again").
+                    </li>
+                    <li>Why it stops: the move to the new window (the handoff) ends the turn.</li>
+                    <li>
+                      Nothing is lost: the review marks and the to-do list are already in the plan doc, so the next
+                      <code>/epic review</code> resumes from them.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>after starting work, run <code>/epic review &lt;name&gt;</code> again to finish the review</li>
+                  </ul></ui-content
+                ></ui-accordion
               ></ui-item
-            ><ui-item id="c4" data-status="open"
-              ><a class="plan-id" href="#c4">C4</a>
-              <span class="plan-title"
-                >The doc preview shows one doc: a visual page replaces the plan doc until reopened</span
+            ><ui-item data-state="open" id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title">A details page takes the plan doc's place in the side bar</span></ui-title
+                ><ui-content
+                  ><p>
+                    The doc preview in the side bar shows one page at a time. When a review explains an item on a
+                    details page, that page replaces the plan doc until the plan doc is opened again.
+                  </p>
+                  <ul>
+                    <li>
+                      The epic skill's rule: once the item is done, <code>yarn plan-doc open &lt;name&gt;</code> brings
+                      the plan doc back.
+                    </li>
+                    <li>
+                      Not checked: whether the side bar's separate "Review" tab, added since (<code
+                        >yarn docs:open --review</code
+                      >), now keeps the two apart.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>nothing changes: Claude reopens the plan doc after each details page</li>
+                  </ul></ui-content
+                ></ui-accordion
               ></ui-item
-            ><ui-item id="c5" data-status="done"
+            ><ui-item data-state="old" id="c5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c5">C5</a>
@@ -973,94 +1225,159 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c6" data-status="open"
+            ><ui-item data-state="open" id="c6" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c6">C6</a>
-                  <span class="plan-title"
-                    >A review from a worktree session edits main's file, but can't commit it there</span
-                  > </ui-title
+                  <span class="plan-title">Review marks made from a worktree stay uncommitted</span> </ui-title
                 ><ui-content
                   ><p>
-                    Worktree sessions refuse git -C on the main checkout. The marks land in main's working tree,
-                    uncommitted; the next session in main (or Owen) commits them. Finish Review must say so.
-                  </p></ui-content
+                    A review run from a worktree session, of an epic whose doc is on the main checkout, writes its marks
+                    into main's file, but can't commit them there.
+                  </p>
+                  <ul>
+                    <li>Why: worktree sessions refuse <code>git -C</code> on the main checkout.</li>
+                    <li>The marks land in main's working tree, uncommitted.</li>
+                    <li>The next session in main, or you, commits them.</li>
+                    <li>"Finish Review" must say so: the epic skill names the checkout holding uncommitted marks.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>after such a review, main shows the plan doc as changed until someone commits it</li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c7" data-status="open"
+            ><ui-item data-state="open" id="c7" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c7">C7</a>
-                  <span class="plan-title">Backfill finds little: Owen rarely types item ids</span> </ui-title
+                  <span class="plan-title">The backfill finds little</span> </ui-title
                 ><ui-content
                   ><p>
-                    Dry run over all 18 epics: only precedence-and-types (Q1-Q10, answered in modals but not yet decided
-                    in its doc) has evidence. Most reviews happened through option labels without ids, or in sessions
-                    not titled with the epic's name. The marks from now on matter more than the backfill.
-                  </p></ui-content
+                    The backfill looks for item ids in your past messages, and you rarely type them. So it found almost
+                    nothing to mark.
+                  </p>
+                  <ul>
+                    <li>
+                      The dry run over all 18 epics found evidence in one only: precedence-and-types, its questions
+                      Q1-Q10, answered in modals but not yet decided in its doc.
+                    </li>
+                    <li>
+                      Why the rest found nothing:
+                      <ul>
+                        <li>most reviews went through option labels, without ids</li>
+                        <li>or in sessions not titled with the epic's name</li>
+                      </ul>
+                    </li>
+                    <li>The marks every review makes from now on matter more than the backfill.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>old epics start with most items "not reviewed", even ones you went through</li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c8" data-status="open"
+            ><ui-item data-state="open" id="c8" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c8">C8</a>
-                  <span class="plan-title"
-                    >A merged epic's 'stalled' is frozen at the last docs:index run</span
-                  > </ui-title
+                  <span class="plan-title">A merged epic's "stalled" mark can be out of date</span> </ui-title
                 ><ui-content
                   ><p>
-                    Running epics are judged on every page load; merged ones only when the index is rebuilt. Merged
-                    epics are nearly always done, so it rarely shows.
-                  </p></ui-content
+                    The docs index marks an epic "stalled" (a yellow pause) when it has phases left and no update for
+                    more than 3 days. For a merged epic, that mark is only as fresh as the last
+                    <code>yarn docs:index</code> run.
+                  </p>
+                  <ul>
+                    <li>Running epics are judged on every page load, by the page server.</li>
+                    <li>Merged ones are judged only when the index is rebuilt.</li>
+                    <li>It rarely shows: merged epics are nearly always done.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>nothing changes: <code>yarn docs:index</code> refreshes the marks</li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c9" data-status="open"
+            ><ui-item data-state="open" id="c9" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c9">C9</a>
-                  <span class="plan-title"
-                    >The dry run didn't exercise recording answers, Defer, the to-do list's Start work, or Show
-                    more</span
-                  > </ui-title
+                  <span class="plan-title">Parts of the review the dry run didn't try</span> </ui-title
                 ><ui-content
                   ><p>
-                    Owen exited after the first explanation and finished. Recording (review / decide / queue / defer) is
-                    covered by plan-doc's unit tests; Start work and Show more are covered only by reading the skill and
-                    the page code. First real reviews will show the rest.
-                  </p></ui-content
+                    In the dry run you stopped after the first explanation, and finished. So four parts of the review
+                    were never run for real.
+                  </p>
+                  <ul>
+                    <li>
+                      Recording answers and Defer (<code>review</code>, <code>decide</code>, <code>queue</code>,
+                      <code>defer</code>): covered by <code>plan-doc</code>'s unit tests.
+                    </li>
+                    <li>
+                      The to-do list's "Start work", and "Show more": checked only by reading the skill and the page
+                      code.
+                    </li>
+                    <li>The first real reviews will show the rest (the test below, <a href="#v6">V6</a>).</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>watch those four parts in the first real reviews</li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
           >
         </ui-section>
 
-        <ui-section id="todos" header="6. Todos" sticky collapsible dividing>
+        <ui-section
+          data-tip="For later: not caveats, not issues."
+          id="todos"
+          header="6. Todos"
+          sticky
+          collapsible
+          dividing
+        >
           <ui-icon slot="icon" name="list check"></ui-icon>
-          <p class="meta">For later: not caveats, not issues.</p>
+
           <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
         </ui-section>
 
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
-            ><ui-item id="i1" data-status="done"
+            ><ui-item data-state="old" id="i1" data-status="done"
               ><a class="plan-id" href="#i1">I1</a>
               <span class="plan-title">check-spell failed on an empty section: too short to stick</span></ui-item
-            ><ui-item id="i2" data-status="open"
+            ><ui-item data-state="attention" id="i2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i2">I2</a>
-                  <span class="plan-title"
-                    >packages/server lint fails on main: two 'void' operators in liveClient.ts</span
-                  > </ui-title
+                  <span class="plan-title">The server package's lint failed on main</span> </ui-title
                 ><ui-content
                   ><p>
-                    src/liveClient.ts:167 and :170, no-meaningless-void-operator. From main (Spell Docs panel buttons
-                    commit), not this branch; left for that work's owner.
-                  </p></ui-content
+                    <code>yarn lint</code> in <code>packages/server</code> failed on <code>main</code>, on two
+                    <code>void</code> operators in <code>liveClient.ts</code>.
+                  </p>
+                  <ul>
+                    <li>Where: <code>src/liveClient.ts</code>, lines 167 and 170.</li>
+                    <li>The rule: <code>no-meaningless-void-operator</code>.</li>
+                    <li>
+                      It came from <code>main</code> (the commit adding the Spell Docs panel's buttons), not this
+                      branch, so it was left for that work's owner.
+                    </li>
+                    <li>
+                      Looks done or obsolete: <code>liveClient.ts</code> has no <code>void</code> operator left, only
+                      <code>() =&gt; void</code> types (checked 2026-10-04; lint itself not re-run).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>none for this epic: fixed, or to fix, in <code>packages/server</code></li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i3" data-status="done"
+            ><ui-item data-state="old" id="i3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i3">I3</a>
@@ -1079,13 +1396,18 @@ back      to Start</code></pre>
           >
         </ui-section>
 
-        <ui-section id="tests" header="8. To test" sticky collapsible dividing>
+        <ui-section
+          data-tip="What to check by hand before merging: each a step, and what should happen. Struck through once it passes."
+          id="tests"
+          header="8. To test"
+          sticky
+          collapsible
+          dividing
+        >
           <ui-icon slot="icon" name="flask"></ui-icon>
-          <p class="meta">
-            What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
-          </p>
+
           <ui-list class="plan-items" data-kind="test" divided relaxed
-            ><ui-item id="v1" data-status="done"
+            ><ui-item data-state="old" id="v1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v1">V1</a>
@@ -1107,7 +1429,7 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v2" data-status="done"
+            ><ui-item data-state="old" id="v2" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v2">V2</a>
@@ -1115,45 +1437,55 @@ back      to Start</code></pre>
                 ><ui-content
                   ><p>
                     In the side bar now:
-                    <a href="../review-scratch/" target="src-packages-docs-epics-review-scratch"
-                      ><code>epics/review-scratch/</code></a
-                    >, a throwaway copy of unified-server's doc (deleted before commit). Should show small labels after
-                    the title: C3 green 'reviewed 10-03', I7 grey 'put off 10-03', T19 blue 'to do' (hover: the work).
-                    Tell me if they're too loud or too quiet.
+                    <code>epics/review-scratch/</code>, a throwaway copy of unified-server's doc (deleted before
+                    commit). Should show small labels after the title: C3 green 'reviewed 10-03', I7 grey 'put off
+                    10-03', T19 blue 'to do' (hover: the work). Tell me if they're too loud or too quiet.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v3" data-status="open"
+            ><ui-item data-state="open" id="v3" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v3">V3</a>
-                  <span class="plan-title"
-                    >Look over the backfill dry run, then say whether to apply it</span
-                  > </ui-title
+                  <span class="plan-title">Decide whether to apply the backfill</span> </ui-title
                 ><ui-content
-                  ><p>
-                    <code>yarn plan-doc backfill --all</code>: 10 questions on precedence-and-types (an epic running in
-                    its own session), each a modal you answered on 10-03. <code>--apply</code> marks them reviewed in
-                    that epic's worktree doc.
+                  ><p>Look over what the backfill would mark, then say whether to apply it.</p>
+                  <p><b>Step 1:</b> run <code>yarn plan-doc backfill --all</code> (a dry run: it writes nothing).</p>
+                  <p><b>What it should show:</b></p>
+                  <ul>
+                    <li>10 questions on precedence-and-types, an epic running in its own session.</li>
+                    <li>Each is a modal you answered on 10-03.</li>
+                  </ul>
+                  <p>
+                    <b>Step 2, if they look right:</b> <code>yarn plan-doc backfill --all --apply</code> marks them
+                    reviewed in that epic's worktree doc.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v4" data-status="open"
+            ><ui-item data-state="open" id="v4" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v4">V4</a>
-                  <span class="plan-title"
-                    >Docs index: one Epics section with state marks and Open | All</span
-                  > </ui-title
+                  <span class="plan-title">One Epics section on the docs index</span> </ui-title
                 ><ui-content
-                  ><p>
-                    After this merges, on main's page server: the index has no 'Running epics' section; Epics starts
-                    with the running ones (epic-review [n/7], markdown [1/9] ...), Open hides the done ones with '12
-                    hidden · show all' under them, All shows every card with a green check on the done ones.
-                  </p></ui-content
+                  ><p>Checks that the docs index shows running and merged epics in one list, with their states.</p>
+                  <p><b>Step:</b> after this merges, open the docs index from main's page server.</p>
+                  <p><b>What should happen:</b></p>
+                  <ul>
+                    <li>There's no separate "Running epics" section.</li>
+                    <li>Epics starts with the running ones: epic-review [n/7], markdown [1/9] ...</li>
+                    <li>"Open" hides the done ones, with "12 hidden · show all" under them.</li>
+                    <li>"All" shows every card, with a green check on the done ones.</li>
+                    <li>
+                      Since then, "Open | All" became the round status filter buttons that plan docs have too (<code
+                        >wireItemFilters()</code
+                      >
+                      in <code>spell-doc-runtime.js</code>, 2026-10-04), so the last two steps read differently now.
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v5" data-status="done"
+            ><ui-item data-state="old" id="v5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v5">V5</a>
@@ -1165,28 +1497,36 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v6" data-status="open"
+            ><ui-item data-state="open" id="v6" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#v6">V6</a>
-                  <span class="plan-title"
-                    >First real /epic review after merge: record an answer, defer one, queue one</span
-                  > </ui-title
+                  ><a class="plan-id" href="#v6">V6</a> <span class="plan-title">The first real review</span> </ui-title
                 ><ui-content
                   ><p>
-                    After this merges, on any epic: answer one item (it's marked reviewed, the outcome in the log),
-                    defer one (grey pause on the next picker), put one on the to-do list (next review offers 'Start
-                    work').
-                  </p></ui-content
+                    Checks the parts the dry run skipped (the caveat above, <a href="#c9">C9</a>), on a real
+                    <code>/epic review</code> after this merges, on any epic.
+                  </p>
+                  <ol>
+                    <li>Answer one item: it's marked reviewed, and the outcome goes in the log.</li>
+                    <li>Defer one: it shows a grey pause on the next picker.</li>
+                    <li>Put one on the to-do list: the next review offers "Start work".</li>
+                  </ol></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
           >
         </ui-section>
 
-        <ui-section id="log" header="9. Log" sticky collapsible dividing>
+        <ui-section
+          data-tip="Plan changes, oldest first, local time."
+          id="log"
+          header="9. Log"
+          sticky
+          collapsible
+          dividing
+        >
           <ui-icon slot="icon" name="clock rotate left"></ui-icon>
-          <p class="meta">Plan changes, oldest first, local time.</p>
+
           <ui-feed class="plan-log" size="small">
             <ui-event icon="pen to square">
               <ui-content>

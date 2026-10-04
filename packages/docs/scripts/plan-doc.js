@@ -1,9 +1,11 @@
 /**
- * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.html`.
+ * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic` skill and its agents.
- * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `reopen`, `commit`, `commits`,
- *   `log`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate` (`node scripts/plan-doc.js` with no command
- *   lists them).
+ * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
+ *   `commits`, `log`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate` (`node scripts/plan-doc.js` with
+ *   no command lists them).
+ * - a doc is FOUND under either name (`pages.js` `planDocIn()`):  `<name>.plan.html` since 2026-10-04, else the old
+ *   `<name>.html`, which worktrees cut before then still have
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
  *   linkedom, changes it through `PlanDoc`, recolors every item (`updateStates()`), stamps "updated", writes it,
  *   then tidies it (link targets, oxfmt).
@@ -20,7 +22,7 @@ import { parseHTML } from "linkedom"
 
 import { SRV } from "$/server"
 
-import { DOCS, openInVSCode, serialize, tidy } from "./pages.js"
+import { DOCS, openInVSCode, planDocIn, serialize, tidy } from "./pages.js"
 import { findEvidence, sessionsOf } from "./review-backfill.js"
 import { convertSections, createElement } from "./to-ui-section.js"
 
@@ -44,8 +46,8 @@ export const STATUS = {
  * - questions and decisions are ONE kind of item since 2026-10-04 (D13):  a decision is an answered question, so
  *   `decision` makes a question born answered (`q` id, `decided`).  The list is still
  *   `.plan-items[data-kind="decision"]`, in `#decisions` ("Questions").
- * - docs from before keep their `D` items (`d7`) and struck question + decision pairs until P4 of `review-review`
- *   migrates them:  readers take both (`OLD_DECISION`)
+ * - docs from before have `D` items (`d7`) and struck question + decision pairs until `migrate` merges them
+ *   (`mergeDecisions()`):  readers take both (`OLD_DECISION`)
  * - `test`:  something Owen checks by hand before merging (`V1`, "verify":  `t` is taken), in "To test";  `close`
  *   one once it passes
  */
@@ -59,8 +61,31 @@ export const KINDS = {
   judgement: { prefix: "j", list: "judgement", live: "open" }
 }
 
-/** An old doc's decision id (`d7`):  a decision kept apart from its question, before D13 (2026-10-04). */
+/**
+ * An old doc's decision id (`d7`):  a decision kept apart from its question, before D13 (2026-10-04).
+ * - once migrated, the id is on the answer card INSIDE the question (`mergeDecisions()`), so old `#d7` links land
+ */
 const OLD_DECISION = /^d\d+$/
+
+/**
+ * Item statuses that are closed:  not counted open, not on a "To review" line, colored `recent` / `old`.
+ * - `done`:  finished (fixed, passed, accepted);  NOT struck through since 2026-10-04:  the grey chip says it
+ * - `decided`:  an answered question, in force
+ * - `canceled`:  made moot by another decision (J16 of `review-review`):  the ONE status struck through
+ *   (`plan-doc.css`);  `cancel` sets it, `reopen` undoes it
+ */
+const CLOSED = new Set(["done", "decided", "canceled"])
+
+/** The marks an item carries besides its status:  `mergeDecisions()` moves a decision's onto its question. */
+const ITEM_MARKS = [
+  "data-phase",
+  "data-changed",
+  "data-reviewed",
+  "data-deferred",
+  "data-queued",
+  "data-work",
+  "data-bedtime"
+]
 
 /**
  * An item's `data-state` (`updateStates()`) -> its color, as UI's `color` attribute:  what the page paints its id
@@ -564,16 +589,13 @@ ${list}`
    * Mark option `letter` (`A`, `B` ...) of question `item` as the one chosen:  `data-chosen` on its card's
    * `ui-column` (in the question's `ui-grid.spell-pros-cons`), taken off the others.  The page opens that card
    * and frames it green (`spell-doc-runtime.js` `wireOptions()`).
-   * - the card's label starts with the letter:  `A · Inbox file (recommended)`
+   * - the card's label starts with the letter:  `A · Inbox file (recommended)` (older docs:  `A. Inbox file`)
    * - throws when no card has that letter
    */
   chooseOption(item, letter) {
     const columns = Array.from(item.querySelectorAll("ui-grid.spell-pros-cons > ui-column"))
     const want = String(letter).trim().toUpperCase()
-    const chosen = columns.find((column) => {
-      const label = column.querySelector("ui-label[attached]")?.textContent.trim() ?? ""
-      return label.toUpperCase().startsWith(`${want} `) || label.toUpperCase().startsWith(`${want}·`)
-    })
+    const chosen = columns.find((column) => optionOf(column)?.letter === want)
     if (!chosen) throw new PlanDocError(`${item.id.toUpperCase()} has no option ${want}`)
     for (const column of columns) column.toggleAttribute("data-chosen", column === chosen)
   }
@@ -624,19 +646,21 @@ ${list}`
   }
 
   /**
-   * Set item `id` open or done;  done items stay, struck through.  Returns its title.
+   * Set item `id` open, done or canceled;  closed items stay (`canceled` ones struck through).  Returns its title.
    * - "open" means the kind's live status:  a reopened answered question (or an old doc's decision) is `decided`
    *   again, an unanswered one `open`
+   * - `canceled`:  made moot by another decision (J16 of `review-review`);  `reopen` undoes it as it undoes `done`
    * - a question moves to its place (`placeQuestion()`);  stamped (`stamp()`)
    */
   setItem(id, status) {
-    if (status !== "open" && status !== "done") throw new PlanDocError(`item status must be open / done`)
+    if (!["open", "done", "canceled"].includes(status))
+      throw new PlanDocError(`item status must be open / done / canceled`)
     const item = this.item(id)
     const question = /^q\d+$/.test(item.id)
     let live = Object.values(KINDS).find((spec) => new RegExp(`^${spec.prefix}\\d+$`).test(item.id))?.live ?? "open"
     if (question) live = item.hasAttribute("data-answered") ? "decided" : "open"
     else if (OLD_DECISION.test(item.id)) live = "decided"
-    item.setAttribute("data-status", status === "open" ? live : "done")
+    item.setAttribute("data-status", status === "open" ? live : status)
     if (question && item.parentElement.matches('[data-kind="decision"]')) this.placeQuestion(item)
     this.stamp(item)
     this.markUpdate(item)
@@ -653,11 +677,26 @@ ${list}`
     if (bedtime) item.setAttribute("data-bedtime", "")
   }
 
-  /** The item with `id` (any case);  throws when there's none. */
+  /**
+   * The item with `id` (any case);  throws when there's none.
+   * - a migrated old decision (`d7`) is the question its answer card is in (`findItem()`)
+   */
   item(id) {
-    const item = this.document.getElementById(String(id).toLowerCase())
-    if (!item?.parentElement?.matches(".plan-items")) throw new PlanDocError(`no item "${id}"`)
+    const item = this.findItem(id)
+    if (!item) throw new PlanDocError(`no item "${id}"`)
     return item
+  }
+
+  /**
+   * The item with `id` (any case), or `null`.
+   * - an old decision's id (`d7`) that `migrate` moved onto an answer card (`mergeDecisions()`) finds the question
+   *   holding the card:  `close d7`, `Fix D7:` commits still reach it
+   */
+  findItem(id) {
+    const key = String(id).toLowerCase()
+    let item = this.document.getElementById(key)
+    if (item && OLD_DECISION.test(key) && item.matches(".plan-answer-block")) item = item.closest(".plan-items > [id]")
+    return item?.parentElement?.matches(".plan-items") ? item : null
   }
 
   /**
@@ -805,15 +844,15 @@ ${list}`
   /**
    * Item `item`'s (an element) review state:
    * - `queued`:  reviewed, work waiting
-   * - `reviewed`:  marked, struck / decided (an answered question, an old doc's decision), or linked from a
-   *   decision (`href="#c4"` in its details)
+   * - `reviewed`:  marked, closed (`CLOSED`:  done, canceled, an answered question, an old doc's decision), or
+   *   linked from a decision (`href="#c4"` in its details)
    * - `deferred`:  put off for now;  still outstanding
    * - `outstanding`:  none of the above
    */
   reviewState(item) {
     if (item.hasAttribute("data-queued")) return "queued"
     const status = item.getAttribute("data-status")
-    if (item.hasAttribute("data-reviewed") || status === "done" || status === "decided") return "reviewed"
+    if (item.hasAttribute("data-reviewed") || CLOSED.has(status)) return "reviewed"
     if (this.linkedFromDecision(item.id)) return "reviewed"
     return item.hasAttribute("data-deferred") ? "deferred" : "outstanding"
   }
@@ -971,7 +1010,7 @@ ${list}`
 
   /**
    * Item `item`'s (an element) standing, the `data-state` the page colors it by (`STATE_COLORS`):
-   * - closed (`done`, `decided`, an old doc's `d7`):  `recent` when changed since `<body data-recent-since>` or
+   * - closed (`CLOSED`, an old doc's `d7`):  `recent` when changed since `<body data-recent-since>` or
    *   during a `/bedtime` run (`data-bedtime`), else `old`
    * - work under way (`data-queued`, `data-working`):  `progress`
    * - waiting on Owen:  `attention`:  an open question;  an open judgement call or issue not reviewed
@@ -983,7 +1022,7 @@ ${list}`
     const changed = Date.parse(item.getAttribute("data-changed") ?? "")
     const bedtime = item.hasAttribute("data-bedtime")
     const recent = bedtime || (changed >= since && !Number.isNaN(since))
-    if (status === "done" || status === "decided" || OLD_DECISION.test(item.id)) return recent ? "recent" : "old"
+    if (CLOSED.has(status) || OLD_DECISION.test(item.id)) return recent ? "recent" : "old"
     if (item.hasAttribute("data-queued") || item.hasAttribute("data-working")) return "progress"
     if (/^q\d+$/.test(item.id)) return "attention"
     if (/^[ij]\d+$/.test(item.id) && !item.hasAttribute("data-reviewed")) return "attention"
@@ -1005,7 +1044,7 @@ ${list}`
     const old = body.querySelector(":scope > .plan-to-review")
     const items = Array.from(this.document.querySelectorAll(`.plan-items > [data-phase="${n}"]`)).filter((item) => {
       const status = item.getAttribute("data-status") ?? "open"
-      if (status === "done" || status === "decided" || OLD_DECISION.test(item.id)) return false
+      if (CLOSED.has(status) || OLD_DECISION.test(item.id)) return false
       return !["data-reviewed", "data-queued", "data-working"].some((mark) => item.hasAttribute(mark))
     })
     const links = items.map((item) => `<a href="#${item.id}">${item.id.toUpperCase()}</a>`).join(", ")
@@ -1081,9 +1120,9 @@ ${list}`
     return added
   }
 
-  /** Does the doc have item `id` (any case)? */
+  /** Does the doc have item `id` (any case;  a migrated `d7` too:  `findItem()`)? */
   hasItem(id) {
-    return Boolean(this.document.getElementById(id.toLowerCase())?.parentElement?.matches(".plan-items"))
+    return Boolean(this.findItem(id))
   }
 
   /**
@@ -1338,9 +1377,10 @@ ${list}`
    *   without an icon gets the template's
    * - each step works on either markup, so a doc converted by `to-ui-section.js` alone still migrates
    * - "Questions & Decisions" is "Questions" (D13), with its new icon and note;  "Judgement calls" gets the gavel
-   * - a phase's hand-written "Judgement calls:" line goes:  the "To review" line replaces it (`updateStates()`, the
-   *   last step), and the items it linked get the phase (`data-phase`) so they're still listed
-   * - NOT yet:  merging an old doc's question + decision pairs into one answered question (P4 of `review-review`)
+   * - an old doc's `D` items merge into its questions (`mergeDecisions()`):  each answer goes INTO the question it
+   *   answers, a stand-alone one becomes a question born answered
+   * - a phase's hand-written "Judgement calls:" line STAYS (J14 of `review-review`, "keep 'em"):  the "To review"
+   *   line goes after it
    */
   migrate() {
     const changes = []
@@ -1352,6 +1392,7 @@ ${list}`
     const items = this.migrateItems()
     if (items) changes.push(`${items} items as ui-item, details titled by their line`)
     changes.push(...this.mergeQuestions())
+    changes.push(...this.mergeDecisions())
     if (this.addJudgements()) changes.push("#judgements (Judgement calls) added after Questions")
     const bodies = this.migratePhaseBodies()
     if (bodies) changes.push(`${bodies} phase bodies as ui-list`)
@@ -1369,8 +1410,6 @@ ${list}`
     const swapped = this.swapOldIcons()
     if (swapped)
       changes.push(`${swapped} sections' old icon swapped (Questions:  file circle question, Judgement calls:  gavel)`)
-    const lines = this.removeJudgementLines()
-    if (lines) changes.push(`${lines} "Judgement calls:" lines removed:  each phase's "To review" line lists them`)
     const done = this.phases.filter((phase) => phase.status === "done")
     if (done.length && !this.phaseSections.some(isFolded)) {
       this.foldDonePhases(done.at(-1).n)
@@ -1402,26 +1441,195 @@ ${list}`
   }
 
   /**
-   * Each phase's hand-written "Judgement calls:" line (`<ui-item icon="compass"><b>Judgement calls:</b>  <a
-   * href="#j2">J2</a></ui-item>`, any icon) goes;  how many.
-   * - the items it links get `data-phase` (unless they have one), so the "To review" line lists them while open
+   * An old doc's decisions (`D` items, before D13) into its questions;  returns what changed, as lines.  Idempotent:
+   * a doc without `D` items is left alone (but for the list's order).
+   * - a decision that ANSWERS a question (the struck question links it, `→ D7`;  else the decision's title names a
+   *   struck question, `(Q3)` or `Q3 ...`, not answered yet) goes INTO it as its answer card (`answerCard()`), first
+   *   in its details:  `<div class="plan-answer-block" id="d7"><div class="plan-answer-title"><b>D7</b> · title
+   *   </div>...the decision's details...</div>`
+   *   - the question:  `decided`, `data-answered`, not struck;  its `→ D7` link goes
+   *   - the card keeps `id="d7"`, so every old `#d7` link still lands (the runtime opens the question's panel)
+   *   - the decision's marks (`ITEM_MARKS`) and UPDATE label go onto the question where it has none
+   *   - its option card is chosen when the decision names one (`inferOption()`)
+   * - a STAND-ALONE decision becomes a question born answered:  the next free `q` number, the decision's title, its
+   *   answer card inside (`id="d7"` again)
+   * - a struck decision (`done`:  superseded) is `canceled`, not a live answer (J16 of `review-review`)
+   * - then the list's order rule:  open questions first, then the rest in id order (`orderQuestions()`)
    */
-  removeJudgementLines() {
-    let count = 0
-    for (const section of this.phaseSections) {
-      const body = section.querySelector(":scope > .plan-phase-body")
-      for (const line of Array.from(body?.children ?? [])) {
-        if (!/^Judgement calls:/.test(line.textContent.trim())) continue
-        for (const link of line.querySelectorAll('a[href^="#"]')) {
-          const item = this.document.getElementById(link.getAttribute("href").slice(1))
-          if (item?.parentElement?.matches(".plan-items") && !item.hasAttribute("data-phase"))
-            item.setAttribute("data-phase", section.getAttribute("data-phase"))
-        }
-        line.remove()
-        count++
+  mergeDecisions() {
+    const list = this.document.querySelector('.plan-items[data-kind="decision"]')
+    if (!list) return []
+    const changes = []
+    const decisions = Array.from(list.children).filter((item) => OLD_DECISION.test(item.id))
+    const counts = { answering: 0, alone: 0, chosen: 0, unchosen: 0 }
+    for (const decision of decisions) {
+      const question = this.questionAnsweredBy(decision, list)
+      const status = decision.getAttribute("data-status") === "done" ? "canceled" : "decided"
+      if (question) {
+        this.mergeAnswer(decision, question, status, counts)
+        counts.answering++
+      } else {
+        this.answerAlone(decision, status)
+        counts.alone++
       }
     }
-    return count
+    if (decisions.length) {
+      const { answering, alone, chosen, unchosen } = counts
+      const options = chosen || unchosen ? `;  options chosen:  ${chosen}, not inferred:  ${unchosen}` : ""
+      changes.push(
+        `${decisions.length} decisions merged into questions:  ${answering} answering one, ${alone} stand-alone${options}`
+      )
+    }
+    if (this.orderQuestions(list)) changes.push("questions ordered:  open first, then the rest by id")
+    return changes
+  }
+
+  /**
+   * The struck question decision `decision` answers, not yet answered, or `null`:  the one whose `→ D7` links it,
+   * else one its title names (`(Q3)` at the end, or `Q3 ...` first).
+   */
+  questionAnsweredBy(decision, list) {
+    const linked = list.querySelector(`:scope > [id] a.plan-answer[href="#${decision.id}"]`)
+    const title = decision.querySelector(".plan-title")?.textContent.replace(/\s+/g, " ").trim() ?? ""
+    const named = title.match(/\((Q\d+)\)$/) ?? title.match(/^(Q\d+)\s/)
+    const question =
+      linked?.closest(".plan-items > [id]") ?? (named ? this.document.getElementById(named[1].toLowerCase()) : null)
+    if (!question || question.parentElement !== list || !/^q\d+$/.test(question.id)) return null
+    if (question.getAttribute("data-status") === "open" || question.hasAttribute("data-answered")) return null
+    return question
+  }
+
+  /** Decision `decision` into `question` as its answer card;  the question `status`, answered.  `counts`' options. */
+  mergeAnswer(decision, question, status, counts) {
+    decision.remove()
+    const card = this.answerCard(decision, { question })
+    const content = this.detailsOf(question)
+    content.prepend(card)
+    // the decision's own commits (`Fix D7:`) join the question's, at the end of its details
+    const commits = card.querySelector(":scope > .plan-commits")
+    if (commits) content.append(commits)
+    const line = question.querySelector(":scope > ui-accordion > ui-title") ?? question
+    for (const link of line.querySelectorAll(":scope > a.plan-answer")) {
+      if (link.previousSibling?.nodeType === 3)
+        link.previousSibling.textContent = link.previousSibling.textContent.trimEnd()
+      link.remove()
+    }
+    for (const mark of ITEM_MARKS)
+      if (!question.hasAttribute(mark) && decision.hasAttribute(mark))
+        question.setAttribute(mark, decision.getAttribute(mark))
+    const update = decision.querySelector(".plan-update")
+    if (update && !line.querySelector(":scope > .plan-update")) line.append(this.document.createTextNode(" "), update)
+    question.setAttribute("data-status", status)
+    question.setAttribute("data-answered", "")
+    if (!line.querySelector(":scope > .plan-review")) this.updateReviewLabel(question)
+    const chosen = this.inferOption(question, card)
+    if (chosen === true) counts.chosen++
+    else if (chosen === false) counts.unchosen++
+  }
+
+  /**
+   * Stand-alone decision `decision` into a question born answered, IN PLACE (its marks and labels stay):  the next
+   * free `q` id, its line's id chip too, its title kept, its details inside its answer card;  `status`.
+   */
+  answerAlone(decision, status) {
+    const old = decision.id
+    const list = decision.parentElement
+    const n = Math.max(0, ...Array.from(list.children, (item) => (/^q\d+$/.test(item.id) ? idNumber(item.id) : 0))) + 1
+    decision.setAttribute("id", `q${n}`)
+    const chip = decision.querySelector(".plan-id")
+    if (chip) {
+      chip.setAttribute("href", `#q${n}`)
+      chip.textContent = `Q${n}`
+    }
+    const content = this.detailsOf(decision)
+    const card = this.answerCard(decision, { id: old, nodes: Array.from(content.childNodes) })
+    content.prepend(card)
+    const commits = card.querySelector(":scope > .plan-commits")
+    if (commits) content.append(commits)
+    decision.setAttribute("data-status", status)
+    decision.setAttribute("data-answered", "")
+  }
+
+  /**
+   * The answer card for old decision `decision`:  `<div class="plan-answer-block" id="d7">` titled `<b>D7</b> ·
+   * <its title>`, then its details.
+   * - `question`:  the question it answers;  the title drops the question's id (`(Q3)`, `Q3 ...`), and the details a
+   *   `p.meta` "Answers Q3:  ..." line, which only pointed back to it
+   * - `id` / `nodes`:  the decision's id and details when it has moved already (`answerAlone()`)
+   */
+  answerCard(decision, { question, id = decision.id, nodes } = {}) {
+    let title = decision.querySelector(".plan-title")?.innerHTML.trim() ?? ""
+    if (question) {
+      const q = question.id.toUpperCase()
+      title = title
+        .replace(new RegExp(`\\s*\\(\\s*(?:<a\\b[^>]*>)?\\s*${q}\\s*(?:</a>)?\\s*\\)\\s*$`), "")
+        .replace(new RegExp(`^${q}\\s+`), "")
+    }
+    const card = this.element("div", { class: "plan-answer-block", id })
+    card.innerHTML = `<div class="plan-answer-title"><b>${id.toUpperCase()}</b> · ${title}</div>`
+    const details = nodes ?? Array.from(decision.querySelector(":scope > ui-accordion > ui-content")?.childNodes ?? [])
+    card.append(...details)
+    trimWhitespace(card)
+    if (question)
+      for (const note of card.querySelectorAll(":scope > p.meta"))
+        if (/^Answers\b/.test(note.textContent.trim()) && note.querySelector(`a[href="#${question.id}"]`)) note.remove()
+    return card
+  }
+
+  /**
+   * Choose `question`'s option card when its answer card names one;  `true` chosen, `false` not inferred, `null` when
+   * there's nothing to choose (no option cards, or one chosen already).
+   * - the answer's title:  a letter first (`B: real URLs`, `B · ...`), `option B`, or every word of ONE option's
+   *   title (`Merge at the end` for `B. Merge at the end`;  `(recommended)` and little words left out)
+   * - else its details:  `option B`.  NOT an option's words there:  details discuss every option ("Language stays
+   *   page-wide" chose ui-component-creation's Q13 A wrongly, 2026-10-04)
+   */
+  inferOption(question, card) {
+    const columns = Array.from(question.querySelectorAll("ui-grid.spell-pros-cons > ui-column"))
+    const options = columns.map(optionOf).filter(Boolean)
+    if (!options.length || columns.some((column) => column.hasAttribute("data-chosen"))) return null
+    const letters = new Set(options.map((option) => option.letter))
+    const titleText = card.querySelector(":scope > .plan-answer-title")?.textContent.replace(/^\s*D\d+\s*·\s*/, "")
+    const detailsText = Array.from(card.childNodes)
+      .filter((node) => !node.matches?.(".plan-answer-title"))
+      .map((node) => node.textContent)
+      .join(" ")
+    const letter = byLetter(titleText) ?? byWords(titleText) ?? byLetter(detailsText, { start: false })
+    if (!letter) return false
+    this.chooseOption(question, letter)
+    return true
+
+    /** The letter `text` names:  first (`B:`, `B ·`, `B.`) unless `start` is false, or `option B` anywhere. */
+    function byLetter(text, { start = true } = {}) {
+      const first = start ? text.match(/^\s*([A-H])\s*[:.·)]\s/)?.[1] : undefined
+      const named = text.match(/\boption\s+([A-H])\b/i)?.[1]
+      const letter = first ?? named
+      return letter && letters.has(letter) ? letter : undefined
+    }
+
+    /** The ONE option every word of whose title is in `text` (the longest, when several are). */
+    function byWords(text) {
+      const have = new Set(words(text))
+      const fits = options.filter((option) => option.words.length && option.words.every((word) => have.has(word)))
+      const most = Math.max(0, ...fits.map((option) => option.words.length))
+      const best = fits.filter((option) => option.words.length === most)
+      return best.length === 1 ? best[0].letter : undefined
+    }
+  }
+
+  /**
+   * Put the questions list `list` in order:  open questions first (as they stand), then every other question in id
+   * order, then anything else;  changed?
+   */
+  orderQuestions(list) {
+    const children = Array.from(list.children)
+    const questions = children.filter((item) => /^q\d+$/.test(item.id))
+    const open = questions.filter((item) => item.getAttribute("data-status") === "open")
+    const rest = questions.filter((item) => !open.includes(item)).sort((a, b) => idNumber(a.id) - idNumber(b.id))
+    const order = [...open, ...rest, ...children.filter((item) => !questions.includes(item))]
+    if (order.every((item, index) => item === children[index])) return false
+    for (const item of order) list.append(item)
+    return true
   }
 
   /** "Questions & Decisions" -> "Questions" (D13), and its old note (`data-tip`) -> `DECISIONS_NOTE`;  changed? */
@@ -1744,6 +1952,48 @@ function recommendation(details) {
 
 /** The mark `recommendation()` looks for. */
 const RECOMMENDED = /\(recommended\)/i
+
+/**
+ * An option card's (`ui-column` in a `ui-grid.spell-pros-cons`) letter and title words, from its top label:
+ * `{ letter, words }`, or `null` when the label has no letter.
+ * - labels:  `A · Inbox file (recommended)`;  older docs `A. Inbox file`, `A: Inbox file`
+ * - `words`:  the title's words (`words()`), "(recommended)" left out
+ */
+function optionOf(column) {
+  const label = column.querySelector(":scope > ui-segment > ui-label[attached], ui-label[attached]")
+  const match = label?.textContent.trim().match(/^([A-Z])\s*(?:[·.:)]\s*|\s+)(.*)$/s)
+  if (!match) return null
+  return { letter: match[1], words: words(match[2].replace(RECOMMENDED, "")) }
+}
+
+/** Words that say nothing about which option is meant:  `words()` drops them. */
+const LITTLE_WORDS = new Set([
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "of",
+  "to",
+  "in",
+  "on",
+  "for",
+  "with",
+  "by",
+  "is",
+  "its",
+  "at",
+  "as",
+  "be"
+])
+
+/** `text`'s words, lower case, punctuation gone, `LITTLE_WORDS` left out:  "Bump ui to rc.13" -> bump ui rc 13. */
+function words(text) {
+  return String(text ?? "")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word && !LITTLE_WORDS.has(word))
+}
 
 /**
  * A review label's color (`updateReviewLabel()`):  "to do" orange (work in progress), "deferred" grey, "reviewed
@@ -2131,7 +2381,7 @@ export function isoDate(date = new Date()) {
 ////////////////
 
 /** Usage, printed with no command or a bad one. */
-const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/epics/<name>/<name>.html)
+const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/epics/<name>/<name>.plan.html)
   new <name> [--title "Title"] [--prompt "text" | --prompt-file path]
                                                    copy the template, fill it in, update the docs index
   add-phase <name> "Short Name" [--goal html] [--files html] [--verify html] [--estimate 2h]
@@ -2145,7 +2395,9 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   decide <name> <Q id> "answer" [--details html] [--option A]
                                                    answer a question:  the answer goes INTO it (an ivory card);
                                                    --option marks the chosen option card;  prints its id
-  close <name> <id>  /  reopen <name> <id>         strike / unstrike an item
+  close <name> <id>  /  reopen <name> <id>         close an item (done) / open it again
+  cancel <name> <id> ["why"]                       an item made moot by another decision:  struck through;
+                                                   reopen undoes it
   commit <name> <sha> --phase N | --item <id> "sentence"
                                                    list a commit under a phase or an item (replaces its entry)
   commits <name> --backfill                        list every phase / item commit in the doc's git history
@@ -2170,8 +2422,10 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
                                                    JSON \`{ <file>: summary | { error } }\`;  for \`/epics\`
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
   open <name>                                      show in VS Code's doc preview (right side bar)
-  migrate <name>                                   bring an older doc (any layout) into the current one
-Every command but \`new\` edits the epic's LIVE doc:  its own worktree's, else main's, else any worktree's.`
+  migrate <name>                                   bring an older doc (any layout) into the current one;
+                                                   its decisions (D items) merge into its questions
+Every command but \`new\` edits the epic's LIVE doc:  its own worktree's, else main's, else any worktree's.
+--here:  THIS checkout's copy instead, for a sweep over every doc on this branch (never an epic's own edits).`
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {
@@ -2191,8 +2445,10 @@ function main(argv) {
   if (command === "backfill") return backfill(name, flags)
   if (!command || !name) return usage()
   if (command === "summaries") return printSummaries(positional.slice(1))
-  // the epic's LIVE doc, wherever it is (its worktree, else main:  `findDoc()`);  `new` makes one HERE
-  const file = command === "new" ? docPath(name) : findDoc(name)
+  // the epic's LIVE doc, wherever it is (its worktree, else main:  `findDoc()`);  `new` makes one HERE.  `--here`:
+  // THIS checkout's copy, for a sweep over every doc that merges with this branch (P4 of `review-review` migrated
+  // them all so);  never for an epic's own edits:  that would fork its record
+  const file = command === "new" ? docPath(name) : flags.here ? hereDoc(name) : findDoc(name)
   switch (command) {
     case "new":
       return create(name, file, flags)
@@ -2242,6 +2498,11 @@ function main(argv) {
       return edit(file, (plan) => {
         const title = plan.setItem(need(rest[0], "an item id"), command === "close" ? "done" : "open")
         plan.log(`${rest[0].toUpperCase()} ${command === "close" ? "closed" : "reopened"}:  ${title}`)
+      })
+    case "cancel":
+      return edit(file, (plan) => {
+        const title = plan.setItem(need(rest[0], "an item id"), "canceled")
+        plan.log(`${rest[0].toUpperCase()} canceled:  ${rest[1] ?? title}`)
       })
     case "review":
       return edit(file, (plan) => {
@@ -2345,10 +2606,13 @@ function usage() {
   process.exit(2)
 }
 
-/** The doc of plan `name`;  names are lower-kebab-case, as the folder and file. */
+/**
+ * The doc `new` makes for plan `name`, in this checkout:  `epics/<name>/<name>.plan.html` (since 2026-10-04;
+ * before, `<name>.html`);  names are lower-kebab-case, as the folder.
+ */
 function docPath(name) {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) throw new PlanDocError(`name "${name}" must be lower-kebab-case`)
-  return join(DOCS, "epics", name, `${name}.html`)
+  return join(DOCS, "epics", name, `${name}.plan.html`)
 }
 
 /**
@@ -2364,11 +2628,22 @@ function findDoc(name) {
   return found
 }
 
-/** `findDoc()`'s file for `name`, or `undefined`. */
+/** Plan `name`'s doc in THIS checkout (`--here`), either name;  throws when it has none. */
+function hereDoc(name) {
+  docPath(name)
+  const found = planDocIn(join(DOCS, "epics", name), name)
+  if (!found) throw new PlanDocError(`no plan doc for "${name}" in this checkout`)
+  return found
+}
+
+/**
+ * `findDoc()`'s file for `name`, or `undefined`.
+ * - either name, in each checkout (`planDocIn()`):  `<name>.plan.html`, else an old `<name>.html` plan doc
+ */
 function epicFile(name) {
   return checkouts(name)
-    .map((root) => join(root, "packages/docs/epics", name, `${name}.html`))
-    .find((file) => existsSync(file))
+    .map((root) => planDocIn(join(root, "packages/docs/epics", name), name))
+    .find(Boolean)
 }
 
 /** The main checkout's root:  the parent of git's common dir (`.git`), the same from any worktree. */
@@ -2403,7 +2678,7 @@ function listEpics() {
     const epics = join(root, "packages/docs/epics")
     if (!existsSync(epics)) continue
     for (const entry of readdirSync(epics, { withFileTypes: true })) {
-      if (entry.isDirectory() && existsSync(join(epics, entry.name, `${entry.name}.html`))) names.add(entry.name)
+      if (entry.isDirectory() && planDocIn(join(epics, entry.name), entry.name)) names.add(entry.name)
     }
   }
   const epics = Array.from(names, (name) => {
@@ -2458,7 +2733,8 @@ function edit(file, change) {
  * - refuses to overwrite:  the skill asks the user whether to reuse an existing doc
  */
 function create(name, file, { title = titleCase(name), prompt, promptFile }) {
-  if (existsSync(file)) throw new PlanDocError(`${relative(DOCS, file)} already exists`)
+  const found = planDocIn(dirname(file), name)
+  if (found) throw new PlanDocError(`${relative(DOCS, found)} already exists`)
   const now = new Date()
   const today = isoDate(now)
   const fill = {
@@ -2543,7 +2819,14 @@ function commit(file, [sha, sentence], { phase, item }) {
  * into its phases' and items' commit lists (`PlanDoc.backfillCommits()`);  prints what it added.
  */
 function backfillCommits(file) {
-  const raw = gitIn(dirname(file), "log", "--follow", "--format=%H%x09%s", "--", basename(file))
+  // the doc as HEAD has it:  a rename to `<name>.plan.html` not committed yet has no history of its own, so follow
+  // the old name;  once committed, `--follow` goes through the rename
+  const dir = dirname(file)
+  const names = [basename(file), basename(file).replace(/\.plan\.html$/, ".html")]
+  const tracked = names.find(
+    (name) => spawnSync("git", ["cat-file", "-e", `HEAD:./${name}`], { cwd: dir }).status === 0
+  )
+  const raw = gitIn(dir, "log", "--follow", "--format=%H%x09%s", "--", tracked ?? basename(file))
   const log = raw
     .split("\n")
     .filter(Boolean)
@@ -2714,7 +2997,8 @@ function printSummaries(files) {
  * - `pageDir`:  where the page will live (the scratch `details/`), so the item's links still work from there
  */
 export function pickerSpec(plan, file, section, status, pageDir = join(DOCS, "details")) {
-  const name = basename(file, ".html")
+  // `seo.plan.html` (an old doc:  `seo.html`) -> `seo`
+  const name = basename(file).replace(/(?:\.plan)?\.html$/, "")
   const title = docTitle(plan.document) ?? name
   const label = section.label.toLowerCase()
   const last = status.last

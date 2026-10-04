@@ -20,16 +20,24 @@
           kinds, each with a template. Planning sessions get their own kind: a live plan doc that <code>/epic</code>
           keeps current while the work happens.
         </p>
-        <ul>
-          <li>Written for: anyone writing a doc, or running a planning session with Claude Code</li>
-          <li>
-            The rules, for agents: <a href="../AGENTS.md" target="src-packages-docs-agents-md">AGENTS.md</a> and
+        <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="../epics/docs-workspace/docs-workspace.plan.html" target="docs-workspace"
+              >epic docs-workspace</a
+            ></ui-item
+          >
+          <ui-item icon="user"
+            >Written for: anyone writing a doc, or running a planning session with Claude Code</ui-item
+          >
+          <ui-item icon="robot"
+            >The rules, for agents: <a href="../AGENTS.md" target="src-packages-docs-agents-md">AGENTS.md</a> and
             <a href="../templates/epics/plan-doc.md" target="src-packages-docs-templates-epics-plan-doc-md"
               >plan-doc.md</a
             >. The mechanics, distilled:
-            <a href="spell-docs.md" target="src-packages-docs-spell-docs-spell-docs-md">spell-docs.md</a>.
-          </li>
-        </ul>
+            <a href="spell-docs.md" target="src-packages-docs-spell-docs-spell-docs-md">spell-docs.md</a>.</ui-item
+          >
+        </ui-list>
 
         <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
           <ul>
@@ -88,7 +96,7 @@
                       ><code>templates/epics/plan.html</code></a
                     >
                   </td>
-                  <td><code>epics/&lt;name&gt;/&lt;name&gt;.html</code></td>
+                  <td><code>epics/&lt;name&gt;/&lt;name&gt;.plan.html</code></td>
                 </tr>
               </tbody>
             </table>
@@ -312,7 +320,7 @@
             </ul>
             <ui-message state="positive" header="An example">
               <p>
-                <a href="../epics/docs-workspace/docs-workspace.html" target="docs-workspace"
+                <a href="../epics/docs-workspace/docs-workspace.plan.html" target="docs-workspace"
                   >The plan doc for this docs workspace</a
                 >, built with the same tooling.
               </p>

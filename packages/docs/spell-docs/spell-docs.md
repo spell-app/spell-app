@@ -115,7 +115,7 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
     brings the column back
   - then one `a.spell-rail-item[data-rail]` per top-level section (h2), its icon (else its number), its open count
     a pill on the icon's corner;  scroll-follow marks the current section's `selected`
-  - 400px wide and under:  only the bars button, at the top right over the page header's end
+  - 480px wide and under:  only the bars button, at the top right over the page header's end
   - `buildContents()` / `buildRail()` / `wireContents()` can run again (a page updated in place):  each replaces
     what it built, or drops its listeners, first
   - pages from before 2026-10-01 hand-wrote a "Contents" `.spell-toc-open`:  the runtime removes it

@@ -104,6 +104,8 @@ const ICONS = {
   "solid/desktop": ["desktop"],
   "solid/puzzle-piece": ["puzzle piece", "puzzle"],
   "solid/book-open": ["book open"],
+  // a plan doc's "Durable doc:" line (and a durable doc's "Plan doc:" line is `map`)
+  "solid/book": ["book"],
   "solid/cubes": ["cubes"],
   "solid/globe": ["globe"],
   "solid/language": ["language"],

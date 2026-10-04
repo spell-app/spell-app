@@ -1,5 +1,5 @@
 /*
- * Plan docs only (`epics/<name>/<name>.html`), on top of `spell-doc.css`.  Markup and ids:
+ * Plan docs only (`epics/<name>/<name>.plan.html`), on top of `spell-doc.css`.  Markup and ids:
  * `templates/epics/plan-doc.md`.  `scripts/plan-doc.js` writes most of what's styled here.
  * - Phase status colors come from `<ui-icon color>` / `<ui-label color>` (UI's own tokens), not from here:  grey
  *   not done, orange in progress, green done.
@@ -85,8 +85,9 @@ button.plan-review-cmd.flash {
  * titled "Kickoff prompt" (`ui-accordion.plan-prompt-panel.spell-aside`;  bare under the summary before
  * 2026-10-04)
  */
+/* a blank line between the aside's title and the prompt (Owen, J4) */
 ui-accordion.plan-prompt-panel ui-content > blockquote.plan-prompt {
-  margin: 4px 0;
+  margin: 1em 0 4px;
 }
 blockquote.plan-prompt {
   margin: 12px 0 16px;
@@ -234,6 +235,13 @@ ui-list.plan-items {
 /* the title of an item decided or reviewed earlier reads quieter;  no strike-through:  the chip's grey says it */
 .plan-items > [data-spell-state="old"] .plan-title {
   color: var(--spell-muted);
+}
+/*
+ * the ONE struck-through status:  `canceled`, an item another decision made moot (J16 of `review-review`,
+ * `yarn plan-doc cancel`);  `done` items stay unstruck
+ */
+.plan-items > [data-status="canceled"] .plan-title {
+  text-decoration: line-through;
 }
 /* an answered question's link on to its decision, "-> D7" (docs before P3:  questions and decisions apart) */
 .spell-doc-main a.plan-answer {
@@ -639,7 +647,7 @@ body.plan-doc .spell-doc-main {
     padding-inline-end: var(--spell-rail-width);
   }
 }
-@media (max-width: 400px) {
+@media (max-width: 480px) {
   body.plan-doc .spell-doc-main {
     padding-inline-end: 0;
   }
