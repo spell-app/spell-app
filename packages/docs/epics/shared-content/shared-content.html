@@ -1,0 +1,1357 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epic: Shared Content</title>
+    <meta name="description" content="Plan doc:  Shared Content." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body data-recent-since="2026-10-04T12:48:18-04:00" class="spell-doc-page plan-doc" data-plan="shared-content">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Shared Content</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Epic: Shared Content</h1>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle right" href="#p2" title="Next:  P2 · Move Logic Out"
+                >P2</ui-label
+              ></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch"
+            >Plan doc for <code>/epic shared-content</code>, branch <code>shared-content</code></ui-item
+          >
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/shared-content</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-04</time>, updated
+            <time id="plan-updated">2026-10-04</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            All docs content (the docs pages, plan docs, changelog, goal sets and the three root logs) moves out of git
+            branches into one shared content repo, <code>../spell-app-dev</code>, linked into every checkout as three
+            whole folders and committed automatically every turn. So every worktree sees every epic and docs edit live,
+            and those files never conflict on merge again.
+          </p>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled>
+            <ui-title>Kickoff prompt</ui-title>
+            <ui-content
+              ><blockquote class="plan-prompt">
+                <p>
+                  Move all docs content (packages/docs pages, goals data, root logs -&gt; agents/) into a peer content
+                  repo ../spell-app-dev, linked back into every checkout as three whole-folder symlinks, auto-committed
+                  by a Stop hook. The approved plan with Phase 0 spike results is at
+                  /Users/owen/.claude/plans/i-want-to-have-sleepy-forest.md -- turn it into the plan doc (its phases
+                  1-5, decisions, Phase 0 results table, TODOs). Phase 0 is done; Phase 1 is next.
+                </p>
+              </blockquote></ui-content
+            >
+          </ui-accordion>
+          <p class="plan-estimate"><b>Estimate:</b> 9h-13h in all, 8h-12h left</p>
+          <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
+            <p>Docs content is tracked per branch today, which costs twice:</p>
+            <ul>
+              <li>
+                a worktree can't see another worktree's plan docs or docs edits, or <code>main</code>'s newer ones (it
+                has the copy it was cut with)
+              </li>
+              <li>
+                <a href="../../changelog.html" target="src-packages-docs-changelog-html"><code>changelog.html</code></a
+                >, <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a> and
+                <a href="../../../../PAPERCUTS.md" target="src-papercuts-md"><code>PAPERCUTS.md</code></a> conflict on
+                most merges: 7 of the last 50 commits were "Merge main into X", these files the repeat offenders
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o2" header="1.2 What moves where" sticky collapsible dividing>
+            <p>
+              Every checkout (main and each worktree) gets three links, each a whole folder. The real folders live in
+              <code>../spell-app-dev</code>, at the same paths (<a href="#q9">Q9</a>).
+            </p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Link</th>
+                    <th>Holds</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>packages/docs/content</code></td>
+                    <td>
+                      ALL docs content, at the paths it has today under
+                      <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
+                      >: <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      >,
+                      <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                        ><code>changelog.html</code></a
+                      >, guide pages, <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
+                      >, <a href="../../solid/" target="src-packages-docs-solid"><code>solid/</code></a
+                      >, <a href="../../dev/" target="src-packages-docs-dev"><code>dev/</code></a
+                      >,
+                      <a href="../../templates/" target="src-packages-docs-templates"><code>templates/</code></a> ...;
+                      <code>details/</code>
+                      (scratch, not committed)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>goals</code></td>
+                    <td>
+                      goal sets, the goals
+                      <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      >, <code>goals.preferences.json5</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>agents</code></td>
+                    <td>
+                      <a href="../../../../PAPERCUTS.md" target="src-papercuts-md"><code>PAPERCUTS.md</code></a
+                      >,
+                      <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                        ><code>SUSPECTED-BUGS.md</code></a
+                      >,
+                      <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a> (moved
+                      from the repo root)
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <p>
+              The tools stay tracked in spell-app, versioned per branch: docs scripts, <code>_assets</code> and the
+              goals tooling go to <code>packages/docs/tools/</code>, beside the <code>content</code> link (<a href="#q9"
+                >Q9</a
+              >). Templates are content (<a href="#q10">Q10</a>).
+            </p>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>The layout · 14 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-text">spell-app/packages/docs/          tracked, versioned per branch
+  package.json  AGENTS.md
+  tools/                          scripts, _assets, goals tooling
+  content  -&gt; ../../../spell-app-dev/packages/docs/content
+spell-app/goals   -&gt; ../spell-app-dev/goals
+spell-app/agents  -&gt; ../spell-app-dev/agents
+
+spell-app-dev/packages/docs/
+  content/   index.html  changelog.html  cli.html ...
+             epics/  solid/  dev/  templates/  details/
+  tools  -&gt; ../../../spell-app/packages/docs/tools   (so file:// works)
+
+URL:  /packages/docs/content/solid/solid-2.html</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <p>Every docs URL gains <code>/content/</code> (<a href="#c6">C6</a>); links between pages don't change.</p>
+          </ui-section>
+          <ui-section id="o3" header="1.3 How it works, day to day" sticky collapsible dividing>
+            <ul>
+              <li>
+                A new worktree: the <code>WorktreeCreate</code> hook runs <code>spell dev shared link</code>, so its
+                three links are there from the start.
+              </li>
+              <li>
+                Editing: Claude, VS Code and the page server all edit through the links; the change lands in
+                <code>../spell-app-dev</code> and every checkout sees it at once.
+              </li>
+              <li>
+                Committing: after every turn, a <code>Stop</code> hook commits whatever changed in the peer (<a
+                  href="#q5"
+                  >Q5</a
+                >). Nobody commits docs on a branch any more.
+              </li>
+              <li>Merging a branch: it touches no shared files, so the changelog and logs can't conflict.</li>
+              <li>Checking: <code>spell dev shared status</code> shows each checkout's links and the peer's state.</li>
+            </ul>
+          </ui-section>
+          <ui-section id="o4" header="1.4 Spike results" sticky collapsible dividing>
+            <p>What <a href="#p1">P1</a> found, 2026-10-04, with a throwaway peer and worktree:</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Test</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Claude Edit / Write through a FOLDER link</td>
+                    <td class="yes positive">works; link intact; lands in the peer</td>
+                  </tr>
+                  <tr>
+                    <td>Claude Edit through a FILE link</td>
+                    <td class="no negative">
+                      refused, no setting changes it: hence folder links only (<a href="#q3">Q3</a>)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>prompts for a target outside the repo</td>
+                    <td class="yes positive">fixed by the trust setting (<a href="#q7">Q7</a>)</td>
+                  </tr>
+                  <tr>
+                    <td>git: status, <code>git clean -fX</code></td>
+                    <td class="yes positive">
+                      links ignored; <code>clean</code> removes only the link, the peer is untouched
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>live reload (recursive <code>fs.watch</code> on the parent)</td>
+                    <td class="no negative">
+                      misses changes inside a link; watching the link itself works: fixed in <a href="#p3">P3</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>search</td>
+                    <td class="meh warning">
+                      <code>grep -R</code> and <code>rg -L</code> follow links; plain <code>grep -r</code> and
+                      <code>rg</code> don't (<a href="#c3">C3</a>)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>oxfmt --check</code> on a linked file</td>
+                    <td class="yes positive">works</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="1" total="8" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Spike"
+            badge="1h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    Know, before building anything, how symlinks behave with Claude's Edit / Write, git, the page
+                    server's live reload, search and the formatter
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>Results table: Overview 1.4</li>
+                  <li>
+                    Trust setting for <code>../spell-app-dev</code> in <code>~/.claude/settings.json</code> and
+                    <a href="../../../../.claude/settings.json" target="src-claude-settings-json"
+                      ><code>.claude/settings.json</code></a
+                    >, committed on main (<code>eb96ac3c</code>), with a
+                    <a href="../../../../PAPERCUTS.md" target="src-papercuts-md"><code>PAPERCUTS.md</code></a> entry
+                  </li>
+                  <li>Spike leftovers still on disk until T2</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> throwaway only: <code>.claude/worktrees/spike-shared</code>,
+                <code>../spell-app-dev-spike</code></ui-item
+              ><ui-item icon="flask"><b>Verify:</b> a results table (Overview 1.3)</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="todo"
+            header="P2 · Move Logic Out"
+            badge="1-2h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    The three soon-to-be-shared folders hold content only: <code>packages/docs/content</code> (every
+                    docs page and template), <code>goals</code> (goal sets), <code>agents/</code> (the three logs)
+                  </li>
+                  <li>
+                    All docs and goals tooling lives in <code>packages/docs/tools</code>; every yarn script keeps its
+                    name
+                  </li>
+                  <li>
+                    Every reference to a docs path gains <code>/content/</code> (<a href="#c6">C6</a>); old URLs
+                    redirect
+                  </li>
+                  <li>Still all tracked: nothing is shared yet, so this merges like any branch</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> moved into <code>packages/docs/tools/</code>: scripts, _assets, goals tooling; every
+                page, epic and template into <code>packages/docs/content/</code>; root logs into <code>agents/</code>;
+                every <code>_assets</code> path in the pages; root
+                <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                >, <a href="../../scripts/pages.js" target="src-packages-docs-scripts-pages-js"><code>pages.js</code></a
+                >, <code>.claude/skills/goals*</code> links,
+                <a href="../../../../CLAUDE.md" target="src-claude-md"><code>CLAUDE.md</code></a> /
+                <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> / skills /
+                hooks</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>yarn docs:update</code>, <code>yarn goals:test</code>, <code>yarn test</code>;
+                docs index and a plan doc open from the page server AND from <code>file://</code></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p3"
+            data-phase="3"
+            data-status="todo"
+            header="P3 · Link-Aware Tools"
+            badge="2-3h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    Every docs tool, the page server and VS Code's doc preview work the same whether a folder is real or
+                    a link
+                  </li>
+                  <li>Live reload sees edits made inside a linked folder</li>
+                  <li>One location for plan docs: no more 'worktree copy vs main copy'</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../scripts/pages.js" target="src-packages-docs-scripts-pages-js"><code>pages.js</code></a>
+                <code>findPages</code>,
+                <a href="../../scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                  ><code>doc-links.js</code></a
+                >
+                <code>walk</code>,
+                <a href="../../../server/src/LiveReload.ts" target="src-packages-server-src-livereload-ts"
+                  ><code>LiveReload.ts</code></a
+                >,
+                <a href="../../../server/src/FileLock.ts" target="src-packages-server-src-filelock-ts"
+                  ><code>FileLock.ts</code></a
+                >,
+                <a href="../../../server/src/page/PageEditor.ts" target="src-packages-server-src-page-pageeditor-ts"
+                  ><code>PageEditor.ts</code></a
+                >,
+                <a href="../../scripts/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
+                  ><code>detailsRoutes.ts</code></a
+                >,
+                <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                  ><code>plan-doc.js</code></a
+                >
+                (findDoc / listEpics / reindex guard),
+                <a href="../../../server/src/page/RunningEpics.ts" target="src-packages-server-src-page-runningepics-ts"
+                  ><code>RunningEpics.ts</code></a
+                >, CLI
+                <a href="../../../cli/src/dev/worktrees.ts" target="src-packages-cli-src-dev-worktrees-ts"
+                  ><code>worktrees.ts</code></a
+                >
+                /
+                <a href="../../../cli/src/dev/stock.ts" target="src-packages-cli-src-dev-stock-ts"
+                  ><code>stock.ts</code></a
+                >
+                /
+                <a href="../../../cli/src/dev/parking.ts" target="src-packages-cli-src-dev-parking-ts"
+                  ><code>parking.ts</code></a
+                >; page server redirects old <code>/packages/docs/x</code> URLs to
+                <code>/packages/docs/content/x</code></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> new tests against a temp symlinked fixture (<code>findPages</code>,
+                <code>LiveReload</code>);
+                <a
+                  href="../../../server/src/page/RunningEpics.test.ts"
+                  target="src-packages-server-src-page-runningepics-test-ts"
+                  ><code>RunningEpics.test.ts</code></a
+                >,
+                <a
+                  href="../../../server/src/page/PageServer.test.ts"
+                  target="src-packages-server-src-page-pageserver-test-ts"
+                  ><code>PageServer.test.ts</code></a
+                >; <code>yarn test</code></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p4"
+            data-phase="4"
+            data-status="todo"
+            header="P4 · Shared CLI and Hooks"
+            badge="2-3h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li><code>spell dev shared status | init | link | commit | migrate</code></li>
+                  <li>A new worktree gets its three links by itself</li>
+                  <li>Every turn's content edits are committed in <code>../spell-app-dev</code> by themselves</li>
+                  <li><code>../spell-app-dev</code> shows as a folder in every package window</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> new <code>packages/cli/src/dev/shared.ts</code>, <code>commands/sharedCommand.ts</code>;
+                <a href="../../../../.claude/hooks/worktree.mjs" target="src-claude-hooks-worktree-mjs"
+                  ><code>.claude/hooks/worktree.mjs</code></a
+                >, new <code>.claude/hooks/shared-commit.mjs</code>;
+                <a href="../../../../scripts/window.mjs" target="src-scripts-window-mjs"
+                  ><code>scripts/window.mjs</code></a
+                >
+                (workspace folder); manifest in root
+                <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>shared.test.ts</code> on temp repos; a scratch peer via
+                <code>--dir</code></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p5"
+            data-phase="5"
+            data-status="todo"
+            header="P5 · Cutover"
+            badge="30m"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li><code>../spell-app-dev</code> exists, with today's docs, goals and logs in one import commit</li>
+                  <li><code>main</code> stops tracking them and links to them instead</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> main checkout: one minimal untrack +
+                <a href="../../../../.gitignore" target="src-gitignore"><code>.gitignore</code></a> commit, then the
+                manifest / hook commit</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>git status</code> clean; docs index shows every epic; a plan doc edit reloads;
+                <code>/goals-open spell</code></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p6"
+            data-phase="6"
+            data-status="todo"
+            header="P6 · Migrate Worktrees"
+            badge="1-2h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    The 5 open worktrees (vite-plus, markdown, review-review, precedence-and-types, wwod) see shared
+                    content, with nothing of theirs lost
+                  </li>
+                  <li>Each later merges into <code>main</code> without conflicts in the moved files</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <code>spell dev shared migrate &lt;w&gt;</code> per worktree, dry runs first</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> dry-run report reviewed; each worktree's other uncommitted work identical before and
+                after; <code>git merge-tree</code> clean</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p7"
+            data-phase="7"
+            data-status="todo"
+            header="P7 · Prose and Skills"
+            badge="1h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    AGENTS.md, the docs and every skill describe the shared layout (no 'worktree copy vs main copy', no
+                    log merge rules)
+                  </li>
+                  <li>The broken <code>/epics</code> script replaced</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> root and package
+                <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                >, <a href="../../../../CLAUDE.md" target="src-claude-md"><code>CLAUDE.md</code></a
+                >; skills <code>epic</code>, <code>epics</code>, <code>isolate</code>, <code>park</code>,
+                <code>bedtime</code>, <code>wtf</code>, <code>details</code>; <code>commands.json</code></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>yarn commands:check</code>; a search finds no stale paths</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p8"
+            data-phase="8"
+            data-status="todo"
+            header="P8 · Doc Review"
+            badge="30m"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>The plan doc true to what was built, a durable doc, the changelog entry</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> plan doc, durable doc,
+                <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                  ><code>changelog.html</code></a
+                ></ui-item
+              ><ui-item icon="flask"><b>Verify:</b> <code>plan-doc check</code></ui-item></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section
+          id="decisions"
+          header="3. Questions"
+          sticky
+          collapsible
+          dividing
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts."
+        >
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T16:14:36-04:00"
+              id="q1"
+              data-status="decided"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a>
+                  <span class="plan-title"
+                    >Shared content lives in a peer repo, ../spell-app-dev, local only</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The real files sit in an ordinary git repo next to the main checkout,
+                    <code>/Users/owen/www/spell-app/spell-app-dev</code>. No GitHub remote for now (Owen: "it's still
+                    just me").
+                  </p>
+                  <ul>
+                    <li>Rejected: a nested repo inside the main checkout (Owen doesn't want a nested git folder).</li>
+                    <li>
+                      Rejected: a hidden bare repo (<code>~/.spell/shared.git</code>): works, but the main checkout
+                      would be the odd one out.
+                    </li>
+                    <li>
+                      Rejected:
+                      <a href="../../../../.gitignore" target="src-gitignore"><code>.gitignore</code></a> alone: a
+                      worktree only gets TRACKED files, so an ignored folder simply isn't there. The link is what makes
+                      it visible.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>one copy of all docs content, the same from every checkout</li>
+                    <li>backups: Time Machine only, until a remote is added</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T17:06:03-04:00"
+              id="q2"
+              data-status="done"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a>
+                  <span class="plan-title"
+                    >spell-app-dev is pure content; it may assume spell-app is checked out beside it</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    No tooling lives in the peer. The docs' one-off experiment scripts ride along with their pages:
+                    nothing runs them as tools.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>all docs and goals tooling moves to <code>packages/doc-tools</code> (<a href="#p2">P2</a>)</li>
+                    <li>
+                      the peer's
+                      <a href="../../_assets/" target="src-packages-docs-assets"><code>packages/docs/_assets</code></a>
+                      is a link back to <code>spell-app/packages/doc-tools/_assets</code>, so pages still open from
+                      <code>file://</code>
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T17:06:04-04:00"
+              id="q3"
+              data-status="done"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title"
+                    >Folder links only: three whole-folder links, packages/docs, goals and agents</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The spike (<a href="#p1">P1</a>) found that Claude's Edit tool refuses to write through a link to a
+                    single FILE ("it is a symbolic link, write to the target"). Folder links work. So each checkout gets
+                    exactly three links, each a whole folder:
+                  </p>
+                  <ul>
+                    <li>
+                      <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
+                      >: every docs page as today, <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
+                      >,
+                      <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                        ><code>changelog.html</code></a
+                      >, <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      >, guide pages, <code>details/</code> (scratch)
+                    </li>
+                    <li>
+                      <code>goals</code>: the goal sets,
+                      <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      >, <code>goals.preferences.json5</code>
+                    </li>
+                    <li>
+                      <code>agents</code>:
+                      <a href="../../../../PAPERCUTS.md" target="src-papercuts-md"><code>PAPERCUTS.md</code></a
+                      >,
+                      <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                        ><code>SUSPECTED-BUGS.md</code></a
+                      >, <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a
+                      >, moved from the repo root (the folder name is Owen's)
+                    </li>
+                  </ul>
+                  <p>
+                    Rejected: content subfolders (<code>packages/docs/pages/</code>): every docs URL and link would
+                    change.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>no page URL changes; links between pages keep working</li>
+                    <li>every reference to the root logs becomes <code>agents/...</code></li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T17:06:06-04:00"
+              id="q4"
+              data-status="done"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title">Goals tooling goes into packages/doc-tools too</span></ui-title
+                ><ui-content
+                  ><p>
+                    One tooling package for docs and goals:
+                    <a href="../../../../goals/_tools/" target="src-goals-tools"><code>goals/_tools</code></a
+                    >, <a href="../../../../goals/_skills/" target="src-goals-skills"><code>goals/_skills</code></a
+                    >, its
+                    <a href="../../tsconfig.json" target="src-packages-docs-tsconfig-json"><code>tsconfig.json</code></a
+                    >, <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                    >, <a href="../../../../CLAUDE.md" target="src-claude-md"><code>CLAUDE.md</code></a> move to
+                    <code>packages/doc-tools/goals/</code> (Owen, 2026-10-04).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      the <code>.claude/skills/goals*</code> links point into
+                      <code>packages/doc-tools/goals/_skills</code>
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T16:14:42-04:00"
+              id="q5"
+              data-status="decided"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q5">Q5</a>
+                  <span class="plan-title">Commits in the peer are automatic, every turn</span></ui-title
+                ><ui-content
+                  ><p>
+                    A <code>Stop</code> hook runs <code>spell dev shared commit --auto</code> in the background after
+                    every turn of every session: it commits whatever changed in <code>../spell-app-dev</code>, under a
+                    lock so two sessions don't collide.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>nobody commits docs by hand any more; no docs or log merge conflicts</li>
+                    <li>
+                      the peer's history is many small <code>auto:</code> commits, each naming its checkout and session
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T16:14:44-04:00"
+              id="q6"
+              data-status="decided"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q6">Q6</a>
+                  <span class="plan-title">commands.* move too; revisit later</span></ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../dev/commands/commands.json" target="src-packages-docs-dev-commands-commands-json"
+                      ><code>dev/commands/commands.json</code></a
+                    >
+                    / <code>.md</code> / <code>.html</code> move with the rest of
+                    <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
+                    >, even though <code>yarn commands:check</code> tests the JSON against the CLI code of the checkout
+                    it runs in (Owen: "source lives in spell-app-dev, symlink into spell-app; we will revisit later").
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      see <a href="#c1">C1</a>; logged in
+                      <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a> in
+                      <a href="#p7">P7</a>
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T16:14:45-04:00"
+              id="q7"
+              data-status="decided"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q7">Q7</a>
+                  <span class="plan-title">Trust ../spell-app-dev in both user and project settings</span></ui-title
+                ><ui-content
+                  ><p>
+                    Without it, every write into a linked folder stops for a permission prompt, because the link's real
+                    target is outside the repo. Done in <a href="#p1">P1</a>, commit <code>eb96ac3c</code>:
+                  </p>
+                  <ul>
+                    <li><code>~/.claude/settings.json</code>: every session at once, the old worktrees too</li>
+                    <li>
+                      <a href="../../../../.claude/settings.json" target="src-claude-settings-json"
+                        ><code>.claude/settings.json</code></a
+                      >: recorded in the repo
+                    </li>
+                    <li>
+                      each: <code>permissions.additionalDirectories</code> +
+                      <code>Edit(//Users/owen/www/spell-app/spell-app-dev/**)</code>
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>no prompts for edits through the links</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T16:14:47-04:00"
+              id="q8"
+              data-status="decided"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q8">Q8</a>
+                  <span class="plan-title">Add ../spell-app-dev as a folder in every package window</span></ui-title
+                ><ui-content
+                  ><p>
+                    It's permanent, unlike a worktree, so the "never add worktree folders to a package window" rule
+                    doesn't apply (Owen, 2026-10-04).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>its own Source Control entry, where the auto commits show</li>
+                    <li>VS Code search covers it</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T17:06:07-04:00"
+              id="q9"
+              data-status="decided"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q9">Q9</a>
+                  <span class="plan-title"
+                    >Tools stay tracked in spell-app/packages/docs/tools; docs content is ONE link,
+                    packages/docs/content</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Replaces <a href="#q2">Q2</a>, <a href="#q3">Q3</a> and <a href="#q4">Q4</a> (Owen, 2026-10-04). The
+                    docs and goals scripts live at <code>spell-app/packages/docs/tools</code>, tracked and versioned per
+                    branch. So <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> stays a real
+                    folder, and its content is linked one level down:
+                  </p>
+                  <ul>
+                    <li>
+                      <a href="../../" target="src-packages-docs"><code>packages/docs/</code></a> (tracked):
+                      <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                      >, <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                      >, <a href="../../../ui/tools/" target="src-packages-ui-tools"><code>tools/</code></a> (scripts,
+                      <code>_assets</code>, goals tooling)
+                    </li>
+                    <li>
+                      <code>packages/docs/content</code>: a link to <code>spell-app-dev/packages/docs/content</code>,
+                      holding ALL docs content:
+                      <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      >,
+                      <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                        ><code>changelog.html</code></a
+                      >, guide pages, <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
+                      >, <a href="../../solid/" target="src-packages-docs-solid"><code>solid/</code></a
+                      >, <a href="../../dev/" target="src-packages-docs-dev"><code>dev/</code></a
+                      >, <a href="../../templates/" target="src-packages-docs-templates"><code>templates/</code></a
+                      >, <code>details/</code>
+                    </li>
+                    <li><code>goals</code> and <code>agents</code>: whole-folder links, as before</li>
+                  </ul>
+                  <p>
+                    Why tools can't live in the content repo: Node runs a linked script from its real path, where
+                    there's no <code>node_modules</code> and no <code>$/</code> aliases (the tools import
+                    <code>linkedom</code>, <code>playwright</code>, <code>esbuild</code>, <code>$/server</code>,
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
+                    >). Rejected: a link per content folder, which keeps most URLs but needs about 15 links and moves
+                    the 10 top-level pages anyway.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      every docs URL gains <code>/content/</code>:
+                      <code>/packages/docs/content/solid/solid-2.html</code> (<a href="#c6">C6</a>)
+                    </li>
+                    <li>links between pages don't change (they move together)</li>
+                    <li>
+                      pages load assets from <code>../tools/_assets/</code> (depth-adjusted); the peer has a
+                      <code>packages/docs/tools</code> link back to spell-app's, so <code>file://</code> still works
+                    </li>
+                    <li>
+                      three links per checkout: <code>packages/docs/content</code>, <code>goals</code>,
+                      <code>agents</code>
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T17:06:09-04:00"
+              id="q10"
+              data-status="decided"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q10">Q10</a>
+                  <span class="plan-title">Templates move to spell-app-dev with the pages</span></ui-title
+                ><ui-content
+                  ><p>
+                    Page, plan doc, details and goals templates, and
+                    <a href="../../templates/epics/plan-doc.md" target="src-packages-docs-templates-epics-plan-doc-md"
+                      ><code>plan-doc.md</code></a
+                    >'s rules, are content: <code>packages/docs/content/templates/</code>. The tools read them through
+                    the link (Owen, 2026-10-04).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a template change shows in every worktree at once</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T17:06:10-04:00"
+              id="q11"
+              data-status="decided"
+              data-answered
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q11">Q11</a>
+                  <span class="plan-title">The peer stays content only</span></ui-title
+                ><ui-content
+                  ><p>
+                    Restates the content-only part of <a href="#q2">Q2</a>: no logic in <code>spell-app-dev</code>; the
+                    docs' one-off experiment scripts ride along with their pages. It may assume
+                    <code>spell-app</code> is checked out beside it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          id="judgements"
+          header="4. Judgement calls"
+          sticky
+          collapsible
+          dividing
+          data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
+        >
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item data-state="open" data-changed="2026-10-04T16:14:49-04:00" id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title"
+                    >commands:check can fail on main while a branch has added a command</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The commands map is shared, but the CLI it's checked against is per branch. Example: a worktree adds
+                    <code>spell dev foo</code> and its row to <code>commands.json</code>; until that worktree merges,
+                    <code>yarn commands:check</code> on <code>main</code> reports a row for a command that doesn't
+                    exist.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      accepted for now (Owen: revisit later); a
+                      <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a> entry
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T16:14:50-04:00" id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title"
+                    >file:// pages from a worktree load the MAIN checkout's assets</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The peer's <code>packages/docs/tools</code> link points at the MAIN checkout's
+                    <code>spell-app/packages/docs/tools</code>, the main checkout. A worktree that changes the CSS or
+                    the bundle sees its change only through its own page server (which mounts its own
+                    <code>_assets</code>), not from <code>file://</code>.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                        ><code>check-spell.js</code></a
+                      >
+                      in a worktree should load pages from the page server when assets changed
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T16:14:52-04:00" id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">Search must follow links</span></ui-title
+                ><ui-content
+                  ><p>
+                    These sessions have no Grep / Glob tools. <code>grep -r</code> and plain <code>rg</code> skip linked
+                    folders; <code>grep -R</code> follows them, <code>rg</code> needs <code>-L</code> (and the links are
+                    gitignored, so <code>rg</code> also needs <code>--no-ignore-vcs</code> or a root
+                    <code>.ignore</code>).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>AGENTS.md says so (<a href="#p7">P7</a>)</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T16:14:53-04:00" id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title"
+                    >Old commits and unmigrated branches replace a link with a real folder</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Checking out a commit from before the cutover, bisecting, or merging a branch that still tracks the
+                    moved files makes git write real files where the link was. The peer stays safe (git never follows
+                    the link), but that checkout stops sharing until <code>spell dev shared link</code> repairs it.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>every open worktree is migrated BEFORE it merges <code>main</code> (<a href="#p6">P6</a>)</li>
+                    <li>repair never overwrites peer content with a checkout's copy</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T16:14:55-04:00" id="c5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c5">C5</a>
+                  <span class="plan-title">The public repo loses the docs, changelog and plans</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>origin</code> is public (<code>github.com/spell-app/spell-app</code>). After the cutover,
+                    links to docs pages from the README or code comments are dead there and in a fresh clone without the
+                    peer (Owen: "no worries, it's still just me").
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T17:06:12-04:00" id="c6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title">Every docs URL and path gains /content/</span></ui-title
+                ><ui-content
+                  ><p>
+                    Pages move from <code>packages/docs/x</code> to <code>packages/docs/content/x</code>. Links between
+                    pages keep working; everything else that names a docs path needs a scripted rewrite in
+                    <a href="#p2">P2</a>:
+                  </p>
+                  <ul>
+                    <li>
+                      <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> files (e.g.
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>packages/docs/solid/solid-2.md</code></a
+                      >)
+                    </li>
+                    <li>skills, hooks, <code>commands.json</code>, code comments</li>
+                    <li>
+                      tools:
+                      <a href="../../scripts/pages.js" target="src-packages-docs-scripts-pages-js"
+                        ><code>pages.js</code></a
+                      >
+                      <code>DOCS</code>,
+                      <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                        ><code>plan-doc.js</code></a
+                      >,
+                      <a
+                        href="../../../server/src/page/RunningEpics.ts"
+                        target="src-packages-server-src-page-runningepics-ts"
+                        ><code>RunningEpics.ts</code></a
+                      >, the VS Code doc preview
+                    </li>
+                    <li>
+                      bookmarks and open tabs: the page server can redirect old URLs (<code>/packages/docs/x</code> to
+                      <code>/packages/docs/content/x</code>)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          id="todos"
+          header="6. Todos"
+          sticky
+          collapsible
+          dividing
+          data-tip="For later: not caveats, not issues."
+        >
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item data-state="open" data-changed="2026-10-04T16:14:56-04:00" id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title">Redo SpellProjectRoot to cover shared content</span></ui-title
+                ><ui-content
+                  ><p>
+                    Spell projects, examples and guides (<code>SP.SpellProjectRoot</code>,
+                    <a href="../../../spell/src/SpellProject.ts" target="src-packages-spell-src-spellproject-ts"
+                      ><code>packages/spell/src/SpellProject.ts</code></a
+                    >,
+                    <a href="../../../app/src/editor.ts" target="src-packages-app-src-editor-ts"
+                      ><code>packages/app/src/editor.ts</code></a
+                    >) are content too: move them to <code>spell-app-dev</code> the same way (Owen, 2026-10-04).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T16:14:58-04:00" id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a> <span class="plan-title">Remove the spike</span></ui-title
+                ><ui-content
+                  ><p>
+                    After the cutover: the <code>spike-shared</code> worktree and branch,
+                    <code>../spell-app-dev-spike</code>, and its two entries in <code>~/.claude/settings.json</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T16:15:00-04:00" id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title">A remote for spell-app-dev</span></ui-title
+                ><ui-content
+                  ><p>
+                    Later, maybe: a private GitHub repo, pushed by hand or by <code>/bedtime</code>, never by the auto
+                    commit. Off-machine backup, and a fresh clone could fetch it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section
+          id="tests"
+          header="8. To test"
+          sticky
+          collapsible
+          dividing
+          data-tip="What to check by hand before merging: each a step, and what should happen. Struck through once it passes."
+        >
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <ui-list class="plan-items" data-kind="test" divided relaxed
+            ><ui-item data-state="open" data-changed="2026-10-04T16:15:01-04:00" id="v1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v1">V1</a>
+                  <span class="plan-title">Two sessions edit at once</span></ui-title
+                ><ui-content
+                  ><p>
+                    A session in main and one in a worktree both edit <code>agents/PAPERCUTS.md</code> and one plan doc
+                    in the same minute. Should: two auto commits in the peer, no lost lines, links intact, both page
+                    servers reload.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T16:15:03-04:00" id="v2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v2">V2</a>
+                  <span class="plan-title">A new epic shows everywhere</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>/epic x</code> in a fresh worktree. Should: its plan doc lands in the peer and its card shows
+                    in main's docs index at once.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T16:15:04-04:00" id="v3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v3">V3</a>
+                  <span class="plan-title">Page edit mode keeps the link</span></ui-title
+                ><ui-content
+                  ><p>
+                    Edit
+                    <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                      ><code>changelog.html</code></a
+                    >
+                    in the page server's edit mode. Should: the change lands in the peer;
+                    <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> is still a link.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T16:15:06-04:00" id="v4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v4">V4</a> <span class="plan-title">VS Code shows the peer</span></ui-title
+                ><ui-content
+                  ><p>
+                    Open a package window. Should: <code>spell-app-dev</code> is a folder, with its own Source Control
+                    entry showing the auto commits.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          id="log"
+          header="9. Log"
+          sticky
+          collapsible
+          dividing
+          data-tip="Plan changes, oldest first, local time."
+        >
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:11-04:00">2026-10-04 16:11</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:13-04:00">2026-10-04 16:13</time></ui-date> P1 added:
+                  Spike</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:13-04:00">2026-10-04 16:13</time></ui-date> P2 added: Move
+                  Logic Out</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:13-04:00">2026-10-04 16:13</time></ui-date> P3 added:
+                  Link-Aware Tools</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:13-04:00">2026-10-04 16:13</time></ui-date> P4 added: Shared
+                  CLI and Hooks</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:13-04:00">2026-10-04 16:13</time></ui-date> P5 added:
+                  Cutover</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:13-04:00">2026-10-04 16:13</time></ui-date> P6 added: Migrate
+                  Worktrees</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:13-04:00">2026-10-04 16:13</time></ui-date> P7 added: Prose
+                  and Skills</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:13-04:00">2026-10-04 16:13</time></ui-date> P8 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:15-04:00">2026-10-04 16:15</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:15-04:00">2026-10-04 16:15</time></ui-date> plan filled from
+                  the approved plan; P1 · Spike done (in the planning session)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:06-04:00">2026-10-04 17:06</time></ui-date> Q2 closed:
+                  spell-app-dev is pure content; it may assume spell-app is checked out beside it</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:06-04:00">2026-10-04 17:06</time></ui-date> Q3 closed: Folder
+                  links only: three whole-folder links, packages/docs, goals and agents</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:06-04:00">2026-10-04 17:06</time></ui-date> Q4 closed: Goals
+                  tooling goes into packages/doc-tools too</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:07-04:00">2026-10-04 17:07</time></ui-date> layout changed
+                  (Q9-Q11): tools at packages/docs/tools, content one link packages/docs/content, templates shared;
+                  Q2-Q4 superseded</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>
