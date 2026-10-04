@@ -331,7 +331,7 @@ export type DocsScheme = "light" | "dark" | "system"
 
 /** The viewer's look:  theme and colour scheme (`ThemePreference.look`). */
 export type DocsLook = {
-  /** a `ThemeSheets` name (`github`, `classic`);  `undefined`:  our own look */
+  /** a `ThemeSheets` name (`spell`, `github`, `classic`);  `undefined`:  our own look, no theme */
   readonly theme: string | undefined
   readonly scheme: DocsScheme
 }
@@ -339,9 +339,22 @@ export type DocsLook = {
 /** Every `DocsScheme`, in the order the picker shows them. */
 export const DOCS_SCHEMES: readonly DocsScheme[] = ["light", "dark", "system"]
 
+/** The theme a viewer who never picked one sees:  the Spell brand (`ThemeSheets.OWN`). */
+export const DOCS_DEFAULT_THEME = "spell"
+
+/** What the `theme` key holds for our own look, no theme (the key is absent for `DOCS_DEFAULT_THEME`). */
+export const DOCS_PLAIN_THEME = "default"
+
+/**
+ * `<html>` class `ThemePreference.applyScheme()` sets for one frame:  a theme turns transitions off under it
+ * (`spell.css`), so a scheme switch doesn't animate every colour.
+ */
+export const DOCS_SCHEME_SWITCHING = "ui-scheme-switching"
+
 /**
  * `localStorage` keys of the viewer's look (`ThemePreference`).
  * - `scheme`:  the Astro site's key, kept:  `light` / `dark`, absent for `system`.
- * - `theme`:  a `ThemeSheets` name (`github`, `classic`), absent for our own look.
+ * - `theme`:  a `ThemeSheets` name (`github`, `classic`), `DOCS_PLAIN_THEME` for our own look, absent for
+ *   `DOCS_DEFAULT_THEME`.
  */
 export const DOCS_LOOK_KEYS = { scheme: "spell-ui-site:scheme", theme: "spell-ui-site:theme" } as const

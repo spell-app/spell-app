@@ -9,7 +9,7 @@ import { DEFAULT_VALUE, type DocsThemesChange, type DocsThemesText } from "./ui-
 
 /****************
  * ### `DocsThemesFallback`
- * `<div part="controls" class="ui ... themes">` holding a native `<select part="theme">` (Default, Classic, an
+ * `<div part="controls" class="ui ... themes">` holding a native `<select part="theme">` (Spell, Plain, Classic, an
  * `<optgroup>` of the Fomantic themes) and three `<button part="light|dark|system" aria-pressed>`, wired to
  * `ThemePreference` like the element:  a change still applies, persists and fires `ui-change`.
  * - Native elements only;  English text from the vocabulary;  no site data, so every theme is listed (`for` is

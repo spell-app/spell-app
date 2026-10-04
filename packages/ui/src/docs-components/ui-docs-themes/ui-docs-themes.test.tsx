@@ -6,10 +6,16 @@ import { UI } from "$/ui/runtime"
 import { ThemeSheets } from "$/ui/styles"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
-import { DOCS_LOOK_KEYS, type SiteDataFile } from "$/ui/docs-components/docs-components.types"
+import {
+  DOCS_DEFAULT_THEME,
+  DOCS_LOOK_KEYS,
+  DOCS_PLAIN_THEME,
+  DOCS_SCHEME_SWITCHING,
+  type SiteDataFile
+} from "$/ui/docs-components/docs-components.types"
 
 import { ThemeMenu } from "./ThemeMenu"
-import { DEFAULT_VALUE, type DocsThemesChange } from "./ui-docs-themes.types"
+import { DEFAULT_VALUE, SPELL, type DocsThemesChange } from "./ui-docs-themes.types"
 
 import "$/ui/docs-components/ui-docs-themes"
 
@@ -69,7 +75,7 @@ function runHeadScript() {
   script.remove()
 }
 
-/** Back to no stored look, our own theme, the system scheme. */
+/** Back to no stored look (so the default theme, in memory), nothing applied, the system scheme. */
 async function clean() {
   localStorage.removeItem(DOCS_LOOK_KEYS.theme)
   localStorage.removeItem(DOCS_LOOK_KEYS.scheme)
@@ -99,7 +105,7 @@ describe("<ui-docs-themes> markup", () => {
       "desktop"
     ])
     expect(schemeButton(host, "system").hasAttribute("active")).toBe(true)
-    expect(labelOf(host)).toBe("Default theme")
+    expect(labelOf(host)).toBe("Spell theme")
     await expectAccessible(host)
   })
 
@@ -131,14 +137,15 @@ describe("<ui-docs-themes> markup", () => {
 })
 
 describe("<ui-docs-themes> menu", () => {
-  it("lists Default, Classic, then every Fomantic theme titled from the site data", async () => {
+  it("lists Spell, Plain, Classic, then every Fomantic theme titled from the site data", async () => {
     const host = await render(`<ui-docs-themes></ui-docs-themes>`)
     const list = rows(host)
-    expect(list[0]).toEqual([DEFAULT_VALUE, "Default"])
-    expect(list[1]).toEqual(["classic", "Classic"])
+    expect(list[0]).toEqual([SPELL, "Spell"])
+    expect(list[1]).toEqual([DEFAULT_VALUE, "Plain"])
+    expect(list[2]).toEqual(["classic", "Classic"])
     expect(
       list
-        .slice(2)
+        .slice(3)
         .map(([value]) => value)
         .sort()
     ).toEqual([...ThemeSheets.names].sort())
@@ -153,7 +160,7 @@ describe("<ui-docs-themes> menu", () => {
     const buttons = data.themes.filter((theme) => theme.families.includes("ui-button")).map((theme) => theme.name)
     const host = await render(`<ui-docs-themes for="ui-button" show="theme"></ui-docs-themes>`)
     const listed = rows(host)
-      .slice(2)
+      .slice(3)
       .map(([value]) => value)
     expect(listed.sort()).toEqual(buttons.filter((name) => ThemeSheets.names.includes(name)).sort())
     expect(listed).toContain("github")
@@ -208,7 +215,7 @@ describe("<ui-docs-themes> choosing", () => {
     expect(host.matches(":state(themed)")).toBe(true)
   })
 
-  it("Classic:  classic alone;  Default:  neither", async () => {
+  it("Classic:  classic alone;  Plain:  neither", async () => {
     const host = await render(`<ui-docs-themes></ui-docs-themes>`)
     pick(host, "classic")
     await vi.waitFor(() => expect(UI.styles.has(ThemeSheets.SLOTS.base)).toBe(true))
@@ -274,15 +281,35 @@ describe("<ui-docs-themes> persistence", () => {
     expect(schemeButton(next, "dark").hasAttribute("active")).toBe(true)
   })
 
-  it("system and Default are stored as absent keys", async () => {
+  it("system and Spell (the default) are stored as absent keys;  Plain as its own value", async () => {
     const host = await render(`<ui-docs-themes></ui-docs-themes>`)
     schemeButton(host, "light").click()
     schemeButton(host, "system").click()
     pick(host, "github")
-    pick(host, DEFAULT_VALUE)
-    await vi.waitFor(() => expect(ThemeSheets.current).toBeUndefined())
+    pick(host, SPELL)
+    await vi.waitFor(() => expect(ThemeSheets.current).toBe(SPELL))
     expect(localStorage.getItem(DOCS_LOOK_KEYS.scheme)).toBeNull()
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBeNull()
+    pick(host, DEFAULT_VALUE)
+    await vi.waitFor(() => expect(ThemeSheets.current).toBeUndefined())
+    expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBe(DOCS_PLAIN_THEME)
+    // the next page keeps Plain
+    ThemePreference.reset()
+    expect(ThemePreference.look.theme).toBeUndefined()
+  })
+
+  it("with nothing stored, restore() applies the Spell theme", async () => {
+    expect(DOCS_DEFAULT_THEME).toBe(SPELL)
+    await ThemePreference.restore()
+    expect(ThemeSheets.current).toBe(SPELL)
+    expect(UI.styles.has(ThemeSheets.SLOTS.theme)).toBe(true)
+  })
+
+  it("a scheme switch turns transitions off for a frame (`DOCS_SCHEME_SWITCHING`)", async () => {
+    const root = document.documentElement
+    ThemePreference.applyScheme("dark")
+    expect(root.classList.contains(DOCS_SCHEME_SWITCHING)).toBe(true)
+    await vi.waitFor(() => expect(root.classList.contains(DOCS_SCHEME_SWITCHING)).toBe(false))
   })
 
   it("HEAD_SCRIPT applies the stored scheme synchronously, and never throws", () => {
@@ -295,13 +322,13 @@ describe("<ui-docs-themes> persistence", () => {
     expect(document.documentElement.className).not.toMatch(/ui-(light|dark)/)
   })
 
-  it("forgets a stored theme that no longer exists", async () => {
+  it("forgets a stored theme that no longer exists, for the default", async () => {
     localStorage.setItem(DOCS_LOOK_KEYS.theme, "no-such-theme")
     ThemePreference.reset()
     await ThemePreference.restore()
-    expect(ThemeSheets.current).toBeUndefined()
+    expect(ThemeSheets.current).toBe(DOCS_DEFAULT_THEME)
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBeNull()
-    expect(ThemePreference.look.theme).toBeUndefined()
+    expect(ThemePreference.look.theme).toBe(DOCS_DEFAULT_THEME)
   })
 
   it("works for the page when storage throws", async () => {

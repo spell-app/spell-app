@@ -561,7 +561,18 @@
               </li>
               <li>
                 Every <code>.html</code> page it serves gets <code>window.SPELL_SERVER</code> (port, token, file,
-                <code>ETag</code>, branch) and <code>/_server/live.js</code> before <code>&lt;/head&gt;</code>.
+                <code>ETag</code>, branch), <code>/_server/live.js</code> and Spell's favicon links (unless its
+                <code>&lt;head&gt;</code> links its own icon) before <code>&lt;/head&gt;</code>.
+              </li>
+              <li>
+                Spell's favicon, on every <code>WebServer</code>, live or not: <code>/_server/favicon.svg</code>,
+                <code>/_server/favicon-32.png</code>, <code>/_server/apple-touch-icon.png</code>, and
+                <code>/favicon.ico</code> (the 32px PNG, after the static folders). Made by <code>yarn favicon</code> in
+                <code>packages/server</code> (<a
+                  href="../server/scripts/favicon.ts"
+                  target="src-packages-server-scripts-favicon-ts"
+                  ><code>scripts/favicon.ts</code></a
+                >) into <code>src/site/favicon.ts</code>; pages opened from disk get it from the site header.
               </li>
             </ol>
           </ui-section>

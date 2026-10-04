@@ -29,8 +29,8 @@ describe("DocsThemesFallback", () => {
     expect(controls.getAttribute("part")).toBe("controls")
     const select = controls.querySelector("select[part=theme]")!
     const values = [...select.querySelectorAll("option")].map((option) => option.value)
-    expect(values.slice(0, 2)).toEqual(["default", "classic"])
-    expect(values.slice(2).sort()).toEqual([...ThemeSheets.names].sort())
+    expect(values.slice(0, 3)).toEqual(["spell", "default", "classic"])
+    expect(values.slice(3).sort()).toEqual([...ThemeSheets.names].sort())
     expect(select.querySelector("optgroup")!.label).toBe("Fomantic themes")
     const buttons = [...controls.querySelectorAll("button")]
     expect(buttons.map((button) => button.getAttribute("part"))).toEqual(["light", "dark", "system"])

@@ -3,13 +3,17 @@ import { relative, sep } from "node:path"
 import type { Duplex } from "node:stream"
 
 import { SRV, type FileTransform, type HtmlTransform, type Mount, type ServedFile } from "$/server"
+// Import directly:  the `site` barrel is browser code (`SiteHeader extends HTMLElement`)
+import { APPLE_TOUCH_ICON_PNG, FAVICON_PNG_32, FAVICON_SVG } from "$/server/site/favicon"
 
 /**
  * A local web server:  `node:http` + `Guard` + `Router` + `StaticHandler` (+ `LiveReload`), in that order.
- * - requests go:  host check -> `/_server/events` and `/_server/live.js` (when `live`) -> `router` -> static
- *   files -> `fallback` (e.g. an SPA's `index.html`) -> 404
- * - `live`:  watches nothing by itself -- call `live.watch(dir)`;  every `.html` page gets `window.SPELL_SERVER` and
- *   the live client before `</head>`
+ * - requests go:  host check -> `/_server/events` and `/_server/live.js` (when `live`) -> Spell's favicon
+ *   (`FAVICONS`) -> `router` -> static files -> `/favicon.ico` -> `fallback` (e.g. an SPA's `index.html`) -> 404
+ * - `live`:  watches nothing by itself -- call `live.watch(dir)`;  every `.html` page gets Spell's favicon links
+ *   (unless it links its own icon), `window.SPELL_SERVER` and the live client before `</head>`
+ * - Spell's favicon on EVERY server, live or not;  `/favicon.ico` is its 32px PNG, after the static files so a
+ *   folder's own `favicon.ico` wins
  * - loopback only (`127.0.0.1`) unless `listen()` says otherwise
  */
 export class WebServer {
@@ -66,7 +70,9 @@ export class WebServer {
         reply.type("text/javascript; charset=utf-8").set("Cache-Control", "no-store").send(SRV.liveClientScript())
       )
     }
-    top.use(this.router, this.files.handle, this.fallback)
+    for (const [path, icon] of Object.entries(FAVICONS)) top.get(path, (_request, reply) => sendIcon(reply, icon))
+    const favicon = new SRV.Router().get("/favicon.ico", (_request, reply) => sendIcon(reply, FAVICONS[FAVICON_PNG]!))
+    top.use(this.router, this.files.handle, favicon, this.fallback)
     this.server = createServer(SRV.toListener(top.handle, { onError: onError ?? logError }))
     this.server.on("upgrade", (raw: IncomingMessage, socket: Duplex, head: Buffer) => this.onUpgrade(raw, socket, head))
   }
@@ -134,11 +140,15 @@ export class WebServer {
     }
   }
 
-  /** `page` with `window.SPELL_SERVER` and the live client, before `</head>` (or first, without one) */
+  /**
+   * `page` with Spell's favicon links (unless its `<head>` links its own icon), `window.SPELL_SERVER` and the live
+   * client, before `</head>` (or first, without one)
+   */
   private inject(page: string, served: ServedFile): string {
     const config = JSON.stringify(this.config(served)).replace(/</g, "\\u003c")
-    const tags = `<script>window.SPELL_SERVER = ${config}</script>\n<script src="/_server/live.js" defer></script>\n`
     const head = page.search(/<\/head>/i)
+    const icons = HAS_ICON.test(head < 0 ? "" : page.slice(0, head)) ? "" : FAVICON_LINKS
+    const tags = `${icons}<script>window.SPELL_SERVER = ${config}</script>\n<script src="/_server/live.js" defer></script>\n`
     return head < 0 ? tags + page : page.slice(0, head) + tags + page.slice(head)
   }
 }
@@ -165,6 +175,36 @@ export type WebServerProps = {
 
 /** Answers a websocket upgrade:  takes over `socket`. */
 export type UpgradeHandler = (raw: IncomingMessage, socket: Duplex, head: Buffer) => unknown
+
+/** Where the 32px PNG favicon is;  `/favicon.ico` answers with it too. */
+export const FAVICON_PNG = "/_server/favicon-32.png"
+
+/**
+ * Spell's favicon (`$/server/site/favicon`, made by `yarn favicon`) by path:  content type and bytes.
+ * - the SVG for every browser that takes one, the PNG for those that don't, the touch icon for iOS home screens
+ */
+export const FAVICONS: Record<string, { type: string; body: Buffer }> = {
+  "/_server/favicon.svg": { type: "image/svg+xml", body: Buffer.from(FAVICON_SVG) },
+  [FAVICON_PNG]: { type: "image/png", body: Buffer.from(FAVICON_PNG_32, "base64") },
+  "/_server/apple-touch-icon.png": { type: "image/png", body: Buffer.from(APPLE_TOUCH_ICON_PNG, "base64") }
+}
+
+/**
+ * The favicon links a live page gets.
+ * - the PNG FIRST, with `sizes`:  without them, Chrome takes the PNG over the SVG
+ */
+export const FAVICON_LINKS =
+  `<link rel="icon" href="${FAVICON_PNG}" sizes="32x32" type="image/png">\n` +
+  `<link rel="icon" href="/_server/favicon.svg" type="image/svg+xml">\n` +
+  `<link rel="apple-touch-icon" href="/_server/apple-touch-icon.png">\n`
+
+/** Whether a page links its own icon:  `<link rel="icon">` or `"shortcut icon"`, any attribute order. */
+const HAS_ICON = /<link\b[^>]*\brel\s*=\s*["']?(?:shortcut\s+)?icon\b/i
+
+/** Answer with favicon `icon`:  cached an hour (`yarn favicon` rarely changes it). */
+function sendIcon(reply: SRV.Reply, { type, body }: { type: string; body: Buffer }): void {
+  reply.type(type).set("Cache-Control", "public, max-age=3600").send(body)
+}
 
 /** Log a failure:  method, URL and stack. */
 function logError(error: unknown, request: SRV.Request): void {

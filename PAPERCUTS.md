@@ -1146,6 +1146,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   section (added that day), and `/park`'s `plan_status()` read the failure as "not done". · `summary` reads through
   `findList()` (adds nothing, never throws);  `migrate` still adds the section.  Plan docs are read by PATH now
   (`plan-doc summaries`), in one run. · docs
+- 2026-10-04 · `yarn docs:update` failed at "check links" before any page check ran:  the finished epic
+  `epics/ui-component-creation/ui-component-creation.html` still linked to Astro files that P7 of `spell-ui-pages`
+  deleted (`site/src/layouts/Docs.astro`, `ui-root.mdx`, `RootDemo.astro`), broken on `main` too. · Unlinked the
+  four (kept their `<code>` names, the history).  A page-deleting change wants `doc-links.py --check` on EVERY page,
+  epics included. · ui-docs-rework
 
 ## claude-code
 

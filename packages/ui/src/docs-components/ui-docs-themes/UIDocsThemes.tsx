@@ -36,7 +36,7 @@ import themesCSS from "./ui-docs-themes.css?inline"
  *   `ThemePreference.setTheme()` (=> `ThemeSheets.apply()`, page + shadow roots) / `setScheme()` (=> `ui-light` /
  *   `ui-dark` on `<html>`), then fires `ui-change`.  Every picker on the page follows any picker's change
  *   (`subscribe()`, while connected).
- * - The menu (`ThemeMenu`):  Default (our own look), Classic, then every Fomantic theme (`ThemeSheets.names`),
+ * - The menu (`ThemeMenu`):  Spell (our own theme, the default), Plain (our own look), Classic, then every Fomantic theme (`ThemeSheets.names`),
  *   titled from the site data (`SiteData`, `components.json` `themes`).  `for="ui-button"`:  only the themes touching
  *   that tag's family, and the dropdown says `N themes` (Fomantic's per-page dropdown).
  * - The dropdown's rows are `<ui-item>` children (Default and Classic with a description, a divider, a header);  its

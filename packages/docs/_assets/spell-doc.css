@@ -29,8 +29,14 @@
   --spell-rule: var(--ui-border-color, light-dark(#e3e0d8, #34343b));
   --spell-accent: var(--ui-link, LinkText);
   --spell-accent-soft: var(--ui-primary-background, light-dark(#e8eff8, #1f2b3b));
-  /* no UI token is quite a code well:  `--ui-surface-muted` is too faint for inline code in light */
-  --spell-code-bg: light-dark(#f3f2ef, #26272d);
+  /*
+   * a code well:  the theme's `--ui-code-background` (the Spell theme sets one:  grey-blue / deep aubergine);
+   * else our own, as `--ui-surface-muted` is too faint for inline code in light
+   */
+  --spell-code-bg: var(--ui-code-background, light-dark(#f3f2ef, #26272d));
+  /* headings in the theme's heading face and ink (the Spell theme:  aubergine serif);  else the body's */
+  --spell-heading-font: var(--ui-font-family-heading, inherit);
+  --spell-heading-ink: var(--ui-text-dark, inherit);
   --spell-toc-width: 300px;
 }
 
@@ -94,6 +100,11 @@ ui-sticky.spell-h3 {
 }
 .spell-doc-main section:has(> ui-sticky.spell-h3) {
   margin-top: 22px;
+}
+:is(h1, h2, h3) {
+  color: var(--spell-heading-ink);
+  font-family: var(--spell-heading-font);
+  text-wrap: balance;
 }
 h1 {
   font-size: 2rem;
@@ -455,6 +466,8 @@ ui-accordion.spell-aside::part(content) {
   line-height: 1.4;
   /* UI sizes its widgets from this:  the contents' own small type, so `em`s agree inside and outside */
   --ui-font-size: 0.84rem;
+  /* small entries read best in the body face:  the theme's heading face (a serif, in Spell) stays on the page */
+  --ui-font-family-heading: var(--spell-sans);
 }
 .spell-toc-inner {
   max-height: calc(100vh - var(--spell-site-header-height, 0px));
