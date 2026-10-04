@@ -87,10 +87,17 @@ test("writes the answer beside the page, and counts changes", async () => {
   expect(written(PAGES[0]!)).toMatchObject({ changes: 1, answers: { q1: { picked: [], other: "neither" } } })
 })
 
-test("the page reads its answer back as a plain file", async () => {
-  const got = await ask(port, "GET", "/packages/docs/details/pick.answer.json")
+test("the page reads its answer back:  null before one is sent", async () => {
+  const got = await ask(port, "GET", "/api/details/answer?page=%2Fpackages%2Fdocs%2Fdetails%2Fpick.html")
   expect(got.status).toBe(200)
-  expect(JSON.parse(got.text).page).toBe("/packages/docs/details/pick.html")
+  expect(JSON.parse(got.text).answer.page).toBe("/packages/docs/details/pick.html")
+  const none = await ask(
+    port,
+    "GET",
+    "/api/details/answer?page=%2Fpackages%2Fdocs%2Fepics%2Fbig%2Fdetails%2Fshape.html"
+  )
+  expect(JSON.parse(none.text)).toEqual({ answer: null })
+  expect((await ask(port, "GET", "/api/details/answer?page=%2Fpackages%2Fdocs%2Fother.html")).status).toBe(403)
 })
 
 test("an epic's details page, and a worktree's through /worktrees/", async () => {
