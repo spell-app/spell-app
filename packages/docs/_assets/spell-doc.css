@@ -685,16 +685,16 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 }
 
 /*
- * Open-item counts (`span.spell-toc-count` after a contents link, `span.spell-rail-count` on a rail icon):  small
- * pills in the accent, inverted on a selected rail entry (which is the accent itself)
+ * Open-item counts (`span.spell-toc-count` after a contents link, `span.spell-rail-count` beside a rail icon):  small
+ * ORANGE pills, apart from the ivory and the icons' brown (Owen, 2026-10-04)
  */
 :is(.spell-toc-count, .spell-rail-count) {
   display: inline-block;
   min-width: 1.6em;
   padding: 0 0.4em;
   border-radius: 999px;
-  background: var(--ui-primary, var(--spell-accent));
-  color: var(--ui-primary-on, Canvas);
+  background: var(--ui-orange, #f2711c);
+  color: var(--ui-orange-on, #fff);
   font: 700 0.72rem/1.5 var(--spell-sans);
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -710,37 +710,52 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 
 /*
  * The rail (`nav.spell-rail`, built by the runtime):  a strip at the right edge -- the contents button (bars) on
- * top, then one icon per top-level section, its open items on the icon's corner.  Shown while the contents column
+ * top, then one icon per top-level section, its open items beside the icon.  Shown while the contents column
  * isn't:  narrow screens, or `body.spell-toc-hidden` (the contents' hide button).  Below the fixed site header,
  * as the drawer.
- * - Spell's look:  a quiet surface, muted icons;  the CURRENT section in the accent (filled, as the brand's
- *   selected nav), hover a lavender wash
- * - every entry is `label | icon`:  the strip shows only the icons, anchored at the right edge;  hovering it (or
- *   tabbing into it) widens it LEFTWARD over the page to `--spell-rail-open` and the labels show, the icons
- *   staying put under the pointer.  A short delay first, so crossing it on the way to the scrollbar doesn't
- * - every box is inside the strip:  the count pills sit on the icon's top corner, never past the edge
+ * - the brand's IVORY (Polished Ivory, the warm accent:  UI's `--ui-brown-background` / `--ui-brown-text`, a warm
+ *   surface in dark mode) for the strip, its flyout and the contents drawer;  the current section a deeper ivory,
+ *   hover a step between (Owen, 2026-10-04)
+ * - only as tall as its entries, its bottom-left corner rounded;  scrolls when the window is shorter
+ * - no padding:  entries run edge to edge, the attention bar flush with the left edge, a selected entry a square
+ *   full-width row (Owen, 2026-10-04)
+ * - every entry is `icon | label`:  the strip shows only the icons;  hovering it (or tabbing into it) widens it
+ *   LEFTWARD over the page to `--spell-rail-open`, the icons riding its left edge and the labels showing to
+ *   their right.  A short delay first, so crossing it on the way to the scrollbar doesn't
+ * - a section needing attention (open items) gets a thick ORANGE bar at its entry's left edge;  its count shows
+ *   only when the strip is widened, as an orange pill at the entry's right end (Owen, 2026-10-04)
  * - very narrow (`max-width: 400px`, VS Code's side bar):  only the bars button, floating at the top right
  */
 :root {
-  --spell-rail-width: 36px;
+  --spell-rail-width: 32px;
   --spell-rail-open: 240px;
+  --spell-rail-bg: var(--ui-brown-background, light-dark(#f7efe2, #2c2152));
+  --spell-rail-ink: var(--ui-brown-text, light-dark(#534323, #eaddc4));
+  --spell-rail-hover: color-mix(in srgb, var(--spell-rail-ink) 9%, var(--spell-rail-bg));
+  --spell-rail-selected: color-mix(in srgb, var(--spell-rail-ink) 18%, var(--spell-rail-bg));
+  --spell-rail-rule: color-mix(in srgb, var(--spell-rail-ink) 22%, transparent);
+  /* the ivory over the opaque surface, in case a theme's is see-through:  the strip and drawer float over the page */
+  --spell-rail-fill: linear-gradient(var(--spell-rail-bg), var(--spell-rail-bg)) var(--ui-surface, Canvas);
 }
 .spell-rail {
   display: none;
   position: fixed;
   top: var(--spell-site-header-height, 0px);
   right: 0;
-  bottom: 0;
   z-index: 899;
   width: var(--spell-rail-width);
+  max-height: calc(100vh - var(--spell-site-header-height, 0px) - 12px);
+  max-height: calc(100dvh - var(--spell-site-header-height, 0px) - 12px);
   flex-direction: column;
-  gap: 2px;
-  padding: 8px 0;
+  gap: 0;
+  padding: 0 0 6px;
   overflow: hidden auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  background: var(--ui-surface-muted, var(--spell-bg));
-  border-left: 1px solid var(--spell-rule);
+  background: var(--spell-rail-fill);
+  border: 1px solid var(--spell-rail-rule);
+  border-width: 0 0 1px 1px;
+  border-bottom-left-radius: 14px;
   transition:
     width 0.16s var(--ui-ease, ease-out),
     box-shadow 0.16s;
@@ -748,95 +763,108 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 @media (hover: hover) {
   .spell-rail:is(:hover, :focus-within) {
     width: var(--spell-rail-open);
-    box-shadow: -10px 0 28px -8px rgb(0 0 0 / 0.28);
+    box-shadow: -10px 6px 28px -8px rgb(0 0 0 / 0.28);
     transition-delay: 0.12s;
   }
 }
 .spell-rail-items {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
-/* an entry:  its label (shown when the rail is wide), then its icon, at the strip's right edge */
+/* an entry:  its icon at the strip's left edge, then its label (shown when the rail is wide);  the markup is
+   `label, icon`, so the row runs reversed */
 .spell-rail-item {
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
   justify-content: flex-end;
   flex: none;
   gap: 2px;
-  margin: 0 3px;
+  position: relative;
+  margin: 0;
   padding: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   background: none;
-  color: var(--spell-muted);
+  color: var(--spell-rail-ink);
   font: 500 0.85rem/1.2 var(--spell-sans);
   text-decoration: none;
   cursor: pointer;
 }
 .spell-doc-page .spell-rail-item:hover {
-  background: var(--spell-accent-soft);
-  color: var(--spell-ink);
+  background: var(--spell-rail-hover);
+  color: var(--spell-rail-ink);
 }
 .spell-rail-item:focus-visible {
   outline: 2px solid var(--ui-focus-color, var(--spell-accent));
   outline-offset: -2px;
 }
-.spell-rail-item[selected] {
-  background: var(--ui-primary, var(--spell-accent));
-  color: var(--ui-primary-on, Canvas);
-}
+.spell-rail-item[selected],
 .spell-doc-page .spell-rail-item[selected]:hover {
-  background: var(--ui-primary-hover, var(--spell-accent));
-  color: var(--ui-primary-on, Canvas);
-}
-.spell-rail-item[selected] .spell-rail-count {
-  background: var(--ui-primary-on, Canvas);
-  color: var(--ui-primary-text, var(--spell-accent));
+  background: var(--spell-rail-selected);
+  color: var(--spell-rail-ink);
+  font-weight: 700;
 }
 .spell-rail-label {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
-  padding-inline-start: 10px;
+  padding-inline: 6px 10px;
   white-space: nowrap;
   text-overflow: ellipsis;
   text-align: start;
 }
+/* the icon's box:  the glyph centred in the strip's width */
 .spell-rail-icon {
-  position: relative;
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: calc(var(--spell-rail-width) - 7px);
-  height: 30px;
+  width: var(--spell-rail-width);
+  height: 34px;
   font-size: 0.95rem;
+}
+/* needs attention:  a thick orange bar at the entry's left edge */
+.spell-rail-item:has(.spell-rail-count)::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 4px;
+  border-radius: 0;
+  background: var(--ui-orange, #f2711c);
+}
+.spell-rail-item:has(.spell-rail-count) .spell-rail-label {
+  padding-inline-end: 36px;
 }
 .spell-rail-icon > b {
   font: 700 0.78rem var(--spell-sans);
 }
-/* an icon with a count steps down-left a little, so the count covers only its corner */
-.spell-rail-icon:has(> .spell-rail-count) > :first-child {
-  translate: -3px 2px;
-}
-/* the count on the icon's top corner, inside the entry */
+/* the count:  hidden in the strip (the bar says it), an orange pill at the entry's right end once widened */
 .spell-rail-count {
+  display: none;
   position: absolute;
-  top: 0;
-  right: 0;
-  min-width: 14px;
-  padding: 0 3px;
-  font-size: 0.6rem;
-  line-height: 14px;
+  top: 50%;
+  right: 8px;
+  translate: 0 -50%;
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 0.66rem;
+  line-height: 17px;
 }
-/* the bars:  a plain icon, as the entries;  the accent while its drawer is open */
+@media (hover: hover) {
+  .spell-rail:is(:hover, :focus-within) .spell-rail-count {
+    display: inline-block;
+  }
+}
+/* the bars:  a plain icon, as the entries;  bold while its drawer is open */
 .spell-toc-open {
-  margin-bottom: 6px;
-  color: var(--spell-ink);
+  margin-bottom: 0;
+  color: var(--spell-rail-ink);
 }
 .spell-toc-open[aria-expanded="true"] {
-  color: var(--spell-accent);
+  background: var(--spell-rail-selected);
 }
 body.spell-toc-hidden .spell-rail {
   display: flex;
@@ -871,8 +899,8 @@ body.spell-toc-hidden .spell-doc-main {
     bottom: 0;
     z-index: 900;
     width: min(340px, 88vw);
-    background: var(--ui-surface, Canvas);
-    border-left: 1px solid var(--spell-rule);
+    background: var(--spell-rail-fill);
+    border-left: 1px solid var(--spell-rail-rule);
     box-shadow: -8px 0 24px rgb(0 0 0 / 0.25);
     transform: translateX(105%);
     visibility: hidden;
@@ -890,7 +918,18 @@ body.spell-toc-hidden .spell-doc-main {
     height: calc(100dvh - var(--spell-site-header-height, 0px));
   }
   .spell-toc-head {
-    background: var(--ui-surface, Canvas);
+    background: var(--spell-rail-fill);
+  }
+  /* the drawer is ivory, as the rail:  its entries in the rail's ink, hover and the current entry as the rail's */
+  .spell-doc-toc .spell-toc :is(ui-title > a, ui-item::part(item)) {
+    color: var(--spell-rail-ink);
+  }
+  .spell-doc-toc .spell-toc :is(ui-title > a:hover, ui-item::part(item):hover) {
+    background: var(--spell-rail-hover);
+  }
+  .spell-doc-toc .spell-toc :is(ui-title > a.active, ui-item[selected]::part(item)) {
+    background: var(--spell-rail-selected);
+    color: var(--spell-rail-ink);
   }
 }
 
