@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Label | Spell UI</title>
+    <meta name="description" content="A label displays content classification." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-label.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-label%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/elements/label.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Label
+                <ui-header>A label displays content classification.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-label" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Label"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's label page, section by section, in its order (Types, Content, States, Variations, Groups),
+                  plus our Active state and Prompt content.  `<ui-labels>` (the group) lives on this page too.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Label" description="A label.">
+                  <ui-label icon="mail">23</ui-label>
+                </ui-docs-example>
+                <!-- GAP I111:  the page's `kbd` style draws a second box around each label. -->
+                <ui-docs-example description="Highlight keyboard shortcuts:  a label inside a `<kbd>`.">
+                  <kbd><ui-label>CTRL</ui-label></kbd> + <kbd><ui-label>Alt</ui-label></kbd> +
+                  <kbd><ui-label>Del</ui-label></kbd>
+                  <kbd><ui-label inverted icon="windows" aria-label="Windows"></ui-label></kbd> +
+                  <kbd><ui-label inverted>L</ui-label></kbd> <kbd><ui-label basic>W</ui-label></kbd
+                  ><kbd><ui-label basic>A</ui-label></kbd
+                  ><kbd><ui-label basic>S</ui-label></kbd
+                  ><kbd><ui-label basic>D</ui-label></kbd>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Image"
+                  description="A label can be formatted to emphasize an image:  `image` is the photo's URL."
+                >
+                  <ui-label href="#label" image="../images/avatar/small/joe.jpg">Joe</ui-label>
+                  <ui-label href="#label" image="../images/avatar/small/elliot.jpg">Elliot</ui-label>
+                  <ui-label href="#label" image="../images/avatar/small/stevie.jpg">Stevie</ui-label>
+                </ui-docs-example>
+                <ui-docs-example description="With a `detail`.">
+                  <ui-label href="#label" color="blue" image="../images/avatar/small/veronika.jpg" detail="Friend"
+                    >Veronika</ui-label
+                  >
+                  <ui-label href="#label" color="teal" image="../images/avatar/small/jenny.jpg" detail="Student"
+                    >Veronika</ui-label
+                  >
+                  <ui-label href="#label" color="yellow" image="../images/avatar/small/christian.jpg" detail="Co-worker"
+                    >Helen</ui-label
+                  >
+                </ui-docs-example>
+                <ui-docs-example description="`removable` adds a delete button, which fires `ui-remove`.">
+                  <ui-label image="../images/avatar/small/ade.jpg" removable>Adrienne</ui-label>
+                  <ui-label image="../images/avatar/small/zoe.jpg" removable>Zoe</ui-label>
+                  <ui-label image="../images/avatar/small/nan.jpg" removable>Nan</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Pointing"
+                  description="A label can point to content next to it:  `pointing` (above), `below`, `left` or `right`."
+                >
+                  <ui-form>
+                    <form>
+                      <ui-field>
+                        <ui-input placeholder="First name"></ui-input>
+                        <ui-label pointing>Please enter a value</ui-label>
+                      </ui-field>
+                      <ui-divider></ui-divider>
+                      <ui-field>
+                        <ui-label pointing="below">Please enter a value</ui-label>
+                        <ui-input placeholder="Last name"></ui-input>
+                      </ui-field>
+                      <ui-divider></ui-divider>
+                      <ui-field inline>
+                        <ui-input placeholder="Username"></ui-input>
+                        <ui-label pointing="left">That name is taken!</ui-label>
+                      </ui-field>
+                      <ui-divider></ui-divider>
+                      <ui-field inline>
+                        <ui-label pointing="right">Your password must be 6 characters or more</ui-label>
+                        <ui-input type="password" aria-label="Password"></ui-input>
+                      </ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-form>
+                    <form>
+                      <ui-field>
+                        <ui-input placeholder="First name"></ui-input>
+                        <ui-label pointing color="red" basic>Please enter a value</ui-label>
+                      </ui-field>
+                      <ui-divider></ui-divider>
+                      <ui-field>
+                        <ui-label pointing="below" color="red" basic>Please enter a value</ui-label>
+                        <ui-input placeholder="Last name"></ui-input>
+                      </ui-field>
+                      <ui-divider></ui-divider>
+                      <ui-field inline>
+                        <ui-input placeholder="Username"></ui-input>
+                        <ui-label pointing="left" color="red" basic>That name is taken!</ui-label>
+                      </ui-field>
+                      <ui-divider></ui-divider>
+                      <ui-field inline>
+                        <ui-label pointing="right" color="red" basic
+                          >Your password must be 6 characters or more</ui-label
+                        >
+                        <ui-input type="password" aria-label="Password"></ui-input>
+                      </ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+
+                <ui-docs-example header="Corner">
+                  <p slot="description">A label can position itself in the corner of an element.</p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >A corner label sits in the corner of its owner, the nearest positioned box around it: a
+                    <code>&lt;ui-segment&gt;</code> is one, and clips the label to its rounded corner.</ui-message
+                  >
+                  <ui-grid columns="2">
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label href="#label" corner="left" icon="heart" aria-label="Like"></ui-label>
+                        <ui-image fluid src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label href="#label" color="red" corner="right" icon="save" aria-label="Save"></ui-label>
+                        <ui-image fluid src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-docs-example header="Tag" description="A label can appear as a tag.">
+                  <ui-label href="#label" tag>New</ui-label>
+                  <ui-label href="#label" color="red" tag>Upcoming</ui-label>
+                  <ui-label href="#label" color="teal" tag>Featured</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Ribbon"
+                  description='A label can appear as a ribbon attaching itself to an element:  `ribbon`, or `ribbon="right"`.'
+                >
+                  <ui-grid columns="2">
+                    <ui-column>
+                      <ui-segment raised>
+                        <ui-label href="#label" color="red" ribbon>Overview</ui-label>
+                        <span>Account Details</span>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-label href="#label" color="blue" ribbon>Community</ui-label> User Reviews
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label href="#label" color="orange" ribbon="right">Specs</ui-label>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-label href="#label" color="teal" ribbon="right">Reviews</ui-label>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid columns="2">
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label color="black" ribbon icon="hotel">Hotel</ui-label>
+                        <ui-image fluid src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label color="blue" ribbon="right" icon="utensils">Food</ui-label>
+                        <ui-image fluid src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid columns="2">
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label color="black" ribbon icon="hotel" aria-label="Hotel"></ui-label>
+                        <ui-image fluid src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label color="blue" ribbon="right" icon="utensils" aria-label="Food"></ui-label>
+                        <ui-image fluid src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <!-- GAP I75:  no `bottom` / `center` ribbon, so Fomantic's Bottom and Center Ribbon example (2.9.3) is left out. -->
+
+                <!-- GAP I77:  attached labels overlay the paragraph:  the segment doesn't pad the content after them. -->
+                <ui-docs-example header="Attached">
+                  <p slot="description">A label can attach to a content segment.</p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >Attached labels try to pad the other content in the owner to make room, but may not get it right in
+                    every case; then correct the padding of the other content yourself.</ui-message
+                  >
+                  <ui-grid columns="3">
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label attached="top">HTML</ui-label>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label attached="bottom">CSS</ui-label>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label attached="top right">Code</ui-label>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label attached="top left">View</ui-label>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label attached="bottom left">User View</ui-label>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-label attached="bottom right">Admin View</ui-label>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Horizontal"
+                  description="A horizontal label is formatted to label content along-side it horizontally."
+                >
+                  <ui-list divided selection>
+                    <ui-item href="#label"><ui-label color="red" horizontal>Fruit</ui-label>Kumquats</ui-item>
+                    <ui-item href="#label"><ui-label color="purple" horizontal>Candy</ui-label>Ice Cream</ui-item>
+                    <ui-item href="#label"><ui-label color="red" horizontal>Fruit</ui-label>Orange</ui-item>
+                    <ui-item href="#label"><ui-label horizontal>Dog</ui-label>Poodle</ui-item>
+                  </ui-list>
+                </ui-docs-example>
+
+                <ui-docs-example header="Floating">
+                  <p slot="description">A label can float above or below another element.</p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >A floating label sits on the corner of its owner, the nearest positioned box around it: a menu item
+                    is one.</ui-message
+                  >
+                  <ui-menu compact>
+                    <ui-item href="#label" icon="mail">Messages<ui-label color="red" floating>22</ui-label></ui-item>
+                    <ui-item href="#label" icon="users">Friends<ui-label color="blue" floating>22</ui-label></ui-item>
+                  </ui-menu>
+                  <ui-divider hidden></ui-divider>
+                  <ui-menu compact>
+                    <ui-item href="#label" icon="mail"
+                      >Messages<ui-label color="red" floating>22 Mails</ui-label></ui-item
+                    >
+                    <ui-item href="#label" icon="users"
+                      >Friends<ui-label color="blue" floating>22 Friends</ui-label></ui-item
+                    >
+                  </ui-menu>
+                  <ui-divider hidden></ui-divider>
+                  <ui-menu compact>
+                    <ui-item href="#label" icon="mail"
+                      >Messages<ui-label color="red" floating="bottom">22</ui-label></ui-item
+                    >
+                    <ui-item href="#label" icon="users"
+                      >Friends<ui-label color="blue" floating="bottom">22</ui-label></ui-item
+                    >
+                  </ui-menu>
+                  <ui-divider hidden></ui-divider>
+                  <ui-menu compact>
+                    <ui-item href="#label" icon="mail"
+                      >Messages<ui-label color="red" floating="bottom">22 Mails</ui-label></ui-item
+                    >
+                    <ui-item href="#label" icon="users"
+                      >Friends<ui-label color="blue" floating="bottom">22 Friends</ui-label></ui-item
+                    >
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Floating left"
+                  description="Floating labels can be positioned to the left also."
+                >
+                  <ui-menu compact>
+                    <ui-item href="#label" icon="mail"
+                      >Messages<ui-label color="red" floating="left">22</ui-label></ui-item
+                    >
+                    <ui-item href="#label" icon="users"
+                      >Friends<ui-label color="blue" floating="left">22</ui-label></ui-item
+                    >
+                  </ui-menu>
+                  <ui-divider hidden></ui-divider>
+                  <ui-menu compact>
+                    <ui-item href="#label" icon="mail"
+                      >Messages<ui-label color="red" floating="left">22 Mails</ui-label></ui-item
+                    >
+                    <ui-item href="#label" icon="users"
+                      >Friends<ui-label color="blue" floating="left">22 Friends</ui-label></ui-item
+                    >
+                  </ui-menu>
+                </ui-docs-example>
+
+                <!-- GAP I76:  no `left aligned` / `right aligned` floating label;  shown with plain `floating`. -->
+                <ui-docs-example
+                  header="Floating aligned"
+                  description="Floating labels containing large text can be aligned to the left or right."
+                >
+                  <ui-menu compact>
+                    <ui-item href="#label" icon="mail"
+                      >Messages from Fomantic-UI-Users<ui-label color="red" floating>22 Mails unread</ui-label></ui-item
+                    >
+                    <ui-item href="#label" icon="users"
+                      >Friends of the Fomantic-UI Community<ui-label color="blue" floating
+                        >22 Friends online</ui-label
+                      ></ui-item
+                    >
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Inverted" description="All variants of label can be inverted.">
+                  <ui-segment inverted>
+                    <ui-label color="primary" inverted>Primary</ui-label>
+                    <ui-label color="secondary" inverted>Secondary</ui-label>
+                    <ui-label color="red" inverted>Red</ui-label>
+                    <ui-label color="orange" inverted>Orange</ui-label>
+                    <ui-label color="yellow" inverted>Yellow</ui-label>
+                    <ui-label color="olive" inverted>Olive</ui-label>
+                    <ui-label color="green" inverted>Green</ui-label>
+                    <ui-label color="teal" inverted>Teal</ui-label>
+                    <ui-label color="blue" inverted>Blue</ui-label>
+                    <ui-label color="violet" inverted>Violet</ui-label>
+                    <ui-label color="purple" inverted>Purple</ui-label>
+                    <ui-label color="pink" inverted>Pink</ui-label>
+                    <ui-label color="brown" inverted>Brown</ui-label>
+                    <ui-label color="grey" inverted>Grey</ui-label>
+                    <ui-label color="black" inverted>Black</ui-label>
+                    <ui-divider hidden></ui-divider>
+                    <ui-label color="primary" inverted basic>Primary</ui-label>
+                    <ui-label color="secondary" inverted basic>Secondary</ui-label>
+                    <ui-label color="red" inverted basic>Red</ui-label>
+                    <ui-label color="orange" inverted basic>Orange</ui-label>
+                    <ui-label color="yellow" inverted basic>Yellow</ui-label>
+                    <ui-label color="olive" inverted basic>Olive</ui-label>
+                    <ui-label color="green" inverted basic>Green</ui-label>
+                    <ui-label color="teal" inverted basic>Teal</ui-label>
+                    <ui-label color="blue" inverted basic>Blue</ui-label>
+                    <ui-label color="violet" inverted basic>Violet</ui-label>
+                    <ui-label color="purple" inverted basic>Purple</ui-label>
+                    <ui-label color="pink" inverted basic>Pink</ui-label>
+                    <ui-label color="brown" inverted basic>Brown</ui-label>
+                    <ui-label color="grey" inverted basic>Grey</ui-label>
+                    <ui-label color="black" inverted basic>Black</ui-label>
+                    <ui-divider hidden></ui-divider>
+                    <ui-label inverted tag>Tag</ui-label>
+                    <ui-label color="primary" inverted tag>Primary</ui-label>
+                    <ui-label color="secondary" inverted tag>Secondary</ui-label>
+                    <ui-label color="red" inverted tag>Red</ui-label>
+                    <ui-label color="orange" inverted tag>Orange</ui-label>
+                    <ui-label color="yellow" inverted tag>Yellow</ui-label>
+                    <ui-label color="olive" inverted tag>Olive</ui-label>
+                    <ui-label color="green" inverted tag>Green</ui-label>
+                    <ui-label color="teal" inverted tag>Teal</ui-label>
+                    <ui-label color="blue" inverted tag>Blue</ui-label>
+                    <ui-label color="violet" inverted tag>Violet</ui-label>
+                    <ui-label color="purple" inverted tag>Purple</ui-label>
+                    <ui-label color="pink" inverted tag>Pink</ui-label>
+                    <ui-label color="brown" inverted tag>Brown</ui-label>
+                    <ui-label color="grey" inverted tag>Grey</ui-label>
+                    <ui-label color="black" inverted tag>Black</ui-label>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="content">Content</ui-header>
+
+                <ui-docs-example
+                  header="Detail"
+                  description="A label can contain a detail:  the `detail` shorthand, or a `<ui-detail>` child."
+                >
+                  <ui-label detail="214">Dogs</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example header="Icon" description="A label can include an icon.">
+                  <ui-label icon="mail">Mail</ui-label>
+                  <ui-label icon="checkmark">Test Passed</ui-label>
+                  <ui-label icon="dog">Dog</ui-label>
+                  <ui-label icon="cat">Cat</ui-label>
+                </ui-docs-example>
+                <!-- GAP I74:  no icon after the text (Fomantic's `right icon` label, also its right-icon ribbons). -->
+                <ui-docs-example
+                  description="Labels can contain individual icons without text.  Give each an `aria-label`."
+                >
+                  <ui-label icon="mail" aria-label="Mail"></ui-label>
+                  <ui-label icon="dog" aria-label="Dog"></ui-label>
+                  <ui-label icon="cat" aria-label="Cat"></ui-label>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="A close icon before the text is just an `icon`;  after the text it's `removable`, a real delete button."
+                >
+                  <ui-label icon="close">Close</ui-label>
+                  <ui-label icon="delete">Delete</ui-label>
+                  <ui-label removable>Close</ui-label>
+                  <ui-label removable>Delete</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example header="Image" description="A label can include an image.">
+                  <ui-label href="#label"
+                    ><ui-image avatar spaced="right" src="../images/avatar/small/elliot.jpg" alt=""></ui-image
+                    >Elliot</ui-label
+                  >
+                  <ui-label href="#label"
+                    ><ui-image avatar src="../images/avatar/small/stevie.jpg" alt=""></ui-image>Stevie</ui-label
+                  >
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Link"
+                  description="A label can be a link (`href`) or contain an item that links."
+                >
+                  <ui-label href="#label" icon="mail">23</ui-label>
+                </ui-docs-example>
+                <!-- GAP I78:  the linked detail draws the browser's link blue, not the label's colour. -->
+                <ui-docs-example>
+                  <ui-label icon="mail">23<ui-detail href="#label">View Mail</ui-detail></ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Prompt"
+                  description='A prompt label points at an invalid field.  Give it `role="alert"` and tie it to the field with `aria-describedby`.'
+                >
+                  <ui-field>
+                    <ui-input type="email" placeholder="E-mail" aria-describedby="label-prompt-email"></ui-input>
+                    <ui-label id="label-prompt-email" role="alert" basic pointing prompt
+                      >Please enter a valid e-mail</ui-label
+                    >
+                  </ui-field>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example header="Active" description="A label can show it is the current selection.">
+                  <ui-label href="#label" active>Active</ui-label>
+                  <ui-label href="#label">Inactive</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Disabled"
+                  description="A label can show it is currently unable to be interacted with."
+                >
+                  <ui-label href="#label" disabled>Disabled Label</ui-label>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example header="Fluid" description="A label can take the width of its container.">
+                  <ui-label fluid>Fits container</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example header="Centered" description="Text can be shown centered.">
+                  <ui-label fluid centered>Fits container</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example header="Circular" description="A label can be circular.">
+                  <ui-label color="red" href="#label" circular>2</ui-label>
+                  <ui-label color="orange" href="#label" circular>2</ui-label>
+                  <ui-label color="yellow" href="#label" circular>2</ui-label>
+                  <ui-label color="olive" href="#label" circular>2</ui-label>
+                  <ui-label color="green" href="#label" circular>2</ui-label>
+                  <ui-label color="teal" href="#label" circular>2</ui-label>
+                  <ui-label color="blue" href="#label" circular>2</ui-label>
+                  <ui-label color="violet" href="#label" circular>2</ui-label>
+                  <ui-label color="purple" href="#label" circular>2</ui-label>
+                  <ui-label color="pink" href="#label" circular>2</ui-label>
+                  <ui-label color="brown" href="#label" circular>2</ui-label>
+                  <ui-label color="grey" href="#label" circular>2</ui-label>
+                  <ui-label color="black" href="#label" circular>2</ui-label>
+                </ui-docs-example>
+                <ui-docs-example description="With `empty`, an empty dot.">
+                  <ui-label color="red" href="#label" empty circular></ui-label>
+                  <ui-label color="orange" href="#label" empty circular></ui-label>
+                  <ui-label color="yellow" href="#label" empty circular></ui-label>
+                  <ui-label color="olive" href="#label" empty circular></ui-label>
+                  <ui-label color="green" href="#label" empty circular></ui-label>
+                  <ui-label color="teal" href="#label" empty circular></ui-label>
+                  <ui-label color="blue" href="#label" empty circular></ui-label>
+                  <ui-label color="violet" href="#label" empty circular></ui-label>
+                  <ui-label color="purple" href="#label" empty circular></ui-label>
+                  <ui-label color="pink" href="#label" empty circular></ui-label>
+                  <ui-label color="brown" href="#label" empty circular></ui-label>
+                  <ui-label color="grey" href="#label" empty circular></ui-label>
+                  <ui-label color="black" href="#label" empty circular></ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example header="Basic" description="A label can reduce its complexity.">
+                  <ui-label href="#label" basic>Basic</ui-label>
+                  <ui-label href="#label" basic pointing>Pointing</ui-label>
+                  <ui-label href="#label" basic image="../images/avatar/small/elliot.jpg">Elliot</ui-label>
+                  <ui-label href="#label" color="red" basic pointing>Red Pointing</ui-label>
+                  <ui-label href="#label" color="blue" basic>Blue</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example header="Colored" description="A label can have different colors.">
+                  <ui-label color="primary" href="#label">Primary</ui-label>
+                  <ui-label color="secondary" href="#label">Secondary</ui-label>
+                  <ui-label color="red" href="#label">Red</ui-label>
+                  <ui-label color="orange" href="#label">Orange</ui-label>
+                  <ui-label color="yellow" href="#label">Yellow</ui-label>
+                  <ui-label color="olive" href="#label">Olive</ui-label>
+                  <ui-label color="green" href="#label">Green</ui-label>
+                  <ui-label color="teal" href="#label">Teal</ui-label>
+                  <ui-label color="blue" href="#label">Blue</ui-label>
+                  <ui-label color="violet" href="#label">Violet</ui-label>
+                  <ui-label color="purple" href="#label">Purple</ui-label>
+                  <ui-label color="pink" href="#label">Pink</ui-label>
+                  <ui-label color="brown" href="#label">Brown</ui-label>
+                  <ui-label color="grey" href="#label">Grey</ui-label>
+                  <ui-label color="black" href="#label">Black</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example header="Basic Tag Labels" description="Tag labels can be basic too.">
+                  <ui-label href="#label" basic tag>Standard Tag</ui-label>
+                  <ui-label color="primary" href="#label" basic tag>Primary</ui-label>
+                  <ui-label color="secondary" href="#label" basic tag>Secondary</ui-label>
+                  <ui-label color="red" href="#label" basic tag>Red</ui-label>
+                  <ui-label color="orange" href="#label" basic tag>Orange</ui-label>
+                  <ui-label color="yellow" href="#label" basic tag>Yellow</ui-label>
+                  <ui-label color="olive" href="#label" basic tag>Olive</ui-label>
+                  <ui-label color="green" href="#label" basic tag>Green</ui-label>
+                  <ui-label color="teal" href="#label" basic tag>Teal</ui-label>
+                  <ui-label color="blue" href="#label" basic tag>Blue</ui-label>
+                  <ui-label color="violet" href="#label" basic tag>Violet</ui-label>
+                  <ui-label color="purple" href="#label" basic tag>Purple</ui-label>
+                  <ui-label color="pink" href="#label" basic tag>Pink</ui-label>
+                  <ui-label color="brown" href="#label" basic tag>Brown</ui-label>
+                  <ui-label color="grey" href="#label" basic tag>Grey</ui-label>
+                  <ui-label color="black" href="#label" basic tag>Black</ui-label>
+                </ui-docs-example>
+
+                <ui-docs-example header="Size" description="A label can be small or large.">
+                  <ui-label size="mini">Mini</ui-label>
+                  <ui-label size="tiny">Tiny</ui-label>
+                  <ui-label size="small">Small</ui-label>
+                  <ui-label size="medium">Medium</ui-label>
+                  <ui-label size="large">Large</ui-label>
+                  <ui-label size="big">Big</ui-label>
+                  <ui-label size="huge">Huge</ui-label>
+                  <ui-label size="massive">Massive</ui-label>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="groups">Groups</ui-header>
+
+                <ui-docs-example
+                  header="Labels"
+                  description="Label groups also have a vertical margin to make sure labels don't appear attached together when wrapped:  `<ui-labels>`."
+                >
+                  <ui-labels>
+                    <ui-label>One</ui-label>
+                    <ui-label>Two</ui-label>
+                    <ui-label>Three</ui-label>
+                    <ui-label>Four</ui-label>
+                    <ui-label>Five</ui-label>
+                    <ui-label>Six</ui-label>
+                    <ui-label>Seven</ui-label>
+                    <ui-label>Eight</ui-label>
+                    <ui-label>Nine</ui-label>
+                    <ui-label>Ten</ui-label>
+                    <ui-label>Eleven</ui-label>
+                    <ui-label>Twelve</ui-label>
+                    <ui-label>Thirteen</ui-label>
+                    <ui-label>Fourteen</ui-label>
+                    <ui-label>Fifteen</ui-label>
+                    <ui-label>Sixteen</ui-label>
+                    <ui-label>Seventeen</ui-label>
+                    <ui-label>Eighteen</ui-label>
+                    <ui-label>Nineteen</ui-label>
+                    <ui-label>Twenty</ui-label>
+                    <ui-label>Twentyone</ui-label>
+                    <ui-label>Twentytwo</ui-label>
+                    <ui-label>Twentythree</ui-label>
+                    <ui-label>Twentyfour</ui-label>
+                    <ui-label>Twentyfive</ui-label>
+                    <ui-label>Twentysix</ui-label>
+                    <ui-label>Twentyseven</ui-label>
+                    <ui-label>Twentyeight</ui-label>
+                    <ui-label>Twentynine</ui-label>
+                    <ui-label>Thirty</ui-label>
+                  </ui-labels>
+                </ui-docs-example>
+
+                <ui-docs-example header="Group Size" description="Labels can share sizes together.">
+                  <ui-labels size="huge">
+                    <ui-label>Fun</ui-label>
+                    <ui-label>Happy</ui-label>
+                    <ui-label>Smart</ui-label>
+                    <ui-label>Witty</ui-label>
+                  </ui-labels>
+                </ui-docs-example>
+
+                <ui-docs-example header="Colored Group" description="Labels can share colors together.">
+                  <ui-labels color="blue">
+                    <ui-label href="#label" removable>Fun</ui-label>
+                    <ui-label href="#label" detail="22">Happy</ui-label>
+                    <ui-label href="#label">Smart</ui-label>
+                    <ui-label href="#label">Insane</ui-label>
+                    <ui-label href="#label">Exciting</ui-label>
+                  </ui-labels>
+                </ui-docs-example>
+
+                <ui-docs-example header="Basic Group" description="Labels can share their style together.">
+                  <ui-labels basic>
+                    <ui-label href="#label" removable>Fun</ui-label>
+                    <ui-label href="#label" detail="22">Happy</ui-label>
+                    <ui-label href="#label">Smart</ui-label>
+                    <ui-label href="#label">Insane</ui-label>
+                    <ui-label href="#label">Exciting</ui-label>
+                  </ui-labels>
+                </ui-docs-example>
+
+                <ui-docs-example header="Tag Group" description="Labels can share tag formatting.">
+                  <ui-labels tag>
+                    <ui-label href="#label">$10.00</ui-label>
+                    <ui-label href="#label">$19.99</ui-label>
+                    <ui-label href="#label">$24.99</ui-label>
+                    <ui-label href="#label">$30.99</ui-label>
+                    <ui-label href="#label">$10.25</ui-label>
+                  </ui-labels>
+                </ui-docs-example>
+
+                <ui-docs-example header="Circular Group" description="Labels can share shapes.">
+                  <ui-labels circular>
+                    <ui-label href="#label">11</ui-label>
+                    <ui-label href="#label">22</ui-label>
+                    <ui-label href="#label">33</ui-label>
+                    <ui-label href="#label">44</ui-label>
+                    <ui-label href="#label">141</ui-label>
+                  </ui-labels>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  how to use it, events, positioned labels, keyboard, accessibility, frameworks. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Write `<ui-label>` with text inside, and add attributes for the look: `<ui-label color="red" basic tag>`.
+
+                    - `href` renders a link; without one the label is a plain `<span>`-like box.
+                    - `icon` puts an icon before the text (alone, it centres the icon); the `icon` slot takes any markup.
+                    - `detail` adds a dimmer second value (a count); a `<ui-detail>` child does the same, and with `href` it links.
+                    - `image` with a URL makes an image label around its own photo; bare `image` styles a slotted `<img>`.
+                    - `<ui-labels>` shares `size`, `color`, `basic`, `tag`, `circular` ... with every label inside it.
+                    - Colour follows Fomantic: a plain label stays grey inside a coloured owner (a red segment); only its own
+                      `color`, or its `<ui-labels color>` group's, paints it.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="positioned">Positioned labels</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `corner`, `ribbon`, `attached` and `floating` labels place themselves against their OWNER: the nearest positioned
+                    box around them (`position: relative`).
+
+                    - `<ui-segment>`, `<ui-card>`, `<ui-input>` and menu items are owners already, and tell the label their border
+                      width and radius.
+                    - Anything else: give it `position: relative`, and set `--ui-label-owner-edge` / `--ui-label-owner-radius` on it
+                      to match its border.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A plain click is the native `click`. `ui-remove` is the only custom event: a `removable` label fires it when its
+                    delete button is activated. It is cancelable, and the label does NOT remove itself: remove it in the listener.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    document.addEventListener("ui-remove", (event) => {
+                      if (event.target.matches("ui-label")) event.target.remove()
+                    })
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - A label with `href` is a real link: **Tab** reaches it, **Enter** follows it.
+                    - Without `href` a label is inert text, never a tab stop.
+                    - A `removable` label's delete button is its own tab stop; **Enter** or **Space** fires `ui-remove`.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - An icon-only label (`icon` with no text) needs an `aria-label`.
+                    - `removable` adds a delete button with its own accessible name ("Remove", translatable).
+                    - A `prompt` label under a field should carry `role="alert"` and be tied to the field with `aria-describedby`, as
+                      the Prompt example does; it is only a look, so it does not link itself to the input.
+                    - Colour is never the only signal: a label's text carries its meaning.
+                    - Without JavaScript the native fallback renders the same `ui label` element around a slot, so text, links and
+                      colours stay; the `removable` delete button (and `ui-remove`), the `icon` glyph and the `image` shorthand are
+                      dropped.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Events are `ui-*`, so use your framework's custom-event syntax.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-label removable onui-remove={() => removeTag(tag)}>{tag}</ui-label>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <ui-label removable @ui-remove="removeTag(tag)">{{ tag }}</ui-label>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-label removable ref={(el) => el.addEventListener("ui-remove", () => removeTag(tag))}>
+                      {tag}
+                    </ui-label>
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-label"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-label-*` tokens: set one on the element, on any ancestor (a `<ui-labels>` group,
+                    `:root`), or on the label's box through `::part(label)`. They inherit into the shadow root, where the sheet reads
+                    each through a private alias, so nothing inside blocks them.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    /* square tags in one group */
+                    ui-labels.tags {
+                      --ui-label-radius: 0;
+                    }
+                    /* an owner of yours, with a 2px border */
+                    .photo-frame {
+                      position: relative;
+                      --ui-label-owner-edge: 2px;
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      Positioned labels (`corner`, `ribbon`, `attached`, `floating`) read `--ui-label-owner-edge` and
+                      `--ui-label-owner-radius` from their owner, so set those on the element that holds them (`<ui-segment>`,
+                      `<ui-input>` ... set them for you). Never set the `--_ui-label-*` names: they're the sheet's private plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-label" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site.
+
+                    Themes that restyle labels: GitHub.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

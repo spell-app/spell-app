@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Utilities | Spell UI</title>
+    <meta
+      name="description"
+      content="Token-driven layout, sizing, text, colour and visibility classes, on your markup and inside components."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/utilities.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=Utilities%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Utilities
+                <ui-header
+                  >Token-driven layout, sizing, text, colour and visibility classes, on your markup and inside
+                  components.</ui-header
+                >
+              </ui-header>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc header="Utilities"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <article class="site-article">
+              <!--
+                UTILITIES:  the old `utilities.mdx` (our own:  Fomantic has no utilities page), section by section.
+                - The utilities are CLASSES for your own markup, so the examples are plain `<div class="ui-...">`s:  the subject,
+                  not page chrome.  The boxes they arrange are utility-drawn placeholders too.
+                - `style=` only where the utility's own knob IS a custom property (`--min-column-size`, `--content-percentage`).
+              -->
+              <ui-header level="2" dividing id="overview">Overview</ui-header>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Every utility is a `ui-*` class in `@layer ui.utilities`, injected into the page AND adopted into every shadow
+                  root, so it works on your markup and inside components alike. Lengths come from the spacing tokens (`em` of the
+                  local font size), so utilities scale with their region. Modifiers use an escaped colon (`ui-split:column`, written
+                  `.ui-split\:column` in CSS), fractions an escaped slash (`ui-w-1/2`).
+
+                  - `<space>` is `3xs 2xs xs s m l xl 2xl 3xl`.
+                  - `<size>` is `mini tiny small medium large big huge massive`.
+                  - The pale blue boxes below are placeholders, themselves drawn with utilities (`ui-bg-blue ui-p-s ui-rounded-s`).
+                </script>
+              </ui-markdown>
+
+              <ui-header level="2" dividing id="layout">Layout</ui-header>
+
+              <ui-docs-example
+                header="Stack"
+                description="`ui-stack`:  children in a column with even gaps;  their own block margins are dropped."
+              >
+                <div class="ui-stack">
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">One</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">Two</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">Three</div>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Cluster"
+                description="`ui-cluster`:  inline items that wrap, e.g. tags or buttons."
+              >
+                <div class="ui-cluster">
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">Alpha</span>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">Bravo</span>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">Charlie</span>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">Delta</span>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">Echo</span>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Split"
+                description="`ui-split`:  push items to opposite ends;  `ui-split:column` / `ui-split:row` fix the direction."
+              >
+                <div class="ui-split">
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">Start</span>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">End</span>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Flank"
+                description="`ui-flank`:  a fixed-size item beside flexible content, wrapping when the content gets narrower than `--content-percentage` (70%).  `ui-flank:end` flanks the last child."
+              >
+                <div class="ui-flank">
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">Flank</span>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">Flexible content takes the rest of the row.</div>
+                </div>
+                <div class="ui-flank ui-flank:end">
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">Flexible content first, the flank at the end.</div>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">Flank</span>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Frame"
+                description="`ui-frame`:  a fixed aspect ratio, media inside covers it;  `ui-frame:square`, `:landscape`, `:portrait`."
+              >
+                <div class="ui-cluster ui-align-items-start">
+                  <div class="ui-frame ui-frame:square ui-bg-blue ui-w-1/4">square</div>
+                  <div class="ui-frame ui-frame:landscape ui-bg-green ui-w-1/3">landscape</div>
+                  <div class="ui-frame ui-frame:portrait ui-bg-violet ui-w-1/4">portrait</div>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Grid"
+                description="`ui-grid`:  as many columns as fit, each at least `--min-column-size` (default `20ch`);  `ui-span-grid` spans a full row."
+              >
+                <div class="ui-grid" style="--min-column-size: 8em">
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">1</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">2</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">3</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">4</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s ui-span-grid">ui-span-grid</div>
+                </div>
+              </ui-docs-example>
+
+              <!-- SUSPECTED BUG (SUSPECTED-BUGS.md, ui):  `ui-gap-*` loses to the layout primitives' own `gap` (same specificity, earlier in the sheet), so these rows are `ui-flex`, not `ui-cluster`. -->
+              <ui-docs-example
+                header="Gap"
+                description="`ui-gap-<space>` sets the gap of a flex or grid container;  `ui-gap-0` removes it."
+              >
+                <div class="ui-stack ui-gap-s">
+                  <div class="ui-flex ui-gap-3xs">
+                    <span class="ui-bg-blue ui-p-s ui-rounded-s">3xs</span>
+                    <span class="ui-bg-blue ui-p-s ui-rounded-s">3xs</span>
+                  </div>
+                  <div class="ui-flex ui-gap-m">
+                    <span class="ui-bg-blue ui-p-s ui-rounded-s">m</span>
+                    <span class="ui-bg-blue ui-p-s ui-rounded-s">m</span>
+                  </div>
+                  <div class="ui-flex ui-gap-2xl">
+                    <span class="ui-bg-blue ui-p-s ui-rounded-s">2xl</span>
+                    <span class="ui-bg-blue ui-p-s ui-rounded-s">2xl</span>
+                  </div>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Align and justify"
+                description="`ui-align-items-*`, `ui-align-self-*`, `ui-justify-content-*`, `ui-flex-wrap` / `-nowrap`."
+              >
+                <div class="ui-flex ui-align-items-end ui-justify-content-space-between ui-gap-s">
+                  <div class="ui-bg-blue ui-p-l ui-rounded-s">tall box</div>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s ui-align-self-center">self center</span>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s">end</span>
+                </div>
+              </ui-docs-example>
+
+              <ui-header level="2" dividing id="sizing">Sizing</ui-header>
+
+              <ui-docs-example
+                header="Widths"
+                description="`ui-w-1/2`, `1/3`, `2/3`, `1/4`, `3/4`, `full`, `auto`, `fit`;  `ui-h-full`, `auto`, `fit`."
+              >
+                <div class="ui-stack ui-gap-xs">
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s ui-w-1/4">ui-w-1/4</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s ui-w-1/2">ui-w-1/2</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s ui-w-3/4">ui-w-3/4</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s ui-w-fit">ui-w-fit</div>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Margin and padding"
+                description="`ui-m[-side]-<space>` and `ui-p[-side]-<space>`, logical sides `b i bs be is ie`."
+              >
+                <div class="ui-cluster ui-align-items-start">
+                  <div class="ui-bg-grey ui-p-2xs">ui-p-2xs</div>
+                  <div class="ui-bg-grey ui-p-l">ui-p-l</div>
+                  <div class="ui-bg-grey ui-p-i-xl">ui-p-i-xl</div>
+                  <div class="ui-bg-grey ui-m-bs-l">ui-m-bs-l</div>
+                </div>
+              </ui-docs-example>
+
+              <ui-header level="2" dividing id="text">Text</ui-header>
+
+              <ui-docs-example
+                header="Roles"
+                description="`ui-body`, `ui-heading`, `ui-caption`, each with sized variants (`ui-heading-large` ...)."
+              >
+                <div class="ui-stack ui-gap-2xs">
+                  <p class="ui-heading ui-m-0">ui-heading</p>
+                  <p class="ui-heading-small ui-m-0">ui-heading-small</p>
+                  <p class="ui-body ui-m-0">ui-body: the running text of a page.</p>
+                  <p class="ui-caption ui-m-0">ui-caption: smaller and muted.</p>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Size and weight"
+                description="`ui-font-size-<size>`, `ui-font-weight-{light,normal,semibold,bold}`, `ui-bold`, `ui-italic`, `ui-muted`."
+              >
+                <div class="ui-cluster ui-align-items-baseline">
+                  <span class="ui-font-size-tiny">tiny</span>
+                  <span class="ui-font-size-large">large</span>
+                  <span class="ui-font-size-huge">huge</span>
+                  <span class="ui-font-weight-light">light</span>
+                  <span class="ui-font-weight-semibold">semibold</span>
+                  <span class="ui-bold">bold</span>
+                  <span class="ui-italic">italic</span>
+                  <span class="ui-muted">muted</span>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Alignment and wrapping"
+                description="`ui-text-{start,center,end,justify}`, `ui-text-{nowrap,balance,pretty,truncate}`, `ui-text-{uppercase,lowercase,capitalize}`."
+              >
+                <div class="ui-stack ui-gap-xs">
+                  <p class="ui-text-center ui-m-0">ui-text-center</p>
+                  <p class="ui-text-end ui-m-0">ui-text-end</p>
+                  <p class="ui-text-truncate ui-w-1/2 ui-m-0">
+                    ui-text-truncate cuts a long line off with an ellipsis instead of wrapping it onto the next line
+                  </p>
+                  <p class="ui-text-uppercase ui-m-0">ui-text-uppercase</p>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Links and lists"
+                description="`ui-link`, `ui-link-plain` (underline on hover only), `ui-list-plain`."
+              >
+                <div class="ui-stack ui-gap-xs">
+                  <p class="ui-m-0">
+                    <a class="ui-link" href="#links-and-lists">ui-link</a> and
+                    <a class="ui-link-plain" href="#links-and-lists">ui-link-plain</a>
+                  </p>
+                  <ul class="ui-list-plain ui-m-0" role="list">
+                    <li>ui-list-plain</li>
+                    <li>no bullets, no indent</li>
+                  </ul>
+                </div>
+              </ui-docs-example>
+
+              <ui-header level="2" dividing id="colour">Colour</ui-header>
+
+              <ui-docs-example
+                header="Colour roles"
+                description="`ui-text-<colour>`, `ui-bg-<colour>` (the pale background role), `ui-border-<colour>` (with a border width of your own)."
+              >
+                <div class="ui-cluster">
+                  <span class="ui-text-red">ui-text-red</span>
+                  <span class="ui-bg-green ui-p-2xs">ui-bg-green</span>
+                  <span class="ui-text-violet ui-bg-violet ui-p-2xs ui-rounded-s">ui-text-violet ui-bg-violet</span>
+                  <span class="ui-text-orange ui-bg-orange ui-p-2xs ui-rounded-s">ui-text-orange ui-bg-orange</span>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Remap"
+                description="`ui-<hue>` re-points the generic `--ui-color` tokens, so it recolours the uncoloured components inside a wrapper that take a colour (buttons, checkboxes, progress bars ...)."
+              >
+                <div class="ui-teal ui-cluster">
+                  <ui-button>Button</ui-button>
+                  <ui-progress value="40" class="ui-w-1/3" aria-label="Progress"></ui-progress>
+                  <ui-checkbox selected>Checkbox</ui-checkbox>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Scheme"
+                description="`ui-light`, `ui-dark` force a scheme on a subtree;  `ui-invert` flips relative to its parent."
+              >
+                <div class="ui-cluster">
+                  <ui-segment class="ui-light">ui-light</ui-segment>
+                  <ui-segment class="ui-dark">
+                    ui-dark
+                    <ui-segment class="ui-invert">ui-invert</ui-segment>
+                  </ui-segment>
+                </div>
+              </ui-docs-example>
+
+              <ui-header level="2" dividing id="shape">Shape</ui-header>
+
+              <ui-docs-example header="Rounding" description="`ui-rounded-{s,m,l,pill,circle,square}`.">
+                <div class="ui-cluster">
+                  <div class="ui-bg-blue ui-p-s ui-rounded-square">square</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-s">s</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-m">m</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-l">l</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-pill">pill</div>
+                  <div class="ui-bg-blue ui-p-s ui-rounded-circle ui-frame ui-frame:square">circle</div>
+                </div>
+              </ui-docs-example>
+
+              <ui-header level="2" dividing id="misc">Misc</ui-header>
+
+              <ui-docs-example
+                header="Prose"
+                description="`ui-prose`:  readable rich text (a line measure plus vertical rhythm);  `ui-not-prose` opts a subtree back out."
+              >
+                <div class="ui-prose">
+                  <h3>A heading</h3>
+                  <p>
+                    Paragraphs, lists and quotes get a measure and even spacing, so CMS or markdown output reads well.
+                  </p>
+                  <blockquote>A quote, with a rule on its start side.</blockquote>
+                  <div class="ui-not-prose">
+                    <h3>ui-not-prose: untouched</h3>
+                  </div>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Visually hidden"
+                description="`ui-visually-hidden` hides content but keeps it for screen readers, and shows it again when focus moves inside (skip links);  `ui-visually-hidden-force` never shows it."
+              >
+                <div class="ui-cluster">
+                  <span>Visible text</span>
+                  <span class="ui-visually-hidden">read by screen readers only</span>
+                  <a class="ui-visually-hidden" href="#visually-hidden">Tab to me</a>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Cloak"
+                description="`ui-cloak` hides undefined custom elements (FOUCE) until they upgrade, for 2s at most."
+              >
+                <div class="ui-cloak">
+                  <ui-button primary>Shown once defined</ui-button>
+                </div>
+              </ui-docs-example>
+
+              <ui-docs-example
+                header="Display"
+                description="`ui-hidden`, `ui-block`, `ui-flex`;  `ui-hidden-{mobile,tablet,computer}` hide at a breakpoint (resize the window)."
+              >
+                <div class="ui-cluster">
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s ui-hidden-mobile">hidden on mobile</span>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s ui-hidden-tablet">hidden on tablet</span>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s ui-hidden-computer">hidden on computer</span>
+                  <span class="ui-bg-blue ui-p-s ui-rounded-s ui-hidden">never shown</span>
+                </div>
+              </ui-docs-example>
+            </article>
+          </ui-container>
+
+          <ui-include class="site-footer" source="_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

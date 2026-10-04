@@ -11,6 +11,7 @@
   ],
   "settings": {
     "workbench.colorTheme": "Tomorrow Night Blue",
+    "git.detectWorktrees": true,
     "workbench.colorCustomizations": {
       "titleBar.activeBackground": "#0000cd",
       "titleBar.activeForeground": "#ffffff",

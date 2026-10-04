@@ -36,11 +36,12 @@ Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan
 | 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`), the total estimate (`p.plan-estimate`, written by the script), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
 | 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  goal, files, verify, estimate |
 | 3. Questions & Decisions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then what was decided and why:  settled unless new facts arrive.  `decide` answers a question:  the decision goes at the end, the struck question just above it |
-| 4. Caveats | `#caveats` | limits and risks we accept |
-| 5. Todos | `#todos` | later work that isn't a caveat or an issue |
-| 6. Issues | `#issues` | problems found, open until fixed |
-| 7. To test | `#tests` | what Owen checks by hand before merging:  each a step and what should happen (`add <name> test`);  `close` one once it passes |
-| 8. Log | `#log` | one-liners of plan changes, stamped with local date and time |
+| 4. Judgement calls | `#judgements` | choices Claude made WITHOUT the user (a `/bedtime` run, an agent mid-phase):  title the choice, details "chose X over Y because Z" + the options;  open until the user reviews it, `close` = accepted, disagreement becomes a question.  Every one ALSO linked from its phase's body (`<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j2">J2</a></ui-item>`) |
+| 5. Caveats | `#caveats` | limits and risks we accept |
+| 6. Todos | `#todos` | later work that isn't a caveat or an issue |
+| 7. Issues | `#issues` | problems found, open until fixed |
+| 8. To test | `#tests` | what Owen checks by hand before merging:  each a step and what should happen (`add <name> test`);  `close` one once it passes |
+| 9. Log | `#log` | one-liners of plan changes, stamped with local date and time |
 
 - Every section is a `<ui-section>` (markup below):  its title sticks, it folds from its chevron (the reader's folds
   are remembered per page), a rule runs under its title.
@@ -68,11 +69,15 @@ Section markup (the template's;  a hand-written Overview sub-section is the same
 - `header` is the title;  a title with markup is a `<span slot="header">` first inside instead (`1.2 The <code>x</code>
   API`)
 - every section `sticky collapsible dividing`;  `collapsed` starts it folded
+- in the browser, EVERY section of a plan doc starts folded (`spell-doc-runtime.js` `wireSectionFolds()`), unless
+  the reader opened or closed it before:  Owen opens what he wants.  `collapsed` in the markup still matters for
+  pages opened from disk without the runtime, and for the script's own bookkeeping.  A link to any id inside
+  (`#q3`, `#p2`) unfolds the sections around it and lands on it
 - NEVER change an `id`:  the items, the log and other docs link to them
 
 ## Ids:  short, so they're easy to say in chat
 
-- Items:  `q1` questions, `c1` caveats, `i1` issues, `t1` todos, `v1` tests ("verify":  `t` is taken), `d1` decisions.  Shown as `Q1`, `C1` ...
+- Items:  `q1` questions, `j1` judgement calls, `c1` caveats, `i1` issues, `t1` todos, `v1` tests ("verify":  `t` is taken), `d1` decisions.  Shown as `Q1`, `J1`, `C1` ...
 - Phases:  `p1` ...  Shown as `P1 · Short Name`:  a 2-4 word name, so "start P2" is unambiguous.
 - Link to them in prose:  `<a href="#i2">I2</a>`.  `yarn plan-doc check` fails on a link to a missing id.
 
@@ -221,7 +226,7 @@ decide from WITHOUT asking back:  in the item's details, or an Overview sub-sect
 | `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `epics/<name>/<name>.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
 | `add-phase <name> "Short Name" [--goal ...] [--files ...] [--verify ...]` | append a phase to the list and to `#phases` |
 | `phase <name> <N> todo\|active\|done [--no-open]` | set a phase's status;  `done` removes its UPDATE markers;  reloads the doc's VS Code tab |
-| `add <name> question\|caveat\|issue\|todo\|test\|decision "<title>" [--details "<html>"]` | append an item, print its id |
+| `add <name> question\|judgement\|caveat\|issue\|todo\|test\|decision "<title>" [--details "<html>"]` | append an item, print its id |
 | `close <name> <id>` / `reopen <name> <id>` | strike / unstrike an item |
 | `decide <name> <Q id> "<decision>" [--details "<html>"]` | answer a question:  a new decision (prints its id), the question struck and moved just above it |
 | `log <name> "<text>"` | add a timestamped line to the log |
@@ -233,6 +238,6 @@ decide from WITHOUT asking back:  in the item's details, or an Overview sub-sect
 | `items <name> [--section <s>] [--filter unreviewed\|open\|reviewed\|queued\|all] [--json]` | what a review walks:  where reviews stand, the to-do list, each section's counts and items |
 | `list [--json]` | every epic in main and the worktrees:  in progress / done, not reviewed / all |
 | `backfill <name> \| --all [--apply]` | one-off:  items not reviewed that Owen named in a past session of the epic (his message, or a modal he answered);  a dry run unless `--apply`, which marks them dated that day (`scripts/review-backfill.js`) |
-| `summary <name> [--json]` | open questions, issues, caveats, todos, tests, and the next phase |
+| `summary <name> [--json]` | open questions, judgement calls, issues, caveats, todos, tests, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
 | `open <name>` | show the doc rendered in VS Code (Simple Browser, beside the editor), reusing its tab and reloading it;  needs the spell extension (`yarn vscode`) |

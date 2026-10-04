@@ -6,6 +6,7 @@ import type { TableColumn, TableRow, TableSortDetail } from "$/ui/components/com
 import type { UIHost } from "$/ui/elements"
 import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Viewport } from "$/ui/test/viewport"
 
 import "$/ui/components/ui-table"
 
@@ -229,6 +230,20 @@ describe("<ui-table> shadow markup", () => {
     wrapper.style.width = "900px"
     await new Promise((resolve) => requestAnimationFrame(resolve))
     expect(getComputedStyle(own!.querySelector("td")!).display).toBe("table-cell")
+  })
+
+  it("follows the page-wide `--ui-stack-with` when it has neither `stack-by` nor its own token", async () => {
+    const wrapper = await ElementFixture.render<HTMLElement>(
+      `<div style="width: 500px; --ui-stack-with: container"><ui-table><table>${HEAD}${BODY}</table></ui-table>` +
+        `<ui-table stack-by="viewport"><table>${HEAD}${BODY}</table></ui-table></div>`
+    )
+    await settle()
+    const [token, own] = wrapper.querySelectorAll("table")
+    expect(getComputedStyle(token!.querySelector("td")!).display).toBe("block")
+    expect(getComputedStyle(own!.querySelector("td")!).display).toBe("table-cell")
+    wrapper.style.setProperty("--ui-stack-with", "page")
+    await Viewport.frame()
+    expect(getComputedStyle(token!.querySelector("td")!).display).toBe("table-cell")
   })
 
   it("stacks by its own width when `--ui-table-stack-by: container` opts in", async () => {

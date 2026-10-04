@@ -1,0 +1,54 @@
+/*
+ * striped theme:  Fomantic's `striped` theme, diagonal stripes on progress bars that march while `active`,
+ * `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("striped")` registers `classic` + this sheet).
+ * - Touches ONE component:  `<ui-progress>` (`.ui.progress`).  Its shadow root renders
+ *   `<div class="ui ... progress"><div class="bar">...</div>...</div>`;  the stripes are a `background-image` over
+ *   the bar's colour, so colours, `indicating` and states still show through.
+ * - Overrides (`progress.overrides`;  `progress.variables` is empty):
+ *   - every bar:  white 8% stripes at 135deg, a `30px` tile (`2.14286em` at classic's 14px:  scales with the bar)
+ *   - `active`:  the pulse (`.bar::after`) stops, and the stripes march instead (`ui-theme-striped`, 3s a tile pair)
+ * - A bar with nothing done yet keeps no stripes either (the component paints it transparent).
+ * - NOTE: in shadow roots, reduced motion stops every animation (`reset.css`), this one included.
+ * - Nothing left out.
+ */
+
+@layer ui.theme {
+  .ui.progress .bar {
+    background-size: 2.14286em 2.14286em;
+    background-image: linear-gradient(
+      135deg,
+      oklch(1 0 0 / 0.08) 25%,
+      transparent 25%,
+      transparent 50%,
+      oklch(1 0 0 / 0.08) 50%,
+      oklch(1 0 0 / 0.08) 75%,
+      transparent 75%,
+      transparent
+    );
+  }
+  .ui.progress:not([data-percent], .indeterminate) .bar:not(:empty),
+  .ui.progress[data-percent="0"]:not(.indeterminate) .bar:not(:empty) {
+    background-image: none;
+  }
+
+  .ui.active.progress .bar::after {
+    animation: none;
+  }
+  .ui.active.progress .bar {
+    animation: ui-theme-striped 3s linear infinite;
+  }
+  /* Outcomes and `disabled` stand still, as the component's own animations do. */
+  .ui:is(.success, .warning, .error, .disabled).progress .bar {
+    animation: none;
+  }
+
+  @keyframes ui-theme-striped {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 4.28571em 0;
+    }
+  }
+}

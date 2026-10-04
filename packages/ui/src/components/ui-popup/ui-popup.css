@@ -351,6 +351,14 @@
   .ui.flowing.popup {
     max-width: none;
   }
+  /*
+   * A slotted grid is a size container (`ui-grid.css`), so its inline size ignores its content and a popup sized
+   * BY its content collapses to a sliver.  Drop the containment here:  this outer tree's `::slotted()` beats the
+   * grid's own `:host` rule.  Its stackable / device ranges then follow the nearest container above.
+   */
+  .ui.flowing.popup > ::slotted(ui-grid) {
+    container-type: normal;
+  }
 
   /* ## Inverted:  the opposite scheme's ink;  a coloured one takes the hue's light variant. */
   .ui.inverted.popup {

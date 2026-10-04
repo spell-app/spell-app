@@ -44,3 +44,16 @@ export type PageServerSettings = {
   /** folders to live-reload, relative to the root (default `["packages/docs"]`) */
   watch?: string[]
 }
+
+/**
+ * Spell UI's docs site, served at `/ui/`:  `packages/ui/site/`, plain `.html` pages loading the committed bundle
+ * `_assets/site.js` (`yarn site:build` in `packages/ui`).
+ * - Static and live-reloading, like the docs:  no dev server behind it (was `astro dev`, proxied, until 2026-10-02)
+ * - `ignore`:  the bundle's entry (`_src/`), which nothing serves, doesn't reload pages;  a rebuilt `_assets/` does
+ *   (`yarn site:dev` rebuilds it on every source edit)
+ */
+export const UI_SITE = {
+  prefix: "/ui",
+  dir: "packages/ui/site",
+  ignore: /(^|\/)_src\//
+} as const

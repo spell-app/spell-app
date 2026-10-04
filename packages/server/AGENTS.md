@@ -31,7 +31,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   extension.
 - NOT in the barrel, opt-in by path:
   - `$/server/page/...` -- the page server (one per checkout), its CLI (`yarn server`), page edits, running epics
-    (`RunningEpics`:  the main checkout's server shows every worktree's plan doc);  may use deps (`parse5`)
+    (`RunningEpics`:  the main checkout's server shows every worktree's plan doc);  may use deps (`parse5`).  It serves
+    the repo at `/`, and Spell UI's docs, `packages/ui/site/`, as static pages at `/ui/` (`UI_SITE`, `page.types.ts`;
+    no dev server:  they load the committed bundle `yarn site:build` writes)
   - `$/server/site/...` -- browser code:  the site header every page shows
   - `$/server/test/...` -- test helpers (`serveHandler`, `ask`)
 - Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (node).

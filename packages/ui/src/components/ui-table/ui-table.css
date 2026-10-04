@@ -70,7 +70,8 @@
   /* Host:  a block and the size container `stackable` answers to;  the flag that says "hosted". */
   :host {
     --_table-hosted: 1;
-    --_table-stack-by: var(--ui-table-stack-by, viewport);
+    /* the table's own token, else the page-wide `stack-with` one (`page` ~== `viewport`), else the viewport */
+    --_table-stack-by: var(--ui-table-stack-by, var(--ui-stack-with, viewport));
   }
   :host {
     /* a colour or size from outside never reaches the table:  its own classes remap them again */
@@ -1041,6 +1042,8 @@
    * - By the HOST's width (`@container`) only when an element opts in:  `stack-by="container"`, or
    *   `--ui-table-stack-by: container` on the host, an ancestor or the page (a table in a narrow sidebar of a wide
    *   screen);  the attribute wins.
+   * - Without either, the page-wide `--ui-stack-with` (`<ui-root stack-with>`, the token every stacking element
+   *   follows) decides:  `container` stacks by the host's width, `page` by the viewport.
    */
   /*
    * Order matters below (same layer, equal specificity:  the later rule wins):

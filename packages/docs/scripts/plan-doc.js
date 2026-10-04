@@ -11,7 +11,7 @@
  */
 import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
-import { basename, dirname, join, relative } from "node:path"
+import { basename, dirname, join, relative, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
@@ -47,7 +47,8 @@ export const KINDS = {
   issue: { prefix: "i", list: "issue", live: "open" },
   todo: { prefix: "t", list: "todo", live: "open" },
   test: { prefix: "v", list: "test", live: "open" },
-  decision: { prefix: "d", list: "decision", live: "decided" }
+  decision: { prefix: "d", list: "decision", live: "decided" },
+  judgement: { prefix: "j", list: "judgement", live: "open" }
 }
 
 /**
@@ -56,6 +57,7 @@ export const KINDS = {
  */
 const REVIEW_SECTIONS = [
   { kind: "question", label: "Questions" },
+  { kind: "judgement", label: "Judgement calls" },
   { kind: "caveat", label: "Caveats" },
   { kind: "todo", label: "Todos" },
   { kind: "issue", label: "Issues" },
@@ -74,21 +76,26 @@ const REVIEW_FILTERS = {
   all: () => true
 }
 
-/** Kinds `summary` reports while open, in the order a reader should act on them. */
-const OPEN_KINDS = ["question", "issue", "caveat", "todo", "test"]
+/**
+ * Kinds `summary` reports while open, in the order a reader should act on them.
+ * - `judgement`:  a choice Claude made without Owen (a `/bedtime` run, an agent mid-phase);  open until he reviews
+ *   it, then `close`d (accepted), or turned into a question.
+ */
+const OPEN_KINDS = ["question", "judgement", "issue", "caveat", "todo", "test"]
 
 /**
  * The sections, in page order, by id (the `<ui-section>`'s, or an old doc's h2's):  `migrate` puts an older doc's
  * sections in this order and renumbers their titles.  `#plan` (summary + phase list) was dropped on 2026-10-01, and `#questions` merged into
  * `#decisions` ("Questions & Decisions").
  */
-const SECTION_ORDER = ["overview", "phases", "decisions", "caveats", "todos", "issues", "tests", "log"]
+const SECTION_ORDER = ["overview", "phases", "decisions", "judgements", "caveats", "todos", "issues", "tests", "log"]
 
 /** Each section's icon, by its id (the template's):  `migrate` gives one to a section that has none. */
 const SECTION_ICONS = {
   overview: "lightbulb",
   phases: "layer group",
   decisions: "gavel",
+  judgements: "compass",
   caveats: "triangle exclamation",
   todos: "list check",
   issues: "bug",
@@ -107,6 +114,16 @@ const PHASE_SECTIONS = "ui-section#phases ui-section[data-phase], #phases-sectio
 const DECISIONS_NOTE =
   "Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, " +
   "don't re-argue without new facts. An answered question sits just above its decision."
+
+/** The `#judgements` section as the template has it:  `migrate` adds it to older docs (`addJudgements()`). */
+const JUDGEMENTS_SECTION = `<ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing>
+          <ui-icon slot="icon" name="compass"></ui-icon>
+          <p class="meta">
+            Choices made without you (a bedtime run, an agent mid-phase):  what was chosen, over what, and why.
+            Open until you review it;  struck = accepted.  Disagree:  say so, and it becomes a question.
+          </p>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>`
 
 /**
  * A phase body's fields:  label and icon.
@@ -452,10 +469,13 @@ ${list}`
     return item
   }
 
-  /** Items of `kind`, in order:  `{ id, title, status }`. */
-  items(kind) {
+  /**
+   * Items of `kind`, in order:  `{ id, title, status }`.
+   * - `list`:  where to look;  default `listOf(kind)`, which adds or requires it.  `null`:  none.
+   */
+  items(kind, list = this.listOf(kind)) {
     const pattern = new RegExp(`^${KINDS[kind].prefix}\\d+$`)
-    return Array.from(this.listOf(kind).children)
+    return Array.from(list?.children ?? [])
       .filter((item) => pattern.test(item.id))
       .map((item) => ({
         id: item.id,
@@ -469,11 +489,21 @@ ${list}`
    * - `test` in a doc from before "To test" (2026-10-03):  the section is added first (`addTestsSection()`)
    */
   listOf(kind) {
-    const spec = KINDS[kind]
-    const own = this.document.querySelector(`.plan-items[data-kind="${kind}"]`)
-    if (own) return own
+    const found = this.findList(kind)
+    if (found) return found
     if (kind === "test") return this.addTestsSection()
-    return this.require(`.plan-items[data-kind="${spec.list}"]`)
+    return this.require(`.plan-items[data-kind="${KINDS[kind].list}"]`)
+  }
+
+  /**
+   * `listOf()` for READING:  the list `kind`'s items live in, or `null`;  never adds a section, never throws.
+   * - a doc older than a kind's section (`#judgements`, `#tests`:  2026-10-03) has none of that kind open
+   */
+  findList(kind) {
+    return (
+      this.document.querySelector(`.plan-items[data-kind="${kind}"]`) ??
+      this.document.querySelector(`.plan-items[data-kind="${KINDS[kind].list}"]`)
+    )
   }
 
   /**
@@ -613,7 +643,7 @@ ${list}`
     if (!REVIEW_FILTERS[filter]) throw new PlanDocError(`filter must be ${Object.keys(REVIEW_FILTERS).join(" / ")}`)
     return REVIEW_SECTIONS.map(({ kind, label }) => {
       const pattern = new RegExp(`^${KINDS[kind].prefix}\\d+$`)
-      const all = Array.from(this.listOf(kind).children)
+      const all = Array.from(this.findList(kind)?.children ?? [])
         .filter((item) => pattern.test(item.id))
         .map((item) => this.reviewItem(item))
       const notReviewed = all.filter((item) => REVIEW_FILTERS.unreviewed(item)).length
@@ -723,7 +753,8 @@ ${list}`
   summary() {
     const phases = this.phases
     const open = Object.fromEntries(
-      OPEN_KINDS.map((kind) => [kind, this.items(kind).filter((item) => item.status === "open")])
+      // `findList()`:  a doc not yet migrated still reads, as `/epics` reads every plan doc
+      OPEN_KINDS.map((kind) => [kind, this.items(kind, this.findList(kind)).filter((item) => item.status === "open")])
     )
     return {
       title: this.document.querySelector("h1")?.textContent.trim() ?? "",
@@ -802,6 +833,7 @@ ${list}`
     const items = this.migrateItems()
     if (items) changes.push(`${items} items as ui-item, details titled by their line`)
     changes.push(...this.mergeQuestions())
+    if (this.addJudgements()) changes.push("#judgements (Judgement calls) added after Questions & Decisions")
     const bodies = this.migratePhaseBodies()
     if (bodies) changes.push(`${bodies} phase bodies as ui-list`)
     const sections = convertSections(this.document)
@@ -822,6 +854,16 @@ ${list}`
     }
     this.updateProgress()
     return changes
+  }
+
+  /** A doc made before 2026-10-03 gets the template's `#judgements` section, just after `#decisions`, numbered;  added? */
+  addJudgements() {
+    if (this.document.getElementById("judgements")) return false
+    const decisions = this.document.getElementById("decisions")
+    if (!decisions) return false
+    decisions.after(this.document.createTextNode("\n\n        "), this.fragment(JUDGEMENTS_SECTION))
+    this.orderSections()
+    return true
   }
 
   /** A `<ui-section>` among `SECTION_ICONS`' with no icon gets its icon (the template's);  how many. */
@@ -1352,7 +1394,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
                                                    reloads the doc's VS Code tab
-  add <name> question|caveat|issue|todo|test|decision "title" [--details html]    prints the new id
+  add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html]    prints the new id
   decide <name> <Q id> "decision" [--details html]  answer a question:  a decision, the question struck beside it
   close <name> <id>  /  reopen <name> <id>         strike / unstrike an item
   log <name> "text"                                timestamped line in the log
@@ -1367,6 +1409,8 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   backfill <name> | --all [--apply]                items Owen already went through, from past sessions;
                                                    a dry run unless --apply (review-backfill.js)
     (review ... items find the epic's doc in its own worktree, else main, else any worktree)
+  summaries <file.html> ...                        \`summary --json\` of each doc, by path (worktrees' too):
+                                                   JSON \`{ <file>: summary | { error } }\`;  for \`/epics\`
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
   open <name>                                      show in VS Code, beside the editor (reloads its tab)
   migrate <name>                                   bring an older doc (any layout) into the current one`
@@ -1394,6 +1438,7 @@ function main(argv) {
   if (command === "list") return printEpics(listEpics(), flags.json)
   if (command === "backfill") return backfill(name, flags)
   if (!command || !name) return usage()
+  if (command === "summaries") return printSummaries(positional.slice(1))
   // a review edits the epic's doc wherever it lives (its worktree, else main);  everything else, this checkout's
   const file = REVIEW_COMMANDS.includes(command) ? findDoc(name) : docPath(name)
   switch (command) {
@@ -1784,6 +1829,24 @@ function printItems(plan, file, { section, filter = "unreviewed", json }) {
     for (const item of s.items) lines.push(`  - ${item.id}  ${item.title}${marks[item.state]?.(item) ?? ""}`)
   }
   console.log(lines.join("\n"))
+}
+
+/**
+ * `summaries`:  `summary` of each doc at `files`, as one JSON object keyed by file.
+ * - by PATH, so it reads a worktree's copy too, with no `node_modules/` there;  one run for every epic
+ * - a doc that won't read gets `{ error }`, and the rest still print
+ */
+function printSummaries(files) {
+  const found = {}
+  for (const file of files) {
+    try {
+      found[file] = read(resolve(file)).summary()
+    } catch (error) {
+      if (!(error instanceof PlanDocError)) throw error
+      found[file] = { error: error.message }
+    }
+  }
+  console.log(JSON.stringify(found, null, 2))
 }
 
 /** `check`:  structural problems, then the browser check;  exits 1 on any. */

@@ -133,6 +133,8 @@ export class ValueSets {
    * later `<ui-root>`.  Many per tag, so it's found however someone looks:  how a newcomer thinks of it ("forms",
    * "notifications", "loading") AND how widget libraries file it;  the last four are Fomantic's own groups.
    * - A translation maps them once (`Dictionary.values.topics`), like any shared value.
+   * - `documentation`:  the doc-only `<ui-docs-*>` elements (`src/docs-components/`), which the component list
+   *   leaves out;  no component uses it.
    */
   @proto static topics = [
     "basic",
@@ -167,6 +169,7 @@ export class ValueSets {
     "animation",
     "social",
     "content parts",
+    "documentation",
     "elements",
     "collections",
     "views",

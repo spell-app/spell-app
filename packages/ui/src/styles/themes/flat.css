@@ -1,0 +1,150 @@
+/*
+ * flat theme:  Fomantic's `flat` theme, a flatter, brighter site with underlined form fields, `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("flat")` registers `classic` + this sheet):  classic's 14px base,
+ *   size ratios and radii stay.
+ * - Tokens (Fomantic's `site.variables`):
+ *   - `@pageFont` / `@headerFont` -> `--ui-font-family`:  Open Sans first.  NOTE: loads no font, as Fomantic's
+ *     `flat` didn't either:  add Open Sans yourself, or the stack falls back to Helvetica / Arial
+ *   - the palette (`@blue` ... `@grey`) -> `--ui-<hue>-on-light`;  the `light<Hue>` colours -> `-on-dark`, of which
+ *     only `@lightPurple` differs from classic's.  Olive, violet and brown keep classic's
+ *   - text on the solid colours (`--ui-<hue>-on`), re-checked for the new bases:  ink on green and grey (white was
+ *     2.1:1 / 1.6:1);  red (3.5:1) and pink (3.9:1) keep Fomantic's white, as classic keeps Fomantic's failures
+ *   - `@bodyBackground` -> `--ui-background`, `@textColor` -> `--ui-text-color`, `@linkColor` / `@linkHoverColor`
+ *     -> `--ui-link` / `--ui-link-hover`, `@highlightBackground` -> `--ui-highlight`, light scheme only;  the dark
+ *     scheme keeps our defaults (Fomantic had none)
+ *   - `@headerMargin: 1em 0 1rem` -> `--ui-header-margin-top` / `-bottom`
+ * - Form (Fomantic's `form.variables` + `form.overrides`), all scoped to FORMS, as Fomantic's were:
+ *   - uppercase 11px labels:  `--ui-form-label-font-size` + a `text-transform` override (no token)
+ *   - `@gutterWidth`, `@validationMargin` -> `--ui-form-gutter`, `--ui-form-prompt-inline-margin`
+ *   - text inputs:  transparent, square, no border but a `#ddd` underline, `0.5em` side padding;  textareas keep a
+ *     full `#ddd` border, `1em` padding, and turn `#eee` on focus
+ *   - selection dropdowns:  underlined and square too;  their menu keeps the default radius
+ *   - an icon input's icon is `1em` wide
+ *   - HOW the scope reaches the controls:  the tokens sit on `<ui-form>` (and on static `.ui.form` markup), so they
+ *     inherit into every `<ui-input>` / `<ui-dropdown>` inside;  the underline needs a border WIDTH the input's
+ *     `border` shorthand can't take from a token, so the form also sets `--_flat-form: 1` and a style query in
+ *     the input's / dropdown's shadow root switches the side borders off.  Native controls slotted into a
+ *     `<ui-form>` (`native.css`) get the same look on the page.
+ *   - `.ui.form:not([part="form"])`:  static markup only.  The element's own shadow `.ui.form` (`part="form"`) must
+ *     NOT re-declare the tokens, or a page's `ui-form { --ui-input-radius: ... }` would never reach its inputs.
+ * - NOT ported:
+ *   - `@paragraphMargin` (site) and `@dividerMargin` (form):  page typography / a divider's own spacing
+ *   - `@importGoogleFonts`-style font loading:  Fomantic's flat had none for Open Sans
+ *   - the error / placeholder / loader colours of `form.variables`:  equal to Fomantic's defaults (derived), or
+ *     dropdown error tints our dropdown takes from the field state instead
+ *   - the subtle / transparent black and white backgrounds, `@subtleGradient`, `@subtleShadow`, the grid column
+ *     count, breakpoints and asset paths:  Fomantic's defaults, already ours
+ */
+
+@layer ui.theme {
+  :root {
+    /* Type */
+    --ui-font-family: "Open Sans", "Helvetica Neue", Arial, Helvetica, sans-serif;
+
+    /* Palette:  `onLight` ~== `@red`, `onDark` ~== `@lightRed` (only purple's differs from classic's) */
+    --ui-blue-on-light: oklch(0.562 0.177 253.7);
+    --ui-green-on-light: oklch(0.74 0.22 144.3);
+    --ui-orange-on-light: oklch(0.74 0.179 53.5);
+    --ui-pink-on-light: oklch(0.628 0.196 349.5);
+    --ui-purple-on-light: oklch(0.535 0.166 332.7);
+    --ui-purple-on-dark: oklch(0.851 0.079 290.2);
+    --ui-red-on-light: oklch(0.66 0.227 28.4);
+    --ui-teal-on-light: oklch(0.771 0.119 195);
+    --ui-yellow-on-light: oklch(0.863 0.175 89.8);
+    --ui-black-on-light: oklch(0.213 0 0);
+    --ui-grey-on-light: oklch(0.845 0 0);
+
+    /* Text on the solid colours:  ink where white can't be read on the lighter bases */
+    --ui-green-on: var(--ui-ink-on-light);
+    --ui-grey-on: var(--ui-ink-on-light);
+
+    /* Page */
+    --ui-background: light-dark(oklch(0.991 0 0), oklch(0.19 0.006 260));
+    --ui-text-color: light-dark(oklch(0 0 0 / 0.8), oklch(from var(--ui-ink-on-dark) l c h / 0.9));
+    --ui-link: light-dark(oklch(0.662 0.139 234), var(--ui-primary-text));
+    --ui-link-hover: light-dark(oklch(0.72 0.151 234.2), oklch(from var(--ui-link) calc(l + 0.08) c h));
+    --ui-highlight: light-dark(oklch(0.988 0.065 107.5), oklch(0.42 0.09 255));
+
+    /* Headers:  `@headerMargin: 1em 0 1rem` */
+    --ui-header-margin-top: 1em;
+    --ui-header-margin-bottom: var(--ui-font-size);
+
+    /* Form */
+    --ui-form-label-font-size: 0.78571em;
+    --ui-form-gutter: 1.5em;
+    --ui-form-prompt-inline-margin: 0 0 0 1em;
+  }
+
+  /* Form scope:  controls inside a form are flat;  the same controls elsewhere keep classic's look. */
+  ui-form,
+  .ui.form:not([part="form"]) {
+    --_flat-form: 1;
+    --_flat-rule: light-dark(oklch(0.898 0 0), oklch(1 0 0 / 0.2));
+    --ui-input-background: transparent;
+    --ui-input-radius: 0;
+    --ui-input-padding-inline: 0.5em;
+    --ui-input-border-color: var(--_flat-rule);
+    --ui-input-icon-width: 1em;
+    --ui-dropdown-radius: 0;
+    --ui-dropdown-border-color: var(--_flat-rule);
+    --ui-dropdown-menu-radius: var(--ui-radius);
+  }
+
+  /* Field labels:  uppercase, as `@labelTextTransform` (no token:  the form sheet hard-codes `none`);  a grouped
+     fields' own label stays as is (`@groupedLabelTextTransform: none`). */
+  .field ::slotted(label),
+  .ui.form .field > label {
+    text-transform: uppercase;
+  }
+
+  /* `<ui-input>` / `<ui-dropdown>` inside a flat form:  an underline, no side borders (Fomantic's `.overrides`). */
+  @container style(--_flat-form: 1) {
+    .ui.input > input {
+      border-width: 0 0 var(--ui-border-width);
+    }
+    .ui.input > textarea {
+      padding: 1em;
+      background: transparent;
+    }
+    .ui.input > textarea:focus {
+      background: light-dark(oklch(0.949 0 0), oklch(1 0 0 / 0.08));
+    }
+    .ui.selection.dropdown {
+      border-width: 0 0 var(--ui-border-width);
+      border-radius: 0;
+      box-shadow: none;
+    }
+  }
+
+  /* Native controls slotted into a form (`native.css`) and static `.ui.form` markup. */
+  :where(ui-form, ui-field, .ui.form)
+    :where(
+      input:is(
+        [type="text"],
+        [type="email"],
+        [type="date"],
+        [type="password"],
+        [type="number"],
+        [type="url"],
+        [type="tel"],
+        :not([type])
+      ),
+      select
+    ) {
+    padding-inline: 0.5em;
+    border-width: 0 0 var(--ui-border-width);
+    border-color: var(--_ui-field-state-border, light-dark(oklch(0.898 0 0), oklch(1 0 0 / 0.2)));
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+  :where(ui-form, ui-field, .ui.form) :where(textarea) {
+    padding: 1em;
+    border-color: light-dark(oklch(0.898 0 0), oklch(1 0 0 / 0.2));
+    border-radius: 0;
+    background-color: transparent;
+  }
+  :where(ui-form, ui-field, .ui.form) :where(textarea):focus {
+    background-color: light-dark(oklch(0.949 0 0), oklch(1 0 0 / 0.08));
+  }
+}

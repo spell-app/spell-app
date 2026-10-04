@@ -1,0 +1,82 @@
+<!--
+  Menu appearance, alignment and equal items:  ours (`appearance`, `alignment`, `equal`), not Fomantic's docs.
+  Static class grammar:  `appearance="segmented"` => `segmented`, `alignment="center"` => `center aligned`.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Appearance</h4>
+    <nav class="ui tabular menu" aria-label="Tabular appearance">
+      <a class="active item" href="#bio" aria-current="page">Bio</a>
+      <a class="item" href="#photos">Photos</a>
+    </nav>
+    <nav class="ui pointing menu" aria-label="Pointing appearance">
+      <a class="active item" href="#home" aria-current="page">Home</a>
+      <a class="item" href="#messages">Messages</a>
+    </nav>
+    <nav class="ui secondary menu" aria-label="Secondary appearance">
+      <a class="active item" href="#home" aria-current="page">Home</a>
+      <a class="item" href="#messages">Messages</a>
+    </nav>
+    <nav class="ui text menu" aria-label="Text appearance">
+      <a class="active item" href="#closest" aria-current="page">Closest</a>
+      <a class="item" href="#popular">Most popular</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Segmented</h4>
+    <nav class="ui segmented menu" aria-label="Segmented">
+      <a class="active item" href="#light" aria-current="page">Light</a>
+      <a class="item" href="#dark">Dark</a>
+      <a class="item" href="#system">System</a>
+    </nav>
+    <nav class="ui teal segmented menu" aria-label="Segmented teal">
+      <a class="item" href="#day">Day</a>
+      <a class="active item" href="#week" aria-current="page">Week</a>
+      <a class="item" href="#month">Month</a>
+    </nav>
+    <div class="ui inverted segment">
+      <nav class="ui segmented inverted menu" aria-label="Segmented inverted">
+        <a class="active item" href="#list" aria-current="page">List</a>
+        <a class="item" href="#grid">Grid</a>
+      </nav>
+    </div>
+  </section>
+
+  <section>
+    <h4>Alignment</h4>
+    <nav class="ui center aligned menu" aria-label="Centered">
+      <a class="active item" href="#one" aria-current="page">One</a>
+      <a class="item" href="#two">Two</a>
+      <a class="item" href="#three">Three</a>
+    </nav>
+    <nav class="ui segmented right aligned menu" aria-label="Segmented right">
+      <a class="active item" href="#one" aria-current="page">One</a>
+      <a class="item" href="#two">Two</a>
+    </nav>
+    <nav class="ui segmented fluid aligned menu" aria-label="Segmented fluid">
+      <a class="active item" href="#one" aria-current="page">One</a>
+      <a class="item" href="#two">Two, longer</a>
+      <a class="item" href="#three">Three</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Equal</h4>
+    <nav class="ui equal menu" aria-label="Equal">
+      <a class="active item" href="#a" aria-current="page">A</a>
+      <a class="item" href="#b">Somewhat longer</a>
+      <a class="item" href="#c">C</a>
+    </nav>
+    <nav class="ui segmented equal center aligned menu" aria-label="Equal segmented centered">
+      <a class="item" href="#a">A</a>
+      <a class="active item" href="#b" aria-current="page">Somewhat longer</a>
+      <a class="item" href="#c">C</a>
+    </nav>
+    <nav class="ui equal fluid aligned menu" aria-label="Equal fluid">
+      <a class="active item" href="#a" aria-current="page">A</a>
+      <a class="item" href="#b">Somewhat longer</a>
+      <a class="item" href="#c">C</a>
+    </nav>
+  </section>
+</div>

@@ -11,7 +11,7 @@ export type RootVocabulary = typeof rootVocabulary
 
 /** What `<ui-root>` knows about a tag before its family loads (`ui-root.catalog.ts`, generated). */
 export type RootCatalogEntry = {
-  /** Its folder under `src/components/`:  its family, imported to define it. */
+  /** Its folder under `src/components/` (or `src/docs-components/`):  its family, imported to define it. */
   readonly folder: string
   /** What `display="skeleton"` draws in its place;  none:  hidden until ready (or covered by its owner's). */
   readonly skeleton?: SkeletonSpec

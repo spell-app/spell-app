@@ -1,0 +1,11 @@
+/* Spell type — system fonts first, no download on macOS / Windows.
+   Headlines: Palatino (macOS "Palatino", Windows "Palatino Linotype"/"Book Antiqua", Linux "P052" from urw-base35).
+   'Spell Serif' resolves to the installed Palatino; it only downloads the bundled P052 when none is present. */
+@font-face { font-family: 'Spell Serif'; font-weight: 400; font-style: normal; font-display: swap;
+  src: local('Palatino'), local('Palatino-Roman'), local('Palatino Linotype'), local('PalatinoLinotype-Roman'), local('Book Antiqua'), local('P052 Roman'), local('P052-Roman'), local('TeX Gyre Pagella'), url('../assets/fonts/P052-Roman.otf') format('opentype'); }
+@font-face { font-family: 'Spell Serif'; font-weight: 700; font-style: normal; font-display: swap;
+  src: local('Palatino Bold'), local('Palatino-Bold'), local('Palatino Linotype Bold'), local('PalatinoLinotype-Bold'), local('Book Antiqua Bold'), local('P052 Bold'), local('P052-Bold'), local('TeX Gyre Pagella Bold'), url('../assets/fonts/P052-Bold.otf') format('opentype'); }
+@font-face { font-family: 'Spell Serif'; font-weight: 400; font-style: italic; font-display: swap;
+  src: local('Palatino Italic'), local('Palatino-Italic'), local('Palatino Linotype Italic'), local('PalatinoLinotype-Italic'), local('Book Antiqua Italic'), local('P052 Italic'), local('P052-Italic'), local('TeX Gyre Pagella Italic'), url('../assets/fonts/P052-Italic.otf') format('opentype'); }
+@font-face { font-family: 'Spell Serif'; font-weight: 700; font-style: italic; font-display: swap;
+  src: local('Palatino Bold Italic'), local('Palatino-BoldItalic'), local('Palatino Linotype Bold Italic'), local('PalatinoLinotype-BoldItalic'), local('Book Antiqua Bold Italic'), local('P052 Bold Italic'), local('P052-BoldItalic'), local('TeX Gyre Pagella Bold Italic'), url('../assets/fonts/P052-BoldItalic.otf') format('opentype'); }

@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Root | Spell UI</title>
+    <meta
+      name="description"
+      content="A root loads the components inside it on demand, sets their theme, size, icons and emoji, and shows them once they're ready."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-root.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-root%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Root
+                <ui-header
+                  >A root loads the components inside it on demand, sets their theme, size, icons and emoji, and shows
+                  them once they're ready.</ui-header
+                >
+              </ui-header>
+              <ui-docs-themes for="ui-root" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Root"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples, restyled.  This page itself runs inside a
+                  `<ui-root display="immediately">`, which loads every example's components;  the roots below are NESTED in it.
+                  - Icon packs:  the page's root already has every built-in pack, so the icon examples use a pack of their own,
+                    `site/examples/icon-pack/` (one icon, `spell sparkle`).
+                  - The Replay example needs the small script at the end of this tab:  components on this page are loaded already.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Root">
+                  <p slot="description">
+                    Put one around a page or an app. Each <code>ui-*</code> tag inside loads its component the first
+                    time it appears; nothing else is downloaded. Load just the root:
+                    <code>import "@spell-app/ui/ui-root"</code>.
+                  </p>
+                  <ui-root>
+                    <ui-segment>
+                      <ui-header>Report</ui-header>
+                      <p>Every component in here was loaded by the root, on demand.</p>
+                      <ui-button primary>Save</ui-button>
+                    </ui-segment>
+                  </ui-root>
+                </ui-docs-example>
+
+                <ui-docs-example header="Theme and size" description="`theme` and `size` apply to everything inside.">
+                  <ui-root theme="dark" size="small" width="100%" aria-label="Dark report">
+                    <ui-segment>
+                      <ui-header>Report</ui-header>
+                      <p>Dark and small: everything inside follows.</p>
+                      <ui-button primary>Save</ui-button>
+                    </ui-segment>
+                  </ui-root>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="A box"
+                  description="With `width` or `height` (CSS lengths, or `window` for the viewport's), the root is a box that scrolls its own content.  `fixed` pins it to the viewport:  a full-page app shell."
+                >
+                  <ui-root height="8em" aria-label="Numbers">
+                    <ui-list bulleted>
+                      <ui-item>One</ui-item>
+                      <ui-item>Two</ui-item>
+                      <ui-item>Three</ui-item>
+                      <ui-item>Four</ui-item>
+                      <ui-item>Five</ui-item>
+                      <ui-item>Six</ui-item>
+                      <ui-item>Seven</ui-item>
+                      <ui-item>Eight</ui-item>
+                    </ui-list>
+                  </ui-root>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="while-loading">While loading</ui-header>
+
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `display` says what shows until every component inside is ready (or `timeout`, 5s by default, has passed):
+
+                    - `skeleton` (the default): a `<ui-placeholder>` for each component that describes one, drawn in the root's own
+                      shadow DOM, so your page's DOM is never touched. Placeholders stack in page order; inline ones (buttons,
+                      labels, inputs) sit side by side.
+                    - `when-ready`: nothing, with the space kept.
+                    - `immediately`: everything as it arrives.
+
+                    `loading="..."` shows a `<ui-loader>` with that message instead (a bare `loading` says "Loading…").
+                  </script>
+                </ui-markdown>
+
+                <ui-docs-example
+                  header="Replay"
+                  description="Components on this page are loaded already, so the demo holds the root for 2 seconds:  press a button to see what a slow load shows."
+                >
+                  <ui-button icon="redo" data-replay="skeleton">Replay: skeleton</ui-button>
+                  <ui-button icon="redo" data-replay="loading">Replay: loading message</ui-button>
+                  <ui-segment basic id="root-replay-stage">
+                    <ui-root display="skeleton">
+                      <ui-card>
+                        <ui-content>
+                          <ui-header>Report</ui-header>
+                          <ui-description>Every component inside was ready before this showed.</ui-description>
+                        </ui-content>
+                      </ui-card>
+                      <ui-button primary>Save</ui-button>
+                      <ui-button>Cancel</ui-button>
+                    </ui-root>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="icons-and-emoji">Icons and emoji</ui-header>
+
+                <ui-docs-example header="Icon packs">
+                  <p slot="description">
+                    <code>icons</code> adds packs for everything inside: built-in ids (<code>fa7-free</code>,
+                    <code>fa7-brands</code>, <code>fomantic</code>) or <code>pack.js</code> URLs, comma-separated, later
+                    wins. Outside a root, the page's packs (<code>UI.icons.use()</code>). The sparkle is only in the
+                    example's own pack: inside the root it draws, outside it doesn't.
+                  </p>
+                  <p>
+                    Inside:
+                    <ui-root icons="../examples/icon-pack/pack.js" display="immediately"
+                      ><ui-icon name="spell sparkle" size="big" label="Sparkle"></ui-icon
+                    ></ui-root>
+                    Outside:
+                    <ui-icon name="spell sparkle" size="big" label="Sparkle"></ui-icon>
+                  </p>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Emoji names"
+                  description="`emoji=&quot;fomantic&quot;` uses Fomantic's names for everything inside;  outside, the page's set (CLDR by default).  `pencil` is a memo in Fomantic's names, a pencil in CLDR's."
+                >
+                  <p>
+                    Inside:
+                    <ui-root emoji="fomantic" display="immediately"
+                      ><ui-emoji name="pencil" size="small" label="pencil (Fomantic)"></ui-emoji
+                    ></ui-root>
+                    Outside:
+                    <ui-emoji name="pencil" size="small" label="pencil (CLDR)"></ui-emoji>
+                  </p>
+                </ui-docs-example>
+
+                <!-- GAP I62:  a root's `size` scales only components (its scale token), not plain text or a bare `<ui-icon>` inside. -->
+                <ui-docs-example
+                  header="Nested roots"
+                  description="A root inside a root inherits what it doesn't set and adds its own packs.  The outer one is ready only once every inner one is."
+                >
+                  <ui-root icons="../examples/icon-pack/pack.js" display="immediately">
+                    <ui-button icon="spell sparkle">Outer</ui-button>
+                    <ui-root size="large" display="immediately">
+                      <ui-button icon="spell sparkle">Inner: large, with the outer root's pack</ui-button>
+                    </ui-root>
+                  </ui-root>
+                </ui-docs-example>
+
+                <script type="module">
+                  /*
+                   * The Replay example:  each button swaps in a fresh copy of the stage's root, held in its loading state by an
+                   * element that never gets ready, so the root's `timeout` (2s) shows the content, as it would after a slow load.
+                   * - The held element extends `UIHost` (what the root waits on), found as the base of `<ui-root>`'s own class:
+                   *   the site bundle exports nothing.
+                   */
+                  const HOLD = "site-root-hold"
+                  await customElements.whenDefined("ui-root")
+                  let UIHost = customElements.get("ui-root")
+                  while (Object.getPrototypeOf(UIHost) !== HTMLElement) UIHost = Object.getPrototypeOf(UIHost)
+                  if (!customElements.get(HOLD)) customElements.define(HOLD, class extends UIHost {})
+
+                  const stage = document.getElementById("root-replay-stage")
+                  const markup = stage.querySelector("ui-root").innerHTML
+                  for (const button of document.querySelectorAll("[data-replay]")) {
+                    button.addEventListener("click", () => {
+                      const root = document.createElement("ui-root")
+                      root.setAttribute("timeout", "2s")
+                      if (button.dataset.replay === "loading") {
+                        root.setAttribute("display", "when-ready")
+                        root.setAttribute("loading", "Loading the report")
+                      }
+                      // the held element is expected to time out:  no console warning for it
+                      root.addEventListener("ui-error", (event) => event.preventDefault())
+                      root.innerHTML = `<${HOLD}></${HOLD}>${markup}`
+                      stage.querySelector("ui-root").replaceWith(root)
+                    })
+                  }
+                </script>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  from the old Astro page's Behaviour and Accessibility, plus the vocabulary's events. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Load the root, put one around the page (or each app on it), and write `ui-*` tags anywhere inside: no other
+                    import, no registration.
+
+                    - `display`, `loading` and `timeout` say what shows while components load (see While loading, on the Examples
+                      tab).
+                    - `theme`, `size`, `icons` and `emoji` apply to everything inside; a nested root inherits what it doesn't set.
+                    - `width` / `height` / `fixed` make it a box that scrolls its own content; name each box with `aria-label`.
+                    - `assets` is the folder the built-in icon packs load from, relative to the page (default: beside the library).
+                  </script>
+                </ui-markdown>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- once, in your entry:  import "@spell-app/ui/ui-root" -->
+                    <ui-root icons="fa7-brands" loading="Loading the dashboard" fixed aria-label="Dashboard">
+                      <ui-menu>...</ui-menu>
+                      <ui-grid>...</ui-grid>
+                    </ui-root>
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="loading">Loading</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - Each undefined `ui-*` tag inside (now, and whenever content is added) imports its component once per page.
+                      Which component defines a tag comes from a generated catalog (`yarn gen:root` after adding a tag).
+                    - Ready: every component imported, then every element inside ready (an inner root: settled). Then
+                      `:state(ready)`, `ui-ready` with `{ failed }`, and the content shows. Content added later loads too, but is
+                      never hidden again.
+                    - Failures: a tag no component defines (`unknown`), a component that can't be imported (`failed`), or one not
+                      ready by `timeout` (`timeout`) fires a cancelable `ui-error` (cancel it to skip the console warning) and is
+                      listed in `ui-ready`'s `failed`. The content shows anyway; a broken element shows its native fallback.
+                    - Without JavaScript (or before the root's script runs, with `@spell-app/ui/styles` loaded), an undefined root
+                      hides its content only under `@media (scripting: enabled)`: server-rendered pages still show as sent.
+                    - Swap the loading look in code: `UIRoot.Loading` (a `<ui-loader>`) and `UIRoot.Skeleton` (`<ui-placeholder>`s).
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - `ui-ready` -- everything inside is ready (or the timeout passed) and the content shows: `{ failed }`, each
+                      `{ tag, reason, error }`.
+                    - `ui-error` (cancelable) -- a tag inside couldn't load: `{ tag, reason, error }`, `reason` one of `unknown`,
+                      `failed`, `timeout`. Cancel it to skip the console warning.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const root = document.querySelector("ui-root")
+                    root.addEventListener("ui-error", (event) => {
+                      if (event.detail.tag === "ui-calendar") event.preventDefault() // optional:  no warning
+                    })
+                    root.addEventListener("ui-ready", (event) => console.log("ready;  failed:", event.detail.failed))
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Nothing of its own. A root with a box (`width`, `height` or `fixed`) is one tab stop, so the arrow keys and
+                    **Page Up** / **Page Down** can scroll it.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - While loading, the content is hidden (`visibility: hidden` or not drawn), so assistive technology doesn't read
+                      half-built UI. The placeholders are decorative (`aria-hidden`).
+                    - The `loading` message is a `<ui-loader>`: `role="status"`, announced politely.
+                    - Without a box (no `width` / `height` / `fixed`) the root adds nothing to the page's structure: headings and
+                      landmarks inside are the page's own.
+                    - With a box, the scroller is a region named by the host's `aria-label` (else "Content"): name each one when a
+                      page has several.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-root"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  no tokens of its own;  what it sets for what's inside. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A root has no look of its own, so no `--ui-root-*` tokens. It themes what's INSIDE it:
+
+                    - `theme="light"` / `"dark"` sets the colour scheme of everything inside (`:state(light)` / `:state(dark)`).
+                    - `size` scales the components inside, `mini` ... `massive` (not plain text, nor a bare `<ui-icon>`, which follows its text).
+                    - Any `--ui-*` token set on the root inherits into every element inside, as on any ancestor.
+                    - Style the loading look with `::part(loading)` (the loader) and `::part(skeleton)` (the placeholders' box), and
+                      a box's scroller with `::part(scroller)`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    ui-root.dashboard {
+                      --ui-primary: var(--ui-teal);
+                    }
+                    ui-root.dashboard::part(skeleton) {
+                      padding: 1em;
+                    }
+                  </script>
+                </ui-code>
+                <ui-docs-tokens family="ui-root" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Root is ours, not Fomantic's, and draws nothing itself, so no theme restyles it. The site-wide theme (the picker in
+                    the header) applies to everything inside a root.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

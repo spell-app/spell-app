@@ -4,6 +4,7 @@ import { expectAccessible } from "$/ui/test/a11y"
 import { Fixture } from "$/ui/test/fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Viewport } from "$/ui/test/viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-statistic"
@@ -311,6 +312,45 @@ describe("<ui-statistics>", () => {
       (statistic) => statistic.shadowRoot!.firstElementChild as HTMLElement
     )
     expect(d!.getBoundingClientRect().top).toBe(c!.getBoundingClientRect().top)
+  })
+
+  it('`stack-with="page"` stacks by the SCREEN;  the token too, and the attribute beats it', async () => {
+    const group = (attributes = "") =>
+      `<ui-statistics stackable widths="3" ${attributes}><ui-statistic value="1"></ui-statistic>` +
+      `<ui-statistic value="2"></ui-statistic></ui-statistics>`
+    const wrapper = await ElementFixture.render(
+      `<div style="width: 500px">${group('stack-with="page"')}<div style="--ui-stack-with: page">${group()}` +
+        `${group('stack-with="container"')}</div></div>`
+    )
+    const groups = [...wrapper.querySelectorAll("ui-statistics")]
+    expect(groups[0]!.shadowRoot!.firstElementChild!.className).toBe("ui stackable three statistics stack-with-page")
+    /** Whether `host`'s statistics stack. */
+    const stacked = (host: Element) => token(host.shadowRoot!.firstElementChild!, "--_statistics-stacked") === "1"
+    await Viewport.resize(1200)
+    await expect.poll(() => groups.map(stacked)).toEqual([false, false, true])
+    await Viewport.resize(500)
+    await expect.poll(() => groups.map(stacked)).toEqual([true, true, true])
+  })
+})
+
+describe("<ui-statistics equal>", () => {
+  it("one row, an equal share of it each, from the statistics themselves", async () => {
+    const box = await ElementFixture.render(
+      `<div style="width: 900px"><ui-statistics equal>` +
+        `<ui-statistic value="1" label="One"></ui-statistic>` +
+        `<ui-statistic value="31,200,000" label="Views"></ui-statistic>` +
+        `<ui-statistic value="2" label="Two"></ui-statistic>` +
+        `</ui-statistics></div>`
+    )
+    const group = box.querySelector<UIHost>("ui-statistics")!
+    const root = group.shadowRoot!.firstElementChild as HTMLElement
+    expect(root.className).toBe("ui equal statistics")
+    const boxes = [...group.querySelectorAll<UIHost>("ui-statistic")].map((statistic) =>
+      (statistic.shadowRoot!.firstElementChild as HTMLElement).getBoundingClientRect()
+    )
+    const share = root.clientWidth / boxes.length
+    for (const bounds of boxes) expect(bounds.width).toBeCloseTo(share, -0.5)
+    expect(new Set(boxes.map((bounds) => Math.round(bounds.top))).size).toBe(1)
   })
 })
 

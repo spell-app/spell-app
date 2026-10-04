@@ -8,6 +8,7 @@
  *   (`ItemContext.ownsParts`), so they style themselves `:state(in-item)`.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -48,6 +49,15 @@ export const itemsVocabulary = {
       name: "unstackable",
       kind: "keyOnly",
       description: "Keeps the image beside the content in a narrow group (mobile widths), where items otherwise stack."
+    },
+    {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        "What stacking and the tablet image width measure:  `container` (the default) -- the group's own " +
+        "width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token " +
+        "decides (`<ui-root stack-with>`)."
     },
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds:  the dark scheme." },
     { name: "disabled", kind: "keyOnly", description: "Faded and inert." }

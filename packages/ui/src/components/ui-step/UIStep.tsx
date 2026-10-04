@@ -8,7 +8,7 @@ import { StepFallback } from "./ui-step.fallback"
 
 import stepCSS from "./ui-step.css?inline"
 import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
-import { CHECK, BOX, STEP, CONTENT, TITLE, DESCRIPTION } from "./ui-step.types"
+import { CHECK, BOX, STEP, CONTENT, TITLE, DESCRIPTION, COLOR_CLASS_PREFIX } from "./ui-step.types"
 import { ACTIVE, BUTTON, TRUE, ICON, VISUALLY_HIDDEN, LINK, LISTITEM } from "$/ui/components/components.types"
 
 /****************
@@ -74,9 +74,19 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
     return this.attrs.disabled
   }
 
-  /** The `active` alias adds Fomantic's class word when `selected` doesn't. */
+  /**
+   * Extra class words:
+   * - `active` for the `active` alias, when `selected` doesn't add it
+   * - `ui-<color>` for a coloured step:  the generic colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`, and a
+   *   step has no `ui`
+   */
   protected extraClasses(): string | undefined {
-    return this.isSelected() && !this.attrs.selected ? ACTIVE : undefined
+    const color = this.attrs.color
+    const extra = [
+      this.isSelected() && !this.attrs.selected ? ACTIVE : "",
+      color ? `${COLOR_CLASS_PREFIX}${color}` : ""
+    ]
+    return extra.filter(Boolean).join(" ") || undefined
   }
 
   protected hostStates() {

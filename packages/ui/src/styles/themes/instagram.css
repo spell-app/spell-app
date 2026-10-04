@@ -1,0 +1,59 @@
+/*
+ * instagram theme:  Fomantic's `instagram` theme, flat bordered cards in Montserrat, like Instagram's posts,
+ * `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("instagram")` registers `classic` + this sheet).
+ * - Touches ONE component:  `<ui-card>` (`.ui.card`, `.ui.cards > .card`) and its content parts (`in-card`).
+ * - Font:  Montserrat (latin, variable weight), `instagram/montserrat.woff2`, from Google Fonts (SIL OFL 1.1,
+ *   `instagram/OFL.txt`), where Fomantic `@import`ed Google's CSS.  Referenced relatively;  Vite rewrites the
+ *   `url()` when it inlines the sheet.  The `@font-face` sits OUTSIDE the layer (it can't be layered), and works
+ *   from the PAGE copy:  shadow roots ignore `@font-face`, but use the page's fonts.
+ * - Tokens (`card.variables`):
+ *   - `@boxShadow` / `@shadowBoxShadow: none` -> `--ui-card-shadow`;  `@border: 1px solid #ededee` ->
+ *     `--ui-card-border-shadow` (our cards draw the border as a ring;  same look, no layout shift) and
+ *     `--ui-card-border-color`
+ *   - `@internalBorderColor` -> `--ui-card-divider-color`;  `@contentPadding: 14px 20px` ->
+ *     `--ui-card-content-padding` (`1em 1.42857em`)
+ *   - `@metaColor` -> `--ui-card-meta-color`
+ *   - link cards:  `@linkHoverRaiseDistance: 0` -> `--ui-card-link-raise`;  `@linkHoverBoxShadow: none` ->
+ *     `--ui-card-hover-shadow`;  `@linkHoverBorder: #d0d0d8` -> the hover ring (the card's private
+ *     `--_card-border-shadow` switch, which its hover rule writes from the BASE border colour)
+ * - Overrides (`card.overrides`):  Montserrat with `font-size-adjust: 0.5` on the card.  Card headers keep classic's
+ *   heading font (`--ui-font-family-heading`), as Fomantic's `@headerFont` rule did.
+ * - Dark scheme:  the `#ededee` / `#d0d0d8` greys become faint ink rings;  the meta grey stays (7.6:1 on dark).
+ * - Nothing left out.
+ */
+
+@font-face {
+  font-family: Montserrat;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./instagram/montserrat.woff2") format("woff2");
+}
+
+@layer ui.theme {
+  :root {
+    --ui-card-border-color: light-dark(oklch(0.946 0.001 0), oklch(from var(--ui-ink-on-dark) l c h / 0.12));
+    --ui-card-border-shadow: 0 0 0 var(--ui-border-width) var(--ui-card-border-color);
+    --ui-card-shadow: 0 0 #0000;
+    --ui-card-hover-shadow: 0 0 #0000;
+    --ui-card-link-raise: 0px;
+    --ui-card-divider-color: var(--ui-card-border-color);
+    --ui-card-content-padding: 1em 1.42857em;
+    --ui-card-meta-color: oklch(0.728 0.005 258.3);
+  }
+
+  .ui.card,
+  .ui.cards > .card {
+    font-family: Montserrat, var(--ui-font-family);
+    font-size-adjust: 0.5;
+  }
+
+  .ui.link.card:hover,
+  a.ui.card:hover,
+  .ui.link.cards > .card:hover,
+  .ui.cards > a.card:hover {
+    --_card-border-shadow: 0 0 0 var(--ui-border-width)
+      light-dark(oklch(0.86 0.011 286.2), oklch(from var(--ui-ink-on-dark) l c h / 0.3));
+  }
+}

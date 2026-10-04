@@ -1,0 +1,254 @@
+/*
+ * Material theme:  port of Fomantic's `src/themes/material/` (Google's Material Design, circa 2016),
+ * `@layer ui.theme`.
+ * - Applied ON TOP of `classic.css` (`ThemeSheets.apply("material")`):  only Material's differences live here.
+ * - Two halves:  tokens on `:root` (they inherit into shadow roots), then class-grammar overrides, which reach
+ *   component markup because the theme is adopted into every shadow root too (`docs/theming.md` "Themes").
+ * - Touches:  site (Roboto, page background and text, palette, links, line heights), button, header, menu,
+ *   dropdown, modal.
+ * - Font:  Roboto (variable, latin), `material/roboto.woff2`, from Google Fonts (SIL OFL 1.1, `material/OFL.txt`),
+ *   where Fomantic `@import`ed Google's CSS in every overrides file.  As `bookish.css`:  `@font-face` sits OUTSIDE
+ *   the layer and works from the PAGE copy;  shadow roots use the page's fonts.
+ */
+
+@font-face {
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./material/roboto.woff2") format("woff2");
+}
+
+/*
+ * - Text ON colours (`--ui-<hue>-on`) re-checked for the new palette (WCAG AA 4.5:1, as `colors.css` picks them):
+ *   Material's mid-tone hues fail white, so most take ink;  purple and black keep white.  Fomantic showed white.
+ * - Dark scheme:  Fomantic had none.  `onDark` bases are Material's `light<Hue>` accents;  neutrals are
+ *   `light-dark()` pairs whose dark half keeps the default recipe.
+ * - NOT ported:
+ *   - `icon.variables`:  the Material Icons FONT (`assets/fonts/icons.*`) and its ligature map.  Icons here are
+ *     SVG packs;  a Material look wants a Material Symbols PACK (`yarn icons:pack`), not a font
+ *   - `site.variables` `@highlightBackground` / `@highlightColor` (text selection):  no selection token yet
+ *   - `site.variables` `@fontSize: 13px` (Fomantic's BODY text size, not its em):  page typography, not a component's
+ *   - `header.variables` icon offset / alignment (`@iconOffset`, `@iconAlignment`):  our header lays its icon out
+ *     with flex, no offset to set
+ *   - `dropdown.variables` `@menuHeaderFontWeight`, `@selectionBorderEmWidth`, `@labelBoxShadow`:  no tokens, and
+ *     the defaults already match closely
+ *   - `button.variables` `@labeledLabelBorderOffset`, `@invertedBorderSize`:  layout details our button draws
+ *     differently (a labeled button's label is its own `.ui.label`;  inverted borders are inset shadows)
+ */
+
+@layer ui.theme {
+  :root {
+    /* ## Site */
+    --ui-font-family: Roboto, "Helvetica Neue", Arial, Helvetica, sans-serif;
+    --ui-font-family-heading: var(--ui-font-family);
+    --ui-line-height: 1.33;
+    --ui-line-height-heading: 1.33;
+    --ui-ink-on-light: oklch(0.248 0 0);
+    --ui-background: light-dark(oklch(0.982 0 0), oklch(0.19 0.006 260));
+
+    /* Palette:  `onLight` ~== `@<hue>`, `onDark` ~== `@light<Hue>` */
+    --ui-red-on-light: oklch(0.643 0.215 28.8);
+    --ui-red-on-dark: oklch(0.637 0.249 20.7);
+    --ui-orange-on-light: oklch(0.77 0.174 64.1);
+    --ui-orange-on-dark: oklch(0.759 0.177 60.6);
+    --ui-yellow-on-light: oklch(0.928 0.18 102.5);
+    --ui-yellow-on-dark: oklch(0.925 0.194 102.9);
+    --ui-green-on-light: oklch(0.673 0.162 144.2);
+    --ui-green-on-dark: oklch(0.81 0.214 151.8);
+    --ui-teal-on-light: oklch(0.832 0.162 169.2);
+    --ui-teal-on-dark: oklch(0.832 0.162 169.2);
+    --ui-blue-on-light: oklch(0.658 0.169 248.8);
+    --ui-blue-on-dark: oklch(0.606 0.214 260.4);
+    --ui-purple-on-light: oklch(0.517 0.215 321.2);
+    --ui-purple-on-dark: oklch(0.636 0.305 319.9);
+    --ui-pink-on-light: oklch(0.606 0.23 9.6);
+    --ui-pink-on-dark: oklch(0.617 0.247 13.8);
+    --ui-grey-on-light: oklch(0.699 0 0);
+    --ui-black-on-dark: oklch(0.321 0 0);
+
+    /* Text on colours, re-checked (see the header):  ink where white is under 4.5:1 */
+    --ui-red-on: var(--ui-ink-on-light);
+    --ui-orange-on: var(--ui-ink-on-light);
+    --ui-yellow-on: var(--ui-ink-on-light);
+    --ui-green-on: var(--ui-ink-on-light);
+    --ui-teal-on: var(--ui-ink-on-light);
+    --ui-blue-on: var(--ui-ink-on-light);
+    --ui-pink-on: var(--ui-ink-on-light);
+    --ui-grey-on: var(--ui-ink-on-light);
+    --ui-purple-on: light-dark(oklch(1 0 0), var(--ui-ink-on-light));
+
+    /* `@secondaryColor: @grey` (primary stays blue) */
+    --ui-secondary: var(--ui-grey);
+    --ui-secondary-inverted: var(--ui-grey-inverted);
+    --ui-secondary-on: var(--ui-grey-on);
+    --ui-secondary-inverted-on: var(--ui-grey-inverted-on);
+
+    /* Links:  `@linkColor` #009fda, `lighten(5%)` on hover */
+    --ui-link: light-dark(oklch(0.662 0.139 234), var(--ui-primary-text));
+    --ui-link-hover: light-dark(oklch(0.7 0.14 234), oklch(from var(--ui-link) calc(l + 0.08) c h));
+
+    /* ## Button */
+    --ui-button-padding-block: 0.8em;
+    --ui-button-padding-inline: 0.8em;
+    --ui-button-radius: 0.2143em;
+    --ui-button-font-weight: var(--ui-font-weight-normal);
+    --ui-button-background: light-dark(oklch(1 0 0), var(--ui-surface));
+    --ui-button-background-hover: var(--ui-button-background);
+    --ui-button-background-down: var(--ui-button-background);
+    --ui-button-background-active: light-dark(oklch(0.955 0 0), var(--ui-surface-strong));
+    --ui-button-color: light-dark(oklch(0.252 0 0), var(--ui-text-color));
+    --ui-button-color-hover: var(--ui-button-color);
+    --ui-button-color-down: var(--ui-button-color);
+    --ui-button-color-active: var(--ui-button-color);
+    --ui-button-basic-background-hover: var(--ui-button-background);
+    --ui-button-basic-background-down: var(--ui-button-background);
+    --ui-button-labeled-icon-background: transparent;
+    --ui-button-labeled-icon-width: 2em;
+
+    /* ## Header:  Roboto (site), regular weight, Material's heading sizes (rem of 14px) */
+    --ui-header-font-weight: 400;
+    --ui-header-icon-size: 2em;
+    --ui-header-h1: calc(var(--ui-font-size) * 2.25);
+    --ui-header-h2: calc(var(--ui-font-size) * 2);
+    --ui-header-h3: calc(var(--ui-font-size) * 1.75);
+    --ui-header-h4: calc(var(--ui-font-size) * 1.5);
+    --ui-header-h5: calc(var(--ui-font-size) * 1.25);
+
+    /* ## Menu:  no dividers, roomier items */
+    --ui-menu-item-padding: 1.1429em 1.1429em;
+    --ui-menu-divider: transparent;
+
+    /* ## Dropdown */
+    --ui-dropdown-menu-border-color: light-dark(oklch(0.888 0 0), var(--ui-border-color));
+    --ui-dropdown-menu-shadow: 0 2px 4px oklch(0 0 0 / 0.2);
+    --ui-dropdown-item-padding-block: 1em;
+    --ui-dropdown-item-padding-inline: 1.5em;
+    --ui-dropdown-header-font-size: 0.9286em;
+    --ui-dropdown-item-divider-color: transparent;
+
+    /* ## Modal:  square, a deeper shadow, white header and actions without rules */
+    --ui-modal-radius: 0;
+    --ui-modal-shadow: 0 10px 18px oklch(0 0 0 / 0.22);
+    --ui-modal-header-background: var(--ui-surface);
+    --ui-modal-content-padding: calc(var(--ui-font-size) * 1) calc(var(--ui-font-size) * 2)
+      calc(var(--ui-font-size) * 2);
+    --ui-modal-actions-background: var(--ui-surface);
+  }
+
+  /* ## Button:  a white card with a hairline ring, lifted on hover (`button.variables` / `.overrides`) */
+  .ui.button:not(.basic, .inverted, .tertiary) {
+    background-image: linear-gradient(transparent, oklch(0 0 0 / 0.02));
+    box-shadow: inset 0 0 0 1px light-dark(oklch(0.898 0 0), var(--ui-border-color));
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1) * 13 / 14);
+    transition-property: opacity, background-color, color, box-shadow, background;
+    transition-duration: 0.3s;
+  }
+  .ui.button:not(.basic, .inverted, .tertiary):hover {
+    box-shadow:
+      inset 0 0 0 1px light-dark(oklch(0.898 0 0), var(--ui-border-color)),
+      0 2px 3px 0 oklch(0 0 0 / 0.2);
+  }
+  .ui.button:not(.basic, .inverted, .tertiary):active {
+    background-image: linear-gradient(oklch(0 0 0 / 0.04), oklch(0 0 0 / 0.04));
+    box-shadow: inset 0 0 0 1px light-dark(oklch(0.898 0 0), var(--ui-border-color));
+  }
+  .ui.active.button:not(.basic, .inverted, .tertiary) {
+    background-image: none;
+    box-shadow: 0 0 0 1px light-dark(oklch(0.898 0 0), var(--ui-border-color));
+  }
+  /* Coloured:  a subtle gradient and a darker ring */
+  .ui.button:is(
+      .primary,
+      .secondary,
+      .positive,
+      .negative,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black
+    ):not(.basic, .inverted, .tertiary) {
+    background-image: linear-gradient(transparent, oklch(0 0 0 / 0.05));
+    box-shadow: inset 0 0 0 1px oklch(0 0 0 / 0.1);
+  }
+  /* `button.variables` re-picks the emotive and brand colours for buttons */
+  .ui.primary.button:not(.basic, .inverted, .tertiary) {
+    --ui-color: oklch(0.627 0.18 260);
+    --ui-color-on: var(--ui-ink-on-light);
+    box-shadow: inset 0 0 0 1px oklch(0.511 0.225 261.3);
+  }
+  .ui.secondary.button:not(.basic, .inverted, .tertiary) {
+    --ui-color: light-dark(oklch(0.949 0 0), oklch(0.35 0 0));
+    --ui-color-on: var(--ui-text-color);
+    box-shadow: inset 0 0 0 1px light-dark(oklch(0.898 0 0), var(--ui-border-color));
+  }
+  .ui.positive.button {
+    --ui-color: oklch(0.589 0.181 137.7);
+    --ui-color-on: var(--ui-ink-on-light);
+  }
+  .ui.negative.button {
+    --ui-color: oklch(0.593 0.178 30.4);
+    --ui-color-on: var(--ui-ink-on-light);
+  }
+  .ui.primary.button:not(.basic, .inverted, .tertiary):hover {
+    box-shadow:
+      inset 0 0 0 1px oklch(0 0 0 / 0.3),
+      0 2px 3px 0 oklch(0 0 0 / 0.35);
+  }
+  .ui.secondary.button:not(.basic, .inverted, .tertiary):hover {
+    box-shadow:
+      inset 0 0 0 1px oklch(0 0 0 / 0.2),
+      0 2px 3px 0 oklch(0 0 0 / 0.3);
+  }
+  /* Basic:  no ring until hovered (`@basicBorderSize: 0`), 4px corners */
+  .ui.basic.button:not(.inverted) {
+    border-radius: 4px;
+    box-shadow: none;
+  }
+  .ui.basic.button:not(.inverted):hover {
+    box-shadow:
+      inset 0 0 0 1px light-dark(oklch(0.898 0 0), var(--ui-border-color)),
+      0 2px 3px 0 oklch(0 0 0 / 0.2);
+  }
+  .ui.basic.active.button:not(.inverted) {
+    background: var(--ui-surface);
+    box-shadow: 0 0 0 1px oklch(0 0 0 / 0.2);
+  }
+
+  /* ## Menu:  a floating card (`@boxShadow`), no border */
+  .ui.menu:not(.secondary, .text, .tabular, .borderless, .inverted, .attached) {
+    border-color: transparent;
+    box-shadow: 0 1px 6px oklch(0 0 0 / 0.2);
+  }
+
+  /*
+   * ## Modal:  no rules between header, content and actions;  roomy regular-weight header
+   * (`modal.variables` / `.overrides`).  Each rule twice:  the shorthand / static box, and a slotted part
+   * (`<ui-header>` / `<ui-actions>` in a modal, `ui-parts.css`'s `in-modal` rules).
+   */
+  .ui.modal > .header,
+  :host(:state(in-modal)) > .header,
+  .in-modal.header {
+    padding: calc(var(--ui-font-size) * 1.7142);
+    border-bottom: none;
+  }
+  .ui.modal > .header:not(.ui),
+  :host(:state(in-modal)) > .header,
+  .in-modal.header {
+    font-weight: 400;
+  }
+  .ui.modal > .actions,
+  :host(:state(in-modal)) > .actions,
+  .in-modal.actions {
+    border-top: none;
+  }
+}

@@ -41,6 +41,9 @@
 
 @layer ui.components.items.types, ui.components.items.content, ui.components.items.variations, ui.components.items.states;
 
+/* Breakpoints (`@custom-media`), inlined at build time:  `stack-with="page"`. */
+@import "../../styles/media.css";
+
 /*******************************
              Items
 *******************************/
@@ -95,6 +98,7 @@
     --_items-image-width: var(--_ui-items-image-width);
     --_items-content-distance: var(--_ui-items-content-distance);
     --_items-stackable: 1;
+    --_items-narrow: 0;
     --_items-link: 0;
     /* Owner token, ALWAYS declared:  a plain group nested in an inverted one resets it. */
     --ui-inverted: 0;
@@ -306,41 +310,109 @@
    *   as it can be up to 250px tall) unless `unstackable`, which keeps a 125px image beside the content.
    */
   @container (768px <= width < 992px) {
-    .ui.items {
-      --_items-image-width: var(--_ui-items-tablet-image-width);
-      --_items-content-distance: var(--_ui-items-tablet-content-distance);
+    @container not style(--ui-stack-with: page) {
+      .ui.items:not(.stack-with-page) {
+        --_items-image-width: var(--_ui-items-tablet-image-width);
+        --_items-content-distance: var(--_ui-items-tablet-content-distance);
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.items.stack-with-container {
+        --_items-image-width: var(--_ui-items-tablet-image-width);
+        --_items-content-distance: var(--_ui-items-tablet-content-distance);
+      }
+    }
+  }
+  @media (--ui-tablet) {
+    @container style(--ui-stack-with: page) {
+      .ui.items:not(.stack-with-container) {
+        --_items-image-width: var(--_ui-items-tablet-image-width);
+        --_items-content-distance: var(--_ui-items-tablet-content-distance);
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.items.stack-with-page {
+        --_items-image-width: var(--_ui-items-tablet-image-width);
+        --_items-content-distance: var(--_ui-items-tablet-content-distance);
+      }
     }
   }
   @container (width < 768px) {
-    .ui.items:not(.relaxed, .divided, .unstackable) {
-      --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
+    @container not style(--ui-stack-with: page) {
+      .ui.items:not(.stack-with-page) {
+        --_items-narrow: 1;
+      }
+      .ui.items:not(.relaxed, .divided, .unstackable):not(.stack-with-page) {
+        --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
+      }
+      .ui.unstackable.items:not(.stack-with-page) {
+        --_items-image-width: var(--_ui-items-unstackable-image-width);
+      }
     }
-    .ui.unstackable.items {
-      --_items-image-width: var(--_ui-items-unstackable-image-width);
+    @container style(--ui-stack-with: page) {
+      .ui.items.stack-with-container {
+        --_items-narrow: 1;
+      }
+      .ui.items:not(.relaxed, .divided, .unstackable).stack-with-container {
+        --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
+      }
+      .ui.unstackable.items.stack-with-container {
+        --_items-image-width: var(--_ui-items-unstackable-image-width);
+      }
     }
-    @container style(--_items-stackable: 1) {
-      :host(:state(in-items)) > .item,
-      .ui.items > .item {
-        --_ui-item-layout: stacked;
-        flex-direction: column;
+  }
+  @media (--ui-mobile) {
+    @container style(--ui-stack-with: page) {
+      .ui.items:not(.stack-with-container) {
+        --_items-narrow: 1;
       }
-      /* A slotted `<ui-image size="tiny">` takes its natural width too (Fomantic's `width: auto !important`). */
-      :host(:state(in-items)) > .item {
-        --_ui-image-owner-width: auto;
+      .ui.items:not(.relaxed, .divided, .unstackable):not(.stack-with-container) {
+        --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
       }
-      :host(:state(in-items)) > .item > slot::slotted(:state(in-items)) {
-        --_ui-image-owner-width: initial;
+      .ui.unstackable.items:not(.stack-with-container) {
+        --_items-image-width: var(--_ui-items-unstackable-image-width);
       }
-      :host(:state(in-items)) > .item > img.image,
-      :host(:state(in-items)) > .item > ::slotted(img),
-      .ui.items > .item > .image,
-      .ui.items > .item > .image > img {
-        display: block;
-        width: auto;
-        max-width: 100%;
-        max-height: var(--_ui-items-mobile-image-height);
-        margin-inline: auto;
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.items.stack-with-page {
+        --_items-narrow: 1;
       }
+      .ui.items:not(.relaxed, .divided, .unstackable).stack-with-page {
+        --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
+      }
+      .ui.unstackable.items.stack-with-page {
+        --_items-image-width: var(--_ui-items-unstackable-image-width);
+      }
+    }
+  }
+  /* Items in a narrow group (`--_items-narrow`, above):  stacked, unless `unstackable`. */
+  @container style(--_items-narrow: 1) and style(--_items-stackable: 1) {
+    :host(:state(in-items)) > .item,
+    .ui.items > .item {
+      --_ui-item-layout: stacked;
+      flex-direction: column;
+    }
+    /* A slotted `<ui-image size="tiny">` takes its natural width too (Fomantic's `width: auto !important`), no
+       taller than a stacked image (its `max-height: 250px !important`) and centred (its `margin: auto`). */
+    :host(:state(in-items)) > .item {
+      --_ui-image-owner-width: auto;
+      --_ui-image-owner-max-height: var(--_ui-items-mobile-image-height);
+      --_ui-image-owner-align-self: center;
+    }
+    :host(:state(in-items)) > .item > slot::slotted(:state(in-items)) {
+      --_ui-image-owner-width: initial;
+      --_ui-image-owner-max-height: initial;
+      --_ui-image-owner-align-self: initial;
+    }
+    :host(:state(in-items)) > .item > img.image,
+    :host(:state(in-items)) > .item > ::slotted(img),
+    .ui.items > .item > .image,
+    .ui.items > .item > .image > img {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      max-height: var(--_ui-items-mobile-image-height);
+      margin-inline: auto;
     }
   }
 }
