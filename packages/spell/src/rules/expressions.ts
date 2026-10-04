@@ -94,7 +94,11 @@ export class InfixOperatorSuffix<
 > extends SpellExpression<Groups, MatchData> {
   /** Operator suffixes are found through `expression_suffix`, not `expression` -- see `compound_expression`. */
   @proto static alias: string | string[] = "expression_suffix"
-  // set `outputDatatype` to specify explicit datatype in standard `getAST()`
+  /**
+   * Most suffixes are tests, e.g. `is`, `includes`, `and`, a user's quoted alias:  `choice`.
+   * - Others say otherwise, e.g. `+`, `as upper case` -- see `getResultDatatype()`.
+   */
+  @proto static datatype: P.Datatype | undefined = "choice"
 
   /**
    * How tightly we bind, from `Precedence` -- see there.  NOT `priority`, which breaks a `Choice` tie.
@@ -113,6 +117,21 @@ export class InfixOperatorSuffix<
         activity: "constructor"
       })
     }
+  }
+
+  /**
+   * Datatype of `<lhs> <us> <rhs>`, given what `lhs` and `rhs` are -- `compound_expression` asks, operator by
+   * operator, in the order it applies them.
+   * - Default:  our `datatype`, whatever the operands, e.g. `choice` for a comparison.
+   * - Override where it depends on them, e.g. `+` of text is text.
+   * - Reads only its arguments and `match`, like `getDatatype()`.
+   */
+  getResultDatatype(
+    match: P.MatchFor<this>,
+    lhs: P.Datatype | undefined,
+    rhs: P.Datatype | undefined
+  ): P.Datatype | undefined {
+    return this.getDatatype(match)
   }
 
   /**
@@ -297,6 +316,10 @@ expressions.addRule(Negatable.specialize({ ruleName: "has" }), {
  *   e.g. `((thing))` compiles down to `(thing)`.
  */
 class parenthesized_expression extends SpellExpression<"expression"> {
+  /** Parens don't change what it is. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.expression.datatype
+  }
   getAST(match: P.MatchFor<this>): P.ASTParenthesizedExpression {
     const { expression } = match.groups
     return new P.ASTParenthesizedExpression(match, {
@@ -397,6 +420,40 @@ class compound_expression extends SpellExpression<"lhs|rhsChain"> {
       .join("")
       .trim()
     return new P.Match({ rule: this, matched: [lhs, rhsChain], value, tokens: [...lhs.tokens, ...suffixTokens], scope })
+  }
+
+  /**
+   * What the whole expression is:  the same shunting-yard as `getAST()`, over datatypes -- each operator's
+   * `getResultDatatype()`, applied in the order `getAST()` applies it.
+   * - e.g. `the rank of the card + 1 is 2` => `+` makes `number`, then `is` makes `choice`.
+   */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const { lhs, rhsChain } = match.groups
+    const output: Array<P.Datatype | undefined> = [lhs.datatype]
+    const opStack: P.Match[] = []
+    for (const suffix of rhsChain.matched) {
+      if (!(suffix instanceof P.Match)) continue
+      reduceWhile(precedenceOf(suffix))
+      const rule: InfixOperatorSuffix = suffix.rule as InfixOperatorSuffix
+      if (suffix.rule instanceof PostfixOperatorSuffix) {
+        output.push(rule.getResultDatatype(suffix, output.pop(), undefined))
+      } else {
+        opStack.push(suffix)
+        output.push((suffix.groups.expression as P.Match | undefined)?.datatype)
+      }
+    }
+    reduceWhile(-Infinity)
+    return output[0]
+
+    /** Apply every stacked operator binding at least as tightly as `power` -- as `getAST()`'s namesake. */
+    function reduceWhile(power: number) {
+      for (let top = opStack.at(-1); top && precedenceOf(top) >= power; top = opStack.at(-1)) {
+        const operator = opStack.pop()!
+        const rhs = output.pop()
+        const lhs = output.pop()
+        output.push((operator.rule as InfixOperatorSuffix).getResultDatatype(operator, lhs, rhs))
+      }
+    }
   }
 
   /**
@@ -710,6 +767,9 @@ expressions.addRule(is_exactly, {
 
 /**
  * `{lhs} is [not] a`/`an {type}`, e.g. `thing is a Bee`.
+ * - The type MUST be known (`known_type`), so a typo is a parse error, e.g. `is a crad`.  Known:  built in
+ *   (`is a number`), imported, declared earlier in the project, or mentioned earlier -- a `stub`, e.g. by
+ *   `a joker has a color ...` above `a joker is a card`.  See `P.TypeScope.getOrStub()`.
  * - `shouldNegateOutput()` handles `is not a`.
  * - Compiles to `spellCore.isOfType(lhs, 'TypeName')`, wrapping type name via `QuotedExpression` --
  *   its RUNTIME name, which differs for a type imported renamed.  See `P.ASTTypeExpression.runtimeName`.
@@ -730,18 +790,25 @@ class is_a extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 expressions.addRule(is_a, {
-  syntax: "(operator:is not? (a|an)) {expression:type}",
+  syntax: "(operator:is not? (a|an)) {expression:known_type}",
   tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
         scope.variables?.add("thing")
+        scope.types?.add("Bee")
+        scope.types?.add("Animal")
       },
       tests: [
         ["thing is a Bee", "spellCore.isOfType(thing, 'Bee')"],
         ["thing is an Animal", "spellCore.isOfType(thing, 'Animal')"],
         ["thing is not a Bee", "!spellCore.isOfType(thing, 'Bee')"],
-        ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')"]
+        ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')"],
+        ["thing is a number", "spellCore.isOfType(thing, 'number')"],
+        ["thing is a boolean", "spellCore.isOfType(thing, 'choice')"],
+        ["thing is a list", "spellCore.isOfType(thing, 'List')"],
+        // an unknown type is no type:  `is a crad` doesn't parse
+        ["thing is a crad", "thing"]
       ]
     }
   ]
@@ -1009,6 +1076,8 @@ expressions.addRule(exists, {
  * - Compiles to `spellCore.isDefined(expression)`, negated as needed.
  */
 class there_is_a extends SpellExpression<"operator|expression"> {
+  @proto static datatype = "choice"
+
   getAST(match: P.MatchFor<this>): P.ASTNode {
     const { operator } = match.groups
     const expression = new P.ASTCoreMethodInvocation(match, {
@@ -1092,6 +1161,7 @@ expressions.addRule(is_empty, {
 /** `as upper case`/`uppercase` postfix, e.g. `"foo" as upper case` -- compiles to `spellCore.upperCase(lhs)`. */
 class as_uppercase extends PostfixOperatorSuffix {
   @proto static precedence = Precedence.comparison
+  @proto static datatype = "text"
 
   compileASTExpression(match: P.MatchFor<this>, { lhs }: OperatorOperands): P.ASTCoreMethodInvocation {
     return new P.ASTCoreMethodInvocation(match, {
@@ -1121,6 +1191,7 @@ expressions.addRule(as_uppercase, {
 /** `as lower case`/`lowercase` postfix, e.g. `"foo" as lower case` -- compiles to `spellCore.lowerCase(lhs)`. */
 class as_lowercase extends PostfixOperatorSuffix {
   @proto static precedence = Precedence.comparison
+  @proto static datatype = "text"
 
   compileASTExpression(match: P.MatchFor<this>, { lhs }: OperatorOperands): P.ASTCoreMethodInvocation {
     return new P.ASTCoreMethodInvocation(match, {
@@ -1156,6 +1227,11 @@ expressions.addRule(as_lowercase, {
 class as_a_type extends PostfixOperatorSuffix<"type"> {
   @proto static precedence = Precedence.comparison
   @proto static description = "Convert a value to a specific type, e.g. an integer."
+
+  /** The type it converts to, in spell's words, e.g. `text` for `as a string`. */
+  getResultDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return P.typeName(`${match.groups.type.value}`)
+  }
 
   compileASTExpression(
     match: P.MatchFor<this>,

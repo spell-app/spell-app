@@ -269,6 +269,8 @@ export type SpellDeclaration = {
   type?: string
   /** `type`'s supertype, e.g. `Thing`. */
   superType?: string
+  /** What `type` holds, if it's a list type, e.g. `Card` for `a deck is a list of cards` -- see `P.TypeScope.itemType`. */
+  itemType?: string
   /** Instance property it declares, e.g. `suit`. */
   property?: string
   /**
@@ -280,6 +282,10 @@ export type SpellDeclaration = {
   of?: string
   /** `property`'s datatype, e.g. `text`. */
   datatype?: string
+  /** A method's parameters, with their datatypes where known -- see `P.ScopeMethod.params`. */
+  params?: P.ScopeParam[]
+  /** What a method returns, if known -- see `P.ScopeMethod.returns`. */
+  returns?: string
   /** `property`'s compiled initial value. */
   initializer?: string
   /** `classVariable`'s values as parsed, e.g. `["'clubs'", "'diamonds'"]`. */

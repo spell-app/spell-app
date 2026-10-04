@@ -170,6 +170,26 @@ describe("SpellDeclarations.importScope()", () => {
     }
   })
 
+  test("a method's parameters and a list type's item type load with their types -- renamed with them", () => {
+    const imports = importLibrary()
+    const move = imports.types.get("Card", "LOCAL_ONLY")?.methods.get("move_to_$pile", "LOCAL_ONLY")
+    expect(move?.params).toEqual([{ name: "pile", datatype: "Pile" }])
+    expect(move?.words).toBe("move (a card) to (a pile)")
+    expect(imports.types.get("Pile", "LOCAL_ONLY")?.itemType).toBe("Card")
+    const renamed = importLibrary({ import: ["Card:Playingcard", "*"] })
+    expect(renamed.types.get("Pile", "LOCAL_ONLY")?.itemType).toBe("Playingcard")
+  })
+
+  test("declarations from before P4 load:  no `params` or `itemType` is unknown", () => {
+    const old = {
+      ...declarations,
+      statements: declarations.statements.map(({ params, itemType, ...statement }) => statement)
+    }
+    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from, declarations: old }])
+    expect(imports.types.get("Card", "LOCAL_ONLY")?.methods.get("move_to_$pile", "LOCAL_ONLY")?.params).toEqual([])
+    expect(imports.types.get("Pile", "LOCAL_ONLY")?.itemType).toBeUndefined()
+  })
+
   // NOTE: pins TODAY's partial-import behaviour:  a type brings only the rules it OWNS -- see the plan's open
   // question 1, whether a rule owned by a type left out could still change how the importer parses.
   test("`import` loads just the names picked, with what they own", () => {

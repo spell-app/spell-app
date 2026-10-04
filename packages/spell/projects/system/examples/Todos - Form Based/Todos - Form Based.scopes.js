@@ -44,6 +44,7 @@
     },
     {
       path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:tasks", line: 9,
+      detail: "list",
       section: "Todo app example"
     },
     {
@@ -94,6 +95,7 @@
     },
     {
       path: "project:Todos - Form Based/file:todo.spell/variable:app", line: 13,
+      detail: "Todos_App",
       section: "Todo app example"
     },
     {

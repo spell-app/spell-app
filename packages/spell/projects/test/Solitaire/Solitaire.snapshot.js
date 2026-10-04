@@ -271,7 +271,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "move {thisArg:expression} to {callArgs:expression}", output: "move_to_$pile",
     rule: "method_call", of: "Card", alias: ["statement", "expression"], kind: "method",
-    name: "move (a card) to (a pile)",
+    name: "move (a card) to (a pile)", params: [{ name: "pile", datatype: "Pile" }],
     defined: "/Pile.spell:403-581",
   } */
   async move_to_$pile(pile) {
@@ -379,7 +379,7 @@ spellCore.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
 
 /*! SPELL: DECLARES {
-  type: "Deck", superType: "List",
+  type: "Deck", superType: "List", itemType: "Card",
   defined: "/Deck.spell:61-86",
 } */
 export class Deck extends List {
@@ -451,7 +451,7 @@ test_deck_creation()
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
-  type: "Pile", superType: "List",
+  type: "Pile", superType: "List", itemType: "Card",
   defined: "/Pile.spell:25-50",
 } */
 export class Pile extends List {
@@ -669,6 +669,7 @@ export class Stock_Pile extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Stock_Pile", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:433-500",
   } */
   can_pick_up_$card(card) {
@@ -707,6 +708,7 @@ export class Discard_Pile extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Discard_Pile", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:691-760",
   } */
   can_pick_up_$card(card) {
@@ -736,6 +738,7 @@ export class Foundation extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Foundation", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:949-991",
   } */
   can_pick_up_$card(card) {
@@ -745,6 +748,7 @@ export class Foundation extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} play {expression:operand}", output: "can_play_$card",
     rule: "method_infix", of: "Foundation", kind: "method", name: '"can play (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:992-1117",
   } */
   can_play_$card(card) {
@@ -810,6 +814,7 @@ export class Tableau extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Tableau", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:1660-1716",
   } */
   can_pick_up_$card(card) {
@@ -819,6 +824,7 @@ export class Tableau extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} play {expression:operand}", output: "can_play_$card",
     rule: "method_infix", of: "Tableau", kind: "method", name: '"can play (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:1717-1894",
   } */
   can_play_$card(card) {

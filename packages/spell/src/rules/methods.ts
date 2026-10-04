@@ -51,7 +51,7 @@ export const methods = new SpellParser({ module: "methods" })
  *   on top of it uses the same `thisArg`/`callArgs`/`props` syntax convention, so there's no subclass that
  *   needs a different `Groups`/`MatchData`.
  */
-export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|props?"> {
+export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|props?", DynamicMethodData> {
   @proto static importableAs = "method_call"
 
   /** Generated method name to invoke -- fixed per rule by `specialize()`, shared by every match of it. */
@@ -75,6 +75,21 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
   static declarationProps({ output, alias }: (typeof DynamicMethodRule)["SpecializeWith"], syntax: string | undefined) {
     return { syntax, output, alias }
+  }
+
+  /**
+   * Note the method we call, while we can look it up -- see `MethodDefinition.findMethod()`.
+   * - On `thisArg`'s type, if it has one, else a free function.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (match) match.data.method = MethodDefinition.findMethod(scope, this.methodName, match.groups.thisArg?.datatype)
+    return match
+  }
+
+  /** What the method returns, if known -- see `P.ScopeMethod.returns`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.data.method?.returns
   }
 
   /** Normalize `callArgs` to an array -- a single arg's `{callArgs:expression}` match isn't already one. */
@@ -107,6 +122,12 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
     if (thing) return new P.ASTScopedMethodInvocation(match, { thing, methodName, args })
     return new P.ASTMethodInvocation(match, { methodName, args })
   }
+}
+
+/** What `DynamicMethodRule` stashes on its matches. */
+type DynamicMethodData = {
+  /** Record of the method it calls, found while parsing -- `undefined` if none known. */
+  method?: P.ScopeMethod
 }
 
 /** Props bag accepted by `DynamicMethodRule` -- `methodName` is the generated method it compiles a call to. */
@@ -310,8 +331,9 @@ export class MethodDefinition<
   }
 
   /**
-   * Build the `MethodScope` for the method body: adds `args` as scope variables, and (when `instanceType`
-   * was set by `processSignature()`) aliases `it` to `this` via `mapItTo`/`thisVar`.
+   * Build the `MethodScope` for the method body: adds `args` as scope variables, each with its datatype, and (when
+   * `instanceType` was set by `processSignature()`) aliases `it` to `this` via `mapItTo`/`thisVar` -- both of
+   * that type, e.g. `Card`.
    * - SIDE EFFECT: adds `extraVars` (e.g. a `with_props_arg`'s prop names, or the promoted type's own
    *   var-name alias) directly onto the new scope's `variables`.
    */
@@ -322,9 +344,11 @@ export class MethodDefinition<
     const methodScope = new P.MethodScope({
       parentScope: match.scope,
       name: methodName,
-      args: args.map((arg) => new P.ScopeVariable(arg.name)),
+      // each keeps its type, e.g. `Pile` for `(a pile)`, `text` for `(x as text)`
+      args: args.map((arg) => new P.ScopeVariable({ name: arg.name, datatype: argDatatype(arg) })),
       thisVar: instanceType,
       mapItTo: instanceType && "this",
+      itDatatype: instanceType && P.typeName(instanceType),
       declaredBy
     })
 
@@ -354,10 +378,58 @@ export class MethodDefinition<
     }
   }
 
-  /** SIDE EFFECT: registers the generated call-site rule (`getRule()`) onto `scope.parser`, making the new
-   *  syntax immediately usable after this definition. */
+  /**
+   * SIDE EFFECT: registers the generated call-site rule (`getRule()`) onto `scope.parser`, making the new
+   * syntax immediately usable after this definition -- and its record (`addMethod()`).
+   */
   mutateScope(match: P.MatchFor<this>): void {
     this.getRule(match)
+    this.addMethod(match)
+  }
+
+  /**
+   * Record the method `match` defines as a `P.ScopeMethod`:  its words, its parameters with their types,
+   * its owner -- so a call knows what it returns, and editors what it takes.
+   * - A method of a type this project declares:  in that type's `methods`.
+   * - Else in the project's `methods`, with `of` saying whose -- a free function, or a method of a type from
+   *   elsewhere, e.g. `Thing` or an import.  Why:  so the project's journal can take it back.  A built-in or
+   *   imported type's lists belong to every project using it.
+   * - Through `ScopeList.add()`:  journaled, and noted as what `match` declared -- see `SP.SpellDeclarations`.
+   */
+  addMethod(match: P.MatchFor<this>): void {
+    const { methodName, args, instanceType } = this.getSignature(match)!
+    if (!methodName) return
+    // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
+    const declaredBy = match as P.Match
+    const project = declaredBy.getScopeOfType(P.RootScope) as P.RootScope | undefined
+    const type = instanceType ? match.scope.types?.get(instanceType) : undefined
+    const record: P.ScopeMethodProps = {
+      name: methodName,
+      words: (match.groups as { signature?: P.Match }).signature?.inputText.trimEnd(),
+      params: args.map((arg) => definedOnly({ name: arg.name, datatype: argDatatype(arg) })),
+      of: type?.name ?? (instanceType && typeCase(instanceType)),
+      declaredBy
+    }
+    if (type && type.parentScope === project) type.methods.add(record)
+    else project?.methods.add(record)
+  }
+
+  /**
+   * Record of method `name`:  of the type `datatype` names (or a super-type), else a free function --
+   * `undefined` if none known.  See `addMethod()`.
+   * - A lookup:  call it WHILE PARSING.
+   */
+  static findMethod(scope: P.Scope, name: string, datatype: P.Datatype | undefined): P.ScopeMethod | undefined {
+    const type = scope.getType(datatype)
+    if (type) {
+      const member = type.getMember(name)
+      if (member instanceof P.ScopeMethod) return member
+      // a method of a type from elsewhere, recorded in the project -- see `addMethod()`
+      const recorded = scope.methods?.get(name)
+      return recorded?.of && type.isA(recorded.of) ? recorded : undefined
+    }
+    const recorded = datatype ? undefined : scope.methods?.get(name)
+    return recorded && !recorded.of ? recorded : undefined
   }
 
   /**
@@ -662,7 +734,12 @@ class type_method_arg extends P.Sequence<"type", MethodArgData> {
     // TODO: instanceCase(type.value) ???
     match.data.method = `$${type.raw}`
     match.data.syntax = "{callArgs:expression}"
-    match.data.arg = new P.ASTVariableExpression(match, { name: instanceCase(type.value), type: "argument" })
+    match.data.arg = new P.ASTVariableExpression(match, {
+      name: instanceCase(type.value),
+      type: "argument",
+      // what it holds, e.g. `Card` for `(a card)`
+      datatype: P.typeName(`${type.value}`)
+    })
     return match
   }
 }
@@ -679,7 +756,7 @@ methods.addRule(type_method_arg, {
  * Variable arg with explicit type, e.g. `(thing as a card)` in `to show (thing as a card): ...`.
  * - `arg` keeps the ORIGINAL variable name (`thing`), not the type name -- contrast with
  *   `type_method_arg`, which has no variable and names the arg after the type instead.
- * - `arg.datatype` records the type name (`card`) for downstream type-checking/rendering.
+ * - `arg.datatype` records what it holds, in spell's words (`Card`, `text`) -- its scope variable's `datatype`.
  * - `method`/`syntax` match `var_method_arg`'s (`$name` / `{callArgs:expression}`) -- the type only
  *   annotates the arg, it doesn't change the generated method name or call syntax.
  */
@@ -690,12 +767,12 @@ class typed_method_arg extends P.Sequence<"identifier|type", MethodArgData> {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     const { identifier, type } = match.groups
-    // `arg.datatype` is a real settable accessor inherited from `ASTNode`, and `VariableExpressionProps`
-    // declares it too -- set here via the accessor after construction rather than through the
-    // constructor props.
-    // TODO: any reason not to just pass `datatype: type.value` into the constructor above?
-    const arg = new P.ASTVariableExpression(match, { name: identifier.value, type: "argument" })
-    arg.datatype = type.value
+    // what it holds, in spell's words, e.g. `text` for `(x as a string)`
+    const arg = new P.ASTVariableExpression(match, {
+      name: identifier.value,
+      type: "argument",
+      datatype: P.typeName(`${type.value}`)
+    })
     match.data.variable = identifier
     match.data.type = type
     match.data.method = `$${identifier.value}`
@@ -1713,4 +1790,18 @@ type MethodExtraVar = string | { name: string; output?: string; type?: string }
 /** Is `scope` a file's (or project's) top level, where a definition is `export`ed? */
 function isTopLevel(scope: P.Scope): boolean {
   return scope instanceof P.FileScope || scope instanceof P.ProjectScope
+}
+
+/**
+ * Datatype method argument `arg` was declared with, e.g. `Card` for `(a card)` -- `undefined` if none.
+ * - `ASTNode.datatype` may be a `RegExp` constructor, for a regex literal:  never an argument's.
+ */
+function argDatatype(arg: P.ASTVariableExpression): P.Datatype | undefined {
+  const { datatype } = arg
+  return typeof datatype === "string" ? datatype : undefined
+}
+
+/** `record` without its `undefined` props, e.g. a parameter with no `datatype`. */
+function definedOnly<T extends object>(record: T): T {
+  return Object.fromEntries(Object.entries(record).filter(([, value]) => value !== undefined)) as T
 }

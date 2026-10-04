@@ -1,4 +1,4 @@
-import { CustomError } from "$/util"
+import { CustomError, pluralize, singularize, typeCase } from "$/util"
 import type { P } from "$/parser"
 
 export type { RulexParser } from "$/parser/rulex/RulexParser"
@@ -7,6 +7,114 @@ export type { RulexParser } from "$/parser/rulex/RulexParser"
 
 /** Alpha-numeric word, including dashes or underscores. */
 export const ALPHANUMERIC_WORD_WITH_DASHES = /^[a-zA-Z][\w-]*$/
+
+// ## Datatypes
+
+/**
+ * What an expression IS, in spell's words -- e.g. `text`, `number`, `choice`, `list of cards`, `Card`.
+ * - Built-in types lowercase (`BUILT_IN_TYPES`), a user's type by its `TypeScope` name, e.g. `Card`.
+ * - A list of something says so:  `list of cards` -- see `listOf()` / `itemTypeOf()`.
+ * - `undefined` ~== unknown, which is compatible with everything:  nothing stops parsing for want of a type.
+ * - ONE vocabulary, the runtime's too:  `spellCore.typeOf()` says `text` for a string, `choice` for a boolean.
+ *   JavaScript's words (`string`, `boolean`, `array`) are accepted only where a user WRITES them -- `typeName()`.
+ */
+export type Datatype = string
+
+/**
+ * Spell's built-in types, by their datatype, with each one's super-type -- the root scope has a `TypeScope` for
+ * each (see `SpellParser.rootScope`).
+ * - Their members come later (P7 of precedence-and-types).
+ * - NOTE: `list`, `thing` and `app` are runtime classes too (`List`, `Thing`, `App`), which compiled code names
+ *   in Type_Case.  The rest are plain javascript values.
+ */
+export const BUILT_IN_TYPES: Record<Datatype, Datatype | undefined> = {
+  text: undefined,
+  number: undefined,
+  integer: "number",
+  character: "text",
+  choice: undefined,
+  date: undefined,
+  list: undefined,
+  thing: undefined,
+  app: "thing",
+  nothing: undefined
+}
+
+/**
+ * Built-in types which are classes at runtime, so compiled code names them in Type_Case, e.g. `extends List`.
+ * - Every other built-in is a plain javascript value, named in spell's words, e.g. `isOfType(x, 'text')`.
+ */
+export const BUILT_IN_CLASSES: Datatype[] = ["list", "thing", "app"]
+
+/**
+ * Every way a user may WRITE a built-in type, lowercased and singular => its datatype.
+ * - Plurals are singularized before lookup, e.g. `numbers` => `number`.
+ */
+const TYPE_WORDS: Record<string, Datatype> = {
+  text: "text",
+  string: "text",
+  number: "number",
+  fraction: "number",
+  decimal: "number",
+  integer: "integer",
+  character: "character",
+  char: "character",
+  choice: "choice",
+  boolean: "choice",
+  "yes or no": "choice",
+  "true or false": "choice",
+  date: "date",
+  list: "list",
+  array: "list",
+  thing: "thing",
+  app: "app",
+  nothing: "nothing",
+  undefined: "nothing",
+  null: "nothing"
+}
+
+/**
+ * Datatype for a type name as a user WROTE it, in spell's words -- THE one normaliser.
+ * - Built-ins lowercase, however written:  `string` / `Text` => `text`, `boolean` / `yes or no` => `choice`,
+ *   `array` / `List` => `list`, `fraction` => `number`, `char` => `character`.
+ * - A list of something:  `list of cards` / `array of Card` => `list of cards` -- see `listOf()`.
+ * - Anything else is a user's type, Type_Case and singular, as its `TypeScope` is named:  `cards` => `Card`.
+ */
+export function typeName(written: string): Datatype {
+  const words = `${written}`.trim().replace(/\s+/g, " ")
+  const items = /^(?:list|array)s? of (.+)$/i.exec(words)
+  if (items) return listOf(typeName(items[1]!))
+  const lower = words.toLowerCase()
+  return TYPE_WORDS[lower] ?? TYPE_WORDS[singularize(lower)] ?? typeCase(words)
+}
+
+/** Is `datatype` one of spell's built-in types, e.g. `text` or `list` -- NOT `list of cards`, nor a user's type? */
+export function isBuiltInType(datatype: Datatype | undefined): boolean {
+  return datatype !== undefined && Object.hasOwn(BUILT_IN_TYPES, datatype)
+}
+
+/**
+ * Is `datatype` a plain VALUE -- a built-in which isn't a runtime class, e.g. `text`, `number`, `choice`?
+ * - A method on one can't be an instance method:  there's no class to put it on.
+ */
+export function isValueType(datatype: Datatype | undefined): boolean {
+  return isBuiltInType(datatype) && !BUILT_IN_CLASSES.includes(datatype!)
+}
+
+/** Datatype of a list holding `itemType`s, e.g. `Card` => `list of cards`, `number` => `list of numbers`. */
+export function listOf(itemType: Datatype): Datatype {
+  return `list of ${pluralize(itemType.toLowerCase())}`
+}
+
+/**
+ * What a `list of X` datatype holds, e.g. `list of cards` => `Card` -- `undefined` for any other datatype.
+ * - Only from the WORDS:  a user's list type, e.g. `Deck`, says what it holds on its `TypeScope`, `itemType`.
+ *   Use `scope.getItemType()` for either.
+ */
+export function itemTypeOf(datatype: Datatype | undefined): Datatype | undefined {
+  const match = datatype && /^list of (.+)$/.exec(datatype)
+  return match ? typeName(match[1]!) : undefined
+}
 
 // ## Match groups & data
 

@@ -1,5 +1,6 @@
 import { describe, test, expect } from "vitest"
 
+import { P } from "$/parser"
 import { loadFixtureProject, parseSpellProject } from "$/spell/test"
 
 /**
@@ -18,6 +19,8 @@ import { loadFixtureProject, parseSpellProject } from "$/spell/test"
  *   which predate jokers -- so no joker phrasing here.
  * - Snapshot:  the probe's compiled lines (after `SETUP`'s), then one `ERROR <line>:<ch> <message>` per parse error.
  *   `SPELL:` declaration comments are left out:  they repeat the declaring statement.
+ * - "datatypes" (from P4 of precedence-and-types):  what each expression IS, as a variable set to it holds -- one
+ *   `<expression>  =>  <datatype>` line each, `?` for unknown.  See `datatypes()`.
  */
 describe("grammar probes", () => {
   ////////////////
@@ -212,6 +215,114 @@ describe("grammar probes", () => {
       ERROR 8:0 Don't understand "the first character of the name of the card as uppercase""
     `)
   })
+
+  ////////////////
+  // ## P4 (epic phase):  types plumbed
+  ////////////////
+
+  test("T1  `is a` names a known type:  a typo is an error", () => {
+    expect(probe("print the card is a crad", "print the card is a thing", "print x is a number"))
+      .toMatchInlineSnapshot(`
+      "spellCore.console.log(card)
+      /* PARSE ERROR: Don't understand "is a crad" */
+      spellCore.console.log(spellCore.isOfType(card, 'Thing'))
+      spellCore.console.log(spellCore.isOfType(x, 'number'))
+      ERROR 8:15 Don't understand "is a crad""
+    `)
+  })
+
+  test("T2  `as choice` declares a `choice`", () => {
+    expect(probe("a todo is a thing", "a todo has a done as choice", "todos have a flag as a boolean"))
+      .toMatchInlineSnapshot(`
+      "export class Todo extends Thing {
+        static { this.declareProp('done', { type: 'choice' }) }
+        get done() { return this.getProp('done') }
+        set done(value) { this.setProp('done', value) }
+
+        static { this.declareProp('flag', { type: 'choice' }) }
+        get flag() { return this.getProp('flag') }
+        set flag(value) { this.setProp('flag', value) }
+      }"
+    `)
+  })
+})
+
+describe("datatypes", () => {
+  test("what each expression is", () => {
+    expect(
+      datatypes(
+        "the card",
+        "the deck",
+        "the pot",
+        "x",
+        "the first card of the deck",
+        "a random card of the pile",
+        "the first chip of the pot",
+        "the number of cards in the deck",
+        "the cards in the deck where its direction is up",
+        "the direction of the card",
+        "the card is face up",
+        "x + 1",
+        `"total: " + x`,
+        "(x + 1) * 2",
+        "x is 1 and y is 2",
+        "the name of the card as uppercase",
+        "a new card",
+        "a new list of cards",
+        "[1, 2, 3]",
+        "x if x > 1 otherwise 2"
+      )
+    ).toMatchInlineSnapshot(`
+      "the card  =>  Card
+      the deck  =>  Deck
+      the pot  =>  Pot
+      x  =>  number
+      the first card of the deck  =>  Card
+      a random card of the pile  =>  Card
+      the first chip of the pot  =>  Chip
+      the number of cards in the deck  =>  number
+      the cards in the deck where its direction is up  =>  Deck
+      the direction of the card  =>  ?
+      the card is face up  =>  choice
+      x + 1  =>  number
+      "total: " + x  =>  text
+      (x + 1) * 2  =>  number
+      x is 1 and y is 2  =>  choice
+      the name of the card as uppercase  =>  text
+      a new card  =>  Card
+      a new list of cards  =>  list of cards
+      [1, 2, 3]  =>  list of numbers
+      x if x > 1 otherwise 2  =>  number"
+    `)
+  })
+
+  test("sinks:  arguments, loop items, `it`", () => {
+    expect(
+      sinks(
+        [
+          "to hold (a card) in (a pile) and (label as text)",
+          "\tset arg-card to the card",
+          "\tset arg-pile to the pile",
+          "\tset arg-label to label"
+        ],
+        ["to flip (a card) over", "\tset owner to it"],
+        ["for each item in the deck", "\tset loop-item to item", "\tset loop-it to it"],
+        ["set winners to the cards in the deck where it is face up"],
+        ["get the first card of the deck", "set got-it to it"]
+      )
+    ).toMatchInlineSnapshot(`
+      "winners  =>  Deck
+      got_it  =>  Card
+      label  =>  text
+      arg_card  =>  Card
+      arg_pile  =>  Pile
+      arg_label  =>  text
+      owner  =>  Card
+      item  =>  Card
+      loop_item  =>  Card
+      loop_it  =>  Card"
+    `)
+  })
 })
 
 ////////////////
@@ -249,20 +360,82 @@ const SETUP = [
 ]
 
 /** A compiled line that's part of a `SPELL:` declaration comment, which `probe()` leaves out. */
-const DECLARATION_LINE = /^\s*(\/\*! SPELL|type:|syntax:|defined:|alias:|name:|output:|rule:|of:|kind:|\} \*\/)/
+const DECLARATION_LINE =
+  /^\s*(\/\*! SPELL|type:|syntax:|defined:|alias:|name:|output:|rule:|of:|kind:|property:|classVariable:|params:|itemType:|returns:|\} \*\/)/
+
+/**
+ * What each of `expressions` IS:  one `<expression>  =>  <datatype>` line each, `?` for unknown.
+ * - Each is set to a variable after `SETUP`, e.g. `set d1 to the first card of the deck`, and we read the datatype
+ *   it got -- the expression's `match.datatype`, through the assignment's sink.
+ */
+function datatypes(...expressions: string[]): string {
+  const lines = expressions.map((expression, index) => `set d${index + 1} to ${expression}`)
+  const { files } = parseProbe(lines)
+  const { scope } = files.at(-1)!
+  return expressions
+    .map((expression, index) => `${expression}  =>  ${scope.variables!.get(`d${index + 1}`)?.datatype ?? "?"}`)
+    .join("\n")
+}
+
+/**
+ * Datatype of every variable `blocks` declare INSIDE a body or at the top -- each block a method, loop or line,
+ * after `SETUP`.  One `<variable>  =>  <datatype>` line each, `?` for unknown.
+ * - Variables inside a body are local to it:  found through each statement's `nestedScope`.
+ */
+function sinks(...blocks: string[][]): string {
+  const { files } = parseProbe(blocks.flat())
+  const file = files.at(-1)!
+  const seen = new Set(["it", "x", "y", "card", "deck", "pile", "chip", "pot"])
+  const lines: string[] = []
+  visit(file.scope)
+  for (const match of statementsOf(file.match)) visit(match.nestedScope)
+  return lines.join("\n")
+
+  /** Note each variable `scope` itself declared, once. */
+  function visit(scope: P.Scope | undefined) {
+    const variables = scope instanceof P.BlockScope ? scope.variables.get() : []
+    for (const variable of variables) {
+      if (seen.has(variable.name) || variable.isAlias) continue
+      seen.add(variable.name)
+      lines.push(`${variable.name}  =>  ${variable.datatype ?? "?"}`)
+    }
+  }
+}
+
+/**
+ * Every match under `match` with a scope of its own (`nestedScope`), depth first -- through `matched`, and
+ * bodies (`data.body`).
+ */
+function statementsOf(match: P.Match | undefined, seen = new Set<P.Match>()): P.Match[] {
+  if (!match || seen.has(match)) return []
+  seen.add(match)
+  const found: P.Match[] = []
+  const { body } = match.data as { body?: unknown }
+  for (const child of [...match.matched, body]) {
+    if (!(child instanceof P.Match)) continue
+    if (child.nestedScope !== child.scope) found.push(child)
+    found.push(...statementsOf(child, seen))
+  }
+  return found
+}
+
+/** `lines` parsed after the cards library, `SETUP_TYPES` and `SETUP`, as `probe()` does. */
+function parseProbe(lines: string[]) {
+  return parseSpellProject([
+    ...CARDS,
+    { path: "/Types.spell", contents: SETUP_TYPES.join("\n") },
+    { path: "/Probe.spell", contents: [...SETUP, ...lines].join("\n") }
+  ])
+}
 
 /**
  * Parse `lines` as one spell file after `SETUP`:  what they compiled to, then their parse errors.
  * - One string, so its inline snapshot reads as the compiled code.
  * - An error's line is 1-based in the probe's file, so a probe's first line is line 8, after `SETUP`'s 7.
- * - TODO(P4):  add a `datatype` column -- the datatype of each statement's expression -- once matches carry one.
+ * - What expressions ARE:  `datatypes()`, `sinks()`.
  */
 function probe(...lines: string[]): string {
-  const { files } = parseSpellProject([
-    ...CARDS,
-    { path: "/Types.spell", contents: SETUP_TYPES.join("\n") },
-    { path: "/Probe.spell", contents: [...SETUP, ...lines].join("\n") }
-  ])
+  const { files } = parseProbe(lines)
   const [types, file] = files.slice(-2)
   const compiled = file!.compiled.split("\n").filter((line) => !DECLARATION_LINE.test(line))
   const output = compiled.slice(compiled.lastIndexOf(SETUP_END_COMPILED) + 1)

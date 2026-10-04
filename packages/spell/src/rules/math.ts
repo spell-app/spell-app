@@ -122,6 +122,20 @@ class plus extends InfixOperatorSuffix {
   @proto static precedence = Precedence.sum
   @proto static parenthesize = true
 
+  /**
+   * `text` if either side is text -- javascript joins them -- `number` if both are numbers, else unknown:
+   *   `x + y` might be either.
+   */
+  getResultDatatype(
+    match: P.MatchFor<this>,
+    lhs: P.Datatype | undefined,
+    rhs: P.Datatype | undefined
+  ): P.Datatype | undefined {
+    if (isTextual(lhs) || isTextual(rhs)) return "text"
+    if (isNumeric(lhs) && isNumeric(rhs)) return "number"
+    return undefined
+  }
+
   getOutputOperator() {
     return "+"
   }
@@ -157,6 +171,7 @@ math.addRule(plus, {
 class minus extends InfixOperatorSuffix {
   @proto static precedence = Precedence.sum
   @proto static parenthesize = true
+  @proto static datatype = "number"
 
   getOutputOperator() {
     return "-"
@@ -189,6 +204,7 @@ math.addRule(minus, {
 class times extends InfixOperatorSuffix {
   @proto static precedence = Precedence.product
   @proto static parenthesize = true
+  @proto static datatype = "number"
 
   getOutputOperator() {
     return "*"
@@ -221,6 +237,7 @@ math.addRule(times, {
 class divided_by extends InfixOperatorSuffix {
   @proto static precedence = Precedence.product
   @proto static parenthesize = true
+  @proto static datatype = "number"
 
   getOutputOperator() {
     return "/"
@@ -263,6 +280,8 @@ math.addRule(divided_by, {
  *   `the absolute value of x + 1 is 3` => `absoluteValue(x + 1) == 3`.
  */
 class absolute_value extends SpellExpression<"operator|expression"> {
+  @proto static datatype = "number"
+
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -296,6 +315,7 @@ math.addRule(absolute_value, {
  */
 class max extends SpellExpression<"operator|argument?|expression"> {
   @proto static priority = 2
+  @proto static datatype = "number"
 
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
@@ -335,6 +355,7 @@ math.addRule(max, {
  */
 class min extends SpellExpression<"operator|argument?|expression"> {
   @proto static priority = 2
+  @proto static datatype = "number"
 
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
@@ -373,6 +394,7 @@ math.addRule(min, {
  */
 class round_number extends SpellExpression<"expression|operator?"> {
   @proto static priority = 1
+  @proto static datatype = "number"
 
   /** Maps `off`/`up`/`down` suffix to `round`/`roundUp`/`roundDown` spellCore method. */
   getAST(match: P.MatchFor<this>) {
@@ -404,3 +426,17 @@ math.addRule(round_number, {
     }
   ]
 })
+
+////////////////
+// ## Shared helpers
+////////////////
+
+/** Is `datatype` text, or one character of it? */
+function isTextual(datatype: P.Datatype | undefined): boolean {
+  return datatype === "text" || datatype === "character"
+}
+
+/** Is `datatype` a number, or an integer? */
+function isNumeric(datatype: P.Datatype | undefined): boolean {
+  return datatype === "number" || datatype === "integer"
+}

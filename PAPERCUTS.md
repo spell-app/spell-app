@@ -213,6 +213,13 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   experiment.  It buries the output you came for (`grammar-today.mts`, `--silent=false` BENCH runs). ·
   `console.warn({ environment })` at the bottom of `environment.ts`;  not fixed yet -- filter with `grep` meanwhile. ·
   spell
+- 2026-10-04 · `barrel.test.ts` "importing $/parser/scope/Scope first still yields a complete barrel" broke with
+  `Class extends value undefined` (`BlockScope extends Scope`) after adding a method to `Scope.ts` that called
+  `P.itemTypeOf()`.  Its `import { P } from "$/parser"` had only ever been used for TYPES, so the compiler dropped
+  it;  the first VALUE use kept it, and entering at `Scope.ts` now ran the barrel mid-cycle. · `import type { P }`,
+  and import the helper straight from its leaf (`$/parser/parser.types`) with the "Import directly to avoid
+  circular import" comment.  Before adding a `P.x` value use to a scope / base-class file, check its `P` import
+  isn't type-only today. · parser
 
 ## ui
 

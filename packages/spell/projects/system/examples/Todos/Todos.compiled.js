@@ -89,7 +89,7 @@ export class Task extends Thing {
 } */
 export class Todos_App extends App {
   /*! SPELL: DECLARES {
-    property: "tasks", of: "Todos_App",
+    property: "tasks", of: "Todos_App", datatype: "list",
     defined: "/Todo.spell:220-266",
   } */
   static { this.declareProp('tasks', { init: () => new List() }) }
@@ -229,7 +229,7 @@ app.filter = "all"
 /*! SPELL: DECLARES {
   syntax: "create a task (with {props:object_literal_properties})?", output: "create_a_task",
   rule: "method_call", alias: ["statement", "expression"], kind: "function",
-  name: "create a task (with title as text)",
+  name: "create a task (with title as text)", params: [{ name: "props" }],
   defined: "/Todo.spell:391-518",
 } */
 export function create_a_task(props = {}) {

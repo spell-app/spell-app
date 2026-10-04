@@ -26,6 +26,8 @@ export const assignment = new SpellParser({ module: "assignment" })
  *   isn't already declared (or is only an alias, e.g. `it`) -- see `match.data.isNewVariable`/`originalVar`.
  *   An alias `thing` is redefined as a real variable.  Safe even if `value` refers to the alias:
  *   identifiers remember what they named when PARSED -- see `SpellIdentifier`.
+ * - A new variable holds what `value` is, its `datatype`, e.g. `Card` for `the card is a new card`.  An existing
+ *   one keeps its own:  the first datatype wins.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
 class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
@@ -39,7 +41,7 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
    * or only an alias) so later statements in the block see it -- see rule doc above.
    */
   mutateScope(match: P.MatchFor<this>) {
-    const { thing } = match.groups
+    const { thing, value } = match.groups
     // If `thing` is a variable...
     // TODO: this is not necessarily the best check...
     if (thing.rule.name === "variable" || thing.rule.name?.endsWith("_variable")) {
@@ -54,16 +56,17 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
       const scope = match.scope as P.BlockScope
       const { variables } = scope
       // `set it to ...` always declares a new `it` -- see `assignment_statement.declareIt()`
+      const { datatype } = value
       if (varName === "it") {
-        match.data.newIt = assignment_statement.declareIt(scope, match)
+        match.data.newIt = assignment_statement.declareIt(scope, match, datatype)
         match.data.isNewVariable = true
         return
       }
       const scopeVar = variables.get(varName)
       match.data.isNewVariable = !scopeVar || scopeVar.isAlias
       // define a new variable in `scope` if not already defined, or redefine an alias as a real one
-      if (!scopeVar) variables.add({ name: varName, declaredBy: match })
-      else if (scopeVar.isAlias) variables.replace({ name: scopeVar.name, declaredBy: match })
+      if (!scopeVar) variables.add({ name: varName, datatype, declaredBy: match })
+      else if (scopeVar.isAlias) variables.replace({ name: scopeVar.name, datatype, declaredBy: match })
       // Remember the original scopeVar for `getAST()` below
       match.data.originalVar = scopeVar
     }
@@ -96,14 +99,15 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
    * - Numbered from the visible `it`'s `output`, NOT a counter, so incremental parsing's journal covers it.
    * - Static, as `get` declares an `it` too.
    * - SIDE EFFECT: replaces `scope`'s own `it` with the new one, so later lines' `it` means it.
+   * - `datatype`:  what it holds, e.g. `Card` for `get the first card of the deck`.
    */
-  static declareIt(scope: P.BlockScope, declaredBy: P.Match): P.ScopeVariable {
+  static declareIt(scope: P.BlockScope, declaredBy: P.Match, datatype?: P.Datatype): P.ScopeVariable {
     const { variables } = scope
     const visible = variables.get("it")
     let number = visible && !visible.isAlias ? assignment_statement.itNumber(visible) + 1 : 1
     while (number > 1 && variables.get(`it_${number}`)) number++
     const output = number === 1 ? undefined : `it_${number}`
-    const [it] = variables.replace({ name: "it", output, declaredBy })
+    const [it] = variables.replace({ name: "it", output, datatype, declaredBy })
     return it!
   }
 
@@ -229,10 +233,11 @@ class get extends SpellStatement<"value", GetMatchData> {
   @proto static alias = ["assignment", "statement"]
   @proto static changesScope: P.ScopeChanges = "internal"
 
-  /** Declare a new `it` -- see `assignment_statement.declareIt()`. */
+  /** Declare a new `it`, holding what `value` is -- see `assignment_statement.declareIt()`. */
   mutateScope(match: P.MatchFor<this>) {
     // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` -- we know it's a block.
-    match.data.itVar = assignment_statement.declareIt(match.scope as P.BlockScope, match)
+    const scope = match.scope as P.BlockScope
+    match.data.itVar = assignment_statement.declareIt(scope, match, match.groups.value.datatype)
   }
   /** Build `P.ASTAssignmentStatement` declaring our new `it` as `value`. */
   getAST(match: P.MatchFor<this>): P.ASTAssignmentStatement {

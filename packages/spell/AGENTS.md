@@ -156,8 +156,12 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   built lazily, when scope may have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
 - A rule built WHILE PARSING goes through `scope.addRule(RuleClass, definition, match)` -- never `parser.addRule()`
   directly -- so the scope records the class + definition pair and can hand on the rules it created.
-- A `mutateScope()` that adds a scope record -- a variable, constant, type, rule or `MethodScope` -- passes
+- A `mutateScope()` that adds a scope record -- a variable, constant, type, rule or `ScopeMethod` -- passes
   `declaredBy: match` (the third argument for `scope.addRule()`), so editors can find where it was declared.
+- What a rule's match IS -- `match.datatype`, in spell's words (`text`, `Card`, `list of cards`, see `P.Datatype`):
+  `@proto static datatype`, or override `getDatatype(match)`, which reads ONLY `match.data` and child matches.
+  A scope lookup it needs (a member, a list's item type) happens in `parse()`, into `match.data`.  Type names a
+  user WRITES go through `P.typeName()`.  See "Datatypes" in `PARSING.md`.
 - Rules are IMMUTABLE (frozen on registration) and shared by every parse.
   NEVER store per-parse state on a rule, NEVER add ad hoc fields to a `Match` -- use `match.data`.
 - Exception to "one exported class per file":  a rule module holds many snake_case rule classes.

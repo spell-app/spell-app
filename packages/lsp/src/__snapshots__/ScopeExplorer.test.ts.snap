@@ -64,7 +64,7 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
 "root Spell (built in)
   type Thing
   type List
-  type App
+  type App (is a Thing)
   project Solitaire
     file Card.spell
       type Card (is a Thing)
@@ -76,18 +76,18 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
       type Pile (is a List)
     file Solitaire.spell
       type Game (is a App)
-      variable game
-      variable all_piles
-      variable foundations
-      variable tableaus
+      variable game (Game)
+      variable all_piles (list of piles)
+      variable foundations (list of piles)
+      variable tableaus (list of piles)
       type Stock_Pile (is a Pile)
-      variable stock
+      variable stock (Stock_Pile)
       type Discard_Pile (is a Pile)
-      variable discards
+      variable discards (Discard_Pile)
       type Foundation (is a Pile)
-      variable it
+      variable it (Foundation)
       type Tableau (is a Pile)
-      variable deck
+      variable deck (Deck)
       function debug the game
       function reset the stock pile
       function play from the stock pile
@@ -101,7 +101,7 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
 "root Spell (built in)
   type Thing
   type List
-  type App
+  type App (is a Thing)
   project lib (imported)
     file Card.spell
       type Card (is a Thing)
@@ -114,18 +114,18 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
   project app
     file Solitaire.spell
       type Game (is a App)
-      variable game
-      variable all_piles
-      variable foundations
-      variable tableaus
+      variable game (Game)
+      variable all_piles (list of piles)
+      variable foundations (list of piles)
+      variable tableaus (list of piles)
       type Stock_Pile (is a Pile)
-      variable stock
+      variable stock (Stock_Pile)
       type Discard_Pile (is a Pile)
-      variable discards
+      variable discards (Discard_Pile)
       type Foundation (is a Pile)
-      variable it
+      variable it (Foundation)
       type Tableau (is a Pile)
-      variable deck
+      variable deck (Deck)
       function debug the game
       function reset the stock pile
       function play from the stock pile

@@ -267,6 +267,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "{operator:is} the {expression:operand} joker", output: "is_the_$color_joker",
     rule: "method_infix", of: "Card", kind: "method", name: '"is the (color) joker"',
+    params: [{ name: "color" }],
     defined: "/Card.spell:3118-3187",
   } */
   is_the_$color_joker(color) {
@@ -281,7 +282,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "move {thisArg:expression} to {callArgs:expression}", output: "move_to_$pile",
     rule: "method_call", of: "Card", alias: ["statement", "expression"], kind: "method",
-    name: "move (a card) to (a pile)",
+    name: "move (a card) to (a pile)", params: [{ name: "pile", datatype: "Pile" }],
     defined: "/Pile.spell:403-581",
   } */
   async move_to_$pile(pile) {
@@ -406,7 +407,7 @@ spellCore.heading("Deck:   US standard card deck -- with its two jokers too, if 
 //## Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes
 
 /*! SPELL: DECLARES {
-  type: "Deck", superType: "List",
+  type: "Deck", superType: "List", itemType: "Card",
   defined: "/Deck.spell:88-113",
 } */
 export class Deck extends List {
@@ -523,7 +524,7 @@ test_deck_with_jokers()
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
-  type: "Pile", superType: "List",
+  type: "Pile", superType: "List", itemType: "Card",
   defined: "/Pile.spell:25-50",
 } */
 export class Pile extends List {

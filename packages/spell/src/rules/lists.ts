@@ -29,7 +29,7 @@ export const lists = new SpellParser({ module: "lists" })
  *   else it'd swallow anything.
  */
 class identifier_list extends P.Repeat {
-  @proto static datatype = "array" // TODO: array of what?
+  @proto static datatype = "list"
 
   getAST(match: P.MatchFor<this>): P.ASTListExpression {
     const { items } = match
@@ -62,7 +62,14 @@ lists.addRule(identifier_list, {
  */
 class bracketed_list extends P.Sequence<"list?"> {
   @proto static alias = "expression"
-  @proto static datatype = "array" // TODO: array of what?
+  @proto static datatype = "list"
+
+  /** A `list of` what its items all are, e.g. `list of numbers` for `[1, 2]` -- else just a `list`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const types = new Set(match.groups.list?.items.map((item) => item.datatype))
+    const [itemType] = types
+    return types.size === 1 && itemType ? P.listOf(itemType) : this.datatype
+  }
 
   getAST(match: P.MatchFor<this>): P.ASTListExpression {
     const { list } = match.groups
@@ -106,6 +113,12 @@ lists.addRule(bracketed_list, {
  *   `a duplicate of list the piles as a list` => `spellCore.duplicateCollection(piles, List)`.
  */
 class copy_list extends SpellExpression<"expression|type?"> {
+  /** The type it's copied `as`, else what it copies. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const { expression, type } = match.groups
+    return type ? P.typeName(`${type.value}`) : expression.datatype
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { expression, type } = match.groups
     const args = [P.matchAST(expression)]
@@ -143,6 +156,12 @@ lists.addRule(copy_list, {
  *   `merge the piles as a list` => `spellCore.mergeCollections(piles, List)`.
  */
 class merge_lists extends SpellExpression<"expression|type?"> {
+  /** The type it's merged `as`, else a `list`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const { type } = match.groups
+    return type ? P.typeName(`${type.value}`) : "list"
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { expression, type } = match.groups
     const args = [P.matchAST(expression)]
@@ -199,10 +218,11 @@ lists.addRule(merge_lists, {
  */
 class list_length extends SpellExpression<"arg|list|body?"> {
   @proto static priority = 3
+  @proto static datatype = "number"
 
   /** Nested scope for a `where` body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    return getWhereScope(match.scope, match.groups.arg)
+    return getWhereScope(match, match.groups.arg, match.groups.list)
   }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { arg, list } = match.groups
@@ -266,6 +286,7 @@ lists.addRule(list_length, {
  */
 class list_position extends SpellExpression<"thing|list"> {
   @proto static priority = 3
+  @proto static datatype = "number"
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
@@ -457,7 +478,17 @@ lists.addRule(ordinal, {
  * - NOTE: positions are **1-based** while Javascript is **0-based**, e.g. `item 1 of the array` => `array[0]`.
  * - Compiles to `spellCore.getItemOf(list, position)`.
  */
-class position_expression extends SpellExpression<"arg|position|expression"> {
+class position_expression extends SpellExpression<"arg|position|expression", ListItemData> {
+  /** Note the item type of the list, while we can look it up -- see `noteItemType()`. */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (match) noteItemType(match, match.groups.expression)
+    return match
+  }
+  /** An item of the list. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.data.itemType
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { position, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -495,7 +526,17 @@ lists.addRule(position_expression, {
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Shares same `getItemOf` compile target as `position_expression`, with `{ordinal}` resolved to a number.
  */
-class ordinal_position_expression extends SpellExpression<"ordinal|arg|expression"> {
+class ordinal_position_expression extends SpellExpression<"ordinal|arg|expression", ListItemData> {
+  /** Note the item type of the list, while we can look it up -- see `noteItemType()`. */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (match) noteItemType(match, match.groups.expression)
+    return match
+  }
+  /** An item of the list, e.g. `Card` for `the first card of the deck`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.data.itemType
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { ordinal, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -533,7 +574,17 @@ lists.addRule(ordinal_position_expression, {
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Compiles to `spellCore.randomItemOf(list)`.
  */
-class random_item_expression extends SpellExpression<"arg|list"> {
+class random_item_expression extends SpellExpression<"arg|list", ListItemData> {
+  /** Note the item type of the list, while we can look it up -- see `noteItemType()`. */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (match) noteItemType(match, match.groups.list)
+    return match
+  }
+  /** An item of the list. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.data.itemType
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -572,6 +623,10 @@ lists.addRule(random_item_expression, {
  * TODO: `two random items...`
  */
 class random_items_expression extends SpellExpression<"number|arg|list"> {
+  /** Some of the list's items:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { number, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -611,6 +666,10 @@ lists.addRule(random_items_expression, {
  * - NOTE: `end` is inclusive!
  */
 class range_between_expression extends SpellExpression<"arg|start|end|list"> {
+  /** Some of the list's items:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list, start, end } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -651,6 +710,10 @@ lists.addRule(range_between_expression, {
  * - If item is not found, returns an empty list. (???)
  */
 class range_starting_with_expression extends SpellExpression<"arg|list|thing"> {
+  /** Some of the list's items:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
     const itemExpression = new P.ASTCoreMethodInvocation(match, {
@@ -699,6 +762,10 @@ lists.addRule(range_starting_with_expression, {
  * TODO: restrict ordinals to `first`, `last`, `final`, `top`, etc
  */
 class range_count_expression extends SpellExpression<"ordinal|number|arg|list"> {
+  /** Some of the list's items:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list, ordinal, number } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -743,7 +810,11 @@ class list_filter extends SpellExpression<"arg|list|body?"> {
 
   /** Nested scope for filter body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    return getWhereScope(match.scope, match.groups.arg)
+    return getWhereScope(match, match.groups.arg, match.groups.list)
+  }
+  /** The items which pass:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
   }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { arg, list } = match.groups
@@ -802,9 +873,12 @@ lists.addRule(list_filter, {
 class list_membership_test extends PostfixOperatorSuffix<"operator|arg|body?"> {
   @proto static precedence = Precedence.comparison
 
-  /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
+  /**
+   * Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`.
+   * - NOTE: its item type is unknown:  the list is the expression BEFORE us, which a suffix can't see.
+   */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    return getWhereScope(match.scope, match.groups.arg)
+    return getWhereScope(match, match.groups.arg, undefined)
   }
   /** Negated unless `operator` is exactly `has`. */
   shouldNegateOutput(operator: P.Match): boolean {
@@ -815,7 +889,7 @@ class list_membership_test extends PostfixOperatorSuffix<"operator|arg|body?"> {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "any",
       args: [lhs!, filter],
-      datatype: "boolean"
+      datatype: "choice"
     })
   }
 }
@@ -1262,7 +1336,7 @@ class list_remove_where extends SpellStatement<"arg|list|body?"> {
 
   /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    return getWhereScope(match.scope, match.groups.arg)
+    return getWhereScope(match, match.groups.arg, match.groups.list)
   }
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
@@ -1400,8 +1474,9 @@ class repeat_n_times extends SpellStatement<"number|body?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     return new P.MethodScope({
       parentScope: match.scope,
-      args: [new P.ScopeVariable("number")],
+      args: [new P.ScopeVariable({ name: "number", datatype: "number" })],
       mapItTo: "number",
+      itDatatype: "number",
       declaredBy: match
     })
   }
@@ -1481,15 +1556,21 @@ lists.addRule(repeat_n_times, {
 class list_iteration extends SpellStatement<"item|position?|list|body?"> {
   @proto static alias = ["statement", "expression"]
 
-  /** Nested scope for body -- `{item}` (and optional numeric `{position}`) vars, `it` aliased to `{item}`. */
+  /**
+   * Nested scope for body -- `{item}` (and optional numeric `{position}`) vars, `it` aliased to `{item}`.
+   * - `{item}` and `it` are what the list holds, e.g. `Card` for `for each card in the deck` -- looked up now,
+   *   while parsing:  a body parses in this scope.
+   */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    const { item, position } = match.groups
-    const args: P.ScopeVariable[] = [new P.ScopeVariable({ name: item.value, declaredBy: item })]
+    const { item, position, list } = match.groups
+    const datatype = match.scope.getItemType(list.datatype)
+    const args: P.ScopeVariable[] = [new P.ScopeVariable({ name: item.value, datatype, declaredBy: item })]
     if (position) args.push(new P.ScopeVariable({ name: position.value, datatype: "number", declaredBy: position }))
     return new P.MethodScope({
       parentScope: match.scope,
       args,
       mapItTo: item.value,
+      itDatatype: datatype,
       declaredBy: match
     })
   }
@@ -1672,15 +1753,19 @@ type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 ////////////////
 
 /**
- * Nested scope for a `where` clause's predicate:  singularized `arg` is the current item, also aliased from `it`,
- * e.g. `word` for `words in my-list where word starts with "a"`.
+ * Nested scope for `match`'s `where` clause's predicate:  singularized `arg` is the current item, also aliased
+ * from `it`, e.g. `word` for `words in my-list where word starts with "a"`.
+ * - Both are what `list` holds, if we can tell, e.g. `Card` for `the cards in the deck where ...` -- looked up
+ *   now, while parsing:  the predicate parses in this scope.
  */
-function getWhereScope(parentScope: P.Scope, arg: P.Match): P.MethodScope {
+function getWhereScope(match: P.Match, arg: P.Match, list: P.Match | undefined): P.MethodScope {
   const name = singularize(arg.value)
+  const datatype = list && match.scope.getItemType(list.datatype)
   return new P.MethodScope({
-    parentScope,
-    args: [new P.ScopeVariable({ name, declaredBy: arg })],
+    parentScope: match.scope,
+    args: [new P.ScopeVariable({ name, datatype, declaredBy: arg })],
     mapItTo: name,
+    itDatatype: datatype,
     declaredBy: arg
   })
 }
@@ -1692,4 +1777,23 @@ function getWhereMethod(match: P.Match, arg: P.Match, body: P.Match | undefined)
     args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value) })],
     body: P.matchAST(body)
   })
+}
+
+////////////////
+// ## Item types
+//    shared by the rules which pick an item out of a list, e.g. `ordinal_position_expression`
+////////////////
+
+/** What a rule picking an item out of a list stashes on its match. */
+type ListItemData = {
+  /** What the list holds, e.g. `Card` -- looked up while parsing, see `noteItemType()`.  `undefined` if unknown. */
+  itemType?: P.Datatype
+}
+
+/**
+ * Note on `match`, WHILE PARSING, what `list` holds -- its `data.itemType`, e.g. `Card` for `the deck`.
+ * - Why now:  it's a scope lookup -- a `Deck`'s item type is on its `TypeScope` -- and `getDatatype()` mustn't look.
+ */
+function noteItemType(match: P.Match<P.AnyGroups, ListItemData>, list: P.Match): void {
+  match.data.itemType = match.scope.getItemType(list.datatype)
 }

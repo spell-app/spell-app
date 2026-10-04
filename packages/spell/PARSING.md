@@ -90,6 +90,35 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `expressions.test.ts` "priority and precedence" snapshots every built-in rule's non-default `priority` and every
   suffix's `precedence`.
 
+## Datatypes:  what an expression IS
+
+- `match.datatype` -- in spell's words (`P.Datatype`, `packages/parser/src/parser.types.ts`):  `text`, `number`,
+  `integer`, `character`, `choice`, `date`, `list`, `thing`, `app`, `nothing`, `list of cards`, and a user's type by
+  its `TypeScope` name, `Card`.  `undefined` ~== unknown, compatible with everything:  nothing stops parsing for it.
+- ONE normaliser, `P.typeName()`:  what a user WRITES (`string`, `boolean`, `yes or no`, `array`, `fraction`, `char`,
+  plurals) => those words.  `SpellType.mapValue()` uses it too, keeping classes Type_Case for compiled code (`List`).
+- `match.datatype` memoizes `rule.getDatatype(match)` -- default the rule's `@proto static datatype`;  about a dozen
+  rules override it, reading ONLY `match.data` and child matches' datatypes:
+  - `variable` / `SpellIdentifier`:  its `scopeVar`'s `datatype`;  `its_property` / `property_expression`:  the
+    member they read (`data.member`);  `DynamicMethodRule`:  its method record's `returns` (`data.method`)
+  - `new_thing` / `create_thing` / `new_list`:  the type made;  list rules:  the item type (`data.itemType`), the
+    list's type, or `number`
+  - `compound_expression`:  `getAST()`'s shunting-yard again, over datatypes -- each suffix's
+    `getResultDatatype(match, lhs, rhs)`, default its `datatype`, which is `choice` for every suffix but `+ - * /`
+    (`number`;  `+` of text is `text`), `as upper case` (`text`), `as a <type>`, `X if C otherwise Y`
+  - `parenthesized_expression`:  what's inside
+- A rule needing a LOOKUP for it (a member of a type, a list type's item type, a method's record) does it in
+  `parse()`, into `match.data` -- `scope.getType(datatype)`, `scope.getItemType(datatype)`,
+  `TypeScope.getMember(words)` -- never in `getDatatype()`, which may run later.
+- Sinks -- where a datatype is kept, so later lines know it:
+  - a new variable from `set` / `X is Y` / `get` (and its `it`):  the value's datatype, on its `ScopeVariable`
+  - method arguments `(a card)` / `(x as text)`;  `this` / `it` in a method or getter, as its owner type
+    (`MethodScope.itDatatype`);  a loop's item and `it`, and a `where`'s, as the list's item type;
+    `on ... with a card`'s `card`
+  - `a deck is a list of cards`:  `Card`, as the `Deck` `TypeScope`'s `itemType`
+- First datatype wins:  a record's datatype is set when it's declared, never widened.
+- Probe ledger (`src/grammar.probes.test.ts`), "datatypes":  what a set of expressions and sinks are.
+
 ## Adding an expression rule
 
 - An OPERAND stands alone:  a literal, `the X of Y`, `the first card of ...`.  `extends SpellExpression` (alias
@@ -99,7 +128,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - A slot closed by a required word (`of`, `in`, `to`) stays `{name:expression}`, like a paren.
 - An OPERATOR follows an expression:  `extends InfixOperatorSuffix` (`x OP y`) or `PostfixOperatorSuffix`
   (`x is empty`).  Its right side is `{expression:operand}`.  MUST set `@proto static precedence` from `Precedence`
-  (the constructor throws without it);  build output in `compileASTExpression()`.
+  (the constructor throws without it);  build output in `compileASTExpression()`.  Not a test?  Set its
+  `datatype` (default `choice`), or override `getResultDatatype()`.
 - `priority` only settles a tie between rules matching the SAME words.  Leave it unset unless a probe shows a
   tie going wrong;  then set it, with a one-line why.
 - Always NAME a slot, so `match.groups` keeps its key.  Add one mixed-operator line to the probe ledger,
@@ -144,10 +174,16 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - All scope collections are `ScopeList`s (`packages/parser/src/scope/ScopeList.ts`):  `get` / `add` / `replace` only, no remove.
   `get()` checks own items, then falls through to the parent list.  Changes are journaled -- see "Incremental parsing".
 - `Scope` owns nothing;  `variables` / `types` / `constants` / `rules` / `parser` all forward to `parentScope`.
-- `BlockScope` owns `variables` + `methods`.  `FileScope` is a `BlockScope`, so a file owns only variables.
-- `RootScope` adds `types`, `constants`, `rules`.  `ProjectScope` is a `RootScope`.
-  `SpellParser.rootScope` is ONE static root shared by every project.
-- `MethodScope` adds args, plus `this` / `it` alias variables.  `TypeScope` holds instance + class variables.
+  It resolves a datatype to its type -- `getType()`, `getItemType()` (`list of cards`, or a `Deck`'s `itemType`).
+- `BlockScope` owns `variables` + `methods` -- `P.ScopeMethod` records:  words, `params` with datatypes, `returns`,
+  `of`.  `FileScope` is a `BlockScope`, so a file owns only variables.
+- `RootScope` adds `types`, `constants`, `rules`.  `ProjectScope` is a `RootScope`, and holds the project's free
+  functions' records.  `SpellParser.rootScope` is ONE static root shared by every project:  spell's classes
+  (`Thing`, `List`, `App`, `Object`) and every built-in type's NAME (`P.BUILT_IN_TYPES`:  `text`, `number` ...,
+  with super-types, e.g. `integer` is a `number`).
+- `MethodScope` adds args, plus `this` / `it` alias variables (of type `itDatatype`).
+- `TypeScope` holds instance + class variables, instance methods' records, a list type's `itemType`, and member
+  lookup up its super-type chain:  `chain()`, `isA()`, `getMember(words)` -- a property, else a method.
 
 ## Scope:  who changes it, and when
 
@@ -156,13 +192,17 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     so inside a body they stay local
   - `get` / `set it to` ALWAYS declare a new `it` (`declareIt()`):  plain `it`, then `it_2`, `it_3`... numbered
     from the visible `it`'s `output`, skipping names in use -- so callbacks keep the `it` they captured
-  - types:  `create_type`, `create_list_type` (`classes.ts`);  a type mentioned before its own line is a
-    `stub`, which its real declaration later claims (`TypeScope.claim()`, journaled)
-  - properties:  every property statement records the property in its type's `variables`, with `declaredBy`
-    (`TypeScope.declareProperty()`) -- for editors only, nothing parsed later reads them, so a getter is
-    `changesScope: "internal"`.  An enumerated one (`define_property_has`) also adds constants for each value,
+  - each new variable holds its value's `datatype` -- see "Datatypes"
+  - types:  `create_type`, `create_list_type` (`classes.ts`, which sets `itemType` too);  a type mentioned before
+    its own line is a `stub`, which its real declaration later claims (`TypeScope.claim()`, journaled)
+  - `is a <type>` (`is_a`) names a KNOWN type -- built in, imported, declared or stubbed earlier -- else it's
+    a parse error, e.g. `is a crad`.  A type first mentioned in an `is a` above its own declaration is one too.
+  - properties:  every property statement records the property in its type's `variables`, with `declaredBy` and
+    its datatype (`TypeScope.declareProperty()`) -- read by `the X of Y` / `its X` (`getMember()`) for their
+    datatype, and by editors.  A getter is still `changesScope: "internal"`:  the datatype it'd give is P5's.
+    An enumerated one (`define_property_has`) also adds constants for each value,
     a plural `classVariables` entry (e.g. `Suits`), AND a rule
-- Every record a `mutateScope()` adds -- `ScopeVariable`, `ScopeConstant`, `TypeScope`, `ScopeRule` -- carries
+- Every record a `mutateScope()` adds -- `ScopeVariable`, `ScopeConstant`, `TypeScope`, `ScopeMethod`, `ScopeRule` -- carries
   `declaredBy`, the match which declared it (for go-to-definition etc.), and a `ScopeRule` its built
   `instances`, so a call-site `match.rule` maps back to its definition.  `MethodScope` stamps its
   `declaredBy` on the argument / alias variables it makes.
@@ -179,8 +219,10 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - quoted aliases (`a card "is face up" if ...`):  `quoted_type_expression` (`methods.ts`) adds an
     `expression_suffix` rule, a `MethodPostfixRule` / `MethodInfixRule`;  a quoted formula (`a card "is the (rank)
     of (suits)" for its ranks and its suits`):  `quoted_property_formula` (`classes.ts`), a `QuotedPropertyRule`
-  - methods (`to turn (a card) over`):  `MethodDefinition` adds a rule (`methods.ts`).  Methods live ONLY as
-    parser rules;  `scope.methods` is never filled in production.
+  - methods (`to turn (a card) over`):  `MethodDefinition` adds a rule (`methods.ts`), its call site, AND a
+    `P.ScopeMethod` record (`addMethod()`):  in its type's `methods` if this project declares the type, else in the
+    project's, with `of` (a free function, or a method of a built-in or imported type -- whose lists every
+    project shares).  A call (`DynamicMethodRule`) finds its record while parsing (`MethodDefinition.findMethod()`).
 - Types, constants and rules ALWAYS go to the project, from any depth.
 - `scope.addRule()` (`packages/parser/src/scope/Scope.ts`) => `parser.addRule()` on the PROJECT's parser, plus a record in
   `ProjectScope.rules`.
@@ -238,6 +280,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
       e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit` -- see `ScopesSource` in `packages/app/src/runner/`.
     - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
       unless a key already says, e.g. `type`.
+    - a method's `params` (`[{ name: "pile", datatype: "Pile" }]`) and `returns`;  a list type's `itemType` --
+      only what's known.  Loading rebuilds the `P.ScopeMethod` record;  a key an older compiler didn't write
+      loads as unknown.
   - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +
     `provides`
   - `read(compiled)` collects them back from the TEXT (`JSON5.parse()`), never running it
@@ -370,7 +415,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - symbols from `rule.getDeclaration()`, colours from `rule.highlightAs`
   - definition / references from the scope record a word resolved to while parsing (`data.scopeVar` etc.)
     and that record's `declaredBy`;  method calls from `ScopeRule.instances`;  properties from their type's
-    `variables` (`TypeScope.declareProperty()`), else by name
+    `variables` (`TypeScope.getMember()`), else by name
+  - hover says what a variable holds, its `datatype`, e.g. `variable **card**: Card · argument`
 - Formatting is `P.TokenFormatter` (`packages/parser/src/tokenizer/`), indenting with TABS always:  whitespace only, from the tokens -- no
   pretty-printer, the AST is a javascript tree.  Indent LEVELS come from indent widths, not the tokenizer's blocks
   (which nest one per whitespace character).  It re-tokenizes its result and gives up if anything but whitespace

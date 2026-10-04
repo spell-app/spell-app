@@ -282,6 +282,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": "move (a card) to (a pile)",
       "of": "Card",
       "output": "move_to_$pile",
+      "params": [
+        {
+          "datatype": "Pile",
+          "name": "pile",
+        },
+      ],
       "rule": "method_call",
       "syntax": "move {thisArg:expression} to {callArgs:expression}",
     },
@@ -309,6 +315,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "defined": "/Deck.spell:61-86",
+      "itemType": "Card",
       "superType": "List",
       "type": "Deck",
     },
@@ -349,6 +356,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "defined": "/Pile.spell:25-50",
+      "itemType": "Card",
       "superType": "List",
       "type": "Pile",
     },
@@ -407,6 +415,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can pick up (a card)"",
       "of": "Stock_Pile",
       "output": "can_pick_up_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
       "rule": "method_infix",
       "syntax": "{operator:can} pick up {expression:operand}",
     },
@@ -434,6 +448,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can pick up (a card)"",
       "of": "Discard_Pile",
       "output": "can_pick_up_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
       "rule": "method_infix",
       "syntax": "{operator:can} pick up {expression:operand}",
     },
@@ -461,6 +481,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can pick up (a card)"",
       "of": "Foundation",
       "output": "can_pick_up_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
       "rule": "method_infix",
       "syntax": "{operator:can} pick up {expression:operand}",
     },
@@ -470,6 +496,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can play (a card)"",
       "of": "Foundation",
       "output": "can_play_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
       "rule": "method_infix",
       "syntax": "{operator:can} play {expression:operand}",
     },
@@ -497,6 +529,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can pick up (a card)"",
       "of": "Tableau",
       "output": "can_pick_up_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
       "rule": "method_infix",
       "syntax": "{operator:can} pick up {expression:operand}",
     },
@@ -506,6 +544,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can play (a card)"",
       "of": "Tableau",
       "output": "can_play_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
       "rule": "method_infix",
       "syntax": "{operator:can} play {expression:operand}",
     },
