@@ -48,6 +48,39 @@ test("new:  scratch and epic pages, assets fixed for their depth", () => {
   expect(deep).toContain('root="../../../../.."')
 })
 
+test("new --from:  the whole page from a spec", () => {
+  const file = createPage(docs, "from-spec", {
+    spec: {
+      title: "Clean up",
+      lede: "Which <b>leftovers</b> go?",
+      askedBy: "session <code>w</code>, while taking stock",
+      where: { epic: "none", justNow: "listed 6 worktrees", decides: "what gets removed" },
+      questions: [
+        {
+          title: "1 · worktree seo",
+          text: "Merged into main.",
+          options: [
+            { title: "Remove it", summary: "git worktree remove", recommended: true },
+            { title: "Leave it", summary: "nothing", details: "<p>more</p>" }
+          ]
+        },
+        { id: "phases", title: "Phases", text: "Which tonight?", multiple: true, options: [{ title: "P1 · A" }] }
+      ]
+    }
+  })
+  const html = readFileSync(file, "utf8")
+  expect(html).toContain("<title>Clean up</title>")
+  expect(html).toContain("Which <b>leftovers</b> go?")
+  expect(html).toContain("<b>Just now:</b>  listed 6 worktrees")
+  expect(html).not.toContain('id="context"')
+  expect(html).toMatch(/<ui-section id="q1" class="spell-question" header="1 · worktree seo"/)
+  expect(html).toMatch(/data-option="A" data-title="Remove it" data-recommended/)
+  expect(html).toContain('<div class="spell-option-details"><p>more</p></div>')
+  expect(html).toMatch(/<ui-section id="phases"[^>]*data-multiple/)
+  expect(html).not.toContain("First option")
+  rmSync(file)
+})
+
 test("new:  refuses a bad slug, a missing epic, an existing page", () => {
   expect(() => createPage(docs, "Bad Slug")).toThrow(/kebab/)
   expect(() => createPage(docs, "x", { epic: "nope" })).toThrow(/no epic/)

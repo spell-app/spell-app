@@ -41,6 +41,9 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
 ## 2. Make the page
 
 1. `yarn details new <slug> --title "<Title>"` -- prints the page's path.
+   - many questions of one shape (a list to pick from):  `--from <spec.json>` builds the whole page from data
+     instead:  title, lede, "Where we are", context, questions and their options (`DetailsSpec` in
+     `packages/docs/scripts/details.js`).  `/worktrees`, `/bedtime` and `/wakeup` use it.
    - in an epic (a plan doc this session keeps):  add `--epic <name>`.  The page goes in
      `epics/<name>/details/`, is committed with the plan doc, and the decision it leads to links it.
    - else scratch:  `packages/docs/details/`, ignored by version control, swept after 14 days (`new` sweeps).
@@ -122,7 +125,8 @@ and paste what it prints.
 ## Commands (`yarn details ...`, from anywhere in the repo)
 
 ```
-new <slug> [--title "..."] [--epic <name>] [--description "..."]   a page from the template;  prints its path
+new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <spec.json>]
+                                           a page from the template (or a spec);  prints its path
 show <page> [--wait] [--timeout 8h]        in this session's side bar (Chrome outside VS Code);  then wait
 wait <page> [--timeout 8h]                 until a NEW answer;  prints it, exit 0;  timeout:  exit 2
 answer <page>                              the answer already sent (exit 1:  none)
