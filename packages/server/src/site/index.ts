@@ -7,6 +7,7 @@
 import { SectionEditor, SiteHeader } from "$/server/site"
 
 export * from "./site.types"
+export * from "./logoMark"
 
 export * from "./SiteHeader"
 export * from "./SectionEditor"

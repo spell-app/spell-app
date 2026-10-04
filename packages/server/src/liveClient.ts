@@ -48,6 +48,10 @@ export type PageEditResult = { ok: boolean; status: number; etag?: string; error
  * Start live reload in this page, and add `SPELL_SERVER.editPage()`.
  * - reloads when the page's own file changes, or any `.css` / `.js` (the page may load it)
  * - keeps the scroll position across the reload (`sessionStorage`, when it works)
+ * - in a frame (VS Code's "Spell Docs" view, `packages/vscode/src/DocView.ts`):  posts its place to the parent on
+ *   every load and hash change, runs `history.go()` when the parent posts `{ spell: "history", go: -1 | 1 }`, and
+ *   routes link clicks (`followInFrame()`):  a frame can't open the tabs docs links ask for.
+ *   Why here:  the view's frame is cross-origin, so the view can't read or move its history itself
  * - runs once per page
  */
 export function liveClient(): void {
@@ -59,6 +63,18 @@ export function liveClient(): void {
   const scrollKey = "spell-server:scroll"
 
   restoreScroll()
+  // in a frame (VS Code's "Spell Docs" view):  say where we are, and step back / forward when the frame's parent asks
+  if (window.parent !== window) {
+    reportPlace()
+    addEventListener("pageshow", reportPlace)
+    addEventListener("hashchange", reportPlace)
+    addEventListener("message", (event) => {
+      const data = event.data as { spell?: string; go?: number } | null
+      if (event.source === window.parent && data?.spell === "history" && (data.go === -1 || data.go === 1))
+        history.go(data.go)
+    })
+    addEventListener("click", followInFrame, true)
+  }
   const source = new EventSource(config.events)
   source.addEventListener("change", (event) => {
     const { path } = JSON.parse((event as MessageEvent<string>).data) as { path: string }
@@ -106,6 +122,53 @@ export function liveClient(): void {
       // storage blocked:  reload at the top
     }
     location.reload()
+  }
+
+  /**
+   * Tell the frame's parent this page's URL, and whether back / forward lead anywhere:
+   * `{ spell: "place", url, title, canGoBack, canGoForward }`.
+   * - the Navigation API when there is one (Chromium:  VS Code, Chrome);  else a guess from `history.length`
+   */
+  function reportPlace() {
+    const nav = (window as unknown as { navigation?: { canGoBack: boolean; canGoForward: boolean } }).navigation
+    const place = {
+      spell: "place",
+      url: location.href,
+      title: document.title,
+      canGoBack: nav ? nav.canGoBack : history.length > 1,
+      canGoForward: nav ? nav.canGoForward : false
+    }
+    window.parent.postMessage(place, "*")
+  }
+
+  /**
+   * A link clicked in the frame:  where it should go, since the frame may not open tabs (docs links all name a
+   * `target`, and the view's sandbox blocks popups).
+   * - a page on this server (`.html`, or a site page like `/ui/`):  here, in the frame, so back / forward work
+   * - a source reference that isn't a page (`target="src-..."`, as `doc-links.py` names them):
+   *   `{ spell: "open", url, kind: "file" }` to the parent, which opens it in VS Code (a folder:  in the Explorer)
+   * - another site, or a link marked `data-spell-open="browser"` (the header's App):
+   *   `{ spell: "open", url, kind: "external" }`, opened in the browser
+   * - left alone:  a modified click, a download, a `javascript:` / `mailto:` link, a same-page `#id` link
+   */
+  function followInFrame(event: MouseEvent) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return
+    // the path, not `target`:  a link inside a shadow root (the site header) is retargeted to its host
+    const link = event.composedPath().find((node) => node instanceof HTMLAnchorElement && node.hasAttribute("href")) as
+      | HTMLAnchorElement
+      | undefined
+    if (!link || link.hasAttribute("download") || !/^https?:$/.test(link.protocol)) return
+    const url = new URL(link.href)
+    const samePage =
+      url.origin === location.origin && url.pathname === location.pathname && url.search === location.search
+    if (samePage && url.hash) return
+    event.preventDefault()
+    if (url.origin !== location.origin || link.dataset.spellOpen === "browser")
+      return void window.parent.postMessage({ spell: "open", url: url.href, kind: "external" }, "*")
+    // a source reference (`doc-links.py` names its targets `src-<path>`) that isn't a page:  the editor
+    if (!/\.html?$/.test(url.pathname) && link.target.startsWith("src-"))
+      return void window.parent.postMessage({ spell: "open", url: url.href, kind: "file" }, "*")
+    location.assign(url.href)
   }
 
   /** scroll back to where the last live reload left this page */
