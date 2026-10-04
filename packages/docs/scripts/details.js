@@ -155,7 +155,7 @@ function questionHtml(question, i) {
   const options = (question.options ?? []).map((option, j) => {
     const letter = option.letter ?? String.fromCharCode(65 + j)
     const more = option.details ? `<div class="spell-option-details">${option.details}</div>` : ""
-    const flag = option.recommended ? " data-recommended" : ""
+    const flag = `${option.recommended ? " data-recommended" : ""}${option.checked ? " data-checked" : ""}`
     return `<div class="spell-option" data-option="${attr(letter)}" data-title="${attr(option.title ?? letter)}"${flag}><p>${option.summary ?? ""}</p>${more}</div>`
   })
   const multiple = question.multiple ? " data-multiple" : ""
@@ -181,7 +181,7 @@ function attr(text) {
  * - `where`:  `{ epic, justNow, decides }`, the "Where we are" box (`.claude/skills/details/SKILL.md`, "Writing for Owen")
  * - `context`:  HTML for "1. Context" (the picture);  none:  the section goes
  * - `questions[]`:  `{ id?, title, text, multiple?, options[] }`;  an option:  `{ letter?, title, summary,
- *   details?, recommended? }` (letters default to A, B ...)
+ *   details?, recommended?, checked? }` (letters default to A, B ...;  `checked`:  ticked to start with)
  * - plain JS:  no type, this comment is the spec
  */
 

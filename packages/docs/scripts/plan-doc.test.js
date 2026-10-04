@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { DOCS } from "./pages.js"
-import { PlanDoc, PlanDocError, parseDuration, timeTag } from "./plan-doc.js"
+import { PlanDoc, PlanDocError, parseDuration, pickerSpec, timeTag } from "./plan-doc.js"
 import { convertSections } from "./to-ui-section.js"
 
 /** When the tests' edits happen:  local 2026-10-01 09:05. */
@@ -627,7 +627,14 @@ describe("PlanDoc review", () => {
     plan.decide("q1", "this one")
     plan.addItem("question", "and?")
     const sections = plan.reviewSections({ filter: "all" })
-    expect(sections.map((s) => s.label)).toEqual(["Questions", "Judgement calls", "Caveats", "Todos", "Issues", "To test"])
+    expect(sections.map((s) => s.label)).toEqual([
+      "Questions",
+      "Judgement calls",
+      "Caveats",
+      "Todos",
+      "Issues",
+      "To test"
+    ])
     expect(sections[0].items.map((item) => [item.id, item.state])).toEqual([
       ["Q2", "outstanding"],
       ["Q1", "reviewed"]
@@ -646,6 +653,28 @@ describe("PlanDoc review", () => {
     plan.addItem("question", "bare")
     const items = plan.reviewSections().find((s) => s.kind === "question").items
     expect(items.map((item) => item.recommendation)).toEqual(["A. Mark + links", "Skip short sections", null, null])
+  })
+
+  it("picker spec:  a checkbox per open item, labelled by id, the not-reviewed ones ticked", () => {
+    const plan = freshPlan()
+    for (const title of ["one", "two", "three", "struck"]) plan.addItem("issue", title, { details: "<p>why</p>" })
+    plan.review("i2")
+    plan.defer("i3")
+    plan.setItem("i4", "done")
+    const section = plan.reviewSections({ filter: "open" }).find((s) => s.kind === "issue")
+    const spec = pickerSpec(plan, "/x/epics/demo/demo.html", section, plan.reviewStatus())
+    const [question] = spec.questions
+    expect(question.multiple).toBe(true)
+    expect(question.options.map((option) => [option.letter, option.checked])).toEqual([
+      ["I1", true],
+      ["I2", false],
+      ["I3", true]
+    ])
+    expect(question.options[2].summary).toBe("Deferred on 2026-10-01.  why")
+    // short details show whole in the summary:  no "More on I1" fold
+    expect(question.options[0].details).toBeUndefined()
+    expect(spec.askedBy).toBe("<code>/epic review demo</code>")
+    expect(spec.where.justNow).toContain("2 of 4 not reviewed")
   })
 
   it("status:  last review date and count, deferred, the to-do list", () => {

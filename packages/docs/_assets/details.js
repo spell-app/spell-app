@@ -5,7 +5,8 @@
  *   with the rest of the page, and the contents sidebar sees the Send section.
  * - Builds, from `ui-section.spell-question` > `.spell-option[data-option][data-title]`:
  *   - one `ui-segment` card per option:  a `ui-radio` (or `ui-checkbox` under `data-multiple`) labelled
- *     `A · title`, a Recommended label (`data-recommended`), the one-line summary, and its
+ *     `A · title`, ticked to start with under `data-checked`, a Recommended label (`data-recommended`), the
+ *     one-line summary, and its
  *     `.spell-option-details` folded in a `ui-accordion`
  *   - an "Other" box per question
  *   - a Send section:  notes, Send, the answer once sent, Change answer
@@ -50,6 +51,8 @@
     const title = option.dataset.title ?? ""
     const card = el("ui-segment", { class: "spell-option-card", "data-option": letter, "data-title": title })
     const control = el(multiple ? "ui-checkbox" : "ui-radio", { name: id, value: letter })
+    // ticked to start with (`data-checked`):  `/epic review`'s item picker ticks what isn't reviewed yet
+    if (option.hasAttribute("data-checked")) control.setAttribute("checked", "")
     control.append(el("b", {}, letter), ` · ${title}`)
     const head = el("div", { class: "spell-option-head" }, control)
     if (option.hasAttribute("data-recommended")) {

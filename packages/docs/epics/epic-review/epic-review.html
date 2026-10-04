@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Epic Review</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Real Review</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p6">next: P6 · Dry Run</ui-label></span
             >
           </header></ui-sticky
         >
@@ -41,7 +41,7 @@
           >
           <ui-item icon="calendar"
             >Started <time id="plan-started">2026-10-03</time>, updated
-            <time id="plan-updated">2026-10-03</time></ui-item
+            <time id="plan-updated">2026-10-04</time></ui-item
           >
         </ui-list>
 
@@ -80,7 +80,7 @@
             </p>
             <p>Update plan doc with decisions.</p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 10h-13h 30m in all, 4h-5h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 10h-13h 30m in all, 2h left</p>
           <ui-section id="o1" header="1.1 The Flow" sticky collapsible dividing>
             <p>
               As decided in <a href="#d1">D1</a>-<a href="#d5">D5</a>. <a href="#p1">P1</a> mocks it on canned data
@@ -180,7 +180,7 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="4" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -254,14 +254,9 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
               ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="4"
-            ><p>
-              P4 now uses details pages (picking items, Explain further); P5 is new (one Epics section); Dry Run moved
-              to P6, Doc Review to P7.
-            </p></ui-message
-          >
-          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Real Review" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+
+          <ui-section id="p4" data-phase="4" data-status="done" header="P4 · Real Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Swap the mock for real plan-doc calls. Picking items: a details page, a checkbox per item
@@ -277,7 +272,16 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="done" header="P5 · Epics Index" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p5"
+            data-phase="5"
+            data-status="done"
+            header="P5 · Epics Index"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -567,7 +571,7 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d4" data-status="decided"
+            ><ui-item id="d4" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d4">D4</a>
@@ -575,7 +579,7 @@ back      to Start</code></pre>
                     >Item modal (checkbox): Accept &lt;recommendation&gt; (only if one exists), Explore, Explain
                     further, Defer; exit typed in Other -&gt; section list. After Explore / Explain: &lt;=2
                     recommendations + Defer + Exit (<a href="#q4">Q4</a>)</span
-                  ></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Owen, on the plan: keep it fast. Show the item as clean bullets first; the long explanation and the
@@ -800,6 +804,47 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d19" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d19">D19</a>
+                  <span class="plan-title"
+                    >Every plan-doc command but new edits the epic's live doc (its worktree, else main), not just the
+                    review commands</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A review decides, closes and adds items too. From main, reviewing an epic still in its worktree,
+                    decide / close / add would have failed (no doc there), or, from another worktree, edited the stale
+                    copy it took of a merged epic. An epic's own session is unaffected: its own worktree comes first.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d20" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d20">D20</a>
+                  <span class="plan-title"
+                    >Details pages can start with boxes ticked (data-checked; spec option checked)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    For the item picker: the not-reviewed items start ticked. A small change to the details skill's page
+                    runtime (_assets/details.js) and its spec (scripts/details.js).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d21" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d21">D21</a>
+                  <span class="plan-title"
+                    >Exit in an item's modal goes back to the Start modal, not a section list</span
+                  > </ui-title
+                ><ui-content
+                  ><p>There's no section list any more: the picker page replaced it (D15).</p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -997,6 +1042,18 @@ back      to Start</code></pre>
                     After this merges, on main's page server: the index has no 'Running epics' section; Epics starts
                     with the running ones (epic-review [n/7], markdown [1/9] ...), Open hides the done ones with '12
                     hidden · show all' under them, All shows every card with a green check on the done ones.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v5">V5</a>
+                  <span class="plan-title">Item picker page: ticked boxes send</span> </ui-title
+                ><ui-content
+                  ><p>
+                    In the dry run (P6): the picker opens in the side bar with the not-reviewed items ticked; Send
+                    without changing anything, and the review goes through exactly those.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1291,6 +1348,37 @@ back      to Start</code></pre>
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T23:54-04:00">2026-10-03 23:54</time></ui-date> P5
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:55-04:00">2026-10-03 23:55</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T00:00-04:00">2026-10-04 00:00</time></ui-date> D4 closed: Item
+                  modal (checkbox): Accept &lt;recommendation&gt; (only if one exists), Explore, Explain further, Defer;
+                  exit typed in Other -&gt; section list. After Explore / Explain: &lt;=2 recommendations + Defer + Exit
+                  (Q4)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T00:00-04:00">2026-10-04 00:00</time></ui-date> P4: skill section
+                  7 on real commands (no mock); item picker = details page from plan-doc items --spec; Explain further =
+                  details page; every plan-doc command edits the live doc</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T00:00-04:00">2026-10-04 00:00</time></ui-date> P4
                   done</ui-summary
                 ></ui-content
               ></ui-event
