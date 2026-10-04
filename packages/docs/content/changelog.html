@@ -82,7 +82,7 @@
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
             <ui-section
               id="shared-content"
-              header="2026-10-04 · Shared content, P2:  docs reorganised"
+              header="2026-10-04 · Shared content, P1-P3:  docs reorganised, tools link-aware"
               sticky
               collapsible
               dividing
@@ -95,7 +95,7 @@
                   ></ui-item
                 >
                 <ui-item icon="code branch"
-                  >Branch <code>shared-content</code>, P1-P2 merged 2026-10-04; P3-P8 (the shared repo itself) still in
+                  >Branch <code>shared-content</code>, P1-P3 merged 2026-10-04; P4-P8 (the shared repo itself) still in
                   its worktree</ui-item
                 >
               </ui-list>
@@ -129,6 +129,14 @@
                   >
                   rewrote every link and path mention to match, and repairs links written for the old layout (a worktree
                   merging <code>main</code>).
+                </li>
+                <li>
+                  P3: the docs tools work through a linked
+                  <a href="./" target="src-packages-docs-content"><code>packages/docs/content</code></a> (rehearsed with
+                  a real link): <code>plan-doc</code> runs git in the spell-app checkout, never inside the shared
+                  folder; shared epics count once; a shared plan doc finds its commits by subject (<code
+                    >&lt;epic&gt; I3:</code
+                  >, or <code>P3:</code> with that phase's name).
                 </li>
               </ul>
             </ui-section>
