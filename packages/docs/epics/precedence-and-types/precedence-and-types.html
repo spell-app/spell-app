@@ -43,11 +43,12 @@
           >
         </ui-list>
 
-        <ui-section id="overnight" header="Overnight · 2026-10-04" data-bedtime="active" sticky collapsible dividing>
+        <ui-section id="overnight" header="Overnight · 2026-10-04" data-bedtime="done" sticky collapsible dividing>
           <ui-icon slot="icon" name="calendar"></ui-icon>
           <p class="overnight-summary">
-            Running P4-P9 unattended on branch <code>precedence-and-types</code>, since
-            <time datetime="2026-10-04T03:21-04:00">2026-10-04 03:21</time>.
+            <a href="#p4">P4</a>-<a href="#p9">P9</a> done, 0 WIP, 0 skipped; 32 judgement calls tonight (<a href="#j10"
+              >J10</a
+            >-<a href="#j41">J41</a>); branch precedence-and-types, not merged
           </p>
           <ui-section id="overnight-phases" header="Phases" sticky collapsible dividing>
             <ul class="overnight-phases">
@@ -79,6 +80,10 @@
                   href="#j41"
                   >J41</a
                 >
+              </li>
+              <li>
+                <b>P9</b> ba648856 design doc rewritten as built (Why, Limits), changelog entry under In worktrees, hand
+                tests <a href="#v1">V1</a>-<a href="#v7">V7</a>; no merge
               </li>
             </ul>
           </ui-section>
@@ -4899,6 +4904,21 @@ the first card of {list:NAME}
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T05:56-04:00">2026-10-04 05:56</time></ui-date> P9
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:56-04:00">2026-10-04 05:56</time></ui-date> Bedtime done:
+                  P4-P9 done, 0 WIP, 0 skipped; 32 judgement calls tonight (J10-J41); branch precedence-and-types, not
+                  merged</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:56-04:00">2026-10-04 05:56</time></ui-date> Bedtime done: 6
+                  done / 0 WIP / 0 skipped</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
