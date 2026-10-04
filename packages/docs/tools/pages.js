@@ -3,7 +3,7 @@
  * `plan-doc.js`.
  */
 import { spawnSync } from "node:child_process"
-import { existsSync, readdirSync, readFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
@@ -50,12 +50,15 @@ export function planDocIn(dir, name) {
   return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(readFileSync(old, "utf8")) ? old : undefined
 }
 
-/** Every `.html` page under `dir` (default:  all of them), sorted, skipping tooling folders. */
+/**
+ * Every `.html` page under `dir` (default:  all of them), sorted, skipping tooling folders.
+ * - follows a link to a folder (`DOCS` itself is one once content is shared):  the page keeps the link's path
+ */
 export function findPages(dir = DOCS) {
   const found = []
   for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     const path = join(dir, entry.name)
-    if (entry.isDirectory()) {
+    if (entry.isDirectory() || (entry.isSymbolicLink() && statSync(path, { throwIfNoEntry: false })?.isDirectory())) {
       // the `details` EPIC's folder (`epics/details/`) holds a plan doc:  only details PAGES' folders are skipped
       const epic = entry.name === "details" && basename(dir) === "epics"
       if (!SKIP_DIRS.has(entry.name) || epic) found.push(...findPages(path))

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../../tools/_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../../tools/_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T17:43:58-04:00" class="spell-doc-page plan-doc" data-plan="shared-content">
+  <body data-recent-since="2026-10-04T18:56:35-04:00" class="spell-doc-page plan-doc" data-plan="shared-content">
     <spell-site-header root="../../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Shared Content</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle right" href="#p3" title="Next:  P3 · Link-Aware Tools"
-                >P3</ui-label
+              ><ui-label basic color="grey" icon="circle right" href="#p4" title="Next:  P4 · Shared CLI and Hooks"
+                >P4</ui-label
               ></span
             >
           </header></ui-sticky
@@ -69,7 +69,7 @@
               </blockquote></ui-content
             >
           </ui-accordion>
-          <p class="plan-estimate"><b>Estimate:</b> 9h-13h in all, 7h-10h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 9h-13h in all, 5h-7h left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <p>Docs content is tracked per branch today, which costs twice:</p>
             <ul>
@@ -252,7 +252,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="8" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="8" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -300,6 +300,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p2"
             data-phase="2"
             data-status="done"
@@ -417,14 +418,14 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
           <ui-section
             id="p3"
             data-phase="3"
-            data-status="todo"
+            data-status="done"
             header="P3 · Link-Aware Tools"
             badge="2-3h"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -435,6 +436,55 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </li>
                   <li>Live reload sees edits made inside a linked folder</li>
                   <li>One location for plan docs: no more 'worktree copy vs main copy'</li>
+                </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    Rehearsed for real: this worktree's
+                    <a href="../../" target="src-packages-docs-content"><code>packages/docs/content</code></a> linked to
+                    a scratch copy, then put back. Through the link: <code>plan-doc list</code> / <code>summary</code> /
+                    <code>log</code> / <code>check</code> (browser), the docs tests (114), the docs index, the page
+                    server serving the plan doc, and live reload reporting an edit made in the copy under the link's
+                    URL.
+                  </li>
+                  <li>
+                    <a href="../../../tools/plan-doc.js" target="src-packages-docs-tools-plan-doc-js"
+                      ><code>plan-doc.js</code></a
+                    >: git always in the spell-app checkout (<code>checkoutOf()</code>), never inside
+                    <code>content</code>; shared epics once each (<code>checkouts()</code> by real folder); old-layout
+                    worktrees still found (<code>epicsDirOf()</code>); <code>commits --backfill</code> for a shared doc
+                    by subject (<code>sharedDocLog()</code>, J7); the docs index updates from a worktree once content is
+                    shared.
+                  </li>
+                  <li>
+                    <a href="../../../tools/pages.js" target="src-packages-docs-tools-pages-js"
+                      ><code>pages.js</code></a
+                    >
+                    <code>findPages()</code> follows a linked folder; <code>RunningEpics</code> links a shared epic
+                    through main's own URL.
+                  </li>
+                  <li>
+                    Unchanged on purpose (J8): <code>LiveReload</code>, <code>FileLock</code>, page saves, static
+                    serving.
+                  </li>
+                  <li>
+                    New tests:
+                    <a href="../../../tools/shared.test.js" target="src-packages-docs-tools-shared-test-js"
+                      ><code>packages/docs/tools/shared.test.js</code></a
+                    >
+                    (findPages through links, sharedDocLog on a real repo),
+                    <a
+                      href="../../../../server/src/LiveReload.test.ts"
+                      target="src-packages-server-src-livereload-test-ts"
+                      ><code>packages/server/src/LiveReload.test.ts</code></a
+                    >, a shared case in
+                    <a
+                      href="../../../../server/src/page/RunningEpics.test.ts"
+                      target="src-packages-server-src-page-runningepics-test-ts"
+                      ><code>RunningEpics.test.ts</code></a
+                    >. docs 114, server 90 pass; ts and lint clean.
+                  </li>
                 </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
@@ -490,6 +540,8 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   target="src-packages-server-src-page-pageserver-test-ts"
                   ><code>PageServer.test.ts</code></a
                 >; <code>yarn test</code></ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#j7">J7</a>, <a href="#j8">J8</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -1221,6 +1273,72 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:39:43-04:00"
+              id="j7"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j7">J7</a>
+                  <span class="plan-title">Shared plan docs find their commits by subject</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Once a plan doc lives in the shared repo, spell-app has no git history of it, so
+                    <code>commits --backfill</code> can't follow the doc. For a doc spell-app doesn't track, it reads
+                    this checkout's commits since the doc's start date and keeps those that name this epic:
+                    <code>&lt;epic&gt; ...</code> (<code>shared-content I3:</code>), or
+                    <code>P3: &lt;that phase's exact name&gt;</code>. A bare <code>Fix I3:</code> could be any epic's,
+                    so it's left out.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      item fixes in a shared epic need the epic's name: <code>&lt;epic&gt; I3: ...</code> (the skills
+                      say so in P7)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:39:45-04:00"
+              id="j8"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j8">J8</a>
+                  <span class="plan-title">Most tools needed no change for links</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Each checkout links whole folders, and a tool works through a folder link as long as it uses the
+                    link's path:
+                  </p>
+                  <ul>
+                    <li>
+                      <code>LiveReload</code> watches each configured folder (<a
+                        href="../../"
+                        target="src-packages-docs-content"
+                        ><code>packages/docs/content</code></a
+                      >, <code>goals</code>) by its own path, and macOS reports changes inside it (new test)
+                    </li>
+                    <li>
+                      <code>FileLock</code>'s <code>&lt;file&gt;.lock</code> sits inside the linked folder, so every
+                      checkout locks the same real file
+                    </li>
+                    <li>page saves write a temp file beside the page, inside the same real folder, then rename it</li>
+                    <li>the page server checks paths as text, never through <code>realpath</code></li>
+                  </ul>
+                  <p>
+                    What did change: git runs in the spell-app checkout, never inside <code>content</code> (it would see
+                    the shared repo); shared epics count once, not once per checkout; <code>findPages</code> follows a
+                    linked folder; a shared epic's running card links main's own URL; the docs index updates from a
+                    worktree when content is shared.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1806,6 +1924,27 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T19:22-04:00">2026-10-04 19:22</time></ui-date> I1 closed: spell
                   serve's editor is broken on main since vite-plus</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:31-04:00">2026-10-04 19:31</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:36-04:00">2026-10-04 19:36</time></ui-date> P3 rehearsal:
+                  content linked to a scratch peer</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:39-04:00">2026-10-04 19:39</time></ui-date> P3
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
