@@ -144,6 +144,7 @@ const ICONS = {
   "solid/ellipsis": ["ellipsis", "ellipsis horizontal"],
   "regular/circle-check": ["circle check outline", "check circle outline"],
   "regular/paper-plane": ["paper plane outline"],
+  "regular/circle-right": ["circle right"],
   "regular/folder": ["folder outline"],
   "../fa7-brands/brands/git-alt": ["git", "git alt"] // the brands pack, beside `ICON_PACK`
 }

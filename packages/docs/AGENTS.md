@@ -81,9 +81,14 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
     sections get no count of their own
   - a plan doc's review line under its page header:  "To review this doc, type `/epic review <name>`", copied on
     click
-  - item filter:  a top-level section with plan items (`.plan-items`) gets an "Open | All" button group left of
-    its count;  Open (the default) hides struck items, with "N hidden · show all" under the list;  remembered
-    per page
+  - item states:  each plan item's id chip is colored by its `data-state` (red needs Owen, blue open, orange in
+    progress, green recent, grey older;  docs without one:  open blue, done / decided grey), and so are the links
+    of a phase's "To review" line
+  - item filter:  a top-level section with plan items (`.plan-items`) gets a round filter button left of its
+    count, stepping through all and each state the section has (colored as it);  a filtered list says "N hidden ·
+    show all" under it;  remembered per page
+  - commits (`.plan-commits`):  hidden until the git button in a plan doc's page header shows them (remembered
+    per page);  an item with commits gets a git icon on its line that shows its own
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
   - the address follows the section being read (`#id`, replaced, not pushed), so a reload lands there
   - served by the page server, an edit to the page's file updates it IN PLACE (`wireLiveUpdate()`):  scroll,
