@@ -3,7 +3,7 @@
  * Usage (from `packages/docs`):  node scripts/index.js
  * - Groups:
  *   - Guides:  every page outside `templates/` and `epics/`
- *   - Epics:  `epics/<name>/<name>.html`, each card's title after its state (`epicState()`:  planning, [3/6],
+ *   - Epics:  `epics/<name>/<name>.plan.html`, each card's title after its state (`epicState()`:  planning, [3/6],
  *     done, stalled), read from its phase sections (`#phases`) and "updated" date;  the page server adds the
  *     running epics' cards (`RUNNING`)
  *   - Templates:  `templates/**`

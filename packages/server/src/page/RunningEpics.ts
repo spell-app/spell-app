@@ -1,12 +1,13 @@
 import { existsSync, readdirSync, readFileSync, watch, type FSWatcher } from "node:fs"
-import { join, relative, sep } from "node:path"
+import { basename, join, relative, sep } from "node:path"
 
 import type { SRV } from "$/server"
 
 /****************
  * ### `RunningEpics`
  * The main checkout's page server showing every RUNNING epic's plan doc:  the ones still in their worktree
- * (`.claude/worktrees/<w>/packages/docs/epics/<name>/<name>.html`), not yet merged into the main checkout.
+ * (`.claude/worktrees/<w>/packages/docs/epics/<name>/<name>.plan.html`, or an old `<name>.html`), not yet merged
+ * into the main checkout.
  * - Why:  each worktree has its own page server (its own port), and the main one refuses `.claude/...` (a dot
  *   path), so the docs index couldn't show an epic until it merged.
  * - `/worktrees/<w>/...` serves worktree `<w>`'s files (`StaticHandler` mount, dot files still refused), so a plan
@@ -47,13 +48,13 @@ export class RunningEpics {
     for (const worktree of folders(this.worktrees)) {
       const epics = join(this.worktrees, worktree, "packages", "docs", "epics")
       for (const name of folders(epics)) {
-        const file = join(epics, name, `${name}.html`)
-        if (!existsSync(file)) continue
+        const file = planFile(join(epics, name), name)
+        if (!file) continue
         if (name !== worktree && existsSync(join(this.root, "packages", "docs", "epics", name))) continue
         found.push({
           name,
           worktree,
-          url: `/worktrees/${worktree}/packages/docs/epics/${name}/${name}.html`,
+          url: `/worktrees/${worktree}/packages/docs/epics/${name}/${basename(file)}`,
           ...read(file)
         })
       }
@@ -150,8 +151,25 @@ export type RunningEpic = {
 /** The marker in the docs index that becomes the "Running epics" section. */
 export const MARKER = "<!-- running-epics -->"
 
-/** A plan doc's path inside `.claude/worktrees`:  `<w>/packages/docs/epics/<name>/<name>.html`. */
-const EPIC_FILE = /^[^/]+\/packages\/docs\/epics\/([^/]+)\/\1\.html$/
+/**
+ * A plan doc's path inside `.claude/worktrees`:  `<w>/packages/docs/epics/<name>/<name>.plan.html`, or (a worktree
+ * cut before 2026-10-04) `<name>.html`.
+ */
+const EPIC_FILE = /^[^/]+\/packages\/docs\/epics\/([^/]+)\/\1(?:\.plan)?\.html$/
+
+/**
+ * Epic `name`'s plan doc in folder `dir`:  `<name>.plan.html`, else an old `<name>.html` that is a plan doc
+ * (`<body class="... plan-doc">`);  `undefined` when neither.
+ * - why both:  plan docs were renamed on 2026-10-04 (`review-review` P4);  worktrees cut before keep the old name
+ *   until they merge `main`.  `packages/docs/scripts/pages.js` `planDocIn()` is the same:  change both
+ */
+function planFile(dir: string, name: string): string | undefined {
+  const file = join(dir, `${name}.plan.html`)
+  if (existsSync(file)) return file
+  const old = join(dir, `${name}.html`)
+  if (!existsSync(old)) return undefined
+  return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(readFileSync(old, "utf8")) ? old : undefined
+}
 
 /** The sub-folders of `dir`, sorted;  none if it's missing. */
 function folders(dir: string): string[] {

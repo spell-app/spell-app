@@ -20,19 +20,19 @@
           >: compile, check, explore, run, test and debug spell projects from a terminal, seeing exactly what the editor
           sees.
         </p>
-        <ul>
-          <li>Written for: people and agents working on spell or its tools</li>
-          <li>Status: built; not yet reviewed by a person</li>
-          <li>
-            Built from the plan doc
-            <a href="epics/cli-additions/cli-additions.html" target="cli-additions"
-              ><code>epics/cli-additions/cli-additions.html</code></a
-            >
-            (2026-10-01); every claim here is covered by
+        <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="epics/cli-additions/cli-additions.plan.html" target="cli-additions">epic cli-additions</a></ui-item
+          >
+          <ui-item icon="user">Written for: people and agents working on spell or its tools</ui-item>
+          <ui-item icon="flag">Status: built (2026-10-01); not yet reviewed by a person</ui-item>
+          <ui-item icon="flask"
+            >Checked: every claim here is covered by
             <a href="../cli/" target="src-packages-cli"><code>packages/cli</code></a
-            >'s tests -- see <a href="#6-sources">Sources</a>
-          </li>
-        </ul>
+            >'s tests -- see <a href="#6-sources">Sources</a></ui-item
+          >
+        </ui-list>
 
         <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
           <ul>
@@ -439,8 +439,8 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
             </li>
             <li>
               The plan behind it:
-              <a href="epics/cli-additions/cli-additions.html" target="cli-additions"
-                ><code>epics/cli-additions/cli-additions.html</code></a
+              <a href="epics/cli-additions/cli-additions.plan.html" target="cli-additions"
+                ><code>epics/cli-additions/cli-additions.plan.html</code></a
               >.
             </li>
           </ul>

@@ -24,13 +24,15 @@
           >, served at <code>/ui/</code>) are put together since the <code>ui-docs-rework</code> epic, and why.
         </p>
         <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="epics/ui-docs-rework/ui-docs-rework.plan.html" target="ui-docs-rework"
+              >epic ui-docs-rework</a
+            ></ui-item
+          >
           <ui-item icon="user">Written for: anyone changing the site's chrome, a page, or the Spell theme</ui-item>
           <ui-item icon="flag"
             >Status: <ui-label size="mini" color="green">built</ui-label> on branch <code>ui-docs-rework</code></ui-item
-          >
-          <ui-item icon="map"
-            >Plan doc:
-            <a href="epics/ui-docs-rework/ui-docs-rework.html" target="ui-docs-rework">epics/ui-docs-rework</a></ui-item
           >
         </ui-list>
 
@@ -88,7 +90,7 @@
             </li>
             <li>
               Fonts: <code>'Spell Serif'</code> is the INSTALLED Palatino family only (macOS / iOS, Windows, most
-              Linux);  elsewhere the generic <code>serif</code>.  No font files ship:  Owen's call (the brand's P052
+              Linux); elsewhere the generic <code>serif</code>. No font files ship: Owen's call (the brand's P052
               fallback was ~540 KB, and AGPL). Body: the system sans.
             </li>
             <li>
@@ -278,8 +280,10 @@
               </li>
               <li>
                 Tags that stand alone get their OWN page: <code>ui-radio</code>, <code>ui-textarea</code>, and the 12
-                Parts tags other than <code>ui-header</code> (80 pages in all). <code>site/_data/pages.json</code>'s
-                <code>pages</code> map names them; the nav, search, index and kitchen sink follow its hrefs.
+                Parts tags other than <code>ui-header</code> (80 pages in all).
+                <a href="../ui/site/_data/pages.json" target="src-packages-ui-site-data-pages-json"
+                  ><code>site/_data/pages.json</code></a
+                >'s <code>pages</code> map names them; the nav, search, index and kitchen sink follow its hrefs.
               </li>
               <li>Downloads don't change: families still load as one chunk each.</li>
             </ul>

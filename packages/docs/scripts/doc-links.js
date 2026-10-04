@@ -69,8 +69,14 @@ const SPECIAL = new Map([
   ["@spell-app/solid-element", join(PACKAGES, "solid-element/README.md")]
 ])
 
-/** A plan doc, `packages/docs/epics/<name>/<name>.html`, relative to the repo root:  `[1]` is its name. */
-const PLAN_DOC = /(?:^|\/)packages\/docs\/epics\/([^/]+)\/\1\.html$/
+/**
+ * A plan doc, `packages/docs/epics/<name>/<name>.plan.html` (before 2026-10-04 `<name>.html`), relative to the repo
+ * root:  `[1]` is its name.
+ */
+const PLAN_DOC = /(?:^|\/)packages\/docs\/epics\/([^/]+)\/\1(?:\.plan)?\.html$/
+
+/** The one target several destinations may share:  a plan doc's commits, each opened in the same GitHub tab. */
+const SHARED_TAB = "github"
 
 /** An absolute URL. */
 const URL_START = /^https?:\/\//
@@ -347,14 +353,14 @@ export function checkText(text, docDir) {
     const dest = local ? resolvePath(docDir, href.split("#")[0]) : href
     if (local && !existsSync(dest)) {
       if (!gitIgnored(dest + (href.split("#")[0].endsWith("/") ? "/" : ""))) problems.push(`missing:  ${href}`)
-    }
-    else if (local && !insideRepo(dest)) problems.push(`outside repo:  ${href}`)
+    } else if (local && !insideRepo(dest)) problems.push(`outside repo:  ${href}`)
     if (!target) {
       problems.push(`no target:  ${href}`)
       continue
     }
-    // `_self`:  a page that reads like a site (the master plan) navigates in place, on purpose
-    if (target === "_self") continue
+    // `_self`:  a page that reads like a site (the master plan) navigates in place, on purpose.  `github`:  a plan
+    // doc's commit links (`plan-doc.js` `commitEntry()`) share ONE GitHub tab, on purpose (P3 of `review-review`)
+    if (target === "_self" || target === SHARED_TAB) continue
     if (!byDest.has(dest)) byDest.set(dest, new Set())
     byDest.get(dest).add(target)
     if (!byTarget.has(target)) byTarget.set(target, new Set())
