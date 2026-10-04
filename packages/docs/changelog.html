@@ -117,6 +117,60 @@
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
             <ui-section
+              id="stay-put"
+              header="2026-10-03 · /isolate and /epic:  stay in this window, or move"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branch <code>stay-put</code>; no plan doc (an <code>/isolate</code>)</ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc: the header of
+                  <a href="../../scripts/window.mjs" target="src-scripts-window-mjs"><code>scripts/window.mjs</code></a
+                  >, "Staying put"; the root's
+                  <a href="AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
+                  >, "Worktrees"</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  <code>node scripts/window.mjs stay-check [--epic] [--json]</code>: counts the window's Claude sessions
+                  (its extension host's <code>claude</code> children) and which worktree each other one is in;
+                  recommends <code>stay</code> only for the window's only session, else <code>window</code>, with
+                  reasons
+                </li>
+                <li>
+                  <code>/isolate</code> step 2b: a modal every time, "New window" or "Stay in this window", recommended
+                  first; "Stay" carries on in the same tab, same turn
+                </li>
+                <li>
+                  <code>/epic</code> "2. Session" step 0: the same modal; staying shows the plan doc in this window's
+                  side bar and plans in the same turn
+                </li>
+                <li><code>/unpark</code>: its "new window?" modal follows <code>stay-check</code>'s recommendation</li>
+                <li>
+                  every package window: <code>git.detectWorktrees</code> on, so Source Control lists each worktree as
+                  its own repo, and a session that stays is still reviewable (one window reload)
+                </li>
+                <li>
+                  root <a href="AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
+                  >: NEVER add a worktree's folders to a package window, since VS Code writes them into its committed
+                  <code>workspaces/&lt;pkg&gt;.code-workspace</code>
+                </li>
+                <li>
+                  tests: <code>processTable()</code>, <code>claudeSessions()</code>, <code>parseLsof()</code>,
+                  <code>stayAdvice()</code> in
+                  <a href="../../scripts/window.test.mjs" target="src-scripts-window-test-mjs"
+                    ><code>scripts/window.test.mjs</code></a
+                  >
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
               id="spell-ui-pages"
               header="2026-10-02 → 10-03 · Spell UI docs in Fomantic's style"
               sticky
@@ -934,7 +988,8 @@
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
           <p class="meta">
-            Last updated 2026-10-03 from <code>main</code> at <code>48627e28</code>, plus seo and spell-ui-pages.
+            Last updated 2026-10-03 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages and
+            stay-put.
           </p>
         </footer>
       </main>
