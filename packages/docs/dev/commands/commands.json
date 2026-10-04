@@ -2933,6 +2933,7 @@
               "lsp ts",
               "parser ts",
               "server ts",
+              "brand ts",
               "spell ts",
               "ui ts",
               "util ts",
@@ -3037,6 +3038,7 @@
               "lsp format",
               "parser format",
               "server format",
+              "brand format",
               "spell format",
               "ui format",
               "util format",
@@ -4248,6 +4250,40 @@
           "runs": "`packages/ui/scripts/gen-site-data.ts`, `site-components-index.ts`, `site-kitchen-sink.ts`, `site-bundle.ts`, `site-new.ts`",
           "target": "stays:  tool-native package scripts",
           "notes": "Plain HTML since Astro was retired on main (2026-10-03)."
+        },
+        {
+          "op": "Build the brand pages' bundle",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["brand build"],
+            "note": "`packages/brand/_assets/ui/`:  Spell UI, the `<ui-brand-*>` elements and the `spell-brand` theme, for the `.spell.html` pages"
+          },
+          "runs": "`packages/brand/scripts/build.ts` (Vite, `packages/brand/vite.config.ts`)",
+          "target": "stays:  tool-native package script",
+          "notes": "Epic `design-system`, P2."
+        },
+        {
+          "op": "Compare the brand pages with their Spell UI copies",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["brand compare"],
+            "note": "`[<page>...] [--width 1280] [--height 900] [--dark] [--full]`:  screenshots and a diff % per page, in `packages/brand/.compare/`"
+          },
+          "runs": "`packages/brand/scripts/compare.ts` (Playwright, from this checkout's page server)",
+          "target": "could be `spell dev brand compare`;  a package tool for now",
+          "notes": "Epic `design-system`, P2.  The live view is `packages/brand/compare.html`."
         }
       ]
     },

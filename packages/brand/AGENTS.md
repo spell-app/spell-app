@@ -23,8 +23,36 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   (`Brand Montage.dc.html` -> `Brand Montage.spell.html`).
 - `index.html` -- the Brand tab's home page:  every page, with Original / Spell / Compare links.
 - `compare.html?page=<Name>` -- an original and its copy side by side, or one over the other.
-- `_assets/` -- the brand pages' own scripts (`brand-pages.js`:  the index and Compare behaviour).
+- `_assets/` -- the brand pages' own assets:
+  - `brand-pages.js` / `.css` -- the index and Compare (classic script, on the docs bundle).  Its `PAGES` list is
+    THE list of pages;  flip a page's `built` to `true` in the change that adds its `.spell.html`.
+  - `ui/` -- GENERATED, committed:  the copies' bundle, `brand-ui.js` + `brand-ui.css` + lazy chunks (`yarn build`);
+    `icon-packs` a symlink to Spell UI's.  NEVER edit.
+- `src/` (`$/brand`) -- shared code, and the bundle's entry `brand-ui.ts` (what's in it and why).
+- `components/` (`$/brand/components`) -- the `<ui-brand-*>` elements, one folder per family, written exactly like
+  a Spell UI family (`packages/ui/AGENTS.md`, "Solid authoring"), importing shared code from `$/ui/core` /
+  `$/ui/forms`.  Generic ones move into Spell UI later (epic decision D2).  `components.spell.html`:  the specimen page.
+- `scripts/` -- `build.ts` (the bundle) and `compare.ts` (screenshot diffs).
 - `leonardo/` -- the original reference images and brief, from before Claude Design.
+
+## A `.spell.html` copy
+
+- Beside its original, same name.  Loads `../_assets/ui/brand-ui.css` and, as a MODULE, `../_assets/ui/brand-ui.js`:
+  from the page server only, not `file://`.
+- Starts its `<body>` with `<spell-site-header root="../../..">`.
+- Colours, fonts, radii and shadows ONLY from the theme's tokens:  `--ui-*`, and the brand roles `--spell-*`
+  (`spell-brand.css`, "Brand roles":  `--spell-surface-warm`, `--spell-type-eyebrow` ...), so dark mode works.
+- Dark mode:  Spell UI's `color-scheme` (`ui-dark` on `<html>`), never the brand's `data-theme`.
+- Anything the theme can't do:  the plan doc's "What the theme can't do today" table, and an issue.
+
+## Commands
+
+- `yarn build` -- the copies' bundle, `_assets/ui/` (commit it);  rerun after changing `components/`, `src/`, or
+  Spell UI source the pages use.
+- `yarn compare [<page>...] [--width 1280] [--height 900] [--dark] [--full]` -- screenshots each original and its
+  copy, and a diff % per page, into `.compare/` (git-ignored):  `dc.png`, `spell.png`, `side.png`, `diff.png`,
+  `report.md`.  A rough guide:  LOOK at `side.png` or the Compare view.
+- `yarn ts`, `yarn format`.
 
 ## Serving
 

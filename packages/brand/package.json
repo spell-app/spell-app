@@ -5,6 +5,22 @@
   "description": "Spell's brand:  Claude Design's pages and tokens, their Spell UI copies, and the <ui-brand-*> elements they need",
   "license": "MIT",
   "type": "module",
+  "scripts": {
+    "build": "tsx scripts/build.ts",
+    "compare": "tsx scripts/compare.ts",
+    "/////// CORRECTNESS": "",
+    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && echo '<< TSC PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && oxfmt src components scripts vite.config.ts index.html compare.html _assets/brand-pages.js _assets/brand-pages.css && echo '<< OXFMT PASSED\n'"
+  },
+  "devDependencies": {
+    "@solidjs/web": "2.0.0-rc.13",
+    "@types/node": "^22.20.4",
+    "oxfmt": "^0.71.0",
+    "solid-js": "2.0.0-rc.13",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1"
+  },
   "engines": {
     "node": ">=22.17"
   },

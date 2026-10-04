@@ -1,0 +1,73 @@
+import { defineConfig, type UserConfig } from "vite"
+import { fileURLToPath } from "node:url"
+
+import { baseConfig } from "../ui/vite.config.ts"
+
+/** `packages/brand/`. */
+const ROOT = fileURLToPath(new URL("./", import.meta.url))
+
+/** Where the bundle goes:  `_assets/ui/`, COMMITTED (like Spell UI's site bundle). */
+export const BRAND_ASSETS = `${ROOT}_assets/ui`
+
+/** The entry:  `src/brand-ui.ts`. */
+export const BRAND_ENTRY = `${ROOT}src/brand-ui.ts`
+
+/**
+ * The brand pages' bundle (`yarn build`, run by `scripts/build.ts`):  `src/brand-ui.ts` => `_assets/ui/brand-ui.js`
+ * + `brand-ui.css` + lazy chunks.  See the entry for what's in it.
+ * - Modelled on Spell UI's site bundle (`packages/ui/vite.site.config.ts`):  `baseConfig()` (decorators BEFORE
+ *   Solid, Solid dedupe, Lightning CSS targets), an APP build of one entry, code-split, `base: "./"` so chunk URLs
+ *   are relative to the chunk that imports them.
+ * - An ES module, so a page loads it from the page server, not `file://` (judgement J4:  a classic script would
+ *   inline every theme, engine and emoji chunk).
+ * - Aliases set here as well, as the site's config does:  files outside a `tsconfig.json`'s `include` may not get
+ *   `tsconfigPaths`.  `@spell-app/solid-element` from SOURCE:  a fresh checkout has no `dist/`.
+ */
+export default defineConfig(() => {
+  const base = baseConfig()
+  return {
+    ...base,
+    root: ROOT,
+    base: "./",
+    publicDir: false,
+    logLevel: "warn",
+    resolve: {
+      ...base.resolve,
+      alias: [
+        { find: /^\$\/brand\/components$/, replacement: `${ROOT}components/index.ts` },
+        { find: /^\$\/brand\/components\//, replacement: `${ROOT}components/` },
+        { find: /^\$\/brand$/, replacement: `${ROOT}src/index.ts` },
+        { find: /^\$\/brand\//, replacement: `${ROOT}src/` },
+        { find: /^\$\/ui$/, replacement: `${ROOT}../ui/src/index.ts` },
+        { find: /^\$\/ui\//, replacement: `${ROOT}../ui/src/` },
+        { find: /^\$\/util$/, replacement: `${ROOT}../util/src/index.ts` },
+        { find: /^\$\/util\//, replacement: `${ROOT}../util/src/` },
+        { find: /^\$\/server$/, replacement: `${ROOT}../server/src/index.ts` },
+        { find: /^\$\/server\//, replacement: `${ROOT}../server/src/` },
+        { find: /^@spell-app\/solid-element$/, replacement: `${ROOT}../solid-element/src/index.ts` }
+      ]
+    },
+    build: {
+      outDir: BRAND_ASSETS,
+      emptyOutDir: false,
+      sourcemap: false,
+      minify: true,
+      target: "esnext",
+      cssTarget: ["chrome125", "safari26", "firefox147"],
+      modulePreload: { polyfill: false },
+      reportCompressedSize: false,
+      chunkSizeWarningLimit: 1500,
+      rolldownOptions: {
+        input: { "brand-ui": BRAND_ENTRY },
+        preserveEntrySignatures: "allow-extension",
+        output: {
+          // custom element class names are read by dev-time warnings and the manifest (see ui's `vite.config.ts`)
+          keepNames: true,
+          entryFileNames: "[name].js",
+          chunkFileNames: "[name]-[hash].js",
+          assetFileNames: "[name][extname]"
+        }
+      }
+    }
+  } satisfies UserConfig
+})

@@ -45,7 +45,14 @@
       "$/ui": ["./packages/ui/src/index.ts"],
       "$/ui/*": ["./packages/ui/src/*"],
       "$/ui/test/*": ["./packages/ui/test/*"],
-      "$/ui/tools/*": ["./packages/ui/tools/*"]
+      "$/ui/tools/*": ["./packages/ui/tools/*"],
+
+      // ## `brand`:  barrel and files;  its `<ui-brand-*>` elements live in `packages/brand/components/` (Owen,
+      // 2026-10-04), outside `src/`, so `$/brand/components` is longer than `$/brand/*` and wins
+      "$/brand": ["./packages/brand/src/index.ts"],
+      "$/brand/*": ["./packages/brand/src/*"],
+      "$/brand/components": ["./packages/brand/components/index.ts"],
+      "$/brand/components/*": ["./packages/brand/components/*"]
     }
   }
 }
