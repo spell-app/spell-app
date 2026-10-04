@@ -80,6 +80,58 @@
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section
+              id="shared-content"
+              header="2026-10-04 · Shared content, P2:  docs reorganised"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/shared-content/shared-content.plan.html" target="shared-content"
+                    >epics/shared-content</a
+                  ></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>shared-content</code>, P1-P2 merged 2026-10-04; P3-P8 (the shared repo itself) still in
+                  its worktree</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: spike: Claude edits through a FOLDER link but refuses a FILE link, so only whole folders will be
+                  shared; <code>../spell-app-dev</code> trusted for edits in user and project settings.
+                </li>
+                <li>
+                  P2: every docs page, plan doc and template moved to
+                  <a href="./" target="src-packages-docs-content"><code>packages/docs/content/</code></a
+                  >; page URLs gained <code>/content/</code>, and the page server redirects the old ones.
+                </li>
+                <li>
+                  P2: the docs scripts and <code>_assets</code> moved to
+                  <a href="../tools/" target="src-packages-docs-tools"><code>packages/docs/tools/</code></a
+                  >, the goals tooling to
+                  <a href="../tools/goals/" target="src-packages-docs-tools-goals"
+                    ><code>packages/docs/tools/goals/</code></a
+                  >; every <code>yarn</code> script kept its name.
+                </li>
+                <li>
+                  P2: <code>PAPERCUTS.md</code>, <code>SUSPECTED-BUGS.md</code> and <code>CODE-DEBT.md</code> moved to
+                  <a href="../../../agents/" target="src-agents"><code>agents/</code></a
+                  >.
+                </li>
+                <li>
+                  P2:
+                  <a href="../tools/relocate.js" target="src-packages-docs-tools-relocate-js"
+                    ><code>packages/docs/tools/relocate.js</code></a
+                  >
+                  rewrote every link and path mention to match, and repairs links written for the old layout (a worktree
+                  merging <code>main</code>).
+                </li>
+              </ul>
+            </ui-section>
             <ui-section id="vite-plus" header="2026-10-02 → 10-04 · Vite+ toolchain" sticky collapsible dividing>
               <ui-list class="spell-meta">
                 <ui-item icon="map"
@@ -1218,7 +1270,7 @@
               </ui-list>
               <ul>
                 <li>
-                  P1: <a href="./" target="src-packages-docs"><code>packages/docs</code></a
+                  P1: <a href="../" target="src-packages-docs"><code>packages/docs</code></a
                   >: every doc moved in, kebab-case, hand-written <code>ui-*</code> pages; the
                   <code>.spell.html</code> converter retired.
                 </li>
