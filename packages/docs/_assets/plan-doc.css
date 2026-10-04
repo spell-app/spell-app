@@ -215,3 +215,32 @@ ui-section:has(> ui-list.plan-items:empty)::after {
   font-family: var(--spell-mono);
   color: var(--spell-muted);
 }
+
+/*
+ * "Open | All" on an item section's title (`ui-buttons.spell-item-filter`, slotted into `actions` by the runtime's
+ * `wireItemFilters()`):  just after the title, left of the count badge;  Open hides struck items.
+ */
+.spell-doc-main ui-section::part(actions) {
+  order: 1;
+}
+.spell-doc-main ui-section::part(badge) {
+  order: 2;
+}
+.spell-doc-main ui-section[data-show="open"] .plan-items > [data-status="done"] {
+  display: none;
+}
+/* Open:  "6 hidden · show all" under the list;  a click shows them */
+.spell-doc-main a.spell-hidden-note:not([hidden]) {
+  display: inline-block;
+  margin: 4px 0 0 4px;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+}
+/* Open:  the first item still shown (none shown above it) drops its divider line, as a list's first item does */
+.spell-doc-main
+  ui-section[data-show="open"]
+  .plan-items
+  > :not([data-status="done"]):not(:not([data-status="done"]) ~ *) {
+  --_ui-list-item-border-width: 0;
+  --ui-list-item-border-width: 0;
+}
