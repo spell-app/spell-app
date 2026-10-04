@@ -24,9 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Markdown on the parser</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Doc Review</ui-label></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -43,11 +41,13 @@
           >
         </ui-list>
 
-        <ui-section id="overnight" header="Overnight · 2026-10-04" data-bedtime="active" sticky collapsible dividing>
+        <ui-section id="overnight" header="Overnight · 2026-10-04" data-bedtime="done" sticky collapsible dividing>
           <ui-icon slot="icon" name="calendar"></ui-icon>
           <p class="overnight-summary">
-            Running P2-P9 unattended on branch <code>markdown</code>, since
-            <time datetime="2026-10-04T02:51-04:00">2026-10-04 02:51</time>.
+            <a href="#p2">P2</a>-<a href="#p9">P9</a> all done: GFM spec 670/670, MD in app docstrings + LSP colouring,
+            md.bundle measured (88 kB gz: plain &amp;lt;ui-markdown&amp;gt; keeps marked), &amp;lt;ui-markdown
+            editable&amp;gt; previews with MD. Judgement calls <a href="#j1">J1</a>-<a href="#j12">J12</a> to review;
+            not merged (<a href="#t7">T7</a>).
           </p>
           <ui-section id="overnight-phases" header="Phases" sticky collapsible dividing>
             <ul class="overnight-phases">
@@ -82,6 +82,13 @@
                 <b>P7</b> a8628835 ui Bundle: yarn gen:markdown; 88.2 kB gz vs marked 25 kB, measure only, plain
                 &amp;lt;ui-markdown&amp;gt; keeps marked (<a href="#i6">I6</a>)
               </li>
+              <li>
+                <b>P8</b> 28e0ebde Live Preview: &amp;lt;ui-markdown editable&amp;gt; Write / Preview tabs, MDEngine
+                lazy chunk, block patching (<a href="#j10">J10</a>-<a href="#j12">J12</a>)
+              </li>
+              <li>
+                <b>P9</b> Doc Review: durable doc markdown/markdown.html, changelog entry (committed with this line)
+              </li>
             </ul>
           </ui-section>
           <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
@@ -112,7 +119,7 @@
               preview editor); scope = useful GFM subset first.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 1h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 0m left</p>
           <ui-section id="o1" header="1.1 Shape" sticky collapsible dividing collapsed>
             <p>
               New package
@@ -283,7 +290,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="8" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="9" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -643,18 +650,20 @@
           <ui-section
             id="p9"
             data-phase="9"
-            data-status="todo"
+            data-status="done"
             header="P9 · Doc Review"
             sticky
             collapsible
             dividing
             collapsed
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
-                ><b>Goal:</b> Prune the plan doc; durable doc <code>packages/docs/markdown/markdown.html</code>;
-                changelog; <code>/isolate</code> Finish.</ui-item
+                ><b>Goal:</b> Prune the plan doc; durable doc
+                <a href="../../markdown/markdown.html" target="src-packages-docs-markdown-markdown-html"
+                  ><code>packages/docs/markdown/markdown.html</code></a
+                >; changelog; <code>/isolate</code> Finish.</ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> <a href="../../" target="src-packages-docs"><code>packages/docs/</code></a></ui-item
               ><ui-item icon="flask"
@@ -662,6 +671,13 @@
                 <a href="../../AGENTS.md" target="src-packages-docs-agents-md"
                   ><code>packages/docs/AGENTS.md</code></a
                 ></ui-item
+              ><ui-item icon="flag"
+                ><b>Outcome:</b> durable doc
+                <a href="../../markdown/markdown.html" target="src-packages-docs-markdown-markdown-html"
+                  ><code>markdown/markdown.html</code></a
+                >
+                (fresh numbers: 1.8× marked, 156/172 files the same); changelog entry in "2. In worktrees"; C2, C3, C4,
+                C5, C7 closed. Not merged: bedtime never merges (<a href="#t7">T7</a>).</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
             >
           </ui-section></ui-section
@@ -2079,28 +2095,28 @@
               <span class="plan-title"
                 >Emphasis + container stack are hand-written, not rules: the parser can't express them</span
               ></ui-item
-            ><ui-item id="c2" data-status="open"
+            ><ui-item id="c2" data-status="done"
               ><a class="plan-id" href="#c2">C2</a>
               <span class="plan-title"
                 >Choice tries every alternative and keeps the longest: inline parsing may be slow (measured in P5)</span
-              ></ui-item
-            ><ui-item id="c3" data-status="open"
+              > </ui-item
+            ><ui-item id="c3" data-status="done"
               ><a class="plan-id" href="#c3">C3</a>
               <span class="plan-title"
                 >ui bundle may come out too big (the P barrel loads AST.ts, scopes ...): P7 may keep marked for plain
                 &lt;ui-markdown&gt;</span
-              ></ui-item
+              > </ui-item
             ><ui-item id="c4" data-status="done"
               ><a class="plan-id" href="#c4">C4</a>
               <span class="plan-title"
                 >Reference-link definitions are document-global: incremental re-parse needs a post-pass (P8)</span
               > </ui-item
-            ><ui-item id="c5" data-status="open"
+            ><ui-item id="c5" data-status="done"
               ><a class="plan-id" href="#c5">C5</a>
               <span class="plan-title"
                 >Full ui-* output: ui-header ids / outline, ui-list nesting and copy-paste checked in P5's diff
                 report</span
-              ></ui-item
+              > </ui-item
             ><ui-item id="c6" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
@@ -2212,7 +2228,12 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ></ui-list
+            ><ui-item id="t7" data-status="open"
+              ><a class="plan-id" href="#t7">T7</a>
+              <span class="plan-title"
+                >Merge markdown into main (/isolate done or /epic finish): bedtime never merges</span
+              >
+            </ui-item></ui-list
           >
         </ui-section>
 
@@ -2944,6 +2965,59 @@
                   ><ui-date><time datetime="2026-10-04T03:44-04:00">2026-10-04 03:44</time></ui-date> P8 done:
                   &lt;ui-markdown editable&gt; (Write / Preview, MDEngine lazy chunk, block patching); J10-J12, T5
                   T6</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:45-04:00">2026-10-04 03:45</time></ui-date> P9
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:47-04:00">2026-10-04 03:47</time></ui-date> C2 closed: Choice
+                  tries every alternative and keeps the longest: inline parsing may be slow (measured in P5)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:47-04:00">2026-10-04 03:47</time></ui-date> C3 closed: ui
+                  bundle may come out too big (the P barrel loads AST.ts, scopes ...): P7 may keep marked for plain
+                  &lt;ui-markdown&gt;</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:47-04:00">2026-10-04 03:47</time></ui-date> C5 closed: Full
+                  ui-* output: ui-header ids / outline, ui-list nesting and copy-paste checked in P5's diff
+                  report</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:48-04:00">2026-10-04 03:48</time></ui-date> P9
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:48-04:00">2026-10-04 03:48</time></ui-date> P9 done: durable
+                  doc markdown/markdown.html, changelog entry; not merged (T7)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:48-04:00">2026-10-04 03:48</time></ui-date> Bedtime done:
+                  P2-P9 all done: GFM spec 670/670, MD in app docstrings + LSP colouring, md.bundle measured (88 kB gz:
+                  plain &amp;lt;ui-markdown&amp;gt; keeps marked), &amp;lt;ui-markdown editable&amp;gt; previews with
+                  MD. Judgement calls J1-J12 to review; not merged (T7).</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
