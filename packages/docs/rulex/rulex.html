@@ -56,8 +56,8 @@
             <li>
               Seven constructs: keywords, symbols (<code>\</code> escapes any), <code>{subrule}</code>,
               <code>(a|b)</code>, <code>[item delimiter]</code>, numbers and <code>name:</code> labels. Three modifiers:
-              <code>?</code>, <code>+</code>, <code>*</code>; more planned (<code>{1,6}</code>, <code>/i</code>). Spell
-              uses all but numbers, in 133 registrations.
+              <code>?</code>, <code>+</code>, <code>*</code>; counts (<code>{1,6}</code>); <code>/i</code> planned.
+              Spell uses all but numbers, in 133 registrations.
             </li>
             <li>
               Every rulex special character escapes with <code>\</code>:
@@ -75,8 +75,8 @@
             <li>
               What the rules it builds match: token VALUES, exact and case-sensitive, SPACED AS WRITTEN (since
               2026-10-04): parts written touching must touch (<code>\*\*{x}\*\*</code> refuses <code>* *x* *</code>),
-              spaced ones may space, and <code>{space}</code> / <code>{spaces}</code> require one space / some. Planned:
-              intervals and <code>/i</code>.
+              spaced ones may space, and <code>{space}</code> / <code>{spaces}</code> require one space / some. Counts
+              as regex: <code>#{1,6}</code> takes 1 to 6 and stops. Planned: <code>/i</code>.
             </li>
           </ul>
           <ui-message state="info" header="For markdown">
@@ -344,7 +344,7 @@ math.addRule(plus, {
                     <td>An optional <code>Repeat</code></td>
                   </tr>
                   <tr>
-                    <td>exactly n <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td>exactly n</td>
                     <td><code>x{7}</code></td>
                     <td><code>Repeat(Keyword("x"))</code>, <code>minCount</code> = <code>maxCount</code> = 7</td>
                     <td>
@@ -353,7 +353,7 @@ math.addRule(plus, {
                     </td>
                   </tr>
                   <tr>
-                    <td>n to m <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td>n to m</td>
                     <td><code>#{1,6}</code></td>
                     <td><code>Repeat(Symbol("#"))</code>, 1..6</td>
                     <td>
@@ -362,7 +362,7 @@ math.addRule(plus, {
                     </td>
                   </tr>
                   <tr>
-                    <td>n or more <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td>n or more</td>
                     <td><code>-{3,}</code></td>
                     <td><code>Repeat(Symbol("-"))</code>, 3..</td>
                     <td><code>x+</code> ~== <code>x{1,}</code>, <code>x*</code> ~== <code>x{0,}</code></td>
@@ -893,7 +893,7 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
             Decided with Owen on 2026-10-03, after reviewing this page. Built in the <code>markdown</code> epic's P2,
             one at a time; this page is updated as each one lands. Built so far (2026-10-04): the plain rulex tokenizer,
             throw on leftovers (and on an unclosed <code>[</code> <code>{</code> <code>(</code>), spacing as written
-            with <code>{space}</code> / <code>{spaces}</code>.
+            with <code>{space}</code> / <code>{spaces}</code>, intervals.
           </p>
           <ui-table celled compact striped>
             <table>
@@ -952,8 +952,8 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
                 </tr>
                 <tr>
                   <td>
-                    <b>Intervals</b>, as regex: <code>{n}</code>, <code>{n,m}</code>, <code>{n,}</code> straight after a
-                    rule
+                    <ui-label size="mini" color="green">built</ui-label> <b>Intervals</b>, as regex: <code>{n}</code>,
+                    <code>{n,m}</code>, <code>{n,}</code> straight after a rule
                   </td>
                   <td><code>#{1,6}{spaces}{text}</code>, <code>- {3,}</code></td>
                   <td>None. <code>{</code> + digit is a count; <code>{</code> + letter stays a subrule</td>

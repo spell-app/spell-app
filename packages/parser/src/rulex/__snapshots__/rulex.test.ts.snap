@@ -2,12 +2,13 @@
 
 exports[`testing language rulex > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
 {
-  "choices": "matchGroup?|choices|repeatFlag?",
-  "keyword": "literal|repeatFlag?",
+  "choices": "matchGroup?|choices|repeatFlag?|interval?",
+  "interval": "min|comma?|max?",
+  "keyword": "literal|repeatFlag?|interval?",
   "list": "matchGroup?|ruleName|delimiter|repeatFlag?",
   "matchGroup": "matchGroup",
-  "number": "number|repeatFlag?",
-  "subrule": "matchGroup?|rule|repeatFlag?",
-  "symbol": "isEscaped?|literal|repeatFlag?",
+  "number": "number|repeatFlag?|interval?",
+  "subrule": "matchGroup?|rule|repeatFlag?|interval?",
+  "symbol": "isEscaped?|literal|repeatFlag?|interval?",
 }
 `;

@@ -1491,6 +1491,37 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d26" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d26">D26</a>
+                  <span class="plan-title"
+                    >P2.4 diff: intervals {n} {n,m} {n,} -&gt; Repeat minCount / maxCount; Repeat counts copies, stops
+                    at max</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>Review gate (<a href="#d7">D7</a>) for <a href="#d18">D18</a>.</p>
+                  <ul>
+                    <li>
+                      rulex <code>repeatFlag</code>: <code>?</code> <code>*</code> <code>+</code>, or
+                      <code>{</code> number (<code>,</code> number?)? <code>}</code>. <code>applyFlags()</code>: an
+                      interval wraps the rule in <code>Repeat({ minCount, maxCount })</code>; <code>{0,…}</code> also
+                      sets <code>optional</code>. A symbol touching its interval is a run, as with <code>+</code>.
+                    </li>
+                    <li>
+                      <code>{</code> + digit is a count, <code>{</code> + letter a subrule (subrule names start with a
+                      letter). A count before anything throws (D22).
+                    </li>
+                    <li>
+                      <code>Repeat.parse()</code>: <code>minCount</code> / <code>maxCount</code> count COPIES (today
+                      they count delimiters too), and it stops at <code>maxCount</code> like regex (today it fails when
+                      over). Nothing uses them yet (grep).
+                    </li>
+                    <li><code>Repeat.toRulexSyntax()</code> prints the interval.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2003,6 +2034,13 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:28-04:00">2026-10-04 02:28</time></ui-date> I2 closed:
                   Whitespace is invisible to literal rules: ** matches * *</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:32-04:00">2026-10-04 02:32</time></ui-date> P2.4 staged for
+                  review: intervals; parser 449 / spell 788 / lsp 96 green; speed 73 -&gt; 71 ms</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

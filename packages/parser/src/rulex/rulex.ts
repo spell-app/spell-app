@@ -11,7 +11,7 @@
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { Parser } from "$/parser/Parser"
-import { RulexParser } from "./RulexParser"
+import { RulexParser, type RulexInterval } from "./RulexParser"
 
 /**
  * Core `rulex` parser instance.
@@ -84,9 +84,59 @@ rulex.addRule(repeatFlagRule, {
   ]
 })
 
-// `matchGroup` / `repeatFlag` are registered ABOVE first, so we can pull their registered
+////////////////
+// ## `interval` rule
+//    e.g. "{1,6}"
+////////////////
+
+/**
+ * Optional trailing count, as regex's interval:  `{n}` exactly, `{n,m}` n to m, `{n,}` n or more.
+ * - Adorns the same rules `repeatFlag` does;  `applyFlags()` turns it into a `P.Repeat`'s `minCount` / `maxCount`.
+ * - Unambiguous with a `{subrule}`:  a rule name starts with a letter, a count with a digit.
+ * - Compiles to `{ min, max }` (`max` undefined for `{n,}`);  throws for `max < min` or `{0}`.
+ */
+class intervalRule extends P.Sequence<"min|comma?|max?"> {
+  compile(match: P.MatchFor<this>): RulexInterval {
+    const { min, comma, max } = match.groups
+    const interval = { min: Number(min.value), max: comma ? (max ? Number(max.value) : undefined) : Number(min.value) }
+    if (interval.max === 0 || (interval.max !== undefined && interval.max < interval.min)) {
+      throw new P.ParserError({
+        message: `rulex count \`${P.Tokenizer.join(match.tokens)}\` matches nothing`,
+        context: rulex,
+        activity: "compile",
+        params: { interval }
+      })
+    }
+    return interval
+  }
+}
+rulex.addRule(intervalRule, {
+  name: "interval",
+  rules: [
+    new P.Symbol("{"),
+    new P.TokenType({ tokenType: P.NumberToken, matchGroup: "min" }),
+    new P.Symbol({ literal: ",", matchGroup: "comma", optional: true }),
+    new P.TokenType({ tokenType: P.NumberToken, matchGroup: "max", optional: true }),
+    new P.Symbol("}")
+  ],
+  optional: true,
+  tests: [
+    {
+      title: "matches interval",
+      tests: [
+        ["", undefined],
+        ["{7}", { min: 7, max: 7 }],
+        ["{1,6}", { min: 1, max: 6 }],
+        ["{3,}", { min: 3, max: undefined }],
+        ["{sub}", undefined]
+      ]
+    }
+  ]
+})
+
+// `matchGroup` / `repeatFlag` / `interval` are registered ABOVE first, so we can pull their registered
 // INSTANCES out here -- the rules below put these instances directly inside their own `rules` arrays.
-const { matchGroup, repeatFlag } = rulex.rules as Record<"matchGroup" | "repeatFlag", P.Rule>
+const { matchGroup, repeatFlag, interval } = rulex.rules as Record<"matchGroup" | "repeatFlag" | "interval", P.Rule>
 
 ////////////////
 // ## `symbol` rule
@@ -102,7 +152,7 @@ const { matchGroup, repeatFlag } = rulex.rules as Record<"matchGroup" | "repeatF
  *   Write `\[` / `\{` / `\(`.
  * - Compiles to a `P.Symbol`, adorned by `repeatFlag` via `applyFlags()`.
  */
-class symbolRule extends P.Sequence<"isEscaped?|literal|repeatFlag?"> {
+class symbolRule extends P.Sequence<"isEscaped?|literal|repeatFlag?|interval?"> {
   compile(match: P.MatchFor<this>) {
     const { literal, isEscaped } = match.groups
     const rule = new P.Symbol(literal.value)
@@ -128,7 +178,8 @@ rulex.addRule(symbolRule, {
         new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal", blacklist: ["|", ")", "[", "{", "("] })
       ]
     }),
-    repeatFlag
+    repeatFlag,
+    interval
   ],
   tests: [
     {
@@ -190,7 +241,7 @@ rulex.addRule(symbolRule, {
  *   stands for.
  * - Compiles to a `P.Keyword`, adorned by `repeatFlag` via `applyFlags()`.
  */
-class keyword extends P.Sequence<"literal|repeatFlag?"> {
+class keyword extends P.Sequence<"literal|repeatFlag?|interval?"> {
   compile(match: P.MatchFor<this>) {
     const { literal } = match.groups
     const rule = new P.Keyword(literal.value)
@@ -199,7 +250,7 @@ class keyword extends P.Sequence<"literal|repeatFlag?"> {
 }
 rulex.addRule(keyword, {
   alias: "rule",
-  rules: [new P.Word({ matchGroup: "literal" }), repeatFlag],
+  rules: [new P.Word({ matchGroup: "literal" }), repeatFlag, interval],
   tests: [
     {
       title: "matches single keyword",
@@ -228,7 +279,7 @@ rulex.addRule(keyword, {
  * - The returned rule is a `Keyword` rule, so it can be combined with alpha-numeric keywords.
  * - TODO: how is this used?
  */
-class numberRule extends P.Sequence<"number|repeatFlag?"> {
+class numberRule extends P.Sequence<"number|repeatFlag?|interval?"> {
   compile(match: P.MatchFor<this>) {
     const { number } = match.groups
     const rule = new P.Keyword({ literal: number.value })
@@ -238,7 +289,7 @@ class numberRule extends P.Sequence<"number|repeatFlag?"> {
 rulex.addRule(numberRule, {
   name: "number",
   alias: "rule",
-  rules: [new P.TokenType({ tokenType: P.NumberToken, matchGroup: "number" }), repeatFlag],
+  rules: [new P.TokenType({ tokenType: P.NumberToken, matchGroup: "number" }), repeatFlag, interval],
   tests: [
     {
       title: "matches single keyword",
@@ -262,7 +313,7 @@ rulex.addRule(numberRule, {
  * `Subrule`: match a named rule, as part of a larger sequence.
  * - `{name}` references rule `name`; `{arg:name}` also sets `matchGroup` on the resulting `P.Subrule`.
  */
-class subrule extends P.Sequence<"matchGroup?|rule|repeatFlag?"> {
+class subrule extends P.Sequence<"matchGroup?|rule|repeatFlag?|interval?"> {
   compile(match: P.MatchFor<this>) {
     const rule = new P.Subrule(String(match.groups.rule.compile()))
     return rulex.applyFlags(rule, match)
@@ -270,7 +321,7 @@ class subrule extends P.Sequence<"matchGroup?|rule|repeatFlag?"> {
 }
 rulex.addRule(subrule, {
   alias: "rule",
-  rules: [new P.Symbol("{"), matchGroup, new P.Word({ matchGroup: "rule" }), new P.Symbol("}"), repeatFlag],
+  rules: [new P.Symbol("{"), matchGroup, new P.Word({ matchGroup: "rule" }), new P.Symbol("}"), repeatFlag, interval],
   tests: [
     {
       title: "matches subrule",
@@ -376,7 +427,7 @@ rulex.addRule(list, {
  * - If exactly one choice remains after consolidation, returns that rule directly instead of wrapping it in
  *   a `P.Choice` -- NOTE: in that case the choice's own flags "beat" the rule's flags if they conflict.
  */
-class choices extends P.Sequence<"matchGroup?|choices|repeatFlag?"> {
+class choices extends P.Sequence<"matchGroup?|choices|repeatFlag?|interval?"> {
   compile(match: P.MatchFor<this>) {
     let choices: P.Rule[] = match.groups.choices.items.map((item) => RulexParser.compileMatchOrDie(item))
 
@@ -403,7 +454,8 @@ rulex.addRule(choices, {
     matchGroup,
     new P.Repeat({ matchGroup: "choices", rule: new P.Subrule("sequence"), delimiter: new P.Symbol("|") }),
     new P.Symbol(")"),
-    repeatFlag
+    repeatFlag,
+    interval
   ],
   tests: [
     {
@@ -621,6 +673,21 @@ rulex.addRule(sequence, {
           new P.Sequence(new P.Symbol("-"), new P.Keyword({ literal: 1 as unknown as string, spacing: "none" }))
         ],
         ["¬", new P.Symbol("¬")]
+      ]
+    },
+    {
+      // counts, as regex's intervals:  a symbol touching its count is a run, as with `+`
+      title: "counts",
+      showAll: true,
+      tests: [
+        ["x{7}", new P.Repeat({ rule: new P.Keyword("x"), minCount: 7, maxCount: 7 })],
+        ["#{1,6}", new P.Repeat({ rule: new P.Symbol("#"), minCount: 1, maxCount: 6, itemSpacing: "none" })],
+        ["- {3,}", new P.Repeat({ rule: new P.Symbol("-"), minCount: 3 })],
+        ["{a}{0,2}", new P.Repeat({ rule: new P.Subrule("a"), minCount: 0, maxCount: 2, optional: true })],
+        [
+          "(a|b){2,3}",
+          new P.Repeat({ rule: new P.Keyword(["a", "b"]), minCount: 2, maxCount: 3 })
+        ]
       ]
     },
     {

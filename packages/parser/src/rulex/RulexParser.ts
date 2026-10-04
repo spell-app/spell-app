@@ -50,22 +50,41 @@ export class RulexParser extends Parser {
   }
 
   /**
-   * Apply `repeatFlag` / `matchGroup` groups from `match` onto `rule`.
+   * Apply `repeatFlag` / `interval` / `matchGroup` groups from `match` onto `rule`.
    * - SIDE EFFECT: mutates `rule` directly for `matchGroup`.
-   * - `repeatFlag` of `+` or `*` instead wraps `rule` in a new `P.Repeat` and returns that, since a single
-   *   rule can't represent "one or more" / "zero or more" on its own -- so the return value may not be `rule`.
-   * - `match` is typed loosely (just these 2 groups, both optional) rather than any one caller's real `Groups`
+   * - `repeatFlag` of `+` or `*`, or an `interval` (`{1,6}`), instead wraps `rule` in a new `P.Repeat` and returns
+   *   that, since a single rule can't repeat on its own -- so the return value may not be `rule`.  A count from
+   *   0 makes the repeat optional.
+   * - Throws for a flag AND a count (`x?{2}`).
+   * - `match` is typed loosely (just these groups, all optional) rather than any one caller's real `Groups`
    *   -- every rulex rule in `rulex.ts` that adorns itself with `matchGroup` / `repeatFlag`
    *   passes its own, differently-shaped match here, so callers need no casts.
    */
-  applyFlags(rule: P.Rule, match: P.Match<P.GroupsFor<"repeatFlag?|matchGroup?">>): P.Rule {
+  applyFlags(rule: P.Rule, match: P.Match<P.GroupsFor<"repeatFlag?|matchGroup?|interval?">>): P.Rule {
     const repeatFlag = match.groups.repeatFlag?.compile()
     const matchGroup = match.groups.matchGroup?.compile()
+    const interval = match.groups.interval?.compile() as RulexInterval | undefined
+    if (repeatFlag && interval) {
+      throw new P.ParserError({
+        message: `rulex \`${P.Tokenizer.join(match.tokens)}\` has a flag AND a count:  use one`,
+        context: this,
+        activity: "compile",
+        params: { repeatFlag, interval }
+      })
+    }
 
     // handle repeat, which may nest the rule in a repeat
     if (repeatFlag === "?") rule.optional = true
     else if (repeatFlag === "+") rule = new P.Repeat({ rule })
     else if (repeatFlag === "*") rule = new P.Repeat({ rule, optional: true })
+    else if (interval) {
+      rule = new P.Repeat({
+        rule,
+        minCount: interval.min,
+        ...(interval.max !== undefined && { maxCount: interval.max }),
+        ...(interval.min === 0 && { optional: true })
+      })
+    }
 
     if (typeof matchGroup === "string" && matchGroup) rule.matchGroup = matchGroup
 
@@ -184,3 +203,6 @@ export class RulexParser extends Parser {
     return rule
   }
 }
+
+/** A rulex count, `{n}` / `{n,m}` / `{n,}`:  `max` undefined for "n or more". */
+export type RulexInterval = { min: number; max: number | undefined }
