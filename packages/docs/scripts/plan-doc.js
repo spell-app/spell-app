@@ -971,6 +971,9 @@ ${list}`
       this.foldDonePhases(done.at(-1).n)
       if (done.length > 1) changes.push(`${done.length - 1} done phases folded`)
     }
+    // last:  the steps above may add sections with an intro (`section.s2` converted, "To test")
+    const tips = this.introsToTips()
+    if (tips) changes.push(`${tips} section intros as title tooltips (data-tip)`)
     this.updateProgress()
     return changes
   }
@@ -1009,6 +1012,23 @@ ${list}`
     sticky.append(header)
     header.append(h1, this.element("span", { class: "plan-step", hidden: "" }))
     return true
+  }
+
+  /**
+   * Each top-level section's intro (a `p.meta` first in it, after its icon) becomes its title's tooltip:  `data-tip`
+   * on the section, which the runtime puts on the title (`wireTips()`);  how many.
+   * - why:  the intros are the same on every doc and cost a line each in a narrow side bar (Owen, 2026-10-04)
+   */
+  introsToTips() {
+    let count = 0
+    for (const section of this.document.querySelectorAll("main > ui-section")) {
+      const note = section.querySelector(":scope > p.meta")
+      if (!note) continue
+      section.setAttribute("data-tip", note.textContent.replace(/\s+/g, " ").trim())
+      note.remove()
+      count++
+    }
+    return count
   }
 
   /** The h1 and `<title>` as `Epic: <title>` (`TITLE_PREFIX`), from the h1;  done? */
@@ -1154,6 +1174,7 @@ ${list}`
     replaceInTitle(target, /\bDecisions\s*$/, "Questions & Decisions")
     const note = target.querySelector(":scope > p.meta")
     if (note) note.textContent = DECISIONS_NOTE
+    else target.setAttribute("data-tip", DECISIONS_NOTE)
     changes.push(`${questions.length} questions merged into Questions & Decisions (${paired} next to their answers)`)
     return changes
   }

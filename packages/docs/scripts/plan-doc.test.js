@@ -529,6 +529,15 @@ describe("PlanDoc migrate", () => {
     expect(plan.summary().title).toBe("Old Title")
   })
 
+  it("moves each section's intro into its data-tip:  the title's tooltip", () => {
+    const plan = filledOldPlan()
+    plan.migrate()
+    const judgements = plan.document.getElementById("judgements")
+    expect(judgements.getAttribute("data-tip")).toMatch(/^Choices made without you/)
+    expect(plan.document.querySelector("main > ui-section > p.meta")).toBe(null)
+    expect(freshPlan().document.querySelector("main > ui-section > p.meta")).toBe(null)
+  })
+
   it("does nothing to a current doc", () => {
     const plan = filledOldPlan()
     plan.migrate()

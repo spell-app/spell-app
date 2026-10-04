@@ -1107,6 +1107,22 @@ function wireFolds(main, outline) {
     if (event.defaultPrevented || !event.cancelable || section.localName !== "ui-section" || !section.id) return
     saved[section.id] = !event.detail?.open
     writeJSON(key, saved)
+    if (!event.detail?.open) keepTitlePut(section)
+  }
+
+  /**
+   * Folding a section the reader is INSIDE (its title stuck, its top scrolled past):  scroll at once so the title
+   * stays where it's stuck, and the content folds away below it.
+   * - why:  else the title drops back to the section's top, far above, and the page slides up after the
+   *   shrinking content (Owen's "bounce", 2026-10-04)
+   */
+  function keepTitlePut(section) {
+    const title = section.shadowRoot?.querySelector("[part~=title]")
+    if (!title) return
+    const stuckAt = title.getBoundingClientRect().top
+    const top = section.getBoundingClientRect().top
+    if (top >= stuckAt - 1) return
+    scrollTo({ top: scrollY + top - stuckAt, behavior: "instant" })
   }
 
   /** HEADINGS:  a chevron on every h2 / h3 of a sticky section. */
@@ -2042,7 +2058,26 @@ else buildChrome()
  */
 function buildChrome() {
   const main = document.querySelector("main.spell-doc-main") ?? document.querySelector("main")
-  if (main) buildReviewLine(main)
+  if (!main) return
+  buildReviewLine(main)
+  void wireTips(main)
+  addEventListener("spell-doc:updated", () => void wireTips(main))
+}
+
+/**
+ * A section's `data-tip` (its intro, moved there by `plan-doc.js` `introsToTips()`) as the tooltip of its title's
+ * text:  the `title` of the shadow `[part~=header]`, so hovering the section's body shows nothing.
+ * - waits for `<ui-section>` to define and draw;  callable again (a page updated in place)
+ */
+async function wireTips(main) {
+  const sections = main.querySelectorAll("ui-section[data-tip]")
+  if (!sections.length) return
+  await customElements.whenDefined("ui-section")
+  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+  for (const section of sections) {
+    const header = section.shadowRoot?.querySelector("[part~=header]")
+    if (header) header.title = section.dataset.tip
+  }
 }
 
 /**
