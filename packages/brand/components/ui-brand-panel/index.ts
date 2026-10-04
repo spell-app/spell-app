@@ -7,4 +7,3 @@ import { PANEL_TAG } from "./ui-brand-panel.types"
 UIBrandPanel.define(PANEL_TAG)
 
 export { UIBrandPanel }
-export * from "./ui-brand-panel.types"

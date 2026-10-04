@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Epic: Design System</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Color Elements</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p5">next: P5 · Tool Pages</ui-label></span
             >
           </header></ui-sticky
         >
@@ -83,7 +83,7 @@
               </blockquote></ui-content
             >
           </ui-accordion>
-          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 27h-36h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 22h-29h left</p>
           <ui-section id="o1" header="1.1 What Claude Design made" sticky collapsible dividing>
             <p>
               <a href="../../../brand/spell-design-system/" target="src-packages-brand-spell-design-system"
@@ -531,7 +531,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -750,6 +750,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p3"
             data-phase="3"
             data-status="done"
@@ -830,14 +831,14 @@
           <ui-section
             id="p4"
             data-phase="4"
-            data-status="todo"
+            data-status="done"
             header="P4 · Color Elements"
             badge="5-7h"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -854,12 +855,65 @@
                   </li>
                   <li>the brand's color math (<code>lib/palette.mjs</code>) in TypeScript</li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    where to see it: the Brand index, "1. Components": four new pages, <b>Brand Color</b>,
+                    <b>Color Set</b>, <b>Color Range</b>, <b>Color Picker</b>, each in Spell UI's docs format with live
+                    examples, API and a token playground
+                  </li>
+                  <li>
+                    <code>Palette</code> (<a
+                      href="../../../brand/src/Palette.ts"
+                      target="src-packages-brand-src-palette-ts"
+                      ><code>packages/brand/src/Palette.ts</code></a
+                    >): the brand's colour math in TypeScript (OKLCH, contrast, 17-step ladders, parsing what people
+                    type); rebuilds <code>lib/palette.json</code>'s 20 sets exactly
+                  </li>
+                  <li>
+                    <code>&lt;ui-brand-color&gt;</code>: a square chip; <code>label</code> (hex, OKLCH, name, step),
+                    <code>contrast</code> (AA), <code>copy</code> (hex, OKLCH, token, css) with a check and an
+                    announcement, <code>selected</code> ring, <code>details</code> tip
+                  </li>
+                  <li>
+                    <code>&lt;ui-brand-color-set&gt;</code>: chips laid out (<code>columns</code>), and
+                    <code>selectable</code>: a radio group, arrows, Home / End, <code>ui-change</code>
+                  </li>
+                  <li>
+                    <code>&lt;ui-brand-color-range&gt;</code>: 17 chips from one colour (<code>anchor</code>,
+                    <code>vibrancy</code>, <code>hue-shift</code>, <code>name</code>), the anchor ringed;
+                    <code>strip</code> (the folded dot row); <code>scale</code>, <code>anchorStep</code>,
+                    <code>css()</code>
+                  </li>
+                  <li>
+                    <code>&lt;ui-brand-color-picker&gt;</code>: the L × C canvas (out-of-gamut hatched), a rainbow hue
+                    slider, hex / RGB and OKLCH inputs; keyboard on the plane (two hidden sliders); form-associated;
+                    <code>header</code> / <code>actions</code> slots to make the original popover
+                  </li>
+                  <li>
+                    built by two agents in parallel, integrated here: 64 brand tests pass; every page loads with no
+                    errors; 13 judgement calls to review (J7-J13 this phase)
+                  </li>
+                  <li>
+                    rough: the picker's family chips on its docs page are plain buttons (could become a
+                    <code>&lt;ui-brand-color-set&gt;</code>, <a href="#c5">C5</a>)
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> <code>packages/brand/src/palette.ts</code> (+ test against
-                <code>lib/palette.json</code>); <code>packages/brand/components/ui-brand-color*/*</code></ui-item
+                ><b>Files:</b>
+                <a href="../../../brand/src/palette.ts" target="src-packages-brand-src-palette-ts"
+                  ><code>packages/brand/src/palette.ts</code></a
+                >
+                (+ test against <code>lib/palette.json</code>);
+                <code>packages/brand/components/ui-brand-color*/*</code></ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> the TypeScript palette reproduces <code>palette.json</code> exactly; element tests; the
                 specimen page</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j7">J7</a>, <a href="#j8">J8</a>, <a href="#j9">J9</a> (picker);
+                <a href="#j10">J10</a>, <a href="#j11">J11</a>, <a href="#j12">J12</a>, <a href="#j13">J13</a> (chip,
+                set, range)</ui-item
               ></ui-list
             >
           </ui-section>
@@ -1723,6 +1777,40 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d14" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d14">D14</a>
+                  <span class="plan-title"
+                    >The colour picker is an HSL square, with HSL / RGB / OKLCH rows that each copy</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, after P4 (2026-10-04): "change to HSL color picker, that triangle just looks weird. Have rows
+                    for HSL, RGB, OKLCH, with copy button in the row for each".
+                  </p>
+                  <ul>
+                    <li>
+                      The plane: the standard HSL square for the hue (saturation across, lightness up), drawn with CSS
+                      gradients; every point is displayable, so the out-of-gamut hatch is gone (judgements J7-J9 closed;
+                      J14, J15 the new choices).
+                    </li>
+                    <li>
+                      Rows: HSL (H°, S%, L%), RGB (the hex box, which still reads <code>142 150 181</code> and
+                      <code>hsl()</code>), OKLCH (L%, C, H); each with a copy button (<code>ui-copy</code>
+                      <code>{ value, format }</code>).
+                    </li>
+                    <li>
+                      <code>Palette</code> gained HSL: <code>rgbToHsl</code>, <code>hslToRgb</code>,
+                      <code>hexToHsl</code>, <code>hslToHex</code>, <code>format(hex, "hsl")</code>.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the Color Set Chooser copy (P5) uses this picker, not the original's L × C plane</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1923,6 +2011,356 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j7" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j7">J7</a>
+                  <span class="plan-title"
+                    >Color picker: the plane is two hidden native range inputs (Lightness, Colourfulness), one tab
+                    stop</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-brand-color-picker&gt;</code>'s Lightness × Colourfulness plane needs a keyboard and a
+                    screen-reader story. Chose two visually hidden native <code>&lt;input type=range&gt;</code>s inside
+                    the plane ("Lightness", spoken as a percentage; "Colourfulness"), both
+                    <code>aria-roledescription="2D slider"</code>, over one <code>role=slider</code> div, because ARIA
+                    has no 2D slider: a <code>role=slider</code> carries ONE <code>aria-valuenow</code>, so one axis
+                    would be invisible to assistive tech. Two real sliders each read and step on their own (an assistive
+                    technology's increment arrives as their <code>input</code> event), which is the approach React
+                    Aria's ColorArea takes.
+                  </p>
+                  <p>
+                    Only Lightness is a tab stop (Colourfulness is <code>tabindex=-1</code>, still reachable by a screen
+                    reader's browse mode); on either, Up / Down move L, Left / Right move C, Shift 10x, PageUp /
+                    PageDown L by 10%, Home grey, End the most colourful that fits. The focus ring is drawn on the
+                    marker (<code>.plane:has(&gt; .axis:focus-visible) &gt; .marker</code>).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a keyboard user tabs once into the plane and moves in 2D with the arrows</li>
+                    <li>a screen reader hears two named sliders with readable values, not one opaque widget</li>
+                    <li>
+                      each key is <code>ui-input</code> then <code>ui-change</code>, as <code>&lt;ui-slider&gt;</code>'s
+                      keys are
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j8" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j8">J8</a>
+                  <span class="plan-title"
+                    >Color picker: edits an OKLCH colour apart from value; out-of-gamut pixels transparent over a CSS
+                    hatch</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-brand-color-picker&gt;</code> keeps the colour being edited as OKLCH
+                    (<code>working</code>), apart from <code>value</code> (<code>#RRGGBB</code>), as the original keeps
+                    its <code>okEdit</code>. Why: a grey has no hue, so setting or typing one would otherwise make the
+                    plane jump to hue 0 (red); and a drag into the hatched (out-of-sRGB) area should follow the pointer.
+                    <code>value</code> is always <code>Palette.oklchToHex(working)</code>, gamut-mapped (same L and H,
+                    less C); on commit (release, Enter, a key) the marker snaps to that chroma.
+                  </p>
+                  <p>
+                    The plane's out-of-gamut pixels are left TRANSPARENT and the hatch is the plane's own CSS background
+                    (<code>repeating-linear-gradient</code> from <code>--ui-brand-color-picker-hatch-color</code> /
+                    <code>-hatch-background</code>, defaults <code>--spell-border-subtle</code> over
+                    <code>--spell-surface-tint</code>), instead of the original's hatch drawn into the canvas in fixed
+                    greys (236 / 246). Why: it follows the theme (dark mode), stays crisp at any pixel ratio, and costs
+                    the canvas nothing. The canvas is drawn at device pixel ratio, capped at 96k pixels (measured ~4-6
+                    ms per draw for 48k), and redrawn only when the whole-degree hue or the size changes, never per L /
+                    C move (pinned by a test).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      picking a grey keeps the hue the plane shows; End on the plane brings the colour back at that hue
+                    </li>
+                    <li>the hatch looks right in light and dark; its colours are tokens</li>
+                    <li>dragging stays cheap: no redraw while L / C change</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j9" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j9">J9</a>
+                  <span class="plan-title"
+                    >Color picker: header / actions slots in the head row; thumbs without a white ring; inputs
+                    inside</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The original's popover has a title ("Choose a colour") and a close button in its head row, and its
+                    RGB / OKLCH rows sit OUTSIDE the popover, beside the 76px swatch.
+                    <code>&lt;ui-brand-color-picker&gt;</code> is the INLINE picker (the lead's brief): the head row is
+                    the chip and the hex, plus two slots so a page can rebuild the original exactly:
+                    <code>slot="header"</code> above the hex (styled as the original's bold serif 15px title) and
+                    <code>slot="actions"</code> at the far end (a close button). The RGB and OKLCH rows are inside,
+                    after the hue slider, 8px apart; the OKLCH fields are three boxes as the original's (L with a
+                    <code>%</code> suffix), not one joined box. The default slot comes last (the original's "Or start
+                    from a family" chips).
+                  </p>
+                  <p>
+                    The plane's marker and the hue thumb are filled with the current colour and set off by a hairline, a
+                    soft drop shadow and a soft light GLOW (blurred, not a crisp ring), not the original's 2px white
+                    ring: the brand's readme ("Controls") says a custom thumb is set off by a soft shadow, never a white
+                    ring; the glow keeps the marker visible on dark colours, where a dark shadow alone disappears. The
+                    hue track's rainbow uses the colour's L clamped to 45-85% and C at least 0.1 (the original: L as is,
+                    C at least 0.06), so it stays readable for dark and grey colours.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      a page puts the picker in a <code>&lt;ui-popup&gt;</code> with a title and close button and gets
+                      the original popover (the docs page's "In a popup" example)
+                    </li>
+                    <li>no white rings anywhere; thumbs read on light and dark colours</li>
+                    <li>no copy buttons: the original's RGB / OKLCH labels copy the value; left to pages (caveat)</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j10">J10</a>
+                  <span class="plan-title"
+                    >Colour chips: in a selectable set, the chip's HOST is the radio</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    In a <code>selectable</code> <code>&lt;ui-brand-color-set&gt;</code>, each
+                    <code>&lt;ui-brand-color&gt;</code> host becomes the radio: the set writes
+                    <code>BrandColorHost.choice</code> (a Cell on the host), and the chip sets its own
+                    <code>internals.role</code> = <code>radio</code>, <code>ariaChecked</code> from
+                    <code>selected</code>, and <code>ariaLabel</code> (name + colour). The set owns the roving
+                    <code>tabindex</code> on the hosts and is itself the <code>radiogroup</code> (internals), so its own
+                    <code>aria-label</code> names it. A chip that is a choice draws a plain <code>&lt;span&gt;</code>:
+                    no <code>&lt;button&gt;</code>, and <code>copy</code> is ignored.
+                  </p>
+                  <p>
+                    Chose this over the set wrapping each slotted chip in its own <code>role=radio</code> box in its
+                    shadow root (manual slot assignment, as <code>&lt;ui-accordion&gt;</code>): far less machinery, and
+                    the chips stay the light-DOM children people style.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>No nested interactive content: a copy button can't sit inside a radio.</li>
+                    <li>
+                      axe-core can't see ARIA set through <code>ElementInternals</code>, so the tests check
+                      <code>internals.role</code> / <code>ariaChecked</code> directly.
+                    </li>
+                    <li>A chip that leaves a set gets its <code>choice</code> and <code>tabindex</code> back.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j11">J11</a>
+                  <span class="plan-title">Colour chips: what copy copies, and bare copy</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-brand-color copy&gt;</code> is a <code>keyOrValueAndKey</code> attribute: bare
+                    <code>copy</code> copies the hex (<code>#8E96B5</code>), the Color Palette page's default;
+                    <code>oklch</code> copies <code>oklch(67.7% 0.047 274)</code> (<code>Palette.format</code>);
+                    <code>token</code> copies <code>var(--brand-500)</code>; <code>css</code>, which the brief left
+                    open, copies a custom-property DECLARATION, <code>--brand-500: #8E96B5;</code>, one line of the
+                    Chooser's CSS panel. <code>token</code> and <code>css</code> without a <code>name</code> fall back
+                    to the hex.
+                  </p>
+                  <p>
+                    The copy writes <code>navigator.clipboard</code>, then dispatches <code>ui-copy</code>
+                    <code>{ value, originalEvent }</code>, shows a check in the chip for 1.4s
+                    (<code>:state(copied)</code>) and announces "Copied …" in a status line. A refused write (no
+                    permission) does nothing. The Color Palette page's page-wide toast isn't reproduced: that's the
+                    page's, not the chip's.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li><code>copy="css"</code> pastes straight into a stylesheet.</li>
+                    <li>
+                      No toast: a page that wants one listens for <code>ui-copy</code> (e.g. <code>UI.toasts</code>).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j12">J12</a>
+                  <span class="plan-title"
+                    >Colour chips fill a cell through a private owner switch, not the public size token</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A <code>&lt;ui-brand-color-set columns&gt;</code> grid and
+                    <code>&lt;ui-brand-color-range&gt;</code> make their chips fill their cells by setting the PRIVATE
+                    <code>--_ui-brand-color-fit: 100%</code> on each chip host; the chip reads
+                    <code>--_ui-brand-color-size: var(--ui-brand-color-size, var(--_ui-brand-color-fit, 3em))</code>.
+                    Setting the public <code>--ui-brand-color-size</code> from another family's sheet would break the
+                    rule that a sheet never declares a public component token (<a
+                      href="../../../ui/docs/theming.md"
+                      target="src-packages-ui-docs-theming-md"
+                      ><code>docs/theming.md</code></a
+                    >, "Component tokens").
+                  </p>
+                  <p>
+                    A set WITHOUT <code>columns</code> keeps each chip at its own size in one row ("sized to fit" read
+                    as: shrinking alike when the row is too narrow, tracks <code>minmax(0, max-content)</code> and the
+                    chip's <code>max-width: 100%</code>), so the Chooser's 28px presets stay 28px.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      A page's <code>--ui-brand-color-size</code> still beats the owner's fill (e.g. fixed 28px chips in
+                      a grid).
+                    </li>
+                    <li>
+                      Sizes: <code>size</code> scales the chip's font, so the box, its label and the AA mark scale
+                      together; default 3em (48px).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j13">J13</a>
+                  <span class="plan-title"
+                    >Colour range: added strip; hue-shift in degrees; properties read live</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Three choices on <code>&lt;ui-brand-color-range&gt;</code>:</p>
+                  <ul>
+                    <li>
+                      <code>strip</code> (not in the brief): the Chooser's folded Variants header, 17 10px dots, one
+                      image named for the ladder. Small, and the Chooser needs it.
+                    </li>
+                    <li>
+                      <code>hue-shift</code> is passed straight to <code>Palette.generateScale()</code> as degrees; the
+                      Chooser's "Hue drift" slider value is times 2.5 of that (its code:
+                      <code>hueShift: s.drift * 2.5</code>), so a page wiring that slider multiplies.
+                    </li>
+                    <li>
+                      <code>scale</code>, <code>anchorStep</code> and <code>css()</code> live on the host
+                      (<code>BrandColorRangeHost</code>) and are computed from the host's CURRENT properties through
+                      <code>ColorLadder</code>, not the element's memo, so a read straight after a write is right (Solid
+                      applies writes a microtask late).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li><code>range.value = x; range.css()</code> works without waiting.</li>
+                    <li>
+                      <code>ui-change</code> follows colour changes only: a new <code>name</code> alone renames the
+                      chips and <code>css()</code>, silently.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j14">J14</a>
+                  <span class="plan-title"
+                    >Color picker: an HSL square (saturation across, lightness up), not an HSV / HSB square; drawn by
+                    CSS</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen (2026-10-04) on the first <code>&lt;ui-brand-color-picker&gt;</code>: "that triangle just looks
+                    weird" -- its OKLCH Lightness × Colourfulness plane only shows the triangle of each hue that a
+                    screen can show. He asked for an HSL picker, so the plane is now the HSL square for the current hue:
+                    saturation 0 -&gt; 100% across, lightness 100% (top) -&gt; 0% (bottom). Every point is a real sRGB
+                    colour: no hatch, no gamut mapping on the square.
+                  </p>
+                  <p>
+                    The alternative is the HSV / HSB square most design tools use (Figma, Photoshop, macOS): saturation
+                    across, brightness up, so the top-right corner is the PURE hue and the top edge runs white -&gt;
+                    hue; in HSL the pure hue sits in the MIDDLE of the right edge (L 50%) and the top edge is all white.
+                    HSV makes vivid colours easier to hit; HSL matches the HSL row's numbers and CSS's
+                    <code>hsl()</code> one to one. Switching later is the square's two gradients, the pointer / key
+                    mapping and the conversions (<code>Palette</code> would need <code>hsv</code>).
+                  </p>
+                  <p>
+                    The square is CSS, not a canvas: HSL is linear in (gamma-encoded) sRGB along both axes, so a grey
+                    -&gt; pure-hue gradient (the L 50% row) under white / black fading over the top / bottom halves is
+                    EXACT, all <code>in srgb</code>. Measured against <code>Palette.hslToRgb()</code> at six points:
+                    within 1-2 / 255 per channel (8-bit rounding). A hue change only repaints; nothing is computed per
+                    pixel. The hue slider's rainbow is static CSS too (HSL is linear per 60°).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>no triangle: a full square of real colours for every hue</li>
+                    <li>
+                      HSL row numbers and the square agree; a vivid colour is at the right edge's middle, not its top
+                    </li>
+                    <li>no canvas, no redraw cost</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j15">J15</a>
+                  <span class="plan-title"
+                    >Color picker: working colour in HSL; Saturation / Lightness hidden sliders; HSL, RGB, OKLCH rows
+                    with copy buttons</span
+                  ></ui-title
+                ><ui-content
+                  ><p>Carries over J7 / J9 (closed) to the HSL picker, with what the rows added:</p>
+                  <ul>
+                    <li>
+                      The colour being edited is HSL (<code>working</code>), apart from
+                      <code>value</code> (<code>#RRGGBB</code>): a grey keeps its hue, and black or white keep hue AND
+                      saturation, so the square and the hue slider don't jump as the colour passes through them.
+                      <code>Palette</code> gained <code>rgbToHsl</code>, <code>hslToRgb</code>, <code>hexToHsl</code>,
+                      <code>hslToHex</code>, <code>formatHsl</code>, <code>format(hex, "hsl")</code>, and
+                      <code>parse()</code> reads <code>hsl(...)</code>; every 8-bit colour on a grid round-trips
+                      (tested).
+                    </li>
+                    <li>
+                      The square's keyboard / screen-reader story is J7's: two visually hidden native ranges, now
+                      "Saturation" (the one tab stop) and "Lightness", <code>aria-roledescription="2D slider"</code>;
+                      arrows 1%, Shift 10%, Home / End saturation 0 / 100%.
+                    </li>
+                    <li>
+                      Rows: a mono label, the inputs JOINED in one box (hairlines between; units <code>°</code> /
+                      <code>%</code> inside), and a copy button. HSL: H°, S%, L%. RGB: the hex field (anything
+                      <code>Palette.parse()</code> reads). OKLCH: L%, C, H; a colour a screen can't show is gamut-mapped
+                      (<code>Palette.oklchToHex()</code>).
+                    </li>
+                    <li>
+                      Copy buttons are native <code>&lt;button&gt;</code>s drawn as circular basic icon buttons by the
+                      sheet (a hairline ring, no fill), not <code>&lt;ui-button&gt;</code>s: the element's shadow root
+                      would depend on the <code>ui-button</code> family being defined, and component files import only
+                      <code>$/ui/core</code>. Icon <code>copy outline</code> (the original's
+                      <code>fa-regular fa-copy</code>), a check in the success colour for 1.4 s (as
+                      <code>&lt;ui-brand-color&gt;</code>), "Copied ..." announced, <code>:state(copied)</code>, and
+                      <code>ui-copy</code> <code>{ value, format, originalEvent }</code> with <code>format</code>
+                      <code>hsl</code> / <code>hex</code> / <code>oklch</code> (<code>hex</code>, not <code>rgb</code>:
+                      <code>&lt;ui-brand-color&gt;</code>'s word for the same text).
+                    </li>
+                    <li>
+                      HSL copies the row AS SHOWN (<code>formatHsl(working)</code>: a grey copies with the hue it
+                      shows); whole degrees and percentages, so it may land one step off <code>value</code> in 8-bit.
+                    </li>
+                    <li>
+                      Head-row <code>header</code> / <code>actions</code> slots and thumbs without a white ring: as J9.
+                      The "hatched area" hint line is gone.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>three formats to type in and copy, in the brand's look</li>
+                    <li>a grey, black or white never loses the hue / saturation the picker shows</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1995,6 +2433,118 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title"
+                    >Color picker: value as set stays as set on the host; only edits write #RRGGBB</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-brand-color-picker value="#abc"&gt;</code> (or <code>oklch(...)</code>,
+                    <code>142 150 181</code>) READS as <code>#AABBCC</code>: the readout, the fields, the form value and
+                    every event's <code>detail.value</code> are upper-case <code>#RRGGBB</code>. But the host's
+                    <code>value</code> property and attribute keep the text as it was set, until the user edits the
+                    colour (then they're the <code>#RRGGBB</code> the edit made). Rewriting the host on our own would be
+                    an event-less write the page didn't ask for, and would fight a framework that controls
+                    <code>value</code>. Read the colour from <code>ui-change</code>, or the form, when it must be
+                    normalised.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c5" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c5">C5</a>
+                  <span class="plan-title"
+                    >Color picker: no copy buttons; the docs page's family chips are wired by a page script</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The original's RGB / OKLCH row labels copy the value (and a copy icon at the row's end);
+                    <code>&lt;ui-brand-color-picker&gt;</code> has none: a page can put a copy button in
+                    <code>slot="actions"</code>, or we add one when the Color Set Chooser copy needs it. The docs page
+                    (<code>components/ui-brand-color-picker.html</code>) shows "Or start from a family" chips as plain
+                    <code>&lt;button data-pick&gt;</code>s in the default slot; a small page script sets the picker's
+                    <code>value</code> from them (no <code>ui-input</code> / <code>ui-change</code>: an outside set) and
+                    closes the popup from its close button. When <code>&lt;ui-brand-color-set&gt;</code> lands, the page
+                    could use it instead. The page needs the family in <code>components/index.ts</code>,
+                    <code>yarn site:data</code> and <code>yarn build</code> before its API / Theming tabs and examples
+                    render.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title"
+                    >Colour chip's details tip is read-only: no copy buttons in it</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The Color Set Chooser's hover popover has a copy button per row (RGB, OKLCH).
+                    <code>&lt;ui-brand-color details&gt;</code>'s tip is a CSS tooltip (anchor-positioned, flipping at
+                    the window's edges) with the same facts (name, hex, OKLCH, contrast on white and ink, the "good for"
+                    note) but no buttons: a tip that vanishes when the pointer leaves the chip can't hold controls, and
+                    buttons inside a copy <code>&lt;button&gt;</code> chip would be nested interactive content. Copying
+                    is the chip's own click, in the format <code>copy</code> picks.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title"
+                    >Colour range: ui-change follows attribute changes, and auto anchors House of Owen at 400</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      <code>&lt;ui-brand-color-range&gt;</code> dispatches <code>ui-change</code> when its INPUTS change
+                      the ladder (as briefed), i.e. on attribute / property writes, not on a user action as every other
+                      <code>ui-change</code> in Spell UI.
+                    </li>
+                    <li>
+                      <code>anchor="auto"</code> puts House of Owen (#8E96B5, L 0.677) on 400, not 500: 400's target
+                      lightness (0.72) is nearer than 500's (0.63). The brand's own set pins it at 500
+                      (<code>buildPalette()</code>), so the docs examples say <code>anchor="500"</code>.
+                    </li>
+                    <li>
+                      Chip labels clip on narrow chips (<code>label="oklch"</code> on a 48px chip, any label across a
+                      17-step range in a narrow column), as the Color Palette page's do at small widths.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c8">C8</a>
+                  <span class="plan-title"
+                    >Color picker: docs chips wired by a page script; it makes itself grow in &lt;ui-brand-field&gt;'s
+                    control row</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    (Carries over C5's still-true part.) The docs page's "Or start from a family" chips are plain
+                    <code>&lt;button data-pick&gt;</code>s; a page script sets the picker's <code>value</code> from them
+                    (an outside set: no events), closes the popup example from its close button, and writes
+                    <code>ui-copy</code> into the "Copy any format" example's log line.
+                    <code>&lt;ui-brand-color-set&gt;</code> could replace the chips.
+                  </p>
+                  <p>
+                    <code>&lt;ui-brand-field&gt;</code>'s control box is a flex row that grows only the controls its
+                    sheet lists (<code>ui-input</code>, <code>ui-slider</code> ...); the picker isn't listed, so it
+                    shrank to its content there. The picker's own <code>:host</code> now says
+                    <code>flex: 1 1 auto</code> (harmless outside a flex row). Adding
+                    <code>ui-brand-color-picker</code> to <code>ui-brand-field.css</code>'s list would be the tidier
+                    fix.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2041,6 +2591,58 @@
                     >, renamed without <code>brand-</code>, with tests and docs pages. Also decide whether
                     <code>spell-brand</code> replaces <code>spell</code>.
                   </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title"
+                    >Merging main in after vite-plus lands: move packages/brand onto Vite+</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    From Owen's main session (2026-10-04): branch <code>vite-plus</code> is merging into
+                    <code>main</code>. When this branch next merges <code>main</code> in (at the latest in Doc Review,
+                    <a href="#p10">P10</a>):
+                  </p>
+                  <ul>
+                    <li>
+                      root
+                      <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a> and
+                      <a href="../../../../yarn.lock" target="src-yarn-lock"><code>yarn.lock</code></a> conflict: take
+                      main's toolchain entries, re-add ours (the
+                      <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> workspace,
+                      <code>pageServer.watch</code>), then <code>yarn install</code>
+                    </li>
+                    <li>
+                      <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
+                      >: the <code>vite-plus</code> dependency (<code>catalog:</code>) instead of vite / vitest / oxfmt;
+                      <code>fmt</code> / <code>lint</code> blocks in its
+                      <a href="../../../ui/vite.config.ts" target="src-packages-ui-vite-config-ts"
+                        ><code>vite.config.ts</code></a
+                      >
+                      from the root's <code>vite.lint.ts</code>; test imports <code>vitest</code> -&gt;
+                      <code>vite-plus/test</code>, <code>@vitest/browser-playwright</code> -&gt;
+                      <code>vite-plus/test/browser-playwright</code>; its <code>format</code> script
+                      <code>oxfmt</code> -&gt; <code>vp fmt</code>; drop its own <code>oxfmt</code> ^0.71. Copy how
+                      <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> looks on main.
+                    </li>
+                    <li>
+                      also overlapping: root
+                      <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                      >,
+                      <a
+                        href="../../../ui/src/components/ui-checkbox/ui-checkbox.css.test.ts"
+                        target="src-packages-ui-src-components-ui-checkbox-ui-checkbox-css-test-ts"
+                        ><code>packages/ui/src/components/ui-checkbox/ui-checkbox.css.test.ts</code></a
+                      >
+                    </li>
+                    <li>
+                      read <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                      >'s new Toolchain section after merging
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -2219,6 +2821,21 @@
                     teal; each band, box and border in its hue, the Tweak sub-head band following. Dark mode: the same
                     hues on aubergine. In DevTools, change one panel's <code>color</code> to <code>red</code>: it
                     repaints.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v9">V9</a>
+                  <span class="plan-title">Try the four colour elements' pages</span> </ui-title
+                ><ui-content
+                  ><p>
+                    From the Brand index, "1. Components": Brand Color (click a chip with <code>copy</code>: a check,
+                    then paste: the hex; hover a <code>details</code> chip: its tip), Brand Color Set (click and arrow
+                    through the presets; the ring follows), Brand Color Range (the ladders; the anchor ringed; AA
+                    marks), Brand Color Picker (drag the plane, slide the hue, type <code>142 150 181</code> and an
+                    OKLCH value; Tab to the plane and use the arrows; the popup example). Light and dark.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2449,6 +3066,65 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T16:56-04:00">2026-10-04 16:56</time></ui-date> J6 closed: An
                   uncoloured panel stays ivory; `color="accent"` names that look</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:58-04:00">2026-10-04 16:58</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:01-04:00">2026-10-04 17:01</time></ui-date> P4: Palette
+                  (src/Palette.ts) reproduces lib/palette.json exactly; two agents building ui-brand-color / -set /
+                  -range and ui-brand-color-picker</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:26-04:00">2026-10-04 17:26</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:38-04:00">2026-10-04 17:38</time></ui-date> J7 closed: Color
+                  picker: the plane is two hidden native range inputs (Lightness, Colourfulness), one tab
+                  stop</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:38-04:00">2026-10-04 17:38</time></ui-date> J8 closed: Color
+                  picker: edits an OKLCH colour apart from value; out-of-gamut pixels transparent over a CSS
+                  hatch</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:39-04:00">2026-10-04 17:39</time></ui-date> J9 closed: Color
+                  picker: header / actions slots in the head row; thumbs without a white ring; inputs inside</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:39-04:00">2026-10-04 17:39</time></ui-date> C5 closed: Color
+                  picker: no copy buttons; the docs page's family chips are wired by a page script</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:40-04:00">2026-10-04 17:40</time></ui-date> Picker reworked to
+                  HSL (D14); ui-brand-field grows a slotted picker; 66 brand tests pass</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

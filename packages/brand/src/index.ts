@@ -1,7 +1,10 @@
 /**
  * `$/brand` barrel:  the brand package's shared code.
- * - NOTE:  the elements are `$/brand/components` (their own barrel, outside `src/`);  the bundle's entry,
- *   `brand-ui.ts`, is not exported (it runs the page).
- * - Empty until P4 adds `palette.ts` (the brand's colour math).
+ * - `Palette`:  the brand's colour math (OKLCH, contrast, 17-step ladders), from Claude Design's `lib/palette.mjs`.
+ * - NOTE:  the elements are `$/brand/components` (their own barrel, outside `src/`);  the bundles' entries
+ *   (`brand-ui.ts`, `brand-docs.ts`) and `hues.ts` are not exported (they run the page).
  */
-export {}
+export * from "./brand.types"
+export * from "./Palette"
+
+export * as B from "."
