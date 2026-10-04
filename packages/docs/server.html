@@ -858,11 +858,15 @@
               </li>
             </ul>
             <ui-accordion class="spell-code" styled open="0">
-              <ui-title>The root package.json's pageServer field · 6 lines</ui-title>
+              <ui-title>The root package.json's pageServer field · 10 lines</ui-title>
               <ui-content>
                 <pre><code class="language-json">{
   "pageServer": {
-    "routes": ["goals/_tools/goalsRoutes.ts", "packages/app/src/server/appRoutes.ts"],
+    "routes": [
+      "goals/_tools/goalsRoutes.ts",
+      "packages/docs/scripts/detailsRoutes.ts",
+      "packages/app/src/server/appRoutes.ts"
+    ],
     "watch": ["packages/docs"]
   }
 }</code></pre>
@@ -878,6 +882,23 @@
                 >
                 -- <code>/api/goals/*</code>, the goals folder watched, and <code>window.GOALS_SERVER</code> on goals
                 pages. It was <code>server.js</code>, the goals server.
+              </li>
+              <li>
+                <a href="scripts/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
+                  ><code>packages/docs/scripts/detailsRoutes.ts</code></a
+                >
+                -- <code>/api/details/answer</code>: a details page's answer, written beside it (<a
+                  href="details.html"
+                  target="src-packages-docs-details-html"
+                  >Details Pages</a
+                >).
+              </li>
+              <li>
+                ORDER matters: the app's <code>/api</code> router ends in a catch-all 404, so a module adding
+                <code>/api/...</code> routes MUST be listed before
+                <a href="../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                  ><code>appRoutes.ts</code></a
+                >.
               </li>
               <li>
                 <a href="../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
