@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
-  <body class="spell-doc-page plan-doc" data-plan="review-review">
+  <body data-recent-since="2026-10-04T12:05:23-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Review Review</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3"
-                >next: P3 · Status And Commits</ui-label
+              ><ui-label basic color="grey" icon="circle right" href="#p4" title="Next:  P4 · Rename And Migrate"
+                >P4</ui-label
               ></span
             >
           </header></ui-sticky
@@ -189,7 +189,7 @@
               </blockquote></ui-content
             ></ui-accordion
           >
-          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 16h-23h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 13h-19h left</p>
           <ui-section id="o1" header="1.1 The new review loop" sticky collapsible dividing>
             <p>What a review looks like once this epic is done, step by step:</p>
             <ol>
@@ -385,7 +385,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -453,6 +453,28 @@
                     the copy line).
                   </li>
                 </ul></ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="cd6a9d768ce7cb1446a6dbfa3aaadd7d927c3392">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/cd6a9d768ce7cb1446a6dbfa3aaadd7d927c3392"
+                      target="github"
+                      >cd6a9d7</a
+                    >
+                    Spell Docs + Review tabs, in-place page updates, chevrons right, rail redesign, Epic: titles
+                  </li>
+                  <li data-sha="d42c62e0f80b54d12955b2a9136204d2d66028ec">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/d42c62e0f80b54d12955b2a9136204d2d66028ec"
+                      target="github"
+                      >d42c62e</a
+                    >
+                    ivory rail with orange attention bars, no fold bounce, section intros as title tooltips
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
                 <a href="../../../vscode/" target="src-packages-vscode"><code>packages/vscode/</code></a> (<a
@@ -512,6 +534,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             badge="1-2h"
             id="p2"
             data-phase="2"
@@ -574,6 +597,19 @@
                   </li>
                   <li>Not done here: commits per phase (P3), and rewriting old docs' text (P4, P8).</li>
                 </ul></ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="2c71ac578248c57a9f434025a2a59c170ef81186">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/2c71ac578248c57a9f434025a2a59c170ef81186"
+                      target="github"
+                      >2c71ac5</a
+                    >
+                    plan docs written for a cold reader, estimate badges, Done lists, Files / Verify toggles
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
                 <a href="../../templates/epics/plan-doc.md" target="src-packages-docs-templates-epics-plan-doc-md"
@@ -597,13 +633,13 @@
             badge="3-4h"
             id="p3"
             data-phase="3"
-            data-status="todo"
+            data-status="done"
             header="P3 · Status And Commits"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -632,6 +668,42 @@
                     calls the gavel.
                   </li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    Where to see it: every item's id badge is colored by where it stands: red needs you, blue open but
+                    not urgent, orange in progress, green changed in this or the last commit (or overnight), grey older.
+                    Done items are no longer struck through; the color says it (J16).
+                  </li>
+                  <li>
+                    Each section's title has one round filter button instead of "Open | All": it steps through all and
+                    each color the section has, and remembers your choice per doc.
+                  </li>
+                  <li>
+                    Each phase ends with a "To review" line of colored chips: the items it raised that you haven't
+                    reviewed (P3's lists J12-J15, the calls the agents made).
+                  </li>
+                  <li>
+                    Commits: each phase lists the commits that landed it (short hash links to GitHub, a sentence each),
+                    filled in from git (<code>yarn plan-doc commits &lt;name&gt; --backfill</code>); hidden until the
+                    git button in the page header shows them. Commits naming an item (<code>Fix I3:</code>) show on that
+                    item.
+                  </li>
+                  <li>
+                    Questions and decisions are one list now ("3. Questions"): answering Q3 writes the answer into Q3,
+                    no new D item. Old docs, this one included, still show their D items until P4 migrates them.
+                  </li>
+                  <li>
+                    Icons: Questions has the file-with-question-mark, judgement calls the gavel. Item titles lay out in
+                    columns, so the title never wraps under its badges.
+                  </li>
+                  <li>
+                    The phases' progress label is readable again (I1): the text sits beside the fill. Look at it, then I
+                    close I1.
+                  </li>
+                  <li>Not tried by hand in VS Code yet: V7 (all of this in the side bar).</li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
                 <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
@@ -646,6 +718,10 @@
                 <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
                   ><code>check-spell.js</code></a
                 >; commits filled in on one old doc look right</ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#j12">J12</a>, <a href="#j13">J13</a>, <a href="#j14">J14</a>,
+                <a href="#j15">J15</a>, <a href="#j16">J16</a>, <a href="#j17">J17</a>, <a href="#j18">J18</a>,
+                <a href="#v7">V7</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -929,17 +1005,17 @@
         >
 
         <ui-section
-          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, don't re-argue without new facts. An answered question sits just above its decision."
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts."
           id="decisions"
-          header="3. Questions & Decisions"
+          header="3. Questions"
           sticky
           collapsible
           dividing
         >
-          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
 
           <ui-list class="plan-items" data-kind="decision" divided relaxed
-            ><ui-item id="q1" data-status="done"
+            ><ui-item data-state="old" id="q1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q1">Q1</a>
@@ -961,7 +1037,7 @@
                     </li>
                   </ul>
                   <ui-grid class="spell-pros-cons" columns="2" stackable
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">A · An inbox file beside the plan doc (recommended)</ui-label>
                         <ul>
@@ -992,7 +1068,7 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d1" data-status="decided"
+            ><ui-item data-state="old" id="d1" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d1">D1</a>
@@ -1009,7 +1085,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="q2" data-status="done"
+            ><ui-item data-state="old" id="q2" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q2">Q2</a>
@@ -1036,7 +1112,7 @@
                           <li>Survives any number of commits in between.</li>
                         </ul></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B · This or the last commit</ui-label>
                         <ul>
@@ -1056,7 +1132,7 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d2" data-status="decided"
+            ><ui-item data-state="old" id="d2" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d2">D2</a>
@@ -1078,7 +1154,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="q3" data-status="done"
+            ><ui-item data-state="old" id="q3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q3">Q3</a>
@@ -1104,7 +1180,7 @@
                           <li>Your name for it. If the built-in wins, fall back to B.</li>
                         </ul></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B · /epic review</ui-label>
                         <ul>
@@ -1116,7 +1192,7 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d3" data-status="decided"
+            ><ui-item data-state="old" id="d3" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d3">D3</a>
@@ -1130,7 +1206,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="q4" data-status="done"
+            ><ui-item data-state="old" id="q4" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q4">Q4</a>
@@ -1177,7 +1253,7 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d4" data-status="decided"
+            ><ui-item data-state="old" id="d4" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d4">D4</a>
@@ -1195,7 +1271,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="q5" data-status="done"
+            ><ui-item data-state="old" id="q5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q5">Q5</a>
@@ -1216,7 +1292,7 @@
                     </li>
                   </ul>
                   <ui-grid class="spell-pros-cons" columns="2" stackable
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">A · Drop it (recommended)</ui-label>
                         <ul>
@@ -1239,7 +1315,7 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d5" data-status="decided"
+            ><ui-item data-state="old" id="d5" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d5">D5</a>
@@ -1253,7 +1329,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="q6" data-status="done"
+            ><ui-item data-state="old" id="q6" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q6">Q6</a>
@@ -1268,7 +1344,7 @@
                     </li>
                   </ul>
                   <ui-grid class="spell-pros-cons" columns="2" stackable
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">A · Wait for the next /review (recommended)</ui-label>
                         <ul>
@@ -1297,7 +1373,7 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d6" data-status="decided"
+            ><ui-item data-state="old" id="d6" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d6">D6</a>
@@ -1314,7 +1390,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d7" data-status="decided"
+            ><ui-item data-state="old" id="d7" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d7">D7</a>
@@ -1330,7 +1406,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d8" data-status="decided"
+            ><ui-item data-state="old" id="d8" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d8">D8</a>
@@ -1348,12 +1424,12 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d9" data-status="decided"
+            ><ui-item data-state="old" id="d9" data-status="decided"
               ><a class="plan-id" href="#d9">D9</a>
               <span class="plan-title"
                 >Visual changes first (P1-P4), then a checkpoint, then the item actions (P5-P6)</span
               ></ui-item
-            ><ui-item id="d10" data-status="decided"
+            ><ui-item data-state="old" id="d10" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d10">D10</a>
@@ -1373,7 +1449,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d11" data-status="decided"
+            ><ui-item data-state="old" id="d11" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d11">D11</a>
@@ -1412,7 +1488,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d12" data-status="decided"
+            ><ui-item data-state="old" id="d12" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d12">D12</a>
@@ -1442,7 +1518,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d13" data-status="decided"
+            ><ui-item data-state="old" id="d13" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d13">D13</a>
@@ -1477,7 +1553,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d14" data-status="decided"
+            ><ui-item data-state="old" id="d14" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d14">D14</a>
@@ -1543,10 +1619,10 @@
           collapsible
           dividing
         >
-          <ui-icon slot="icon" name="compass"></ui-icon>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
 
           <ui-list class="plan-items" data-kind="judgement" divided relaxed
-            ><ui-item id="j1" data-status="open"
+            ><ui-item data-state="attention" id="j1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j1">J1</a>
@@ -1573,7 +1649,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j2" data-status="open"
+            ><ui-item data-state="attention" id="j2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j2">J2</a>
@@ -1597,7 +1673,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j3" data-status="open"
+            ><ui-item data-state="attention" id="j3" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j3">J3</a>
@@ -1630,7 +1706,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j4" data-status="open"
+            ><ui-item data-state="attention" id="j4" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j4">J4</a>
@@ -1657,7 +1733,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j5" data-status="open"
+            ><ui-item data-state="attention" id="j5" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j5">J5</a>
@@ -1681,7 +1757,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j6" data-status="open"
+            ><ui-item data-state="attention" id="j6" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j6">J6</a>
@@ -1715,7 +1791,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j7" data-status="open"
+            ><ui-item data-state="attention" id="j7" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j7">J7</a>
@@ -1743,7 +1819,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j8" data-status="open"
+            ><ui-item data-state="attention" id="j8" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j8">J8</a>
@@ -1772,7 +1848,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j9" data-status="open"
+            ><ui-item data-state="attention" id="j9" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j9">J9</a>
@@ -1793,7 +1869,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j10" data-status="open"
+            ><ui-item data-state="attention" id="j10" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j10">J10</a>
@@ -1813,7 +1889,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j11" data-status="open"
+            ><ui-item data-state="attention" id="j11" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j11">J11</a>
@@ -1839,6 +1915,321 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T13:01:02-04:00"
+              id="j12"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j12">J12</a>
+                  <span class="plan-title"
+                    >Red beats green: an item waiting on you stays red even when it changed overnight or just now</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    When an item could be two colors at once, the page shows the more urgent one. You'd notice it after
+                    a <code>/bedtime</code> run: a judgement call made overnight is red, not green.
+                  </p>
+                  <ul>
+                    <li>
+                      The order, strongest first:
+                      <ol>
+                        <li>closed (struck or answered): green if recent, else grey</li>
+                        <li>work under way (<code>data-queued</code>, <code>data-working</code>): orange</li>
+                        <li>
+                          waiting on you (an open question; an open judgement call or issue you haven't reviewed): red
+                        </li>
+                        <li>reviewed recently, or touched by a <code>/bedtime</code> run: green</li>
+                        <li>everything else open: blue</li>
+                      </ol>
+                    </li>
+                    <li>
+                      Chose this over "bedtime changes are always green" (D2's wording) because red is the one color
+                      that asks you to act: hiding a new overnight judgement call in green would let it slip by.
+                    </li>
+                    <li>
+                      A just-added todo or caveat stays blue (not green): green means decided, reviewed or closed
+                      recently, and adding isn't any of those.
+                    </li>
+                    <li>
+                      A reviewed caveat or todo goes green, then back to blue (not grey) once the review is no longer
+                      recent: it's still open.
+                    </li>
+                    <li>
+                      Closed wins over queued: an issue closed while still on the to-do list is green or grey, not
+                      orange.
+                    </li>
+                  </ul>
+                  <p>
+                    Example: overnight, Claude adds J12 (a call) and T9 (a todo). In the morning J12 is red and T9
+                    green; after <code>/epic review</code> marks J12 reviewed, it turns green.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                        ><code>plan-doc.js</code></a
+                      >
+                      <code>itemState()</code> applies this order; the page only reads <code>data-state</code>
+                    </li>
+                    <li>D2 holds for closed items and quiet ones; open items needing you stay red</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T13:01:23-04:00"
+              id="j13"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j13">J13</a>
+                  <span class="plan-title"
+                    >The To review line lists every open item you haven't reviewed, overnight ones included</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Each phase's "To review" line (last in its body) links the items that phase raised that you still
+                    need to look at. The plan said "red or blue, and not reviewed"; the script lists a bit more.
+                  </p>
+                  <ul>
+                    <li>
+                      Listed: items added while the phase was active (<code>data-phase</code>), still open, not reviewed
+                      (no <code>data-reviewed</code>), and not on the to-do list or being worked on.
+                    </li>
+                    <li>
+                      The difference: a todo or caveat a <code>/bedtime</code> run added is GREEN (D2), yet you haven't
+                      reviewed it. The narrower rule would leave it off the line; this one keeps it.
+                    </li>
+                    <li>Deferred items stay listed: deferring isn't reviewing.</li>
+                    <li>Page order: Questions first, then Judgement calls, Caveats, Todos, Issues, To test.</li>
+                  </ul>
+                  <p>
+                    Example: <code>To review: Q4, J12, C5</code>. Review J12 and it drops off; review all three and the
+                    line goes.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <code>updateToReview()</code> filters on open + not reviewed + not under way, not on the color
+                    </li>
+                    <li>overnight todos and caveats show up in the morning's To review line</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T13:01:25-04:00"
+              id="j14"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j14">J14</a>
+                  <span class="plan-title"
+                    >migrate drops every hand-written Judgement calls line, and keeps what it linked in To review</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Older plan docs end some phases with a hand-written line like <code>Judgement calls: J4 J6</code>.
+                    The new "To review" line replaces it, so <code>migrate</code> removes it.
+                  </p>
+                  <ul>
+                    <li>
+                      Any icon, not just the compass: the <code>commands</code> and <code>details</code> docs have the
+                      same line with a gavel, linking T items (judgement calls were todos there).
+                    </li>
+                    <li>
+                      The items the line linked get that phase (<code>data-phase</code>), unless they already have one:
+                      old items have none, so without this they'd vanish from every To review line.
+                    </li>
+                    <li>
+                      Tried in memory (nothing written) on <code>spell-ui-pages</code> (4 phases get lines, J1-J8),
+                      <code>commands</code> (6 lines removed) and <code>details</code> (2): each
+                      <code>check</code> clean.
+                    </li>
+                  </ul>
+                  <p>
+                    Example (<code>spell-ui-pages</code>, P2): before, <code>Judgement calls: J4 J6</code>; after,
+                    <code>To review: J4, J6</code> while they're open and not reviewed, then nothing.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>P4's migrate run removes these lines from every doc</li>
+                    <li>an accepted (closed) or reviewed call no longer shows under its phase</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T13:01:27-04:00"
+              id="j15"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j15">J15</a>
+                  <span class="plan-title"
+                    >Two small markers beyond the plan: data-answered on answered questions, data-sha on commit
+                    entries</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The script writes two attributes the plan didn't name. Neither shows on the page; they let commands
+                    tell things apart later.
+                  </p>
+                  <ul>
+                    <li>
+                      <code>data-answered</code> on a question that has an answer (<code>decide</code>, or
+                      <code>add ... decision</code>): so <code>reopen</code> after <code>close</code> knows to put it
+                      back as decided, not as a question waiting on you. A born-answered question has no answer block to
+                      look for, so the status alone can't tell.
+                    </li>
+                    <li>
+                      <code>data-sha</code> (the full hash) on each commit entry's <code>&lt;li&gt;</code>: so
+                      <code>commit</code> replaces an entry instead of adding a second, and
+                      <code>commits --backfill</code> skips what's listed, even with no GitHub link to read the hash
+                      from.
+                    </li>
+                    <li>
+                      Also: review labels follow the new colors: "to do" orange (was blue), "reviewed 10-02" green while
+                      recent, then grey; the review picker's state icon takes the item's page color.
+                    </li>
+                  </ul>
+                  <p>
+                    Example:
+                    <code
+                      >&lt;li data-sha="cd6a9d76..."&gt;&lt;a class="plan-commit" ...&gt;cd6a9d7&lt;/a&gt; Spell Docs +
+                      Review tabs ...&lt;/li&gt;</code
+                    >
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the page contract (markup the page styles) is unchanged: these are extra</li>
+                    <li>
+                      re-running <code>commits --backfill</code> adds nothing (tried: <code>0 commits added</code>)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T13:08:05-04:00"
+              id="j16"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j16">J16</a>
+                  <span class="plan-title"
+                    >Done items lose their strike-through: the chip's color says it</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Item id chips are now colored by state (red, blue, orange, green, grey), so the old strike-through
+                    on done items is gone.
+                  </p>
+                  <ul>
+                    <li>
+                      An item decided or reviewed a while ago (grey) gets a soft grey chip, and its title turns muted
+                      grey. A recent one (green) keeps a normal title.
+                    </li>
+                    <li>
+                      The other four states get solid chips in UI colors, so the items still in play stand out from the
+                      history.
+                    </li>
+                    <li>Old docs without <code>data-state</code>: open items are blue, done and decided ones grey.</li>
+                    <li>
+                      Example: <code>D1</code> decided last week reads as a pale grey chip and a grey title, not a
+                      struck-through line.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>no struck-through titles anywhere; history reads quieter instead</li>
+                    <li>
+                      to bring the strike back: one rule in
+                      <a href="../../_assets/plan-doc.css" target="src-packages-docs-assets-plan-doc-css"
+                        ><code>plan-doc.css</code></a
+                      >, "Item states"
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T13:08:26-04:00"
+              id="j17"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j17">J17</a>
+                  <span class="plan-title">Filter button: "all" is outlined grey, "old" solid grey</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The round filter button on each section title is quiet while it shows everything, and solid in the
+                    color of the state it shows.
+                  </p>
+                  <ul>
+                    <li>
+                      The brief suggested the other way round (old outlined). But "all" is the default, on every
+                      section, all the time: a solid grey circle on each title would be the loudest thing there.
+                    </li>
+                    <li>
+                      Steps with no items in that section are skipped, e.g. Judgement calls with only red and blue items
+                      goes all, red, blue, all.
+                    </li>
+                    <li>
+                      The choice is saved under a new key per page, so the old "Open | All" choice (which hid done
+                      items) is dropped: every section starts at all.
+                    </li>
+                    <li>
+                      The commits button in the page header shows only on a doc that has commits; pressed, it is the
+                      accent violet (orange would read as "in progress").
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      a resting filter button is an outlined grey circle; red, orange, blue, green or solid grey means a
+                      filter is on
+                    </li>
+                    <li>docs reopen with every item shown, once</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T13:08:31-04:00"
+              id="j18"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j18">J18</a>
+                  <span class="plan-title">Red chips stay deep red in dark mode</span> </ui-title
+                ><ui-content
+                  ><p>
+                    In dark mode the UI red is a light salmon, almost the same as the dark mode orange, so red and
+                    orange chips side by side were hard to tell apart.
+                  </p>
+                  <ul>
+                    <li>
+                      The "needs attention" chip uses the light-mode red (<code>--ui-red-on-light</code>) with
+                      near-white text in both modes.
+                    </li>
+                    <li>Orange, blue, green and grey use the normal dark-mode tokens.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>in dark mode, red chips are a deep red with white text, clearly not orange</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1846,7 +2237,7 @@
         <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed
-            ><ui-item id="c1" data-status="open"
+            ><ui-item data-state="open" id="c1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c1">C1</a>
@@ -1858,7 +2249,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c2" data-status="open"
+            ><ui-item data-state="open" id="c2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c2">C2</a>
@@ -1872,7 +2263,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c3" data-status="open"
+            ><ui-item data-state="open" id="c3" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c3">C3</a>
@@ -1887,7 +2278,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c4" data-status="open"
+            ><ui-item data-state="open" id="c4" data-status="open"
               ><a class="plan-id" href="#c4">C4</a>
               <span class="plan-title"
                 >Plan docs in other running worktrees keep the old markup until they merge or migrate</span
@@ -1912,7 +2303,7 @@
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
-            ><ui-item id="i1" data-status="open"
+            ><ui-item data-state="attention" id="i1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
@@ -1954,7 +2345,7 @@
           <ui-icon slot="icon" name="flask"></ui-icon>
 
           <ui-list class="plan-items" data-kind="test" divided relaxed
-            ><ui-item id="v1" data-status="open"
+            ><ui-item data-state="open" id="v1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v1">V1</a>
@@ -1987,7 +2378,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v2" data-status="open"
+            ><ui-item data-state="open" id="v2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v2">V2</a>
@@ -2015,7 +2406,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v3" data-status="open"
+            ><ui-item data-state="open" id="v3" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v3">V3</a>
@@ -2029,7 +2420,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v4" data-status="open"
+            ><ui-item data-state="open" id="v4" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v4">V4</a>
@@ -2050,7 +2441,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v5" data-status="open"
+            ><ui-item data-state="open" id="v5" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v5">V5</a>
@@ -2072,7 +2463,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v6" data-status="open"
+            ><ui-item data-state="open" id="v6" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v6">V6</a>
@@ -2101,6 +2492,40 @@
                       <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
                       >.
                     </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T13:08:35-04:00"
+              id="v7"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v7">V7</a>
+                  <span class="plan-title">Item colors, filter button and commits in the side bar</span> </ui-title
+                ><ui-content
+                  ><p>Open this plan doc in the Spell Docs side bar (about 350px wide), light and dark theme.</p>
+                  <ul>
+                    <li>
+                      Item chips: red, blue, orange, green and grey, readable in both themes; long titles wrap in their
+                      own column, never under the chip.
+                    </li>
+                    <li>
+                      Click a section filter button a few times: it steps through the colors present in that section,
+                      the tooltip says what it shows, "N hidden · show all" appears under the list; reload keeps the
+                      choice.
+                    </li>
+                    <li>
+                      The round button left of the step label shows and hides every Commits block; an item with commits
+                      has a small icon at the right of its line that opens it with its commits.
+                    </li>
+                    <li>The phases progress bar reads "2 of 10" in full, beside the green fill.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>passes when all four hold in both themes</li>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2314,6 +2739,69 @@
                   ><ui-date><time datetime="2026-10-04T12:43-04:00">2026-10-04 12:43</time></ui-date> P2 done: writing
                   rules (cold reader, bullets, Net effect), estimate badges, Done field, Files / Verify toggles; checks:
                   docs scripts 93, check-spell on 2 docs, check-live ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:46-04:00">2026-10-04 12:46</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:46-04:00">2026-10-04 12:46</time></ui-date> P3 also fixes I1
+                  (the progress bar's cut-off label), Owen 2026-10-04</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:48-04:00">2026-10-04 12:48</time></ui-date> P1-P2 merged into
+                  main (725c10b0) so other epics pick them up; extension reinstalled from main</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T13:10-04:00">2026-10-04 13:10</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T13:10-04:00">2026-10-04 13:10</time></ui-date> P3 done: status
+                  colors, section filter, To review lines, commits (backfilled), questions and decisions merged, item
+                  title columns, progress label; checks: docs scripts 107, check-spell on 3 docs, check-live
+                  ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T13:53-04:00">2026-10-04 13:53</time></ui-date> P3 follow-up
+                  (Owen): option cards fold, the chosen one open and framed green (decide --option); answers as ivory
+                  cards titled by the answer; smaller, tighter item text; item title lines on a light band; headings
+                  back in the system font</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:09-04:00">2026-10-04 14:09</time></ui-date> P4
+                  todo</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:12-04:00">2026-10-04 14:12</time></ui-date> P3 follow-up 2
+                  (Owen): section bands instead of rules (purple-50 / purple-25), page edge to edge with content inset
+                  16px, centred id chips with a status tooltip, smaller titles bold while wanting a look, one toggle
+                  button per status (grey: all / only red), icon-only git button, step label &lt;icon&gt; P4, instant
+                  jumps, tighter phase bullets</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

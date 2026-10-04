@@ -34,8 +34,8 @@
    * else our own, as `--ui-surface-muted` is too faint for inline code in light
    */
   --spell-code-bg: var(--ui-code-background, light-dark(#f3f2ef, #26272d));
-  /* headings in the theme's heading face and ink (the Spell theme:  aubergine serif);  else the body's */
-  --spell-heading-font: var(--ui-font-family-heading, inherit);
+  /* headings in the SYSTEM face (Owen, 2026-10-04:  back from the theme's serif), in the theme's heading ink */
+  --spell-heading-font: var(--spell-sans);
   --spell-heading-ink: var(--ui-text-dark, inherit);
   --spell-toc-width: 300px;
 }
@@ -55,6 +55,8 @@ body {
   background: var(--spell-bg);
   color: var(--spell-ink);
   font: 16px/1.6 var(--spell-sans);
+  /* UI's own headings (section titles, cards) in the system face too, as `--spell-heading-font` */
+  --ui-font-family-heading: var(--spell-sans);
 }
 
 /*******************************
@@ -240,6 +242,10 @@ ui-button.spell-fold {
   --ui-section-stuck-shadow: none;
   --ui-section-z-index: 4;
 }
+/* a jump to a folded section (`spell-doc-runtime.js` `jump()`):  what it unfolds opens at once */
+:root[data-spell-jumping] .spell-doc-main ui-section {
+  --ui-section-duration: 0s;
+}
 .spell-doc-main ui-section ui-section {
   --ui-section-margin: 22px;
   --ui-section-title-padding: var(--spell-title-top) 4px 6px;
@@ -404,9 +410,10 @@ pre code {
 *******************************/
 
 /*
- * ## Open | All:  a section's item filter (`ui-buttons.spell-item-filter`, slotted into its title's `actions` by the
- * runtime's `wireItemFilters()`):  plan docs' item lists (`.plan-items`) and the index's epics (`.spell-epics`).
- * Just after the title, left of the count badge;  Open hides done items, with "6 hidden · show all" under them.
+ * ## Item filter:  a section's round filter button (`span.spell-item-filter` > `ui-button` + its tooltip, slotted
+ * into its title's `actions` by the runtime's `wireItemFilters()`):  plan docs' item lists (`.plan-items`) and the
+ * index's epics (`.spell-epics`).  Just after the title, left of the count badge;  each click shows one state's
+ * items, hiding the rest (`data-spell-hidden`), with "6 hidden · show all" under them.
  */
 .spell-doc-main ui-section::part(actions) {
   order: 1;
@@ -414,7 +421,54 @@ pre code {
 .spell-doc-main ui-section::part(badge) {
   order: 2;
 }
-.spell-doc-main ui-section[data-show="open"] :is(.plan-items, .spell-epics) > [data-status="done"] {
+.spell-doc-main .spell-item-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+/*
+ * The state buttons:  round, in their state's color, filled while its items show, outlined while hidden;  the grey
+ * one first, a filter icon, filled while everything shows
+ */
+.spell-doc-main button.spell-state-toggle {
+  --_state: var(--ui-grey, #767676);
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 2px solid var(--_state);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--_state);
+  font-size: 0.55rem;
+  cursor: pointer;
+}
+.spell-doc-main button.spell-state-toggle[data-state="all"] {
+  width: 20px;
+  height: 20px;
+}
+.spell-doc-main button.spell-state-toggle[data-color="orange"] {
+  --_state: var(--ui-orange, #f2711c);
+}
+.spell-doc-main button.spell-state-toggle[data-color="red"] {
+  --_state: var(--ui-red, #db2828);
+}
+.spell-doc-main button.spell-state-toggle[data-color="blue"] {
+  --_state: var(--ui-blue, #2185d0);
+}
+.spell-doc-main button.spell-state-toggle[data-color="green"] {
+  --_state: var(--ui-green, #21ba45);
+}
+.spell-doc-main button.spell-state-toggle[aria-pressed="true"] {
+  background: var(--_state);
+  color: var(--ui-surface, Canvas);
+}
+.spell-doc-main button.spell-state-toggle:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+.spell-doc-main :is(.plan-items, .spell-epics) > [data-spell-hidden] {
   display: none;
 }
 .spell-doc-main a.spell-hidden-note:not([hidden]) {
