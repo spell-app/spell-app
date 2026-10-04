@@ -16,14 +16,20 @@
       <main class="spell-doc-main">
         <h1>Precedence And Types</h1>
         <p class="lede">Why spell's grammar needs binding power and datatypes, what breaks today, and what to build.</p>
-        <ul>
-          <li>Written for: Owen, and any agent about to change the parser's rules</li>
-          <li>Status: a draft to argue with. Nothing here is built.</li>
-          <li>
-            Researched on: branch <code>ts-conversion</code>, 2026-09-30. Every "today" output was produced by running
-            the parser, see <a href="#sources">Sources and experiments</a>.
-          </li>
-        </ul>
+        <ui-list class="spell-meta">
+          <ui-item icon="user">Written for: Owen, and any agent about to change the parser's rules</ui-item>
+          <ui-item icon="flag"
+            >Status: <ui-label size="mini" color="orange">being revived</ui-label> 2026-10-03 as epic
+            <a href="../epics/precedence-and-types/precedence-and-types.html" target="precedence-and-types"
+              >precedence-and-types</a
+            >; nothing built yet. A design doc until then, rewritten as built at the end.</ui-item
+          >
+          <ui-item icon="flask"
+            >Researched on: branch <code>ts-conversion</code>, 2026-09-30; re-checked 2026-10-03: all probes unchanged.
+            Every "today" output was produced by running the parser, see
+            <a href="#sources">Sources and experiments</a>.</ui-item
+          >
+        </ui-list>
 
         <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
           <ul>
@@ -45,6 +51,7 @@
             <li>
               Two ideas from review are folded in: <a href="#exclusive-lists">exclusive lists</a> as a property of a
               list type, and a <a href="#typescript-backend">TypeScript backend</a> the editor compiles a second time.
+              The TypeScript check is now an epic of its own, later.
             </li>
             <li>Types are named in spell's words everywhere, never JavaScript's.</li>
           </ul>
@@ -116,14 +123,28 @@
                 <code>the {ordinal} {arg} (in|of) {expression}</code> in
                 <a href="../../spell/src/rules/lists.ts" target="src-packages-spell-src-rules-lists-ts"
                   ><code>lists.ts</code></a
-                >. Fourteen more expression rules end the same way, 10 in
-                <a href="../../spell/src/rules/lists.ts" target="src-packages-spell-src-rules-lists-ts"
-                  ><code>lists.ts</code></a
-                >
-                and 4 in
-                <a href="../../spell/src/rules/math.ts" target="src-packages-spell-src-rules-math-ts"
-                  ><code>math.ts</code></a
                 >.
+                <ul>
+                  <li>
+                    Eleven more expression rules end the same way: 8 in
+                    <a href="../../spell/src/rules/lists.ts" target="src-packages-spell-src-rules-lists-ts"
+                      ><code>lists.ts</code></a
+                    >
+                    (<code>list_length</code>, <code>list_position</code>, <code>position_expression</code>,
+                    <code>random_item_expression</code>, <code>random_items_expression</code>,
+                    <code>range_between_expression</code>, <code>range_starting_with_expression</code>,
+                    <code>range_count_expression</code>) and 3 in
+                    <a href="../../spell/src/rules/math.ts" target="src-packages-spell-src-rules-math-ts"
+                      ><code>math.ts</code></a
+                    >
+                    (<code>absolute_value</code>, <code>max</code>, <code>min</code>).
+                  </li>
+                  <li>
+                    Three more put only an optional clause after their <code>{expression}</code>, so they swallow the
+                    same way: <code>copy_list</code>, <code>merge_lists</code>, <code>round_number</code>.
+                    <code>a copy of the piles + 1</code> is <code>duplicateCollection(piles + 1)</code>.
+                  </li>
+                </ul>
               </li>
               <li>
                 The last row is the <code>of</code> problem.
@@ -362,6 +383,21 @@
                 their types.
               </li>
               <li>Assignment, <code>get</code>, loops and <code>where</code> declare untyped variables.</li>
+              <li>
+                <code>set the X of Y to …</code> on an undeclared property declares nothing. Since solid-migration P11,
+                a DECLARED property's setter is <code>setProp()</code>, reactive; an undeclared one is a plain field,
+                not reactive, with no warning.
+                <ul>
+                  <li>
+                    New since this design: the property is auto-declared at its first <code>set</code>, reactive and
+                    typed (<a
+                      href="../epics/precedence-and-types/precedence-and-types.html#d10"
+                      target="precedence-and-types"
+                      >D10</a
+                    >).
+                  </li>
+                </ul>
+              </li>
               <li>A list type doesn't record its item type.</li>
               <li>Methods exist only as parser rules. <code>TypeScope.methods</code> is never filled.</li>
               <li>
@@ -660,6 +696,20 @@ class expression extends P.OperatorExpression {
                     </td>
                   </tr>
                   <tr>
+                    <td class="num right aligned">12</td>
+                    <td>
+                      math prefix rules: <code>the absolute value of</code>,
+                      <code>round</code>
+                    </td>
+                    <td>
+                      their operand takes <code>+ - * /</code> and stops before comparisons, as |x + 1| does (<a
+                        href="../epics/precedence-and-types/precedence-and-types.html#d3"
+                        target="precedence-and-types"
+                        >D3</a
+                      >)
+                    </td>
+                  </tr>
+                  <tr>
                     <td class="num right aligned">13</td>
                     <td><code>+</code> <code>-</code></td>
                     <td>as today</td>
@@ -672,12 +722,10 @@ class expression extends P.OperatorExpression {
                   <tr>
                     <td class="num right aligned">15</td>
                     <td>
-                      prefix rules: <code>the first X of</code>, <code>the number of Xs in</code>,
-                      <code>a random X of</code>, <code>a copy of</code>, <code>the biggest of</code>,
-                      <code>the absolute value of</code>,
-                      <code>round</code>
+                      list prefix rules: <code>the first X of</code>, <code>the number of Xs in</code>,
+                      <code>a random X of</code>, <code>a copy of</code>, <code>the biggest of</code>
                     </td>
-                    <td>their operand stops before any operator</td>
+                    <td>their operand is ONE term: it stops before any operator</td>
                   </tr>
                   <tr>
                     <td class="num right aligned">17</td>
@@ -687,13 +735,20 @@ class expression extends P.OperatorExpression {
                 </tbody>
               </table>
             </ui-table>
-            <ui-message state="warning" header="Two deliberate changes in meaning">
+            <ui-message state="warning" header="One deliberate change in meaning">
               <ul>
-                <li><code>x + y is empty</code> becomes <code>isEmpty(x + y)</code>.</li>
                 <li>
-                  <code>the absolute value of x + 1</code> becomes <code>abs(x) + 1</code>. Lower
-                  <code>absolute_value</code>
-                  to 12 if it should take the sum.
+                  <code>x + y is empty</code> becomes <code>isEmpty(x + y)</code>: postfix tests bind looser than
+                  <code>+</code>.
+                </li>
+                <li>
+                  <code>the absolute value of x + 1</code> stays <code>abs(x + 1)</code>: math prefixes bind at 12 and
+                  take the sum (<a
+                    href="../epics/precedence-and-types/precedence-and-types.html#d3"
+                    target="precedence-and-types"
+                    >D3</a
+                  >), while <code>the number of cards in the deck + 1</code> becomes <code>itemCountOf(deck) + 1</code>:
+                  list prefixes take one term.
                 </li>
               </ul>
             </ui-message>
@@ -1193,18 +1248,43 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
               </li>
             </ul>
           </ui-section>
-          <ui-section id="open-questions" header="Open questions" sticky collapsible dividing>
+          <ui-section id="open-questions" header="Settled questions" sticky collapsible dividing>
             <ul>
-              <li>Is "in a deck and in a pile" the default, or must a shared family be said out loud?</li>
               <li>
-                May <code>remove the card from the pile</code> leave a card ownerless? Probably yes: a card on the
-                table.
+                "In a deck and in a pile" is the default: a family is the exclusive type and its subtypes, nothing to
+                say out loud (<a
+                  href="../epics/precedence-and-types/precedence-and-types.html#d7"
+                  target="precedence-and-types"
+                  >D7</a
+                >).
               </li>
-              <li>What happens to <code>a copy of the pile</code>: a plain list, or a second owner?</li>
+              <li>
+                <code>remove the card from the pile</code> leaves a card ownerless: a card on the table (<a
+                  href="../epics/precedence-and-types/precedence-and-types.html#d8"
+                  target="precedence-and-types"
+                  >D8</a
+                >).
+              </li>
+              <li>
+                <code>a copy of the pile</code> and <code>where</code> results are plain lists, owning nothing (<a
+                  href="../epics/precedence-and-types/precedence-and-types.html#d8"
+                  target="precedence-and-types"
+                  >D8</a
+                >).
+              </li>
             </ul>
           </ui-section>
         </ui-section>
         <ui-section id="typescript-backend" header="9. A TypeScript backend" sticky collapsible dividing>
+          <ui-message state="warning" header="Split out 2026-10-03">
+            <p>
+              The TypeScript check is its own later epic, not part of precedence-and-types (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d1"
+                target="precedence-and-types"
+                >plan doc D1</a
+              >). This section stays as its design.
+            </p>
+          </ui-message>
           <p>
             From review: have the compiler emit TypeScript, and compile it a second time. The second step is a service
             the EDITOR has; a runner only ever loads the optimized JavaScript.
@@ -1213,10 +1293,10 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
           <ui-section id="the-idea" header="The idea" sticky collapsible dividing>
             <ul>
               <li>
-                The spell compiler writes TypeScript: types from each match's <code>datatype</code>, standard
-                decorators, JSX as JSX.
+                The spell compiler writes typed <code>.ts</code> of the shapes it emits today: accessor pairs and
+                <code>spellCore.element()</code> calls, with types from each match's <code>datatype</code>.
               </li>
-              <li>A second step checks it, then lowers it to the JavaScript programs run on.</li>
+              <li>A second step checks it, then strips the types: the JavaScript programs run on, as today.</li>
               <li>
                 That step is assumed available wherever spell is COMPILED: the app's editor,
                 <code>&lt;spell-editor&gt;</code>, the language server. It may be expensive and in memory.
@@ -1226,11 +1306,10 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
                 plain JavaScript, as today.
               </li>
               <li>
-                Three payoffs:
+                Two payoffs:
                 <ul>
                   <li>a second opinion on every line the parser wrote</li>
                   <li>type answers the parser doesn't have</li>
-                  <li>compiled spell written the way hand-written <code>spellCore</code> classes are</li>
                 </ul>
               </li>
             </ul>
@@ -1250,8 +1329,8 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
                 <ui-content>
                   <ui-header>emit</ui-header>
                   <ui-description
-                    >After the 2 second pause. One <code>.tsx</code> per spell file, plus which AST node wrote each
-                    range of it.</ui-description
+                    >After the 2 second pause. One <code>.ts</code> per spell file, plus which AST node wrote each range
+                    of it.</ui-description
                   >
                 </ui-content>
               </ui-card>
@@ -1267,16 +1346,14 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
               <ui-card>
                 <ui-content>
                   <ui-header>lower</ui-header>
-                  <ui-description
-                    >Editor only. Types stripped, decorators lowered, JSX compiled for Solid.</ui-description
-                  >
+                  <ui-description>Editor only. Types stripped: what's left is today's JavaScript.</ui-description>
                 </ui-content>
               </ui-card>
               <ui-card>
                 <ui-content>
                   <ui-header>save</ui-header>
                   <ui-description
-                    ><code>Project.compiled.js</code>, and the <code>.tsx</code> beside it for editors that import the
+                    ><code>Project.compiled.js</code>, and the <code>.ts</code> beside it for editors that import the
                     project.</ui-description
                   >
                 </ui-content>
@@ -1299,7 +1376,7 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
                 <a
                   href="../../spell/projects/test/Solitaire/Solitaire.snapshot.js"
                   target="src-packages-spell-projects-test-solitaire-solitaire-snapshot-js"
-                  ><code>projects/test/Solitaire/Solitaire.snapshot.js</code></a
+                  ><code>packages/spell/projects/test/Solitaire/Solitaire.snapshot.js</code></a
                 ></ui-title
               >
               <ui-content>
@@ -1350,28 +1427,42 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
 }</code></pre>
               </ui-content>
             </ui-accordion>
-            <ui-accordion class="spell-code" styled open="0">
-              <ui-title>Proposed: the same members as TypeScript. Hand-written, to show the shape.</ui-title>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>Proposed: the same members, typed. Hand-written, to show the shape · 49 lines</ui-title>
               <ui-content>
-                <pre><code class="language-ts">import { spellCore, Thing, Show, thing, prop } from "@spell/core"
+                <pre><code class="language-ts">import { spellCore, Thing } from "@spell/core"
 import type { Pile } from "./Pile"
 
 const RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
 
 /** a card is a thing */
-@thing
 export class Card extends Thing {
   /** card ranks */
   static Ranks = RANKS
-  @prop({ oneOf: RANKS }) accessor rank!: (typeof RANKS)[number]
+  get rank(): (typeof RANKS)[number] {
+    return this.getProp("rank")
+  }
+  set rank(value: (typeof RANKS)[number]) {
+    this.setProp("rank", value, { oneOf: Card.Ranks })
+  }
 
   /** card direction:  up or down */
-  @prop({ oneOf: ["up", "down"] }) accessor direction!: "up" | "down"
+  get direction(): "up" | "down" {
+    return this.getProp("direction")
+  }
+  set direction(value: "up" | "down") {
+    this.setProp("direction", value, { oneOf: ["up", "down"] })
+  }
 
-  /** never declared in spell:  its type comes from `set the pile of the card to the pile` */
-  @prop() accessor pile: Pile | undefined
+  /** never declared in spell:  declared from `set the pile of the card to the pile` (D10) */
+  get pile(): Pile | undefined {
+    return this.getProp("pile")
+  }
+  set pile(value: Pile | undefined) {
+    this.setProp("pile", value)
+  }
 
-  // … suit, color, is_face_down, short_suit:  as in Card.spell
+  // … suit, color, is_face_down, short_suit, draw():  as today, typed
 
   /** the short rank of a card is: … */
   get short_rank(): string {
@@ -1387,45 +1478,26 @@ export class Card extends Thing {
     spellCore.append(pile, this)
     await spellCore.pauseFor(50, "msec")
   }
-
-  /** to draw a card */
-  draw() {
-    const classes = () =&gt; ["Card", "face-" + this.direction, this.rank, this.suit, "ui button compact fluid"]
-    const click = (event: Event) =&gt; spellCore.RUNTIME.trigger("card-click", { card: this })
-    const back = (
-      &lt;div class={classes()} onClick={click}&gt;
-        &lt;i class="fitted bicycle icon" /&gt;
-      &lt;/div&gt;
-    )
-    return (
-      &lt;Show when={!this.is_face_down} fallback={back}&gt;
-        &lt;div class={[...classes(), this.color]} onClick={click}&gt;
-          {this.short_rank + " "}
-          &lt;span class="suit"&gt;{this.short_suit}&lt;/span&gt;
-        &lt;/div&gt;
-      &lt;/Show&gt;
-    )
-  }
 }</code></pre>
               </ui-content>
             </ui-accordion>
             <ul>
               <li>Parameter and return types come from the datatypes of section 6.</li>
               <li>
-                A property is <code>@prop … accessor</code>, the spelling <code>spellCore</code>'s own classes use, not
-                a hand-lowered accessor pair.
+                A property stays the accessor pair compiled spell emits today, <code>getProp()</code> /
+                <code>setProp()</code>, now typed.
               </li>
               <li>
-                <code>pile</code> was never declared in spell. The emitter declares it from its first assignment.
+                <code>pile</code> was never declared in spell. It is declared from its first assignment (<a
+                  href="../epics/precedence-and-types/precedence-and-types.html#d10"
+                  target="precedence-and-types"
+                  >D10</a
+                >).
                 <ul>
                   <li>It also becomes reactive, which an ad-hoc property is not today.</li>
                 </ul>
               </li>
-              <li>JSX stays JSX. <code>className</code> is <code>class</code>.</li>
-              <li>
-                The early <code>return</code> became a <code>&lt;Show&gt;</code>: a Solid component runs once, so a
-                branch must be an expression.
-              </li>
+              <li><code>draw()</code> keeps today's <code>spellCore.element()</code> calls, typed.</li>
               <li>
                 Each class needs a private brand. TypeScript is structural, spell's types are nominal: without one, a
                 deck and a pile with the same members are the same type.
@@ -1527,7 +1599,9 @@ export class Card extends Thing {
                   <li>
                     recorded on the scope record after a clean check; the next parse reads them like any declared type
                   </li>
-                  <li>this REPLACES the parser's own return-type inference: less code in the parser</li>
+                  <li>
+                    this can REPLACE the parser's own return-type inference (built in P5): less code in the parser
+                  </li>
                   <li>saved in <code>SPELL: DECLARES</code>, so a project imported without its sources has them too</li>
                 </ul>
               </li>
@@ -1611,8 +1685,9 @@ function nodeAt(emitted: Emitted, offset: number): P.ASTNode | undefined {
                 <a href="../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
                   ><code>renderAST.ts</code></a
                 >
-                is a React twin of the stringifier, so every emit change is made twice today. Drawing the AST viewer
-                from the spans leaves one emitter.
+                mirrors the stringifier export for export, building <code>P.Markup</code> objects (plain data the app's
+                AST viewer turns into DOM) instead of strings. So every emit change is made twice today; drawing the AST
+                viewer from the spans leaves one emitter.
               </li>
               <li>
                 TypeScript talks about <code>put_on_$pile</code>. A handful of codes get translated through the scope's
@@ -1634,112 +1709,43 @@ function nodeAt(emitted: Emitted, offset: number): P.ASTNode | undefined {
               </li>
             </ul>
           </ui-section>
-          <ui-section id="solid-jsx-and-decorators" header="Solid JSX and decorators" sticky collapsible dividing>
+          <ui-message state="info" header="Cut: Solid JSX and decorators">
+            <span id="solid-jsx-and-decorators"></span><span id="what-jsx-as-jsx-buys"></span
+            ><span id="what-must-stay-true"></span><span id="what-it-doesn-t-solve"></span>
             <ul>
               <li>
-                <a href="../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html">The Solid 2 plan</a>
-                says compiled spell can't use decorators, "<code>blob:</code>
-                URL, no transpile", so hand-written and compiled classes are two spellings that MUST build the same
-                runtime shape.
+                Cut from this design 2026-10-03: too much (<a
+                  href="../epics/precedence-and-types/precedence-and-types.html#d14"
+                  target="precedence-and-types"
+                  >D14</a
+                >).
               </li>
-              <li>
-                It plans JSX as <code>spellCore.element()</code> calls on hyperscript, the parser wrapping every dynamic
-                value in a thunk.
-              </li>
-              <li>A lowering step removes the reason for both: one spelling, lowered by a tool.</li>
+              <li>JSX stays <code>spellCore.element()</code> calls; classes stay accessor pairs.</li>
             </ul>
-            <h4 id="what-jsx-as-jsx-buys">What JSX as JSX buys</h4>
-            <ul>
-              <li>
-                Each <code>{expression}</code> is its own tracking scope by compilation, not by the parser wrapping
-                thunks.
-              </li>
-              <li>
-                Tags and props are type-checked.
-                <ul>
-                  <li>
-                    <code>className</code> on a <code>&lt;div&gt;</code> is an error: the React spellings left in spell
-                    sources become a to-do list.
-                  </li>
-                  <li><code>&lt;ui-*&gt;</code> props are typed through the JSX types augmentation.</li>
-                  <li>
-                    The hyphenated-event trap, <code>onUiChange</code> against <code>ui-change</code>, becomes a type
-                    error.
-                  </li>
-                </ul>
-              </li>
-              <li>No hyperscript arity trap.</li>
-            </ul>
-            <h4 id="what-must-stay-true">What must stay true</h4>
-            <ul>
-              <li>
-                Compiled spell imports ONLY <code>@spell/…</code>. Point the JSX compiler's helper module at
-                <code>@spell/core</code>, which re-exports the helpers from the one shared Solid.
-                <ul>
-                  <li>
-                    <code>linkModule()</code> already rewrites <code>@spell/</code> specifiers, so no runner changes.
-                  </li>
-                  <li>One Solid per page holds.</li>
-                </ul>
-              </li>
-              <li>
-                A throwing expression must not halt the page. <code>element()</code> was to wrap each thunk in
-                <code>try</code> / <code>catch</code>; the compiled equivalent is a guarded effect wrapper exported by
-                <code>@spell/core</code>.
-              </li>
-              <li>Spell state stays cells, not signals. Nothing here touches that.</li>
-            </ul>
-            <h4 id="what-it-doesn-t-solve">What it doesn't solve</h4>
-            <ul>
-              <li>
-                A Solid component runs once. Card's <code>to draw</code> has a local and an early return, which would
-                freeze. The emitter must lower statement-level control flow to <code>&lt;Show&gt;</code> and
-                expressions, with or without TypeScript.
-              </li>
-              <li>
-                The Solid 2 research measured a decorated class constructing about 6x slower than hand-lowered
-                accessors. A deck makes 52 cards.
-                <ul>
-                  <li>
-                    Either our lowering turns <code>@prop</code> into the accessor pair itself, or compiled classes keep
-                    emitting pairs, typed.
-                  </li>
-                </ul>
-              </li>
-            </ul>
-            <ui-message state="warning" header="The runtime is React today">
-              <ul>
-                <li>Emitting Solid JSX waits for the Solid migration's runtime phases.</li>
-                <li>
-                  The CHECK half doesn't. Typed output with today's <code>spellCore.element()</code> calls and accessor
-                  pairs can be checked now, and lowered by stripping types.
-                </li>
-              </ul>
-            </ui-message>
-          </ui-section>
+          </ui-message>
           <ui-section id="the-service" header="The service" sticky collapsible dividing>
             <ui-accordion class="spell-code" styled>
               <ui-title>TypeScript · 31 lines</ui-title>
               <ui-content>
                 <pre><code class="language-ts">/** What the editor needs from a TypeScript service.  Assumed available;  NEVER loaded by a runner. */
 type TypeScriptService = {
-  /** Replace the files it knows:  the emitted `.tsx`, `@spell/core`'s types, imported projects' types. */
+  /** Replace the files it knows:  the emitted `.ts`, `@spell/core`'s types, imported projects' types. */
   setFiles(files: Record&lt;string, string&gt;): void
   /** Type errors, as offsets into the emitted files. */
   semanticDiagnostics(): Promise&lt;TypeScriptDiagnostic[]&gt;
   /** Type of the expression at `offset`, in TypeScript's words, e.g. `"Card | undefined"`. */
   typeAt(file: string, offset: number): Promise&lt;string | undefined&gt;
-  /** Plain JS:  types stripped, decorators lowered, JSX compiled for Solid, helpers imported from `moduleName`. */
-  lower(files: Record&lt;string, string&gt;, options: { moduleName: string }): Promise&lt;Record&lt;string, string&gt;&gt;
+  /** Plain JS:  types stripped, nothing else changed. */
+  lower(files: Record&lt;string, string&gt;): Promise&lt;Record&lt;string, string&gt;&gt;
 }
 
 /** Editor only:  runs after the spell compile, before anything is saved or run. */
 async function checkAndLower(project: SP.SpellProject, service: TypeScriptService): Promise&lt;CheckedOutput&gt; {
-  const emitted = project.emitTypeScript() // one `.tsx` per spell file, each with its node =&gt; output-range spans
+  const emitted = project.emitTypeScript() // one `.ts` per spell file, each with its node =&gt; output-range spans
   service.setFiles({
     ...emitted.files,
-    "/spell-core.d.ts": SPELL_CORE_TYPES, // generated from `src/spellCore/` when the editor is built
-    ...project.importedTypes() // an imported project's `&lt;Project&gt;.compiled.tsx`, saved beside its `.js`
+    "/spell-core.d.ts": SPELL_CORE_TYPES, // generated from `packages/core/src/` when the editor is built
+    ...project.importedTypes() // an imported project's `&lt;Project&gt;.compiled.ts`, saved beside its `.js`
   })
 
   const problems: SpellProblem[] = []
@@ -1749,7 +1755,7 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
   }
 
   // what every runner loads:  plain ES modules which import only `@spell/...`
-  const javascript = await service.lower(emitted.files, { moduleName: "@spell/core" })
+  const javascript = await service.lower(emitted.files)
   return { problems, javascript }
 }</code></pre>
               </ui-content>
@@ -1768,10 +1774,7 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
                       Monaco's TypeScript worker. It ships in <code>monaco-editor</code> 0.57 with TypeScript 5.9.3, and
                       is not bundled today.
                     </td>
-                    <td>
-                      The same worker for types and decorators. Solid's compiler for JSX, which has a browser WASM
-                      build. A second web worker, loading with Monaco, which is already lazy.
-                    </td>
+                    <td>The same worker: types stripped. Loads with Monaco, which is already lazy.</td>
                   </tr>
                   <tr>
                     <td>the language server</td>
@@ -1784,7 +1787,7 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
                       <a href="../../../vite.decorators.ts" target="src-vite-decorators-ts"
                         ><code>vite.decorators.ts</code></a
                       >
-                      already uses, plus Solid's compiler.
+                      already uses.
                     </td>
                   </tr>
                   <tr>
@@ -1805,7 +1808,7 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
                 <code>@spell/core</code>'s types are generated when the editor is built. No <code>.d.ts</code> exists
                 for it today.
               </li>
-              <li>An imported project's types are its saved <code>.tsx</code>.</li>
+              <li>An imported project's types are its saved <code>.ts</code>.</li>
             </ul>
           </ui-section>
           <ui-section id="cost-and-timing" header="Cost and timing" sticky collapsible dividing>
@@ -1820,30 +1823,25 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
                 <ul>
                   <li>check and lower time for Solitaire, cold and warm</li>
                   <li>the worker's size, and what it adds to the editor's first load</li>
-                  <li>whether Solid's compiler honours a helper module and an effect wrapper</li>
                 </ul>
               </li>
-              <li>Nothing is added to <code>spell-runtime.js</code> but the re-exported JSX helpers.</li>
+              <li>Nothing is added to <code>spell-runtime.js</code>.</li>
             </ul>
           </ui-section>
           <ui-section id="what-it-changes-elsewhere" header="What it changes elsewhere" sticky collapsible dividing>
             <ul>
               <li>
-                The Solid 2 rules: "compiled spell can't use decorators" and "<code>element()</code> thunks" get
-                revisited there.
+                This plan: the parser's own return-type inference (P5) could be dropped. Section 6's datatypes become
+                the source of annotations.
               </li>
               <li>
-                This plan: the parser's own return-type inference is dropped. Section 6's datatypes become the source of
-                annotations.
-              </li>
-              <li>
-                File names: a <code>.compiled.tsx</code> beside each <code>.compiled.js</code>. Fixture snapshots hold
-                the <code>.tsx</code>, the readable form.
+                File names: a <code>.compiled.ts</code> beside each <code>.compiled.js</code>. Fixture snapshots hold
+                the <code>.ts</code>, the readable form.
               </li>
               <li>
                 <code>SpellDeclarations.read()</code> and <code>ScopesSource</code> read the
-                <code>SPELL:</code> comments out of compiled TEXT. They read the <code>.tsx</code>, or the lowering
-                keeps <code>/*!</code> comments.
+                <code>SPELL:</code> comments out of compiled TEXT. They read the <code>.ts</code>, or the lowering keeps
+                <code>/*!</code> comments.
               </li>
             </ul>
           </ui-section>
@@ -1851,7 +1849,8 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
             <ul>
               <li>
                 It doesn't fix precedence. A mis-parse that happens to type-check is silent:
-                <code>the absolute value of x + 1</code> is a number either way.
+                <code>the absolute value of x + 1</code> is a number whether it reads <code>abs(x + 1)</code> or
+                <code>abs(x) + 1</code>.
               </li>
               <li>
                 It doesn't replace spell's own datatypes. Member lookup, typed calls and completion need answers while
@@ -1864,15 +1863,22 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
         <ui-section id="10-phases" header="10. Phases" sticky collapsible dividing>
           <ul>
             <li>
-              Each ends with: types, lint and tests green; fixtures re-blessed and the diff read; the parser speed test
-              on HEAD and on the change;
+              The revived plan, phase by phase:
+              <a href="../epics/precedence-and-types/precedence-and-types.html#phases" target="precedence-and-types"
+                >the plan doc</a
+              >
+              has each one's files, checks and estimate.
+            </li>
+            <li>
+              Each build phase ends with: types, lint and tests green; fixtures re-blessed and the diff read; the parser
+              speed test on HEAD and on the change;
               <a href="../../spell/PARSING.md" target="src-packages-spell-parsing-md"><code>PARSING.md</code></a>
               updated; the extension rebuilt; a stop for review.
             </li>
             <li>
               Live examples may be rewritten. Fixtures under
               <a href="../../spell/projects/test/" target="src-packages-spell-projects-test"
-                ><code>projects/test/</code></a
+                ><code>packages/spell/projects/test/</code></a
               >
               are never edited by hand.
             </li>
@@ -1881,121 +1887,266 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
             <table>
               <tbody>
                 <tr>
-                  <th class="num right aligned">#</th>
                   <th>phase</th>
                   <th>touches</th>
                   <th>proves</th>
                 </tr>
                 <tr>
-                  <td class="num right aligned">0</td>
-                  <td>Baseline</td>
-                  <td>a probe test snapshotting every example here; speed numbers</td>
+                  <td>
+                    <a href="../epics/precedence-and-types/precedence-and-types.html#p1" target="precedence-and-types"
+                      >P1 Baseline Probes</a
+                    >
+                  </td>
+                  <td>a probe test snapshotting every example here; speed numbers; this doc trimmed</td>
                   <td>every later phase shows exactly what it changed</td>
                 </tr>
                 <tr>
-                  <td class="num right aligned">1</td>
-                  <td>Binding power</td>
                   <td>
-                    <code>Rule</code>, <code>Choice</code>, <code>Sequence</code>, a new
-                    <code>OperatorExpression</code>, rulex; the expression, list, math and property rules
+                    <a href="../epics/precedence-and-types/precedence-and-types.html#p2" target="precedence-and-types"
+                      >P2 Change Model</a
+                    >
+                  </td>
+                  <td>
+                    <code>parser-model.html</code>, beside this doc: every parser change modelled in HTML before any
+                    code, binding power in most detail
+                  </td>
+                  <td>the parser stays simple; P3 starts once Owen signs it off</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="../epics/precedence-and-types/precedence-and-types.html#p3" target="precedence-and-types"
+                      >P3 Binding Power</a
+                    >
+                  </td>
+                  <td>
+                    <code>Rule</code>, <code>Choice</code>, <code>Sequence</code>, the operand mechanism P2 agrees,
+                    rulex; the expression, list, math and property rules
                   </td>
                   <td>greedy operands, the two jobs, postfix; the library loses its forced parens</td>
                 </tr>
                 <tr>
-                  <td class="num right aligned">2</td>
-                  <td>Types plumbed, no output change</td>
                   <td>
-                    scope classes, each rule's <code>parse()</code> that looks something up, declarations, built-in type
-                    names
+                    <a href="../epics/precedence-and-types/precedence-and-types.html#p4" target="precedence-and-types"
+                      >P4 Types Plumbed</a
+                    >
                   </td>
-                  <td>fixtures byte-identical; hover shows types</td>
+                  <td>
+                    scope classes, each rule's <code>parse()</code> that looks something up, declarations and
+                    <code>SPELL_VERSION</code>, built-in type names
+                  </td>
+                  <td>hover shows types; output may change where it gets simpler, each change read in the diff</td>
                 </tr>
                 <tr>
-                  <td class="num right aligned">3</td>
-                  <td>Typed calls, paren-free signatures</td>
+                  <td>
+                    <a href="../epics/precedence-and-types/precedence-and-types.html#p5" target="precedence-and-types"
+                      >P5 Typed Calls, Signatures</a
+                    >
+                  </td>
                   <td>
                     <a href="../../spell/src/rules/methods.ts" target="src-packages-spell-src-rules-methods-ts"
                       ><code>methods.ts</code></a
-                    >, the language server
+                    >, the language server; the parser infers return types
                   </td>
-                  <td>the chip goes on the pot</td>
+                  <td>the chip goes on the pot; <code>to create a card</code> is <code>Card.create()</code></td>
                 </tr>
                 <tr>
-                  <td class="num right aligned">4</td>
-                  <td>Multi-word members</td>
+                  <td>
+                    <a href="../epics/precedence-and-types/precedence-and-types.html#p6" target="precedence-and-types"
+                      >P6 Multi-word Members</a
+                    >
+                  </td>
                   <td>
                     <a href="../../spell/src/rules/properties.ts" target="src-packages-spell-src-rules-properties-ts"
                       ><code>properties.ts</code></a
                     >,
                     <a href="../../spell/src/rules/classes.ts" target="src-packages-spell-src-rules-classes-ts"
                       ><code>classes.ts</code></a
+                    >,
+                    <a href="../../spell/src/rules/variables.ts" target="src-packages-spell-src-rules-variables-ts"
+                      ><code>variables.ts</code></a
                     >
                   </td>
-                  <td><code>short rank</code>; the enumeration debt</td>
+                  <td>
+                    <code>short rank</code>; the enumeration debt; an undeclared property auto-declared at its first
+                    <code>set</code>
+                  </td>
                 </tr>
                 <tr>
-                  <td class="num right aligned">5</td>
-                  <td>Built-in member tables</td>
+                  <td>
+                    <a href="../epics/precedence-and-types/precedence-and-types.html#p7" target="precedence-and-types"
+                      >P7 Built-in Member Tables</a
+                    >
+                  </td>
                   <td>one table per built-in type; the Type Explorer's pack</td>
                   <td>the large built-in set has somewhere to live</td>
                 </tr>
                 <tr>
-                  <td class="num right aligned">6</td>
-                  <td>Exclusive lists</td>
+                  <td>
+                    <a href="../epics/precedence-and-types/precedence-and-types.html#p8" target="precedence-and-types"
+                      >P8 Exclusive Lists</a
+                    >
+                  </td>
                   <td>
                     <a href="../../spell/src/rules/classes.ts" target="src-packages-spell-src-rules-classes-ts"
                       ><code>classes.ts</code></a
                     >, declarations,
-                    <a href="../../core/src/classes/List.tsx" target="src-packages-spell-core-src-classes-list-tsx"
+                    <a href="../../core/src/classes/List.tsx" target="src-packages-core-src-classes-list-tsx"
                       ><code>List.tsx</code></a
                     >
                   </td>
-                  <td><code>Pile.spell</code>'s <code>to move</code> goes away. Can follow phase 2.</td>
+                  <td><code>Pile.spell</code>'s <code>to move</code> goes away</td>
                 </tr>
                 <tr>
-                  <td class="num right aligned">7</td>
-                  <td>TypeScript check</td>
-                  <td>span-recording emit, typed output, the service, diagnostics in both editors</td>
-                  <td>section 9's table, live in the editor. Needs phase 2. JavaScript output unchanged.</td>
-                </tr>
-                <tr>
-                  <td class="num right aligned">8</td>
-                  <td>Decorators and Solid JSX</td>
-                  <td>the emitter's class and JSX nodes; the lowering step</td>
-                  <td>one spelling for classes. Lands with the Solid migration's runtime phases.</td>
+                  <td>
+                    <a href="../epics/precedence-and-types/precedence-and-types.html#p9" target="precedence-and-types"
+                      >P9 Doc Review</a
+                    >
+                  </td>
+                  <td>the plan doc; this doc, rewritten as built; <code>parser-model.html</code>; the changelog</td>
+                  <td>the docs say what was built; merged</td>
                 </tr>
               </tbody>
             </table>
           </ui-table>
+          <ui-message state="info" header="Not in this epic">
+            <ul>
+              <li>
+                The TypeScript check (section 9): its own later epic (<a
+                  href="../epics/precedence-and-types/precedence-and-types.html#d1"
+                  target="precedence-and-types"
+                  >D1</a
+                >).
+              </li>
+              <li>
+                Decorators and Solid JSX, the old phase 8: cut (<a
+                  href="../epics/precedence-and-types/precedence-and-types.html#d14"
+                  target="precedence-and-types"
+                  >D14</a
+                >).
+              </li>
+            </ul>
+          </ui-message>
         </ui-section>
-        <ui-section id="11-decisions-to-confirm" header="11. Decisions to confirm" sticky collapsible dividing>
+        <ui-section id="11-decisions-to-confirm" header="11. Decisions" sticky collapsible dividing>
+          <p>
+            Decided 2026-10-03; each links to its entry in
+            <a href="../epics/precedence-and-types/precedence-and-types.html#decisions" target="precedence-and-types"
+              >the plan doc</a
+            >.
+          </p>
           <ol>
             <li>
-              <code>a</code> / <code>an</code> plus a known type in a signature is a parameter; <code>the</code> plus
-              anything is literal.
-            </li>
-            <li>Postfix suffixes stop binding tightest: <code>x + y is empty</code> is <code>isEmpty(x + y)</code>.</li>
-            <li>
-              <code>Choice</code> keeps "precedence, then length, then earliest". Values are normalized; the order isn't
-              changed.
-            </li>
-            <li>A single-word property read stays permissive; a multi-word read must resolve.</li>
-            <li>A typed call is rejected only on a confident mismatch: both sides known, not assignable.</li>
-            <li>The declarations format gets a major version bump in phase 2.</li>
-            <li>
-              "Hard to use <code>of</code> in method names" is read as an argument followed by <code>of</code>, plus
-              multi-word getters.
+              Signatures: <code>a</code> / <code>an</code> plus a known type is a parameter; <code>the</code> plus
+              anything, and words that aren't types, are words. <code>to create a card</code> becomes
+              <code>Card.create()</code>
+              (<a href="../epics/precedence-and-types/precedence-and-types.html#d2" target="precedence-and-types">D2</a
+              >).
             </li>
             <li>
-              Property getters become scope-changing, as later lines now read members. Editing one re-parses what
-              follows.
+              Binding: math prefixes (<code>absolute value</code>, <code>round</code>) take the sum,
+              <code>abs(x + 1)</code>; list prefixes take one term. Postfix tests bind looser than <code>+</code>:
+              <code>x + y is empty</code> is <code>isEmpty(x + y)</code> (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d3"
+                target="precedence-and-types"
+                >D3</a
+              >).
             </li>
-            <li>A datatype is stored as a string in spell's words: <code>list of cards</code>, <code>choice</code>.</li>
-            <li>Exclusive lists: the wording, and whether a shared family must be said out loud.</li>
-            <li>TypeScript reports, suggests and fills in types. It never overrides what the parser chose.</li>
-            <li>The check lands before the Solid half, on today's JavaScript shapes.</li>
-            <li>Compiled classes: <code>@prop … accessor</code> lowered by us, or typed accessor pairs.</li>
-            <li>Fixture snapshots hold the <code>.tsx</code>.</li>
+            <li>
+              "Hard to use <code>of</code> in method names" is the call-site swallow, an argument followed by
+              <code>of</code>, plus multi-word getters (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d4"
+                target="precedence-and-types"
+                >D4</a
+              >).
+            </li>
+            <li>
+              A multi-word property read must be declared; a single undeclared word stays allowed (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d5"
+                target="precedence-and-types"
+                >D5</a
+              >).
+            </li>
+            <li>
+              A typed call is rejected only on a confident mismatch: both sides known, not assignable (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d6"
+                target="precedence-and-types"
+                >D6</a
+              >).
+            </li>
+            <li>
+              Exclusive lists: the family is the exclusive type and its subtypes,
+              <code>a pile is an exclusive list of cards</code>
+              (<a href="../epics/precedence-and-types/precedence-and-types.html#d7" target="precedence-and-types">D7</a
+              >). Removal leaves a card with no owner; copies and <code>where</code> results own nothing (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d8"
+                target="precedence-and-types"
+                >D8</a
+              >).
+            </li>
+            <li>
+              Editing a getter re-parses what follows, as later lines now read members (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d9"
+                target="precedence-and-types"
+                >D9</a
+              >).
+            </li>
+            <li>
+              New: an undeclared property is auto-declared at its first <code>set</code>, reactive and typed (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d10"
+                target="precedence-and-types"
+                >D10</a
+              >).
+            </li>
+            <li>
+              The parser stays simple: every parser change is modelled in a doc first, and output may change where it
+              gets simpler (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d11"
+                target="precedence-and-types"
+                >D11</a
+              >,
+              <a href="../epics/precedence-and-types/precedence-and-types.html#d12" target="precedence-and-types">D12</a
+              >,
+              <a href="../epics/precedence-and-types/precedence-and-types.html#d13" target="precedence-and-types">D13</a
+              >).
+            </li>
+            <li>
+              <code>Choice</code> keeps "precedence, then length, then earliest", values normalized (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d15"
+                target="precedence-and-types"
+                >D15</a
+              >). A datatype is a string in spell's words (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d16"
+                target="precedence-and-types"
+                >D16</a
+              >). <code>SPELL_VERSION</code> gets a major bump in P4 (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d17"
+                target="precedence-and-types"
+                >D17</a
+              >). Method-call arguments stay full expressions (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d18"
+                target="precedence-and-types"
+                >D18</a
+              >).
+            </li>
+            <li>
+              The TypeScript check is split into its own later epic (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d1"
+                target="precedence-and-types"
+                >D1</a
+              >); emitting Solid JSX / TSX is cut (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d14"
+                target="precedence-and-types"
+                >D14</a
+              >). The old decisions about the check's role, compiled classes and <code>.tsx</code> snapshots go with
+              them.
+            </li>
+            <li>
+              This doc is the epic's durable doc: a design doc until the epic is built, then rewritten as built (<a
+                href="../epics/precedence-and-types/precedence-and-types.html#d19"
+                target="precedence-and-types"
+                >D19</a
+              >).
+            </li>
           </ol>
         </ui-section>
         <ui-section id="12-found-on-the-way" header="12. Found on the way" sticky collapsible dividing>
@@ -2012,7 +2163,20 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
               </li>
               <li>
                 An ad-hoc property is not reactive: <code>set the pile of the card to the pile</code> compiles to a
-                plain field.
+                plain field, <code>card.pile = pile</code>.
+                <ul>
+                  <li>
+                    After solid-migration P11, a DECLARED property's setter is <code>setProp()</code>, reactive; an
+                    undeclared one stays a plain field, with no warning.
+                  </li>
+                  <li>
+                    Fixed in P6 by auto-declaring at the first <code>set</code> (<a
+                      href="../epics/precedence-and-types/precedence-and-types.html#d10"
+                      target="precedence-and-types"
+                      >D10</a
+                    >).
+                  </li>
+                </ul>
               </li>
               <li>
                 Spell sources and output carry React attribute names, <code>className</code> and <code>colSpan</code>.
@@ -2030,17 +2194,17 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
           <ui-section id="papercut" header="Papercut" sticky collapsible dividing>
             <ul>
               <li>
-                A <code>tsx</code> script outside the repo, or a <code>.ts</code> one outside
-                <a href="../../spell/src/" target="src-packages-spell-src"><code>src/</code></a
+                A <code>tsx</code> script outside the repo, or a <code>.ts</code> one outside a package's
+                <a href="../../ui/src/" target="src-packages-ui-src"><code>src/</code></a
                 >, is compiled as CommonJS and trips the parser's circular-import trap. Name it <code>.mts</code>.
               </li>
             </ul>
           </ui-section>
           <ui-section id="debt-this-retires" header="Debt this retires" sticky collapsible dividing>
             <ul>
-              <li>"Expression rules ending in <code>{expression}</code> swallow the operator after them": phase 1.</li>
-              <li>"Enumerated properties are reachable under inconsistent names": phase 4.</li>
-              <li>"<code>yarn scopes --builtins</code> overwrites the built-in types' hand-written docs": phase 5.</li>
+              <li>"Expression rules ending in <code>{expression}</code> swallow the operator after them": P3.</li>
+              <li>"Enumerated properties are reachable under inconsistent names": P6.</li>
+              <li>"<code>yarn scopes --builtins</code> overwrites the built-in types' hand-written docs": P7.</li>
             </ul>
           </ui-section>
         </ui-section>
@@ -2062,8 +2226,8 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
             </li>
             <li>Each script's header comment says how to run it.</li>
             <li>
-              <a href="../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html">Solid 2 for spell</a>: the
-              rules section 9 has to reconcile with.
+              <a href="../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html">Solid 2 for spell</a>: why
+              compiled spell keeps accessor pairs and <code>spellCore.element()</code> calls.
             </li>
             <li>
               <a href="../../spell/PARSING.md" target="src-packages-spell-parsing-md"><code>PARSING.md</code></a
@@ -2076,6 +2240,12 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
             </li>
           </ul>
         </ui-section>
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Last checked 2026-10-03 against branch <code>precedence-and-types</code>: re-run the experiments to update.
+          </p>
+        </footer>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

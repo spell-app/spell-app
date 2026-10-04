@@ -146,7 +146,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 - Claims backed by measurement:  runnable scripts in `<topic>/experiments/`, each with a header comment saying how to
   run it FROM `packages/docs` (`node solid/experiments/<file> dev`, `yarn tsx <topic>/experiments/<file>.ts`).
-- They may import any package through the root's `#` aliases (`tsconfig.json` extends `tsconfig.base.json`).
+- They may import any package through the root's `$/name` aliases (`tsconfig.json` extends `tsconfig.base.json`).
 - Tables quote medians of several runs, never a single run.  Keep the scripts:  they re-measure on upgrades.
 
 ## Links
