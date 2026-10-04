@@ -230,6 +230,16 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
     - suggest:  the same in `ui-section.css` (clip both axes with a small clip margin, or a
       `--ui-section-clip-margin` token)
 
+27. **`ui-steps`:  stacked steps with long text center each step, so their left edges stagger**
+    - symptom:  4 `ordered` steps with long headers / descriptions stack one per row, each row's number + text
+      centred on its own width:  the numbers and text start at a different x on every row (found 2026-10-03, in
+      `rulex/rulex.html`, Owen:  "broken")
+    - cause:  not traced;  short steps (`epics/markdown` "1.1 Shape") stay in one row and look fine
+    - repro:  `<ui-steps ordered>` with four `<ui-step header="a 35-character header" description="a 90-character
+      description">` in a 850px column
+    - workaround:  a plain `<ol>`, which also lets identifiers be `<code>` (attributes can't hold markup)
+    - suggest:  left-align a step's content when the steps stack
+
 ## Verified working (no action)
 
 - find-in-page / text fragments open a folded `ui-accordion` panel (native `<details>`), and the accordion

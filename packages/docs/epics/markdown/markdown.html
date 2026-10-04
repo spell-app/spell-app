@@ -1,0 +1,1631 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Markdown on the parser</title>
+    <meta name="description" content="Plan doc:  Markdown on the parser." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="markdown">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Markdown on the parser</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Markdown on the parser</h1>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p2"
+                >next: P2 · Rulex &amp; Tokenizer</ui-label
+              ></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch">Plan doc for <code>/epic markdown</code>, branch <code>markdown</code></ui-item>
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/markdown</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-03</time>, updated
+            <time id="plan-updated">2026-10-03</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            A GitHub-flavoured markdown parser on <code>$/parser</code> (not spell), drawing <code>ui-*</code> markup.
+            Payoff: proves the parser is language-agnostic, then serves spell docstrings, a live preview, and maybe
+            replaces marked in <code>&lt;ui-markdown&gt;</code>.
+          </p>
+          <blockquote class="plan-prompt">
+            <p>
+              Let's explore the concept of creating a markdown parser using the `parser` -- not the spell parser, but
+              the raw token/rules/parser thing. I asked you about this before and you said over a week to get this done.
+              I think I could do it in about 3 days by hand.
+            </p>
+            <p>
+              So, goal: write a parser for markdown. e.g gh markdown in, html out -- where the HTML is written with
+              spell/ui components. Whatcha think about that?
+            </p>
+            <p>
+              Answers so far: payoff = all four (dogfood the parser, spell docstrings, replace marked in ui, live
+              preview editor); scope = useful GFM subset first.
+            </p>
+          </blockquote>
+          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 25h-37h left</p>
+          <ui-section id="o1" header="1.1 Shape" sticky collapsible dividing collapsed>
+            <p>
+              New package <code>packages/markdown</code> (<code>@spell-app/markdown</code>, <code>$/markdown</code>,
+              <code>MD</code>) -- see <a href="#q1">Q1</a>. Depends on <code>parser</code> + <code>util</code> only.
+            </p>
+            <ui-steps class="spell-steps" ordered>
+              <ui-step
+                header="Tokenize"
+                description="MD.MarkdownTokenizer: words, punctuation one char each, all whitespace kept"
+              ></ui-step>
+              <ui-step
+                header="Blocks"
+                description="line rules classify each line; a hand-written container stack nests them"
+              ></ui-step>
+              <ui-step
+                header="Inlines"
+                description="P rules for code, links, images, autolinks; hand-written emphasis pass"
+              ></ui-step>
+              <ui-step
+                header="Draw"
+                description="P.Markup tree, full ui-* mapping (D3); toHTML() string or toDOM()"
+              ></ui-step>
+            </ui-steps>
+            <ul>
+              <li>
+                Dependency direction: <code>app</code> / <code>lsp</code> / <code>spell</code> -&gt;
+                <code>markdown</code> -&gt; <code>parser</code> -&gt; <code>util</code>.
+              </li>
+              <li>
+                <code>ui</code> NEVER imports it: gets a committed precompiled bundle, like spell's highlighter (<code
+                  >yarn gen:spell</code
+                >,
+                <a href="../../../ui/scripts/gen-spell.ts" target="src-packages-ui-scripts-gen-spell-ts"
+                  ><code>packages/ui/scripts/gen-spell.ts</code></a
+                >).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o2" header="1.2 Parser vs hand-written" sticky collapsible dividing collapsed>
+            <p>
+              Markdown isn't all grammar-shaped. Split by what fits. P rules in rulex syntax or built in code: decided
+              per rule from P1's rulex doc (<a href="#d8">D8</a>).
+            </p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Part</th>
+                    <th>How</th>
+                    <th>Why</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      Line kinds: ATX heading, fence, list marker, <code>&gt;</code>, thematic break, table delimiter
+                      row
+                    </td>
+                    <td class="yes positive">P rules, one per kind, tried on each line's tokens</td>
+                    <td>Grammar-shaped; dogfoods <code>Sequence</code> / <code>Choice</code> / <code>Pattern</code></td>
+                  </tr>
+                  <tr>
+                    <td>Nesting: lists in quotes in lists, lazy continuation, list tightness</td>
+                    <td class="meh warning">Hand-written container stack</td>
+                    <td>CommonMark defines it as a line-by-line state machine, not a grammar</td>
+                  </tr>
+                  <tr>
+                    <td>Code spans, links, images, autolinks, strikethrough, escapes, hard breaks</td>
+                    <td class="yes positive">P rules</td>
+                    <td>Grammar-shaped</td>
+                  </tr>
+                  <tr>
+                    <td><code>*</code> / <code>_</code> emphasis</td>
+                    <td class="meh warning">Hand-written delimiter pass</td>
+                    <td>Spec's pairing algorithm: <code>*a **b* c**</code> isn't context-free</td>
+                  </tr>
+                  <tr>
+                    <td>Output</td>
+                    <td class="yes positive"><code>P.Markup</code> + <code>P.render</code></td>
+                    <td>Already plain data; any tag name works</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="o3" header="1.3 Parser fixes it will surface" sticky collapsible dividing collapsed>
+            <p>
+              Dogfooding finds spell-isms in <code>$/parser</code>. Fixed in the parser, simplest change that works,
+              each through the review gate (<a href="#d5">D5</a>, <a href="#d7">D7</a>). Known before starting:
+            </p>
+            <ol>
+              <li>
+                <code>Tokenizer</code>: <code>tokenize</code>, <code>matchWord</code>, <code>matchText</code>,
+                <code>matchComment</code>, <code>matchJSXElement</code> ... are arrow-function FIELDS, so a subclass
+                method of the same name is silently shadowed. No subclass existed until now.
+              </li>
+              <li>
+                Default tokens misfire on markdown: <code>don't ... won't</code> one quoted string;
+                <code>http://x</code> and <code>---</code> start comments; <code>#</code> a comment;
+                <code>&lt;b&gt;</code> JSX (unclosed <code>&lt;br&gt;</code> swallows the rest); <code>1.</code> a
+                number; <code>café</code> splits; <code>¬</code> / <code>∆</code> rewritten.
+              </li>
+              <li>
+                <code>Literals.matchAtStart</code> ignores whitespace: <code>**</code> also matches <code>* *</code>,
+                though <code>Symbols</code>' docs say "no space in-between".
+              </li>
+              <li>
+                No HTML-string serializer: <code>P.render.toText</code> strips tags; <code>toHTML</code> ~20 lines.
+              </li>
+              <li><code>Choice</code> tries every alternative, keeps the longest: may be slow on inline text.</li>
+              <li>
+                The <code>P</code> barrel loads all of it (2.7k-line JS-codegen
+                <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                  ><code>AST.ts</code></a
+                >, scopes, incremental): matters for the <code>ui</code> bundle (<a href="#o5">1.5</a>).
+              </li>
+            </ol>
+          </ui-section>
+
+          <ui-section id="o4" header="1.4 Measuring it" sticky collapsible dividing collapsed>
+            <ul>
+              <li>
+                Corpus: GFM spec examples (cmark-gfm <code>spec.txt</code>, ~670), vendored as JSON fixtures in
+                <code>packages/markdown</code>.
+              </li>
+              <li>
+                Pass rate per spec section, pinned in a snapshot: a regression fails the test, a gain updates it. No
+                100% target (useful-subset scope).
+              </li>
+              <li>Real-world check: render the repo's ~169 <code>.md</code> files with both engines, diff the HTML.</li>
+              <li>
+                Speed: vs marked on the same files; spell's <code>speedTest()</code> before/after any parser change.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o5" header="1.5 Where it plugs in" sticky collapsible dividing collapsed>
+            <ul>
+              <li>
+                <code>&lt;ui-markdown&gt;</code>: <code>MarkdownRenderer.engineLoader</code> is already the seam; the
+                element only needs <code>render(text, options) -&gt; { fragment, headings }</code>. Emits only
+                <code>&lt;ui-code&gt;</code> today; heading ids are GitHub slugs.
+              </li>
+              <li>
+                Size today: marked + DOMPurify lazy chunk ~25 kB gz. Spell's precompiled highlighter (whole parser +
+                spell) ~130 kB gz. A parser-based engine lands in between; DOMPurify stays either way.
+              </li>
+              <li>
+                App:
+                <a href="../../../app/src/solid/Markdown.tsx" target="src-packages-app-src-solid-markdown-tsx"
+                  ><code>packages/app/src/solid/Markdown.tsx</code></a
+                >
+                (marked 14, unsanitised) renders docstrings in <code>ScopeDetailsPane</code>.
+              </li>
+              <li>
+                LSP: <code>SpellLanguageService.docMarkdown()</code> turns spell <code>#</code> comments into markdown
+                for hover / completion; Monaco renders those itself.
+              </li>
+              <li>No markdown editor or live preview exists yet: Monaco only colours <code>.md</code>.</li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="1" total="9" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Rulex Deep Dive"
+            sticky
+            collapsible
+            dividing collapsed>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Durable doc
+                <a href="../../rulex/rulex.html" target="src-packages-docs-rulex-rulex-html"
+                  ><code>packages/docs/rulex/rulex.html</code></a
+                >: what rulex is, full syntax (groups, choices, repeats, optional, subrules, match groups, escapes), how
+                a syntax string compiles to <code>Sequence</code> / <code>Choice</code> / <code>Repeat</code> /
+                <code>Symbol</code> ..., real examples from spell's rules, what it can't say, how markdown maps onto it.
+                STOP after: Owen reviews the doc before anything else.</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../rulex/rulex.html" target="src-packages-docs-rulex-rulex-html"
+                  ><code>packages/docs/rulex/rulex.html</code></a
+                >,
+                <a href="../../rulex/experiments/" target="src-packages-docs-rulex-experiments"
+                  ><code>packages/docs/rulex/experiments/</code></a
+                >; sources
+                <a href="../../../parser/src/rulex/" target="src-packages-parser-src-rulex"
+                  ><code>packages/parser/src/rulex/</code></a
+                >, <code>rules/Rule.ts</code>,
+                <a href="../../../spell/AGENTS.md" target="src-packages-spell-agents-md"
+                  ><code>packages/spell/AGENTS.md</code></a
+                >
+                "Parser rules"</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> Every example in the doc run through the rulex parser (experiment script); escapes
+                checked (<code>\? \* \( \[ \| \)</code>, <code>rulex.ts:97-158</code>); do <code>#</code>,
+                <code>--</code>, <code>//</code> reach rulex or become comments first; <code>**</code> vs
+                <code>* *</code>; doc finished per
+                <a href="../../AGENTS.md" target="src-packages-docs-agents-md"><code>packages/docs/AGENTS.md</code></a
+                >; Owen reviews</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="todo"
+            header="P2 · Rulex & Tokenizer"
+            sticky
+            collapsible
+            dividing collapsed>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> parser changes first, each its own staged diff through the review gate (<a href="#d7"
+                  >D7</a
+                >):
+                <ol>
+                  <li>rulex reads syntax with its own plain tokenizer (<a href="#d19">D19</a>)</li>
+                  <li>rulex throws on leftover tokens (<a href="#d12">D12</a>)</li>
+                  <li>
+                    spacing as written + <code>\s</code> (<a href="#d17">D17</a>); space added to the 4 list commas and
+                    the method-signature parens
+                  </li>
+                  <li>intervals <code>{n}</code> <code>{n,m}</code> <code>{n,}</code> (<a href="#d18">D18</a>)</li>
+                  <li><code>/i</code> on keywords and choices (<a href="#d16">D16</a>)</li>
+                  <li><code>toRulexSyntax()</code> escapes, and keeps the spacing (<a href="#d14">D14</a>)</li>
+                  <li><code>Tokenizer</code> arrow fields -&gt; methods, so a subclass can override</li>
+                </ol>
+                Then <code>packages/markdown</code> workspace + alias;
+                <code>MD.MarkdownTokenizer</code> (<code>WhitespacePolicy.LEADING_ONLY</code>, so <code>\s</code> sees
+                each token's whitespace; Unicode words; each punctuation char its own <code>SymbolToken</code>; no
+                quotes / comments / JSX / numbers; backslash escapes; <code>\r\n</code> normalised; no
+                <code>¬</code>/<code>∆</code> rewrite); GFM spec harness. Rulex doc updated with each change.</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../../parser/src/rulex/" target="src-packages-parser-src-rulex"
+                  ><code>packages/parser/src/rulex/</code></a
+                >,
+                <a href="../../../parser/src/rules/" target="src-packages-parser-src-rules"
+                  ><code>packages/parser/src/rules/</code></a
+                >
+                (<code>Literals</code>, <code>Sequence</code>, <code>Repeat</code>), spell rules that gain a space;
+                <code>packages/markdown/</code> (package.json, tsconfig, vitest config, AGENTS.md,
+                <a href="../../../ui/src/index.ts" target="src-packages-ui-src-index-ts"><code>src/index.ts</code></a
+                >, <code>MarkdownTokenizer.ts</code>, <code>markdown.types.ts</code>, <code>spec/</code>);
+                <a href="../../rulex/rulex.html" target="src-packages-docs-rulex-rulex-html"
+                  ><code>packages/docs/rulex/rulex.html</code></a
+                >;
+                <a href="../../../../tsconfig.base.json" target="src-tsconfig-base-json"
+                  ><code>tsconfig.base.json</code></a
+                >; root <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                >;
+                <a
+                  href="../../../parser/src/tokenizer/Tokenizer.ts"
+                  target="src-packages-parser-src-tokenizer-tokenizer-ts"
+                  ><code>packages/parser/src/tokenizer/Tokenizer.ts</code></a
+                >
+                (arrow fields -&gt; methods)</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> Tokenizer unit tests; parser + spell tests green;
+                <code>SP.spellParser.speedTest()</code> diff AND HEAD; spec harness runs (0% pass, by section,
+                snapshot)</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 5-7h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p3"
+            data-phase="3"
+            data-status="todo"
+            header="P3 · Block Structure"
+            sticky
+            collapsible
+            dividing collapsed>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Every GFM block: paragraphs, ATX + setext headings, thematic break, fenced + indented
+                code, block quotes, lists (nested, tight / loose, task items), tables, HTML blocks, link reference
+                definitions, GFM alerts. One P rule per line kind, tried on each line's tokens; hand-written
+                <code>MD.BlockScanner</code> keeps the open-container stack.</ui-item
+              ><ui-item icon="folder"><b>Files:</b> <code>packages/markdown/src/blocks/</code></ui-item
+              ><ui-item icon="flask"><b>Verify:</b> Block-section spec pass rate up; unit tests per line rule</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Inline Rules" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Code spans, escapes, entities, links + images (inline, reference), autolinks (<code
+                  >&lt;...&gt;</code
+                >
+                + GFM www / url / email), strikethrough, hard / soft breaks, raw inline HTML, emphasis via hand-written
+                delimiter pass. Adjacency now comes from P2's spacing-as-written (<a href="#d17">D17</a>); any other
+                parser fix found here goes through the review gate (<a href="#d7">D7</a>).</ui-item
+              ><ui-item icon="folder"><b>Files:</b> <code>packages/markdown/src/inlines/</code></ui-item
+              ><ui-item icon="flask"><b>Verify:</b> Inline-section pass rate; speedTest if parser touched</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · ui Output" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Tree -&gt; <code>P.Markup</code> with the FULL <code>ui-*</code> mapping (<a href="#q3"
+                  >Q3</a
+                >); <code>P.render.toHTML()</code> in <code>parser</code>;
+                <code>MD.render(text, options) -&gt; { html | fragment, headings }</code> matching
+                <code>MarkdownEngine</code> (GitHub slugs, <code>headingOffset</code>, <code>breaks</code>).
+                Side-by-side diff report: every repo <code>.md</code> through both engines. Parser change: under the
+                review gate (<a href="#d7">D7</a>).</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <code>packages/markdown/src/render/</code>;
+                <a href="../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                  ><code>packages/parser/src/ast/renderAST.ts</code></a
+                >; <code>packages/docs/markdown/experiments/</code></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> Spec harness compares rendered HTML; diff report reviewed; speed vs marked
+                recorded</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Docstrings" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> App render + LSP highlight (<a href="#q4">Q4</a>):
+                <a href="../../../app/src/solid/Markdown.tsx" target="src-packages-app-src-solid-markdown-tsx"
+                  ><code>Markdown.tsx</code></a
+                >
+                uses <code>MD</code>; LSP semantic tokens inside doc comments (bold, code, links) from
+                <code>MD</code> source positions.</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../../app/src/solid/Markdown.tsx" target="src-packages-app-src-solid-markdown-tsx"
+                  ><code>packages/app/src/solid/Markdown.tsx</code></a
+                >,
+                <a href="../../../lsp/src/SpellLanguageService.ts" target="src-packages-lsp-src-spelllanguageservice-ts"
+                  ><code>packages/lsp/src/SpellLanguageService.ts</code></a
+                >,
+                <a href="../../../spell/src/rules/Block.ts" target="src-packages-spell-src-rules-block-ts"
+                  ><code>packages/spell/src/rules/Block.ts</code></a
+                ></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> ScopeDetailsPane renders the same; LSP test for doc-comment tokens;
+                <code>yarn vscode</code> + Owen looks</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p7" data-phase="7" data-status="todo" header="P7 · ui Bundle" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> <code>yarn gen:markdown</code> in
+                <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> (pattern:
+                <a href="../../../ui/scripts/gen-spell.ts" target="src-packages-ui-scripts-gen-spell-ts"
+                  ><code>scripts/gen-spell.ts</code></a
+                >); measure gz vs marked + DOMPurify (~25 kB); acceptable:
+                <code>MarkdownRenderer.engineLoader</code> -&gt; <code>MD</code> for plain
+                <code>&lt;ui-markdown&gt;</code>; else plain keeps marked, the bundle loads only for the editable one.
+                Bundle API: <code>render()</code> + incremental <code>MD.MarkdownDocument</code>.</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <code>packages/ui/scripts/gen-markdown.ts</code>,
+                <a href="../../../ui/src/languages/" target="src-packages-ui-src-languages"
+                  ><code>packages/ui/src/languages/</code></a
+                >
+                (or <code>components/ui-markdown/</code>),
+                <a
+                  href="../../../ui/src/components/ui-markdown/MarkdownRenderer.ts"
+                  target="src-packages-ui-src-components-ui-markdown-markdownrenderer-ts"
+                  ><code>MarkdownRenderer.ts</code></a
+                ></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b>
+                <a
+                  href="../../../ui/src/components/ui-markdown/ui-markdown.test.tsx"
+                  target="src-packages-ui-src-components-ui-markdown-ui-markdown-test-tsx"
+                  ><code>ui-markdown.test.tsx</code></a
+                >
+                green on new engine; <code>yarn measure</code>; docs bundler lazy chunk works</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-4h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p8" data-phase="8" data-status="todo" header="P8 · Live Preview" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> <code>&lt;ui-markdown editable&gt;</code> (<a href="#q6">Q6</a>): textarea + live preview,
+                re-parsing only edited blocks; incremental hooks in <code>MD</code> (<code
+                  >tokenize(text, "block")</code
+                >
+                by markdown blocks, <code>parseItem</code>, <code>assembleFile</code>).</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <code>packages/markdown/src/MarkdownDocument.ts</code>,
+                <a href="../../../ui/src/components/ui-markdown/" target="src-packages-ui-src-components-ui-markdown"
+                  ><code>packages/ui/src/components/ui-markdown/</code></a
+                >, ui site page,
+                <a href="../../../ui/docs/status.md" target="src-packages-ui-docs-status-md"
+                  ><code>packages/ui/docs/status.md</code></a
+                ></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> Incremental vs full parse identical on edit sequences; ui tests; Owen types in the docs
+                site</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Doc Review" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Prune the plan doc; durable doc <code>packages/docs/markdown/markdown.html</code>;
+                changelog; <code>/isolate</code> Finish.</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <a href="../../" target="src-packages-docs"><code>packages/docs/</code></a></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>yarn plan-doc check</code>; doc finished per
+                <a href="../../AGENTS.md" target="src-packages-docs-agents-md"
+                  ><code>packages/docs/AGENTS.md</code></a
+                ></ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p class="meta">
+            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
+            settled, don't re-argue without new facts. An answered question sits just above its decision.
+          </p>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="q1" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a>
+                  <span class="plan-title">Package: new packages/markdown, or inside parser?</span>
+                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                ><ui-content
+                  ><p>
+                    Where the markdown language lives. Rulex is the precedent for "opt-in inside parser"; a package is
+                    the precedent for "a language on the parser" (spell).
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">New package (recommended)</ui-label>
+                        <p>
+                          <code>packages/markdown</code>, <code>$/markdown</code>, <code>MD</code>. Own
+                          <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                          >, tests, spec fixtures.
+                        </p>
+                        <p>
+                          Why: keeps <code>parser</code> language-free -- the point of dogfooding. Clean bundle entry
+                          for <code>ui</code>.
+                        </p>
+                        <p>Cost: one more workspace + alias row.</p></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">Inside parser</ui-label>
+                        <p>
+                          <code>$/parser/markdown</code>, opt-in side-effect import like <code>$/parser/rulex</code>.
+                        </p>
+                        <p>
+                          Cost: a language inside the "knows no language" package; spec fixtures bloat it.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                  </ui-grid>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title"
+                    >New package packages/markdown ($/markdown, MD) (<a href="#q1">Q1</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q1">Q1</a>: Package: new packages/markdown, or inside parser?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a>
+                  <span class="plan-title">Raw HTML in markdown: pass through or escape?</span>
+                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                ><ui-content
+                  ><p>
+                    Raw HTML in markdown, e.g. <code>&lt;details&gt;</code> or <code>&lt;ui-label&gt;</code> typed into
+                    a <code>.md</code> file. GFM passes it through; marked does too today, then DOMPurify cleans it
+                    unless <code>trusted</code>.
+                  </p>
+                  <pre><code>Some text &lt;ui-label color="red"&gt;beta&lt;/ui-label&gt; more.</code></pre>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">Pass through + sanitise (recommended)</ui-label>
+                        <p>
+                          Same as today: tokenized as raw HTML, emitted as-is; DOMPurify unless <code>trusted</code>.
+                          Authors can drop <code>ui-*</code> into markdown.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">Escape as text</ui-label>
+                        <p>
+                          Shows <code>&lt;ui-label ...&gt;</code> literally. Simpler, safe without DOMPurify; breaks
+                          existing docs that use HTML.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                  </ui-grid>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title"
+                    >Raw HTML passes through; DOMPurify unless trusted (<a href="#q2">Q2</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q2">Q2</a>: Raw HTML in markdown: pass through or escape?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title">How much ui-*: minimal, medium or full?</span>
+                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                ><ui-content
+                  ><p>
+                    Which markdown constructs draw as <code>ui-*</code> elements vs plain tags styled by
+                    <a
+                      href="../../../ui/src/components/ui-markdown/ui-markdown.css"
+                      target="src-packages-ui-src-components-ui-markdown-ui-markdown-css"
+                      ><code>ui-markdown.css</code></a
+                    >.
+                  </p>
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>Markdown</th>
+                          <th>Minimal</th>
+                          <th>Medium (recommended)</th>
+                          <th>Full</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>```ts</code> fence</td>
+                          <td><code>&lt;ui-code&gt;</code></td>
+                          <td><code>&lt;ui-code&gt;</code></td>
+                          <td><code>&lt;ui-code&gt;</code></td>
+                        </tr>
+                        <tr>
+                          <td><code>&gt; [!NOTE]</code> GFM alert</td>
+                          <td>blockquote</td>
+                          <td><code>&lt;ui-message state="info"&gt;</code></td>
+                          <td>same</td>
+                        </tr>
+                        <tr>
+                          <td><code>- [x] done</code></td>
+                          <td>input checkbox</td>
+                          <td><code>&lt;ui-checkbox&gt;</code> read-only</td>
+                          <td>same</td>
+                        </tr>
+                        <tr>
+                          <td>table</td>
+                          <td><code>&lt;table&gt;</code></td>
+                          <td><code>&lt;ui-table celled&gt;</code> around it</td>
+                          <td>same</td>
+                        </tr>
+                        <tr>
+                          <td><code>---</code></td>
+                          <td><code>&lt;hr&gt;</code></td>
+                          <td><code>&lt;hr&gt;</code></td>
+                          <td><code>&lt;ui-divider&gt;</code></td>
+                        </tr>
+                        <tr>
+                          <td>headings</td>
+                          <td><code>&lt;hN id&gt;</code></td>
+                          <td><code>&lt;hN id&gt;</code></td>
+                          <td><code>&lt;ui-header&gt;</code></td>
+                        </tr>
+                        <tr>
+                          <td>lists, quotes</td>
+                          <td>plain</td>
+                          <td>plain</td>
+                          <td><code>&lt;ui-list&gt;</code>, <code>&lt;ui-segment&gt;</code></td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <p>
+                    Medium: ui where it adds behaviour (copy, alert icons, checkbox look); plain where CSS already does
+                    the job and text selection / copy-paste stays clean.
+                  </p>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title"
+                    >FULL ui-*: ui-code, ui-message alerts, ui-checkbox tasks, ui-table, ui-header headings, ui-list
+                    lists, ui-segment quotes, ui-divider (<a href="#q3">Q3</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Heading ids, the <code>headings</code> outline and in-page <code>#</code> links must still work on
+                    <code>ui-header</code>; see <a href="#c5">C5</a>.
+                  </p>
+                  <p class="meta">Answers <a href="#q3">Q3</a>: How much ui-*: minimal, medium or full?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q4" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title">Docstrings: which of render / highlight / checks?</span>
+                  <a class="plan-answer" href="#d4">→ D4</a></ui-title
+                ><ui-content
+                  ><p>
+                    What "spell docstrings through it" should mean. Docstrings: the <code>#</code> comment lines right
+                    above a declaration (<code>Block.getDocComments()</code>), already treated as markdown.
+                  </p>
+                  <ol>
+                    <li>
+                      <b>App render</b>:
+                      <a href="../../../app/src/solid/Markdown.tsx" target="src-packages-app-src-solid-markdown-tsx"
+                        ><code>Markdown.tsx</code></a
+                      >
+                      (marked 14) in <code>ScopeDetailsPane</code> uses <code>MD</code> instead. Small.
+                    </li>
+                    <li>
+                      <b>LSP highlight</b>: semantic tokens inside doc comments -- <code>**bold**</code>,
+                      <code>`code`</code>, links coloured in the editor. Needs source positions: the parser has them.
+                    </li>
+                    <li>
+                      <b>LSP checks</b>: diagnostics in docstrings, e.g. a link to <code>#missing-heading</code> or an
+                      unknown <code>`identifier`</code>.
+                    </li>
+                    <li><b>Hover</b>: stays markdown text; Monaco / VS Code render it themselves. Nothing to do.</li>
+                  </ol>
+                  <p>Recommended: 1 + 2 in this epic; 3 a todo.</p>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title"
+                    >Docstrings: app render + LSP highlight; LSP checks a todo (<a href="#q4">Q4</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q4">Q4</a>: Docstrings: which of render / highlight / checks?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q5" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q5">Q5</a>
+                  <span class="plan-title">Parser spell-isms: fix in parser or work around?</span>
+                  <a class="plan-answer" href="#d5">→ D5</a></ui-title
+                ><ui-content
+                  ><p>
+                    When markdown trips on something spell-specific in <code>$/parser</code> (<a href="#o3">1.3</a>):
+                    fix the parser, or work around it in <code>markdown</code>?
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">Fix in parser as we go (recommended)</ui-label>
+                        <p>
+                          E.g. tokenizer arrow fields become methods; an adjacency option on <code>Literals</code>;
+                          <code>P.render.toHTML</code>. Each with tests + spell <code>speedTest()</code> before/after.
+                          The point of dogfooding.
+                        </p>
+                        <p>
+                          Barrel split for bundle size: NOT in passing -- decided in the ui-bundle phase.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">Work around, log them</ui-label>
+                        <p>
+                          <code>parser</code> untouched; workarounds in <code>markdown</code>, each logged in
+                          <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a
+                          >. Safer for spell, less learned.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                  </ui-grid>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d5">D5</a>
+                  <span class="plan-title"
+                    >Fix in parser as we go, SIMPLEST change that works, no new abstractions; very tight review (D7) (<a
+                      href="#q5"
+                      >Q5</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q5">Q5</a>: Parser spell-isms: fix in parser or work around?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q6" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q6">Q6</a>
+                  <span class="plan-title">Live preview: where does it live?</span>
+                  <a class="plan-answer" href="#d6">→ D6</a></ui-title
+                ><ui-content
+                  ><p>Where the live preview lives. Nothing exists yet; Monaco only colours <code>.md</code>.</p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">App: .md beside preview (recommended)</ui-label>
+                        <p>
+                          Open a <code>.md</code> in the spell editor app: Monaco left, <code>MD</code> preview right,
+                          incremental re-parse per keystroke. Uses what the app already has.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">ui element</ui-label>
+                        <p>
+                          <code>&lt;ui-markdown editable&gt;</code>: textarea + preview inside ui. Reusable on docs
+                          pages; but ui only gets the precompiled bundle, and has no code editor.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">VS Code</ui-label>
+                        <p>
+                          Custom preview in the spell extension for <code>.md</code>. VS Code already has a markdown
+                          preview, so little gain.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">Docs pages</ui-label>
+                        <p>
+                          Page server's edit mode on <code>.md</code>: edit, see it re-render. Narrow use.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                  </ui-grid>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d6">D6</a>
+                  <span class="plan-title"
+                    >Live preview is &lt;ui-markdown editable&gt; in ui; so ui Bundle (P7) comes before Live Preview
+                    (P8) (<a href="#q6">Q6</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">Answers <a href="#q6">Q6</a>: Live preview: where does it live?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d7">D7</a>
+                  <span class="plan-title">Parser-change review gate</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen: VERY tight review on every
+                    <a href="../../../parser/" target="src-packages-parser"><code>packages/parser</code></a> change (P2
+                    tokenizer, P4 <code>Literals</code>, P5 <code>toHTML</code>, any other).
+                  </p>
+                  <ul>
+                    <li>smallest change that works; no new abstractions</li>
+                    <li>
+                      its own decision item BEFORE coding: what trips, real code before / after, why simplest, which
+                      spell behaviour could change
+                    </li>
+                    <li>STOP for Owen's review of the staged diff before building on it</li>
+                    <li>
+                      <code>parser</code> + spell tests green; <code>SP.spellParser.speedTest()</code> on diff AND HEAD,
+                      both reported
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d8">D8</a>
+                  <span class="plan-title">Rulex vs rules-in-code: decided per rule from P1's doc</span></ui-title
+                ><ui-content
+                  ><p>
+                    First draft said "rules in code, rulex can't say markdown". Owen: rulex already escapes specials
+                    (<code>rulex.ts:97-158</code>: <code>\?</code> <code>\*</code> <code>\(</code> <code>\[</code>
+                    <code>\|</code> <code>\)</code>). Open: whether <code>#</code>, <code>--</code>,
+                    <code>//</code> reach rulex or the tokenizer makes them comments first. P1 settles it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><a class="plan-id" href="#d9">D9</a>
+              <span class="plan-title"
+                >GFM spec examples vendored as a JSON fixture; pass rate pinned per section by snapshot</span
+              ></ui-item
+            ><ui-item id="d10" data-status="decided"
+              ><a class="plan-id" href="#d10">D10</a>
+              <span class="plan-title"
+                >Up to 10 agents for this epic; parser changes stay with the main session</span
+              ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><a class="plan-id" href="#d11">D11</a>
+              <span class="plan-title"
+                >Rulex Deep Dive is P1 (asked as P0): the doc script numbers phases from 1</span
+              ></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title">Rulex throws when it can't read the whole syntax (fixes I1)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, rulex review item 1: yes. One check in <code>Rule.compileSyntax()</code>: tokens left over
+                    =&gt; <code>ParserError</code> naming them. Spell's suite shows any syntax that relied on the drop.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d13" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d13">D13</a>
+                  <span class="plan-title"
+                    >Symbols do what their docs say: no space between (fixes I2, the ** half)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, item 2: "probably, especially if that doesn't break everything else". So:
+                    <code>Literals.matchAtStart()</code> refuses whitespace between a <code>Symbols</code> rule's
+                    tokens; <code>Keywords</code> unchanged. Spell's suite decides: if it breaks much, back to Owen.
+                    Known spell case: <code>(&lt;|&gt;) =?</code> would stop matching <code>&gt; =</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d14" data-status="decided"
+              ><a class="plan-id" href="#d14">D14</a>
+              <span class="plan-title">toRulexSyntax() escapes rulex's special characters (fixes I3)</span> </ui-item
+            ><ui-item id="d15" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d15">D15</a>
+                  <span class="plan-title"
+                    >Markdown rules in rulex as much as possible; code-built leaf rules where it can't</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, item 4. "Any token except X" (code spans ...): a custom rule, used as a
+                    <code>{subrule}</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d16" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d16">D16</a>
+                  <span class="plan-title"
+                    >Case-insensitive literals: /i after a keyword or choice, e.g. (note|tip)/i</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen's idea, <code>{xxxx}/i</code>, regex-style. Scope: a keyword (<code>note/i</code>) or a choice
+                    of literals (<code>(note|tip)/i</code>). Not a <code>{subrule}</code>: what it matches is that
+                    rule's business, so <code>{x}/i</code> is an error. <code>/</code> is only a flag directly followed
+                    by <code>i</code>; spell's <code>(operator:/|divided by)</code> is untouched.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q7" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q7">Q7</a>
+                  <span class="plan-title">Rulex: how to say "space required" (and adjacency beyond Symbols)?</span>
+                  <a class="plan-answer" href="#d17">→ D17</a> </ui-title
+                ><ui-content
+                  ><p>
+                    Markdown needs "space required": <code>- item</code> is a list item, <code>-item</code> is text;
+                    <code># Title</code> a heading, <code>#Title</code> text. With <a href="#d13">D13</a>, symbol runs
+                    (<code>**</code>, <code>](</code>) no longer allow spaces, but nothing can REQUIRE one.
+                  </p>
+                  <p>
+                    Whitespace is already kept: with today's <code>WhitespacePolicy.LEADING_ONLY</code>, each token
+                    carries the spaces after it in <code>token.whitespace</code>. So a new policy wouldn't help by
+                    itself: the gap is that rulex has no way to SAY it.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A. \s marker (recommended)</ui-label>
+                        <p>
+                          Regex's <code>\s</code>: "whitespace here". Checks the previous token's
+                          <code>whitespace</code>; consumes nothing.
+                        </p>
+                        <pre><code>\-\s{text}
+\#{1,6}\s{text}</code></pre>
+                        <p>
+                          No new policy. Spell untouched (no syntax uses it). Small: one zero-width rule.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. New WhitespacePolicy</ui-label>
+                        <p>
+                          Keep inline whitespace as tokens; rulex's <code>\s</code> matches one; a Sequence skips
+                          whitespace the syntax doesn't mention.
+                        </p>
+                        <p>
+                          Same syntax as A, but every rule class must step over whitespace tokens: much bigger change to
+                          <code>parser</code>.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Write it as it looks</ui-label>
+                        <p>
+                          Syntax spacing is significant: no space in the syntax = none allowed; a space = allowed;
+                          <code>\s</code> = required.
+                        </p>
+                        <pre><code>![{alt}]({url})   adjacent
+- \s{text}</code></pre>
+                        <p>
+                          Most natural for markdown; changes spell wherever a syntax has no space but input does (e.g.
+                          <code>{a}'s</code>).
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                  </ui-grid>
+
+                  <p>
+                    <b>What C changes in spell</b> (<a
+                      href="../../rulex/experiments/adjacency-impact.mts"
+                      target="src-packages-docs-rulex-experiments-adjacency-impact-mts"
+                      ><code>packages/docs/rulex/experiments/adjacency-impact.mts</code></a
+                    >): 11 of 135 syntaxes have parts written touching. Each keeps today's behaviour by adding a space
+                    to the syntax.
+                  </p>
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>Syntaxes</th>
+                          <th>Touching</th>
+                          <th>Input that would stop matching</th>
+                          <th>Want it?</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            6: <code>isn't</code>, <code>can't</code>, <code>won't</code>,
+                            <code>doesn't have</code> (expressions.ts:210-234), <code>doesn't start with</code>,
+                            <code>doesn't end with</code> (lists.ts:295, 337)
+                          </td>
+                          <td><code>isn</code>|<code>'</code>|<code>t</code></td>
+                          <td><code>isn ' t</code></td>
+                          <td class="yes positive">yes: that's not the word</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            4 lists: <code>[{item}(,|and)]</code> shapes (lists.ts:40, 74; methods.ts:745;
+                            properties.ts:317)
+                          </td>
+                          <td><code>{item}</code>|<code>,</code></td>
+                          <td><code>red , green</code> (space BEFORE a comma)</td>
+                          <td class="meh warning">probably fine; <code>[{item} ,]</code> keeps it</td>
+                        </tr>
+                        <tr>
+                          <td>method signature <code>({method_keyword}|\({method_arg}\))+</code> (methods.ts:842)</td>
+                          <td><code>\(</code>|<code>{method_arg}</code>|<code>\)</code></td>
+                          <td><code>to move ( a card )</code></td>
+                          <td class="meh warning">your call; <code>\( {method_arg} \)</code> keeps it</td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <p>
+                    For comparison, the decided Symbols fix (<a href="#d13">D13</a>) changes ONE spell syntax:
+                    <code>(operator:(&lt;|&gt;) =?)</code> (math.ts:45) stops matching <code>&gt; =</code>. Under C it
+                    would keep matching it, because that syntax has a space.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d17" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d17">D17</a>
+                  <span class="plan-title"
+                    >C. Write it as it looks: no space in syntax = none allowed, space = allowed, \s = required
+                    (supersedes D13) (<a href="#q7">Q7</a>)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    11 spell syntaxes have parts written touching (<a
+                      href="../../rulex/experiments/adjacency-impact.mts"
+                      target="src-packages-docs-rulex-experiments-adjacency-impact-mts"
+                      ><code>rulex/experiments/adjacency-impact.mts</code></a
+                    >). Contractions (<code>isn't</code> ...) take the new, stricter matching. The 4 list commas and the
+                    method-signature parens get a space added in their syntax, so they keep matching as today; that diff
+                    is in the P2 review gate. <code>(&lt;|&gt;) =?</code> keeps matching <code>&gt; =</code>.
+                  </p>
+                  <p class="meta">
+                    Answers <a href="#q7">Q7</a>: Rulex: how to say "space required" (and adjacency beyond Symbols)?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q8" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q8">Q8</a>
+                  <span class="plan-title">Rulex: interval quantifier syntax?</span>
+                  <a class="plan-answer" href="#d18">→ D18</a> </ui-title
+                ><ui-content
+                  ><p>
+                    Markdown needs counts: a heading is 1-6 <code>#</code>s; a thematic break 3 or more.
+                    <code>Repeat</code> already has <code>minCount</code> / <code>maxCount</code>: rulex just can't set
+                    them.
+                  </p>
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>meaning</th>
+                          <th>regex</th>
+                          <th>A. braces (recommended)</th>
+                          <th>B. plus-number</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>exactly 7</td>
+                          <td><code>x{7}</code></td>
+                          <td><code>x{7}</code></td>
+                          <td><code>x+7</code></td>
+                        </tr>
+                        <tr>
+                          <td>1 to 6</td>
+                          <td><code>x{1,6}</code></td>
+                          <td><code>\#{1,6}</code></td>
+                          <td><code>\#+1-6</code></td>
+                        </tr>
+                        <tr>
+                          <td>3 or more</td>
+                          <td><code>x{3,}</code></td>
+                          <td><code>\-{3,}</code></td>
+                          <td><code>\-+3-</code></td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <ul>
+                    <li>
+                      <b>A</b>: exactly regex. <code>{</code> is also a subrule, but a subrule name starts with a
+                      letter, so <code>{</code> + digit is unambiguous. Cost: rulex's <code>repeatFlag</code> grows a
+                      second form.
+                    </li>
+                    <li>
+                      <b>B</b>: Owen's first idea. Quirk: the tokenizer reads <code>-6</code> as a negative number and
+                      <code>1..6</code> as <code>1</code>, <code>.6</code>; parseable, but the parser fights the
+                      tokenizer.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d18" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d18">D18</a>
+                  <span class="plan-title"
+                    >Intervals as regex braces: x{7}, x{1,6}, x{3,}; { + digit is a count, { + letter a subrule (<a
+                      href="#q8"
+                      >Q8</a
+                    >)</span
+                  > </ui-title
+                ><ui-content
+                  ><p class="meta">Answers <a href="#q8">Q8</a>: Rulex: interval quantifier syntax?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d19" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d19">D19</a>
+                  <span class="plan-title"
+                    >Rulex reads syntax with its own plain tokenizer: words, numbers, symbols, whitespace (no comments,
+                    quotes, JSX)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, after the rulex doc rework: yes. Makes <code>#</code>, <code>--</code>, <code>//</code>,
+                    quotes and <code>&lt;b&gt;</code> plain symbols in a syntax; only rulex's own specials need
+                    <code>\</code>. No spell syntax contains them. P2's first rulex change.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d20" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d20">D20</a>
+                  <span class="plan-title"
+                    >Rulex's plain tokenizer: numbers are digits only (1.1 = 1 . 1, -1 = - 1)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen: Digits only. Numbers in rulex are only needed for intervals (<code>{1,6}</code>) and the
+                    unused number construct. Fixes <a href="#i4">I4</a>. Part of P2's first change (<a href="#d19"
+                      >D19</a
+                    >).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="compass"></ui-icon>
+          <p class="meta">
+            Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open
+            until you review it; struck = accepted. Disagree: say so, and it becomes a question.
+          </p>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><a class="plan-id" href="#c1">C1</a>
+              <span class="plan-title"
+                >Emphasis + container stack are hand-written, not rules: the parser can't express them</span
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><a class="plan-id" href="#c2">C2</a>
+              <span class="plan-title"
+                >Choice tries every alternative and keeps the longest: inline parsing may be slow (measured in P5)</span
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><a class="plan-id" href="#c3">C3</a>
+              <span class="plan-title"
+                >ui bundle may come out too big (the P barrel loads AST.ts, scopes ...): P7 may keep marked for plain
+                &lt;ui-markdown&gt;</span
+              ></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><a class="plan-id" href="#c4">C4</a>
+              <span class="plan-title"
+                >Reference-link definitions are document-global: incremental re-parse needs a post-pass (P8)</span
+              ></ui-item
+            ><ui-item id="c5" data-status="open"
+              ><a class="plan-id" href="#c5">C5</a>
+              <span class="plan-title"
+                >Full ui-* output: ui-header ids / outline, ui-list nesting and copy-paste checked in P5's diff
+                report</span
+              ></ui-item
+            ><ui-item id="c6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title"
+                    >In rulex syntax, a line-start #, --, // and quotes belong to the tokenizer</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Rulex reads its syntax with spell's tokenizer, so: <code>#</code> at the start becomes a heading
+                    comment (throws); <code>--</code> / <code>//</code> anywhere become comments (silently dropped,
+                    <a href="#i1">I1</a>); <code>"..."</code> / <code>'...'</code> become text;
+                    <code>&lt;b&gt;</code> becomes JSX. Workarounds that work today: <code>\#</code>,
+                    <code>\-\-\-</code>, <code>\/\/</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="todos" header="6. Todos" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="t1" data-status="open"
+              ><a class="plan-id" href="#t1">T1</a>
+              <span class="plan-title"
+                >LSP checks in docstrings: broken #heading links, unknown `identifiers`</span
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title">Rulex silently drops the rest of a syntax it can't read</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>rulex.compile()</code> (via <code>P.Rule.compileSyntax()</code>) never checks that every token
+                    was consumed. It throws only when NOTHING matched; otherwise the rule is quietly truncated.
+                  </p>
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>syntax</th>
+                          <th>compiles to</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>a -- b</code></td>
+                          <td><code>Keyword("a")</code></td>
+                        </tr>
+                        <tr>
+                          <td><code>a // b</code></td>
+                          <td><code>Keyword("a")</code></td>
+                        </tr>
+                        <tr>
+                          <td><code>a "b c" d</code></td>
+                          <td><code>Keyword("a")</code></td>
+                        </tr>
+                        <tr>
+                          <td><code>a \-- b</code></td>
+                          <td><code>Sequence[Keyword("a") Symbol("\")]</code></td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <p>
+                    Evidence:
+                    <a
+                      href="../../rulex/experiments/rulex-probe.mts"
+                      target="src-packages-docs-rulex-experiments-rulex-probe-mts"
+                      ><code>packages/docs/rulex/experiments/rulex-probe.mts</code></a
+                    >. Simplest fix: throw when <code>match.length &lt; tokens.length</code>. Parser change: review gate
+                    (<a href="#d7">D7</a>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title">Whitespace is invisible to literal rules: ** matches * *</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Confirms the suspected bug (<a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      ><code>SUSPECTED-BUGS.md</code></a
+                    >, parser). Rule from <code>\*\*{word}\*\*</code>:
+                  </p>
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>input</th>
+                          <th>matches?</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>**hello**</code></td>
+                          <td class="yes positive">yes</td>
+                        </tr>
+                        <tr>
+                          <td><code>* *hello* *</code></td>
+                          <td class="no negative">yes (wrong for markdown)</td>
+                        </tr>
+                        <tr>
+                          <td><code>[ hello ] ( world )</code> vs link rule</td>
+                          <td class="no negative">yes (wrong for markdown)</td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <p>
+                    Markdown needs both "no space here" (<code>**x**</code>, <code>](</code>) and "space required here"
+                    (<code># heading</code>, <code>- item</code>). Rulex has no way to say either. How to fix is a P4
+                    question, after Owen reviews the rulex doc.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title">toRulexSyntax() round trip loses escapes</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>\[{text}\]\({url}\)</code> compiles fine, but prints back as
+                    <code>\[ {text} ]( {url} \)</code>: <code>Symbols</code> joins its literals without escaping, so
+                    <code>(</code> would re-read as a choice. Same for <code>\*\*{text}\*\*</code>, which prints back as
+                    <code>** {text} **</code> (re-reads as repeat flags). Matters wherever rules are written back out as
+                    syntax (spell's <code>SPELL: DECLARES</code> comments). Evidence:
+                    <a
+                      href="../../rulex/experiments/rulex-probe.mts"
+                      target="src-packages-docs-rulex-experiments-rulex-probe-mts"
+                      ><code>packages/docs/rulex/experiments/rulex-probe.mts</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i4">I4</a>
+                  <span class="plan-title">Rulex: 1.1.1 in a syntax crashes the compile (TypeError)</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>1.1.1</code> tokenizes as <code>Number(1.1) Number(0.1)</code>; compiling throws
+                    <code>Cannot read properties of undefined (reading 'length')</code>. Evidence:
+                    <a
+                      href="../../rulex/experiments/rulex-probe.mts"
+                      target="src-packages-docs-rulex-experiments-rulex-probe-mts"
+                      ><code>rulex/experiments/rulex-probe.mts</code></a
+                    >. Goes away with digits-only numbers (<a href="#d20">D20</a>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="tests" header="8. To test" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <p class="meta">
+            What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
+          </p>
+          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="log" header="9. Log" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:35-04:00">2026-10-03 20:35</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> P1 added: Rulex
+                  Deep Dive</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> P2 added: Package
+                  &amp; Tokenizer</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> P3 added: Block
+                  Structure</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> P4 added: Inline
+                  Rules</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> P5 added: ui
+                  Output</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> P6 added:
+                  Docstrings</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> P7 added: ui
+                  Bundle</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> P8 added: Live
+                  Preview</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> P9 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> Q1 answered: D1
+                  New package packages/markdown ($/markdown, MD)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> Q2 answered: D2
+                  Raw HTML passes through; DOMPurify unless trusted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> Q3 answered: D3
+                  FULL ui-*: ui-code, ui-message alerts, ui-checkbox tasks, ui-table, ui-header headings, ui-list lists,
+                  ui-segment quotes, ui-divider</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> Q4 answered: D4
+                  Docstrings: app render + LSP highlight; LSP checks a todo</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> Q5 answered: D5
+                  Fix in parser as we go, SIMPLEST change that works, no new abstractions; very tight review
+                  (D7)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> Q6 answered: D6
+                  Live preview is &lt;ui-markdown editable&gt; in ui; so ui Bundle (P7) comes before Live Preview
+                  (P8)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:09-04:00">2026-10-03 22:09</time></ui-date> Plan approved: 9
+                  phases, Q1-Q6 answered</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:10-04:00">2026-10-03 22:10</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:18-04:00">2026-10-03 22:18</time></ui-date> P1: rulex doc
+                  drafted (packages/docs/rulex/rulex.html); waiting on Owen's review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:14-04:00">2026-10-03 23:14</time></ui-date> Q7 answered: D17
+                  C. Write it as it looks: no space in syntax = none allowed, space = allowed, \s = required (supersedes
+                  D13)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:14-04:00">2026-10-03 23:14</time></ui-date> Q8 answered: D18
+                  Intervals as regex braces: x{7}, x{1,6}, x{3,}; { + digit is a count, { + letter a subrule</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:14-04:00">2026-10-03 23:14</time></ui-date> D13 closed:
+                  Symbols do what their docs say: no space between (fixes I2, the ** half)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:14-04:00">2026-10-03 23:14</time></ui-date> P2 estimate:
+                  5-7h</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:15-04:00">2026-10-03 23:15</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>

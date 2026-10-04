@@ -268,6 +268,15 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `rules/Sequence.ts` `parse()`: author's `TODOC: WHY?? FOR USE AS A LITERAL STRING??` still unanswered.
 
+## parser
+
+### 1. Behavior bugs
+
+- [V] `packages/parser/src/rules/Literals.ts` `matchAtStart()`: a multi-symbol literal like `**` also matches `* *`
+  (whitespace between), though `Symbols`' docs say "no space in-between" -- it never checks
+  `token.whitespace` / `end` vs `next`.  Prove:  parse `* *` against a `Symbols("**")` rule.  Found planning the
+  `markdown` epic (P4 there fixes it if confirmed).
+
 ## ui
 
 Disproven:  `Icons.get("zoom")` isn't missing -- it is Font Awesome's `zoom` BRAND logo;  with icon packs `zoom` is in

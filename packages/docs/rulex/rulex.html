@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rulex</title>
+    <meta
+      name="description"
+      content="Rulex, the parser's regex-like rule syntax: every construct, what it compiles to, how it matches, its traps, and how markdown maps onto it."
+    />
+    <link rel="stylesheet" href="../_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Rulex</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head"><h1>Rulex</h1></header></ui-sticky
+        >
+        <p class="lede">
+          Rulex is the regex-like syntax that writes <code>$/parser</code> rules:
+          <code>"give {thing:expression} (to {recipient})?"</code>. This page is its reference: every construct, what it
+          compiles to, how the result matches, the traps, and how markdown would be written in it.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="user"
+            >Written for: anyone writing parser rules, spell's or a new language's (the <code>markdown</code> epic
+            first)</ui-item
+          >
+          <ui-item icon="flag"
+            >Status: <ui-label size="mini" color="blue">reference</ui-label> of rulex as built</ui-item
+          >
+          <ui-item icon="flask"
+            >Researched on: branch <code>markdown</code>, 2026-10-03. Every syntax and match below was run through the
+            real rulex parser (<a href="#9-sources">Sources</a>)</ui-item
+          >
+        </ui-list>
+
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing collapsed>
+          <ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="133" label="spell registrations"></ui-statistic>
+            <ui-statistic value="7" label="constructs"></ui-statistic>
+            <ui-statistic value="3" label="modifiers"></ui-statistic>
+            <ui-statistic value="0" label="whitespace control"></ui-statistic>
+          </ui-statistics>
+          <ul>
+            <li>
+              A syntax string is compiled ONCE, when the rule is registered, into a tree of ordinary rule objects
+              (<code>Sequence</code>, <code>Choice</code>, <code>Repeat</code>, <code>Keyword</code> ...). Parsing never
+              sees the string again.
+            </li>
+            <li>
+              Seven constructs: keywords, symbols (<code>\</code> escapes any), <code>{subrule}</code>,
+              <code>(a|b)</code>, <code>[item delimiter]</code>, numbers and <code>name:</code> labels. Three modifiers:
+              <code>?</code>, <code>+</code>, <code>*</code>; more planned (<code>{1,6}</code>, <code>\s</code>,
+              <code>/i</code>). Spell uses all but numbers, in 133 registrations.
+            </li>
+            <li>
+              Every rulex special character escapes with <code>\</code>:
+              <code>\? \* \+ \( \) \[ \] \{ \} \| \: \\</code>. Nothing else needs escaping.
+            </li>
+            <li>
+              TWO tokenizers are involved, and only one is the language's. The rules MATCH the language's tokens
+              (spell's, or a markdown tokenizer's). But rulex READS each syntax string with its own, today the default
+              spell-flavoured one. That is the only reason <code>--</code>, <code>//</code>, a line-start
+              <code>#</code>, quotes and <code>&lt;tag&gt;</code> misbehave in a syntax (<a href="#6-traps">6. Traps</a
+              >). Planned: give rulex a plain tokenizer (<a href="#8-open">8.</a>), and they become ordinary symbols.
+            </li>
+            <li>
+              What the rules it builds match: token VALUES, exact and case-sensitive. Today whitespace is invisible:
+              <code>**</code> also matches <code>* *</code>, and a rule can't require a space. Planned: spacing as
+              written, <code>\s</code>, intervals and <code>/i</code>.
+            </li>
+          </ul>
+          <ui-message state="info" header="For markdown">
+            <ul>
+              <li>
+                With a markdown tokenizer for the input and the planned rulex changes, every markdown line kind
+                (headings, breaks, fences, lists, tasks, tables, quotes, alerts, links, images) is one short syntax:
+                <code>#{1,6}\s{text}</code>, <code>(-|\*|\+)\s{text}</code>, <code>!\[{alt}\]\({url}\)</code>.
+              </li>
+              <li>
+                Not rulex: code spans ("any token up to the matching backtick run") and emphasis' delimiter rules. Those
+                are rules built in code. <a href="#7-markdown">7. Markdown</a> has every case.
+              </li>
+            </ul>
+          </ui-message>
+        </ui-section>
+
+        <ui-section id="2-what" header="2. What it is" sticky collapsible dividing collapsed>
+          <ul>
+            <li>
+              Code:
+              <a href="../../parser/src/rulex/" target="src-packages-parser-src-rulex"
+                ><code>packages/parser/src/rulex/</code></a
+              >.
+              <a href="../../parser/src/rulex/rulex.ts" target="src-packages-parser-src-rulex-rulex-ts"
+                ><code>rulex.ts</code></a
+              >
+              defines rulex's own grammar, built in code from plain <code>P.Symbol</code> / <code>P.Word</code> /
+              <code>P.Sequence</code> rules (rulex can't define itself).
+              <a href="../../parser/src/rulex/RulexParser.ts" target="src-packages-parser-src-rulex-rulexparser-ts"
+                ><code>RulexParser.ts</code></a
+              >
+              holds the helpers.
+            </li>
+            <li>
+              Opt-in: <code>import "$/parser/rulex"</code> registers it as <code>P.Parser.rulexParser</code>. The
+              <code>P</code> barrel never pulls it in. Without it, a rule with <code>syntax</code> throws "Rulex parser
+              is not installed".
+            </li>
+            <li>
+              Rulex is itself a <code>P.Parser</code> (<code>RulexParser</code>), whose default rule is
+              <code>sequence</code>. That's why its own rules have tests in the same <code>[input, output]</code> form
+              as spell's.
+            </li>
+          </ul>
+
+          <ui-section id="2-flow" header="When a syntax compiles" sticky collapsible dividing collapsed>
+            <ol>
+              <li>
+                <code>parser.addRule(Class, { syntax, tests })</code> calls <code>Class.instantiate()</code>, which
+                constructs the rule.
+              </li>
+              <li>
+                The <code>Rule</code> constructor: given <code>syntax</code> but none of <code>rules</code> /
+                <code>rule</code> / <code>literal</code> / <code>literals</code>, it calls
+                <code>initFromSyntax(syntax)</code>.
+              </li>
+              <li>
+                <code>Rule.compileSyntax()</code> runs <code>rulexParser.compile(syntax)</code>: tokenize, parse as
+                rulex's <code>sequence</code>, compile to a rule tree.
+              </li>
+              <li>The tree's props are copied onto the instance (explicit props win), then it's frozen.</li>
+            </ol>
+            <ul>
+              <li>
+                Eager, not lazy: a bad syntax fails at registration (import time for spell's modules), not at parse
+                time. No cache: each registration compiles afresh.
+              </li>
+              <li>
+                A <code>Sequence</code> class whose syntax compiles to a single non-sequence rule wraps it:
+                <code>rules: [compiled]</code>. Any other mismatch throws "Syntax '…' compiles to a X, which Y does not
+                extend".
+              </li>
+              <li>
+                Several ways to write one rule: register the class again with another <code>syntax</code>. The instances
+                merge into a <code>P.Group</code> under the rule's name. No array form.
+              </li>
+              <li>
+                <code>syntax</code>, <code>tests</code> and <code>ruleName</code> are NOT inherited; share a syntax
+                through a <code>const</code> (spell's <code>VARIABLE_SYNTAX</code>).
+              </li>
+              <li>
+                Rules built while parsing (spell's methods and enums) compile syntax the same way, from strings they
+                assemble: <code>(expression:red|green|blue)</code>.
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>packages/spell/src/rules/math.ts · a rule with syntax and tests</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">class plus extends InfixOperatorSuffix {
+  @proto static precedence = 13
+  @proto static parenthesize = true
+  getOutputOperator() {
+    return "+"
+  }
+}
+math.addRule(plus, {
+  syntax: "(operator:plus|+) {expression:simple_expression}",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("price")
+        scope.variables?.add("tax")
+      },
+      tests: [
+        ["price + tax", "(price + tax)"],
+        ["price+tax", "(price + tax)"],
+        ["price plus tax", "(price + tax)"]
+      ]
+    }
+  ]
+})</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="3-syntax" header="3. Syntax reference" sticky collapsible dividing collapsed>
+          <p>
+            Every row was compiled by the probe script. "Compiles to" is the rule tree, written
+            <code>Class(literal)</code>; <code>?</code> after it means <code>optional</code>.
+          </p>
+          <ui-table celled compact striped>
+            <table>
+              <thead>
+                <tr>
+                  <th>Construct</th>
+                  <th>Syntax</th>
+                  <th>Compiles to</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>number</td>
+                  <td><code>1</code></td>
+                  <td><code>Keyword(1)</code></td>
+                  <td>
+                    Matches a number token of that value. Unused in spell. Today <code>1.1</code>, <code>.5</code> and
+                    <code>-1</code> are each ONE number, and <code>1.1.1</code> crashes the compile. Planned: digits
+                    only, so <code>1.1</code> is <code>1</code> <code>.</code> <code>1</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>keyword</td>
+                  <td><code>give</code></td>
+                  <td><code>Keyword("give")</code></td>
+                  <td>One word token. Words may hold <code>-</code> and <code>_</code> after the first letter</td>
+                </tr>
+                <tr>
+                  <td>keywords</td>
+                  <td><code>aa bb cc</code></td>
+                  <td><code>Keywords(["aa","bb","cc"])</code></td>
+                  <td>A run of keywords merges into one rule</td>
+                </tr>
+                <tr>
+                  <td>symbol</td>
+                  <td><code>:</code></td>
+                  <td><code>Symbol(":")</code></td>
+                  <td>Any one punctuation character</td>
+                </tr>
+                <tr>
+                  <td>symbols</td>
+                  <td><code>&gt;=</code></td>
+                  <td><code>Symbols([">","="])</code></td>
+                  <td>A run of symbols merges, spaces in the syntax or not</td>
+                </tr>
+                <tr>
+                  <td>escaped symbol</td>
+                  <td><code>\?</code> <code>\(</code> <code>\|</code></td>
+                  <td><code>Symbol("?")</code></td>
+                  <td>Any symbol, including the special ones. <code>|</code> and <code>)</code> MUST be escaped</td>
+                </tr>
+                <tr>
+                  <td>subrule</td>
+                  <td><code>{expression}</code></td>
+                  <td><code>Subrule(expression)</code></td>
+                  <td>Another rule, looked up by name at parse time (so it can be recursive)</td>
+                </tr>
+                <tr>
+                  <td>named subrule</td>
+                  <td><code>{thing:expression}</code></td>
+                  <td><code>Subrule(thing:expression)</code></td>
+                  <td>
+                    The match lands in <code>match.groups.thing</code>. <code>{thing: expression}</code> works too
+                  </td>
+                </tr>
+                <tr>
+                  <td>choice</td>
+                  <td><code>(&gt;|a)</code></td>
+                  <td><code>Choice[Symbol(">") Keyword("a")]</code></td>
+                  <td>Nests: <code>(is|(negated:is not|isn't))</code></td>
+                </tr>
+                <tr>
+                  <td>choice of literals</td>
+                  <td><code>(a|an)</code></td>
+                  <td><code>Keyword(["a","an"])</code></td>
+                  <td>All-keyword or all-symbol choices merge into one literal rule</td>
+                </tr>
+                <tr>
+                  <td>named choice</td>
+                  <td><code>(op:+|-)</code></td>
+                  <td><code>Symbol(op:["+","-"])</code></td>
+                  <td>Spell names 45 choices, <code>operator:</code> most (27)</td>
+                </tr>
+                <tr>
+                  <td>sequence</td>
+                  <td><code>give {thing} (to {who})?</code></td>
+                  <td><code>Sequence[…]</code></td>
+                  <td>The whole syntax. A sequence of one rule is just that rule</td>
+                </tr>
+                <tr>
+                  <td>list</td>
+                  <td><code>[{item},]</code></td>
+                  <td><code>Repeat(Subrule(item) / Symbol(","))</code></td>
+                  <td>
+                    Item, then delimiter; either may be any rule: <code>[({a}|{b})(,|or|and)]</code>. A trailing
+                    delimiter is allowed. Only <code>?</code> may follow <code>]</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>named list</td>
+                  <td><code>[list:{expression},]?</code></td>
+                  <td><code>Repeat?(list:…)</code></td>
+                  <td>The name goes INSIDE the bracket</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+
+          <ui-section id="3-modifiers" header="Modifiers" sticky collapsible dividing collapsed>
+            <p>Written straight after a construct (or, for spacing, between them), changing how it matches.</p>
+            <ui-table celled compact striped>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Modifier</th>
+                    <th>Syntax</th>
+                    <th>Compiles to</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>optional</td>
+                    <td><code>the?</code> <code>{x}?</code> <code>(…)?</code></td>
+                    <td><code>Keyword("the")?</code></td>
+                    <td>Sets <code>optional</code> on the rule</td>
+                  </tr>
+                  <tr>
+                    <td>one or more</td>
+                    <td><code>word+</code></td>
+                    <td><code>Repeat(Keyword("word"))</code></td>
+                    <td>Wraps in a <code>Repeat</code></td>
+                  </tr>
+                  <tr>
+                    <td>zero or more</td>
+                    <td><code>{sub}*</code></td>
+                    <td><code>Repeat?(Subrule(sub))</code></td>
+                    <td>An optional <code>Repeat</code></td>
+                  </tr>
+                  <tr>
+                    <td>exactly n <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td><code>x{7}</code></td>
+                    <td><code>Repeat(Keyword("x"))</code>, <code>minCount</code> = <code>maxCount</code> = 7</td>
+                    <td>
+                      Regex's interval, straight after any rule. <code>{</code> + digit is a count; <code>{</code> +
+                      letter stays a subrule
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>n to m <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td><code>#{1,6}</code></td>
+                    <td><code>Repeat(Symbol("#"))</code>, 1..6</td>
+                    <td>
+                      <code>Repeat</code> already has <code>minCount</code> / <code>maxCount</code>; rulex just sets
+                      them
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>n or more <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td><code>-{3,}</code></td>
+                    <td><code>Repeat(Symbol("-"))</code>, 3..</td>
+                    <td><code>x+</code> ~== <code>x{1,}</code>, <code>x*</code> ~== <code>x{0,}</code></td>
+                  </tr>
+                  <tr>
+                    <td>case-insensitive <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td><code>(note|tip)/i</code>, <code>note/i</code></td>
+                    <td><code>Keyword(["note","tip"])</code>, case-insensitive</td>
+                    <td>
+                      Regex's <code>/i</code>, after a keyword or a choice of literals. <code>{x}/i</code> is an error
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>space required <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td><code>-\s{text}</code></td>
+                    <td>zero-width whitespace check</td>
+                    <td>Regex's <code>\s</code>. Consumes nothing: checks the previous token's trailing whitespace</td>
+                  </tr>
+                  <tr>
+                    <td>spacing as written <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td><code>!\[{alt}\]\({url}\)</code> vs <code>{a} and {b}</code></td>
+                    <td>(how parts may be spaced in the input)</td>
+                    <td>
+                      Parts written touching must touch in the input; a space in the syntax allows (not requires) one. A
+                      repeat's items follow the spacing after the repeated part: <code>-{3,}</code> takes only
+                      <code>---</code>, <code>(- ){3,}</code> also <code>- - -</code>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="3-simplify" header="What compiling simplifies" sticky collapsible dividing collapsed>
+            <ul>
+              <li>
+                Runs of plain keywords merge into <code>Keywords</code>, and runs of plain symbols into
+                <code>Symbols</code>.
+              </li>
+              <li>
+                An optional literal inside a run stays in it as <code>{ literal, optional: true }</code>:
+                <code>a? b c</code> is one <code>Keywords</code>.
+              </li>
+              <li><code>(a|b|c)</code> becomes ONE <code>Keyword(["a","b","c"])</code>, not a <code>Choice</code>.</li>
+              <li>
+                A choice or sequence holding a single rule collapses to that rule. The choice's flags then win over the
+                rule's own.
+              </li>
+              <li>A plain nested sequence flattens into its parent.</li>
+              <li>
+                A NAMED rule (<code>name:</code>) is never merged, since a merged rule can't carry one item's name.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-tests" header="Tests beside the syntax" sticky collapsible dividing collapsed>
+            <ul>
+              <li>
+                <code>tests: RuleTestBlock[]</code>: each block is
+                <code>{ title?, compileAs?, skip?, beforeEach?(scope), tests }</code>, where <code>tests</code> holds
+                <code>[input, expectedOutput]</code> pairs (arrays join with <code>\n</code>).
+              </li>
+              <li>
+                <code>unitTestModuleRules(parser, module)</code> (<code>$/parser/test</code>) runs every testable rule
+                of a module, one <code>describe</code> per registration, titled with its syntax. It also snapshots each
+                rule's group spec, so the <code>Groups</code> type argument can be copied from
+                <code>__snapshots__</code>.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="4-matching" header="4. How the rules match" sticky collapsible dividing collapsed>
+          <p>
+            Rulex only builds rules. What they match is up to the rule classes and the LANGUAGE's tokenizer, not
+            rulex's.
+          </p>
+          <ui-table celled compact striped unstackable>
+            <table>
+              <thead>
+                <tr>
+                  <th>Rule</th>
+                  <th>Input</th>
+                  <th>Matches?</th>
+                  <th>Why</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>hello world</code></td>
+                  <td><code>Hello world</code></td>
+                  <td class="no negative">no</td>
+                  <td>Exact, case-sensitive value compare (<code>token.matchesLiteral()</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>hello world</code></td>
+                  <td><code>hello&nbsp;&nbsp;&nbsp;world</code></td>
+                  <td class="yes positive">yes</td>
+                  <td>Inline whitespace is dropped from the tokens</td>
+                </tr>
+                <tr>
+                  <td><code>hello world</code></td>
+                  <td><code>hello⏎world</code></td>
+                  <td class="no negative">no</td>
+                  <td>Newlines stay in the tokens</td>
+                </tr>
+                <tr>
+                  <td><code>\*\*{word}\*\*</code></td>
+                  <td><code>* *hello* *</code></td>
+                  <td class="meh warning">yes</td>
+                  <td><code>Symbols</code> says "no space in-between" but never checks</td>
+                </tr>
+                <tr>
+                  <td><code>\[{word}\]\({word}\)</code></td>
+                  <td><code>[ hello ] ( world )</code></td>
+                  <td class="meh warning">yes</td>
+                  <td>Same</td>
+                </tr>
+                <tr>
+                  <td><code>{word} ' s</code></td>
+                  <td><code>hello's</code> and <code>hello 's</code></td>
+                  <td class="yes positive">both</td>
+                  <td>Same: spaces don't count</td>
+                </tr>
+                <tr>
+                  <td><code>[{word},]</code></td>
+                  <td><code>hello, world,</code></td>
+                  <td class="yes positive">yes</td>
+                  <td>A trailing delimiter is fine</td>
+                </tr>
+                <tr>
+                  <td><code>[{word},]</code></td>
+                  <td><code>hello world</code></td>
+                  <td class="meh warning">1 of 2 tokens</td>
+                  <td>Rules match at the HEAD of the tokens. Checking the rest was used up is the caller's job</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+          <ul>
+            <li>
+              A literal rule compares token <em>values</em>, whatever the token type: <code>Keyword("a")</code> would
+              match a symbol token <code>a</code>. Keyword vs Symbol only changes how a rule prints back to syntax.
+            </li>
+            <li>
+              <code>Choice</code> parses EVERY alternative, then keeps the best by precedence, then length, then order.
+              It is not a PEG-style first-match.
+            </li>
+            <li>
+              <code>Sequence.test()</code> checks that the sequence's own keywords and symbols appear in the tokens
+              before parsing any subrule. That makes a miss cheap.
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="5-spell" header="5. How spell uses it" sticky collapsible dividing collapsed>
+          <ui-table celled compact striped unstackable>
+            <table>
+              <thead>
+                <tr>
+                  <th>Construct</th>
+                  <th class="num right aligned">Uses</th>
+                  <th>Example</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>choice <code>(a|b)</code></td>
+                  <td class="num right aligned">~156</td>
+                  <td><code>(in|of) {list:expression}</code></td>
+                </tr>
+                <tr>
+                  <td>named subrule</td>
+                  <td class="num right aligned">~142</td>
+                  <td><code>{condition:expression}</code></td>
+                </tr>
+                <tr>
+                  <td><code>?</code></td>
+                  <td class="num right aligned">~95</td>
+                  <td><code>for each? {item:singular_identifier}</code></td>
+                </tr>
+                <tr>
+                  <td>subrule</td>
+                  <td class="num right aligned">~84</td>
+                  <td><code>draw {expression}</code></td>
+                </tr>
+                <tr>
+                  <td>named choice</td>
+                  <td class="num right aligned">45</td>
+                  <td><code>(operator:is (greater|less) than (or equal to)?)</code></td>
+                </tr>
+                <tr>
+                  <td>list</td>
+                  <td class="num right aligned">6</td>
+                  <td><code>[({known_variable}|{constant}|{number})(,|or|and|nor)]</code></td>
+                </tr>
+                <tr>
+                  <td>escape</td>
+                  <td class="num right aligned">3</td>
+                  <td><code>\( {expression} \)</code>, only parens and brackets</td>
+                </tr>
+                <tr>
+                  <td><code>+</code> / <code>*</code></td>
+                  <td class="num right aligned">3</td>
+                  <td><code>({method_keyword}|\({method_arg}\))+</code></td>
+                </tr>
+                <tr>
+                  <td>number</td>
+                  <td class="num right aligned">0</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+          <ui-accordion class="spell-code" styled>
+            <ui-title>Spell's most involved syntaxes · 6 lines</ui-title>
+            <ui-content>
+              <pre><code class="language-text">{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?
+(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{simple_expression}|{identifier_list})
+for each? {item:singular_identifier} ((and|,) {position:singular_identifier})? (in|of) {list:expression} :? {statement_body}?
+confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?
+print (operator:info|warning|error|collapsed? group)? [expressions: {expression} ,]
+add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}</code></pre>
+            </ui-content>
+          </ui-accordion>
+          <ul>
+            <li>
+              A trailing <code>{statement_body}?</code> / <code>{expression_body}?</code> (about 12 syntaxes) is a spell
+              convention: <code>SpellStatement</code> strips it and parses the indented body separately.
+            </li>
+            <li>
+              Spell's language rules for syntax (register with <code>{ syntax, tests }</code>, negatable
+              <code>{operator:is}</code>, one test file per module) are in
+              <a href="../../spell/AGENTS.md" target="src-packages-spell-agents-md"
+                ><code>packages/spell/AGENTS.md</code></a
+              >, "Parser rules".
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="6-traps" header="6. Traps" sticky collapsible dividing collapsed>
+          <p>Two tokenizers, two kinds of trap:</p>
+          <ul>
+            <li>
+              <b>Input side</b>: the rules match whatever the LANGUAGE's tokenizer makes. Spell's turns
+              <code>---</code> into a comment; a markdown tokenizer, with no comment, quote or JSX rules, won't. Each
+              language picks its own, so nothing to fix in rulex.
+            </li>
+            <li>
+              <b>Syntax side</b>: rulex reads every syntax string with the DEFAULT <code>P.Tokenizer</code>, which knows
+              spell's comments, quotes and JSX. That's the column "Today" below. Planned (<a href="#8-open">8.</a>):
+              rulex gets its own plain tokenizer (words, numbers, symbols, whitespace), and every row but the
+              rulex-syntax ones goes away. No spell syntax uses any of those characters, so spell doesn't notice.
+            </li>
+          </ul>
+          <ui-table celled compact striped>
+            <table>
+              <thead>
+                <tr>
+                  <th>Syntax</th>
+                  <th>Today</th>
+                  <th>Today's workaround</th>
+                  <th>With a plain rulex tokenizer</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code># {text}</code></td>
+                  <td class="no negative">heading comment: throws "Can't parse input"</td>
+                  <td><code>\# {text}</code> (a <code>#</code> mid-syntax is fine)</td>
+                  <td class="yes positive"><code>#</code> is a symbol</td>
+                </tr>
+                <tr>
+                  <td><code>a -- b</code></td>
+                  <td class="no negative">comment: silently <code>Keyword("a")</code></td>
+                  <td><code>a \-\- b</code></td>
+                  <td class="yes positive">two <code>-</code> symbols</td>
+                </tr>
+                <tr>
+                  <td><code>a \-- b</code></td>
+                  <td class="no negative"><code>\</code>, then a comment: silently <code>a \</code></td>
+                  <td>escape EACH dash</td>
+                  <td class="yes positive">escaped <code>-</code>, then <code>-</code></td>
+                </tr>
+                <tr>
+                  <td><code>---</code></td>
+                  <td class="no negative">comment: throws</td>
+                  <td><code>\-\-\-</code></td>
+                  <td class="yes positive">three <code>-</code> symbols</td>
+                </tr>
+                <tr>
+                  <td><code>a // b</code></td>
+                  <td class="no negative">comment: silently <code>Keyword("a")</code></td>
+                  <td><code>a \/\/ b</code></td>
+                  <td class="yes positive">two <code>/</code> symbols</td>
+                </tr>
+                <tr>
+                  <td><code>a "b c" d</code></td>
+                  <td class="no negative">text token: silently <code>Keyword("a")</code></td>
+                  <td><code>a \"b c\" d</code></td>
+                  <td class="yes positive"><code>"</code> is a symbol</td>
+                </tr>
+                <tr>
+                  <td><code>'{x}'</code></td>
+                  <td class="no negative">text token: throws</td>
+                  <td><code>\'{x}\'</code>; one bare <code>'</code> is fine (<code>isn't</code>)</td>
+                  <td class="yes positive"><code>'</code> is a symbol</td>
+                </tr>
+                <tr>
+                  <td><code>&lt;b&gt; {text} &lt;/b&gt;</code></td>
+                  <td class="no negative">JSX element: throws</td>
+                  <td><code>&lt; {x} &gt;</code> (<code>&lt;</code> not followed by a letter)</td>
+                  <td class="yes positive"><code>&lt;</code> is a symbol</td>
+                </tr>
+                <tr>
+                  <td><code>¬</code> / <code>∆</code></td>
+                  <td class="no negative">rewritten to newline / tab (a test-fixture convenience): throws</td>
+                  <td>none</td>
+                  <td class="yes positive">plain symbols</td>
+                </tr>
+                <tr>
+                  <td><code>1. {item}</code></td>
+                  <td class="yes positive"><code>Keyword(1) Symbol(".")</code></td>
+                  <td></td>
+                  <td class="yes positive">same: numbers stay, for intervals</td>
+                </tr>
+                <tr>
+                  <td><code>**{text}**</code></td>
+                  <td class="no negative">the 2nd <code>*</code> of each pair is a repeat flag</td>
+                  <td><code>\*\*{text}\*\*</code></td>
+                  <td class="meh warning">same: <code>*</code> is rulex syntax, escape it</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+          <ui-message state="warning" header="Silent truncation">
+            <ul>
+              <li>
+                <code>rulex.compile()</code> never checks that it used every token. It throws only when NOTHING parsed;
+                otherwise it returns the rule built so far and drops the rest without a word.
+              </li>
+              <li><code>[{sub}]</code> (one subrule, no delimiter) likewise compiles to <code>Symbol("[")</code>.</li>
+              <li>
+                The
+                <a href="../../parser/src/rulex/rulex.ts" target="src-packages-parser-src-rulex-rulex-ts"
+                  ><code>rulex.ts</code></a
+                >
+                source already says <code>TODO: consume all tokens</code>.
+              </li>
+            </ul>
+          </ui-message>
+          <ui-message state="warning" header="Printing back loses escapes">
+            <ul>
+              <li>
+                <code>rule.toRulexSyntax()</code> prints a rule back as syntax. That's used for LSP descriptions and for
+                spell's <code>SPELL: DECLARES</code> comments.
+              </li>
+              <li>
+                <code>Symbols</code> joins its literals without escaping. So <code>\[{text}\]\({url}\)</code> prints as
+                <code>\[ {text} ]( {url} \)</code>, where the <code>(</code> would re-read as a choice.
+              </li>
+              <li><code>\*\*{text}\*\*</code> prints as <code>** {text} **</code>, which re-reads as repeat flags.</li>
+              <li>Spell's syntaxes don't trip it today: none of them puts a special symbol in a symbol run.</li>
+            </ul>
+          </ui-message>
+        </ui-section>
+
+        <ui-section id="7-markdown" header="7. Markdown in rulex" sticky collapsible dividing collapsed>
+          <p>
+            Each line kind of GitHub-flavoured markdown, two ways. "Today" is rulex as built, run through the probe.
+            "Planned" assumes the rulex changes in <a href="#8-open">8.</a> and a markdown tokenizer for the input
+            (every punctuation character its own symbol; no comments, quotes, JSX or negative numbers).
+          </p>
+          <ui-table celled compact striped>
+            <table>
+              <thead>
+                <tr>
+                  <th>Markdown</th>
+                  <th>Today</th>
+                  <th>Planned</th>
+                  <th>What the plan fixes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>heading <code># Title</code></td>
+                  <td><code>\#+ {text}</code></td>
+                  <td><code>#{1,6}\s{text}</code></td>
+                  <td>1-6 only; space required (<code>#Title</code> is text)</td>
+                </tr>
+                <tr>
+                  <td>thematic break</td>
+                  <td><code>(\-\-\-+|\*\*\*+|___+)</code></td>
+                  <td><code>((- ){3,}|(\* ){3,}|(_ ){3,})</code></td>
+                  <td>No escaping <code>-</code>; spaces between allowed, as markdown does (<code>- - -</code>)</td>
+                </tr>
+                <tr>
+                  <td>bullet item</td>
+                  <td><code>(\-|\*|\+) {text}</code></td>
+                  <td><code>(-|\*|\+)\s{text}</code></td>
+                  <td>Refuses <code>-hello</code></td>
+                </tr>
+                <tr>
+                  <td>ordered item</td>
+                  <td><code>{digits} (.|\)) {text}</code></td>
+                  <td><code>{digits}(.|\))\s{text}</code></td>
+                  <td>Digits touch the <code>.</code>; space required after</td>
+                </tr>
+                <tr>
+                  <td>task item</td>
+                  <td><code>(\-|\*) \[ (x|X)? \] {text}</code></td>
+                  <td><code>(-|\*|\+)\s\[(x/i|\s)\]\s{text}</code></td>
+                  <td><code>[ ]</code> / <code>[x]</code> exactly; <code>/i</code> takes <code>X</code></td>
+                </tr>
+                <tr>
+                  <td>fence</td>
+                  <td><code>```+ {info}?</code></td>
+                  <td><code>`{3,} {info}?</code>, <code>~{3,} {info}?</code></td>
+                  <td>3 or more, touching. Closing fence "at least as long as the opening": still not rulex</td>
+                </tr>
+                <tr>
+                  <td>block quote</td>
+                  <td><code>&gt; {text}?</code></td>
+                  <td><code>&gt; {text}?</code></td>
+                  <td>Nothing to fix: the space after <code>&gt;</code> is optional in markdown too</td>
+                </tr>
+                <tr>
+                  <td>GFM alert</td>
+                  <td><code>&gt; \[ ! (NOTE|TIP|IMPORTANT|WARNING|CAUTION) \]</code></td>
+                  <td><code>&gt; \[!(note|tip|important|warning|caution)/i\]</code></td>
+                  <td><code>[!NOTE]</code> touching; any case</td>
+                </tr>
+                <tr>
+                  <td>table row</td>
+                  <td><code>\|? [{cell}\|] \|?</code></td>
+                  <td><code>\|? [{cell} \|] \|?</code></td>
+                  <td>Nothing: spaces around cells were always fine</td>
+                </tr>
+                <tr>
+                  <td>table alignment cell</td>
+                  <td><code>:? \-+ :?</code></td>
+                  <td><code>:?-+:?</code></td>
+                  <td><code>:---:</code> touching</td>
+                </tr>
+                <tr>
+                  <td>link, image</td>
+                  <td><code>!\[{alt}\]\({url}\)</code></td>
+                  <td><code>!\[{alt}\]\({url}\)</code></td>
+                  <td>Same text, now means touching: refuses <code>! [x] (y)</code></td>
+                </tr>
+                <tr>
+                  <td>autolink</td>
+                  <td><code>&lt;{url}&gt;</code></td>
+                  <td><code>&lt;{url}&gt;</code></td>
+                  <td>Touching</td>
+                </tr>
+                <tr>
+                  <td>strikethrough</td>
+                  <td><code>~~{text}~~</code></td>
+                  <td><code>~~{text}~~</code></td>
+                  <td>Touching (<code>~ ~x~ ~</code> refused)</td>
+                </tr>
+                <tr>
+                  <td>code span, emphasis</td>
+                  <td class="no negative">no</td>
+                  <td class="no negative">no</td>
+                  <td>
+                    "Any token up to a backtick run of the same length" and emphasis' delimiter rules aren't a grammar:
+                    rules built in code, used as <code>{code_span}</code> / <code>{emphasis}</code>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+          <p>What rulex still can't say, after the plan:</p>
+          <ol>
+            <li>"As long as the opening fence": a count that depends on an earlier match.</li>
+            <li>
+              "Any token except X": a <code>TokenType</code> / <code>Pattern</code> rule with a <code>blacklist</code>,
+              written in code, used as a <code>{subrule}</code>.
+            </li>
+            <li>
+              Block structure (what nests in what, lazy continuation lines) and emphasis pairing: hand-written, by
+              design (the <code>markdown</code> plan's "Parser vs hand-written").
+            </li>
+          </ol>
+        </ui-section>
+
+        <ui-section id="8-open" header="8. Planned changes" sticky collapsible dividing collapsed>
+          <p>
+            Decided with Owen on 2026-10-03, after reviewing this page. Built in the <code>markdown</code> epic's P2;
+            NOT built yet. This page will be updated as each one lands.
+          </p>
+          <ui-table celled compact striped>
+            <table>
+              <thead>
+                <tr>
+                  <th>Change</th>
+                  <th>Example</th>
+                  <th>Effect on spell</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <b>Plain rulex tokenizer</b>: rulex reads syntax with words, numbers, symbols and whitespace only;
+                    no comments, quotes, JSX, <code>¬</code>/<code>∆</code>. Numbers are digits only:
+                    <code>1.1</code> is <code>1</code> <code>.</code> <code>1</code>, <code>-1</code> is <code>-</code>
+                    <code>1</code> (fixes the <code>1.1.1</code> crash)
+                  </td>
+                  <td>
+                    <code>#{1,6}\s{text}</code>, <code>---</code>, <code>"</code>, <code>&lt;b&gt;</code> as plain
+                    symbols
+                  </td>
+                  <td>
+                    None: no spell syntax contains <code>#</code>, <code>--</code>, <code>//</code>, quotes or tags
+                  </td>
+                </tr>
+                <tr>
+                  <td><b>Throw on leftovers</b>: <code>rulex.compile()</code> fails if any syntax token is unused</td>
+                  <td><code>a -- b</code> throws, naming <code>-- b</code></td>
+                  <td>Any syntax relying on the silent drop shows in the test suite</td>
+                </tr>
+                <tr>
+                  <td>
+                    <b>Spacing as written</b>: no space in the syntax = none allowed; a space = allowed. Replaces "make
+                    <code>Symbols</code> adjacent"
+                  </td>
+                  <td>
+                    <code>!\[{alt}\]\({url}\)</code> refuses <code>! [x] (y)</code>; <code>(&lt;|&gt;) =?</code> still
+                    takes <code>&gt; =</code>
+                  </td>
+                  <td>
+                    11 of 135 syntaxes have touching parts. Contractions (<code>isn't</code>) get stricter; the 4 list
+                    commas and the method-signature parens get a space, so they match as today
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <b><code>\s</code></b
+                    >: whitespace required here (zero-width: reads the previous token's whitespace)
+                  </td>
+                  <td><code>\-\s{text}</code> takes <code>- item</code>, refuses <code>-item</code></td>
+                  <td>None: no spell syntax uses it</td>
+                </tr>
+                <tr>
+                  <td>
+                    <b>Intervals</b>, as regex: <code>{n}</code>, <code>{n,m}</code>, <code>{n,}</code> straight after a
+                    rule
+                  </td>
+                  <td><code>\#{1,6}\s{text}</code>, <code>\-{3,}</code></td>
+                  <td>None. <code>{</code> + digit is a count; <code>{</code> + letter stays a subrule</td>
+                </tr>
+                <tr>
+                  <td>
+                    <b><code>/i</code></b
+                    >: case-insensitive, after a keyword or a choice of literals
+                  </td>
+                  <td><code>\[!(note|tip|warning)/i\]</code></td>
+                  <td>None. <code>{x}/i</code> is an error: a subrule's own rule decides what it matches</td>
+                </tr>
+                <tr>
+                  <td><b>Round trip</b>: <code>toRulexSyntax()</code> escapes specials and keeps the spacing</td>
+                  <td><code>\[{text}\]\({url}\)</code> prints back unchanged</td>
+                  <td><code>SPELL: DECLARES</code> comments and LSP descriptions print correct syntax</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+          <p>
+            And for markdown: line kinds in rulex as much as possible; what rulex can't say ("any token but a backtick")
+            is a rule built in code, used as a <code>{subrule}</code>.
+          </p>
+        </ui-section>
+
+        <ui-section id="9-sources" header="9. Sources and experiments" sticky collapsible dividing collapsed>
+          <ui-items class="spell-sources" divided>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a
+                    href="experiments/adjacency-impact.mts"
+                    target="src-packages-docs-rulex-experiments-adjacency-impact-mts"
+                    ><code>experiments/adjacency-impact.mts</code></a
+                  ></ui-header
+                >
+                <ui-meta
+                  >experiment · <code>yarn tsx rulex/experiments/adjacency-impact.mts</code> from
+                  <a href="../" target="src-packages-docs"><code>packages/docs</code></a></ui-meta
+                >
+                <ui-description
+                  >Lists every spell syntax with parts written touching, and every multi-symbol run. Backs the "spacing
+                  as written" row of section 8.</ui-description
+                >
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="experiments/rulex-probe.mts" target="src-packages-docs-rulex-experiments-rulex-probe-mts"
+                    ><code>experiments/rulex-probe.mts</code></a
+                  ></ui-header
+                >
+                <ui-meta
+                  >experiment · <code>yarn tsx rulex/experiments/rulex-probe.mts</code> from
+                  <a href="../" target="src-packages-docs"><code>packages/docs</code></a></ui-meta
+                >
+                <ui-description
+                  >Compiles every syntax on this page, printing the tokens rulex saw, how many it used, the rule tree
+                  and its <code>toRulexSyntax()</code>. Then matches sample inputs. Backs sections 3, 4, 6 and
+                  7.</ui-description
+                >
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="../../parser/src/rulex/rulex.ts" target="src-packages-parser-src-rulex-rulex-ts"
+                    ><code>packages/parser/src/rulex/rulex.ts</code></a
+                  ></ui-header
+                >
+                <ui-meta>source · rulex's own grammar, with its tests inline</ui-meta>
+                <ui-description>The constructs and what each compiles to (section 3).</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="../../parser/src/rules/Rule.ts" target="src-packages-parser-src-rules-rule-ts"
+                    ><code>packages/parser/src/rules/Rule.ts</code></a
+                  ></ui-header
+                >
+                <ui-meta
+                  >source · top docstring "Ways to make a rule", <code>initFromSyntax()</code>,
+                  <code>compileSyntax()</code></ui-meta
+                >
+                <ui-description>When and how a syntax compiles (section 2).</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="../../spell/src/rules/" target="src-packages-spell-src-rules"
+                    ><code>packages/spell/src/rules/</code></a
+                  ></ui-header
+                >
+                <ui-meta>source · 133 syntax registrations</ui-meta>
+                <ui-description>Usage counts (section 5); grep-based, so approximate.</ui-description>
+              </ui-content>
+            </ui-item>
+          </ui-items>
+        </ui-section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">Last checked 2026-10-03 against branch <code>markdown</code>: re-run the probe to update.</p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../_assets/spell-ui.js"></script>
+  </body>
+</html>

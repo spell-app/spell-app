@@ -90,7 +90,7 @@ const DECISIONS_NOTE =
   "don't re-argue without new facts. An answered question sits just above its decision."
 
 /** The `#judgements` section as the template has it:  `migrate` adds it to older docs (`addJudgements()`). */
-const JUDGEMENTS_SECTION = `<ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing>
+const JUDGEMENTS_SECTION = `<ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="compass"></ui-icon>
           <p class="meta">
             Choices made without you (a bedtime run, an agent mid-phase):  what was chosen, over what, and why.
@@ -210,7 +210,8 @@ export class PlanDoc {
         header: label,
         sticky: "",
         collapsible: "",
-        dividing: ""
+        dividing: "",
+        collapsed: ""
       })
       // newlines around the parts:  oxfmt keeps a custom element's whitespace as it is
       phase.innerHTML = `\n${icon("todo", true)}\n${list}\n`
@@ -286,8 +287,8 @@ ${list}`
   /**
    * Set phase `n` to `status` (`todo` / `active` / `done`), on its section and heading (and an old doc's list).
    * - `done` removes the phase's UPDATE markers:  once it's finished, its changes are just the plan
-   * - `done` also folds every OTHER done phase (`collapsed`;  old markup:  `data-fold="closed"`, read by the page
-   *   runtime):  the phase just finished stays open, the older ones get out of the way
+   * - `done` also folds every done phase (`collapsed`;  old markup:  `data-fold="closed"`, read by the page
+   *   runtime);  no status unfolds a phase:  the reader opens what they want
    * - any phase leaving `todo` removes the "Plan hung?" notice (`ui-message.plan-hung`):  planning is over
    * - SIDE EFFECT:  logs the change
    */
@@ -312,19 +313,21 @@ ${list}`
     }
     if (status === "done") {
       for (const marker of this.updateMarkers(n)) marker.remove()
-      this.foldDonePhases(n)
-    } else setFolded(section, false)
+      this.foldDonePhases()
+    }
     if (status !== "todo") this.document.querySelector("ui-message.plan-hung")?.remove()
     this.updateProgress()
     this.updateEstimate()
     this.log(`P${n} ${status}`)
   }
 
-  /** Fold every done phase but `latest` (the one finished last), which unfolds. */
-  foldDonePhases(latest) {
+  /**
+   * Fold every done phase;  never unfold one.
+   * - Why:  docs start folded and open on demand (`packages/docs/AGENTS.md`, "Writing a page")
+   */
+  foldDonePhases() {
     for (const section of this.phaseSections) {
-      const n = Number(section.getAttribute("data-phase"))
-      setFolded(section, n !== latest && section.getAttribute("data-status") === "done")
+      if (section.getAttribute("data-status") === "done") setFolded(section, true)
     }
   }
 
@@ -478,7 +481,8 @@ ${list}`
       header: "0. To test",
       sticky: "",
       collapsible: "",
-      dividing: ""
+      dividing: "",
+      collapsed: ""
     })
     section.innerHTML =
       `\n<ui-icon slot="icon" name="${SECTION_ICONS.tests}"></ui-icon>\n<p class="meta">${TESTS_NOTE}</p>\n` +
@@ -642,8 +646,8 @@ ${list}`
     if (icons) changes.push(`${icons} sections given their icon`)
     const done = this.phases.filter((phase) => phase.status === "done")
     if (done.length && !this.phaseSections.some(isFolded)) {
-      this.foldDonePhases(done.at(-1).n)
-      if (done.length > 1) changes.push(`${done.length - 1} done phases folded`)
+      this.foldDonePhases()
+      changes.push(`${done.length} done phases folded`)
     }
     this.updateProgress()
     return changes
