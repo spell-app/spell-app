@@ -72,5 +72,13 @@
       "packages/docs/content",
       "packages/docs/tools/_assets"
     ]
+  },
+  "shared": {
+    "dir": "../spell-app-dev",
+    "links": [
+      "packages/docs/content",
+      "goals",
+      "agents"
+    ]
   }
 }

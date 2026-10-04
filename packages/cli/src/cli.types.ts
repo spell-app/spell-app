@@ -396,3 +396,17 @@ export class CliError extends Error {
     this.exitCode = exitCode
   }
 }
+
+/**
+ * `spell dev shared` flags.
+ * - `json`:  `status` prints the data as JSON
+ * - `import`:  `init` copies this checkout's folders into the new shared repo
+ * - `all`:  `link` links every checkout, not just this one
+ * - `session`:  `commit`'s `Session:` trailer;  `quiet`:  `commit` prints nothing (the `Stop` hook)
+ */
+export type SharedOptions = GlobalOptions & {
+  json?: boolean
+  import?: boolean
+  session?: string
+  quiet?: boolean
+}

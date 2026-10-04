@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../../tools/_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../../tools/_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T19:19:16-04:00" class="spell-doc-page plan-doc" data-plan="shared-content">
+  <body data-recent-since="2026-10-04T19:39:48-04:00" class="spell-doc-page plan-doc" data-plan="shared-content">
     <spell-site-header root="../../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -21,8 +21,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Shared Content</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle right" href="#p4" title="Next:  P4 · Shared CLI and Hooks"
-                >P4</ui-label
+              ><ui-label basic color="grey" icon="circle right" href="#p5" title="Next:  P5 · Cutover"
+                >P5</ui-label
               ></span
             >
           </header></ui-sticky
@@ -65,7 +65,7 @@
               </blockquote></ui-content
             >
           </ui-accordion>
-          <p class="plan-estimate"><b>Estimate:</b> 9h-13h in all, 5h-7h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 9h-13h in all, 3h-4h left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <p>Docs content is tracked per branch today, which costs twice:</p>
             <ul>
@@ -256,7 +256,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="8" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="8" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -419,6 +419,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p3"
             data-phase="3"
             data-status="done"
@@ -565,14 +566,14 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
           <ui-section
             id="p4"
             data-phase="4"
-            data-status="todo"
+            data-status="done"
             header="P4 · Shared CLI and Hooks"
             badge="2-3h"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -582,19 +583,77 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   <li>Every turn's content edits are committed in <code>../spell-app-dev</code> by themselves</li>
                   <li><code>../spell-app-dev</code> shows as a folder in every package window</li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    <code>spell dev shared status | init [--import] | link [--all] | commit</code>:
+                    <a href="../../../../cli/src/dev/shared.ts" target="src-packages-cli-src-dev-shared-ts"
+                      ><code>packages/cli/src/dev/shared.ts</code></a
+                    >, <code>commands/sharedCommand.ts</code>; try <code>spell dev shared</code> now: every checkout
+                    shows <code>tracked</code> until the cutover.
+                  </li>
+                  <li>
+                    Manifest: <code>"shared": { "dir": "../spell-app-dev", "links": [...] }</code> in the root
+                    <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a
+                    >.
+                  </li>
+                  <li>
+                    Hooks: a new worktree links itself (<a
+                      href="../../../../../.claude/hooks/worktree.mjs"
+                      target="src-claude-hooks-worktree-mjs"
+                      ><code>.claude/hooks/worktree.mjs</code></a
+                    >, only once the shared repo exists); every turn commits the shared repo in the background (<a
+                      href="../../../../../.claude/hooks/shared-commit.mjs"
+                      target="src-claude-hooks-shared-commit-mjs"
+                      ><code>.claude/hooks/shared-commit.mjs</code></a
+                    >, registered, inert until P5; J9).
+                  </li>
+                  <li>
+                    Windows:
+                    <a href="../../../../../scripts/window.mjs" target="src-scripts-window-mjs"
+                      ><code>scripts/window.mjs</code></a
+                    >
+                    adds <code>spell-app-dev</code> as a folder to new worktree windows and new package windows, and
+                    <code>window.mjs init</code> adds it to existing package windows once it exists.
+                  </li>
+                  <li>
+                    Tested on real temp repos (<a
+                      href="../../../../cli/src/dev/shared.test.ts"
+                      target="src-packages-cli-src-dev-shared-test-ts"
+                      ><code>packages/cli/src/dev/shared.test.ts</code></a
+                    >, 8): init --import, link (replace identical, make missing, refuse diverged and tracked), commit
+                    through any checkout's link, and <code>git worktree remove</code> deleting only the links. CLI: 159
+                    tests, ts and lint clean; <code>yarn commands:check</code> passes (rows in "Docs pages", noun in
+                    5.2).
+                  </li>
+                  <li>Not tried: the hooks and the window folder for real; they start at P5 (<a href="#v4">V4</a>).</li>
+                </ul></ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> new <code>packages/cli/src/dev/shared.ts</code>, <code>commands/sharedCommand.ts</code>;
+                ><b>Files:</b> new
+                <a href="../../../../cli/src/dev/shared.ts" target="src-packages-cli-src-dev-shared-ts"
+                  ><code>packages/cli/src/dev/shared.ts</code></a
+                >, <code>commands/sharedCommand.ts</code>;
                 <a href="../../../../../.claude/hooks/worktree.mjs" target="src-claude-hooks-worktree-mjs"
                   ><code>.claude/hooks/worktree.mjs</code></a
-                >, new <code>.claude/hooks/shared-commit.mjs</code>;
+                >, new
+                <a href="../../../../../.claude/hooks/shared-commit.mjs" target="src-claude-hooks-shared-commit-mjs"
+                  ><code>.claude/hooks/shared-commit.mjs</code></a
+                >;
                 <a href="../../../../../scripts/window.mjs" target="src-scripts-window-mjs"
                   ><code>scripts/window.mjs</code></a
                 >
                 (workspace folder); manifest in root
                 <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a></ui-item
               ><ui-item icon="flask"
-                ><b>Verify:</b> <code>shared.test.ts</code> on temp repos; a scratch peer via
-                <code>--dir</code></ui-item
+                ><b>Verify:</b>
+                <a href="../../../../cli/src/dev/shared.test.ts" target="src-packages-cli-src-dev-shared-test-ts"
+                  ><code>shared.test.ts</code></a
+                >
+                on temp repos; a scratch peer via <code>--dir</code></ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#j9">J9</a>, <a href="#j10">J10</a>, <a href="#j11">J11</a>,
+                <a href="#c9">C9</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -1366,6 +1425,77 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:51:40-04:00"
+              id="j9"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j9">J9</a>
+                  <span class="plan-title">The Stop hook is registered now, not at the cutover</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../../../.claude/hooks/shared-commit.mjs" target="src-claude-hooks-shared-commit-mjs"
+                      ><code>.claude/hooks/shared-commit.mjs</code></a
+                    >
+                    is in
+                    <a href="../../../../../.claude/settings.json" target="src-claude-settings-json"
+                      ><code>.claude/settings.json</code></a
+                    >
+                    already: it exits at once while <code>../spell-app-dev</code> doesn't exist, so it costs nothing
+                    until <a href="#p5">P5</a> creates it, and the cutover then has one less file to change.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      once P4 is on <code>main</code>, every session runs one more (instant) <code>Stop</code> hook
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:51:42-04:00"
+              id="j10"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j10">J10</a>
+                  <span class="plan-title">migrate waits for P6</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The plan listed <code>migrate</code> with P4's verbs; it moves to <a href="#p6">P6</a>, which is the
+                    only phase that uses it, and needs
+                    <a href="../../../tools/relocate.js" target="src-packages-docs-tools-relocate-js"
+                      ><code>relocate.js</code></a
+                    >'s 3-way fold that only makes sense against a real shared repo.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:51:44-04:00"
+              id="j11"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j11">J11</a>
+                  <span class="plan-title"
+                    >Auto-commit messages name the checkout, not the session title</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Each turn's commit in the shared repo is <code>auto: &lt;checkout&gt;</code> (<code>main</code> or
+                    <code>.claude/worktrees/&lt;w&gt;</code>) with <code>Session:</code> and
+                    <code>Checkout:</code> trailers. The session's title would need a lookup of every live session on
+                    each turn; the id in the trailer finds it (<code>spell dev session find &lt;id&gt;</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1568,6 +1698,24 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T19:51:46-04:00"
+              id="c9"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title">The hooks take effect only from main</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Hooks run from <code>$CLAUDE_PROJECT_DIR/.claude/hooks/</code>: the MAIN checkout's, since every
+                    session is saved there. So the worktree hook's linking and the <code>Stop</code> hook's commits
+                    start once P4 is on <code>main</code>, whatever a worktree's copy says.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1673,7 +1821,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T19:22:56-04:00"
               id="i1"
               data-status="done"
@@ -1971,6 +2119,20 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T19:39-04:00">2026-10-04 19:39</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:44-04:00">2026-10-04 19:44</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:51-04:00">2026-10-04 19:51</time></ui-date> P4
                   done</ui-summary
                 ></ui-content
               ></ui-event
