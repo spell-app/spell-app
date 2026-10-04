@@ -28,7 +28,7 @@ add discards to all-piles
 a foundation is a pile
 a foundation "can pick up (a card)": never
 a foundation "can play (a card)" if: 
-	return (its name is the suit of the card) and (its value + 1 is the value of the card)
+	return its name is the suit of the card and its value + 1 is the value of the card
 get a new foundation with name = clubs, symbol = "♣️", droppable = yes
 add it to the foundations
 get a new foundation with name = diamonds, symbol = "♦️", droppable = yes
@@ -91,7 +91,7 @@ animation play from the stock pile
 
 animation deal the cards
 	// pull all cards into stock with a nice animation
-	set cards to (merge all-piles into a new pile)
+	set cards to merge all-piles into a new pile
 	reverse the cards
 	for each card in the cards
 		set start-pile to the pile of the card
@@ -102,7 +102,7 @@ animation deal the cards
 	
 	// deal cards into tableaus
 	for row from 1 to 7
-		turn (the bottom card of the stock) face up
+		turn the bottom card of the stock face up
 		for column from row to 7
 			wait for: move the bottom card of the stock to item column of the tableaus
 
@@ -120,7 +120,7 @@ to play (a card)
 	set end-pile to the first pile in droppable-piles
 	if there is not an end-pile return no
 
-	set cards-to-move to (cards in start-pile starting with the card)
+	set cards-to-move to cards in start-pile starting with the card
 	set the name of cards-to-move to the name of the start-pile
 	print "moving (" + the state of cards-to-move + ") to (" + the state of end-pile + ")"
 		
@@ -152,7 +152,7 @@ to auto-play
 	for each pile in the tableaus
 		if the pile is empty return
 		set test-card to the last card in the pile
-		set foundation to the first pile in (piles in foundations where the name of the pile is the suit of test-card)
+		set foundation to the first pile in piles in foundations where the name of the pile is the suit of test-card
 		if the foundation can play test-card
 			set anything-changed to yes
 			await play test-card
@@ -163,7 +163,7 @@ to auto-play
 		set face-up-cards to the cards in the pile where the card is face up
 		if face-up-cards is empty return
 		set test-card to the first card in face-up-cards
-		if (test-card is a king) and (test-card is the first card of the pile) return
+		if test-card is a king and test-card is the first card of the pile return
 		if await play test-card
 			set anything-changed to yes
 			pause for 500 msec
@@ -191,7 +191,7 @@ to cheat
 // note: tableaus just draw as a (vertical) list of cards
 
 to draw (a foundation):
-	set color to "red" if (its name is diamonds or its name is hearts) otherwise "black"
+	set color to "red" if its name is diamonds or its name is hearts otherwise "black"
 	return <div className="Pile Foundation stacked">
 		<div className={"Placeholder ui button basic compact fluid " + color + " " + its name}>
 			<div className={"suit " + its name}>{its symbol}</div>

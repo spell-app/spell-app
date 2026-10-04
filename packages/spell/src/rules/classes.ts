@@ -13,7 +13,7 @@ import { P } from "$/parser"
 import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { getKnownType } from "./types"
-import { InfixOperatorSuffix, type SpellExpressionProps } from "./expressions"
+import { InfixOperatorSuffix, Precedence, type SpellExpressionProps } from "./expressions"
 import { SpellConstant } from "./constants"
 
 /**
@@ -45,13 +45,13 @@ export const classes = new SpellParser({ module: "classes" })
 
 /**
  * `a card is a thing` -- declares `type` as a new class extending `superType`.
- * - `precedence: 10` so this wins over other `{type} is {type}` -ish statement rules.
+ * - `priority: 10` so this wins over other `{type} is {type}` -ish statement rules.
  * - SIDE EFFECT: adds `type` to `scope.types`, unless it's already defined (no redefinition/merge).
  * - Compiles to an exported class declaration, e.g. `a card is a thing` => `export class Card extends Thing {}`.
  *   Another project reaches it by `import`ing it -- no globals.
  */
 class create_type extends SpellStatement<"type|superType"> {
-  @proto static precedence = 10
+  @proto static priority = 10
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "superType" }
 
@@ -103,13 +103,13 @@ classes.addRule(create_type, {
 /**
  * `a deck is a list of cards` or `create a type called Deck as a list of cards` -- declares `type` as a
  * new class extending `List`, with its `instanceType` set to `instanceType`.
- * - `precedence: 10` so this wins over the plainer `create_type` rule above for the `is a list of` form.
+ * - `priority: 10` so this wins over the plainer `create_type` rule above for the `is a list of` form.
  * - SIDE EFFECT: adds `type` to `scope.types` (superType `"list"`), unless already defined.
  * - Compiles to a class declaration extending `List` with a static `instanceType`, e.g.
  *   `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
  */
 class create_list_type extends SpellStatement<"type|instanceType"> {
-  @proto static precedence = 10
+  @proto static priority = 10
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
 
@@ -448,7 +448,7 @@ classes.addRule(type_specifier_yes_or_no, {
  */
 export class EnumerationRule extends P.Literals {
   @proto static importableAs = "enumeration"
-  @proto static precedence = 20
+  @proto static priority = 20
   @proto static alias = "expression"
 
   /** Type the enumerated property belongs to, e.g. `Card`. */
@@ -507,7 +507,7 @@ type EnumerationRuleProps = Prettify<P.LiteralsProps & { typeName: string; group
 /**
  * `a card has a suit as one of clubs, diamonds, hearts, spades` / `todos have a title as text` -- declares
  * an instance property on `type`, optionally constrained/initialized by a `type_specifier`.
- * - `precedence: 10` so this wins over other `{type} has|have ...` -ish statement rules.
+ * - `priority: 10` so this wins over other `{type} has|have ...` -ish statement rules.
  * - SIDE EFFECT: stubs `type` into `scope.types` if not yet declared -- see `P.TypeScope.getOrStub()`.
  * - SIDE EFFECT: when `specifier` is an enumeration, also adds a pluralized class variable (e.g. `Suits`)
  *   holding the raw values, adds string values to `scope.constants`, and registers an `EnumerationRule`
@@ -520,7 +520,7 @@ type EnumerationRuleProps = Prettify<P.LiteralsProps & { typeName: string; group
  * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `EnumerationRule`.
  */
 class define_property_has extends SpellStatement<"type|property|specifier?"> {
-  @proto static precedence = 10
+  @proto static priority = 10
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type", detail: "specifier" }
 
@@ -949,7 +949,9 @@ type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
  */
 export class QuotedPropertyRule extends InfixOperatorSuffix {
   @proto static importableAs = "quoted_property"
-  @proto static precedence = 20
+  /** A user's alias wins over a built-in suffix matching the same words, e.g. `is the queen of spades`. */
+  @proto static priority = 20
+  @proto static precedence = Precedence.comparison
 
   /** Generated method to call, e.g. `is_the_$rank_of_$suits`. */
   declare methodName: string
@@ -1055,7 +1057,7 @@ function placeholderData(
  * from a quoted phrase with `(placeholder)`s, plus a matching quoted-expression rule to call it,
  * e.g. `a card is the queen of spades`.
  * - NOTE: the first word in quotes must be `"is"` !!
- * - `precedence: 10` so this wins over plainer statement rules that could otherwise partially match.
+ * - `priority: 10` so this wins over plainer statement rules that could otherwise partially match.
  * - SIDE EFFECT: `getBits()` derives (and caches in `match.data.bits`) rulex `syntax`, per-placeholder
  *   `ruleData`, `vars` and the generated `property` name, consumed by `mutateScope()`/`getAST()` below.
  * - SIDE EFFECT: `mutateScope()` registers a `QuotedPropertyRule` for the quoted phrase,
@@ -1065,7 +1067,7 @@ function placeholderData(
  *   `this.rank === rank && this.suit === suit`.
  */
 class quoted_property_formula extends SpellStatement<"type|alias|sources", QuotedPropertyFormulaMatchData> {
-  @proto static precedence = 10
+  @proto static priority = 10
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "method", name: "alias", of: "type" }
 

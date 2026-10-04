@@ -57,10 +57,12 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 - A rule is a CLASS (behaviour AND what the rule is) plus its `syntax` + `tests`, passed when registering it:
   `parser.addRule(RuleClass, { syntax, tests })`.
-  - Everything else -- `alias`, `precedence`, `declares`, `highlightAs`, `datatype`, `tokenType`, `pattern` ... --
+  - Everything else -- `alias`, `priority`, `declares`, `highlightAs`, `datatype`, `tokenType`, `pattern` ... --
     goes ON THE CLASS as `@proto static` (from `$/util`), e.g. `@proto static alias = "expression"`.
     Why:  the class is the rule, reusable by other languages' parsers with their own `syntax`.
   - `@proto` only accepts a prop the rule declares -- `@proto static alais` is a compile error.
+  - `priority` only breaks a tie between rules matching the SAME words;  an operator's `precedence` (from the
+    `Precedence` table) is how tightly it binds.  New expression or operator:  `PARSING.md`, "Adding an expression rule".
   - Class name IS the rule name.  Use plain `static ruleName = "if"` only for reserved words (`class _if`)
     or when class name isn't rule case (`class Block` => `"block"`).
     Prod build MUST keep `output.keepNames` (`../app/vite.config.ts`), pinned by `../app/src/build.test.ts`.
@@ -112,7 +114,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - Rule module layout, top to bottom:
   - header docstring, imports
   - `export const <module> = new SpellParser({ module: "<module>" })` -- at the TOP, classes can't be hoisted to it
-  - then for EACH rule, in tie-break order (when two rules tie on precedence and length, the EARLIER wins):
+  - then for EACH rule, in tie-break order (when two rules tie on `priority` and length, the EARLIER wins):
     - a group header naming the rule and showing what it matches, exactly this shape -- `e.g.` indented 4
       so it lines up under the rule name, and the example taken from the rule's own `tests` so it stays true:
       ```

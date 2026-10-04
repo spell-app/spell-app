@@ -101,7 +101,7 @@ class property_expression extends SpellExpression<"property_accessor|expression"
   }
 }
 properties.addRule(property_expression, {
-  syntax: "{property_accessor} {expression:simple_expression}",
+  syntax: "{property_accessor} {expression:operand}",
   tests: [
     {
       compileAs: "expression",

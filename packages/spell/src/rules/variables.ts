@@ -29,7 +29,7 @@ export const variables = new SpellParser({ module: "variables" })
  *   what's output with `variable.output`.  NOT when building the AST:  scope may have changed by then,
  *   e.g. `it` redefined by a later `get`.
  * - TODO: type based on scope variable type?
- * - TODO: higher precedence if variable is known?
+ * - TODO: higher priority if variable is known?
  */
 export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> extends P.Pattern<
   never,

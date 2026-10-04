@@ -408,7 +408,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "of": "Stock_Pile",
       "output": "can_pick_up_$card",
       "rule": "method_infix",
-      "syntax": "{operator:can} pick up {expression:simple_expression}",
+      "syntax": "{operator:can} pick up {expression:operand}",
     },
     {
       "alias": [
@@ -435,7 +435,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "of": "Discard_Pile",
       "output": "can_pick_up_$card",
       "rule": "method_infix",
-      "syntax": "{operator:can} pick up {expression:simple_expression}",
+      "syntax": "{operator:can} pick up {expression:operand}",
     },
     {
       "alias": [
@@ -462,7 +462,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "of": "Foundation",
       "output": "can_pick_up_$card",
       "rule": "method_infix",
-      "syntax": "{operator:can} pick up {expression:simple_expression}",
+      "syntax": "{operator:can} pick up {expression:operand}",
     },
     {
       "defined": "/Solitaire.spell:992-1117",
@@ -471,7 +471,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "of": "Foundation",
       "output": "can_play_$card",
       "rule": "method_infix",
-      "syntax": "{operator:can} play {expression:simple_expression}",
+      "syntax": "{operator:can} play {expression:operand}",
     },
     {
       "alias": [
@@ -498,7 +498,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "of": "Tableau",
       "output": "can_pick_up_$card",
       "rule": "method_infix",
-      "syntax": "{operator:can} pick up {expression:simple_expression}",
+      "syntax": "{operator:can} pick up {expression:operand}",
     },
     {
       "defined": "/Solitaire.spell:1717-1894",
@@ -507,7 +507,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "of": "Tableau",
       "output": "can_play_$card",
       "rule": "method_infix",
-      "syntax": "{operator:can} play {expression:simple_expression}",
+      "syntax": "{operator:can} play {expression:operand}",
     },
     {
       "alias": [

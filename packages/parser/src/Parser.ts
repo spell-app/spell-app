@@ -350,7 +350,7 @@ export class Parser extends Derivative {
 
   /**
    * All names `rule` should be registered under, given the `names` it asked for.
-   * - Override to add language-specific collections, e.g. spell's `simple_expression`.
+   * - Override to add language-specific collections, e.g. spell's `operand`.
    */
   protected getNamesForRule(_rule: P.Rule, names: string[]): string[] {
     return names

@@ -5,7 +5,7 @@ import { P } from "$/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement } from "./Statement"
-import { InfixOperatorSuffix } from "./expressions"
+import { InfixOperatorSuffix, Precedence } from "./expressions"
 
 /** Rule module for `if`/`else if`/`else` statement rules, plus the `backwards_if` ternary suffix. */
 export const _if_ = new SpellParser({ module: "if" })
@@ -113,15 +113,15 @@ _if_.addRule(_if, {
 /**
  * `(else|otherwise) if {condition} (then|:)?` -- else-if branch, chained after `if`.
  * - NOTE: this MUST be before `else` or that will eat `else if` statements... :-(
- * - `precedence: 1` (default 0) also biases resolution toward this rule over `else` when ambiguous.
- *   TODO: is `precedence` load-bearing here, or does rule-definition order (see NOTE above) suffice?
+ * - `priority: 1` (default 0) also biases resolution toward this rule over `else` when ambiguous.
+ *   TODO: is `priority` load-bearing here, or does rule-definition order (see NOTE above) suffice?
  * - Compiles body in a nested `BlockScope` (named `"elseif"`) via `getNestedScopeForMatch()`.
  * - Prefers nested block over inline statement when (invalidly) given both -- see `getBody()`.
  * - Compiles to `else if (condition) { ...statements }`.
  */
 class else_if extends SpellStatement<"condition|body?"> {
   @proto static alias = "statement"
-  @proto static precedence = 1
+  @proto static priority = 1
 
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "elseif", parentScope: match.scope })
@@ -281,6 +281,8 @@ _if_.addRule(_else, {
  * - Compiles to `P.ASTTernaryExpression`.
  */
 class backwards_if extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = Precedence.ternary
+
   compileASTExpression(
     match: P.Match,
     { lhs, operator, rhs }: { lhs: P.ASTExpression; operator: P.Match; rhs: P.ASTExpression }

@@ -26,25 +26,25 @@ describe("grammar probes", () => {
 
   test("P1a  trailing operand takes the operator", () => {
     expect(probe("print the first card of the deck is face up")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemOf(deck.is_face_up, 1))"`
+      `"spellCore.console.log(spellCore.getItemOf(deck, 1).is_face_up)"`
     )
   })
 
   test("P1b  count vs comparison", () => {
     expect(probe("print the number of cards in the deck is 52")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.itemCountOf(deck == 52))"`
+      `"spellCore.console.log(spellCore.itemCountOf(deck) == 52)"`
     )
   })
 
   test("P1c  count vs arithmetic", () => {
     expect(probe("print the number of cards in the deck + 1")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.itemCountOf(deck + 1))"`
+      `"spellCore.console.log(spellCore.itemCountOf(deck) + 1)"`
     )
   })
 
   test("P1d  property of a position", () => {
     expect(probe("print the suit of the first card of the deck is hearts")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemOf(deck == 'hearts', 1).suit)"`
+      `"spellCore.console.log(spellCore.getItemOf(deck, 1).suit == 'hearts')"`
     )
   })
 
@@ -53,16 +53,15 @@ describe("grammar probes", () => {
       "Card.prototype.remove_of_$pile = function (pile) {
         return spellCore.console.log(1)
       }
-      /* PARSE ERROR: Don't understand "remove the card of the pile" */
-      ERROR 9:0 Don't understand "remove the card of the pile""
+      card.remove_of_$pile(pile)"
     `)
   })
 
   test("P1f  count with `where`", () => {
     expect(probe("print the number of cards in the deck where its color is red")).toMatchInlineSnapshot(`
-      "spellCore.console.log(spellCore.itemCountOf(deck))
-      /* PARSE ERROR: Don't understand "where its color is red" */
-      ERROR 8:38 Don't understand "where its color is red""
+      "spellCore.console.log(spellCore.itemCountOf(spellCore.filter(deck, (card) => {
+        return (card.color == 'red')
+      })))"
     `)
   })
 
@@ -79,16 +78,14 @@ describe("grammar probes", () => {
   ////////////////
 
   test("P2a  enumeration beats a longer compound", () => {
-    expect(probe("print card suits includes x")).toMatchInlineSnapshot(`
-      "spellCore.console.log(Card.Suits)
-      /* PARSE ERROR: Don't understand "includes x" */
-      ERROR 8:17 Don't understand "includes x""
-    `)
+    expect(probe("print card suits includes x")).toMatchInlineSnapshot(
+      `"spellCore.console.log(spellCore.includes(Card.Suits, x))"`
+    )
   })
 
   test("P2b  unset precedence on `ends with`", () => {
     expect(probe("print x ends with y and 1")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.endsWith(x, y && 1))"`
+      `"spellCore.console.log(spellCore.endsWith(x, y) && 1)"`
     )
   })
 
@@ -99,11 +96,11 @@ describe("grammar probes", () => {
   })
 
   test("P2d  `draw_thing` at precedence 100", () => {
-    expect(probe("draw the cards of the deck")).toMatchInlineSnapshot(`"deck.cards.draw()"`)
+    expect(probe("draw the cards of the deck")).toMatchInlineSnapshot(`"spellCore.drawItems(deck)"`)
   })
 
   test("P3   postfix applied immediately", () => {
-    expect(probe("print x + y is empty")).toMatchInlineSnapshot(`"spellCore.console.log(x + spellCore.isEmpty(y))"`)
+    expect(probe("print x + y is empty")).toMatchInlineSnapshot(`"spellCore.console.log(spellCore.isEmpty(x + y))"`)
   })
 
   ////////////////
@@ -174,11 +171,7 @@ describe("grammar probes", () => {
   })
 
   test("P7   `is a` accepts any word as a type", () => {
-    expect(probe("print the card is a new card")).toMatchInlineSnapshot(`
-      "spellCore.console.log(spellCore.isOfType(card, 'New'))
-      /* PARSE ERROR: Don't understand "card" */
-      ERROR 8:24 Don't understand "card""
-    `)
+    expect(probe("print the card is a new card")).toMatchInlineSnapshot(`"spellCore.console.log(card == new Card())"`)
   })
 
   test("P7b  setting a property the type never declared", () => {
@@ -191,7 +184,7 @@ describe("grammar probes", () => {
 
   test("P8a  Deck.spell:40-41 as one line", () => {
     expect(probe("expect the first card of the deck is the ace of clubs to be yes")).toMatchInlineSnapshot(
-      `"spellCore.expect(spellCore.getItemOf(deck.is_the_$rank_of_$suits('ace', 'clubs'), 1), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
+      `"spellCore.expect(spellCore.getItemOf(deck, 1).is_the_$rank_of_$suits('ace', 'clubs'), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
     )
   })
 
@@ -209,7 +202,7 @@ describe("grammar probes", () => {
 
   test("P8d  Card.spell:46 without its parens", () => {
     expect(probe("print the first character of the name of the card as uppercase")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemOf(spellCore.upperCase(card.name), 1))"`
+      `"spellCore.console.log(spellCore.upperCase(spellCore.getItemOf(card.name, 1)))"`
     )
   })
 

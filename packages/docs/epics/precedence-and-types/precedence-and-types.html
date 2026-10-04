@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Precedence and Types</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Binding Power</ui-label></span
+              ><ui-label basic color="orange" icon="circle half stroke" href="#p3">P3 · Binding Power</ui-label></span
             >
           </header></ui-sticky
         >
@@ -379,8 +379,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Binding Power" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section
+            id="p3"
+            data-phase="3"
+            data-status="active"
+            header="P3 · Binding Power"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> greedy operands, the two jobs of <code>precedence</code>, postfix-binds-tightest fixed;
@@ -1550,6 +1558,300 @@ card.pile = pile</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d26" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d26">D26</a>
+                  <span class="plan-title">Operators get `precedence`; a Choice's tie-break becomes `priority`</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    From the P3 prototype review. The prototype called how tightly an operator binds
+                    <code>bindingPower</code> (table <code>BP</code>); Owen: swap the words instead.
+                  </p>
+                  <ul>
+                    <li>
+                      <code>precedence</code> = how tightly an operator binds: <code>*</code> before
+                      <code>+</code> before <code>is</code> before <code>and</code>. What every programmer already means
+                      by it. Set on operator (suffix) rules only, from one named table.
+                    </li>
+                    <li>
+                      <code>priority</code> = which of several rules matching the SAME words wins a
+                      <code>Choice</code> (was <code>precedence</code>): <code>Choice.getBestMatch()</code> ranks
+                      highest priority, then longest, then earliest.
+                    </li>
+                    <li>
+                      Renames: <code>Rule.precedence</code> → <code>Rule.priority</code> and its ~20 kept settings; the
+                      prototype's <code>bindingPower</code> / <code>BP</code> → <code>precedence</code> / a table named
+                      for it; PARSING.md,
+                      <a href="../../../spell/AGENTS.md" target="src-packages-spell-agents-md"
+                        ><code>packages/spell/AGENTS.md</code></a
+                      >, the model doc.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d27" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d27">D27</a>
+                  <span class="plan-title">D24's bounded call rules: P5, with declarations listing both rules</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Closes <a href="#i3">I3</a>. A one-argument call inside an expression takes an operand-sized
+                    argument; as a statement it takes a whole expression. Built in P5 with typed calls: the method-rule
+                    generator registers both rules, and the saved declaration lists both, so an importing project
+                    rebuilds both. Until then calls stay greedy, as today.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d28" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d28">D28</a>
+                  <span class="plan-title">`wait for` keeps a whole expression for now</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Closes <a href="#c6">C6</a>, narrows <a href="#d23">D23</a>. <code>wait for x is 1</code> as a
+                    statement compiles to <code>await (x == 1)</code> again. Revisit in P5 with the same two-rule
+                    mechanism as calls.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q16" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q16">Q16</a>
+                  <span class="plan-title">What do we call 'an expression without operators after it'?</span>
+                  <a class="plan-answer" href="#d29">→ D29</a>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    <b>What it is.</b> After P3, an <code>expression</code> is ONE of these, then any operators after
+                    it. This thing needs a name: it's the piece operators act on, and the slot a list prefix takes so it
+                    can't swallow an operator.
+                  </p>
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>IS one</th>
+                          <th>is NOT one (has an operator at the top)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>5</code>, <code>"hi"</code>, <code>the deck</code></td>
+                          <td><code>x + 1</code></td>
+                        </tr>
+                        <tr>
+                          <td><code>the first card of the deck</code> (nests: it holds <code>the deck</code>)</td>
+                          <td><code>the card is red</code></td>
+                        </tr>
+                        <tr>
+                          <td><code>the suit of the card</code>, <code>a new card</code></td>
+                          <td><code>x and y</code></td>
+                        </tr>
+                        <tr>
+                          <td><code>(x + 1)</code>: parens make one</td>
+                          <td><code>the number of cards in the deck + 1</code></td>
+                        </tr>
+                        <tr>
+                          <td><code>the cards in the deck where its color is red</code></td>
+                          <td></td>
+                        </tr>
+                      </tbody></table
+                  ></ui-table>
+                  <p>
+                    So it is NOT "simple" and NOT "single" in the sense of "can't contain other expressions": it nests
+                    freely. What it lacks is an operator at its own top level.
+                  </p>
+                  <p>
+                    <b>Where the name shows.</b> Every rule slot that must stop before an operator, about 30 of them;
+                    the expression loop; <code>SpellParser.getNamesForRule()</code>; PARSING.md; saved declarations (the
+                    generated <code>is …</code> rules' syntax).
+                  </p>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>the three places a reader meets it</ui-title
+                    ><ui-content>
+                      <pre><code class="language-text">// a list prefix:  its last slot can't swallow `+ 1` or `is red`
+the first card of {list:NAME}
+// an operator's right-hand side
+(operator:plus|+) {expression:NAME}
+// the expression loop itself
+{lhs:NAME} {rhsChain:expression_suffix}*</code></pre>
+                    </ui-content></ui-accordion
+                  >
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>name</th>
+                          <th>reads as</th>
+                          <th>for</th>
+                          <th>against</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>operand</code> (recommended)</td>
+                          <td><code>the first card of {list:operand}</code></td>
+                          <td>
+                            named for its ROLE: what an operator acts on. Says nothing about size, so nesting isn't
+                            surprising. Short.
+                          </td>
+                          <td>a math word; a list prefix isn't an operator, though it acts like one</td>
+                        </tr>
+                        <tr>
+                          <td><code>primary_expression</code></td>
+                          <td><code>{list:primary_expression}</code></td>
+                          <td>the standard compiler term (C, JavaScript grammars) for exactly this</td>
+                          <td>jargon if you haven't read a grammar; long</td>
+                        </tr>
+                        <tr>
+                          <td><code>simple_expression</code> (today)</td>
+                          <td><code>{list:simple_expression}</code></td>
+                          <td>no rename, no saved-declaration churn</td>
+                          <td>"simple" misleads: <code>the cards in the deck where …</code> isn't simple</td>
+                        </tr>
+                        <tr>
+                          <td><code>single_expression</code> (prototype)</td>
+                          <td><code>{list:single_expression}</code></td>
+                          <td>"one, not a chain"</td>
+                          <td>reads as "can't contain other expressions" (Owen)</td>
+                        </tr>
+                        <tr>
+                          <td><code>term</code></td>
+                          <td><code>{list:term}</code></td>
+                          <td>math / Pratt-parser word</td>
+                          <td>"doesn't mean anything to me" (Owen)</td>
+                        </tr>
+                        <tr>
+                          <td><code>unit</code></td>
+                          <td><code>{list:unit}</code></td>
+                          <td>"one piece", short</td>
+                          <td>collides with units of measure (<code>50 msec</code>)</td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <p>
+                    <b>The old name.</b> Unless we keep <code>simple_expression</code>, saved declarations still say
+                    <code>{expression:simple_expression}</code>:
+                    <a
+                      href="../../../spell/projects/system/library/cards/cards.compiled.js"
+                      target="src-packages-spell-projects-system-library-cards-cards-compiled-js"
+                      ><code>packages/spell/projects/system/library/cards/cards.compiled.js</code></a
+                    >, the Solitaire examples. Either regenerate them in P3 and have ONE name (recommended; a compiled
+                    library elsewhere needs a rebuild, and P4 bumps the declarations version anyway), or keep the old
+                    name as a second registered name until P4.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d29" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d29">D29</a>
+                  <span class="plan-title"
+                    >`operand`; saved declarations regenerated in P3, one name (<a href="#q16">Q16</a>)</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q16">Q16</a>: What do we call 'an expression without operators after it'?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q17" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q17">Q17</a>
+                  <span class="plan-title"
+                    >`draw the cards of the deck`: settle the tie by priority, not file order?</span
+                  >
+                  <a class="plan-answer" href="#d30">→ D30</a>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p><b>The two rules.</b> Both start with <code>draw</code>:</p>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>packages/spell/src/rules/draw.ts</ui-title
+                    ><ui-content>
+                      <pre><code class="language-text">// draw_thing:  draw ONE thing, reactively
+"draw {expression}"                                                   =&gt; spellCore.drawThing(x)
+// draw_items:  draw each item of a list
+"draw (each {variable}|(the|all)? {plural_identifier}) (of|in) {expression}"  =&gt; spellCore.drawItems(list)</code></pre>
+                    </ui-content></ui-accordion
+                  >
+                  <p><b>The clash.</b> <code>draw the cards of the deck</code> matches BOTH, in the same 6 words:</p>
+                  <ul>
+                    <li>
+                      <code>draw_thing</code> reads <code>the cards of the deck</code> as one thing:
+                      <code>drawThing(deck.cards)</code>
+                    </li>
+                    <li>
+                      <code>draw_items</code> reads it as "each card of the deck": <code>drawItems(deck)</code> --
+                      what's meant
+                    </li>
+                  </ul>
+                  <p>
+                    A <code>Choice</code> picks the highest priority (was <code>precedence</code>), then the longest,
+                    then the rule registered FIRST.
+                  </p>
+                  <ul>
+                    <li>
+                      Today: <code>draw_thing</code> has priority 100, so it always wins; <code>draw_items</code>' test
+                      for this line was skipped because it always failed.
+                    </li>
+                    <li>
+                      <code>draw_thing</code> can't drop to 0: a project's own <code>to draw (a card)</code> makes a
+                      call rule (priority 0) that also matches <code>draw the stock</code>, and
+                      <code>stock.draw()</code> skips the reactive redraw. So it needs 1.
+                    </li>
+                    <li>
+                      Prototype: BOTH at 1, and <code>draw_items</code> moved ABOVE <code>draw_thing</code> in the file
+                      so it wins the tie. Works, but only because of file order: move the rule and it silently breaks.
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top"
+                          >A. draw_items 2, draw_thing 1, file order as today (recommended)</ui-label
+                        >
+                        <p>
+                          The ranking says it: <code>draw_items</code> beats <code>draw_thing</code> beats a user's
+                          <code>to draw</code>. Each with a one-line why. No reorder in the diff.
+                        </p></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Both 1, draw_items first in the file</ui-label>
+                        <p>As prototyped. Same output; depends on registration order.</p></ui-segment
+                      ></ui-column
+                    >
+                  </ui-grid></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d30" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d30">D30</a>
+                  <span class="plan-title"
+                    >Explicit priority on the rules: draw_items 2, draw_thing 1, file order as today (<a href="#q17"
+                      >Q17</a
+                    >)</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q17">Q17</a>: `draw the cards of the deck`: settle the tie by priority, not file
+                    order?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1631,6 +1933,164 @@ card.pile = pile</code></pre>
                     </li>
                     <li>
                       The cut §9 sub-sections keep empty anchors in the cut note; nothing in the repo linked to them.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j5">J5</a>
+                  <span class="plan-title">Prototype choices beyond §4.5's sketch</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><ol>
+                    <li>
+                      <b>Give-back is narrower than the sketch:</b> only a REQUIRED <code>{subrule}</code> slot straight
+                      before a REQUIRED word (<code>Literal</code> / <code>Literals</code>). The sketch allowed any
+                      non-word slot; an optional slot that was skipped would hand give-back the wrong match.
+                    </li>
+                    <li>
+                      <b>Give-back also fires when the word runs out of tokens</b>, not only when it fails to match:
+                      P1e's slot takes every token, so <code>of</code> never gets a token.
+                    </li>
+                    <li>
+                      <b><code>expression</code>'s syntax ends <code>{expression_suffix}*</code></b
+                      >, as the sketch has it: with <code>+</code>, <code>Sequence.test()</code> wants 2+ tokens and
+                      rejects a lone <code>1</code>.
+                      <a
+                        href="../../../spell/src/parserTests/Expectations.test.ts"
+                        target="src-packages-spell-src-parsertests-expectations-test-ts"
+                        ><code>Expectations.test.ts</code></a
+                      >'s pinned string follows.
+                    </li>
+                    <li>
+                      <b>A no-suffix match keeps today's shape</b>: a suffixed one is <code>lhs</code> + a
+                      <code>Repeat</code> match as <code>rhsChain</code>, exactly what <code>Sequence</code> made, so
+                      <code>getAST()</code>'s shunting-yard reads the same groups.
+                    </li>
+                    <li>
+                      <b><code>simple_expression</code> is a second registered NAME</b> for every single expression
+                      (beside <code>single_expression</code>), not an alias rule: no new rule class, but each project
+                      parser clones one more big <code>Group</code>.
+                    </li>
+                    <li>
+                      <b>Kept precedences</b>, each with a why: <code>is_defined</code> 11, the three generated alias
+                      bases 20, <code>max</code>/<code>min</code> 2, <code>list_length</code>/<code>list_position</code>
+                      3, <code>list_filter</code> 2, <code>round_number</code> 1, <code>there_is_a</code> 11, and
+                      <code>draw_items</code>/<code>draw_thing</code> 1 (I2). Every suffix rule otherwise dropped
+                      precedence for <code>bindingPower</code>.
+                    </li>
+                    <li>
+                      <b>Checks:</b> <code>InfixOperatorSuffix</code>'s constructor throws without a
+                      <code>bindingPower</code>; <code>SpellParser.getNamesForRule()</code> throws for a single
+                      expression whose syntax STARTS with an expression (replacing <code>isLeftRecursive</code>).
+                    </li>
+                  </ol></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j6" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j6">J6</a>
+                  <span class="plan-title"
+                    >De-parenthesized more than the listed lines: the Solitaire example's own Card/Deck and
+                    Solitaire-import</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Besides the cards library (<code>Deck.spell</code> 40-41, 56-58, <code>Card.spell</code> 46) and the
+                    Solitaire example's <code>Solitaire.spell</code> (31, 94, 105, 123, 155, 166, 194), the same
+                    phrasings live in two more live files, done the same way:
+                  </p>
+                  <ul>
+                    <li>
+                      <code>projects/system/examples/Solitaire/Card.spell</code> 46
+                      <code>return (the first character of its rank) as uppercase</code> and
+                      <code>Deck.spell</code> 32-33 <code>get the first card of the deck</code> /
+                      <code>expect it is ...</code> → one line
+                    </li>
+                    <li>
+                      <code>projects/system/examples/Solitaire-import/Solitaire.spell</code>: the same seven lines as
+                      Solitaire
+                    </li>
+                  </ul>
+                  <p>
+                    Each compiled output checked against the parenthesized one: identical, or with redundant parens
+                    dropped (<code>(merge ...)</code>, <code>(the bottom card ...)</code>,
+                    <code>(cards in ... starting with ...)</code>, <code>(test-card is a king)</code>). All four
+                    projects recompiled with <code>spell compile</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j7" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j7">J7</a>
+                  <span class="plan-title"
+                    >core's spellCore.scopes.js: 14 stale rule syntaxes copied from the live grammar, not
+                    regenerated</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    The built-in types' pack holds each built-in rule's <code>syntax</code> for the Type Explorer. 14
+                    went stale in P3 (<code>{expression:simple_expression}</code>, <code>list_membership_test</code>'s
+                    old left side, trailing <code>{list:expression}</code> etc). Its tool,
+                    <code>yarn scopes --builtins</code> (<a href="../../../lsp/" target="src-packages-lsp"
+                      ><code>packages/lsp</code></a
+                    >), OVERWRITES the hand-written docs (tried: it wiped 175 lines), so a scratch script replaced just
+                    those 14 <code>syntax</code> strings with the live rules' own. No other line changed. Checked by the
+                    same script: every syntax in the pack now matches a live rule.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j8" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j8">J8</a>
+                  <span class="plan-title"
+                    >Extras: a priority/precedence snapshot test, a there-is-a test, ui's highlighter bundle
+                    regenerated</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      <a
+                        href="../../../spell/src/rules/expressions.test.ts"
+                        target="src-packages-spell-src-rules-expressions-test-ts"
+                        ><code>expressions.test.ts</code></a
+                      >
+                      'priority and precedence': every built-in rule's non-default <code>priority</code> and every
+                      suffix's <code>precedence</code>, one inline snapshot (Parser Model §5.3 promised it).
+                    </li>
+                    <li>
+                      <code>there_is_a</code>: test <code>there is a thing and animal</code> →
+                      <code>(spellCore.isDefined(thing) &amp;&amp; animal)</code> pins D23.
+                    </li>
+                    <li>
+                      <a
+                        href="../../../ui/src/languages/spell.en.bundle.js"
+                        target="src-packages-ui-src-languages-spell-en-bundle-js"
+                        ><code>packages/ui/src/languages/spell.en.bundle.js</code></a
+                      >
+                      regenerated with <code>yarn gen:spell</code> (its AGENTS rule: after a grammar change). A minified
+                      bundle: on merging <code>main</code>, regenerate rather than resolve. NOT rebuilt:
+                      <a href="../../_assets/lazy/spell-en.js" target="src-packages-docs-assets-lazy-spell-en-js"
+                        ><code>packages/docs/_assets/lazy/spell-en.js</code></a
+                      >
+                      (<code>yarn docs:update</code>) and <code>packages/ui/site/_assets/spell.en-*.js</code> (<code
+                        >yarn site:build</code
+                      >), which still hold the old names.
+                    </li>
+                    <li>
+                      <a
+                        href="../../../cli/src/ui/ReplScreen.test.tsx"
+                        target="src-packages-cli-src-ui-replscreen-test-tsx"
+                        ><code>packages/cli/src/ui/ReplScreen.test.tsx</code></a
+                      >: expects <code>expression: operand › known_variable x</code> (failed in the prototype too).
                     </li>
                   </ul></ui-content
                 ></ui-accordion
@@ -1732,6 +2192,60 @@ card.pile = pile</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c6" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title">`wait for x is 1` as a STATEMENT no longer parses whole (D23)</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    With <code>await</code> taking a single expression, <code>wait for x is 1</code> as a statement line
+                    compiles to <code>await x</code> plus <code>PARSE ERROR: Don't understand "is 1"</code>: there is no
+                    expression statement to carry the <code>is 1</code> (C4's P8e). Before it compiled to
+                    <code>await (x == 1)</code>. Inside an expression it reads as D23 says:
+                    <code>print there is a x is 1</code> =&gt; <code>isDefined(x) == 1</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c7" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title"
+                    >Left as they are: P1f, P2d at statement level, the frozen fixture's saved compile</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      P1f <code>the number of cards in the deck where its color is red</code>: still a parse error after
+                      <code>where</code>. <code>list_length</code> takes <code>cards in</code> as its own words, so its
+                      list is <code>the deck</code>; a filter isn't a suffix. SUSPECTED-BUGS says so.
+                    </li>
+                    <li>
+                      P2d <code>draw the cards of the deck</code> as a STATEMENT is still
+                      <code>deck.cards.draw()</code>: <code>draw_thing</code> / <code>draw_items</code> are expressions
+                      only, so at statement level only the fixture's own <code>to draw (a card)</code> call matches. As
+                      an expression it's <code>drawItems(deck)</code> (D30).
+                    </li>
+                    <li>
+                      <code>projects/test/Solitaire/Solitaire.compiled.js</code> / <code>.scopes.js</code> still say
+                      <code>simple_expression</code>: a frozen fixture, never hand-edited; nothing imports it, and its
+                      snapshot (<code>Solitaire.snapshot.js</code>) is re-blessed.
+                    </li>
+                    <li>
+                      Pre-existing, unrelated:
+                      <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a>
+                      <code>yarn lint</code> fails on a react-hooks warning in <code>src/ui/TargetPrompt.tsx</code>:72;
+                      <a href="../../../cli/src/cli.test.ts" target="src-packages-cli-src-cli-test-ts"
+                        ><code>cli.test.ts</code></a
+                      >
+                      'summarizes a plan doc' (SUSPECTED-BUGS).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1752,11 +2266,12 @@ card.pile = pile</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t2" data-status="open"
+            ><ui-item id="t2" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t2">T2</a>
-                  <span class="plan-title">`draw_items` must move above `draw_thing` in P3</span> </ui-title
+                  <span class="plan-title">`draw_items` must move above `draw_thing` in P3</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
                 ><ui-content
                   ><p>
                     Lowering <code>draw_thing</code> 100 → 0 alone doesn't un-skip <code>draw_items</code>' test: both
@@ -1804,6 +2319,99 @@ card.pile = pile</code></pre>
                     <a href="../../../spell/" target="src-packages-spell"><code>packages/spell</code></a
                     >. Not edited in P1.
                   </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title"
+                    >draw_thing's precedence 100 was load-bearing: it beats a project's own `to draw (a X)` call</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Prototype finding. With <code>draw_thing</code> at 0 (Parser Model §5.3), Solitaire's JSX
+                    <code>draw the stock</code> compiled to <code>stock.draw()</code> instead of
+                    <code>spellCore.drawThing(stock)</code>: the user's <code>to draw (a stock-pile)</code> call rule
+                    matches the same words at the same precedence and wins the tie. <code>drawThing()</code> draws
+                    through the thing's reactive <code>Component</code>; calling <code>.draw()</code> directly skips it,
+                    so nothing re-renders.
+                  </p>
+                  <p>
+                    Prototype: <code>draw_thing</code> AND <code>draw_items</code> at precedence 1 (each with a one-line
+                    why), <code>draw_items</code> registered first so it wins their tie. <code>draw_items</code>'
+                    skipped test passes. Parser Model §5.3 should say 1, not 0.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title"
+                    >D24 (bounded call arguments inside expressions) not prototyped: it needs a mechanism beyond
+                    §4.5</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Everything else in §4.5 is prototyped; <code>if double x is 4</code> still compiles to
+                    <code>double_$n(x == 4)</code>.
+                  </p>
+                  <p>
+                    Why it isn't a one-liner: a call rule is ONE
+                    <code>DynamicMethodRule.specialize({ output, alias })</code> registered with ONE
+                    <code>syntax</code>, by both <code>MethodDefinition.getRule()</code> and the import loader
+                    (<code>SpellDeclarations.loadRule()</code>), each through <code>scope.addRule()</code>. Registering
+                    twice from <code>getRule()</code> (a statement rule, plus an expression rule whose last slot is
+                    <code>{x:single_expression}</code>) makes one statement declare two different <code>syntax</code>es:
+                    <code>SpellDeclarations.declarationFor()</code> throws, and the import path would only rebuild one
+                    of them.
+                  </p>
+                  <p>Options:</p>
+                  <ol>
+                    <li>
+                      <b>Twin on registration</b> (~25 lines, spell-side): <code>SpellParser</code> registers a call
+                      rule under <code>single_expression</code> as a memoized, frozen copy whose last
+                      <code>{x:expression}</code> slot is <code>{x:single_expression}</code>. Declarations, imports and
+                      the journal stay as they are. Cost: a new concept (a rule's 'expression twin'), and the language
+                      server's references / go-to-definition from a call INSIDE an expression must map the twin back to
+                      its <code>ScopeRule.instances</code> entry.
+                    </li>
+                    <li>
+                      <b>Declarations list both rules</b>: change <code>SPELL: DECLARES</code> to allow a rule list.
+                      Touches the saved format, so it belongs with P4's version bump.
+                    </li>
+                    <li><b>Defer to P5</b>: bound only calls whose return type is known.</li>
+                  </ol>
+                  <p>
+                    Recommend 1 if D24 stays; it's the only option that leaves saved declarations alone.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i4" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i4">I4</a>
+                  <span class="plan-title"
+                    >there_is_a's priority 11 does nothing now; simple_statement is a dead name</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><ol>
+                    <li>
+                      <code>there_is_a</code> keeps priority 11, as asked, renamed from precedence. But at 0 every test,
+                      probe and fixture parses the same, and a hand check (<code>there is a winner</code>,
+                      <code>there is not a winner and 1 is 1</code>) too. Its docstring now says so. Drop it?
+                    </li>
+                    <li>
+                      <code>simple_statement</code>: <code>SpellParser.getNamesForRule()</code> registers EVERY
+                      statement under it too, and nothing reads it (no syntax, no code; at HEAD neither). Not the
+                      operand confusion, so left alone. Dropping it saves one big <code>Group</code> clone per project
+                      parser.
+                    </li>
+                  </ol></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -2080,6 +2688,163 @@ card.pile = pile</code></pre>
                   ><ui-date><time datetime="2026-10-04T01:12-04:00">2026-10-04 01:12</time></ui-date> Q11-Q15 decided:
                   smaller design, prototype first; `single_expression`; calls bounded inside expressions
                   only</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:13-04:00">2026-10-04 01:13</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:13-04:00">2026-10-04 01:13</time></ui-date> P3 started with a
+                  prototype of Parser Model §4.5 (D21), uncommitted; review before building for real</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:29-04:00">2026-10-04 01:29</time></ui-date> P3 prototype
+                  (§4.5, uncommitted) speed, same machine, 3 runs each: spell speed (speedTest) median 62.8ms (54.1 /
+                  62.8 / 62.8) vs HEAD 67.7ms (68.2 / 67.7 / 67.5), 614 tests pass vs 608 (6 new / un-skipped rule
+                  tests). BENCH total median 53.5ms (54.1 / 53.5 / 53.1) vs HEAD 109.6ms (110.7 / 108.6 / 109.6):
+                  Solitaire.spell parse 82ms -&gt; 31ms. The double parse is gone.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:35-04:00">2026-10-04 01:35</time></ui-date> P3 prototype of
+                  Parser Model §4.5 (uncommitted, for review): all 9 target probes fixed (P1a-e, P2a-c, P3); P7, P8a and
+                  P8d also moved, each to the reading the design predicts. Fixtures: no compiled-code change, only the
+                  generator's syntax string simple_expression -&gt; single_expression. parser / spell / lsp ts + tests
+                  green. Not done: D24 (I3). Found: draw_thing's 100 was load-bearing (I2); wait for x is 1 as a
+                  statement (C6). Choices: J5.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:56-04:00">2026-10-04 01:56</time></ui-date> P3 prototype
+                  reviewed: precedence / priority swap decided; D24 → P5; `wait for` whole; naming and draw tie asked in
+                  the doc</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:56-04:00">2026-10-04 01:56</time></ui-date> I3 closed: D24
+                  (bounded call arguments inside expressions) not prototyped: it needs a mechanism beyond
+                  §4.5</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:56-04:00">2026-10-04 01:56</time></ui-date> C6 closed: `wait
+                  for x is 1` as a STATEMENT no longer parses whole (D23)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:01-04:00">2026-10-04 02:01</time></ui-date> Q16 answered: D29
+                  `operand`; saved declarations regenerated in P3, one name</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:01-04:00">2026-10-04 02:01</time></ui-date> Q17 answered: D30
+                  Explicit priority on the rules: draw_items 2, draw_thing 1, file order as today</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:21-04:00">2026-10-04 02:21</time></ui-date> T2 closed:
+                  `draw_items` must move above `draw_thing` in P3</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:21-04:00">2026-10-04 02:21</time></ui-date> I2 closed:
+                  draw_thing's precedence 100 was load-bearing: it beats a project's own `to draw (a X)`
+                  call</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:21-04:00">2026-10-04 02:21</time></ui-date> P3 built on the
+                  accepted prototype: D26 (Rule.precedence → priority; suffix bindingPower/BP → precedence/Precedence),
+                  D29 (operand, one name; library + Solitaire examples recompiled), D30 (draw_items 2, draw_thing 1,
+                  HEAD file order), D23 (there is a → operand), D28 kept. Library + examples de-parenthesized (J6).
+                  CODE-DEBT 'swallow the operator' deleted; SUSPECTED-BUGS updated. PARSING.md, spell AGENTS.md, Rule.ts
+                  docstring, Parser Model updated.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:21-04:00">2026-10-04 02:21</time></ui-date> P3 speed (medians
+                  of 3): yarn spell speed --json 54.5ms (prototype 62.8, HEAD 67.7); BENCH Solitaire 55.2ms (prototype
+                  53.5, HEAD 109.6).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:32-04:00">2026-10-04 02:32</time></ui-date> I4 closed:
+                  there_is_a's priority 11 does nothing now; simple_statement is a dead name</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:32-04:00">2026-10-04 02:32</time></ui-date> J6 closed:
+                  De-parenthesized more than the listed lines: the Solitaire example's own Card/Deck and
+                  Solitaire-import</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:32-04:00">2026-10-04 02:32</time></ui-date> J7 closed: core's
+                  spellCore.scopes.js: 14 stale rule syntaxes copied from the live grammar, not regenerated</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:32-04:00">2026-10-04 02:32</time></ui-date> J8 closed: Extras:
+                  a priority/precedence snapshot test, a there-is-a test, ui's highlighter bundle
+                  regenerated</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:32-04:00">2026-10-04 02:32</time></ui-date> I4 done:
+                  there_is_a priority dropped, simple_statement dropped; J6-J8 accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:36-04:00">2026-10-04 02:36</time></ui-date> C7 closed: Left as
+                  they are: P1f, P2d at statement level, the frozen fixture's saved compile</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:36-04:00">2026-10-04 02:36</time></ui-date> P3 extras: count
+                  with `where` (itemCountOf(filter(...))), draw rules also statements (closes C7)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

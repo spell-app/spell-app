@@ -43,7 +43,7 @@ the short-suit of a card is:
 the short-rank of a card is:
 	if its rank is nothing return "?"
 	if its rank is a number return "" + its rank
-	return (the first character of its rank) as uppercase
+	return the first character of its rank as uppercase
 
 the short-direction of a card is:
 	if its direction is up return "+"

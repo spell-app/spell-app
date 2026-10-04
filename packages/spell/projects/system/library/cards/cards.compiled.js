@@ -152,7 +152,7 @@ export class Card extends Thing {
 
   /*! SPELL: DECLARES {
     property: "short_rank", of: "Card",
-    defined: "/Card.spell:1301-1465",
+    defined: "/Card.spell:1301-1463",
   } */
   get short_rank() {
     if (this.rank == undefined) { return "?" }
@@ -162,7 +162,7 @@ export class Card extends Thing {
 
   /*! SPELL: DECLARES {
     property: "short_direction", of: "Card",
-    defined: "/Card.spell:1467-1547",
+    defined: "/Card.spell:1465-1545",
   } */
   get short_direction() {
     if (this.direction == 'up') { return "+" }
@@ -172,7 +172,7 @@ export class Card extends Thing {
 
   /*! SPELL: DECLARES {
     property: "short_name", of: "Card",
-    defined: "/Card.spell:1550-1610",
+    defined: "/Card.spell:1548-1608",
   } */
   get short_name() {
     return (this.short_rank + this.short_suit)
@@ -180,7 +180,7 @@ export class Card extends Thing {
 
   /*! SPELL: DECLARES {
     property: "state", of: "Card",
-    defined: "/Card.spell:1612-1689",
+    defined: "/Card.spell:1610-1687",
   } */
   get state() {
     return ((this.short_rank + this.short_suit) + this.short_direction)
@@ -195,7 +195,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "turn {thisArg:expression} face up", output: "turn_face_up", rule: "method_call",
     of: "Card", alias: ["statement", "expression"], kind: "method", name: "turn (a card) face up",
-    defined: "/Card.spell:1808-1878",
+    defined: "/Card.spell:1806-1876",
   } */
   async turn_face_up() {
     this.direction = 'up'
@@ -205,7 +205,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "turn {thisArg:expression} face down", output: "turn_face_down", rule: "method_call",
     of: "Card", alias: ["statement", "expression"], kind: "method", name: "turn (a card) face down",
-    defined: "/Card.spell:1879-1953",
+    defined: "/Card.spell:1877-1951",
   } */
   async turn_face_down() {
     this.direction = 'down'
@@ -219,7 +219,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "turn {thisArg:expression} over", output: "turn_over", rule: "method_call", of: "Card",
     alias: ["statement", "expression"], kind: "method", name: "turn (a card) over",
-    defined: "/Card.spell:2061-2173",
+    defined: "/Card.spell:2059-2171",
   } */
   async turn_over() {
     if (this.direction == 'up') { this.turn_face_down() }
@@ -230,7 +230,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Card",
     alias: ["statement", "expression"], kind: "method", name: "draw (a card)",
-    defined: "/Card.spell:2175-2651",
+    defined: "/Card.spell:2173-2649",
   } */
   draw() {
     let className = (((((("Card face-" + this.direction) + " ") + this.rank) + " ") + this.suit) + " ui button compact fluid ")
@@ -265,9 +265,9 @@ export class Card extends Thing {
 
   /** "card is the red joker", "...is the black joker" -- asked of ANY card, which only a joker of that color is */
   /*! SPELL: DECLARES {
-    syntax: "{operator:is} the {expression:simple_expression} joker", output: "is_the_$color_joker",
+    syntax: "{operator:is} the {expression:operand} joker", output: "is_the_$color_joker",
     rule: "method_infix", of: "Card", kind: "method", name: '"is the (color) joker"',
-    defined: "/Card.spell:3120-3189",
+    defined: "/Card.spell:3118-3187",
   } */
   is_the_$color_joker(color) {
     return (spellCore.isOfType(this, 'Joker') && (this.color == color))
@@ -296,14 +296,14 @@ spellCore.heading("A joker: a wild card with no rank or suit -- there's a red on
 /** A joker: a wild card with no rank or suit -- there's a red one and a black one */
 /*! SPELL: DECLARES {
   type: "Joker", superType: "Card",
-  defined: "/Card.spell:2735-2752",
+  defined: "/Card.spell:2733-2750",
 } */
 export class Joker extends Card {
   /** joker color:  red or black -- set when it's made, as it has no suit to work it out from */
   /*! SPELL: DECLARES {
     property: "color", classVariable: "Colors", rule: "enumeration", of: "Joker",
     enumeration: ["'red'", "'black'"],
-    defined: "/Card.spell:2845-2887",
+    defined: "/Card.spell:2843-2885",
   } */
   static Colors = ['red', 'black']
   static { this.declareProp('color', { oneOf: Joker.Colors }) }
@@ -313,7 +313,7 @@ export class Joker extends Card {
   /** name as its color, e.g. "red joker" */
   /*! SPELL: DECLARES {
     property: "name", of: "Joker",
-    defined: "/Card.spell:2928-2972",
+    defined: "/Card.spell:2926-2970",
   } */
   get name() {
     return (this.color + "-joker")
@@ -321,7 +321,7 @@ export class Joker extends Card {
 
   /*! SPELL: DECLARES {
     property: "short_name", of: "Joker",
-    defined: "/Card.spell:2974-3008",
+    defined: "/Card.spell:2972-3006",
   } */
   get short_name() {
     return "🃏"
@@ -333,7 +333,7 @@ spellCore.heading("create a card instance with default properties")
 /*! SPELL: DECLARES {
   syntax: "test card setup", output: "test_card_setup", rule: "method_call", alias: "statement",
   kind: "function", name: "card setup",
-  defined: "/Card.spell:3241-5021",
+  defined: "/Card.spell:3239-5019",
 } */
 export function test_card_setup() {
   return spellCore.test('test card setup', function test_card_setup() {
@@ -460,7 +460,7 @@ export class Deck extends List {
 /*! SPELL: DECLARES {
   syntax: "test deck creation", output: "test_deck_creation", rule: "method_call",
   alias: "statement", kind: "function", name: "deck creation",
-  defined: "/Deck.spell:773-1431",
+  defined: "/Deck.spell:773-1423",
 } */
 export function test_deck_creation() {
   return spellCore.test('test deck creation', function test_deck_creation() {
@@ -483,9 +483,7 @@ export function test_deck_creation() {
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
-    spellCore.echoTestAction(`get the first card of the deck`)
-    let it = spellCore.getItemOf(deck, 1)
-    spellCore.expect(it.is_the_$rank_of_$suits('ace', 'clubs'), `it is the ace of clubs`, true, `yes`)
+    spellCore.expect(spellCore.getItemOf(deck, 1).is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
     
     spellCore.echoTestAction(`shuffle the deck`)
     spellCore.randomize(deck)
@@ -502,7 +500,7 @@ test_deck_creation()
 /*! SPELL: DECLARES {
   syntax: "test deck with jokers", output: "test_deck_with_jokers", rule: "method_call",
   alias: "statement", kind: "function", name: "deck with jokers",
-  defined: "/Deck.spell:1452-1846",
+  defined: "/Deck.spell:1444-1828",
 } */
 export function test_deck_with_jokers() {
   return spellCore.test('test deck with jokers', function test_deck_with_jokers() {
@@ -516,10 +514,8 @@ export function test_deck_with_jokers() {
       return spellCore.isOfType(card, 'Joker')
     })
     spellCore.expect(spellCore.itemCountOf(jokers), `the number of cards in the jokers`, 2, `2`)
-    spellCore.expect((spellCore.getItemOf(deck, -1)).is_the_$color_joker('black'), `(the last card of the deck) is the black joker`, true, `yes`)
-    spellCore.echoTestAction(`get the first card of the deck`)
-    let it = spellCore.getItemOf(deck, 1)
-    spellCore.expect(it.is_the_$rank_of_$suits('ace', 'clubs'), `it is the ace of clubs`, true, `yes`)
+    spellCore.expect(spellCore.getItemOf(deck, -1).is_the_$color_joker('black'), `the last card of the deck is the black joker`, true, `yes`)
+    spellCore.expect(spellCore.getItemOf(deck, 1).is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
 test_deck_with_jokers()

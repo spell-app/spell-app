@@ -68,18 +68,30 @@ export class SpellParser extends P.Parser {
     return typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : compiled
   }
 
+  /** Names a `{subrule}` parses an expression by -- see `getNamesForRule()`. */
+  static EXPRESSION_RULES = ["expression", "operand"]
+
   /**
-   * Also register expressions / statements as `simple_expression` / `simple_statement`.
-   * - Skips this for left-recursive rules (`rule.isLeftRecursive`): those already reference
-   *   `simple_expression`/`simple_statement` in their own `syntax` to chain onto a prior expression, so
-   *   adding them under those names too would let them recurse into themselves.
+   * Every rule aliased `expression` is registered as an `operand` instead -- except `expression` itself,
+   *   `compound_expression`, which is an operand plus any operators after it.
+   * - So `{expression}` is a whole expression, operators and all;  `{operand}` is what an operator acts on:  one
+   *   expression with no operator at its top, e.g. `5`, `the first card of the deck`, `(x + 1)`.
+   * - Throws for an operand which STARTS with an expression:  it would recurse forever.  Something after
+   *   an expression is an `expression_suffix` instead, e.g. `list_membership_test`.
    */
   protected getNamesForRule(rule: P.Rule, names: string[]): string[] {
-    if (rule.isLeftRecursive) return names
-    const extras: string[] = []
-    if (names.includes("expression")) extras.push("simple_expression")
-    if (names.includes("statement")) extras.push("simple_statement")
-    return [...names, ...extras]
+    const isOperand = rule.name !== "expression" && names.includes("expression")
+    const result = isOperand ? names.map((name) => (name === "expression" ? "operand" : name)) : names
+    const first = rule instanceof P.Sequence ? rule.rules[0] : undefined
+    if (isOperand && first instanceof P.Subrule && SpellParser.EXPRESSION_RULES.includes(first.rule)) {
+      throw new P.ParserError({
+        message: `Rule '${rule.name}' starts with an expression, so it would recurse forever.  Make it an expression_suffix.`,
+        context: this,
+        activity: "getNamesForRule",
+        params: { rule, names }
+      })
+    }
+    return result
   }
 
   /**

@@ -2,7 +2,7 @@ import { P } from "$/parser"
 // Import directly to avoid circular import
 import { Rule } from "./Rule"
 
-/** Turn on debugging of choice / precedence semantics. */
+/** Turn on debugging of choice / priority semantics. */
 const DEBUG_CHOICES = false
 
 /**
@@ -116,7 +116,7 @@ export class Choice<
       } else {
         console.debug(`${CHOICE} matched:`)
         matches.forEach((nextMatch, index) => {
-          console.debug(`   #${index}: (len: ${nextMatch.length}, prec: ${nextMatch.rule.precedence}): `, match)
+          console.debug(`   #${index}: (len: ${nextMatch.length}, priority: ${nextMatch.rule.priority}): `, match)
         })
       }
     }
@@ -133,7 +133,7 @@ export class Choice<
 
   /**
    * Return the "best" match given more than one matches at the head of the tokens.
-   * - First we find the match(es) with the highest precedence.
+   * - First we find the match(es) with the highest `priority`.
    * - Then we take the one with the longest matched string.
    * - If more than one rule with same length, takes the EARLIEST one -- so in a `(a|b)` choice, `a` wins a tie,
    *   and in a `Group` of same-named rules the FIRST-registered wins.  Pinned by `Rule.test.ts`.
@@ -142,16 +142,16 @@ export class Choice<
   getBestMatch(matches: P.Match[]) {
     if (matches.length === 1) return matches[0]
 
-    // Filter to rules with highest precedence.
+    // Filter to rules with highest priority.
     // NOTE: forwards, so `highPriority` keeps `matches` order (earliest first)
     let match
     let highPriority: P.Match[] = []
     for (let max = -Infinity, i = 0; (match = matches[i++]);) {
-      const { precedence } = match.rule
-      if (precedence > max) {
-        max = precedence
+      const { priority } = match.rule
+      if (priority > max) {
+        max = priority
         highPriority = [match]
-      } else if (precedence === max) {
+      } else if (priority === max) {
         highPriority.push(match)
       }
     }

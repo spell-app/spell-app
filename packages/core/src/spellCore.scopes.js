@@ -33,30 +33,30 @@
       path: "type:List/method:(a list) has items where",
       description: "Does ANY item pass a test?  e.g. `the deck has cards where the card is an ace`.\n- `has no ...` for none of them.",
       rules: [
-        { name: "list_membership_test", syntax: "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_identifier} where {inline_expression}?" }
+        { name: "list_membership_test", syntax: "(operator:has|has no|doesnt have|does not have) {arg:plural_identifier} where {inline_expression}?" }
       ]
     },
     {
       path: "type:List/method:(a list) starts with (a thing)",
       description: "Is `thing` its first item, e.g. `the pile starts with the king`?\n- `ends with` for its last.\n- `does not start with` etc for the opposite.",
       rules: [
-        { name: "starts_with", syntax: "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:simple_expression}" },
-        { name: "ends_with", syntax: "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:simple_expression}" }
+        { name: "starts_with", syntax: "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:operand}" },
+        { name: "ends_with", syntax: "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:operand}" }
       ]
     },
     {
       path: "type:List/method:a copy of (a list)",
       description: "A new list with the same items, e.g. `a copy of the deck` -- change one, the other stays the same.\n- The items themselves are NOT copied:  both lists hold the same cards.\n- Same type as the original, unless you say `as a list`.",
       rules: [
-        { name: "copy_list", syntax: "a (copy|duplicate) of list? {expression} (as (a|an) {type:known_type})?" }
+        { name: "copy_list", syntax: "a (copy|duplicate) of list? {expression:operand} (as (a|an) {type:known_type})?" }
       ]
     },
     {
       path: "type:List/method:a random item of (a list)",
       description: "An item picked at random, e.g. `a random card from the deck`.\n- Or several, as a new list:  `3 random cards from the deck`.",
       rules: [
-        { name: "random_item_expression", syntax: "a random {arg:singular_identifier} (of|from|in) {list:expression}" },
-        { name: "random_items_expression", syntax: "{number} random {arg:plural_identifier} (of|from|in) {list:expression}" }
+        { name: "random_item_expression", syntax: "a random {arg:singular_identifier} (of|from|in) {list:operand}" },
+        { name: "random_items_expression", syntax: "{number} random {arg:plural_identifier} (of|from|in) {list:operand}" }
       ]
     },
     {
@@ -95,17 +95,17 @@
       path: "type:List/method:item (n) of (a list)",
       description: "Item at a position, e.g. `card 3 of the deck`, `the last card of the deck`.\n- Ordinals:  `first` to `tenth`, `penultimate`, `last` or `final`, `top` (first) and `bottom` (last).\n- Nothing if there's no item there.",
       rules: [
-        { name: "position_expression", syntax: "{arg:singular_identifier} {position:expression} of {expression}" },
-        { name: "ordinal_position_expression", syntax: "the {ordinal} {arg:singular_identifier} (in|of) {expression}" }
+        { name: "position_expression", syntax: "{arg:singular_identifier} {position:expression} of {expression:operand}" },
+        { name: "ordinal_position_expression", syntax: "the {ordinal} {arg:singular_identifier} (in|of) {expression:operand}" }
       ]
     },
     {
       path: "type:List/method:items (start) to (end) of (a list)",
       description: "Several items in a row, as a new list of the same type -- the list itself doesn't change.\n- `card 1 to 3 of the deck`\n- `top 2 cards of the deck`, `last two cards of the deck`\n- `cards in the deck starting with the ace`",
       rules: [
-        { name: "range_between_expression", syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}" },
-        { name: "range_count_expression", syntax: "{ordinal} {number} {arg:plural_identifier} (of|in|from) {list:expression}" },
-        { name: "range_starting_with_expression", syntax: "{arg:plural_identifier} (in|of) {list:expression} starting with {thing:expression}" }
+        { name: "range_between_expression", syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:operand}" },
+        { name: "range_count_expression", syntax: "{ordinal} {number} {arg:plural_identifier} (of|in|from) {list:operand}" },
+        { name: "range_starting_with_expression", syntax: "{arg:plural_identifier} (in|of) {list:expression} starting with {thing:operand}" }
       ]
     },
     {
@@ -119,21 +119,21 @@
       path: "type:List/method:merge (lists)",
       description: "One new list with the items of each list in a list of lists, in order, e.g. `merge the piles`.\n- Same type as the first, unless you say `as a list`.",
       rules: [
-        { name: "merge_lists", syntax: "merge lists? {expression} ((as|into) (a|an) new? {type:known_type})?" }
+        { name: "merge_lists", syntax: "merge lists? {expression:operand} ((as|into) (a|an) new? {type:known_type})?" }
       ]
     },
     {
       path: "type:List/method:number of (items) in (a list)",
       description: "How many items it has, e.g. `number of cards in the deck`.",
       rules: [
-        { name: "list_length", syntax: "the? number of {arg:plural_identifier} (in|of) {list:expression}" }
+        { name: "list_length", syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand}" }
       ]
     },
     {
       path: "type:List/method:position of (a thing) in (a list)",
       description: "Where `thing` first is in it, counting from 1, e.g. `position of the ace in the deck`.\n- Nothing if it isn't there.",
       rules: [
-        { name: "list_position", syntax: "the? position of {thing:expression} in {list:expression}" }
+        { name: "list_position", syntax: "the? position of {thing:expression} in {list:operand}" }
       ]
     },
     {

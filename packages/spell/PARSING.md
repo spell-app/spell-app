@@ -30,16 +30,21 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 - A rule is `test()` (cheap "could this match at `start`?") plus `parse()` (build a `Match` or `undefined`).
 - `Choice.parse()` (`packages/parser/src/rules/Choice.ts`) calls `parse()` on EVERY alternative, then `getBestMatch()`:
-  - highest `precedence`, then longest match, then EARLIEST rule
+  - highest `priority`, then longest match, then EARLIEST rule
+  - `priority` answers ONLY "several rules match the SAME words:  which wins?" (`Rule.priority`, default 0);  how
+    tightly an operator binds is spell's `precedence` (see "Expressions")
 - `Sequence.parse()` (`packages/parser/src/rules/Sequence.ts`) first runs `Sequence.test()`:
   - fixed words / symbols / patterns are checked where they must fall, subrules are skipped
   - rejects ~92% of attempts before any child parses
   - then each child is parsed at the head of the remaining tokens
+  - GIVE-BACK:  a required word failing right after a required `{slot}` re-parses the slot shorter, cut just before
+    each place the word is (last first), and goes on from there -- e.g. `remove the card of the pile` for
+    `remove {thisArg:expression} of {callArgs:expression}`.  Only on the way to failing, NEVER in expecting mode.
 - `Subrule` looks its rule up BY NAME through `scope.getRuleOrDie()` at call time, so rules added mid-parse
   are visible to later lines.
 - `Literal` / `Literals` / `Pattern` / `TokenType` compare single tokens with `===` / regex -- cheap.
-- Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-09-27):
-  Card.spell (121 lines) ~14ms, Solitaire.spell (259 lines) ~77ms, whole Solitaire project ~100ms.
+- Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-10-04, after P3 of precedence-and-types
+  halved it):  Card.spell (121 lines) ~12ms, Solitaire.spell (259 lines) ~32ms, whole Solitaire project ~55ms.
   Compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
   `parser.rules` rebuilds after mid-parse `addRule()`s:  38 per project parse, ~1ms total -- not worth optimizing.
 - "What can come NEXT?" -- `parser.expectedAfter(input, ruleName, scope)` parses a half-typed line in
@@ -55,6 +60,50 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     test walk is too hot for an argument)
   - `Subrule` parses are memoized for the one call (`Expectations.memoized()`), or it's ~40x slower
   - normal parsing pays ~1%:  one static read per hook
+
+## Expressions
+
+- `expression` is ONE rule, `compound_expression` (`packages/spell/src/rules/expressions.ts`):  `{lhs:operand}
+  {rhsChain:expression_suffix}*` -- an `operand`, then each `expression_suffix` binding tighter than its `bound`
+  (0:  all).  No suffix => the operand's own match, as is, so `match.is(known_variable)` still works.
+- An `operand` is what an operator acts on:  one expression with no operator at its TOP -- `5`, `the deck`,
+  `the first card of the deck` (it nests), `(x + 1)`, `the cards in the deck where ...`.  Every rule aliased
+  `expression` other than `compound_expression` is registered as `operand` instead -- `SpellParser.getNamesForRule()`.
+  - That also throws for an operand whose syntax STARTS with an expression:  it would recurse forever.  Something
+    after an expression is an `expression_suffix`, e.g. `list_membership_test`.
+- Three slot kinds:
+  - `{x:expression}` -- everything:  statements, slots closed by a word (`position of {x} in`), method-call arguments
+  - `{x:arithmetic_expression}` -- `+ - * /` only, stops before a comparison:  `absolute value`, `round`
+    (bound `Precedence.takesSum`)
+  - `{x:operand}` -- a prefix's LAST slot (`the first card of {list:operand}`), and every suffix's right side
+- `precedence` -- how tightly an operator binds -- is set on suffix rules ONLY (`InfixOperatorSuffix` /
+  `PostfixOperatorSuffix`), from the `Precedence` table:  `*` before `+` before `is` before `and` before `or`.
+  - The constructor throws without one:  a silent default is how `ends with` went wrong.
+  - Read ONLY by the loop:  it stops at its `bound`, and `getAST()`'s shunting-yard groups the flat chain by it.
+    A postfix pops like an infix, so `x + y is empty` => `isEmpty(x + y)`.
+  - NOT `priority`, which only breaks a `Choice`'s tie (see "Rules and matching") -- e.g. a user's quoted alias
+    (priority 20) beats a built-in suffix matching the same words.
+- Give-back (`Sequence`, see "Rules and matching") lets a full `{x:expression}` slot before a word work:
+  `remove {thisArg:expression} of {callArgs:expression}` on `remove the card of the pile`.
+- Expecting mode:  out of tokens after the operand or a suffix, the loop records `expression_suffix` as only
+  CONTINUING it -- what the old `expression` Choice worked out.
+- `expressions.test.ts` "priority and precedence" snapshots every built-in rule's non-default `priority` and every
+  suffix's `precedence`.
+
+## Adding an expression rule
+
+- An OPERAND stands alone:  a literal, `the X of Y`, `the first card of ...`.  `extends SpellExpression` (alias
+  `expression`, registered as `operand`).
+  - A slot at its END takes `{name:operand}`:  `the first card of {list:operand}` stops before any operator.
+  - Math that should take a sum (`the absolute value of x + 1`):  `{name:arithmetic_expression}`.
+  - A slot closed by a required word (`of`, `in`, `to`) stays `{name:expression}`, like a paren.
+- An OPERATOR follows an expression:  `extends InfixOperatorSuffix` (`x OP y`) or `PostfixOperatorSuffix`
+  (`x is empty`).  Its right side is `{expression:operand}`.  MUST set `@proto static precedence` from `Precedence`
+  (the constructor throws without it);  build output in `compileASTExpression()`.
+- `priority` only settles a tie between rules matching the SAME words.  Leave it unset unless a probe shows a
+  tie going wrong;  then set it, with a one-line why.
+- Always NAME a slot, so `match.groups` keeps its key.  Add one mixed-operator line to the probe ledger,
+  `src/grammar.probes.test.ts`.
 
 ## File => block => line => statement
 
@@ -127,7 +176,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - How editors colour a match's OWN tokens comes from its rule's `highlightAs`, e.g. `property`:  defaults on
   `Keyword(s)` / `Symbol(s)` / `SpellIdentifier` / `SpellType` / `SpellConstant`, else on the rule class.
   `SpellLanguageService` refines it from `match.data`, e.g. an argument's `variable` becomes `parameter`.
-  - quoted aliases (`a card "is face up" if ...`):  `quoted_property_formula` adds an `expression_suffix` rule
+  - quoted aliases (`a card "is face up" if ...`):  `quoted_type_expression` (`methods.ts`) adds an
+    `expression_suffix` rule, a `MethodPostfixRule` / `MethodInfixRule`;  a quoted formula (`a card "is the (rank)
+    of (suits)" for its ranks and its suits`):  `quoted_property_formula` (`classes.ts`), a `QuotedPropertyRule`
   - methods (`to turn (a card) over`):  `MethodDefinition` adds a rule (`methods.ts`).  Methods live ONLY as
     parser rules;  `scope.methods` is never filled in production.
 - Types, constants and rules ALWAYS go to the project, from any depth.

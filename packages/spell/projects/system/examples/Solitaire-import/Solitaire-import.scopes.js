@@ -308,7 +308,7 @@
       ]
     },
     {
-      path: "project:Solitaire/file:Deck.spell/function:test deck creation", line: [19, 33],
+      path: "project:Solitaire/file:Deck.spell/function:test deck creation", line: [19, 32],
       section: "Deck:   US standard card deck (without jokers currently)",
       rules: [
         { name: "test_deck_creation", syntax: "test deck creation" }
@@ -399,7 +399,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -415,7 +415,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -441,7 +441,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -457,7 +457,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -483,7 +483,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -491,7 +491,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
@@ -507,7 +507,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -515,7 +515,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
@@ -541,7 +541,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -549,7 +549,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
@@ -565,7 +565,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -573,7 +573,7 @@
       section: "set up all piles",
       uri: "spell:/@system:examples:Solitaire-import/Solitaire.spell",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
@@ -699,7 +699,7 @@
       path: "project:Solitaire-import/file:Solitaire.spell/type:Stock_Pile/method:can pick up (a card)", line: 17,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -713,7 +713,7 @@
       path: "project:Solitaire-import/file:Solitaire.spell/type:Stock_Pile/method:can pick up (a card)", line: 17,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -737,7 +737,7 @@
       path: "project:Solitaire-import/file:Solitaire.spell/type:Discard_Pile/method:can pick up (a card)", line: 23,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -751,7 +751,7 @@
       path: "project:Solitaire-import/file:Solitaire.spell/type:Discard_Pile/method:can pick up (a card)", line: 23,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -775,14 +775,14 @@
       path: "project:Solitaire-import/file:Solitaire.spell/type:Foundation/method:can pick up (a card)", line: 29,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
       path: "project:Solitaire-import/file:Solitaire.spell/type:Foundation/method:can play (a card)", line: [30, 31],
       section: "set up all piles",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
@@ -796,14 +796,14 @@
       path: "project:Solitaire-import/file:Solitaire.spell/type:Foundation/method:can pick up (a card)", line: 29,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
       path: "project:Solitaire-import/file:Solitaire.spell/type:Foundation/method:can play (a card)", line: [30, 31],
       section: "set up all piles",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
@@ -827,14 +827,14 @@
       path: "project:Solitaire-import/file:Solitaire.spell/type:Tableau/method:can pick up (a card)", line: 45,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
       path: "project:Solitaire-import/file:Solitaire.spell/type:Tableau/method:can play (a card)", line: [46, 49],
       section: "set up all piles",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
@@ -848,14 +848,14 @@
       path: "project:Solitaire-import/file:Solitaire.spell/type:Tableau/method:can pick up (a card)", line: 45,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
       path: "project:Solitaire-import/file:Solitaire.spell/type:Tableau/method:can play (a card)", line: [46, 49],
       section: "set up all piles",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
