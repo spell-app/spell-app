@@ -2376,6 +2376,22 @@
                   ><p>Found in P7; small: UIDocsNav opens the current page topic once, on load.</p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="t7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t7">T7</a>
+                  <span class="plan-title"
+                    >The UI library build still inlines the P052 fonts into its lazy spell theme chunk (dist/spell-*.js,
+                    ~540 KB)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Only fetched by an app that applies the spell theme, and only the docs bundle is fixed (it writes
+                    them out). A library-level fix: emit the fonts as files from the lib build, or ship the theme
+                    without url() fallbacks.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2414,6 +2430,22 @@
                     nav closes on it'. Fix belongs to the router / site glue (lead's lane: close
                     <code>#site-nav-flyout</code> in <code>SiteRouter.onNavigate</code>, or a
                     <code>ui-navigate</code> listener in <code>site.ts</code>), not the nav.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title"
+                    >esbuild drops ui-docs-nav dist import of ui-docs-search (marked side-effect free)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The docs bundle build warns: ui-docs-nav imports ui-docs-search for its define(), but the UI package
+                    marks that chunk as having no side effects, so a bundler may drop it and the search tag never
+                    defines. The Spell UI site is unaffected (it loads families through ui-root). Check the sideEffects
+                    list in packages/ui/package.json.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
