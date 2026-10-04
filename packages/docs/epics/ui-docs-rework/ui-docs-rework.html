@@ -1047,7 +1047,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d7" data-status="decided"
+            ><ui-item id="d7" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d7">D7</a>
@@ -1101,6 +1101,23 @@
             ><ui-item id="d11" data-status="decided"
               ><a class="plan-id" href="#d11">D11</a>
               <span class="plan-title">Up to 8 agents (Owen's plan comment)</span></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title"
+                    >No font files ship with the spell theme: installed Palatino family, else serif (Owen, morning
+                    review; replaces D7)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The P052 fallback only mattered where no Palatino-family face is installed (some Linux, Android):
+                    macOS / iOS have Palatino, Windows Palatino Linotype / Book Antiqua, most Linux P052 or TeX Gyre
+                    Pagella via local(). Dropping it removes ~540 KB from every docs page and the AGPL question. The
+                    stack ends in the generic serif.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2132,7 +2149,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c7" data-status="open"
+            ><ui-item id="c7" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c7">C7</a>
@@ -2376,7 +2393,7 @@
                   ><p>Found in P7; small: UIDocsNav opens the current page topic once, on load.</p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t7" data-status="open"
+            ><ui-item id="t7" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t7">T7</a>
@@ -2982,6 +2999,36 @@
                   ><ui-date><time datetime="2026-10-04T07:27-04:00">2026-10-04 07:27</time></ui-date> I1 fixed: docs
                   bundle writes the P052 fonts to _assets/fonts/ and points the theme at them; spell-ui.js 3.11 MB to
                   2.53 MB; docs:update passed</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T07:33-04:00">2026-10-04 07:33</time></ui-date> D7 closed: Fonts:
+                  the brand's own fonts.css as is, no .woff2 conversion (Owen's plan comment)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T07:33-04:00">2026-10-04 07:33</time></ui-date> C7 closed: P052
+                  licence: AGPL with a font exception</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T07:33-04:00">2026-10-04 07:33</time></ui-date> T7 closed: The UI
+                  library build still inlines the P052 fonts into its lazy spell theme chunk (dist/spell-*.js, ~540
+                  KB)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T07:33-04:00">2026-10-04 07:33</time></ui-date> Morning: P052
+                  fonts dropped everywhere (theme url fallbacks, files, the docs bundle extraction); serif
+                  fallback</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

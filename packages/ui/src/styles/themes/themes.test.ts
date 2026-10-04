@@ -754,7 +754,7 @@ describe("spell", () => {
     expect(h1.style.fontWeight).toBe("700")
     const card = await ThemeHarness.inner(`<ui-card><ui-content>Streak</ui-content></ui-card>`, ".ui.card")
     expect(card.style.borderTopLeftRadius).toBe("16px")
-    // the face resolves:  an installed Palatino, or the bundled P052 (its `url()` survived inlining)
-    expect((await document.fonts.load('16px "Spell Serif"')).length).toBeGreaterThan(0)
+    // no font files ship:  an installed Palatino-family face, else the stack ends in the generic `serif`
+    expect(style.fontFamily).toMatch(/, serif$/)
   })
 })
