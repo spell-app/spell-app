@@ -32,7 +32,7 @@
         </ui-breadcrumb>
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
-            <h1>{{title}}</h1>
+            <h1>Epic: {{title}}</h1>
             <span class="plan-step" hidden></span></header
         ></ui-sticky>
         <ui-list class="plan-meta">
@@ -45,14 +45,17 @@
         <ui-message class="plan-hung" state="info" size="small" header="Plan hung?">
           <p>
             Close its Claude tab, open a new session in this worktree's window, then run <code>/epic {{name}}</code> and
-            pick "Reuse":  it plans again from the kickoff prompt.  This note goes once P1 starts.
+            pick "Reuse":  it plans again from the kickoff prompt.  This note goes once the plan has its first phase.
           </p>
         </ui-message>
 
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">Two sentences: what this plan does, and why.</p>
-          <blockquote class="plan-prompt">{{prompt}}</blockquote>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled>
+            <ui-title>Kickoff prompt</ui-title>
+            <ui-content><blockquote class="plan-prompt">{{prompt}}</blockquote></ui-content>
+          </ui-accordion>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <p>What goes where: the part that becomes durable docs in the last phase.</p>
           </ui-section>

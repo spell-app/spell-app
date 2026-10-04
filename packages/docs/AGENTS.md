@@ -70,7 +70,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
     "Contents" button.
   - the rail:  a strip of the top-level sections' icons at the right edge, the contents button (bars) on top, shown
     while the contents column isn't (narrow screens, or hidden by its button:  remembered for every page).  Give
-    every top-level section an icon:  without one, the rail shows its number
+    every top-level section an icon:  without one, the rail shows its number.  Hover widens it to show the names;
+    the current section is the accent;  at 400px and under, only the bars button shows
   - sticky titles:  each top-level section's title sticks below the page header, nested ones stack below their
     parents' (the runtime sets the top-level `offset`s)
   - folding:  folds are remembered per page;  a link's unfold isn't.  A plan doc (`body.plan-doc`) starts EVERY
@@ -78,10 +79,16 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - counts:  a top-level section holding `[data-status]` items shows `open/all` on its title (its `badge`) and the
     open count as a badge in the contents and the rail (open:  any status but `done` or `decided`);  nested
     sections get no count of their own
+  - a plan doc's review line under its page header:  "To review this doc, type `/epic review <name>`", copied on
+    click
   - item filter:  a top-level section with plan items (`.plan-items`) gets an "Open | All" button group left of
     its count;  Open (the default) hides struck items, with "N hidden · show all" under the list;  remembered
     per page
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
+  - the address follows the section being read (`#id`, replaced, not pushed), so a reload lands there
+  - served by the page server, an edit to the page's file updates it IN PLACE (`wireLiveUpdate()`):  scroll,
+    folds, open panels and typed text stay.  Anything the runtime adds inside `main` must carry
+    `data-spell-added`, so the patch steps around it.  Pages with scripts of their own still reload
   - code colors (highlight.js from cdnjs)
 - Headings:
   - one `h1`;  a numbered top-level `<ui-section>` per major section (`header="2. Read-after-write"`), each with a
@@ -208,19 +215,26 @@ In this order, from `packages/docs`:
 - `scripts/bundle-spell-ui.js` -- builds UI (fork + `yarn build`), bundles `_assets/spell-ui.js`.
 - `yarn docs:index` (`scripts/index.js`) -- rewrites the lists in `index.html`.
 - `yarn docs:new` (`scripts/new-page.js`) -- a page from a template, at any depth.
-- `yarn docs:open [page] [--vs]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome, reusing its
-  tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" view (`/spell-docs`).
+- `yarn docs:open [page] [--vs | --review]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome,
+  reusing its tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" tab (`/spell-docs`);
+  `--review`:  its "Review" tab (`/epic review`).  Each tab keeps its own page;  showing the page a tab already
+  has doesn't reload it (the page updates itself).
 - `yarn details` (`scripts/details.js`) -- details pages (see "Details pages");  `scripts/detailsRoutes.ts`, the
   page server's route module for their answers.
-- `yarn docs:link <page> [--hash <id>] [--text "..."] [--show]` (`scripts/link.ts`) -- the markdown links Claude
-  gives for a page:  side bar, then `(_browser_)`, both through `scripts/showRoutes.ts` (`GET /api/docs/show`).
+- `yarn docs:link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`scripts/link.ts`) -- the markdown links
+  Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
+  `scripts/showRoutes.ts` (`GET /api/docs/show`).
 - `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `atDepth()` (a template at a page's depth),
   `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
-  through the spell extension's `DocPreview`).
+  through the spell extension's `DocPreview`;  `{ view: "review" }`:  the "Review" tab).
 - `scripts/check-spell.js <page> [outDir]` -- Playwright, from `file://` (from the page server when the page says
   `data-spell-needs-server`):  fails on console errors, undefined / unrendered `ui-*`, contents vs sections,
   phone-width overflow, top-level titles that don't stick, a section that won't fold / unfold or forgets its fold
   on reload, a drawer that won't open;  writes screenshots.
+- `node scripts/check-live.js [epic]` -- Playwright, from the page server:  an edit to a plan doc (a log line it
+  adds, then removes) must update it in place, keeping scroll, folds, typed text and focus;  the address must
+  follow the scroll, and a fresh load of it land there.  Run it after touching `liveClient.ts` or the runtime's
+  "Live update".
 - `scripts/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its
   `convertSections()` is also `plan-doc.js` `migrate`'s last step.  Idempotent;  refuses goals pages.
 - `scripts/doc-links.js` -- see "Links".  Text and regexes, not a DOM:  it edits only what it links.

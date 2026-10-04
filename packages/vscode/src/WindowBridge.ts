@@ -1,6 +1,6 @@
 /**
  * Lets a Claude Code session (or any script it runs) talk to ITS OWN VS Code window:  add or remove a folder
- * (a worktree), show a doc in Simple Browser, close the session's tab;  or to a worktree's window
+ * (a worktree), show a doc in a side bar doc view, close the session's tab;  or to a worktree's window
  * (`yarn window open`):  open the session there, close the window.  The client is the repo root's
  * `scripts/window.mjs` (`yarn window`).
  * - Why not a `vscode://` URI:  macOS hands it to whichever window is FOCUSED, often not the session's.
@@ -16,7 +16,8 @@
  *   answers `{ ok: true, ... }`, or `{ ok: false, error }` with a 4xx / 5xx status.  Ops:
  *   - `add-folder { path, name? }`:  add `path` as the window's last folder;  already there:  ok, no-op
  *   - `remove-folder { path }`:  remove it;  never folder 0 (the repo root);  not there:  ok, no-op
- *   - `show-doc { file, hash? }`:  `DocPreview.show(file, hash)`;  `hash` an id on the page to land on
+ *   - `show-doc { file, hash?, view? }`:  `DocPreview.show(file, hash, view)`;  `hash` an id on the page to land
+ *     on;  `view` the side bar tab:  `"docs"` ("Spell Docs", the default) or `"review"` ("Review")
  *   - `close-window {}`:  close this window, just after answering (`/isolate done` closes the worktree's window)
  *   - `open-session { sessionId, prompt? }`:  open Claude Code session `sessionId` in an editor tab (never the
  *     sidebar), `prompt` typed into its input (not sent:  Owen presses enter);  `/isolate` hands its session to
@@ -184,8 +185,10 @@ export class WindowBridge {
       case "show-doc": {
         const file = path(body, "file")
         if (!existsSync(file) || !statSync(file).isFile()) throw new BridgeError(404, `no file '${file}'`)
-        await DocPreview.show(file, typeof body.hash === "string" ? body.hash : undefined)
-        return { file }
+        const view = body.view ?? "docs"
+        if (view !== "docs" && view !== "review") throw new BridgeError(400, `bad view '${String(view)}'`)
+        await DocPreview.show(file, typeof body.hash === "string" ? body.hash : undefined, view)
+        return { file, view }
       }
       case "close-window":
         // after the reply is on its way:  closing ends this extension host, and the server with it

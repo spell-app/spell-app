@@ -25,6 +25,9 @@ import { convertSections, createElement } from "./to-ui-section.js"
 /** The template `new` copies, relative to `DOCS`. */
 const TEMPLATE = "templates/epics/plan.html"
 
+/** What a plan doc's h1 and `<title>` start with, before its title:  `Epic: Review Review`. */
+export const TITLE_PREFIX = "Epic: "
+
 /** Phase status -> its icon and color (UI's `color` attribute, so themes and dark mode just work). */
 export const STATUS = {
   todo: { icon: "circle outline", color: "grey" },
@@ -217,9 +220,12 @@ export class PlanDoc {
    *   fill in
    * - `<ui-section id="p3" data-phase data-status header="P3 · Name" ...>`, its status icon slotted;  old markup:
    *   `section.s3` > `ui-sticky.spell-h3` > `h3#p3`
+   * - removes the "Plan hung?" notice (`ui-message.plan-hung`):  a plan with a phase has been written, so a hung
+   *   session no longer means starting over from the kickoff prompt
    */
   addPhase(name, { goal, files, verify, estimate } = {}) {
     const section = this.section("phases")
+    this.document.querySelector("ui-message.plan-hung")?.remove()
     const n = this.phases.length + 1
     const label = `P${n} · ${name}`
     this.addOldListEntry(n, label)
@@ -289,7 +295,8 @@ ${list}`
       line = this.element("p", { class: "plan-estimate" })
       const overview = this.section("overview")
       const above =
-        overview.querySelector(":scope > blockquote.plan-prompt") ?? overview.querySelector(":scope > .plan-summary")
+        overview.querySelector(":scope > :is(.plan-prompt-panel, blockquote.plan-prompt)") ??
+        overview.querySelector(":scope > .plan-summary")
       if (above) above.after(this.document.createTextNode("\n"), line)
       else prependContent(overview, line)
     }
@@ -314,7 +321,6 @@ ${list}`
    * - `done` removes the phase's UPDATE markers:  once it's finished, its changes are just the plan
    * - `done` also folds every OTHER done phase (`collapsed`;  old markup:  `data-fold="closed"`, read by the page
    *   runtime):  the phase just finished stays open, the older ones get out of the way
-   * - any phase leaving `todo` removes the "Plan hung?" notice (`ui-message.plan-hung`):  planning is over
    * - SIDE EFFECT:  logs the change
    */
   setPhase(n, status) {
@@ -340,7 +346,6 @@ ${list}`
       for (const marker of this.updateMarkers(n)) marker.remove()
       this.foldDonePhases(n)
     } else setFolded(section, false)
-    if (status !== "todo") this.document.querySelector("ui-message.plan-hung")?.remove()
     this.updateProgress()
     this.updateEstimate()
     this.log(`P${n} ${status}`)
@@ -759,7 +764,7 @@ ${list}`
       OPEN_KINDS.map((kind) => [kind, this.items(kind, this.findList(kind)).filter((item) => item.status === "open")])
     )
     return {
-      title: this.document.querySelector("h1")?.textContent.trim() ?? "",
+      title: this.title,
       phases,
       active: phases.find((phase) => phase.status === "active"),
       next: phases.find((phase) => phase.status === "todo"),
@@ -868,23 +873,38 @@ ${list}`
   /**
    * Set the prompt that started the plan:  a `blockquote.plan-prompt` near the top of the Overview, one `<p>` per
    * paragraph (blank lines split them, single newlines become `<br>`).  Replaces any earlier one;  "" removes it.
+   * - folded away in an aside titled "Kickoff prompt" (`ui-accordion.plan-prompt-panel`):  the doc's history, not
+   *   what a reader comes for;  a bare quote (docs before 2026-10-04) moves into one (`foldPrompt()`)
    * - the "Plan hung?" notice's copy of it too (`setHungPrompt()`)
    */
   setPrompt(prompt) {
     this.setHungPrompt(prompt)
     const quote = this.document.querySelector("blockquote.plan-prompt")
     const html = promptHTML(prompt)
-    if (!html) return quote?.remove()
+    if (!html) return (quote?.closest(".plan-prompt-panel") ?? quote)?.remove()
     if (quote) {
       quote.innerHTML = html
+      this.foldPrompt()
       return
     }
-    const added = this.element("blockquote", { class: "plan-prompt" })
-    added.innerHTML = html
+    const panel = this.fragment(promptPanel(html)).firstElementChild
     const overview = this.section("overview")
     const summary = overview.querySelector(":scope > .plan-summary")
-    if (summary) summary.after(added)
-    else prependContent(overview, added)
+    if (summary) summary.after(panel)
+    else prependContent(overview, panel)
+  }
+
+  /**
+   * A bare `blockquote.plan-prompt` (docs before 2026-10-04) into the folded "Kickoff prompt" aside, where it
+   * stood;  moved?
+   */
+  foldPrompt() {
+    const quote = this.document.querySelector("blockquote.plan-prompt")
+    if (!quote || quote.closest(".plan-prompt-panel")) return false
+    const panel = this.fragment(promptPanel("")).firstElementChild
+    quote.replaceWith(panel)
+    panel.querySelector("blockquote.plan-prompt").replaceWith(quote)
+    return true
   }
 
   /**
@@ -913,7 +933,8 @@ ${list}`
    * returns what changed, as lines (none:  already current).
    * - `#plan` goes:  its summary moves to the top of the Overview, its progress bar to `#phases`, its phase list away
    * - sections in `SECTION_ORDER`, titles renumbered, and the numbers in them with them (`3.1` -> `1.1`)
-   * - the h1 goes into the sticky page header, with the step label
+   * - the h1 goes into the sticky page header, with the step label;  it and `<title>` read `Epic: <title>`
+   * - the kickoff prompt folds into its "Kickoff prompt" aside
    * - item lists become `ui-list`s of `ui-item`s;  an item's "details" panel takes the item's line as its title
    * - phase bodies become `ui-list`s with an icon per field;  every done phase but the last folds
    * - links to `#plan` go to `#overview`
@@ -924,6 +945,8 @@ ${list}`
   migrate() {
     const changes = []
     if (this.migrateHeader()) changes.push("h1 in the sticky page header, with the step label")
+    if (this.migrateTitle()) changes.push(`page title "${TITLE_PREFIX}<title>"`)
+    if (this.foldPrompt()) changes.push('kickoff prompt folded into a "Kickoff prompt" aside')
     if (this.migratePlanSection()) changes.push("#plan dropped:  summary to Overview, progress bar to Phases")
     if (this.orderSections()) changes.push(`sections ordered ${SECTION_ORDER.join(", ")}, renumbered`)
     const items = this.migrateItems()
@@ -986,6 +1009,23 @@ ${list}`
     sticky.append(header)
     header.append(h1, this.element("span", { class: "plan-step", hidden: "" }))
     return true
+  }
+
+  /** The h1 and `<title>` as `Epic: <title>` (`TITLE_PREFIX`), from the h1;  done? */
+  migrateTitle() {
+    const h1 = this.document.querySelector("main h1")
+    if (!h1) return false
+    const title = `${TITLE_PREFIX}${this.title}`
+    const head = this.document.querySelector("title")
+    if (h1.textContent.trim() === title && (!head || head.textContent === title)) return false
+    h1.textContent = title
+    if (head) head.textContent = title
+    return true
+  }
+
+  /** The epic's title:  the h1's text without `TITLE_PREFIX`;  "" when there's no h1. */
+  get title() {
+    return docTitle(this.document) ?? ""
   }
 
   /** Drop `#plan`:  summary to the Overview's top, progress bar to `#phases`;  done? */
@@ -1236,6 +1276,24 @@ function idNumber(id) {
 function stepLabel(phase, color, glyph, prefix) {
   const label = text(`${prefix}P${phase.n} · ${phase.name}`)
   return `<ui-label basic color="${color}" icon="${glyph}" href="#p${phase.n}">${label}</ui-label>`
+}
+
+/**
+ * The folded "Kickoff prompt" aside around a `blockquote.plan-prompt` holding `html`:  a styled accordion, as the
+ * docs' asides (`spell-aside`), no `open`
+ */
+function promptPanel(html) {
+  return (
+    `<ui-accordion class="plan-prompt-panel spell-aside" styled><ui-title>Kickoff prompt</ui-title>` +
+    `<ui-content><blockquote class="plan-prompt">${html}</blockquote></ui-content></ui-accordion>`
+  )
+}
+
+/** A plan doc's title:  its h1's text, `TITLE_PREFIX` dropped;  `undefined` without an h1. */
+function docTitle(document) {
+  const heading = document.querySelector("h1")?.textContent.replace(/\s+/g, " ").trim()
+  if (heading === undefined) return undefined
+  return heading.startsWith(TITLE_PREFIX) ? heading.slice(TITLE_PREFIX.length) : heading
 }
 
 /** A prompt's text as `<p>`s:  blank lines split paragraphs, single newlines become `<br>`;  "" for none. */
@@ -1489,7 +1547,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   add-phase <name> "Short Name" [--goal html] [--files html] [--verify html] [--estimate 2h]
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
-                                                   reloads the doc's VS Code tab
+                                                   brings the doc forward in VS Code (it updates itself)
   add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html]    prints the new id
   decide <name> <Q id> "decision" [--details html]  answer a question:  a decision, the question struck beside it
   close <name> <id>  /  reopen <name> <id>         strike / unstrike an item
@@ -1550,7 +1608,9 @@ function main(argv) {
     case "phase":
       edit(file, (plan) => plan.setPhase(Number(need(rest[0], "a phase number")), need(rest[1], "a status")))
       reindex()
-      // a new stage:  show it to the user (their tab reloads), unless told not to
+      // a new stage:  bring the doc forward, unless told not to.  No reload, nor a second one:  the edit reaches the
+      // page by the live client (it updates itself in place, `spell-doc-runtime.js` `wireLiveUpdate()`), and showing
+      // the page the view already has only reveals it (`packages/vscode/src/DocView.ts`)
       return flags.noOpen ? undefined : openInVSCode(file)
     case "estimate":
       return edit(file, (plan) => {
@@ -1748,7 +1808,7 @@ function listEpics() {
     const root = file.slice(0, file.indexOf(`${join("packages", "docs", "epics")}`) - 1)
     return {
       name,
-      title: plan.document.querySelector("h1")?.textContent.trim() ?? name,
+      title: docTitle(plan.document) ?? name,
       status: phases.length && phases.every((phase) => phase.status === "done") ? "done" : "in progress",
       checkout: root === main ? "main" : relative(main, root),
       notReviewed: sections.reduce((sum, section) => sum + section.notReviewed, 0),
@@ -1786,6 +1846,7 @@ function edit(file, change) {
 
 /**
  * `new`:  copy the template to `file`, fill in name, title, date, branch and worktree, then update the index.
+ * - the page's title and h1:  `Epic: <title>` (`TITLE_PREFIX`;  the template's h1 has it)
  * - refuses to overwrite:  the skill asks the user whether to reuse an existing doc
  */
 function create(name, file, { title = titleCase(name), prompt, promptFile }) {
@@ -1806,7 +1867,7 @@ function create(name, file, { title = titleCase(name), prompt, promptFile }) {
     )
     .replace(/\n\s*<!--\s*PLAN DOC TEMPLATE\.[\s\S]*?-->/, "")
   const plan = PlanDoc.parse(html, now)
-  plan.document.querySelector("title").textContent = title
+  plan.document.querySelector("title").textContent = `${TITLE_PREFIX}${title}`
   plan.document.querySelector('meta[name="description"]').setAttribute("content", `Plan doc:  ${title}.`)
   // the prompt that started the plan, quoted at the top of the Overview;  none:  the empty quote goes
   plan.setPrompt(promptFile ? readFileSync(promptFile, "utf8") : (prompt ?? ""))
@@ -1988,7 +2049,7 @@ function printSummaries(files) {
  */
 export function pickerSpec(plan, file, section, status, pageDir = join(DOCS, "details")) {
   const name = basename(file, ".html")
-  const title = plan.document.querySelector("h1")?.textContent.trim() ?? name
+  const title = docTitle(plan.document) ?? name
   const label = section.label.toLowerCase()
   const last = status.last
     ? `You last reviewed this epic on ${status.last}${status.queued.length ? `;  ${status.queued.length} decided to do, not done yet` : ""}.`

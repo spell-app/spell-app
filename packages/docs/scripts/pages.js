@@ -109,13 +109,15 @@ export function serverUrl(base, file) {
 /**
  * Show `file` rendered in VS Code's doc preview:  `yarn plan-doc open <name>`, `yarn plan-doc phase`, `/spell-docs`.
  * - starts this checkout's page server first (`ensurePageServer()`), so the page live-reloads;  the spell extension
- *   (`yarn vscode`) finds it by its pid file and shows the page in the right side bar's "Spell Docs" view (or Simple Browser,
- *   `spell.docPreview.location`), reloaded on every open
+ *   (`yarn vscode`) finds it by its pid file and shows the page in a tab of the right side bar (or Simple Browser,
+ *   `spell.docPreview.location`).  The page already in that tab isn't reloaded:  it updates itself.
  * - first asks THIS session's window, through the extension's window bridge (the repo root's
  *   `scripts/window.mjs`);  a `vscode://` URI goes to whichever window is focused
  * - NOT run from VS Code (`Window.inVSCode`:  a CLI session in another terminal):  `openInChrome()` instead, and
- *   `hash` is dropped
+ *   `hash` and `view` are dropped
  * - `hash`:  an id on the page to land on, e.g. a goal `g1`
+ * - `view`:  which side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review":  `/epic review`,
+ *   `yarn docs:open <page> --review`);  each keeps its own page
  * - the session is moving to a worktree's window (`/isolate`, `/epic`:  a pending handoff):  shown THERE once it
  *   has moved, not in the window it's leaving
  * - no bridge (extension not reloaded, or not run from a VS Code window), or it failed:  the `vscode://` URI
@@ -123,19 +125,20 @@ export function serverUrl(base, file) {
  * - `open` itself failed (not macOS):  falls back to Chrome
  * - async for the bridge's http request;  never rejects
  */
-export async function openInVSCode(file, { hash } = {}) {
+export async function openInVSCode(file, { hash, view = "docs" } = {}) {
   if (!Window.inVSCode) return openInChrome(file)
   const path = resolve(file)
   const served = ensurePageServer()
+  const review = view === "review"
   try {
-    const { window, later } = await Window.show(path, { hash })
+    const { window, later } = await Window.show(path, { hash, view: review ? "review" : undefined })
     if (later) return console.log(`${path} shows in ${later} once this session moves there`)
     return console.log(`opened ${path} in VS Code (window ${window.pid})`)
   } catch (error) {
     if (!/^no window/.test(error.message)) console.error(`${error.message}:  falling back to the vscode:// URI`)
   }
   const url = served && `${serverUrl(served.base, path)}${hash ? `#${hash}` : ""}`
-  const query = new URLSearchParams({ ...(url && { url }), file: path })
+  const query = new URLSearchParams({ ...(url && { url }), file: path, ...(review && { view: "review" }) })
   const run = spawnSync("open", [`${VSCODE_PREVIEW}?${query}`], { encoding: "utf8" })
   if (run.status === 0) return console.log(`opened ${path} in VS Code`)
   console.error(`VS Code via \`open\` failed (${(run.stderr ?? String(run.error)).trim()}):  falling back to Chrome`)

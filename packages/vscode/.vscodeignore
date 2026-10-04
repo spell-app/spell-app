@@ -1,6 +1,7 @@
-# Only the bundle, manifest, grammar and language config go in the .vsix -- see `yarn package`.
+# Only the bundle, manifest, grammar, language config and side bar icons go in the .vsix -- see `yarn package`.
 **
 !package.json
 !language-configuration.json
 !syntaxes/**
+!media/**
 !out/extension.js
