@@ -93,7 +93,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
     plan mode or inside another worktree, saving their text to `~/.spell/prompts/<name>.md` first.
   - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), the package window's theme with a title
     bar tinted per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
-    worktree's `packages/<pkg>` (`<pkg> ⎇ <name>`) and root (`spell-app ⎇ <name>`).
+    worktree's root (`⎇ <name>`);  no package folder, and `packages/` shows in both.
   - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
   - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
   - A doc shown while the move is pending (`yarn plan-doc open`, `window.mjs show`) waits, then shows beside the
@@ -106,7 +106,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
   worktree, plus a `PARKED-<name>.md` note), `/unpark` to pick it back up, or `/wait-for <other>` to wait for
   that session to finish, then merge `main` in and carry on by itself.
-- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>", or
+- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, ⎇ <name>", or
   "..., staying in this window").
 
 ## Changelog
