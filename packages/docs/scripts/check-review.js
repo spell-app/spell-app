@@ -4,15 +4,20 @@
  * Usage:  node scripts/check-review.js [epic name] [outDir]   (default `review-review`;  from `packages/docs`)
  * - clicks through what Owen would:  an item's ellipsis menu -> Approve, Add to todo, Add Details;  Revisit with a
  *   note (the draft must survive a reload), saved "soon";  another revisited "now" (its spinner must show while the
- *   request waits);  "Choose" on an open question's option card;  then "Send to Claude"
+ *   request waits);  "Choose" on an open question's option card, then a Revisit on it ("pick B, but ...":  both
+ *   kept, the letter changes and drops without losing the note);  then "Send to Claude", and `yarn plan-doc inbox
+ *   <name> wait` must print the pick with its note
+ * - starts with a STALE `listening` in the inbox (a session killed without `unlisten`):  the page must say nobody
+ *   is reviewing (the send button's tooltip, the revisit-now notice);  after `inbox listen`, it must not
  * - fails (exit 1) unless each shows on the page (button colors, the picked card, the send button's states) AND
  *   lands in the inbox file (read back through `GET /api/review/inbox`);  after a reload every mark still shows;  an
  *   in-place update (a log line it adds with `yarn plan-doc log <name> ... --here`, then removes) keeps the
  *   buttons and marks without reloading;  at 280px and 700px, light and dark, no item title runs under its button,
  *   and no review control runs past the window
  * - screenshots (outDir, default a temp folder):  `review-<width>-<scheme>.png`, a menu and a Revisit box open
- * - REFUSES to run on an inbox that already has marks (they'd be Owen's);  SIDE EFFECT:  deletes the inbox file
- *   afterwards, and its log line from the doc (reformatting it with oxfmt)
+ * - REFUSES to run while the inbox file exists (its marks, or a session listening, would be Owen's);  SIDE EFFECT:
+ *   writes the inbox (by hand, then `yarn plan-doc inbox <name> listen` / `wait`, `--here`), deletes it afterwards,
+ *   and its log line from the doc (reformatting it with oxfmt)
  * - prints a JSON summary on stdout, problems on stderr
  */
 import { execFileSync } from "node:child_process"
@@ -37,6 +42,9 @@ const url = serverUrl(served.base, file)
 const pagePath = new URL(url).pathname
 const stamp = `check-review-${Date.now()}`
 const NOTE = "check-review:  why not reuse the details route?"
+const PICK_NOTE = "check-review:  B, but only for plan docs?"
+/** Matches what the page says with nobody listening (`NOBODY_LISTENING` in the runtime). */
+const NOBODY = /No Claude session/
 const problems = []
 const summary = { url, out }
 
@@ -45,10 +53,17 @@ if (!before) {
   console.error("check-review:  the page server has no review routes (GET /api/review/inbox):  restart it")
   process.exit(2)
 }
-if (Object.keys(before.marks).length || before.now.length) {
+if (Object.keys(before.marks).length || before.now.length || existsSync(inboxFile)) {
   console.error(`check-review:  the inbox already has marks (${relative(DOCS, inboxFile)}):  not touching them`)
   process.exit(2)
 }
+// a session that died without `unlisten`, five minutes ago:  the page must treat it as nobody (I4).  Written by hand
+// before the page opens:  nothing else writes the inbox yet
+const gone = new Date(Date.now() - 5 * 60_000).toISOString()
+writeFileSync(
+  inboxFile,
+  JSON.stringify({ ...before, listening: { session: "check-review-gone", since: gone, seen: gone } }, null, 2)
+)
 
 const browser = await chromium.launch()
 try {
@@ -79,6 +94,13 @@ try {
   // Approve, Add to todo
   await pickInMenu(page, approve, "Approve")
   await expectButton(page, approve, "green", "approve")
+  // the stale `listening` (I4):  still in the file, but nobody to the route and the page
+  const stale = { file: JSON.parse(readFileSync(inboxFile, "utf8")).listening, route: (await inbox()).listening }
+  stale.sendTip = await page.$eval(".plan-send", (button) => button.title)
+  summary.stale = stale
+  if (!stale.file) problems.push("the stale `listening` is gone from the inbox file")
+  if (stale.route) problems.push(`a stale listening still answers as listening:  ${JSON.stringify(stale.route)}`)
+  if (!NOBODY.test(stale.sendTip)) problems.push(`stale listening:  the send tooltip says "${stale.sendTip}"`)
   const unfolded = await page.evaluate((id) => {
     const accordion = document.querySelector(`#${id} > ui-accordion`)
     return accordion ? String(accordion.open ?? "") : ""
@@ -120,8 +142,8 @@ try {
   const queued = await inbox()
   if (!queued.now.some((entry) => entry.id === now)) problems.push(`revisit now:  ${now} not queued on \`now\``)
   const said = await page.evaluate(() => document.querySelector(".plan-review-notice:not([hidden])")?.textContent)
-  if (!queued.listening && !/No Claude session/.test(said ?? ""))
-    problems.push("nobody listening, but the page didn't say so (D6)")
+  if (queued.listening) problems.push("the stale listening came back as listening")
+  if (!NOBODY.test(said ?? "")) problems.push("a stale listening, but the page didn't say nobody is reviewing (D6, I4)")
 
   // Add Details
   await pickInMenu(page, details, "Add Details")
@@ -148,6 +170,31 @@ try {
   const picked = (await inbox()).marks.q7
   if (picked?.action !== "pick" || picked.pick !== "B") problems.push(`inbox:  q7 is ${JSON.stringify(picked)}`)
 
+  // "pick B, but ..." (I3):  a Revisit on the picked question keeps the pick;  choosing again keeps the note
+  await pickInMenu(page, "q7", "Revisit")
+  await page.fill("#q7 .plan-revisit-note", PICK_NOTE)
+  await page.click("#q7 .plan-revisit-soon")
+  await page.waitForTimeout(300)
+  const both = (mark) => mark.when === "soon" && mark.note === PICK_NOTE
+  await expectButton(page, "q7", "orange", "revisit", (mark) => both(mark) && mark.pick === "B")
+  if ((await q7Shown(page)).letter !== "B")
+    problems.push(`pick + revisit:  q7 shows ${JSON.stringify(await q7Shown(page))}`)
+  await page.click('#q7 .plan-choose[data-letter="A"]')
+  await page.waitForTimeout(300)
+  await expectButton(page, "q7", "orange", "revisit", (mark) => both(mark) && mark.pick === "A")
+  const changed = await q7Shown(page)
+  if (changed.letter !== "A" || changed.picked !== "A")
+    problems.push(`choosing A:  q7 shows ${JSON.stringify(changed)}`)
+  // the chosen pill again:  just the pick goes, the note stays
+  await page.click('#q7 .plan-choose[data-letter="A"]')
+  await page.waitForTimeout(300)
+  await expectButton(page, "q7", "orange", "revisit", (mark) => both(mark) && !("pick" in mark))
+  const dropped = await q7Shown(page)
+  if (dropped.letter || dropped.picked) problems.push(`un-picking A:  q7 shows ${JSON.stringify(dropped)}`)
+  await page.click('#q7 .plan-choose[data-letter="B"]')
+  await page.waitForTimeout(300)
+  await expectButton(page, "q7", "orange", "revisit", (mark) => both(mark) && mark.pick === "B")
+
   // what Owen sees before sending:  the marked items, the picked card
   for (const [id, shot] of [
     [approve, "review-marked.png"],
@@ -158,6 +205,20 @@ try {
     await page.screenshot({ path: join(out, shot) })
   }
 
+  // a session listens now (a fresh heartbeat):  the page stops saying nobody is reviewing
+  planDoc("inbox", name, "listen", "--session", "check-review")
+  try {
+    await page.waitForFunction(
+      (nobody) => !new RegExp(nobody).test(document.querySelector(".plan-send")?.title),
+      NOBODY.source,
+      {
+        timeout: 10_000
+      }
+    )
+  } catch {
+    problems.push("after `inbox listen`, the send tooltip still says nobody is reviewing")
+  }
+
   // Send to Claude:  blue before, outlined after
   const sendBefore = await page.$eval(".plan-send", (button) => button.dataset.state)
   if (sendBefore !== "unsent") problems.push(`send button before sending:  "${sendBefore}", not unsent (blue)`)
@@ -166,6 +227,19 @@ try {
   const sendAfter = await page.$eval(".plan-send", (button) => button.dataset.state)
   if (sendAfter !== "sent") problems.push(`send button after sending:  "${sendAfter}", not sent (outlined)`)
   if (!(await inbox()).sent) problems.push("inbox:  `sent` not set")
+  const sentNotice = await page.evaluate(() => document.querySelector(".plan-review-notice:not([hidden])")?.textContent)
+  if (!/^Sent \d+ to Claude/.test(sentNotice ?? ""))
+    problems.push(`a session listening, but the send said "${sentNotice}"`)
+
+  // Claude's side:  `wait` hands the send over, Q7 as "picks B · <card>, asks:  <note>" under "to talk over"
+  const work = planDoc("inbox", name, "wait", "--timeout", "5")
+  const lines = work.split("\n")
+  const talkAt = lines.findIndex((line) => /^\s+revisit, to talk over \(\d+\):$/.test(line))
+  const q7At = lines.findIndex((line, at) => at > talkAt && /^\s+- Q7\s/.test(line))
+  summary.wait = lines.slice(q7At, q7At + 2)
+  const combo = lines[q7At + 1]?.trim() ?? ""
+  if (talkAt < 0 || q7At < 0 || !combo.startsWith("picks B · ") || !combo.endsWith(`, asks:  "${PICK_NOTE}"`))
+    problems.push(`\`inbox wait\` didn't print Q7's pick with its note under "to talk over":\n${work}`)
 
   // reload:  everything still shows
   await open(page)
@@ -199,6 +273,15 @@ try {
   )
   if (!after) problems.push("the in-place update lost (or doubled) buttons")
   removeLogLine()
+
+  // Clear on "pick B, but ...":  the pick and the note both go
+  await page.evaluate(unfold, "decisions")
+  await page.locator("#q7 .plan-act-button").scrollIntoViewIfNeeded()
+  await pickInMenu(page, "q7", "Clear")
+  const clearedQ7 = await q7Shown(page)
+  const leftQ7 = (await inbox()).marks.q7
+  if (leftQ7 || clearedQ7.letter || clearedQ7.picked || clearedQ7.color)
+    problems.push(`Clear on q7 left ${JSON.stringify({ inbox: leftQ7, page: clearedQ7 })}`)
   if (errors.length) problems.push(`page errors:  ${errors.join(" | ")}`)
   await context.close()
 
@@ -260,6 +343,30 @@ async function expectButton(page, id, color, action, check = () => true) {
   if (shown !== color) problems.push(`${id}:  button is ${shown ?? "grey"}, not ${color}`)
   const mark = (await inbox()).marks[id]
   if (mark?.action !== action || !check(mark)) problems.push(`inbox:  ${id} is ${JSON.stringify(mark)}`)
+}
+
+/** Q7's button and cards as shown:  `{ color, letter, picked }` (`picked`:  the framed card's letter). */
+async function q7Shown(page) {
+  return page.evaluate(() => {
+    const button = document.querySelector("#q7 .plan-act-button")
+    return {
+      color: button?.dataset.color,
+      letter: button?.querySelector(".plan-act-letter")?.textContent || undefined,
+      picked: document.querySelector("#q7 ui-column[data-picked] .plan-choose")?.dataset.letter
+    }
+  })
+}
+
+/**
+ * `yarn plan-doc <args> --here` (this checkout's doc), its output;  a non-zero exit (`wait`'s timeout:  2) still
+ * answers what it printed.
+ */
+function planDoc(...args) {
+  try {
+    return execFileSync("yarn", ["plan-doc", ...args, "--here"], { cwd: DOCS, encoding: "utf8" })
+  } catch (error) {
+    return `${error.stdout ?? ""}${error.stderr ?? ""}`
+  }
 }
 
 /** The inbox, through the route;  undefined when the server has none. */

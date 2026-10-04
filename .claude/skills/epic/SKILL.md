@@ -257,7 +257,8 @@ Read what it printed.  Then, in this order:
      `yarn plan-doc details <name> <id> --file <html>`
    - revisit now:  answer Owen's note (quote it), in the reply block markup (`plan-doc.md`, "Reply"):  what he asked,
      the answer with evidence (real code, the command and its output), option cards when he must choose (he picks
-     on the page), a Net effect;  `yarn plan-doc details <name> <id> --append --file <html>`
+     on the page), a Net effect;  `yarn plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
+     · ..., asks:  ..."):  answer about THAT option;  never decide the question (he confirms with a plain pick)
    - last:  `yarn plan-doc inbox <name> done <id>`
    Up to 5 agents at once (root rules);  more:  the rest after.
 3. SENT marks:  `yarn plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each).
@@ -265,6 +266,11 @@ Read what it printed.  Then, in this order:
    answer (short;  evidence when it matters).  A choice he must make:  write it into the item as a reply with option
    cards (`details --append`) so he picks ON THE PAGE;  a quick yes / no:  a modal.  Done:  `inbox clear <id>` and
    `review <name> <id> "<outcome>"`.
+   - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  answer the note
+     about B, and once he agrees, `yarn plan-doc decide <name> <id> "<card title>" --option B` yourself
+   - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
+     `inbox apply`, `done`, `clear` and `working`;  a long talk without them shows "nobody is reviewing" until `wait`
+     runs again
 4. Arm `wait` again (always, unless he said stop), then reply:  what landed (bullets, items in words, ids after),
    what's being worked on in the background, what needs him;  the doc's link pair last.
 - A background agent's own completion notice wakes the session too:  nothing to do but check `inbox` shows the item

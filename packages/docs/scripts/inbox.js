@@ -12,10 +12,16 @@
  *   changing that object:  `inbox.test.js` drives them directly.
  * - Shape (`version: 1`):
  *   - `marks`:  `{ [id]: { action, at, when?, note?, pick? } }`, one per item id (lower-case), the latest wins
+ *     - a plain pick:  `{ action: "pick", pick: "B" }`, applied by `plan-doc inbox apply`
+ *     - "pick B, but ...":  a revisit carrying the pick, `{ action: "revisit", when, note, pick: "B" }`;  never
+ *       applied:  Claude talks it over (`toMark()`)
  *   - `sent`:  ISO time of the last "send to Claude", else `null`;  marks newer than it are unsent (`unsentMarks()`)
- *   - `now`:  `[{ id, action, at, note? }]`, immediate requests (Add Details, revisit now) for Claude to take
+ *   - `now`:  `[{ id, action, at, note?, pick? }]`, immediate requests (Add Details, revisit now) for Claude to take
  *   - `working`:  `{ [id]: { action, since } }`, Claude's agents at work on an item (the page shows a spinner)
- *   - `listening`:  `{ session, since }` while a Claude session waits on this inbox, else `null`
+ *   - `listening`:  `{ session, since, seen }` while a Claude session waits on this inbox, else `null`
+ *     - `seen`:  its last heartbeat (`plan-doc inbox wait` stamps it every `LISTEN_HEARTBEAT_MS`);  older than
+ *       `LISTEN_STALE_MS` (an old file without one:  `since` that old), the session is gone:  `liveListener()` is
+ *       `null`, and the routes answer `listening: null` (`forPage()`)
  *   - `handedOver`:  the `sent` time a waiting session last took (`takeWork()`), else `null`:  so a second
  *     `plan-doc inbox wait` doesn't hand the same send over again
  */
@@ -41,6 +47,15 @@ export const NOW_ACTIONS = ["details", "revisit"]
 
 /** A `revisit` mark's `when`. */
 export const REVISIT_WHEN = ["soon", "now"]
+
+/** How often a waiting session (`plan-doc inbox wait`) stamps `listening.seen`:  one locked write. */
+export const LISTEN_HEARTBEAT_MS = 30_000
+
+/**
+ * A `listening` whose heartbeat (`seen`) is older than this is a session that died without `unlisten` (closed
+ * tab, crash):  three missed heartbeats.
+ */
+export const LISTEN_STALE_MS = 90_000
 
 /** An option card's letter. */
 const OPTION_LETTER = /^[A-Z]$/
@@ -154,17 +169,25 @@ export function setMark(inbox, id, mark, at = isoTime()) {
 }
 
 /**
- * Item `id`'s IMMEDIATE request:  queue `{ id, action, at, note? }` on `now` and set its mark.
+ * Item `id`'s IMMEDIATE request:  queue `{ id, action, at, note?, pick? }` on `now` and set its mark.
  * - `details`:  the mark is `details`;  `revisit`:  `revisit` with `when: "now"` and the note
+ * - a revisit keeps the item's pick (a `pick` mark's, or a revisit's):  "pick B, but ..." asked now
  * - a request already queued for the same item is replaced, not doubled:  two clicks are one request
  * - returns the queued entry
  */
 export function requestNow(inbox, id, action, note = "", at = isoTime()) {
   const key = toItemId(id)
   if (!NOW_ACTIONS.includes(action)) throw new InboxError(`not an immediate action:  ${action} (${NOW_ACTIONS})`)
-  const mark = action === "revisit" ? { action, when: "now", note } : { action }
+  const pick = inbox.marks[key]?.pick
+  const mark = action === "revisit" ? { action, when: "now", note, ...(pick && { pick }) } : { action }
   const checked = setMark(inbox, key, mark, at)
-  const entry = { id: key, action, at, ...(checked?.note ? { note: checked.note } : {}) }
+  const entry = {
+    id: key,
+    action,
+    at,
+    ...(checked?.note ? { note: checked.note } : {}),
+    ...(checked?.pick ? { pick: checked.pick } : {})
+  }
   inbox.now = inbox.now.filter((each) => each.id !== key)
   inbox.now.push(entry)
   return entry
@@ -222,6 +245,22 @@ export function clearMarks(inbox, ids) {
   return had
 }
 
+/**
+ * Claude's agent finished items `ids` (`plan-doc inbox done`):  their IMMEDIATE marks go (`clearMarks()`).
+ * Returns `{ had, kept }`:  the ids whose mark went, and those whose mark stayed.
+ * - a mark Owen changed meanwhile to one waiting for a send stays, for the next send:  e.g. he asked "revisit now",
+ *   then chose card B while the agent worked (now a revisit `soon` with the note and the `pick`)
+ */
+export function finishMarks(inbox, ids) {
+  const keys = ids.map(toItemId)
+  const kept = keys.filter((key) => key in inbox.marks && !isImmediate(inbox.marks[key]))
+  const had = clearMarks(
+    inbox,
+    keys.filter((key) => !kept.includes(key))
+  )
+  return { had, kept }
+}
+
 ////////////////
 // ## Claude's side (P6)
 ////////////////
@@ -249,11 +288,43 @@ export function setWorking(inbox, id, action, at = isoTime()) {
 
 /**
  * Claude session `session` started (or, `null`, stopped) waiting on this inbox.
- * - the page says "No Claude session is reviewing this doc" while it's `null` (decision D6)
+ * - `seen`:  its first heartbeat (`touchListening()`)
+ * - the page says "No Claude session is reviewing this doc" while it's `null`, or stale (`liveListener()`;
+ *   decision D6)
  */
 export function setListening(inbox, session, at = isoTime()) {
-  inbox.listening = session === null ? null : { session, since: at }
+  inbox.listening = session === null ? null : { session, since: at, seen: at }
   return inbox.listening
+}
+
+/**
+ * The listening session's heartbeat:  `listening.seen` is `at`.  Nobody listening:  nothing (a heartbeat never
+ * starts one:  that's `listen`'s).
+ * - `plan-doc inbox wait` calls it every `LISTEN_HEARTBEAT_MS`;  the session's other inbox commands, each time
+ */
+export function touchListening(inbox, at = isoTime()) {
+  if (inbox.listening) inbox.listening.seen = at
+  return inbox.listening
+}
+
+/**
+ * The session listening:  `null` when nobody is, or its heartbeat stopped (`seen`, an old file's `since`, older
+ * than `LISTEN_STALE_MS` at `now`, in ms).
+ * - why:  a session killed without `unlisten` leaves `listening` set;  the page must not claim it's there
+ */
+export function liveListener(inbox, now = Date.now()) {
+  const listening = inbox.listening
+  if (!listening) return null
+  const seen = Date.parse(listening.seen ?? listening.since)
+  return now - seen > LISTEN_STALE_MS ? null : listening
+}
+
+/**
+ * `inbox` as the page reads it (every route's answer):  the whole inbox, but `listening` `null` once stale
+ * (`liveListener()`), so the page keeps no clock rule of its own.
+ */
+export function forPage(inbox, now = Date.now()) {
+  return { ...inbox, listening: liveListener(inbox, now) }
 }
 
 /**
@@ -316,7 +387,8 @@ export function clearApplied(inbox, marks) {
 /**
  * `mark` from a request, checked:  only its own fields, in a fixed order.
  * - `action`:  one of `ACTIONS`
- * - `revisit`:  `when` `soon` (default) or `now`;  `note` trimmed, `""` when none
+ * - `revisit`:  `when` `soon` (default) or `now`;  `note` trimmed, `""` when none;  `pick` too, when given (a
+ *   letter):  "pick B, but ...", a question's pick with a remark, talked over rather than applied
  * - `pick`:  `pick` an option card's letter, `A`-`Z`
  * - throws an `InboxError` for anything else;  `at` is never taken from it (the writer stamps it)
  */
@@ -327,13 +399,17 @@ export function toMark(mark) {
   if (action === "revisit") {
     if (!REVISIT_WHEN.includes(when)) throw new InboxError(`revisit when?  ${REVISIT_WHEN.join(" | ")}`)
     if (typeof note !== "string") throw new InboxError("a revisit's note is text")
-    return { action, when, note: note.trim() }
+    if (pick === undefined || pick === null) return { action, when, note: note.trim() }
+    return { action, when, note: note.trim(), pick: toLetter(pick) }
   }
-  if (action === "pick") {
-    if (typeof pick !== "string" || !OPTION_LETTER.test(pick)) throw new InboxError(`pick which option?  ${pick}`)
-    return { action, pick }
-  }
+  if (action === "pick") return { action, pick: toLetter(pick) }
   return { action }
+}
+
+/** `pick` as an option card's letter (`A`-`Z`);  an `InboxError` when it isn't one. */
+function toLetter(pick) {
+  if (typeof pick !== "string" || !OPTION_LETTER.test(pick)) throw new InboxError(`pick which option?  ${pick}`)
+  return pick
 }
 
 /** `id` as the inbox keys it:  lower-case, as the item's element id;  an `InboxError` when it isn't an item id. */

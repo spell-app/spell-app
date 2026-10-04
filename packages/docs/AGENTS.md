@@ -102,7 +102,11 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
     - Revisit:  a note box under the line, a grey check ("soon") over a blue send ("now");  the unsaved note
       survives reloads (`spell-revisit:<path>`)
     - an open item's option cards:  a "Choose" pill on each label marks `pick`, the card framed orange
-    - the page header's paper plane, left of the git button:  grey, blue with unsent marks, outlined once sent
+    - a pick and a revisit together ("pick B, but ..."):  choosing keeps a revisit's note, a revisit keeps the
+      pick;  the button orange with the letter;  the chosen pill again drops just the pick, Clear both
+    - the page header's paper plane, left of the git button:  grey, blue with unsent marks, outlined once sent;  its
+      tooltip says nobody is reviewing while no session listens, or its heartbeat stopped (the routes answer
+      `listening: null`)
     - re-reads the inbox on the page server's change event for `<name>.inbox.json`, else every 4s while visible;
       nothing it does scrolls the page
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
@@ -198,13 +202,19 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   wait in its INBOX FILE, `epics/<name>/<name>.inbox.json` beside the doc, until a Claude session takes them.
   - absent until the first mark, deleted once empty;  git-ignored:  per-machine pending state, never the record
   - shape and helpers:  `scripts/inbox.js` (`setMark()`, `requestNow()`, `markSent()`, `unsentMarks()`,
-    `sentMarks()`, `takeNow()`, `takeWork()`, `setWorking()`, `setListening()`, `clearMarks()`, `clearApplied()`);
-    EVERY write through `updateInbox()` / `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
+    `sentMarks()`, `takeNow()`, `takeWork()`, `setWorking()`, `setListening()`, `touchListening()`,
+    `liveListener()`, `clearMarks()`, `finishMarks()`, `clearApplied()`);  EVERY write through `updateInbox()` /
+    `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
+  - one mark per item;  a question's pick with a remark is ONE revisit mark carrying `pick`
+    (`{ action: "revisit", when, note, pick }`):  talked over, never applied by itself
+  - `listening.seen`:  the session's heartbeat (`LISTEN_HEARTBEAT_MS`, 30s, from `wait`);  older than
+    `LISTEN_STALE_MS` (90s), the session is gone (`liveListener()` `null`)
 - The page writes through the page server's route module `scripts/reviewRoutes.ts`, `/api/review/...`:
   `GET inbox?page=`, `POST mark { page, id, mark | null }`, `POST now { page, id, action, note? }` (Add Details,
-  revisit now:  queued on `now`), `POST send { page }`.
+  revisit now, which keeps the item's pick:  queued on `now`), `POST send { page }`.
   - `page`:  the doc's URL path (`/worktrees/<w>/...` too);  only `<name>.plan.html` (else 403), only ids of its
-    items (else 400);  each answer is the whole inbox;  writes need the server's token and origin (`SRV.Guard`)
+    items (else 400);  each answer is the whole inbox, but `listening` `null` once stale (`forPage()`);  writes
+    need the server's token and origin (`SRV.Guard`)
 - Unsent:  marks newer than `sent` (the last "send to Claude"), never an immediate one (`details`, revisit `now`).
 - `yarn plan-doc inbox <name> [--json]` prints it:  marks by action with their items' titles, sent or not, the
   `now` queue, agents at work, the session listening.
@@ -212,9 +222,11 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   inbox"):
   - `listen` / `unlisten`:  a session waits on it, or stopped
   - `wait`:  run in the background;  exits 0 with work (requests for now, taken;  a send not yet handed over,
-    `handedOver`), which wakes the session;  2 on timeout
-  - `apply [ids]`:  the sent approve / pick / todo marks, into the doc (`PlanDoc.applyMark()`), then cleared
-  - `working <id> on|off`, `done <id>...`, `clear <id>...`
+    `handedOver`), which wakes the session;  2 on timeout;  stamps the heartbeat while it waits
+  - `apply [ids]`:  the sent approve / pick / todo marks, into the doc (`PlanDoc.applyMark()`), then cleared;  a
+    revisit with a pick is left, "to talk over"
+  - `working <id> on|off`, `done <id>...` (keeps a mark Owen changed meanwhile), `clear <id>...`;  these and
+    `apply` stamp the heartbeat too
   - an agent writes into ONE item with `yarn plan-doc details <name> <id> --file <html> [--append]`:  under the
     doc's lock, so it never races the session's other edits
 
@@ -285,9 +297,11 @@ In this order, from `packages/docs`:
   "Live update".
 - `node scripts/check-review.js [epic] [outDir]` -- Playwright, from the page server:  clicks through a plan doc's
   review actions (approve, todo, Add Details, revisit soon with a note that must survive a reload, revisit now with
-  its spinner, "Choose" on Q7's cards, send) and checks each on the page AND in the inbox;  marks survive a reload
-  and an in-place update;  nothing runs under a button at 280 / 700px, light and dark;  writes screenshots.
-  Refuses an inbox with marks in it;  deletes the inbox file afterwards.  Run it after touching "Review actions".
+  its spinner, "Choose" on Q7's cards, then a revisit on Q7 keeping the pick, send, `inbox wait` printing the pick
+  with its note) and checks each on the page AND in the inbox;  a stale `listening` must read as nobody;  marks
+  survive a reload and an in-place update;  nothing runs under a button at 280 / 700px, light and dark;  writes
+  screenshots.  Refuses while the inbox file exists;  deletes it afterwards.  Run it after touching "Review
+  actions".
 - `scripts/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its
   `convertSections()` is also `plan-doc.js` `migrate`'s last step.  Idempotent;  refuses goals pages.
 - `scripts/doc-links.js` -- see "Links".  Text and regexes, not a DOM:  it edits only what it links.

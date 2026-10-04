@@ -9,13 +9,18 @@ import { afterAll, describe, expect, test } from "vitest"
 
 import {
   InboxError,
+  LISTEN_HEARTBEAT_MS,
+  LISTEN_STALE_MS,
   clearApplied,
   clearMarks,
   emptyInbox,
+  finishMarks,
+  forPage,
   hasWork,
   inboxPath,
   isoTime,
   itemIds,
+  liveListener,
   markList,
   markSent,
   newSend,
@@ -28,6 +33,7 @@ import {
   takeNow,
   takeWork,
   toMark,
+  touchListening,
   unsentMarks,
   updateInbox,
   updateInboxAsync
@@ -54,6 +60,27 @@ describe("marks", () => {
       note: "why?"
     })
     expect(toMark({ action: "pick", pick: "B", note: "x" })).toEqual({ action: "pick", pick: "B" })
+  })
+
+  test("a revisit may carry a pick:  'pick B, but ...'", () => {
+    expect(toMark({ action: "revisit", note: " only plan docs? ", pick: "B" })).toEqual({
+      action: "revisit",
+      when: "soon",
+      note: "only plan docs?",
+      pick: "B"
+    })
+    expect(toMark({ action: "revisit", pick: null })).toEqual({ action: "revisit", when: "soon", note: "" })
+    for (const pick of ["b", "BB", 2, ""]) expect(() => toMark({ action: "revisit", pick })).toThrow(InboxError)
+  })
+
+  test("a pick with a revisit is unsent like any other, and sent with the send", () => {
+    const inbox = emptyInbox()
+    setMark(inbox, "q7", { action: "revisit", note: "why?", pick: "B" }, T1)
+    expect(unsentMarks(inbox).map((mark) => mark.id)).toEqual(["q7"])
+    markSent(inbox, T2)
+    expect(takeWork(inbox).sent.marks).toEqual([
+      { id: "q7", action: "revisit", when: "soon", note: "why?", pick: "B", at: T1, again: false }
+    ])
   })
 
   test("bad marks throw an InboxError", () => {
@@ -106,6 +133,24 @@ describe("immediate requests", () => {
     expect(inbox.marks.q7).toEqual({ action: "revisit", when: "now", note: "second", at: T2 })
   })
 
+  test("revisit now keeps the item's pick, on the mark and the request;  details doesn't", () => {
+    const inbox = emptyInbox()
+    setMark(inbox, "q7", { action: "pick", pick: "B" }, T1)
+    expect(requestNow(inbox, "q7", "revisit", "but?", T2)).toEqual({
+      id: "q7",
+      action: "revisit",
+      at: T2,
+      note: "but?",
+      pick: "B"
+    })
+    expect(inbox.marks.q7).toEqual({ action: "revisit", when: "now", note: "but?", pick: "B", at: T2 })
+    // again, from a revisit carrying it
+    requestNow(inbox, "q7", "revisit", "and?", T3)
+    expect(inbox.marks.q7.pick).toBe("B")
+    requestNow(inbox, "q7", "details", "", T3)
+    expect(inbox.marks.q7).toEqual({ action: "details", at: T3 })
+  })
+
   test("a mark that waits for a send, or none, drops the queued request", () => {
     const inbox = emptyInbox()
     requestNow(inbox, "q7", "revisit", "", T1)
@@ -136,8 +181,51 @@ describe("Claude's side", () => {
     expect(inbox.working).toEqual({ i2: { action: "details", since: T1 } })
     setWorking(inbox, "i2", null)
     expect(inbox.working).toEqual({})
-    expect(setListening(inbox, "abc", T1)).toEqual({ session: "abc", since: T1 })
+    expect(setListening(inbox, "abc", T1)).toEqual({ session: "abc", since: T1, seen: T1 })
     expect(setListening(inbox, null)).toBeNull()
+  })
+
+  test("heartbeat:  touch stamps seen;  nobody listening, nothing starts", () => {
+    const inbox = emptyInbox()
+    expect(touchListening(inbox, T2)).toBeNull()
+    expect(inbox.listening).toBeNull()
+    setListening(inbox, "abc", T1)
+    expect(touchListening(inbox, T2)).toEqual({ session: "abc", since: T1, seen: T2 })
+  })
+
+  test("liveListener:  stale once seen is older than LISTEN_STALE_MS;  an old file's since counts", () => {
+    const inbox = emptyInbox()
+    expect(liveListener(inbox)).toBeNull()
+    setListening(inbox, "abc", T1)
+    const seen = Date.parse(T1)
+    expect(liveListener(inbox, seen + LISTEN_STALE_MS)).toEqual(inbox.listening)
+    expect(liveListener(inbox, seen + LISTEN_STALE_MS + 1)).toBeNull()
+    touchListening(inbox, T2)
+    expect(liveListener(inbox, seen + LISTEN_STALE_MS + 1)).not.toBeNull()
+    inbox.listening = { session: "old", since: T1 }
+    expect(liveListener(inbox, seen + LISTEN_STALE_MS + 1)).toBeNull()
+    expect(LISTEN_HEARTBEAT_MS * 3).toBe(LISTEN_STALE_MS)
+  })
+
+  test("forPage:  the whole inbox, listening null once stale;  the inbox itself untouched", () => {
+    const inbox = emptyInbox()
+    setMark(inbox, "j1", { action: "approve" }, T1)
+    setListening(inbox, "abc", T1)
+    const late = forPage(inbox, Date.parse(T1) + LISTEN_STALE_MS + 1)
+    expect(late).toEqual({ ...inbox, listening: null })
+    expect(inbox.listening.session).toBe("abc")
+    expect(forPage(inbox, Date.parse(T1)).listening.session).toBe("abc")
+  })
+
+  test("finishMarks:  immediate marks go;  one Owen changed meanwhile stays", () => {
+    const inbox = emptyInbox()
+    requestNow(inbox, "i2", "details", "", T1)
+    requestNow(inbox, "q7", "revisit", "why?", T1)
+    takeWork(inbox, T2)
+    // Owen chooses B on Q7 while the agent works:  the note stays, the pick waits for the send
+    setMark(inbox, "q7", { action: "revisit", when: "soon", note: "why?", pick: "B" }, T3)
+    expect(finishMarks(inbox, ["I2", "q7", "t9"])).toEqual({ had: ["i2"], kept: ["q7"] })
+    expect(inbox.marks).toEqual({ q7: { action: "revisit", when: "soon", note: "why?", pick: "B", at: T3 } })
   })
 })
 

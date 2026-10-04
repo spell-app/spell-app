@@ -11,6 +11,7 @@ import {
   isoTime,
   parseCommitSubject,
   parseDuration,
+  pickAsks,
   pickerSpec,
   timeTag
 } from "./plan-doc.js"
@@ -1419,6 +1420,20 @@ describe("PlanDoc review inbox", () => {
     })
     expect(plan.applyMark({ id: "q2", action: "details" }).applied).toBe(false)
     expect(plan.applyMark({ id: "i9", action: "approve" })).toMatchObject({ applied: false, gone: true })
+  })
+
+  it("a revisit with a pick:  left to talk over, the question NOT answered", () => {
+    const plan = inboxPlan()
+    expect(plan.applyMark({ id: "q1", action: "revisit", when: "soon", note: "only plan docs?", pick: "A" })).toEqual({
+      applied: false,
+      left: 'to talk over:  picks A · Keep folds, asks:  "only plan docs?"'
+    })
+    expect(status(plan, "q1")).toBe("open")
+    expect(plan.document.querySelector("#q1 ui-column[data-chosen]")).toBeNull()
+    expect(plan.applyMark({ id: "q1", action: "revisit", when: "soon", note: "", pick: "C" }).left).toBe(
+      "to talk over:  picks C (no such option card), no note"
+    )
+    expect(pickAsks("B", { letter: "B", title: "Unfold it" }, "why?")).toBe('picks B · Unfold it, asks:  "why?"')
   })
 
   it("setDetails:  replace or append, between the answer card and the commits;  stamped", () => {

@@ -2491,7 +2491,10 @@ const REVISIT_KEY_PREFIX = "spell-revisit:"
 /** How long a review notice (`notify()`) stays up. */
 const NOTICE_MS = 6000
 
-/** What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6). */
+/**
+ * What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6):  `listening` null,
+ * which the routes also answer once a session's heartbeat stops (`scripts/inbox.js` `forPage()`).
+ */
 const NOBODY_LISTENING = "No Claude session is reviewing this doc:  this waits for the next /epic review"
 
 /**
@@ -2527,8 +2530,13 @@ const ITEM_OPTION_LABELS = ":scope ui-grid.spell-pros-cons > ui-column ui-label[
  *   ("revisit soon"), a blue send asks for it now;  the unsaved note survives reloads (`REVISIT_KEY_PREFIX`)
  * - an OPEN item's option cards get a "Choose" pill on their label (`button.plan-choose`):  a click marks that
  *   letter picked (`data-picked` on its `ui-column`, framed orange), a second click clears it
+ *   - a pick and a revisit live together ("pick B, but ..."):  the revisit mark carries `pick` (`markWith()`);
+ *     choosing keeps the note, writing a revisit keeps the pick, a second click on the chosen pill drops just the
+ *     pick, Clear drops both;  the button shows the letter in the revisit's orange
  * - the page header's round paper plane (`button.plan-send`, left of the git button):  grey with nothing to send,
  *   blue with unsent marks, outlined blue once sent while marks wait for Claude
+ * - nobody listening (`listening` null:  none, or its heartbeat stopped, as the routes answer it):  the send
+ *   button's tooltip and the "now" actions say so (`NOBODY_LISTENING`, decision D6)
  * - re-reads the inbox when the page server says its file changed (`SPELL_SERVER.events`), and every
  *   `REVIEW_POLL_MS` while visible, as a fallback
  * - NOTE: nothing here scrolls the page:  the menu and notices are fixed, focus moves with `preventScroll`
@@ -2629,14 +2637,16 @@ async function wireReview(main) {
       if (mark) button.dataset.color = mark.action === "pick" ? "orange" : color
       else delete button.dataset.color
       button.toggleAttribute("data-sent", done)
+      // a pick shows its letter:  a plain pick, or a revisit carrying one ("pick B, but ...")
       const letter = act.querySelector(".plan-act-letter")
-      letter.textContent = mark?.action === "pick" ? mark.pick : ""
-      act.querySelector("ui-icon").hidden = mark?.action === "pick"
+      letter.textContent = mark?.pick ?? ""
+      act.querySelector("ui-icon").hidden = !!mark?.pick
+      const revisit = `Revisit ${mark?.when === "now" ? "now" : "soon"}${mark?.note ? `:  "${mark.note}"` : ""}`
       const what =
         mark?.action === "pick"
           ? `Picked ${mark.pick}`
           : mark?.action === "revisit"
-            ? `Revisit ${mark.when === "now" ? "now" : "soon"}${mark.note ? `:  "${mark.note}"` : ""}`
+            ? `${mark.pick ? `Picked ${mark.pick}, ` : ""}${revisit}`
             : label
       button.title = mark ? `${what}${done ? " · sent" : ""} · click to change` : "Review this item"
       button.setAttribute("aria-label", button.title)
@@ -2654,7 +2664,7 @@ async function wireReview(main) {
           ? "Claude is looking into this..."
           : "Claude is adding details..."
       for (const pill of item.querySelectorAll(".plan-choose")) {
-        const picked = mark?.action === "pick" && mark.pick === pill.dataset.letter
+        const picked = !!mark?.pick && mark.pick === pill.dataset.letter
         pill.closest("ui-column")?.toggleAttribute("data-picked", picked)
         pill.setAttribute("aria-pressed", String(picked))
         pill.textContent = picked ? "Chosen" : "Choose"
@@ -2715,9 +2725,20 @@ async function wireReview(main) {
       event.preventDefault()
       event.stopPropagation()
       const mark = inbox.marks[item.id]
-      void save(item.id, mark?.action === "pick" && mark.pick === letter ? null : { action: "pick", pick: letter })
+      void save(item.id, markWith(mark, mark?.pick === letter ? null : letter))
     })
     return pill
+  }
+
+  /**
+   * `mark` with its pick set to `letter` (`null`:  dropped), as a "Choose" pill click saves it.
+   * - a revisit keeps its note:  "pick B, but ...";  one asked NOW turns `soon`, so the pick waits for the send
+   *   with it (an immediate mark counts as sent:  Claude would never see the new pick)
+   * - anything else (no mark, a plain pick, approve ...) becomes a plain pick, or none
+   */
+  function markWith(mark, letter) {
+    if (mark?.action !== "revisit") return letter ? { action: "pick", pick: letter } : null
+    return { action: "revisit", when: "soon", note: mark.note ?? "", ...(letter && { pick: letter }) }
   }
 
   /**
@@ -2755,8 +2776,10 @@ async function wireReview(main) {
     })
     soon.addEventListener("click", () => {
       const text = note.value.trim()
+      // a picked question keeps its pick:  "pick B, but ..."
+      const pick = inbox.marks[id]?.pick
       closeBox(item, true)
-      void save(id, { action: "revisit", when: "soon", note: text })
+      void save(id, { action: "revisit", when: "soon", note: text, ...(pick && { pick }) })
     })
     now.addEventListener("click", () => {
       const text = note.value.trim()
@@ -2840,7 +2863,9 @@ async function wireReview(main) {
       menu.append(row)
     }
     if (mark) {
-      const row = menuRow("grey", "xmark", "Clear", "Remove this item's mark")
+      const tip =
+        mark.action === "revisit" && mark.pick ? "Remove this item's pick and note" : "Remove this item's mark"
+      const row = menuRow("grey", "xmark", "Clear", tip)
       row.classList.add("plan-act-clear")
       row.addEventListener("click", () => choose(item, "clear"))
       menu.append(row)
@@ -2924,11 +2949,15 @@ async function wireReview(main) {
     await write("mark", { id, mark })
   }
 
-  /** Ask Claude to act on item `id` NOW (`action`:  `details` | `revisit`):  queued in the inbox's `now`. */
+  /**
+   * Ask Claude to act on item `id` NOW (`action`:  `details` | `revisit`):  queued in the inbox's `now`.
+   * - a revisit keeps the item's pick (the route does too:  `inbox.js` `requestNow()`)
+   */
   async function askNow(id, action, note) {
+    const pick = inbox.marks[id]?.pick
     inbox.marks[id] =
       action === "revisit"
-        ? { action, when: "now", note: note ?? "", at: new Date().toISOString() }
+        ? { action, when: "now", note: note ?? "", ...(pick && { pick }), at: new Date().toISOString() }
         : { action, at: new Date().toISOString() }
     asking.add(id)
     render()
