@@ -116,6 +116,276 @@
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section id="epic-review" header="2026-10-03 → 10-04 · /epic review" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/epic-review/epic-review.html" target="epic-review">epics/epic-review</a></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="epic-review.html" target="src-packages-docs-epic-review-html">epic-review.html</a></ui-item
+                >
+                <ui-item icon="code branch">Branch <code>epic-review</code></ui-item>
+              </ui-list>
+              <p><b>P1 · Interaction mockup</b></p>
+              <ul>
+                <li>
+                  The prompt hook lets <code>/epic review ...</code> through: no rename, no block;
+                  <code>review</code> is a reserved epic name
+                </li>
+                <li>The review flow mocked on canned data first, reshaped over six rounds of Owen's clicks</li>
+              </ul>
+              <p><b>P2 · Review state</b></p>
+              <ul>
+                <li>
+                  <code>yarn plan-doc review / defer / queue / unqueue</code>: dated marks on items, a label right after
+                  the id (reviewed, deferred, to do)
+                </li>
+                <li>
+                  "Reviewed" also counts struck, decided, and decision-linked items; <code>items</code> (sections,
+                  counts, the to-do list, each item's recommendation) and <code>list</code> (every epic, main and
+                  worktrees)
+                </li>
+                <li>
+                  Open | All on every plan doc item section: Open (the default) hides struck items, "N hidden · show
+                  all"
+                </li>
+                <li>
+                  <a href="scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                    ><code>check-spell.js</code></a
+                  >
+                  skips sections too short to stick (an empty Todos failed every new doc)
+                </li>
+              </ul>
+              <p><b>P3 · Review backfill</b></p>
+              <ul>
+                <li>
+                  <code>yarn plan-doc backfill &lt;name&gt; | --all [--apply]</code>
+                  (<a href="scripts/review-backfill.js" target="src-packages-docs-scripts-review-backfill-js"
+                    ><code>scripts/review-backfill.js</code></a
+                  >): items Owen named in a past session of the epic, his messages and modal answers; a dry run by
+                  default
+                </li>
+              </ul>
+              <p><b>P4 · The real review</b></p>
+              <ul>
+                <li>
+                  The epic skill's section 7, on real commands; every <code>/epic</code> session marks what it talks
+                  through
+                </li>
+                <li>
+                  The item picker: a details page from <code>plan-doc items --section s --spec</code>, the not-reviewed
+                  items ticked; Explain further: a details page
+                </li>
+                <li>
+                  Every <code>plan-doc</code> command but <code>new</code> edits the epic's live doc (its worktree, else
+                  main)
+                </li>
+              </ul>
+              <p><b>P5 · Epics index</b></p>
+              <ul>
+                <li>
+                  One Epics section in the docs index: <code>docs:index</code> writes merged cards and a slot,
+                  <code>RunningEpics</code> fills it with running ones; no separate "Running epics"
+                </li>
+                <li>
+                  Each card's title after its state: [3/6], done (green check), planning (blue thought bubble), stalled
+                  (yellow pause); Open | All on the section; a "circle pause" icon bundled
+                </li>
+              </ul>
+              <p><b>P6 · Dry run</b></p>
+              <ul>
+                <li>
+                  The picker reworked: two-column cards (tick box, (?) more details, state icon | title, whole text),
+                  Select all / none, Open | All, no site header
+                </li>
+                <li>
+                  Every details page: the Send bar pinned as the page's bottom (notes and a round send button), long
+                  text clamped with Show more, folds only when they hold more, "Asked" date up top, boxes that start
+                  ticked
+                </li>
+              </ul>
+              <p><b>P7 · Doc review</b></p>
+              <ul>
+                <li>
+                  The durable doc,
+                  <a href="epic-review.html" target="src-packages-docs-epic-review-html"
+                    ><code>epic-review.html</code></a
+                  >
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="epics-skill"
+              header="2026-10-03 · /epics, and /whassup merged into /worktrees"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch">Branch <code>epics-skill</code>, no plan doc</ui-item>
+              </ui-list>
+              <ul>
+                <li>
+                  <code>/epics</code> (<a href="../../.claude/skills/epics/" target="src-claude-skills-epics"
+                    ><code>.claude/skills/epics/</code></a
+                  >): the open epics, one line each: state (planning, working, stalled, unmerged), phase, worktree,
+                  session, what's waiting on Owen, plan doc links; <code>/epics all</code> adds the finished ones. List
+                  only.
+                </li>
+                <li>
+                  <code>/worktrees</code> is now the repo's (<a
+                    href="../../.claude/skills/worktrees/"
+                    target="src-claude-skills-worktrees"
+                    ><code>.claude/skills/worktrees/</code></a
+                  >): the old global sessions table plus all of <code>/whassup</code> (groups, pick-and-do clean-up);
+                  <code>/whassup</code> is gone. <code>worktrees.py --sessions</code> gives the table alone, for
+                  <code>/isolate</code> and <code>/wtf</code>.
+                </li>
+                <li>
+                  <code>yarn plan-doc summary</code> reads plan docs made before the judgement section instead of
+                  failing; <code>/whassup</code> had listed 9 finished epics as having phases left.
+                </li>
+                <li>
+                  <code>yarn plan-doc summaries &lt;file&gt;...</code>: many docs, by path (worktrees' too), in one run;
+                  <code>/worktrees</code> down from 17s to 2s.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="details"
+              header="2026-10-03 · Details pages:  questions answered in the side bar"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/details/details.html" target="details">epics/details/details.html</a></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="details.html" target="src-packages-docs-details-html">Details Pages</a></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>details</code>, P1-P5 built overnight (<code>/bedtime</code>)</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1 · Answer Endpoint: <code>POST /api/details/answer</code> (route module
+                  <a href="scripts/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
+                    ><code>packages/docs/scripts/detailsRoutes.ts</code></a
+                  >) writes a details page's answer beside it; <code>StaticHandler.resolve()</code> maps a URL path to
+                  its file through the mounts.
+                </li>
+                <li>
+                  P2 · Page Template:
+                  <a href="templates/details.html" target="src-packages-docs-templates-details-html"
+                    ><code>templates/details.html</code></a
+                  >,
+                  <a href="_assets/details.js" target="src-packages-docs-assets-details-js"
+                    ><code>_assets/details.js</code></a
+                  >
+                  /
+                  <a href="_assets/details.css" target="src-packages-docs-assets-details-css"
+                    ><code>details.css</code></a
+                  >: option cards on
+                  <a href="../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> (radio or
+                  checkbox, Recommended, folding details), Other, notes, Send; locked once sent, Change answer;
+                  <code>GET /api/details/answer</code>. Route modules adding <code>/api/...</code> must come before
+                  <a href="../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                    ><code>appRoutes.ts</code></a
+                  >.
+                </li>
+                <li>
+                  P3 · Details CLI: <code>yarn details new | show --wait | wait | answer | list | sweep</code>; the
+                  waiter, run in the background, exits with the answer and wakes the session.
+                  <code>atDepth()</code> shared with <code>docs:new</code>;
+                  <a href="details/" target="src-packages-docs-details"><code>details/</code></a> folders kept out of
+                  the index and checks.
+                </li>
+                <li>
+                  P4 · Skill and Rule:
+                  <a href="../../.claude/skills/details/SKILL.md" target="src-claude-skills-details-skill-md"
+                    ><code>.claude/skills/details/SKILL.md</code></a
+                  >, a root <a href="CLAUDE.md" target="src-packages-docs-claude-md"><code>CLAUDE.md</code></a> line,
+                  and the first real page,
+                  <a
+                    href="epics/details/details/morning-review.html"
+                    target="src-packages-docs-epics-details-details-morning-review-html"
+                    ><code>epics/details/details/morning-review.html</code></a
+                  >.
+                </li>
+                <li>P5 · Doc Review: the durable doc, the page server doc's route module list.</li>
+                <li>
+                  P6 · Sidebar Links: <code>yarn docs:link</code> prints a side bar link and a
+                  <code>(_browser_)</code> one, both through <code>GET /api/docs/show</code>; pages land on the id
+                  meant, unfolded; details pages open with a "Where we are" box; the skills link pages this way.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="stay-put"
+              header="2026-10-03 · /isolate and /epic:  stay in this window, or move"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branch <code>stay-put</code>; no plan doc (an <code>/isolate</code>)</ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc: the header of
+                  <a href="../../scripts/window.mjs" target="src-scripts-window-mjs"><code>scripts/window.mjs</code></a
+                  >, "Staying put"; the root's
+                  <a href="AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
+                  >, "Worktrees"</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  <code>node scripts/window.mjs stay-check [--epic] [--json]</code>: counts the window's Claude sessions
+                  (its extension host's <code>claude</code> children) and which worktree each other one is in;
+                  recommends <code>stay</code> only for the window's only session, else <code>window</code>, with
+                  reasons
+                </li>
+                <li>
+                  <code>/isolate</code> step 2b: a modal every time, "New window" or "Stay in this window", recommended
+                  first; "Stay" carries on in the same tab, same turn
+                </li>
+                <li>
+                  <code>/epic</code> "2. Session" step 0: the same modal; staying shows the plan doc in this window's
+                  side bar and plans in the same turn
+                </li>
+                <li><code>/unpark</code>: its "new window?" modal follows <code>stay-check</code>'s recommendation</li>
+                <li>
+                  every package window: <code>git.detectWorktrees</code> on, so Source Control lists each worktree as
+                  its own repo, and a session that stays is still reviewable (one window reload)
+                </li>
+                <li>
+                  root <a href="AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
+                  >: NEVER add a worktree's folders to a package window, since VS Code writes them into its
+                  <code>workspaces/&lt;pkg&gt;.code-workspace</code>, where they outlive the worktree unseen (the files
+                  are <code>skip-worktree</code>); three dead ones removed (<code>seo</code>,
+                  <code>solid-migration</code>, <code>doc-template</code>)
+                </li>
+                <li>
+                  tests: <code>processTable()</code>, <code>claudeSessions()</code>, <code>parseLsof()</code>,
+                  <code>stayAdvice()</code> in
+                  <a href="../../scripts/window.test.mjs" target="src-scripts-window-test-mjs"
+                    ><code>scripts/window.test.mjs</code></a
+                  >
+                </li>
+              </ul>
+            </ui-section>
+
             <ui-section
               id="spell-ui-pages"
               header="2026-10-02 → 10-03 · Spell UI docs in Fomantic's style"
@@ -934,7 +1204,8 @@
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
           <p class="meta">
-            Last updated 2026-10-03 from <code>main</code> at <code>48627e28</code>, plus seo and spell-ui-pages.
+            Last updated 2026-10-04 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages, stay-put
+            and epic-review.
           </p>
         </footer>
       </main>

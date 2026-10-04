@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { DOCS } from "./pages.js"
-import { PlanDoc, PlanDocError, parseDuration, timeTag } from "./plan-doc.js"
+import { PlanDoc, PlanDocError, parseDuration, pickerSpec, timeTag } from "./plan-doc.js"
 import { convertSections } from "./to-ui-section.js"
 
 /** When the tests' edits happen:  local 2026-10-01 09:05. */
@@ -525,6 +525,15 @@ describe("PlanDoc summary, check, output", () => {
     expect(summary.open.issue).toEqual([])
   })
 
+  it("reads a doc that predates a kind's section, without adding it", () => {
+    const plan = oldPlan()
+    const before = plan.toString()
+    const summary = plan.summary()
+    expect(summary.open.judgement).toEqual([])
+    expect(summary.open.test).toEqual([])
+    expect(plan.toString()).toBe(before)
+  })
+
   it("check finds broken links and duplicate ids", () => {
     const plan = freshPlan()
     plan.require("#o1").insertAdjacentHTML("afterend", '<p id="o1">see <a href="#i7">I7</a></p>')
@@ -540,6 +549,159 @@ describe("PlanDoc summary, check, output", () => {
     expect(html).toMatch(/<ui-list class="plan-items" data-kind="caveat" divided relaxed>/)
     plan.require("#o1").insertAdjacentHTML("afterend", "<ui-table celled compact striped unstackable></ui-table>")
     expect(plan.toString()).toMatch(/<ui-table celled compact striped unstackable>/)
+  })
+})
+
+describe("PlanDoc review", () => {
+  /** States of `kind`'s section, by id, under `filter`. */
+  function states(plan, kind, filter) {
+    const section = plan.reviewSections({ filter }).find((s) => s.kind === kind)
+    return Object.fromEntries(section.items.map((item) => [item.id, item.state]))
+  }
+
+  /** The review label's text on item `id`, or `null`. */
+  function label(plan, id) {
+    return plan.document.getElementById(id).querySelector(".plan-review")?.textContent ?? null
+  }
+
+  it("marks reviewed, deferred and to do, each with a dated label", () => {
+    const plan = freshPlan()
+    for (const title of ["one", "two", "three", "four"]) plan.addItem("issue", title, { details: "<p>x</p>" })
+    expect(plan.review("I1")).toBe("one")
+    plan.defer("i2")
+    plan.queue("i3", "fix it")
+    expect(states(plan, "issue", "all")).toEqual({ I1: "reviewed", I2: "deferred", I3: "queued", I4: "outstanding" })
+    expect(label(plan, "i1")).toBe("reviewed 10-01")
+    expect(label(plan, "i2")).toBe("deferred")
+    expect(label(plan, "i3")).toBe("to do")
+    expect(plan.document.getElementById("i3").getAttribute("data-work")).toBe("fix it")
+    expect(label(plan, "i4")).toBeNull()
+    // the label sits in the panel's title, right after the id
+    expect(plan.document.querySelector("#i1 ui-title > .plan-id + .plan-review + .plan-title")).not.toBeNull()
+  })
+
+  it("review clears deferred;  unqueue leaves it reviewed;  relabeling leaves one label, no extra spaces", () => {
+    const plan = freshPlan()
+    plan.addItem("caveat", "one")
+    plan.defer("c1")
+    plan.review("c1")
+    expect(plan.document.getElementById("c1").hasAttribute("data-deferred")).toBe(false)
+    plan.queue("c1", "do it")
+    plan.unqueue("c1")
+    expect(states(plan, "caveat", "all")).toEqual({ C1: "reviewed" })
+    const item = plan.document.getElementById("c1")
+    expect(item.querySelectorAll(".plan-review").length).toBe(1)
+    expect(item.innerHTML).not.toMatch(/ {2}<ui-label/)
+  })
+
+  it("counts struck, decided, and items a decision links to as reviewed", () => {
+    const plan = freshPlan()
+    plan.addItem("caveat", "linked")
+    plan.addItem("caveat", "struck")
+    plan.addItem("caveat", "neither")
+    plan.setItem("c2", "done")
+    plan.addItem("decision", "accept it", { details: '<p>see <a href="#c1">C1</a></p>' })
+    expect(states(plan, "caveat", "all")).toEqual({ C1: "reviewed", C2: "reviewed", C3: "outstanding" })
+  })
+
+  it("filters:  unreviewed (default), open, reviewed, queued;  counts what isn't reviewed", () => {
+    const plan = freshPlan()
+    for (const title of ["a", "b", "c", "d"]) plan.addItem("todo", title)
+    plan.review("t1")
+    plan.defer("t2")
+    plan.queue("t3", "build it")
+    plan.setItem("t1", "done")
+    const ids = (filter) => Object.keys(states(plan, "todo", filter))
+    expect(ids()).toEqual(["T2", "T4"])
+    expect(ids("open")).toEqual(["T2", "T3", "T4"])
+    expect(ids("reviewed")).toEqual(["T1", "T3"])
+    expect(ids("queued")).toEqual(["T3"])
+    const todos = plan.reviewSections().find((s) => s.kind === "todo")
+    expect([todos.notReviewed, todos.total]).toEqual([2, 4])
+    expect(() => plan.reviewSections({ filter: "nope" })).toThrow(PlanDocError)
+  })
+
+  it("sections in page order;  Questions holds questions, never decisions", () => {
+    const plan = freshPlan()
+    plan.addItem("question", "which?")
+    plan.decide("q1", "this one")
+    plan.addItem("question", "and?")
+    const sections = plan.reviewSections({ filter: "all" })
+    expect(sections.map((s) => s.label)).toEqual([
+      "Questions",
+      "Judgement calls",
+      "Caveats",
+      "Todos",
+      "Issues",
+      "To test"
+    ])
+    expect(sections[0].items.map((item) => [item.id, item.state])).toEqual([
+      ["Q2", "outstanding"],
+      ["Q1", "reviewed"]
+    ])
+  })
+
+  it("finds the recommended option:  a label first, then a bold lead, never a table cell", () => {
+    const plan = freshPlan()
+    plan.addItem("question", "pick", {
+      details:
+        "<table><tr><td>yes (recommended)</td></tr></table>" +
+        '<ui-segment><ui-label attached="top">A. Mark + links (recommended)</ui-label><p>why</p></ui-segment>'
+    })
+    plan.addItem("question", "bold", { details: "<p><b>Skip short sections (recommended)</b>:  cheap</p>" })
+    plan.addItem("question", "none", { details: "<p>no idea yet</p>" })
+    plan.addItem("question", "bare")
+    const items = plan.reviewSections().find((s) => s.kind === "question").items
+    expect(items.map((item) => item.recommendation)).toEqual(["A. Mark + links", "Skip short sections", null, null])
+  })
+
+  it("picker spec:  a checkbox per open item, labelled by id, its whole text, its state a badge", () => {
+    const plan = freshPlan()
+    const details =
+      '<p>why:  see <a href="#c1">C1</a> and <a href="../../scripts/x.js">x.js</a></p><ul><li>more</li></ul>'
+    for (const title of ["one", "two", "three", "struck"]) plan.addItem("issue", title, { details })
+    plan.review("i2")
+    plan.defer("i3")
+    plan.setItem("i4", "done")
+    const section = plan.reviewSections({ filter: "open" }).find((s) => s.kind === "issue")
+    const spec = pickerSpec(plan, "/r/docs/epics/demo/demo.html", section, plan.reviewStatus(), "/r/docs/details")
+    const [question] = spec.questions
+    expect([spec.bare, question.multiple, question.selectAll, question.filter, question.moreDetails]).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true
+    ])
+    expect(question.options.map((o) => [o.letter, o.checked, o.done, o.state.icon, o.state.label])).toEqual([
+      ["I1", true, false, "circle outline", "Not reviewed yet"],
+      ["I2", false, true, "circle check", "Reviewed 2026-10-01"],
+      ["I3", true, false, "circle pause", "Deferred 2026-10-01"]
+    ])
+    // the whole text, its links made to work from the page's folder;  no fold
+    expect(question.options[0].body).toBe(
+      '<p>why:  see <a href="../epics/demo/demo.html#c1">C1</a> and <a href="../scripts/x.js">x.js</a></p><ul><li>more</li></ul>'
+    )
+    expect(question.options[0].details).toBeUndefined()
+    expect(question.title).toBe("Issues (2/4)")
+    expect(spec.askedBy).toBe("<code>/epic review demo</code>")
+  })
+
+  it("status:  last review date and count, deferred, the to-do list", () => {
+    const plan = freshPlan()
+    expect(plan.reviewStatus()).toEqual({ last: null, reviewedThen: 0, deferred: 0, queued: [] })
+    plan.addItem("issue", "one")
+    plan.addItem("issue", "two")
+    plan.addItem("issue", "three")
+    plan.review("i1")
+    plan.queue("i2", "fix it")
+    plan.defer("i3")
+    expect(plan.reviewStatus()).toEqual({
+      last: "2026-10-01",
+      reviewedThen: 2,
+      deferred: 1,
+      queued: [{ id: "I2", title: "two", work: "fix it", queued: "2026-10-01" }]
+    })
   })
 })
 

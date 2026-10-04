@@ -52,8 +52,10 @@ test("parseCommand:  name, then the rest", () => {
   assert.deepEqual(parseCommand("/unpark foo"), { skill: "unpark", name: "foo", text: "" })
 })
 
-test("parseCommand:  ignores other prompts, no name, `/isolate done`", () => {
-  for (const prompt of ["hello", "/epic", "/isolate  ", "/isolate done", "/park foo", "/epicfoo", "/unpark ?", ""]) {
+test("parseCommand:  ignores other prompts, no name, `/isolate done`, `/epic review`", () => {
+  const prompts = ["hello", "/epic", "/isolate  ", "/isolate done", "/park foo", "/epicfoo", "/unpark ?", ""]
+  prompts.push("/epic review", "/epic review seo", "/epic Review seo")
+  for (const prompt of prompts) {
     assert.equal(parseCommand(prompt), null, prompt)
   }
 })

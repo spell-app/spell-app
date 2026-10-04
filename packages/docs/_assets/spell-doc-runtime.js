@@ -19,7 +19,8 @@
  * - folding:  every section folds from a chevron on its title;  folds are remembered per page, and `collapsed`
  *   (`data-fold="closed"` on HEADINGS pages) starts one folded
  * - counts:  a top-level section holding `[data-status]` items (plan docs' phases, questions, issues ...) shows
- *   open / all on its title, and the open count as a badge in the contents and the rail
+ *   open / all on its title, and the open count as a badge in the contents and the rail;  plan item sections also
+ *   get "Open | All" (`wireItemFilters()`)
  * - scroll-follow:  the current section's (heading's) contents link is highlighted and its panels open;  panels the
  *   scroll opened close again, panels the USER opened stay open
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
@@ -90,6 +91,9 @@ const FILTER_KEY_PREFIX = "spell-filter:"
 /** `localStorage` key prefix of a page's folds (`{ [section or heading id]: folded }`), per page like the filter's. */
 const FOLD_KEY_PREFIX = "spell-folds:"
 
+/** `localStorage` key prefix of a page's item filters (`{ [section id]: "open" | "all" }`), per page. */
+const ITEM_FILTER_KEY_PREFIX = "spell-item-filter:"
+
 /** `localStorage` key of "contents column hidden":  one reader preference for every page. */
 const TOC_HIDDEN_KEY = "spell-toc-hidden"
 
@@ -111,6 +115,7 @@ async function start() {
   highlight()
   const outline = outlineOf(main)
   const counts = countItems(outline)
+  if (outline.sections) wireItemFilters(main)
   const toc = document.getElementById("spell-toc") ?? buildContents(main, outline, counts)
   const rail = toc ? buildRail(outline, counts) : undefined
   // before the sections first draw, so a saved fold doesn't animate shut
@@ -474,6 +479,68 @@ function outermost(item, section) {
   return !outer || !section.contains(outer)
 }
 
+/**
+ * An "Open | All" button group on every top-level `<ui-section>` with a filterable list:  a plan doc's items
+ * (`.plan-items`), the index's epics (`.spell-epics`), each holding `[data-status]` children.  Open hides the done
+ * ones (`data-status="done"`), All shows them again.
+ * - in the title's `actions` slot;  `spell-doc.css` moves it left of the count badge
+ * - Open also shows "3 hidden · show all" under the list (`.spell-hidden-note`):  a click there is All's
+ * - the choice:  `data-show="open"` on the section (CSS hides);  remembered per page (`localStorage`,
+ *   `{ [section id]: "open" | "all" }`);  Open by default, set before the page first draws
+ * - SIDE EFFECT:  adds the buttons and the note to the page
+ */
+function wireItemFilters(main) {
+  const key = `${ITEM_FILTER_KEY_PREFIX}${location.pathname}`
+  const saved = readJSON(key)
+  for (const section of main.querySelectorAll(":scope > ui-section[id]")) {
+    const list = section.querySelector(".plan-items, .spell-epics")
+    if (!list?.querySelector(":scope > [data-status]")) continue
+    const group = document.createElement("ui-buttons")
+    group.className = "spell-item-filter"
+    for (const [name, value] of Object.entries({ slot: "actions", size: "mini", basic: "" }))
+      group.setAttribute(name, value)
+    const note = document.createElement("a")
+    note.className = "spell-hidden-note"
+    note.href = "#"
+    const filter = { section, list, note, buttons: [] }
+    for (const show of ["open", "all"]) {
+      const button = document.createElement("ui-button")
+      button.dataset.show = show
+      button.textContent = show === "open" ? "Open" : "All"
+      button.addEventListener("click", () => choose(show))
+      group.append(button)
+      filter.buttons.push(button)
+    }
+    note.addEventListener("click", (event) => {
+      event.preventDefault()
+      choose("all")
+    })
+    section.append(group)
+    list.after(note)
+    showItems(filter, saved[section.id] === "all" ? "all" : "open")
+
+    /** The reader picked `show`:  apply it and remember it. */
+    function choose(show) {
+      showItems(filter, show)
+      saved[section.id] = show
+      writeJSON(key, saved)
+    }
+  }
+}
+
+/**
+ * Show `show`'s items (`"open"` / `"all"`) in a filter's section (`{ section, list, note, buttons }`):  that button
+ * pressed, the "N hidden" note under the list while Open hides any.
+ */
+function showItems({ section, list, note, buttons }, show) {
+  if (show === "open") section.dataset.show = "open"
+  else delete section.dataset.show
+  for (const button of buttons) button.toggleAttribute("active", button.dataset.show === show)
+  const hidden = show === "open" ? list.querySelectorAll(':scope > [data-status="done"]').length : 0
+  note.hidden = hidden === 0
+  note.textContent = `${hidden} hidden · show all`
+}
+
 ////////////////
 // ## Rail
 ////////////////
@@ -522,6 +589,9 @@ function buildRail(outline, counts) {
  * Every section folds, and the reader's folds are remembered per page (`localStorage`, `{ [id]: folded }`).
  * - SECTIONS:  `<ui-section collapsible>` folds itself;  this restores the saved folds (else the markup's
  *   `collapsed` stands) and saves the reader's toggles (`ui-open` / `ui-close`)
+ *   - a PLAN DOC (`body.plan-doc`):  every section and sub-section not in the saved folds starts FOLDED, whatever
+ *     its markup says:  Owen opens what he wants to read (2026-10-03).  A link to an id inside still lands
+ *     (`reveal()` unfolds around it)
  * - HEADINGS:  a chevron button starts each h2 / h3, and a click anywhere on the heading (not on a link or button
  *   in it) toggles it too;  folded:  `section.spell-folded`, all but the heading hidden by CSS.  Starts folded as
  *   saved, else when the section says `data-fold="closed"`.
@@ -539,10 +609,12 @@ function wireFolds(main, outline) {
   else wireHeadingFolds()
   return { reveal }
 
-  /** SECTIONS:  restore the saved folds, save the reader's. */
+  /** SECTIONS:  restore the saved folds (a plan doc:  the rest start folded), save the reader's. */
   function wireSectionFolds() {
+    const startFolded = document.body.classList.contains("plan-doc")
     for (const section of main.querySelectorAll("ui-section[collapsible][id]"))
       if (section.id in saved) setCollapsed(section, !!saved[section.id])
+      else if (startFolded) setCollapsed(section, true)
     main.addEventListener("ui-open", onToggle)
     main.addEventListener("ui-close", onToggle)
   }

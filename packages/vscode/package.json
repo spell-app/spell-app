@@ -36,6 +36,26 @@
         "enablement": "editorLangId == spell"
       },
       {
+        "command": "spell.docView.back",
+        "title": "Back",
+        "category": "Spell",
+        "icon": "$(arrow-left)",
+        "enablement": "spell.docView.canGoBack"
+      },
+      {
+        "command": "spell.docView.forward",
+        "title": "Forward",
+        "category": "Spell",
+        "icon": "$(arrow-right)",
+        "enablement": "spell.docView.canGoForward"
+      },
+      {
+        "command": "spell.docView.restartServer",
+        "title": "Restart Page Server",
+        "category": "Spell",
+        "icon": "$(server-process)"
+      },
+      {
         "command": "spell.docView.home",
         "title": "Docs Index",
         "category": "Spell",
@@ -117,19 +137,29 @@
       ],
       "view/title": [
         {
-          "command": "spell.docView.home",
+          "command": "spell.docView.back",
           "when": "view == spell.docView",
           "group": "navigation@1"
         },
         {
-          "command": "spell.docView.reload",
+          "command": "spell.docView.forward",
           "when": "view == spell.docView",
           "group": "navigation@2"
         },
         {
-          "command": "spell.docView.openExternal",
+          "command": "spell.docView.reload",
           "when": "view == spell.docView",
           "group": "navigation@3"
+        },
+        {
+          "command": "spell.docView.restartServer",
+          "when": "view == spell.docView",
+          "group": "navigation@4"
+        },
+        {
+          "command": "spell.docView.openExternal",
+          "when": "view == spell.docView",
+          "group": "navigation@5"
         }
       ]
     },
