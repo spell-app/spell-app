@@ -1,0 +1,94 @@
+/*
+ * timeline theme:  Fomantic's `timeline` theme, a feed drawn as a timeline:  a grey line down the labels, round
+ * coloured badges on it, and meta blocks as small raised boxes, `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("timeline")` registers `classic` + this sheet).
+ * - Touches `<ui-feed>` / `<ui-event>` (`ui-feed.css`) and the feed's content parts (`<ui-content>`, `<ui-meta>`
+ *   `:state(in-feed)`, `ui-parts.css`).  Shadow markup:  an event is `<div class="event"><div class="label">` (an
+ *   `<img>`, a `<span class="icon"><svg>`, or the `label` slot) + the content slot;  a part is
+ *   `<div class="content">` / `<div class="meta">` under its own host.  Every rule has the element selector
+ *   (`:host ...`) and the static one (`.ui.feed > .event ...`, `.in-feed.meta`), as the component sheets do.
+ * - Tokens (`feed.variables`):
+ *   - `@eventPadding: 0` -> `--ui-feed-event-padding`;  `@labelWidth: 3em` -> `--ui-feed-label-width`
+ *   - `@iconLabelBackground` / `-Color` / `-BorderRadius`:  the badge rule below (the `.overrides` hard-code
+ *     `#009fda` and white, which win over the primary colour the variables name)
+ * - Overrides (`feed.overrides`):
+ *   - the line:  a `3px` `#ddd` left border on every label, transparent on the LAST event's (the host's position
+ *     decides, `:host(:last-child)`), the label pushed `1.6em` right
+ *   - the badge:  the label's image or icon as a `3rem` circle, centred on the line (`left: -1.6rem`);  rem ->
+ *     `--ui-font-size`
+ *   - `@labeledContentMargin` -> the content's margin beside a label (`0.75em 0 2em 0.75em`)
+ *   - `@metadata*` -> a feed meta as an inline raised box (white + subtle gradient, `#d4d4d5` border, `0.25em` radius)
+ * - NOT ported:  `@eventMargin` / `@eventDivider` (already none), `@labelHeight: auto` (ours).  A TEXT label
+ *   (`<ui-event label="J">`, ours alone) keeps its own circle, off the line:  Fomantic's rules named only images
+ *   and icons.  A `<ui-icon>`
+ *   slotted as the label is styled through `::slotted()`, which can't reach its glyph's size:  prefer the
+ *   `icon` attribute.
+ */
+
+@layer ui.theme {
+  :root {
+    --ui-feed-event-padding: 0;
+    --ui-feed-label-width: 3em;
+  }
+
+  /* The line down the labels. */
+  :host > .event > .label,
+  .ui.feed > .event > .label {
+    margin-inline-start: 1.6em;
+    border-inline-start: 3px solid light-dark(oklch(0.898 0 0), oklch(1 0 0 / 0.2));
+  }
+  :host(:last-child) > .event > .label,
+  .ui.feed > .event:last-child > .label {
+    border-inline-start-color: transparent;
+  }
+
+  /* The badge:  a circle on the line. */
+  :host > .event > .label > :is(img, .icon),
+  :host > .event > .label > ::slotted(img),
+  :host > .event > .label > ::slotted(ui-icon),
+  .ui.feed > .event > .label > :is(img, .icon) {
+    position: relative;
+    left: calc(var(--ui-font-size) * -1.6);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--ui-font-size) * 3);
+    height: calc(var(--ui-font-size) * 3);
+    border-radius: var(--ui-radius-circle);
+    background-color: light-dark(oklch(0.662 0.139 234), oklch(0.58 0.12 234));
+    color: oklch(1 0 0);
+    font-size: var(--ui-font-size);
+    line-height: 1.5;
+    opacity: 1;
+  }
+  :host > .event > .label > .icon > svg,
+  .ui.feed > .event > .label > .icon > svg {
+    width: 1.5em;
+    height: 1.5em;
+  }
+
+  /* Content beside a label. */
+  :host(:state(in-feed):not(:first-child)) > .content,
+  .in-feed.content:not(:first-child) {
+    margin: 0.75em 0 2em 0.75em;
+  }
+  @container style(--_ui-event-label: 1) {
+    :host(:state(in-feed)) > .content {
+      margin: 0.75em 0 2em 0.75em;
+    }
+  }
+
+  /* Meta:  a small raised box. */
+  :host(:state(in-feed)) > .meta,
+  .in-feed.meta {
+    display: inline-block;
+    margin: 1em 0 0;
+    padding: 0.5em 1em;
+    border: var(--ui-border-width) solid light-dark(oklch(0.87 0 0), oklch(1 0 0 / 0.15));
+    border-radius: 0.25em;
+    background: linear-gradient(oklch(0 0 0 / 0), oklch(0 0 0 / 0.05)) var(--ui-surface);
+    box-shadow: 0 1px 1px oklch(0 0 0 / 0.05);
+    color: var(--ui-text-muted);
+  }
+}

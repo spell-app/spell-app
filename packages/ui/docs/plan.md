@@ -66,7 +66,7 @@
 - Progressive enhancement only: `popover=hint`, `closedby`, `CloseWatcher`, `hidden=until-found`, `moveBefore` (Safari); `interpolate-size`, `if()`, `@function`, scroll-state queries (Chromium only); scroll-driven animations (no Firefox stable); customizable `<select>` (Chrome 135+, Safari 27.0+, Firefox Nightly only; every `<option>` must keep real text or unsupported browsers show blanks).
 - Temporal: Stage 4 (ES2026), Safari TP only → `temporal-polyfill`.
 - Base libraries: Lit 3.3.3 (6 KB gzip; standard decorators need `accessor`; `@lit/react`, `@lit-labs/ssr`, `@lit-labs/virtualizer`, `@lit-labs/signals`); `@solidjs/element` 2.0.0-rc.11 on Solid 2 RC (no SSR/DSD, no formAssociated helper, empty README, duplicate-runtime context bug); TC39 Signals still Stage 1.
-- Tooling: Vite 8.3, TypeScript 7.0, Vitest 5 browser mode (`@vitest/browser-playwright`, `toMatchScreenshot`), axe-core 4.13, `@custom-elements-manifest/analyzer` 0.11, Astro 7.3.
+- Tooling: Vite 8.3, TypeScript 7.0, Vitest 5 browser mode (`@vitest/browser-playwright`, `toMatchScreenshot`), axe-core 4.13, `@custom-elements-manifest/analyzer` 0.11, Astro 7.3 (the docs site until 2026-10:  now plain HTML pages, see `site/README.md`).
 - Prior art: Jack Lukic's pre-1.0 "Semantic UI Next" (signals web components + layers, stalled a year); Web Awesome 3.14 (Lit; `--wa-*` tokens, `::part`, `:state()`, utilities, native styles).
 
 ### Framework consumption contract (verified per framework)
@@ -90,7 +90,7 @@
   - `CLAUDE.md` (`@AGENTS.md` include, `PAPERCUTS.md`, `SUSPECTED-BUGS.md`, narration rule), `.claude/settings.json`, `.claudeignore`, `.oxlintrc.json` (drop React rules), `.oxfmtrc.json`, `tsconfig.json` shape (`$/*` paths, `useDefineForClassFields: true`, strict), `vite.decorators.ts`, `src/util/decorators.ts` (`@proto`), `src/util/class.ts`.
   - Stubs: `PAPERCUTS.md`, `SUSPECTED-BUGS.md`, `CODE-DEBT.md`.
 - Rules that shape this codebase:
-  - Standard TC39 decorators only, lowered by `vite.decorators.ts` (esbuild) in Vite, Vitest and Astro configs, before the Solid compiler; never `experimentalDecorators`.
+  - Standard TC39 decorators only, lowered by `vite.decorators.ts` (esbuild) in Vite and Vitest configs, before the Solid compiler; never `experimentalDecorators`.
   - `@proto static` installs class defaults on the prototype (non-enumerable, inherited, `protoDefined` hook) → used for vocabulary, default settings, part names, so instances carry no per-instance copies.
   - Prefer classes for coordination over loose functions: runtime services are classes (`Keyboard`, `Overlays`, `Styles`…), builders are classes (`ClassBuilder`), not bags of functions. No loose helper methods at the bottom of files; a helper that earns a name becomes a private method or a small class.
   - `type` not `interface`; one exported class per file; `<folder>.types.ts` per folder where it makes sense (`runtime.types.ts`, `elements.types.ts`, `components.types.ts`), runtime-light.
@@ -127,7 +127,7 @@
 - `src/styles/`: `layers.css`, `tokens.css`, `colors.css`, `sizes.css`, `reset.css`, `typography.css`, `animations.css`, `utilities.css`, `native.css`, `themes/classic.css`, `themes/dark.css`.
 - `src/components/ui-<name>/`: `<name>.ts`, `ui-<name>.css`, `ui-<name>.vocabulary.en.ts`, `<name>.test.ts`, `<name>.visual.test.ts`, `ui-<name>.a11y.test.ts`, `examples/*.html`.
 - `src/icons/`: FA7 Free path data as JSON chunks (+ a short Fomantic alias list).
-- `site/`: Astro docs. `docs/`: `spike-lit-vs-solid.md`, `grammar.md`, `theming.md`, `translation.md`. `test/`: shared test utils.
+- `site/`: the docs site (plain HTML pages on `ui-*` widgets since 2026-10;  Astro before). `docs/`: `spike-lit-vs-solid.md`, `grammar.md`, `theming.md`, `translation.md`. `test/`: shared test utils.
 
 ### CSS system
 - Layers:
@@ -280,7 +280,7 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
 - oxlint + oxfmt with Owen's config; `yarn review` = tsc + lint:fix + format + test.
 - Vitest 5 browser mode + `@vitest/browser-playwright` (chromium default; webkit/firefox in `test:all`); axe-core via `test/a11y.ts`; `toMatchScreenshot` for visual.
 - `@custom-elements-manifest/analyzer` → `custom-elements.json` → VS Code custom data, JetBrains web-types, JSX types (`@wc-toolkit/jsx-types`), docs API tables.
-- Astro 7 + MDX in `site/`; components loaded client-side from the built package; Fomantic-like layout (left nav by component, sticky section index, example/code toggles, theme switcher, editable playground); framework smoke pages under `site/playground`.
+- (Superseded 2026-10 by plain HTML pages in Fomantic's docs style, epic `spell-ui-pages`.)  Astro 7 + MDX in `site/`; components loaded client-side from the built package; Fomantic-like layout (left nav by component, sticky section index, example/code toggles, theme switcher, editable playground); framework smoke pages under `site/playground`.
 - `git init` at start; conventional commits; GitHub Actions later.
 
 ## Execution strategy (after approval)
@@ -295,7 +295,7 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
 - `yarn review` passes (tsc, oxlint, oxfmt, vitest unit/integration/a11y in chromium).
 - `yarn test:visual` passes on chromium; `yarn test:all` runs chromium + webkit + firefox.
 - `yarn build` produces per-component ESM + `ui.css` within the bundle budget (size script).
-- `yarn site:dev` serves the docs; `yarn site:audit` (Playwright crawl) reports zero axe violations on every component page.
+- the page server serves the docs at `/ui/` (`yarn site:dev` rebuilds their bundle live); `yarn site:audit` (Playwright crawl) reports zero axe violations on every component page.
 - Framework smoke pages (React 19, Vue 3, Svelte 5, Solid 1.9, vanilla) render and round-trip properties and `ui-*` events.
 - Manual: keyboard-only walkthrough of dropdown, modal, tabs, calendar, slider; dark mode toggle; a `#ui-app-stylesheet` rule restyles a button inside a shadow root; utility classes apply on light and shadow elements; `<ui-header>` renders correctly standalone, in a card, in a modal; `html { font-size: 62.5% }` on the page changes nothing inside components.
 
@@ -305,7 +305,7 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
 - Safari lacks `closedby`, `popover=hint`, `CloseWatcher` → `UI.browser.supports` flags, own Escape/outside-click handling stays.
 - Customizable `<select>` is Safari 27+ only → `@supports (appearance: base-select)` and real text in every option.
 - Context detection for generic parts must survive moves and slotting → re-evaluate on `connectedCallback` and `slotchange`; tests for card-in-modal nesting.
-- Standard decorators need the esbuild pre-pass in every config (Vite, Vitest, Astro) → one shared plugin file, smoke-tested.
+- Standard decorators need the esbuild pre-pass in every config (Vite, Vitest) → one shared plugin file, smoke-tested.
 - `@solidjs/element` churn during the spike → pin exact RC versions.
 - Scope (~50 components) → dependency-ordered batches, strict definition of done, vocabulary files keep components uniform.
 - Token budget → mechanical ports on Sonnet; reports summarized, not pasted.

@@ -4,7 +4,7 @@ import { BUILT_IN_ICON_PACKS, ICON_PACK_INDEX, type BuiltInIconPack } from "./ic
  * Where the packs `@spell-app/ui` ships live:  `icon-packs/<id>/pack.js`, next to the module that holds THIS class.
  * - Dev / tests:  this file is `src/icons/BuiltInPacks.ts`, so `src/icons/icon-packs/<id>/`.
  * - Library build:  bundled into `dist/core.js`, so `dist/icon-packs/<id>/` -- where `emitIconPacks()`
- *   (`vite.config.ts`) copies them.  The docs site:  `_astro/icon-packs/<id>/`.
+ *   (`vite.config.ts`) copies them.  The docs site:  `site/_assets/icon-packs/<id>/` (a symlink, `yarn site:bundle`).
  * - A consumer that bundles `@spell-app/ui` moves this code away from `node_modules/@spell-app/ui/dist/icon-packs/`:  copy that
  *   folder next to the app's chunks, or point a pack elsewhere with `base` (`docs/icons.md`, "Shipping icons").
  */

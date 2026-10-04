@@ -179,6 +179,16 @@ describe("ui-dropdown.css examples", () => {
     expect(getComputedStyle(caret, "::before").clipPath).toContain("polygon")
   })
 
+  it("keeps a multiple search dropdown's placeholder above its own box (its own stacking context)", () => {
+    adoptIntoPage(SHEETS)
+    const root = Fixture.render(
+      '<div><div class="ui fluid multiple search selection dropdown"><input class="search"><div class="default text">State</div></div></div>'
+    )
+    const dropdown = root.querySelector(".ui.multiple.search.dropdown")!
+    expect(getComputedStyle(dropdown).isolation).toBe("isolate")
+    expect(getComputedStyle(dropdown.querySelector(".default.text")!).zIndex).toBe("-1")
+  })
+
   it("switches an inverted dropdown to the dark scheme", () => {
     adoptIntoPage(SHEETS)
     const root = Fixture.render(EXAMPLES["./examples/variations.html"]!)

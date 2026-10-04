@@ -1,0 +1,31 @@
+/*
+ * rtl theme:  Fomantic's `rtl` theme, an Arabic-script font stack plus a right-to-left page, `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("rtl")` registers `classic` + this sheet).
+ * - Fomantic's `rtl` theme is ONLY fonts (`globals/site.variables` + an `@import` of Droid Arabic Kufi);  its RTL
+ *   layout comes from a separate BUILD (`semantic.rtl.css`, every physical property flipped by RTLCSS) on a page
+ *   with `<html dir="rtl">`.  We have no RTL build, so this sheet does the one thing a sheet can:  `direction: rtl`
+ *   on `:root`, which every shadow root inherits.  Components follow wherever their sheets use LOGICAL properties
+ *   (`margin-inline-start`, `inset-inline-end`, `text-align: start`) or flex / grid order.
+ * - Tokens:
+ *   - `@pageFont` / `@headerFont` -> `--ui-font-family` / `--ui-font-family-heading`.  Droid Arabic Kufi is
+ *     Noto Kufi Arabic now (Google renamed it), so that name goes first, the old one after it.
+ * - NOT ported:
+ *   - the Google Fonts `@import`:  a constructed sheet (how `ThemeSheets` applies a theme) ignores `@import`, and
+ *     a theme loads no font (as `classic.css` doesn't load Lato).  Load Noto Kufi Arabic yourself, or the stack
+ *     falls back to Droid Sans / Helvetica / Arial
+ *   - the RTL build itself:  component sheets that still use PHYSICAL properties (`margin-left`, `left:`,
+ *     `float: right`, `border-top-left-radius` ...) keep their left-to-right chrome under `direction: rtl`.
+ *     The fix belongs in the component sheets (logical properties), not in a theme:  see the plan doc's
+ *     `rtl` issue for the families affected
+ *   - `:dir(rtl)`:  a CSS `direction` doesn't set the `dir` attribute, so `:dir(rtl)` rules (accordion, section)
+ *     only follow `<html dir="rtl">`.  A real RTL page sets `dir="rtl"` itself;  this sheet is for previewing
+ */
+
+@layer ui.theme {
+  :root {
+    direction: rtl;
+    --ui-font-family:
+      "Noto Kufi Arabic", "Droid Arabic Kufi", "Droid Sans", "Helvetica Neue", Arial, Helvetica, sans-serif;
+    --ui-font-family-heading: var(--ui-font-family);
+  }
+}

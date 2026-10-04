@@ -1,8 +1,10 @@
 /**
  * Every name `<ui-flag>` uses:  tag, attributes (kind + allowed values), parts, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-flag country="fr" size="large">`
- *   => `ui large flag`.  The country is CONTENT, not a class:  the Unicode flag emoji (`🇫🇷`), which is what
- *   Fomantic 2.9's default theme draws too (Twemoji SVGs named by the same code points).
+ *   => `ui large flag fr`.  The country is CONTENT:  the Unicode flag emoji (`🇫🇷`), which is what
+ *   Fomantic 2.9's default theme draws too (Twemoji SVGs named by the same code points).  Its resolved code is
+ *   ALSO a class word after the noun, as in Fomantic's `fr flag`:  no rule here reads it, it's the hook a sprite
+ *   theme selects on (`themes/famfamfam.css`).
  * - Resolving `country` (the element's job):
  *   - normalize:  trim, lowercase, `_` => space, collapse whitespace (`United_States` ~== `united states`)
  *   - `flagAliases[name] ?? name` (`ui-flag.types.ts`) => a code:  an ISO 3166-1 alpha-2 code, or a key of `flagEmoji`
@@ -18,7 +20,7 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-flag>`
- * A country flag:  `<span class="ui [size] flag" part="flag" role="img" aria-label="France">🇫🇷</span>`.
+ * A country flag:  `<span class="ui [size] flag <code>" part="flag" role="img" aria-label="France">🇫🇷</span>`.
  ****************/
 export const flagVocabulary = {
   tag: "ui-flag",

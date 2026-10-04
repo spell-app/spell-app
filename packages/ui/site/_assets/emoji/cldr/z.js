@@ -1,0 +1,1 @@
+var e=`🤪`,t=`🦓`,n=`🤐`,r=`🧟`,i=`💤`,a={zany_face:e,zebra:t,zipper_mouth_face:n,zombie:r,zzz:i};export{a as default,e as zany_face,t as zebra,n as zipper_mouth_face,r as zombie,i as zzz};

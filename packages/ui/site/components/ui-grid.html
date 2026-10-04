@@ -1,0 +1,1635 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Grid | Spell UI</title>
+    <meta name="description" content="A grid is used to harmonize negative space in a layout." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-grid.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-grid%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/collections/grid.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Grid
+                <ui-header>A grid is used to harmonize negative space in a layout.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-grid" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Grid"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's grid page, both of its tabs in order:  Overview (Introduction ... Responsive Grids) and
+                  Definition (Types ... Responsive Variations).  GAP I123:  Fomantic's docs outline empty columns (and pad coloured
+                  ones) with their own CSS;  here an empty column holds a `<ui-segment>` so its width shows.
+                -->
+
+                <ui-header level="2" dividing id="introduction">Introduction</ui-header>
+
+                <ui-docs-example header="Grids">
+                  <p slot="description">
+                    A grid is a structure with a
+                    <a href="https://99designs.com/designer-blog/2013/03/21/history-of-the-grid-part-1/" target="_blank"
+                      >long history</a
+                    >
+                    used to align negative space in designs.
+                  </p>
+                  <p slot="description">Using a grid makes content appear to flow more naturally on your page.</p>
+                  <ui-grid>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Columns">
+                  <p slot="description">
+                    Grids divide horizontal space into indivisible units called "columns". All columns in a grid must
+                    specify their width as proportion of the total available row width.
+                  </p>
+                  <p slot="description">
+                    All grid systems choose an arbitrary column count to allow per row. Spell UI, like Fomantic, uses
+                    <b>16 columns</b>.
+                  </p>
+                  <p slot="description">
+                    The example below shows four <code>width="4"</code> columns will fit in the first row,
+                    <code>16 / 4 = 4</code>, and three various sized columns in the second row.
+                    <code>2 + 8 + 6 = 16</code>
+                  </p>
+                  <p slot="description">
+                    Gutters and other spacing can be changed with the grid's
+                    <a href="../theming.html">theming tokens</a> (the Theming tab).
+                  </p>
+                  <ui-grid>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="2"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="8"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="6"><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Rows">
+                  <p slot="description">Rows are groups of columns which are aligned horizontally.</p>
+                  <p slot="description">
+                    Rows can either be <em>explicit</em>, marked with an additional <code>row</code> element, or
+                    <em>implicit</em>, automatically occurring when no more space is left in a previous row.
+                  </p>
+                  <p slot="description">
+                    After each group of columns vertical spacing is added to separate each group of columns, creating
+                    vertical rhythm.
+                  </p>
+                  <ui-grid columns="4">
+                    <ui-row>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Gutters">
+                  <p slot="description">
+                    Grid columns are separated by areas of white space referred to as "gutters". Gutters improve
+                    legibility by providing,
+                    <a href="https://en.wikipedia.org/wiki/Negative_space" target="_blank">negative space</a> between
+                    page elements.
+                  </p>
+                  <p slot="description">
+                    Gutters remain a constant size regardless of the width of the grid, or how many columns are in a
+                    row. To increase the size of gutters in a particular grid, you can use a
+                    <a href="#relaxed"><code>relaxed</code></a> variation.
+                  </p>
+                  <ui-grid>
+                    <ui-row columns="3">
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                    <ui-row columns="8">
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                  </ui-grid>
+                  <ui-grid relaxed>
+                    <ui-row columns="3">
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                    <ui-row columns="8">
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Negative Margins">
+                  <p slot="description">
+                    Since all grid columns include gutters, grids use
+                    <a href="https://csswizardry.com/2011/08/building-better-grid-systems/">negative margins</a> to make
+                    sure that the first and last columns sit flush with content outside the grid.
+                  </p>
+                  <p slot="description">
+                    In the following example, you can see even though the top row has padding, the
+                    <a href="ui-button.html#vertically-attached"><code>attached</code> button</a> still sits flush with
+                    the edge of the grid.
+                  </p>
+                  <p slot="description">
+                    In some cases, like when a column or row is <a href="#colored"><code>colored</code></a
+                    >, you may want to avoid using negative margins. You can do this by using a
+                    <a href="#padded"><code>padded</code></a> variation.
+                  </p>
+                  <ui-button attached="top">Button before grid</ui-button>
+                  <ui-grid>
+                    <ui-column width="16"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="10"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="6"><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                  <ui-grid>
+                    <ui-column width="16"><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                  <ui-button attached="bottom">Button after grid</ui-button>
+                </ui-docs-example>
+                <ui-message size="small" class="site-not-ported"
+                  >Not ported: Fomantic's deprecated page grids (<code>ui page grid</code>) -- put the grid in a
+                  <code>&lt;ui-container grid&gt;</code> instead (Containers, below).</ui-message
+                >
+
+                <ui-header level="2" dividing id="column-flow">Columns</ui-header>
+
+                <ui-docs-example
+                  header="Automatic Flow"
+                  description="Most grids do not need to specify rows. Content will automatically flow to the next row when all the grid columns are taken in the current row."
+                >
+                  <ui-grid>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Column Content"
+                  description="Since columns use padding to create gutters, content stylings should not be applied directly to columns, but to elements inside of columns."
+                >
+                  <ui-grid columns="3">
+                    <ui-column>
+                      <ui-segment>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Column Widths">
+                  <p slot="description">
+                    Column widths can be specified using <a href="#column-width"><code>width</code></a
+                    >. If a column cannot fit in a row it will automatically flow to the next row
+                  </p>
+                  <ui-grid>
+                    <ui-column width="8"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="8"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="10"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="6"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="12"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="2"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="14"><ui-segment></ui-segment></ui-column>
+                    <ui-column width="16"><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Left / Right Attached Column">
+                  <p slot="description">
+                    A column can be attached to the left or right without any padding. This is especially useful when
+                    working with a <a href="ui-menu.html#tabbed"><code>vertical tabular</code> menu</a>
+                  </p>
+                  <ui-grid columns="2">
+                    <ui-column attached="left"><ui-segment></ui-segment></ui-column>
+                    <ui-column attached="right"><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="row-wrappers">Rows</ui-header>
+
+                <ui-docs-example
+                  header="Grouping"
+                  description="Row wrappers allow you to apply variations to a group of columns."
+                >
+                  <ui-grid columns="4">
+                    <ui-row columns="2">
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Clearing Content">
+                  <p slot="description">
+                    Row wrappers will automatically clear previous columns, making them useful when using
+                    <a href="#floated"><code>floated</code></a> variations.
+                  </p>
+                  <ui-grid>
+                    <ui-row columns="4">
+                      <ui-column floated="left"><ui-segment></ui-segment></ui-column>
+                      <ui-column floated="right"><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column width="3"><ui-segment></ui-segment></ui-column>
+                      <ui-column width="8"><ui-segment></ui-segment></ui-column>
+                      <ui-column width="5"><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Special Grids">
+                  <p slot="description">
+                    Additionally, some types of grids, like <a href="#divided"><code>divided</code></a> or
+                    <a href="#celled"><code>celled</code></a> require row wrappers to apply formatting correctly.
+                  </p>
+                  <ui-grid celled="internally">
+                    <ui-row>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="10">
+                        <ui-image src="../images/wireframe/centered-paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="10">
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="varying-grids">Varying Grids</ui-header>
+
+                <ui-docs-example
+                  header="Nesting Grids"
+                  description="Grids can be placed inside of other grids, letting you sub-divide columns."
+                >
+                  <ui-grid columns="2">
+                    <ui-column>
+                      <ui-grid columns="3">
+                        <ui-column><ui-segment></ui-segment></ui-column>
+                        <ui-column><ui-segment></ui-segment></ui-column>
+                        <ui-column><ui-segment></ui-segment></ui-column>
+                      </ui-grid>
+                    </ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column>
+                      <ui-grid>
+                        <ui-column width="10"><ui-segment></ui-segment></ui-column>
+                        <ui-column width="6"><ui-segment></ui-segment></ui-column>
+                      </ui-grid>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Colored">
+                  <p slot="description">
+                    Grids can use named <a href="#colored-2"><code>color</code></a> to add background colors, but only
+                    with <a href="#padded"><code>padded</code></a> that do not include negative margins.
+                  </p>
+                  <p slot="description">
+                    To include a color that is not available in the default palette, set <code>--ui-color</code> on the
+                    row or column in your CSS.
+                  </p>
+                  <ui-grid equal-width text-align="center" padded>
+                    <ui-row>
+                      <ui-column color="olive">Olive</ui-column>
+                      <ui-column color="black">Black</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column color="black">Black</ui-column>
+                      <ui-column color="olive">Olive</ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Automatic Column Count">
+                  <p slot="description">
+                    The <a href="#equal-width"><code>equal-width</code></a> variation will automatically divide column
+                    width evenly. This is useful with dynamic content where you do not know the column count in advance.
+                  </p>
+                  <ui-grid equal-width>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-row equal-width>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Centering Content">
+                  <p slot="description">
+                    If a row does not take up all sixteen grid columns, you can use a
+                    <a href="#centered"><code>centered</code></a> variation to center the column contents inside the
+                    grid.
+                  </p>
+                  <ui-grid columns="2" centered>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-row columns="4" centered>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Significant Word Order">
+                  <p slot="description">
+                    Grids include many variations for adjusting things like vertical or horizontal alignment, text
+                    alignment, or default gutter sizes.
+                  </p>
+                  <p slot="description">
+                    Some multi-word variations, like <a href="#floated"><code>floated="left"</code></a> or
+                    <a href="#text-alignment"><code>text-align="right"</code></a> are word-order dependent and require
+                    you to use adjacent class names.
+                  </p>
+                  <ui-grid>
+                    <ui-column width="6" text-align="right" floated="left">
+                      <ui-segment>Left floated right aligned column</ui-segment>
+                    </ui-column>
+                    <ui-column width="6" text-align="left" floated="right">
+                      <ui-segment>Right floated left aligned column</ui-segment>
+                    </ui-column>
+                    <ui-row columns="2" text-align="center">
+                      <ui-column>
+                        <ui-segment>Center aligned row</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>Center aligned row</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                    <ui-column width="16" text-align="right">
+                      <ui-segment>Right Aligned Column</ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="responsive-grids">Responsive Grids</ui-header>
+
+                <ui-docs-example header="Containers">
+                  <p slot="description">
+                    A <a href="ui-container.html">container</a> can be used alongside a grid to provide a responsive,
+                    fixed width container for wrapping the contents of a page.
+                  </p>
+                  <ui-container grid>
+                    <ui-grid>
+                      <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                      <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                      <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                      <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                      <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                      <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                      <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                      <ui-column width="4"><ui-segment></ui-segment></ui-column>
+                    </ui-grid>
+                  </ui-container>
+                </ui-docs-example>
+                <ui-docs-example header="Stackable">
+                  <p slot="description">
+                    A <a href="#stackable"><code>stackable</code></a> will automatically stack rows to a single columns
+                    on mobile devices
+                  </p>
+                  <ui-grid columns="4" stackable>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Reverse Order">
+                  <p slot="description">
+                    Grids include special <a href="#reversed"><code>reversed</code></a> variations that allow you to
+                    reverse the order of columns or rows by device
+                  </p>
+                  <ui-grid equal-width reversed="mobile">
+                    <ui-column>First</ui-column>
+                    <ui-column>Second</ui-column>
+                    <ui-column>Third</ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Doubling">
+                  <p slot="description">
+                    A <a href="#doubling"><code>doubling</code></a> grid will double column widths for each device jump.
+                  </p>
+                  <ui-grid>
+                    <ui-row columns="8" doubling>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                    <ui-row columns="6" doubling>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                    <ui-row columns="4" doubling>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Manual Tweaks">
+                  <p slot="description">
+                    Although design patterns like <a href="#doubling"><code>doubling</code></a> or
+                    <a href="#stackable"><code>stackable</code></a> are useful at simplifying responsive styling, you
+                    can also manually tweak device presentation by specifying
+                    <a href="#responsive-width"><code>width-tablet</code> ...</a> or
+                    <a href="#device-visibility"><code>only</code></a> columns or rows.
+                  </p>
+                  <ui-grid centered>
+                    <ui-row only="computer">
+                      <ui-column><ui-segment></ui-segment></ui-column>
+                    </ui-row>
+                    <ui-column width-tablet="6" width-computer="8"><ui-segment></ui-segment></ui-column>
+                    <ui-column width-tablet="6" width-computer="8"><ui-segment></ui-segment></ui-column>
+                    <ui-column width-tablet="6" width-computer="8"><ui-segment></ui-segment></ui-column>
+                    <ui-column width-tablet="6" width-computer="8"><ui-segment></ui-segment></ui-column>
+                    <ui-column width-tablet="6" width-computer="8"><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Grid" description="A basic grid.">
+                  <ui-grid>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                    <ui-column><ui-segment></ui-segment></ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Divided" description="A grid can have dividers between its columns.">
+                  <ui-grid columns="3" divided>
+                    <ui-row>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Vertically Divided" description="A grid can have dividers between rows.">
+                  <ui-grid divided="vertically">
+                    <ui-row columns="2">
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row columns="3">
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Celled" description="A grid can have rows divided into cells.">
+                  <ui-grid celled>
+                    <ui-row>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="13">
+                        <ui-image src="../images/wireframe/centered-paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="10">
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Internally Celled"
+                  description="A grid can have rows divisions only between internal rows."
+                >
+                  <ui-grid celled="internally">
+                    <ui-row>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="10">
+                        <ui-image src="../images/wireframe/centered-paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="10">
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="3">
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="content">Content</ui-header>
+
+                <ui-docs-example header="Rows" description="A row is a horizontal grouping of columns.">
+                  <ui-grid columns="3">
+                    <ui-row>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Columns"
+                  description="Columns each contain gutters giving them equal spacing from other columns."
+                >
+                  <ui-grid>
+                    <ui-column width="8">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width="8">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width="8">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width="8">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Floated"
+                  description="A column can sit flush against the left or right edge of a row."
+                >
+                  <ui-grid>
+                    <ui-column width="5" floated="left">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width="5" floated="right">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Column Width"
+                  description="A column can vary in width taking up more than a single grid column."
+                >
+                  <ui-grid>
+                    <ui-column width="4">
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width="9">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width="3">
+                      <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Column Count"
+                  description="A grid can have a different number of columns per row."
+                >
+                  <ui-grid>
+                    <ui-row columns="3">
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row columns="4">
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row columns="5">
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Equal Width"
+                  description="A grid can automatically resize all elements to split the available width evenly."
+                >
+                  <ui-grid equal-width>
+                    <ui-column>
+                      <ui-segment>1</ui-segment>
+                    </ui-column>
+                    <ui-column width="8">
+                      <ui-segment>2</ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>3</ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid equal-width>
+                    <ui-row>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>2</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>3</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>4</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>2</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>3</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>2</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <!-- GAP I79:  a stretched row doesn't grow the `<ui-segment>`s inside its columns. -->
+                <ui-docs-example
+                  header="Stretched"
+                  description="A row can stretch its contents to take up the entire column height."
+                >
+                  <ui-grid columns="3" divided>
+                    <ui-row stretched>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                        <ui-segment>2</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                        <ui-segment>2</ui-segment>
+                        <ui-segment>3</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid equal-width>
+                    <ui-row stretched>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                        <ui-segment>2</ui-segment>
+                      </ui-column>
+                      <ui-column width="6">
+                        <ui-segment>
+                          <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        </ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                        <ui-segment>2</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                        <ui-segment>2</ui-segment>
+                      </ui-column>
+                      <ui-column width="6">
+                        <ui-segment>
+                          <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        </ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>1</ui-segment>
+                        <ui-segment>2</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Padded">
+                  <p slot="description">
+                    A grid can preserve its vertical and horizontal gutters on first and last columns
+                  </p>
+                  <p slot="description">The following grid has vertical and horizontal gutters</p>
+                  <ui-divider></ui-divider>
+                  <ui-grid columns="2" padded>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example description="The following grid has vertical gutters.">
+                  <ui-divider></ui-divider>
+                  <ui-grid columns="2" padded="vertically">
+                    <ui-column>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example description="The following grid has horizontal gutters.">
+                  <ui-divider></ui-divider>
+                  <ui-grid columns="2" padded="horizontally">
+                    <ui-column>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Compact">
+                  <p slot="description">A grid can appear compact with no or very little padding</p>
+                  <p slot="description">The following grid is compact.</p>
+                  <ui-divider></ui-divider>
+                  <ui-grid columns="2" celled="internally" compact>
+                    <ui-row>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example description="The following grid is very compact.">
+                  <ui-divider></ui-divider>
+                  <ui-grid columns="2" celled="internally" compact="very">
+                    <ui-row>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Relaxed"
+                  description="A grid can increase its gutters to allow for more negative space."
+                >
+                  <ui-grid columns="4" relaxed>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid columns="4" relaxed="very">
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Colored" description="A row or column can be colored.">
+                  <ui-grid columns="5" padded>
+                    <ui-column color="red">Red</ui-column>
+                    <ui-column color="orange">Orange</ui-column>
+                    <ui-column color="yellow">Yellow</ui-column>
+                    <ui-column color="olive">Olive</ui-column>
+                    <ui-column color="green">Green</ui-column>
+                    <ui-column color="teal">Teal</ui-column>
+                    <ui-column color="blue">Blue</ui-column>
+                    <ui-column color="violet">Violet</ui-column>
+                    <ui-column color="purple">Purple</ui-column>
+                    <ui-column color="pink">Pink</ui-column>
+                    <ui-column color="brown">Brown</ui-column>
+                    <ui-column color="grey">Grey</ui-column>
+                    <ui-column color="black">Black</ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid padded>
+                    <ui-row color="red">
+                      <ui-column>Red</ui-column>
+                    </ui-row>
+                    <ui-row color="orange">
+                      <ui-column>Orange</ui-column>
+                    </ui-row>
+                    <ui-row color="yellow">
+                      <ui-column>Yellow</ui-column>
+                    </ui-row>
+                    <ui-row color="olive">
+                      <ui-column>Olive</ui-column>
+                    </ui-row>
+                    <ui-row color="green">
+                      <ui-column>Green</ui-column>
+                    </ui-row>
+                    <ui-row color="teal">
+                      <ui-column>Teal</ui-column>
+                    </ui-row>
+                    <ui-row color="blue">
+                      <ui-column>Blue</ui-column>
+                    </ui-row>
+                    <ui-row color="violet">
+                      <ui-column>Violet</ui-column>
+                    </ui-row>
+                    <ui-row color="purple">
+                      <ui-column>Purple</ui-column>
+                    </ui-row>
+                    <ui-row color="pink">
+                      <ui-column>Pink</ui-column>
+                    </ui-row>
+                    <ui-row color="brown">
+                      <ui-column>Brown</ui-column>
+                    </ui-row>
+                    <ui-row color="grey">
+                      <ui-column>Grey</ui-column>
+                    </ui-row>
+                    <ui-row color="black">
+                      <ui-column>Black</ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Centered" description="A grid can have its columns centered.">
+                  <ui-grid columns="2" centered>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-row columns="4" centered>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row columns="4">
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Text Alignment"
+                  description="A grid, row, or column can specify its text alignment."
+                >
+                  <ui-grid columns="3" text-align="center">
+                    <ui-row>
+                      <ui-column>
+                        <ui-menu vertical fluid>
+                          <ui-item type="header">Cats</ui-item>
+                        </ui-menu>
+                      </ui-column>
+                      <ui-column>
+                        <ui-menu vertical fluid>
+                          <ui-item type="header">Dogs</ui-item>
+                          <ui-item>Poodle</ui-item>
+                          <ui-item>Cockerspaniel</ui-item>
+                        </ui-menu>
+                      </ui-column>
+                      <ui-column>
+                        <ui-menu vertical fluid>
+                          <ui-item type="header">Monkeys</ui-item>
+                        </ui-menu>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid text-align="center">
+                    <ui-row columns="3">
+                      <ui-column>
+                        <ui-menu vertical fluid>
+                          <ui-item type="header">Cats</ui-item>
+                        </ui-menu>
+                      </ui-column>
+                      <ui-column text-align="left">
+                        <ui-menu vertical fluid>
+                          <ui-item type="header">Dogs</ui-item>
+                          <ui-item>Poodle</ui-item>
+                          <ui-item>Cockerspaniel</ui-item>
+                        </ui-menu>
+                      </ui-column>
+                      <ui-column>
+                        <ui-menu vertical fluid>
+                          <ui-item type="header">Monkeys</ui-item>
+                        </ui-menu>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row text-align="justified">
+                      <ui-column>
+                        <p>
+                          Justified content fits exactly inside the grid column, taking up the entire width from one
+                          side to the other. Justified content fits exactly inside the grid column, taking up the entire
+                          width from one side to the other. Justified content fits exactly inside the grid column,
+                          taking up the entire width from one side to the other. Justified content fits exactly inside
+                          the grid column, taking up the entire width from one side to the other. Justified content fits
+                          exactly inside the grid column, taking up the entire width from one side to the other.
+                        </p>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid columns="3" text-align="right">
+                    <ui-row>
+                      <ui-column>
+                        <ui-menu vertical fluid>
+                          <ui-item type="header">Cats</ui-item>
+                        </ui-menu>
+                      </ui-column>
+                      <ui-column>
+                        <ui-menu vertical fluid>
+                          <ui-item type="header">Dogs</ui-item>
+                          <ui-item>Poodle</ui-item>
+                          <ui-item>Cockerspaniel</ui-item>
+                        </ui-menu>
+                      </ui-column>
+                      <ui-column>
+                        <ui-menu vertical fluid>
+                          <ui-item type="header">Monkeys</ui-item>
+                        </ui-menu>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Vertical Alignment"
+                  description="A grid, row, or column can specify its vertical alignment to have all its columns vertically centered."
+                >
+                  <ui-grid columns="4" vertical-align="middle" centered>
+                    <ui-row>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid columns="4" centered>
+                    <ui-row vertical-align="top">
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row vertical-align="middle">
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row vertical-align="bottom">
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column>
+                        <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="responsive-variations">Responsive Variations</ui-header>
+
+                <ui-docs-example header="Doubling">
+                  <p slot="description">A grid can double its column width on tablet and mobile sizes</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >A grid will round its columns to the closest reasonable value when doubling, for example a
+                    <code>columns="5"</code> grid will use <code>2 mobile, 3 tablet, 5 desktop</code>. To force 1 column
+                    on mobile you can add <a href="#stackable"><code>stackable</code></a></ui-message
+                  >
+                  <ui-grid columns="5" doubling>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column>
+                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Stackable">
+                  <p slot="description">
+                    A grid can have its columns stack on-top of each other after reaching mobile breakpoints
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >To see a grid stack, try resizing your browser to a small width</ui-message
+                  >
+                  <ui-grid columns="2" stackable>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Reversed">
+                  <p slot="description">
+                    A grid or row can specify that its columns should reverse order at different device sizes
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Reversed grids are compatible with <code>divided</code> grids and other complex grid
+                    types.</ui-message
+                  >
+                  <ui-grid equal-width reversed="computer">
+                    <ui-row>
+                      <ui-column>Computer A Fourth</ui-column>
+                      <ui-column>Computer A Third</ui-column>
+                      <ui-column>Computer A Second</ui-column>
+                      <ui-column>Computer A First</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Computer B Fourth</ui-column>
+                      <ui-column>Computer B Third</ui-column>
+                      <ui-column>Computer B Second</ui-column>
+                      <ui-column>Computer B First</ui-column>
+                    </ui-row>
+                  </ui-grid>
+                  <ui-grid equal-width reversed="tablet">
+                    <ui-column>Tablet Fourth</ui-column>
+                    <ui-column>Tablet Third</ui-column>
+                    <ui-column>Tablet Second</ui-column>
+                    <ui-column>Tablet First</ui-column>
+                  </ui-grid>
+                  <ui-grid equal-width reversed="mobile">
+                    <ui-column>Mobile Fourth</ui-column>
+                    <ui-column>Mobile Third</ui-column>
+                    <ui-column>Mobile Second</ui-column>
+                    <ui-column>Mobile First</ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid reversed="computer vertically">
+                    <ui-row>
+                      <ui-column>Computer Row 4</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Computer Row 3</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Computer Row 2</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Computer Row 1</ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid reversed="tablet vertically">
+                    <ui-row>
+                      <ui-column>Tablet Row 4</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Tablet Row 3</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Tablet Row 2</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Tablet Row 1</ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid reversed="mobile vertically">
+                    <ui-row>
+                      <ui-column>Mobile Row 4</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Mobile Row 3</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Mobile Row 2</ui-column>
+                    </ui-row>
+                    <ui-row>
+                      <ui-column>Mobile Row 1</ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Device Visibility">
+                  <p slot="description">A columns or row can appear only for a specific device, or screen sizes</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >See the <a href="ui-container.html">container</a> page for the breakpoints.</ui-message
+                  >
+                  <ui-grid>
+                    <ui-row columns="2" only="large">
+                      <ui-column>
+                        <ui-segment>Large Screen</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>Large Screen</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row columns="2" only="widescreen">
+                      <ui-column>
+                        <ui-segment>Widescreen</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>Widescreen</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row columns="2" only="mobile">
+                      <ui-column>
+                        <ui-segment>Mobile</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>Mobile</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row columns="3">
+                      <ui-column only="computer">
+                        <ui-segment>Computer</ui-segment>
+                      </ui-column>
+                      <ui-column only="tablet mobile">
+                        <ui-segment>Tablet and Mobile</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>All Sizes</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>All Sizes</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row columns="4" only="computer">
+                      <ui-column>
+                        <ui-segment>Computer</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>Computer</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>Computer</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>Computer</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                    <ui-row columns="3" only="tablet">
+                      <ui-column>
+                        <ui-segment>Tablet</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>Tablet</ui-segment>
+                      </ui-column>
+                      <ui-column>
+                        <ui-segment>Tablet</ui-segment>
+                      </ui-column>
+                    </ui-row>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example header="Responsive Width">
+                  <p slot="description">A column can specify a width for a specific device</p>
+                  <ui-message slot="description" state="info" size="small"
+                    ><p>
+                      It's recommended to use a responsive pattern like <a href="#doubling"><code>doubling</code></a> or
+                      <a href="#stackable"><code>stackable</code></a> to reduce complexity when designing responsively,
+                      however in some circumstances specifying exact widths for screen sizes may be necessary.
+                    </p></ui-message
+                  >
+                  <ui-grid>
+                    <ui-column width-mobile="16" width-tablet="8" width-computer="4">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width-mobile="16" width-tablet="8" width-computer="4">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width-mobile="16" width-tablet="8" width-computer="4">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width-mobile="16" width-tablet="8" width-computer="4">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width-mobile="16" width-tablet="8" width-computer="4">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid>
+                    <ui-column width-large="2" width-widescreen="1" width="4">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width-large="2" width-widescreen="1" width="4">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width-large="2" width-widescreen="1" width="4">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                    <ui-column width-large="2" width-widescreen="1" width="4">
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  grid / row / column, widths, responsive behaviour, accessibility. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A grid is 16 columns wide. Put `<ui-column>`s straight in a `<ui-grid>` and they wrap onto new lines as they
+                    fill one; wrap them in a `<ui-row>` to force a line break or give one line its own settings.
+
+                    - A column's width comes from, in order: its own `width`, its row's `columns`, its grid's `columns`, filling the
+                      line when it is the only child, else one of 16.
+                    - `width` takes columns of 16 (`4`), fractions (`1/4`) or percentages (`25%`); NEVER Fomantic's `four wide`
+                      words.
+                    - Rows and columns take no box of their own inside a grid, so style them through `::part(row)` and
+                      `::part(column)`.
+                    - Grids have no events.
+                  </script>
+                </ui-markdown>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <ui-grid columns="3" divided>
+                      <ui-row>
+                        <ui-column>One</ui-column>
+                        <ui-column>Two</ui-column>
+                        <ui-column>Three</ui-column>
+                      </ui-row>
+                      <ui-row columns="2">
+                        <ui-column width="12">Main</ui-column>
+                        <ui-column width="4">Aside</ui-column>
+                      </ui-row>
+                    </ui-grid>
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="responsive">Responsive grids</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Fomantic's grid reacts to the viewport. Here `stackable`, `doubling`, `reversed` and the per-device widths react
+                    to the width the GRID is given (a container query):
+
+                    - mobile below 768px, tablet 768px to 991px, computer from 992px, large screen 1200px to 1919px, widescreen from
+                      1920px;
+                    - so a grid in a narrow sidebar stacks while the window is wide -- and the examples in this ~755px column show
+                      their narrow layout on a desktop screen too.
+                    - `only` is the exception: it follows the VIEWPORT, since it says what the page shows on a phone, not how the
+                      grid lays out.
+                    - A top-level `<ui-grid>` measures its own width, so it can't take its size from its content: inside a flex or
+                      inline layout, give it a width.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - A grid is layout only: plain boxes with no role. Put headings, lists and landmarks inside the columns.
+                    - Screen readers and the Tab key follow the source order, so `reversed` and `floated` change only what the eye
+                      sees. Keep the source in a sensible reading order.
+                    - `only` hides rows and columns with `display: none`, from assistive tech too. Don't put anything there that the
+                      other devices need.
+                    - `color` fills a row or column with a hue and switches its text to a contrasting colour; check any colours you
+                      add inside.
+                    - Without JavaScript the native fallback renders the same grid, row and column boxes with the same class words
+                      (widths included), so the layout is unchanged.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-grid"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-grid-*` tokens: set one on the grid element, on any ancestor (a region, `:root`), or
+                    on the grid's box through `::part(grid)` (or on `.ui.grid` in your app stylesheet); its rows and columns follow.
+                    They inherit into the shadow roots, where the sheet reads each through a private alias, so nothing inside blocks
+                    them.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    /* every grid on the page */
+                    :root {
+                      --ui-grid-divider-color: var(--ui-border-color-strong);
+                    }
+                    /* one grid */
+                    ui-grid.roomy {
+                      --ui-grid-gutter: 3em;
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      `relaxed` and `compact` swap in their own gutter tokens (`--ui-grid-relaxed-gutter`, `--ui-grid-compact-gutter`
+                      ...), whatever the base gutter; `celled` reads the `--ui-grid-celled-*` ones. Never set the `--_ui-*` /
+                      `--_grid-*` names: they're the sheet's private plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-grid" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site.
+
+                    Themes that restyle grids: GitHub.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

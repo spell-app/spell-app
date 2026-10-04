@@ -23,17 +23,31 @@ describe("component definitions (the vocabularies' topics, rolled up)", () => {
     for (const tag of EXPORTED_TAGS) expect(ComponentDefinitions.byTag(tag), tag).toBeDefined()
   })
 
-  it("files every tag under at least two known topics", () => {
+  it("files every tag, doc-only ones too, under at least two known topics, and names other names", () => {
     const known = new Set<string>(ValueSets.topics)
-    for (const { tag, topics } of ComponentDefinitions.all) {
+    for (const { tag, topics, aka } of [...ComponentDefinitions.all, ...ComponentDefinitions.docs]) {
       expect(topics.length, `${tag}:  add topics to its vocabulary`).toBeGreaterThanOrEqual(2)
       for (const topic of topics) expect(known.has(topic), `${tag}:  unknown topic ${topic}`).toBe(true)
+      expect(aka.length, `${tag}:  add aka to its vocabulary`).toBeGreaterThan(0)
     }
   })
 
   it("uses every topic somewhere", () => {
-    const used = new Set(ComponentDefinitions.all.flatMap((definition) => definition.topics))
+    const used = new Set(
+      [...ComponentDefinitions.all, ...ComponentDefinitions.docs].flatMap((definition) => definition.topics)
+    )
     expect(ValueSets.topics.filter((topic) => !used.has(topic))).toEqual([])
+  })
+
+  it("keeps the doc-only `<ui-docs-*>` elements apart:  in `docs`, filed under `documentation`, never in `all`", () => {
+    expect(ComponentDefinitions.docs.map((definition) => definition.tag)).toContain("ui-docs-example")
+    for (const { tag, topics } of ComponentDefinitions.docs) {
+      expect(tag.startsWith("ui-docs-"), tag).toBe(true)
+      expect(topics, tag).toContain("documentation")
+    }
+    expect(ComponentDefinitions.all.filter((definition) => definition.tag.startsWith("ui-docs-"))).toEqual([])
+    expect(ComponentDefinitions.all.filter((definition) => definition.topics.includes("documentation"))).toEqual([])
+    expect(ComponentDefinitions.byTag("ui-docs-example")).toBeUndefined()
   })
 
   it("puts a folder's main tag first, and names tags readably", () => {

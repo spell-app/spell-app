@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Image | Spell UI</title>
+    <meta name="description" content="An image is a graphic representation of something." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-image.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-image%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/elements/image.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Image
+                <ui-header>An image is a graphic representation of something.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-image" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Image"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's image page, in its order (Types, States, Variations, Groups), plus our own extras (Inline,
+                  group variations).
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <!-- GAP I56:  `size="medium"` is the natural size, not Fomantic's 300px;  the page uses `size="large"` (450px) where Fomantic says medium. -->
+                <!-- GAP I87:  Fomantic's 2nd and 3rd blocks wrap an <img> / an <svg> in `ui image`;  <ui-image> has no slot. -->
+                <ui-docs-example header="Image">
+                  <p slot="description">An image.</p>
+                  <ui-message slot="description" size="small"
+                    >Unless a size is specified, images will use the original dimensions of the image up to the size of
+                    its container.</ui-message
+                  >
+                  <ui-message slot="description" state="info" size="small"
+                    ><code>&lt;ui-image&gt;</code> renders a real <code>&lt;img&gt;</code>, so <code>src</code>,
+                    <code>alt</code>, <code>width</code>, <code>height</code> and <code>loading</code> work as on the
+                    native element.</ui-message
+                  >
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Image Link"
+                  description="An image can be formatted to link to other content:  `href`."
+                >
+                  <ui-image
+                    size="large"
+                    href="#image-link"
+                    src="../images/wireframe/image-text.png"
+                    alt="Image link"
+                  ></ui-image>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example
+                  header="Hidden"
+                  description="An image can be hidden:  the native `hidden` attribute (the box keeps no space)."
+                >
+                  <ui-image hidden src="../images/wireframe/image.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Disabled"
+                  description="An image can show that it is disabled and cannot be selected."
+                >
+                  <ui-image disabled size="large" src="../images/wireframe/image.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Avatar"
+                  description="An image may be formatted to appear inline with text as an avatar."
+                >
+                  <ui-image avatar src="../images/wireframe/square-image.png" alt=""></ui-image>
+                  <span>Username</span>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Bordered"
+                  description="An image may include a border to emphasize the edges of white or transparent content."
+                >
+                  <ui-image size="large" bordered src="../images/wireframe/white-image.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example header="Fluid" description="An image can take up the width of its container.">
+                  <ui-image fluid src="../images/wireframe/image.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example header="Rounded" description="An image may appear rounded.">
+                  <ui-image size="large" rounded src="../images/wireframe/square-image.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example header="Circular" description="An image may appear circular.">
+                  <ui-image size="large" circular src="../images/wireframe/square-image.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Vertically Aligned"
+                  description="An image can specify its vertical alignment:  `vertical-align` is `top`, `middle` or `bottom`."
+                >
+                  <ui-image
+                    vertical-align="top"
+                    size="tiny"
+                    src="../images/wireframe/square-image.png"
+                    alt=""
+                  ></ui-image>
+                  <span>Top Aligned</span>
+                  <ui-divider></ui-divider>
+                  <ui-image
+                    vertical-align="middle"
+                    size="tiny"
+                    src="../images/wireframe/square-image.png"
+                    alt=""
+                  ></ui-image>
+                  <span>Middle Aligned</span>
+                  <ui-divider></ui-divider>
+                  <ui-image
+                    vertical-align="bottom"
+                    size="tiny"
+                    src="../images/wireframe/square-image.png"
+                    alt=""
+                  ></ui-image>
+                  <span>Bottom Aligned</span>
+                </ui-docs-example>
+
+                <ui-docs-example header="Centered" description="An image can appear centered in a content block.">
+                  <ui-segment>
+                    <ui-image centered size="large" src="../images/wireframe/image.png" alt=""></ui-image>
+                    <p>
+                      Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
+                      autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
+                      laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
+                      natum rebum iisque.
+                    </p>
+                    <p>
+                      Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
+                      ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
+                      oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
+                    </p>
+                    <ui-image centered size="small" src="../images/wireframe/text-image.png" alt=""></ui-image>
+                    <p>
+                      Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
+                      adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
+                      quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
+                      mnesarchum eu per, quas minimum postulant per id.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Spaced"
+                  description="An image can specify that it needs an additional spacing to separate it from nearby content."
+                >
+                  <ui-segment>
+                    <p>
+                      Te eum doming eirmod, nominati pertinacia
+                      <ui-image size="mini" spaced src="../images/wireframe/image.png" alt=""></ui-image>
+                      argumentum ad his. Ex eam alia facete scriptorem, est autem aliquip detraxit at. Usu ocurreret
+                      referrentur at, cu epicurei appellantur vix. Cum ea laoreet recteque electram, eos choro alterum
+                      definiebas in. Vim dolorum definiebas an. Mei ex natum rebum iisque.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example description='`spaced="left"` or `spaced="right"` adds the room on one side only.'>
+                  <p>
+                    <ui-image size="mini" spaced="right" src="../images/wireframe/image.png" alt=""></ui-image>Audiam
+                    quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla ex duo.
+                    Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer.
+                  </p>
+                  <p>
+                    Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores adolescens,
+                    no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque quo.<ui-image
+                      size="mini"
+                      spaced="left"
+                      src="../images/wireframe/image.png"
+                      alt=""
+                    ></ui-image>
+                  </p>
+                </ui-docs-example>
+
+                <ui-docs-example header="Floated" description="An image can sit to the left or right of other content.">
+                  <ui-segment>
+                    <ui-image size="small" floated="left" src="../images/wireframe/text-image.png" alt=""></ui-image>
+                    <p>
+                      Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
+                      autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
+                      laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
+                      natum rebum iisque.
+                    </p>
+                    <ui-image size="small" floated="right" src="../images/wireframe/text-image.png" alt=""></ui-image>
+                    <p>
+                      Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
+                      ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
+                      oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
+                    </p>
+                    <p>
+                      Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
+                      adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
+                      quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
+                      mnesarchum eu per, quas minimum postulant per id.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example header="Size">
+                  <p slot="description">An image may appear at different sizes.</p>
+                  <ui-message slot="description" state="warning" size="small"
+                    ><code>medium</code> is the image's natural size here, not Fomantic's 300px (I56): elsewhere on this
+                    page the medium images are <code>size="large"</code> (450px).</ui-message
+                  >
+                  <ui-message slot="description" state="info" size="small"
+                    >Fomantic's default widths for <code>mini</code> ... <code>massive</code> are arbitrary: set the
+                    ones your project uses in the <code>--ui-image-width-*</code> tokens (Theming tab).</ui-message
+                  >
+                  <ui-table slot="description" definition compact unstackable>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Size</th>
+                          <th>Width</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>mini</td>
+                          <td>35px</td>
+                        </tr>
+                        <tr>
+                          <td>tiny</td>
+                          <td>80px</td>
+                        </tr>
+                        <tr>
+                          <td>small</td>
+                          <td>150px</td>
+                        </tr>
+                        <tr>
+                          <td>medium</td>
+                          <td>natural size (Fomantic: 300px)</td>
+                        </tr>
+                        <tr>
+                          <td>large</td>
+                          <td>450px</td>
+                        </tr>
+                        <tr>
+                          <td>big</td>
+                          <td>600px</td>
+                        </tr>
+                        <tr>
+                          <td>huge</td>
+                          <td>800px</td>
+                        </tr>
+                        <tr>
+                          <td>massive</td>
+                          <td>960px</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-image size="mini" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-divider hidden></ui-divider>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-divider hidden></ui-divider>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-divider hidden></ui-divider>
+                  <ui-image size="medium" src="../images/wireframe/image.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="groups">Groups</ui-header>
+
+                <ui-docs-example
+                  header="Size"
+                  description="A group of images can be formatted to have the same size:  `<ui-images size>`."
+                >
+                  <ui-images size="tiny">
+                    <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                  </ui-images>
+                </ui-docs-example>
+                <ui-docs-example description="Plain `<img>`s in a group take the group's look too.">
+                  <ui-images size="small">
+                    <img src="../images/wireframe/image.png" alt="" />
+                    <img src="../images/wireframe/image.png" alt="" />
+                    <img src="../images/wireframe/image.png" alt="" />
+                    <img src="../images/wireframe/image.png" alt="" />
+                  </ui-images>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Group variations"
+                  description="A group shares its shape, border and alignment with every image in it:  `avatar`, `circular`, `rounded`, `bordered`, `centered` ..."
+                >
+                  <ui-images avatar>
+                    <ui-image src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/square-image.png" alt=""></ui-image>
+                  </ui-images>
+                  <ui-divider hidden></ui-divider>
+                  <ui-images size="tiny" circular centered>
+                    <ui-image src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/square-image.png" alt=""></ui-image>
+                  </ui-images>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `<ui-image>` renders a real `<img>`, so `src`, `alt`, `width`, `height` and `loading` work as they do on the native
+                    element.
+
+                    - `width` and `height` are the image's own pixel size, which reserves space before it loads; `size` sets how wide
+                      it is drawn. (`width` is NOT the column `width` grammar here.)
+                    - An image is a block on its own line; `avatar`, `inline`, `spaced` and `vertical-align` make it sit in a line of
+                      text instead.
+                    - `href` wraps it in a real link.
+                    - `<ui-images>` shares its size, shape, border and alignment with every image inside it, plain `<img>`s included.
+                    - Images have no events.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A plain image takes no focus. A linked image (`href`) is a real link: **Tab** reaches it, **Enter** follows it;
+                    a `disabled` one is skipped.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - Give every image an `alt`. `alt=""` marks it decorative, so screen readers skip it; a missing `alt` stays
+                      missing, and accessibility checkers will flag it.
+                    - A linked image (`href`) is a real link, named by its `alt`: describe where it goes.
+                    - `disabled` removes the link's `href` and sets `aria-disabled`, so it is no longer focusable.
+                    - `<ui-images>` is a plain box with no role; wrap it in a list or give it a label if the group means something.
+                    - Without JavaScript the native fallback renders the same `<img>` (or link around it) with the same class words,
+                      so the image, its `alt` and the group layout stay.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <ui-docs-api family="ui-image"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-image-*` tokens: set one on the element, on any ancestor (a `<ui-images>` group, a
+                    region, `:root`), or on the inner box through `::part(image)` (`::part(group)` for `<ui-images>`). They inherit
+                    into the shadow root, where the sheet reads each through a private alias, so nothing inside blocks them.
+
+                    - The size widths are `--ui-image-width-mini` ... `-massive`.
+                    - Never set the `--_ui-*` / `--_ui-images-*` names: they're the sheets' private plumbing.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    /* every image on the page */
+                    :root {
+                      --ui-image-rounded-radius: 1em;
+                    }
+                    /* one gallery */
+                    .gallery {
+                      --ui-image-border: 2px solid var(--ui-border-color-strong);
+                    }
+                  </script>
+                </ui-code>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-image" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site. Themes that restyle images: GitHub.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

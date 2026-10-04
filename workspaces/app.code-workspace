@@ -11,6 +11,7 @@
   ],
   "settings": {
     "workbench.colorTheme": "Abyss",
+    "git.detectWorktrees": true,
     "files.exclude": {
       "packages": true,
       ".claude/worktrees": true

@@ -175,6 +175,17 @@ describe("<ui-segment> tokens from outside", () => {
     expect(radius(wrapper.querySelector("ui-segment")!)).toBe("12px")
   })
 
+  it("inherits its text alignment unless it sets one (a `right aligned` grid column)", async () => {
+    const wrapper = await ElementFixture.render(
+      `<div style="text-align: right"><ui-segment>x</ui-segment><ui-segment text-align="center">y</ui-segment></div>`
+    )
+    const [plain, centered] = [...wrapper.querySelectorAll("ui-segment")].map(
+      (host) => getComputedStyle(host.shadowRoot!.firstElementChild!).textAlign
+    )
+    expect(plain).toBe("right")
+    expect(centered).toBe("center")
+  })
+
   it("takes a token set through `::part(segment)`", async () => {
     const wrapper = await ElementFixture.render(
       `<div><style>.themed::part(segment) { --ui-segment-radius: 12px }</style><ui-segment class="themed">x</ui-segment></div>`

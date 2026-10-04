@@ -40,7 +40,17 @@ function folds(plan) {
 describe("PlanDoc layout", () => {
   it("has the sections in order, as <ui-section>s with icons, the h1 in a sticky header, no #plan", () => {
     const plan = freshPlan()
-    expect(sectionIds(plan)).toEqual(["overview", "phases", "decisions", "caveats", "todos", "issues", "tests", "log"])
+    expect(sectionIds(plan)).toEqual([
+      "overview",
+      "phases",
+      "decisions",
+      "judgements",
+      "caveats",
+      "todos",
+      "issues",
+      "tests",
+      "log"
+    ])
     expect(headers(plan)[2]).toBe("3. Questions & Decisions")
     for (const section of plan.document.querySelectorAll("main > ui-section")) {
       expect(section.querySelector(':scope > ui-icon[slot="icon"]')).not.toBeNull()
@@ -245,6 +255,21 @@ describe("PlanDoc items", () => {
     expect(plan.check()).toEqual([])
   })
 
+  it("files a judgement call (J1) in #judgements;  open until closed;  summary lists it after questions", () => {
+    const plan = freshPlan()
+    expect(
+      plan.addItem("judgement", "nav starts on Topics", { details: "<p>chose ... over ... because ...</p>" })
+    ).toBe("j1")
+    const item = plan.document.getElementById("j1")
+    expect(item.closest("ui-section").id).toBe("judgements")
+    expect(item.getAttribute("data-status")).toBe("open")
+    expect(Object.keys(plan.summary().open)).toEqual(["question", "judgement", "issue", "caveat", "todo", "test"])
+    expect(plan.summary().open.judgement.map((open) => open.id)).toEqual(["j1"])
+    plan.setItem("j1", "done")
+    expect(plan.summary().open.judgement).toEqual([])
+    expect(plan.check()).toEqual([])
+  })
+
   it("titles an item's details panel with the item's line, not 'details'", () => {
     const plan = freshPlan()
     plan.addItem("decision", "padding tokens stay public (Q8)", { details: "<p>why</p>" })
@@ -375,10 +400,10 @@ describe("PlanDoc tests", () => {
   it("adds the section to a doc from before it, just above the Log, renumbered", () => {
     const plan = freshPlan()
     plan.document.getElementById("tests").remove()
-    expect(headers(plan).at(-1)).toBe("8. Log")
+    expect(headers(plan).at(-1)).toBe("9. Log")
     plan.addItem("test", "x")
     expect(sectionIds(plan).slice(-2)).toEqual(["tests", "log"])
-    expect(headers(plan).slice(-2)).toEqual(["7. To test", "8. Log"])
+    expect(headers(plan).slice(-2)).toEqual(["8. To test", "9. Log"])
   })
 })
 
@@ -410,11 +435,22 @@ describe("PlanDoc migrate", () => {
     const plan = filledOldPlan()
     const changes = plan.migrate()
     expect(changes.length).toBeGreaterThan(3)
-    expect(sectionIds(plan)).toEqual(["overview", "phases", "decisions", "caveats", "todos", "issues", "tests", "log"])
+    expect(sectionIds(plan)).toEqual([
+      "overview",
+      "phases",
+      "decisions",
+      "judgements",
+      "caveats",
+      "todos",
+      "issues",
+      "tests",
+      "log"
+    ])
     expect(headers(plan)[0]).toBe("1. Overview")
     expect(headers(plan)[2]).toBe("3. Questions & Decisions")
-    expect(headers(plan)[6]).toBe("7. To test")
-    expect(headers(plan)[7]).toBe("8. Log")
+    expect(headers(plan)[3]).toBe("4. Judgement calls")
+    expect(headers(plan)[7]).toBe("8. To test")
+    expect(headers(plan)[8]).toBe("9. Log")
     // every section a <ui-section>, each top-level one with its icon;  `#phases-section` gone
     expect(plan.document.querySelector("section, h2, h3, ui-sticky.spell-h2, ui-sticky.spell-h3")).toBeNull()
     expect(plan.document.getElementById("phases-section")).toBeNull()

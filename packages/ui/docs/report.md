@@ -37,7 +37,7 @@ This report holds facts and measurements.  Every table between `generated` marke
   `development` condition at `src/index.ts`, so the dev server, Vitest and the docs site compile the fork's
   TypeScript with our Solid plugin;  the library build leaves it external.  Only `yarn vendor` / `yarn measure`
   bundle its BUILT `dist/`, and they build it first when stale (`tools/ForkBuild.ts`).  The HMR plugin is imported
-  from source (`./packages/solid-element/src/vite.ts`) by `vite.config.ts` and the Astro config, so a fresh
+  from source (`./packages/solid-element/src/vite.ts`) by `vite.config.ts` (and so the site bundle's config), so a fresh
   checkout never needs the fork's `dist/` to start.
 - **Decorators:**  standard (TC39 2023-11) through `vite.decorators.ts` (esbuild pre-pass, `jsx: "preserve"`),
   listed BEFORE `solid()`;  both are `enforce: "pre"`.
@@ -45,7 +45,7 @@ This report holds facts and measurements.  Every table between `generated` marke
   the vendor / measure builds:  the linked fork otherwise resolves its OWN Solid, and two copies can't share owners.
 - **Config:**  `vite.config.ts` exports `baseConfig()` (plugins, aliases, dedupe, Lightning CSS with `CSS_TARGETS`),
   used by the library build, `vitest.config.ts` (two projects:  `browser` in chromium, `ssr` in node, each with its
-  own Solid plugin instance) and, in part, `site/astro.config.mjs`.
+  own Solid plugin instance) and the docs site's bundle, `vite.site.config.ts`.
 
 ### Commands
 
@@ -63,7 +63,8 @@ From the repo root:
 - `yarn test:hmr` -- hot module replacement end to end:  dev server + headless chromium + real file edits
 - `yarn dev` -- `tools/demo/`:  every example as class grammar beside element markup, plus perf, translate, HMR
   pages;  `yarn screenshots` writes one PNG per example pair
-- `yarn site:dev` / `yarn site:build` -- the docs site, on the live components
+- `yarn site:build` / `yarn site:dev` -- the docs site's data, generated pages and bundle;  `site:dev` rebuilds the
+  bundle on every edit while the page server serves `/ui/`
 
 ### Final state
 
@@ -695,7 +696,7 @@ The rules are in `AGENTS.md`, "Solid authoring".
 
 ## Hot module replacement
 
-Edit a component in `yarn dev` (or `yarn site:dev`) and every live instance updates in place:  same host objects,
+Edit a component in `yarn dev` and every live instance updates in place:  same host objects,
 host attributes and properties kept (the dropdown's `options` and controlled `value` included), no page reload.
 Open `tools/demo/hmr.html` and edit `UIButton.tsx`, `ui-button.css` or `ui-button.vocabulary.en.ts`.
 
