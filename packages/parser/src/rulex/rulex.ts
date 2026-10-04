@@ -134,9 +134,34 @@ rulex.addRule(intervalRule, {
   ]
 })
 
-// `matchGroup` / `repeatFlag` / `interval` are registered ABOVE first, so we can pull their registered
+////////////////
+// ## `caseFlag` rule
+//    e.g. "/i"
+////////////////
+
+/**
+ * Optional `/i` straight after a keyword or a choice, as regex's flag:  match any case.
+ * - Touching:  `/` touches the part before, `i` touches `/` -- so `a / i` is still three plain parts.
+ * - Compiles to `true`;  `applyCaseFlag()` sets `caseInsensitive` on the literal it adorns.
+ */
+class caseFlagRule extends P.Sequence {
+  compile() {
+    return true
+  }
+}
+rulex.addRule(caseFlagRule, {
+  name: "caseFlag",
+  rules: [new P.Symbol("/"), new P.Keyword({ literal: "i", spacing: "none" })],
+  spacing: "none",
+  optional: true
+})
+
+// `matchGroup` / `repeatFlag` / `interval` / `caseFlag` are registered ABOVE first, so we can pull their registered
 // INSTANCES out here -- the rules below put these instances directly inside their own `rules` arrays.
-const { matchGroup, repeatFlag, interval } = rulex.rules as Record<"matchGroup" | "repeatFlag" | "interval", P.Rule>
+const { matchGroup, repeatFlag, interval, caseFlag } = rulex.rules as Record<
+  "matchGroup" | "repeatFlag" | "interval" | "caseFlag",
+  P.Rule
+>
 
 ////////////////
 // ## `symbol` rule
@@ -241,7 +266,7 @@ rulex.addRule(symbolRule, {
  *   stands for.
  * - Compiles to a `P.Keyword`, adorned by `repeatFlag` via `applyFlags()`.
  */
-class keyword extends P.Sequence<"literal|repeatFlag?|interval?"> {
+class keyword extends P.Sequence<"literal|caseFlag?|repeatFlag?|interval?"> {
   compile(match: P.MatchFor<this>) {
     const { literal } = match.groups
     const rule = new P.Keyword(literal.value)
@@ -250,7 +275,7 @@ class keyword extends P.Sequence<"literal|repeatFlag?|interval?"> {
 }
 rulex.addRule(keyword, {
   alias: "rule",
-  rules: [new P.Word({ matchGroup: "literal" }), repeatFlag, interval],
+  rules: [new P.Word({ matchGroup: "literal" }), caseFlag, repeatFlag, interval],
   tests: [
     {
       title: "matches single keyword",
@@ -313,7 +338,7 @@ rulex.addRule(numberRule, {
  * `Subrule`: match a named rule, as part of a larger sequence.
  * - `{name}` references rule `name`; `{arg:name}` also sets `matchGroup` on the resulting `P.Subrule`.
  */
-class subrule extends P.Sequence<"matchGroup?|rule|repeatFlag?|interval?"> {
+class subrule extends P.Sequence<"matchGroup?|rule|caseFlag?|repeatFlag?|interval?"> {
   compile(match: P.MatchFor<this>) {
     const rule = new P.Subrule(String(match.groups.rule.compile()))
     return rulex.applyFlags(rule, match)
@@ -321,7 +346,7 @@ class subrule extends P.Sequence<"matchGroup?|rule|repeatFlag?|interval?"> {
 }
 rulex.addRule(subrule, {
   alias: "rule",
-  rules: [new P.Symbol("{"), matchGroup, new P.Word({ matchGroup: "rule" }), new P.Symbol("}"), repeatFlag, interval],
+  rules: [new P.Symbol("{"), matchGroup, new P.Word({ matchGroup: "rule" }), new P.Symbol("}"), caseFlag, repeatFlag, interval],
   tests: [
     {
       title: "matches subrule",
@@ -427,7 +452,7 @@ rulex.addRule(list, {
  * - If exactly one choice remains after consolidation, returns that rule directly instead of wrapping it in
  *   a `P.Choice` -- NOTE: in that case the choice's own flags "beat" the rule's flags if they conflict.
  */
-class choices extends P.Sequence<"matchGroup?|choices|repeatFlag?|interval?"> {
+class choices extends P.Sequence<"matchGroup?|choices|caseFlag?|repeatFlag?|interval?"> {
   compile(match: P.MatchFor<this>) {
     let choices: P.Rule[] = match.groups.choices.items.map((item) => RulexParser.compileMatchOrDie(item))
 
@@ -454,6 +479,7 @@ rulex.addRule(choices, {
     matchGroup,
     new P.Repeat({ matchGroup: "choices", rule: new P.Subrule("sequence"), delimiter: new P.Symbol("|") }),
     new P.Symbol(")"),
+    caseFlag,
     repeatFlag,
     interval
   ],
@@ -673,6 +699,22 @@ rulex.addRule(sequence, {
           new P.Sequence(new P.Symbol("-"), new P.Keyword({ literal: 1 as unknown as string, spacing: "none" }))
         ],
         ["¬", new P.Symbol("¬")]
+      ]
+    },
+    {
+      // `/i`, touching:  any case;  never merged into a keyword run, so the flag stays on its own keyword
+      title: "case",
+      showAll: true,
+      tests: [
+        ["note/i", new P.Keyword({ literal: "note", caseInsensitive: true })],
+        ["(note|tip)/i", new P.Keyword({ literal: ["note", "tip"], caseInsensitive: true })],
+        ["(note|tip)/i?", new P.Keyword({ literal: ["note", "tip"], caseInsensitive: true, optional: true })],
+        [
+          "a note/i",
+          new P.Sequence(new P.Keyword("a"), new P.Keyword({ literal: "note", caseInsensitive: true }))
+        ],
+        // spaced:  just a `/` and an `i`
+        ["a / i", new P.Sequence(new P.Keyword("a"), new P.Symbol("/"), new P.Keyword("i"))]
       ]
     },
     {

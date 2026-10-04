@@ -30,6 +30,16 @@ describe("testing language rulex", () => {
       expect(() => rulex.compile("x?{2}")).toThrow("a flag AND a count")
     })
 
+    it("throws for /i on anything but a keyword or a choice of keywords", () => {
+      expect(() => rulex.compile("{x}/i")).toThrow("`/i` goes after a keyword")
+      expect(() => rulex.compile("(a|{x})/i")).toThrow("`/i` goes after a keyword")
+    })
+
+    it("prints /i back", () => {
+      expect(rulex.compile("(note|tip)/i").toRulexSyntax()).toBe("(note|tip)/i")
+      expect(rulex.compile("note/i").toRulexSyntax()).toBe("note/i")
+    })
+
     it("prints a count back", () => {
       expect(rulex.compile("x{7}").toRulexSyntax()).toBe("x{7}")
       expect(rulex.compile("x{1,6}").toRulexSyntax()).toBe("x{1,6}")
@@ -67,6 +77,7 @@ describe("testing language rulex", () => {
       atx: "#{1,6}{spaces}{word}",
       thematic: "- {3,}",
       pair: "x{2}",
+      alert: "\\[!(note|tip)/i\\]",
       list: "[{word},]",
       spacedList: "[{word} ,]"
     })) {
@@ -118,6 +129,13 @@ describe("testing language rulex", () => {
       expect(matched("thematic", "- -")).toBe(0)
       expect(matched("pair", "x x x")).toBe(2)
       expect(matched("pair", "x")).toBe(0)
+    })
+
+    it("/i:  any case, and the match keeps the input's own", () => {
+      expect(matched("alert", "[!NOTE]")).toBe(4)
+      expect(matched("alert", "[!Tip]")).toBe(4)
+      expect(matched("alert", "[!nope]")).toBe(0)
+      expect(parser.parse("[!NOTE]", "alert")?.inputText).toBe("[!NOTE]")
     })
 
     it("a list's delimiter spaces as written", () => {

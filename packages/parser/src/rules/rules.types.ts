@@ -227,6 +227,8 @@ export type LiteralProps = Prettify<
     literal: string | string[]
     /** Whether the literal must be escaped when converting to rulex syntax. */
     isEscaped?: boolean
+    /** Match any case (rulex `/i`) -- see `Literal.caseInsensitive`. */
+    caseInsensitive?: boolean
   }
 >
 

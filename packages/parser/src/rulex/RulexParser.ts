@@ -50,8 +50,9 @@ export class RulexParser extends Parser {
   }
 
   /**
-   * Apply `repeatFlag` / `interval` / `matchGroup` groups from `match` onto `rule`.
-   * - SIDE EFFECT: mutates `rule` directly for `matchGroup`.
+   * Apply `caseFlag` / `repeatFlag` / `interval` / `matchGroup` groups from `match` onto `rule`.
+   * - SIDE EFFECT: mutates `rule` directly for `matchGroup`, and `caseInsensitive` for `/i` -- which needs a
+   *   `P.Literal` (a keyword, or a choice that compiled to one), else throws.
    * - `repeatFlag` of `+` or `*`, or an `interval` (`{1,6}`), instead wraps `rule` in a new `P.Repeat` and returns
    *   that, since a single rule can't repeat on its own -- so the return value may not be `rule`.  A count from
    *   0 makes the repeat optional.
@@ -60,10 +61,21 @@ export class RulexParser extends Parser {
    *   -- every rulex rule in `rulex.ts` that adorns itself with `matchGroup` / `repeatFlag`
    *   passes its own, differently-shaped match here, so callers need no casts.
    */
-  applyFlags(rule: P.Rule, match: P.Match<P.GroupsFor<"repeatFlag?|matchGroup?|interval?">>): P.Rule {
+  applyFlags(rule: P.Rule, match: P.Match<P.GroupsFor<"repeatFlag?|matchGroup?|interval?|caseFlag?">>): P.Rule {
     const repeatFlag = match.groups.repeatFlag?.compile()
     const matchGroup = match.groups.matchGroup?.compile()
     const interval = match.groups.interval?.compile() as RulexInterval | undefined
+    if (match.groups.caseFlag) {
+      if (!(rule instanceof P.Literal)) {
+        throw new P.ParserError({
+          message: `rulex \`${P.Tokenizer.join(match.tokens)}\`:  \`/i\` goes after a keyword or a choice of keywords`,
+          context: this,
+          activity: "compile",
+          params: { rule }
+        })
+      }
+      rule.caseInsensitive = true
+    }
     if (repeatFlag && interval) {
       throw new P.ParserError({
         message: `rulex \`${P.Tokenizer.join(match.tokens)}\` has a flag AND a count:  use one`,
@@ -146,8 +158,8 @@ export class RulexParser extends Parser {
    * Consolidate consecutive runs of `constructor` (`P.Keyword` / `P.Symbol`) literals in `rules` into a single
    * `GroupConstructor` (`P.Keywords` / `P.Symbols`) instance, so e.g. `a b c` compiles to one `Keywords`
    * instead of three separate `Keyword` sequence entries.
-   * - Skips rules that are `isAdorned` (have a `matchGroup`) -- those must stay separate since
-   *   the combined group can't carry a single rule's individual adornment.
+   * - Skips rules that are `isAdorned` (have a `matchGroup`) or `caseInsensitive` (`/i`) -- those must stay
+   *   separate since the combined group can't carry a single rule's individual adornment.
    * - An optional literal within a run is combined too, but recorded as `{ literal, optional: true }` so the
    *   group knows that one entry is skippable.
    */
@@ -162,11 +174,11 @@ export class RulexParser extends Parser {
     const output: P.Rule[] = []
     for (let start = 0, rule: P.Rule | undefined; (rule = rules[start]); start++) {
       // TODO: inline `isAdorned`
-      if (rule instanceof constructor && !rule.isAdorned) {
+      if (rule instanceof constructor && !rule.isAdorned && !(rule as P.Literal).caseInsensitive) {
         // find the end of the run
         let end = start
         for (let next: P.Rule | undefined; (next = rules[end + 1]); end++) {
-          if (!(next instanceof constructor && !next.isAdorned)) break
+          if (!(next instanceof constructor && !next.isAdorned && !(next as P.Literal).caseInsensitive)) break
         }
         if (end > start) {
           // combine literals into a single map;  the run's own spacing is its first literal's

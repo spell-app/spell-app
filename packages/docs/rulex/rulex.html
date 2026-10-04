@@ -56,8 +56,8 @@
             <li>
               Seven constructs: keywords, symbols (<code>\</code> escapes any), <code>{subrule}</code>,
               <code>(a|b)</code>, <code>[item delimiter]</code>, numbers and <code>name:</code> labels. Three modifiers:
-              <code>?</code>, <code>+</code>, <code>*</code>; counts (<code>{1,6}</code>); <code>/i</code> planned.
-              Spell uses all but numbers, in 133 registrations.
+              <code>?</code>, <code>+</code>, <code>*</code>; counts (<code>{1,6}</code>), <code>/i</code>. Spell uses
+              all but numbers, in 133 registrations.
             </li>
             <li>
               Every rulex special character escapes with <code>\</code>:
@@ -76,7 +76,7 @@
               What the rules it builds match: token VALUES, exact and case-sensitive, SPACED AS WRITTEN (since
               2026-10-04): parts written touching must touch (<code>\*\*{x}\*\*</code> refuses <code>* *x* *</code>),
               spaced ones may space, and <code>{space}</code> / <code>{spaces}</code> require one space / some. Counts
-              as regex: <code>#{1,6}</code> takes 1 to 6 and stops. Planned: <code>/i</code>.
+              as regex: <code>#{1,6}</code> takes 1 to 6 and stops. <code>/i</code> matches any case.
             </li>
           </ul>
           <ui-message state="info" header="For markdown">
@@ -368,7 +368,7 @@ math.addRule(plus, {
                     <td><code>x+</code> ~== <code>x{1,}</code>, <code>x*</code> ~== <code>x{0,}</code></td>
                   </tr>
                   <tr>
-                    <td>case-insensitive <ui-label size="mini" color="orange">planned</ui-label></td>
+                    <td>case-insensitive</td>
                     <td><code>(note|tip)/i</code>, <code>note/i</code></td>
                     <td><code>Keyword(["note","tip"])</code>, case-insensitive</td>
                     <td>
@@ -893,7 +893,7 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
             Decided with Owen on 2026-10-03, after reviewing this page. Built in the <code>markdown</code> epic's P2,
             one at a time; this page is updated as each one lands. Built so far (2026-10-04): the plain rulex tokenizer,
             throw on leftovers (and on an unclosed <code>[</code> <code>{</code> <code>(</code>), spacing as written
-            with <code>{space}</code> / <code>{spaces}</code>, intervals.
+            with <code>{space}</code> / <code>{spaces}</code>, intervals, <code>/i</code>.
           </p>
           <ui-table celled compact striped>
             <table>
@@ -960,7 +960,7 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
                 </tr>
                 <tr>
                   <td>
-                    <b><code>/i</code></b
+                    <ui-label size="mini" color="green">built</ui-label> <b><code>/i</code></b
                     >: case-insensitive, after a keyword or a choice of literals
                   </td>
                   <td><code>\[!(note|tip|warning)/i\]</code></td>

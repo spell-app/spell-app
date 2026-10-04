@@ -1522,6 +1522,66 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d27" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d27">D27</a>
+                  <span class="plan-title"
+                    >P2.5 diff: /i -&gt; Literal.caseInsensitive (keyword, or a choice that compiles to one
+                    literal)</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>Review gate (<a href="#d7">D7</a>) for <a href="#d16">D16</a>.</p>
+                  <ul>
+                    <li>
+                      <code>Literal.caseInsensitive</code>; <code>Literal.test()</code> compares lowercased when set.
+                      The match keeps the input's own case.
+                    </li>
+                    <li>
+                      rulex <code>caseFlag</code> = <code>/</code> + <code>i</code>, touching each other and the part
+                      before; accepted after a keyword, a choice (which must compile to ONE literal rule, e.g.
+                      <code>(note|tip)/i</code>), or a subrule (throws: <code>{x}/i</code> is an error). Before any
+                      <code>?</code> / <code>+</code> / count: <code>(a|b)/i?</code>.
+                    </li>
+                    <li>
+                      Case-insensitive literals never merge into a <code>Keywords</code> / <code>Symbols</code> run, so
+                      the flag isn't lost.
+                    </li>
+                    <li><code>toRulexSyntax()</code> prints <code>/i</code>.</li>
+                    <li>Spell: no syntax has <code>/</code> + <code>i</code>; no change expected.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d28" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d28">D28</a>
+                  <span class="plan-title"
+                    >Bedtime (2026-10-04): P2 rest through P9, unattended; review gate relaxed</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>Owen's up-front answers:</p>
+                  <ul>
+                    <li>Phases: all, P2 (rest) to P9.</li>
+                    <li>
+                      Parser changes: only tiny ones (about 20 lines or fewer), each its own commit + a judgement call
+                      for the morning. A bigger one needed: STOP that phase (WIP commit), skip phases that build on it.
+                    </li>
+                    <li>P7: measure only, no swap tonight.</li>
+                    <li>P8: <code>&lt;ui-markdown editable&gt;</code> as Write / Preview tabs.</li>
+                    <li>
+                      Spec corpus: GFM (cmark-gfm). Finish the basics; weird GFM edge cases become deferred todos.
+                    </li>
+                    <li>
+                      P6: change the VS Code extension and rebuild it (<code>yarn vscode</code>) if needed, only when
+                      the branch isn't behind main.
+                    </li>
+                    <li>Never merge: P9's <code>/isolate</code> Finish is a morning todo.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2041,6 +2101,20 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:32-04:00">2026-10-04 02:32</time></ui-date> P2.4 staged for
                   review: intervals; parser 449 / spell 788 / lsp 96 green; speed 73 -&gt; 71 ms</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:40-04:00">2026-10-04 02:40</time></ui-date> P2.5 staged for
+                  review: /i; parser 457 / spell 788 / lsp 96 green; speed 80 -&gt; 80 ms</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:49-04:00">2026-10-04 02:49</time></ui-date> Bedtime started:
+                  P2 (rest) to P9</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
