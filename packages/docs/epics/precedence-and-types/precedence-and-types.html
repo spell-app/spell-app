@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Precedence and Types</h1>
             <span class="plan-step"
-              ><ui-label basic color="orange" icon="circle half stroke" href="#p3">P3 · Binding Power</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Types Plumbed</ui-label></span
             >
           </header></ui-sticky
         >
@@ -60,7 +60,7 @@
               plan before we start anything.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 21h-30h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 16h-23h left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <ul>
               <li>
@@ -135,12 +135,7 @@
 
           <ui-section id="o3" header="1.3 The design in brief" sticky collapsible dividing>
             <h4 id="o3-bp">Binding power</h4>
-            <ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="3"
-              ><p>
-                P2 / <a href="#d21">D21</a>: the smaller design replaces the design doc's (OperatorExpression,
-                <code>{x:operand}</code>, kept alternatives).
-              </p></ui-message
-            >
+
             <ul>
               <li>
                 <code>precedence</code> keeps ONE job: which whole match wins a <code>Choice</code>. New
@@ -317,7 +312,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -359,7 +354,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p2" data-phase="2" data-status="done" header="P2 · Change Model" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p2"
+            data-phase="2"
+            data-status="done"
+            header="P2 · Change Model"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -379,16 +383,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section
-            id="p3"
-            data-phase="3"
-            data-status="active"
-            header="P3 · Binding Power"
-            sticky
-            collapsible
-            dividing
-          >
-            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Binding Power" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> greedy operands, the two jobs of <code>precedence</code>, postfix-binds-tightest fixed;
@@ -1562,8 +1558,9 @@ card.pile = pile</code></pre>
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d26">D26</a>
-                  <span class="plan-title">Operators get `precedence`; a Choice's tie-break becomes `priority`</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  <span class="plan-title"
+                    >Operators get `precedence`; a Choice's tie-break becomes `priority`</span
+                  > </ui-title
                 ><ui-content
                   ><p>
                     From the P3 prototype review. The prototype called how tightly an operator binds
@@ -1595,8 +1592,9 @@ card.pile = pile</code></pre>
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d27">D27</a>
-                  <span class="plan-title">D24's bounded call rules: P5, with declarations listing both rules</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  <span class="plan-title"
+                    >D24's bounded call rules: P5, with declarations listing both rules</span
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Closes <a href="#i3">I3</a>. A one-argument call inside an expression takes an operand-sized
@@ -1610,8 +1608,7 @@ card.pile = pile</code></pre>
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d28">D28</a>
-                  <span class="plan-title">`wait for` keeps a whole expression for now</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  <span class="plan-title">`wait for` keeps a whole expression for now</span> </ui-title
                 ><ui-content
                   ><p>
                     Closes <a href="#c6">C6</a>, narrows <a href="#d23">D23</a>. <code>wait for x is 1</code> as a
@@ -1625,8 +1622,7 @@ card.pile = pile</code></pre>
                 ><ui-title
                   ><a class="plan-id" href="#q16">Q16</a>
                   <span class="plan-title">What do we call 'an expression without operators after it'?</span>
-                  <a class="plan-answer" href="#d29">→ D29</a>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  <a class="plan-answer" href="#d29">→ D29</a> </ui-title
                 ><ui-content
                   ><p>
                     <b>What it is.</b> After P3, an <code>expression</code> is ONE of these, then any operators after
@@ -1756,8 +1752,7 @@ the first card of {list:NAME}
                   ><a class="plan-id" href="#d29">D29</a>
                   <span class="plan-title"
                     >`operand`; saved declarations regenerated in P3, one name (<a href="#q16">Q16</a>)</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p class="meta">
                     Answers <a href="#q16">Q16</a>: What do we call 'an expression without operators after it'?
@@ -1771,8 +1766,7 @@ the first card of {list:NAME}
                   <span class="plan-title"
                     >`draw the cards of the deck`: settle the tie by priority, not file order?</span
                   >
-                  <a class="plan-answer" href="#d30">→ D30</a>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  <a class="plan-answer" href="#d30">→ D30</a> </ui-title
                 ><ui-content
                   ><p><b>The two rules.</b> Both start with <code>draw</code>:</p>
                   <ui-accordion class="spell-code" styled open="0"
@@ -1843,8 +1837,7 @@ the first card of {list:NAME}
                     >Explicit priority on the rules: draw_items 2, draw_thing 1, file order as today (<a href="#q17"
                       >Q17</a
                     >)</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p class="meta">
                     Answers <a href="#q17">Q17</a>: `draw the cards of the deck`: settle the tie by priority, not file
@@ -1941,8 +1934,7 @@ the first card of {list:NAME}
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j5">J5</a>
-                  <span class="plan-title">Prototype choices beyond §4.5's sketch</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  <span class="plan-title">Prototype choices beyond §4.5's sketch</span> </ui-title
                 ><ui-content
                   ><ol>
                     <li>
@@ -1996,8 +1988,7 @@ the first card of {list:NAME}
                   <span class="plan-title"
                     >De-parenthesized more than the listed lines: the Solitaire example's own Card/Deck and
                     Solitaire-import</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Besides the cards library (<code>Deck.spell</code> 40-41, 56-58, <code>Card.spell</code> 46) and the
@@ -2031,8 +2022,7 @@ the first card of {list:NAME}
                   <span class="plan-title"
                     >core's spellCore.scopes.js: 14 stale rule syntaxes copied from the live grammar, not
                     regenerated</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     The built-in types' pack holds each built-in rule's <code>syntax</code> for the Type Explorer. 14
@@ -2053,8 +2043,7 @@ the first card of {list:NAME}
                   <span class="plan-title"
                     >Extras: a priority/precedence snapshot test, a there-is-a test, ui's highlighter bundle
                     regenerated</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><ul>
                     <li>
@@ -2196,8 +2185,9 @@ the first card of {list:NAME}
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c6">C6</a>
-                  <span class="plan-title">`wait for x is 1` as a STATEMENT no longer parses whole (D23)</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  <span class="plan-title"
+                    >`wait for x is 1` as a STATEMENT no longer parses whole (D23)</span
+                  > </ui-title
                 ><ui-content
                   ><p>
                     With <code>await</code> taking a single expression, <code>wait for x is 1</code> as a statement line
@@ -2214,8 +2204,7 @@ the first card of {list:NAME}
                   ><a class="plan-id" href="#c7">C7</a>
                   <span class="plan-title"
                     >Left as they are: P1f, P2d at statement level, the frozen fixture's saved compile</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><ul>
                     <li>
@@ -2270,8 +2259,7 @@ the first card of {list:NAME}
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t2">T2</a>
-                  <span class="plan-title">`draw_items` must move above `draw_thing` in P3</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  <span class="plan-title">`draw_items` must move above `draw_thing` in P3</span> </ui-title
                 ><ui-content
                   ><p>
                     Lowering <code>draw_thing</code> 100 → 0 alone doesn't un-skip <code>draw_items</code>' test: both
@@ -2291,6 +2279,22 @@ the first card of {list:NAME}
                     <a href="../../../spell/src/rules/methods.ts" target="src-packages-spell-src-rules-methods-ts"
                       ><code>packages/spell/src/rules/methods.ts</code></a
                     >:784. A bare <code>a card</code> is 2 tokens like a keyword pair: test the rule instead.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title">Rebuild the docs and Spell UI site highlighter bundles</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../_assets/lazy/spell-en.js" target="src-packages-docs-assets-lazy-spell-en-js"
+                      ><code>packages/docs/_assets/lazy/spell-en.js</code></a
+                    >
+                    and <code>packages/ui/site/_assets/spell.en-*.js</code> still carry the old rule names
+                    (<code>simple_expression</code>). Highlighting is unaffected; rebuild with
+                    <code>yarn docs:update</code> and the UI site build when next convenient.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2327,8 +2331,7 @@ the first card of {list:NAME}
                   ><a class="plan-id" href="#i2">I2</a>
                   <span class="plan-title"
                     >draw_thing's precedence 100 was load-bearing: it beats a project's own `to draw (a X)` call</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Prototype finding. With <code>draw_thing</code> at 0 (Parser Model §5.3), Solitaire's JSX
@@ -2352,8 +2355,7 @@ the first card of {list:NAME}
                   <span class="plan-title"
                     >D24 (bounded call arguments inside expressions) not prototyped: it needs a mechanism beyond
                     §4.5</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Everything else in §4.5 is prototyped; <code>if double x is 4</code> still compiles to
@@ -2396,8 +2398,7 @@ the first card of {list:NAME}
                   ><a class="plan-id" href="#i4">I4</a>
                   <span class="plan-title"
                     >there_is_a's priority 11 does nothing now; simple_statement is a dead name</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><ol>
                     <li>
@@ -2423,7 +2424,28 @@ the first card of {list:NAME}
           <p class="meta">
             What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
           </p>
-          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="test" divided relaxed
+            ><ui-item id="v1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v1">V1</a>
+                  <span class="plan-title">P3: Solitaire in the editor and the app</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Reload VS Code (Developer: Reload Window), open
+                    <a
+                      href="../../../spell/projects/system/examples/Solitaire/Solitaire.spell"
+                      target="src-packages-spell-projects-system-examples-solitaire-solitaire-spell"
+                      ><code>packages/spell/projects/system/examples/Solitaire/Solitaire.spell</code></a
+                    >: no new red squiggles; hover, completion after <code>x is</code>, and signature help work. Then
+                    <code>yarn start</code> in
+                    <a href="../../../app/" target="src-packages-app"><code>packages/app</code></a> and play a few moves
+                    of Solitaire: cards draw, move between piles, the deck turns over.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="log" header="9. Log" sticky collapsible dividing>
@@ -2845,6 +2867,13 @@ the first card of {list:NAME}
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:36-04:00">2026-10-04 02:36</time></ui-date> P3 extras: count
                   with `where` (itemCountOf(filter(...))), draw rules also statements (closes C7)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:38-04:00">2026-10-04 02:38</time></ui-date> P3
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
