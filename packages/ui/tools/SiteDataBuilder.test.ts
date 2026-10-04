@@ -7,8 +7,9 @@ import { SiteDataBuilder } from "./SiteDataBuilder.ts"
 import { ThemeFamilies } from "./ThemeFamilies.ts"
 
 /**
- * The site's committed data (`site/_data/components.json`, `pages.json`, `icons.json`) is what `yarn site:data` would write now:
- * run it after changing a vocabulary, a family sheet's tokens, or `pages.json`.
+ * The site's committed data (`site/_data/components.json`, `pages.json`, `icons.json`, `search.json`) is what
+ * `yarn site:data` would write now:  run it after changing a vocabulary, a family sheet's tokens, `pages.json` or a
+ * page's sections.
  */
 describe("site data", () => {
   it("is current (else run `yarn site:data`)", async () => {
@@ -17,6 +18,7 @@ describe("site data", () => {
     expect(readFileSync(builder.pagesFile, "utf8"), "pages.json").toBe(SiteDataBuilder.stringify(pages))
     expect(readFileSync(builder.dataFile, "utf8") === SiteDataBuilder.stringify(data), "components.json").toBe(true)
     expect(readFileSync(builder.iconsFile, "utf8") === builder.iconsText(), "icons.json").toBe(true)
+    expect(readFileSync(builder.searchFile, "utf8") === builder.searchText(), "search.json").toBe(true)
   }, 60_000)
 
   it("lists components and doc-only tags apart, each linked to its family page", async () => {

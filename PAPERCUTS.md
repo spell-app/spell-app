@@ -1261,6 +1261,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   several `--include` flags.  Also zsh:  an unquoted `--include=*.ts` fails with "no matches found". · Write the
   script to the scratchpad with the Write tool and run `python3 <file>`;  quote globs (`--include='*.ts'`), and
   keep each command short and plain. · claude-code
+- 2026-10-04 · In a worktree-isolated session, `yarn plan-doc add ... --details "<p>...</p>"` was refused ("runs yarn
+  with the text <p>... cannot be shown not to be git") whenever the details held an apostrophe (`nav's`,
+  `flyout's`);  the same call without one ran.  Several such calls in one turn:  the refused ones just drop out. ·
+  Write the details without apostrophes (or `&#39;`), one `plan-doc add` per Bash call, and check each printed an
+  id. · claude-code
 
 ## vscode
 

@@ -1,1 +1,0 @@
-import"./rolldown-runtime-CM1DJQSe.js";function isBrowser(){return typeof window<`u`&&typeof document<`u`&&typeof customElements<`u`}export{isBrowser as t};

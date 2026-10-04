@@ -127,14 +127,13 @@ export const STORAGE_KEYS = {
 // ## Element
 ////////////////
 
-/** Icons of the view switch, the star, the bands' chevron and the search box (the default `fa7-free` pack). */
+/** Icons of the view switch, the star and the bands' chevron (the default `fa7-free` pack). */
 export const ICONS = {
   az: "arrow down a z",
   topics: "layer group",
   star: "star",
   starOutline: "star outline",
-  chevron: "chevron down",
-  search: "search"
+  chevron: "chevron down"
 } as const
 
 /**
@@ -165,17 +164,6 @@ export const DATA = {
   /** the current page's link */
   current: "data-nav-current"
 } as const
-
-/** Key that focuses the search box, as on the old site (and GitHub, MDN ...). */
-export const SEARCH_KEY = "/"
-
-/**
- * Where `/` is a character, not a shortcut:  text-like inputs, text areas, selects.
- * - Checked against the event's REAL origin (`composedPath()[0]`), so a field inside a shadow root counts.
- */
-export const TYPING_SELECTOR =
-  "textarea, select, input:not([type=checkbox], [type=radio], [type=button], [type=submit], [type=reset], " +
-  "[type=range], [type=color], [type=file], [type=image])"
 
 /** Of the scroll container's height, how far down `revealCurrent()` puts the current item:  a third. */
 export const REVEAL_FRACTION = 1 / 3

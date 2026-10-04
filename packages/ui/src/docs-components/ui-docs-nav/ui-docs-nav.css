@@ -4,7 +4,7 @@
  * folding sub-head bands) and the `.sp-nav` rows of `components/components.css`.
  * - Shadow markup contract:  `<div class="ui [size] nav" part="nav">` (the panel:  a column) holding
  *   - `<div class="masthead" part="header">`:  `<div class="slotted header">` around the `header` slot;
- *     `<div class="tools">` with the search `<ui-input part="search">` and the `<ui-buttons part="views">`;  a
+ *     `<div class="tools">` with the site search `<ui-docs-search part="search">` and the `<ui-buttons part="views">`;  a
  *     visually hidden `<span role=status>`
  *   - `<nav part="menu">` (the scroll box) of `<section class="group [name]">`s, each an `<h2 class="heading">`
  *     around `<button class="band" aria-expanded>` (`.title`, maybe a count `<ui-label>`, `<span class="chevron">`
@@ -149,13 +149,16 @@
     flex-direction: column;
     gap: 0.5em;
   }
+  /* the site search gets the band's whole width (the brand's pill, its shortcut hint);  the view switch goes under it */
   .tools {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5em;
     align-items: center;
+    justify-content: flex-end;
   }
   .tools > [part~="search"] {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
     min-width: 0;
   }
   .tools > [part~="views"] {
