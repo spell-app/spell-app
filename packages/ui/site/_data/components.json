@@ -6079,6 +6079,11 @@
           "detail": "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'save' | 'conflict' | 'no-saver' | 'render', source?: string, error: unknown }",
           "cancelable": true,
           "description": "Loading, showing or saving failed;  `kind` says why.  Load and render failures show an error message unless cancelled;  save failures keep the content as it is."
+        },
+        {
+          "name": "ui-insert",
+          "detail": "{ fragment: DocumentFragment, source?: string }",
+          "description": "The markup is about to go in:  `fragment` holds it, parsed and URL-rewritten, not yet in the page.  A listener may read or change it first (a docs page keeps its examples' markup before they upgrade)."
         }
       ],
       "parts": [
@@ -14913,13 +14918,18 @@
         },
         {
           "key": "default",
-          "text": "Default",
-          "description": "Our own look."
+          "text": "Plain",
+          "description": "Our own look, no theme."
         },
         {
           "key": "defaultDescription",
-          "text": "Spell UI",
-          "description": "Under `Default` in the menu."
+          "text": "Spell UI, unthemed",
+          "description": "Beside `Plain` in the menu."
+        },
+        {
+          "key": "spellDescription",
+          "text": "The Spell brand",
+          "description": "Beside `Spell` in the menu:  the default."
         },
         {
           "key": "classicDescription",
@@ -25086,6 +25096,31 @@
       "name": "rtl",
       "title": "RTL",
       "families": [],
+      "global": true
+    },
+    {
+      "name": "spell",
+      "title": "Spell",
+      "families": [
+        "ui-button",
+        "ui-card",
+        "ui-checkbox",
+        "ui-code",
+        "ui-dimmer",
+        "ui-label",
+        "ui-menu",
+        "ui-message",
+        "ui-modal",
+        "ui-nag",
+        "ui-parts",
+        "ui-popup",
+        "ui-progress",
+        "ui-section",
+        "ui-segment",
+        "ui-statistic",
+        "ui-table",
+        "ui-toast"
+      ],
       "global": true
     },
     {

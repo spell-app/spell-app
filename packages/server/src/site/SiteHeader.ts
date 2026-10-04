@@ -1,5 +1,5 @@
 import type { ServerConfig, ServerInfo } from "$/server"
-import { EDIT_KEY, LOGO_MARK, PROPERTIES, THEME_KEY, type SiteProperty } from "$/server/site"
+import { EDIT_KEY, FAVICON_SVG, LOGO_MARK, PROPERTIES, THEME_KEY, type SiteProperty } from "$/server/site"
 
 /****************
  * ### `<spell-site-header>`
@@ -17,6 +17,8 @@ import { EDIT_KEY, LOGO_MARK, PROPERTIES, THEME_KEY, type SiteProperty } from "$
  *   - light / dark / OS:  sets `color-scheme` on `<html>`, which UI's `light-dark()` tokens follow;  remembered
  * - Self-contained:  its own shadow DOM and CSS, no UI elements, so it looks the same on every property.
  * - SIDE EFFECT:  adds a `<style>` to the page:  `--spell-site-header-height`, body padding, scroll padding.
+ * - SIDE EFFECT:  adds Spell's favicon (`FAVICON_SVG`, as a `data:` URI) to a page that links no icon:  `file://`
+ *   pages, and servers that don't inject one (the page server's `WebServer` does).
  ****************/
 export class SiteHeader extends HTMLElement {
   /** the tag */
@@ -36,6 +38,7 @@ export class SiteHeader extends HTMLElement {
   connectedCallback(): void {
     applyTheme(readTheme())
     installPageStyle()
+    installFavicon()
     if (!this.shadowRoot) this.attachShadow({ mode: "open" })
     this.info = serverConfig()
     this.render()
@@ -204,6 +207,16 @@ function installPageStyle(): void {
   style.textContent = `:root { --spell-site-header-height: ${SiteHeader.height}px; scroll-padding-top: var(--spell-site-header-height); }
 html body { padding-top: var(--spell-site-header-height); }`
   document.head.append(style)
+}
+
+/** Add Spell's favicon, as a `data:` URI, unless the page already links an icon (e.g. the page server's). */
+function installFavicon(): void {
+  if (document.head.querySelector(`link[rel~="icon" i]`)) return
+  const link = document.createElement("link")
+  link.rel = "icon"
+  link.type = "image/svg+xml"
+  link.href = `data:image/svg+xml,${encodeURIComponent(FAVICON_SVG)}`
+  document.head.append(link)
 }
 
 /** `text` safe in HTML text and attributes. */

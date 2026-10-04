@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Docs Rework</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p1">next: P1 · Spell Theme</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Layout Shell</ui-label></span
             >
           </header></ui-sticky
         >
@@ -44,31 +44,6 @@
             <time id="plan-updated">2026-10-04</time></ui-item
           >
         </ui-list>
-        <ui-message class="plan-hung" state="info" size="small" header="Plan hung?">
-          <p>
-            Close its Claude tab, open a new session in this worktree's window, then run
-            <code>/epic ui-docs-rework</code> and pick "Reuse": it plans again from the kickoff prompt. This note goes
-            once P1 starts.
-          </p>
-          <ui-code class="plan-hung-prompt" language="text" wrap copy
-            ><script type="text/plain">
-              The Spell UI docs need some love.
-              - Look at `packages/brand` and make the "Spell" theme based on our brand look.  Don't worry about swoops.  Also read this page `https://interfaces.dev/cheat-sheet` for things to do in our theme.
-              - Use the spell logo for favicon (on this and all other doc sites)
-              - The left sidebar is really ugly.  Re-work in the direction of the mockups in `brand`
-              - We get a FOUC when the page loads, fix that!  Maybe we have to start with `<ui-root hidden>` to account for this?  Suggest alternatives.
-              - Every time you switch pages you get a new top bar / sidebar.  Instead have a "layout" page and load the contents of each actual page as a `<ui-include>`.
-              - On a wide screen, lose the top bar entirely. Use the Spell logo and branding in the header of the right sidebar instead.  When the page is narrow, you can put back the top bar like Fomantic does.
-              - Make the left sidebar a `panel` like the brands "color set chooser" example.
-              - Use nested `<ui-section>`s for content, e.g. in "Divider" page, `Types` is <ui-section title="Types">` with content and nested <section>s within it.  Make the sections collapsible.  Give each section a nested ID so we can deep link, e.g. `#examples-types-emphasis`
-              - Many components are linked together in one folder/page, e.g. "Button" actually has "<ui-button>` and `<ui-buttons>` and `<ui-or>`.  Present options for how to split this up -- one component / page per `<ui-x` widget?  How does this affect complexity / download size?
-              - The Page title "Examples|Usage|API|Theming" tabs should be sticky.
-              - On the `API` tab, show an empty right sidebar so the page width doesn't jump.
-              - Add a search field in the top toolbar that lets you jump anyway, kinda like the Fomantic one, but pretty and in our house style.  This should work across components as well as within the current page.
-              - Merge the theme / light / dark controls into a smaller overlay and make it pretty.  Make the switch between light and dark a single icon which shows the current state, clicking it switches it.
-            </script></ui-code
-          ></ui-message
-        >
 
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
@@ -104,7 +79,7 @@
               icon which shows the current state, clicking it switches it.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 19h-26h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 16h-22h left</p>
           <ui-section id="o1" header="1.1 Today" sticky collapsible dividing>
             <p>Where the site stands, so the rest reads against it.</p>
             <ui-table celled compact striped unstackable>
@@ -222,7 +197,7 @@
                 href="../../../brand/spell-design-system/tokens/"
                 target="src-packages-brand-spell-design-system-tokens"
                 ><code>packages/brand/spell-design-system/tokens/</code></a
-              >), the default on EVERY doc site:  Spell UI docs, docs pages, plan docs, goals (<a href="#d6">D6</a>).
+              >), the default on EVERY doc site: Spell UI docs, docs pages, plan docs, goals (<a href="#d6">D6</a>).
             </p>
             <ul>
               <li>
@@ -232,9 +207,9 @@
                 (<code>violet-950</code>), not black.
               </li>
               <li>
-                Type:  the brand's own fonts (<code>tokens/fonts.css</code>, <a href="#d7">D7</a>):  Palatino-family
-                serif headings, installed faces first, the brand's P052 <code>.otf</code> as fallback;  system sans
-                body;  mono only for code and eyebrows.
+                Type: the brand's own fonts (<code>tokens/fonts.css</code>, <a href="#d7">D7</a>): Palatino-family serif
+                headings, installed faces first, the brand's P052 <code>.otf</code> as fallback; system sans body; mono
+                only for code and eyebrows.
               </li>
               <li>
                 Shape: pill actions, 12px inputs, 16px cards, 22px dialogs; layered soft shadows instead of borders.
@@ -317,8 +292,10 @@
 
           <ui-section id="o5" header="1.5 Left: brand + nav panel" sticky collapsible dividing>
             <p>
-              Header band:  the Spell lockup (hat + "Spell" + "UI" eyebrow, links home), the search field under it
-              (<a href="#o8">1.8</a>, <a href="#d5">D5</a>).  On wide screens there is NO top bar.
+              Header band: the Spell lockup (hat + "Spell" + "UI" eyebrow, links home), the search field under it (<a
+                href="#o8"
+                >1.8</a
+              >, <a href="#d5">D5</a>). On wide screens there is NO top bar.
             </p>
             <p>
               <code>&lt;ui-docs-nav&gt;</code> restyled as the brand's PANEL (<code>Color Set Chooser.dc.html</code>): a
@@ -338,7 +315,10 @@
           <ui-section id="o6" header="1.6 Right: site row, look, contents" sticky collapsible dividing>
             <p>The right sidebar's header:</p>
             <ul>
-              <li>the repo-wide <code>&lt;spell-site-header&gt;</code>, docked as a compact row:  Docs / Goals / Spell UI / App, branch, VS Code, edit (<a href="#d4">D4</a>)</li>
+              <li>
+                the repo-wide <code>&lt;spell-site-header&gt;</code>, docked as a compact row: Docs / Goals / Spell UI /
+                App, branch, VS Code, edit (<a href="#d4">D4</a>)
+              </li>
               <li>light / dark icon, theme overlay button (<a href="#o9">1.9</a>)</li>
               <li>below: "On this page", the contents of the current tab</li>
             </ul>
@@ -458,12 +438,12 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="0" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="1" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
-          <ui-section id="p1" data-phase="1" data-status="todo" header="P1 · Spell Theme" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p1" data-phase="1" data-status="done" header="P1 · Spell Theme" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> `spell` theme sheet from the brand tokens + fonts, the default on EVERY doc site; Spell
@@ -1030,7 +1010,190 @@
             Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open
             until you review it; struck = accepted. Disagree: say so, and it becomes a question.
           </p>
-          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed
+            ><ui-item id="j1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j1">J1</a>
+                  <span class="plan-title"
+                    >Favicon: bytes embedded as TS strings, not files beside the server</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose
+                    <a href="../../../server/src/site/favicon.ts" target="src-packages-server-src-site-favicon-ts"
+                      ><code>packages/server/src/site/favicon.ts</code></a
+                    >
+                    (SVG + both PNGs as base64, GENERATED by <code>yarn favicon</code> in
+                    <a href="../../../server/" target="src-packages-server"><code>packages/server</code></a
+                    >, <code>scripts/favicon.ts</code>) over an assets folder read at run time, because the VS Code
+                    extension bundles <code>WebServer</code> with esbuild: a file beside the source isn't there once
+                    installed. The site header's bundles tree-shake the PNG strings away (only the SVG is used there).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j2">J2</a>
+                  <span class="plan-title">Favicon: hat at the brand's 74%, not enlarged for 16px</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Kept the hat at 74% of the icon's width (brand: about three-quarters, CSS 72%) rather than a bigger
+                    hat for small sizes. Tried 82%: at 16px on a 1x screen it gains about one pixel and still reads as a
+                    hat silhouette either way; at 16px on retina (32 device px) and above, 74% is crisp and the bigger
+                    hat crowds the corners. One SVG serves every size, so it's one number for all. Re-run with
+                    <code>yarn favicon --hat 0.8</code> to change it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j3">J3</a>
+                  <span class="plan-title">Favicon: apple-touch-icon has square corners</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The 180px <code>apple-touch-icon.png</code> is the full aubergine square, NOT the rounded icon: iOS
+                    masks home-screen icons with its own corner shape, and transparent corners would show black. The
+                    32px PNG and the SVG keep the brand's 22.5% corners.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j4">J4</a>
+                  <span class="plan-title"
+                    >Favicon: every WebServer answers it, live or not; /favicon.ico after the static files</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The <code>/_server/favicon.*</code> routes and <code>/favicon.ico</code> are on every
+                    <code>SRV.WebServer</code> (page server, <code>spell serve</code>, the app's API server, VS Code's
+                    doc preview, <code>ui</code>'s <code>StaticServer</code>), not only live ones; the icon LINKS are
+                    injected only where live reload is (pages served by the page server).
+                    <code>/favicon.ico</code> answers with the 32px PNG (no redirect: one request), and sits AFTER the
+                    static folders, so a folder with its own <code>favicon.ico</code> wins, but BEFORE
+                    <code>fallback</code>, so an SPA's catch-all doesn't answer it with
+                    <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                    >. A page whose <code>&lt;head&gt;</code> links its own icon gets no injected links.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j5">J5</a>
+                  <span class="plan-title"
+                    >Favicon: the app's copy lives in packages/app/static/favicon/</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The app (vite) links <code>/static/favicon/{favicon.svg,favicon-32.png,apple-touch-icon.png}</code>,
+                    copies <code>yarn favicon</code> writes, over a <code>public/</code> folder: vite bundles them into
+                    <code>dist/assets/</code> (checked: hashed files, links rewritten), while a
+                    <code>public/</code> folder would also be copied into every library build
+                    (<code>dist-element/</code>, <code>dist-runner/</code>). <code>/editor</code> redirects to vite's
+                    own port, so the page server never serves the app's page. <code>/vite.svg</code> never existed (the
+                    old link was dead).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j6">J6</a>
+                  <span class="plan-title">Spell theme sits on classic, restating what it replaces</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Chose to apply <code>spell</code> like a Fomantic theme (classic underneath, as the lead's brief
+                    allowed) and list it apart in a new <code>ThemeSheets.OWN</code>, over a standalone theme on our own
+                    look. Cost: <code>spell.css</code> restates every classic token the brand replaces (type, size
+                    ladder, radii, ink, borders, shadows, palette, message colours, links, focus). Options: (a) on
+                    classic, OWN list (chosen); (b) a third apply() mode with no base; (c) make spell one of
+                    <code>names</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j7">J7</a>
+                  <span class="plan-title">Spell theme body size 16px, not the brand's 15px</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Kept <code>--ui-font-size: 16px</code> (ui's default, and the 16px body
+                    <a href="../../_assets/spell-doc.css" target="src-packages-docs-assets-spell-doc-css"
+                      ><code>spell-doc.css</code></a
+                    >
+                    sets) over the brand's 15px <code>--text-base</code>, so docs prose and widgets agree and reading
+                    stays comfortable. Options: 16px (chosen), 15px (brand density, widgets a notch smaller than docs
+                    prose).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j8">J8</a>
+                  <span class="plan-title">Focus ring: solid violet, 3px, 2px off the box</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The brand's focus is a 3px halo of violet at 28% (about 1.5:1 on white), which fails WCAG's 3:1 for
+                    non-text contrast. Chose a solid 3px ring, <code>violet-500</code> light (4.3:1) / lilac
+                    <code>violet-300</code> dark, 2px off the box (ui's offset), via <code>--ui-focus-width</code> /
+                    <code>--ui-focus-color</code>. Options: brand halo as is; solid ring (chosen); halo at 55%.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j9">J9</a>
+                  <span class="plan-title">Info is lavender, ivory is the brown hue</span> </ui-title
+                ><ui-content
+                  ><p>
+                    ui has no accent slot, so Polished Ivory maps onto the <code>brown</code> hue (the brand's Theme
+                    Creator did the same). Info messages take lavender (the brand's aside tint), not ivory, because
+                    ivory and the amber warning tint are too close to tell apart. Secondary and grey are the brand's
+                    grey-blue at <code>brand-700</code> (white on <code>brand-600</code> is only 4.1:1). Options: info
+                    ivory (the docs1 TIP box); info lavender (chosen); info sky blue.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j10">J10</a>
+                  <span class="plan-title">Theme menu: Spell first, Default renamed Plain</span> </ui-title
+                ><ui-content
+                  ><p>
+                    With Spell the default, the old <code>Default</code> entry (our own unthemed look) would mislead, so
+                    its text is now <code>Plain</code> ("Spell UI, unthemed"), under a new first entry
+                    <code>Spell</code> ("The Spell brand"). Storage: no theme key means Spell; Plain is stored as
+                    <code>default</code> (<code>DOCS_PLAIN_THEME</code>); an unknown stored name falls back to Spell.
+                    Options: rename (chosen); keep "Default" pointing at Spell and drop the unthemed look from the menu.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j11">J11</a>
+                  <span class="plan-title">Pill labels, round checkboxes, mono eyebrows</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Took the brand's shapes as far as tokens reach: <code>--ui-label-radius</code> pill (brand badges),
+                    <code>--ui-checkbox-radius</code> circle (the brand's to-do circle),
+                    <code>--ui-progress-radius</code> pill; a <code>sub</code> header and a statistic's label become the
+                    brand's mono eyebrow (uppercase, 0.14em tracking); a header's sub header the italic serif lede.
+                    Pointing and keyboard labels look fine as pills in the kitchen sink; P5 may revisit.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
@@ -1045,6 +1208,101 @@
             ><ui-item id="c2" data-status="open"
               ><a class="plan-id" href="#c2">C2</a>
               <span class="plan-title">A page opened with JS off shows no chrome (Q1 B)</span></ui-item
+            ><ui-item id="c3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">file:// favicon needs the bundles rebuilt</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The site header's <code>data:</code>-URI favicon (for pages opened from disk) is in
+                    <a href="../../../server/src/site/SiteHeader.ts" target="src-packages-server-src-site-siteheader-ts"
+                      ><code>packages/server/src/site/SiteHeader.ts</code></a
+                    >; it reaches pages only once the committed bundles are rebuilt:
+                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>packages/docs/_assets/spell-ui.js</code></a
+                    >
+                    (<code>yarn docs:update</code>) and
+                    <a href="../../../ui/site/_assets/" target="src-packages-ui-site-assets"
+                      ><code>packages/ui/site/_assets/</code></a
+                    >
+                    (<code>yarn site:bundle</code>). Not rebuilt in P1-B: another agent is changing
+                    <a href="../../_assets/" target="src-packages-docs-assets"><code>packages/docs/_assets</code></a>
+                    and the UI site at the same time. Checked with a scratch bundle of <code>$/server/site</code> on a
+                    <code>file://</code> page: one link added, none when the page has its own.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title">P052 fonts add ~540 KB to packages/docs' spell-ui.js</span> </ui-title
+                ><ui-content
+                  ><p>
+                    UI's library build (lib mode) inlines every asset, so the four P052 <code>.otf</code> files (D7: no
+                    woff2) reach
+                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>_assets/spell-ui.js</code></a
+                    >
+                    as base64: 2440 KB to 2981 KB (gzip 1070 KB). Only DOWNLOADED where no Palatino is installed, but
+                    always parsed as part of the script. The Spell UI site bundle emits them as separate files
+                    (<code>site/_assets/P052-*.otf</code>), fetched only when needed. A later fix: copy the fonts beside
+                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>spell-ui.js</code></a
+                    >
+                    and point the docs at them.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c5">C5</a>
+                  <span class="plan-title">The theme lands a beat after first paint</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The Spell UI site restores <code>spell</code> from a lazy chunk
+                    (<code>ThemePreference.restore()</code>), and docs pages apply it from
+                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>spell-ui.js</code></a
+                    >
+                    at the end of <code>body</code>, so a page can paint once in the plain look before the brand
+                    arrives. Now that the theme is the DEFAULT, every first view does this, not only a viewer who picked
+                    a theme. P3's no-flash work ("No flash on load") should cover it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title">Site header bar isn't themed</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;spell-site-header&gt;</code> (<a href="../../../server/" target="src-packages-server"
+                      ><code>packages/server</code></a
+                    >, being changed by the favicon work) draws its own near-black bar in dark mode, not the aubergine
+                    canvas; the Spell UI site's nav and top menu are <code>inverted</code> menus (aubergine in light
+                    too). Both are layout/header work for the lead's site phases.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title">P052 licence: AGPL with a font exception</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>themes/spell/LICENSE-urw-base35.txt</code> (copied from the brand folder) says the fonts are
+                    AGPL v3 with an exception for embedding in PostScript / PDF, and points at a
+                    <code>COPYING</code> file neither folder ships. Serving the <code>.otf</code> files from a web page
+                    isn't what the exception names; worth a check before anything public (the brand readme already flags
+                    swapping P052 outlines for licensed Palatino before trademark filing).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1056,13 +1314,53 @@
             ><ui-item id="t1" data-status="open"
               ><a class="plan-id" href="#t1">T1</a>
               <span class="plan-title">Swoops and blobs (spell-flourish): skipped by request</span></ui-item
+            ><ui-item id="t2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title"
+                    >theming.html's theme table lacks Spell; site.ts comment stale</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Left for the lead (site pages are being reworked):
+                    <a href="../../../ui/site/theming.html" target="src-packages-ui-site-theming-html"
+                      ><code>packages/ui/site/theming.html</code></a
+                    >'s hand-kept theme table (around the <code>bookish</code> row) needs a <code>spell</code> row, and
+                    its text "a theme dropdown (Default, Classic, then Fomantic's themes)" is now "Spell, Plain, Classic
+                    ...";
+                    <a href="../../../ui/site/_src/site.ts" target="src-packages-ui-site-src-site-ts"
+                      ><code>site/_src/site.ts</code></a
+                    >'s header says <code>$/ui/styles</code> loads only if a theme is set, which is now always (Spell is
+                    the default).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
 
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title"
+                    >Docs bundle spell-ui.js carries the P052 fonts as ~540 KB of base64</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The library build inlines every asset, so every docs / plan / goals page downloads the serif
+                    fallback even where Palatino is installed (macOS). Fix idea: copy the .otf files beside the bundle
+                    and point the docs bundle's @font-face at them by URL. Spell UI docs are fine: their bundle keeps
+                    the fonts as separate lazy files.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="tests" header="8. To test" sticky collapsible dividing>
@@ -1175,6 +1473,51 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:27-04:00">2026-10-04 02:27</time></ui-date> Q4 answered: D4 B:
                   docked in the right sidebar's header, beside scheme + theme; narrow: one slim top bar</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:28-04:00">2026-10-04 02:28</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:52-04:00">2026-10-04 02:52</time></ui-date> C3 closed: file://
+                  favicon needs the bundles rebuilt</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:52-04:00">2026-10-04 02:52</time></ui-date> P1-B favicon: C3
+                  closed, since spell-ui.js and the UI site bundle were rebuilt after the site header's favicon landed.
+                  From file:// the docs index, goals index and this plan doc each get one data: URI icon; served pages
+                  get the server's three links and no duplicate.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:00-04:00">2026-10-04 03:00</time></ui-date> T2 closed:
+                  theming.html's theme table lacks Spell; site.ts comment stale</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:00-04:00">2026-10-04 03:00</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:00-04:00">2026-10-04 03:00</time></ui-date> P1 done: spell
+                  theme (default on every doc site), favicon on every site; checks: ui review passed (4480 browser
+                  tests), server 84 tests, docs:update passed</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

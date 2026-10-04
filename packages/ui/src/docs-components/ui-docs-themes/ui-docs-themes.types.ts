@@ -31,6 +31,9 @@ export type DocsThemesShow = "both" | "theme" | "scheme"
 /** The dropdown value standing for our own look (`ThemeSheets.apply(undefined)`):  no sheet is named so. */
 export const DEFAULT_VALUE = "default"
 
+/** The `ThemeSheets` name of Spell:  our own theme (`ThemeSheets.OWN`), the docs' default (`DOCS_DEFAULT_THEME`). */
+export const SPELL = "spell"
+
 /** The `ThemeSheets` name of Classic, the base every Fomantic theme sits on (`ThemeSheets.BASE`). */
 export const CLASSIC = "classic"
 

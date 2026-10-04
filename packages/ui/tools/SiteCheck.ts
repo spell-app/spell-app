@@ -15,7 +15,7 @@ import { chromium, type Browser, type BrowserContextOptions, type Page } from "p
  * - A page is a path (absolute, from the cwd, or from `site/`), a tag (`ui-button` =>
  *   `site/components/ui-button.html`) or a name (`index` => `site/index.html`).
  * - Problems (exit 1):
- *   - console errors, page errors, failed requests and responses >= 400 (favicon aside)
+ *   - console errors, page errors, failed requests and responses >= 400 (the favicon too:  the page server has one)
  *   - `ui-*` / `spell-*` elements still undefined once settled;  defined `ui-*` with no shadow root
  *   - component pages (`components/ui-*.html`, not the index):  not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming`;  a pane
  *     that isn't the shown one when loaded with its `#hash`, or shows under 50px
@@ -374,8 +374,10 @@ export class SiteCheck {
 
   /**
    * A page in a fresh context, its errors and failed requests reported as `check`'s problems, labelled `label`.
-   * - ignores `favicon.ico`, and console "Failed to load resource" lines (the response / request listeners report
-   *   those, with their URL)
+   * - ignores console "Failed to load resource" lines (the response / request listeners report those, with their
+   *   URL)
+   * - NOTE:  a favicon 404 is a problem too, since 2026-10-04:  the page server answers `/favicon.ico` and injects
+   *   its own icon links (`$/server`'s `WebServer`)
    * - `net::ERR_ABORTED` is a note:  a navigation (the next tab's fresh load) cancels what's still in flight
    */
   private async open(check: CheckContext, options: BrowserContextOptions, label: string): Promise<Page> {
@@ -392,11 +394,9 @@ export class SiteCheck {
       problem(`console (${label}):  ${message.text()}`)
     })
     page.on("response", (response) => {
-      if (response.status() >= 400 && !isFavicon(response.url()))
-        problem(`HTTP ${response.status()} (${label}):  ${response.url()}`)
+      if (response.status() >= 400) problem(`HTTP ${response.status()} (${label}):  ${response.url()}`)
     })
     page.on("requestfailed", (request) => {
-      if (isFavicon(request.url())) return
       const text = `request failed (${label}):  ${request.url()}  ${request.failure()?.errorText ?? ""}`
       if (request.failure()?.errorText.includes("ERR_ABORTED")) report.notes.push(text)
       else problem(text)
@@ -664,10 +664,5 @@ const USAGE = `usage:  yarn site:check <page...> | --all  [--out <dir>]
   page:  a path (absolute, from here, or from site/), a tag (ui-button), or a name (index)
   --all:  site/*.html + site/components/*.html, minus _-prefixed files
   --out:  screenshot folder (default ${SiteCheck.OUT})`
-
-/** Whether `url` is the browser's own favicon request. */
-function isFavicon(url: string): boolean {
-  return url.endsWith("/favicon.ico")
-}
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await SiteCheck.main()
