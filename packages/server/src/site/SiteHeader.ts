@@ -16,6 +16,10 @@ import { EDIT_KEY, FAVICON_SVG, LOGO_MARK, PROPERTIES, THEME_KEY, type SitePrope
  *   - edit mode (pages the page server serves):  hover a section, edit its source in place -- `<spell-section-editor>`
  *   - light / dark / OS:  sets `color-scheme` on `<html>`, which UI's `light-dark()` tokens follow;  remembered
  * - Self-contained:  its own shadow DOM and CSS, no UI elements, so it looks the same on every property.
+ * - `docked`:  no fixed bar:  a compact row in place, inside the page's own chrome (the Spell UI site's side
+ *   column and top bar);  no crumbs (the page shows its own title), no light / dark button (the page has its own),
+ *   and no room kept on the page (`--spell-site-header-height` is 0).
+ * - Re-draws on `spell-site:page` (a router swapped the page in place:  new title, new source file).
  * - SIDE EFFECT:  adds a `<style>` to the page:  `--spell-site-header-height`, body padding, scroll padding.
  * - SIDE EFFECT:  adds Spell's favicon (`FAVICON_SVG`, as a `data:` URI) to a page that links no icon:  `file://`
  *   pages, and servers that don't inject one (the page server's `WebServer` does).
@@ -32,17 +36,33 @@ export class SiteHeader extends HTMLElement {
     if (!customElements.get(SiteHeader.tag)) customElements.define(SiteHeader.tag, SiteHeader)
   }
 
+  /** event a router dispatches on `document` after swapping the page in place:  re-draw */
+  static readonly PAGE_EVENT = "spell-site:page"
+
   /** server info, once known:  injected `SPELL_SERVER`, else `/_server/ping` */
   private info?: Partial<ServerInfo & ServerConfig>
 
+  /** re-draw on `PAGE_EVENT` */
+  private readonly onPage = () => this.render()
+
   connectedCallback(): void {
     applyTheme(readTheme())
-    installPageStyle()
+    installPageStyle(this.docked)
     installFavicon()
     if (!this.shadowRoot) this.attachShadow({ mode: "open" })
     this.info = serverConfig()
     this.render()
+    document.addEventListener(SiteHeader.PAGE_EVENT, this.onPage)
     if (!this.info && location.protocol.startsWith("http")) void this.ping()
+  }
+
+  disconnectedCallback(): void {
+    document.removeEventListener(SiteHeader.PAGE_EVENT, this.onPage)
+  }
+
+  /** a compact row inside the page's own chrome, not the fixed bar (the `docked` attribute) */
+  get docked(): boolean {
+    return this.hasAttribute("docked")
   }
 
   /** path from this page to the repo root, from the `root` attribute (default `.`) */
@@ -116,9 +136,10 @@ export class SiteHeader extends HTMLElement {
   <nav aria-label="Site">${tabs}</nav>
   <div class="crumbs">${crumbs}</div>
   ${badge}${edit}${vscode}
-  <button class="tool" data-action="theme" title="${themeLabel}" aria-label="${themeLabel}">${ICONS[theme ?? "auto"]}</button>
+  ${this.docked ? "" : `<button class="tool" data-action="theme" title="${themeLabel}" aria-label="${themeLabel}">${ICONS[theme ?? "auto"]}</button>`}
 </header>`
-    shadow.querySelector<HTMLButtonElement>(`[data-action="theme"]`)!.onclick = () => this.cycleTheme()
+    const themeButton = shadow.querySelector<HTMLButtonElement>(`[data-action="theme"]`)
+    if (themeButton) themeButton.onclick = () => this.cycleTheme()
     const editButton = shadow.querySelector<HTMLButtonElement>(`[data-action="edit"]`)
     if (editButton) editButton.onclick = () => this.toggleEdit()
   }
@@ -199,12 +220,17 @@ function applyTheme(theme: Theme | undefined): void {
   else document.documentElement.style.removeProperty("color-scheme")
 }
 
-/** Add the page-level rules once:  header height, room for the bar, anchors below it. */
-function installPageStyle(): void {
+/**
+ * Add the page-level rules once:  header height, room for the bar, anchors below it.
+ * - `docked`:  no fixed bar, so no room:  the height is 0.  A page holding both a fixed and a docked header keeps
+ *   the first one's rules.
+ */
+function installPageStyle(docked: boolean): void {
   if (document.getElementById("spell-site-header-page")) return
   const style = document.createElement("style")
   style.id = "spell-site-header-page"
-  style.textContent = `:root { --spell-site-header-height: ${SiteHeader.height}px; scroll-padding-top: var(--spell-site-header-height); }
+  const height = docked ? 0 : SiteHeader.height
+  style.textContent = `:root { --spell-site-header-height: ${height}px; scroll-padding-top: var(--spell-site-header-height); }
 html body { padding-top: var(--spell-site-header-height); }`
   document.head.append(style)
 }
@@ -276,6 +302,16 @@ nav { display: flex; gap: 2px; }
 .tool:hover { background: light-dark(#f0eef8, #2c2a38); color: inherit; }
 .tool.on { background: light-dark(#e9e4ff, #33295e); color: light-dark(#3d2a9e, #d9d0ff); }
 .tool:focus-visible, .tab:focus-visible, .brand:focus-visible { outline: 2px solid light-dark(#5b3fd0, #b3a2ff); outline-offset: 2px; }
+/* docked:  a compact row in the page's own chrome */
+:host([docked]) header {
+  position: static; height: auto; flex-wrap: wrap; gap: 4px 6px; padding: 0;
+  font-size: 13px; background: none; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+:host([docked]) .crumbs { display: none; }
+:host([docked]) .brand svg { height: 20px; }
+:host([docked]) .tab { padding: 5px 8px; }
+:host([docked]) .tool { width: 26px; height: 26px; }
+:host([docked]) .tool svg { width: 16px; height: 16px; }
 @media (max-width: 720px) {
   .crumbs { display: none; }
   header { gap: 6px; padding: 0 8px; }

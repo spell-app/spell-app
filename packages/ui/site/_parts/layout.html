@@ -17,31 +17,26 @@
     <title>Spell UI site layout</title>
   </head>
   <body>
-    <spell-site-header root="../../../.."></spell-site-header>
     <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="when-ready">
-      <ui-menu inverted class="site-top-menu" aria-label="Site">
-        <ui-item class="site-menu-item">
-          <ui-button
-            class="site-menu-button"
-            icon="bars"
-            inverted
-            basic
-            compact
-            aria-label="Components"
-            title="Components"
-            commandfor="site-nav-flyout"
-            command="--show"
-          ></ui-button>
-        </ui-item>
-        <ui-item href="../index.html" class="site-logo"><b>Spell UI</b></ui-item>
-        <ui-item href="../getting-started.html" class="site-top-link">Getting started</ui-item>
-        <ui-item href="../grammar.html" class="site-top-link">Grammar</ui-item>
-        <ui-item href="../theming.html" class="site-top-link">Theming</ui-item>
-        <ui-item href="../icons.html" class="site-top-link">Icons</ui-item>
-        <ui-item position="right" class="site-themes-item">
-          <ui-docs-themes inverted size="small"></ui-docs-themes>
-        </ui-item>
-      </ui-menu>
+      <!--
+        Top bar:  ONLY while the right column is hidden (narrower than 1200px);  wide screens have none (Owen:  "lose the
+        top bar entirely").  The menu button and the brand only below 992px, where the nav panel moves into the flyout.
+      -->
+      <header class="site-topbar">
+        <ui-button
+          class="site-menu-button"
+          icon="bars"
+          basic
+          circular
+          aria-label="Components"
+          title="Components"
+          commandfor="site-nav-flyout"
+          command="--show"
+        ></ui-button>
+        <ui-header class="site-topbar-brand"><a href="../index.html">Spell UI</a></ui-header>
+        <spell-site-header docked root="../../../.."></spell-site-header>
+        <ui-docs-themes size="small" class="site-topbar-themes"></ui-docs-themes>
+      </header>
 
       <ui-flyout id="site-nav-flyout" position="left" inverted closable class="site-nav-flyout" aria-label="Components">
         <ui-docs-nav aria-label="Components (menu)">
@@ -59,8 +54,16 @@
           <ui-include class="site-footer" source="footer.html" page-styles load="visible"></ui-include>
         </div>
 
-        <!-- "On this page":  the router points the toc at each page (`for` its tabs, `header` its main's data-toc-header) -->
+        <!--
+          Right column (1200px and wider):  its header holds the repo-wide site header, docked (Docs / Goals / Spell UI /
+          App, branch, VS Code, edit), and the look controls;  then "On this page", which the router points at each page
+          (`for` its tabs, `header` its main's data-toc-header).  Shown on every tab, the API tab too:  no width jump.
+        -->
         <aside class="site-aside">
+          <header class="site-aside-head">
+            <spell-site-header docked root="../../../.."></spell-site-header>
+            <ui-docs-themes size="small" class="site-aside-themes"></ui-docs-themes>
+          </header>
           <ui-docs-toc class="site-toc"></ui-docs-toc>
         </aside>
       </div>
