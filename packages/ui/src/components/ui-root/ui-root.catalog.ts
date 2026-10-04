@@ -74,7 +74,8 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
       ]
     }
   },
-  "ui-docs-themes": { folder: "ui-docs-themes", skeleton: { display: "inline", width: "16em", height: "2.5em" } },
+  "ui-docs-search": { folder: "ui-docs-search", skeleton: { width: "16em", height: "2.25em" } },
+  "ui-docs-themes": { folder: "ui-docs-themes", skeleton: { display: "inline", width: "5em", height: "2.25em" } },
   "ui-docs-toc": {
     folder: "ui-docs-toc",
     skeleton: {

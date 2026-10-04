@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Textarea | Spell UI</title>
+    <meta
+      name="description"
+      content="A textarea is a multi-line field used to elicit a longer response."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Textarea">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-textarea.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-textarea%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/collections/form.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Textarea
+            <ui-header>A textarea is a multi-line field used to elicit a longer response.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-textarea" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  `<ui-textarea>`, moved here from the input page when it got its own page (epic ui-docs-rework
+              P7);  it shares the input family's sheet, sizes, states and tokens.  Fomantic has no textarea page:  its
+              form page's TextArea field, plus the input variations a textarea takes.  Every field is named with
+              `aria-label`;  in a form a `<label for>` does the same job.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-textarea" header="Textarea" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A textarea allows extended user input:  `rows` sets its height;  without it the field is Fomantic's form height."
+                >
+                  <ui-textarea fluid rows="3" placeholder="Tell us more" aria-label="Tell us more"></ui-textarea>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-in-a-form" header="In a Form" sticky collapsible dividing>
+                <ui-docs-example
+                  description="In a `<ui-form>` field, a `<label for>` names it, as Fomantic's form TextArea does."
+                >
+                  <ui-form>
+                    <form>
+                      <ui-field>
+                        <label for="textarea-text">Text</label>
+                        <ui-textarea id="textarea-text"></ui-textarea>
+                      </ui-field>
+                      <ui-field>
+                        <label for="textarea-short">Short Text</label>
+                        <ui-textarea id="textarea-short" rows="2"></ui-textarea>
+                      </ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="A textarea can be disabled:  dimmed, and left out of the form.">
+                  <ui-textarea disabled rows="2" value="Can't touch this" aria-label="Disabled"></ui-textarea>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-read-only" header="Read-only" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A read-only textarea shows its value but can't be edited;  it is still submitted."
+                >
+                  <ui-textarea readonly rows="2" value="Read, don't write" aria-label="Read-only"></ui-textarea>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-form-states" header="Form States" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`state` tints the box, text and placeholder:  `error`, `info`, `success`, `warning`."
+                >
+                  <ui-textarea state="error" rows="2" placeholder="Error" aria-label="Error"></ui-textarea>
+                  <ui-textarea state="info" rows="2" placeholder="Info" aria-label="Info"></ui-textarea>
+                  <ui-textarea state="success" rows="2" placeholder="Success" aria-label="Success"></ui-textarea>
+                  <ui-textarea state="warning" rows="2" placeholder="Warning" aria-label="Warning"></ui-textarea>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <!-- GAP I101:  `<ui-textarea>` has no `icon` or corner label (Fomantic's six textarea inputs);  only the plain one. -->
+              <ui-section id="examples-variations-height" header="Height" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`rows` sets the visible lines;  without it a textarea is Fomantic's form height (`--ui-input-textarea-height`, 12em)."
+                >
+                  <ui-textarea rows="2" placeholder="Two rows" aria-label="Two rows"></ui-textarea>
+                  <ui-textarea placeholder="The form height" aria-label="Form height"></ui-textarea>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+                <ui-docs-example description="A fluid textarea takes the full width of its container.">
+                  <ui-textarea fluid rows="2" placeholder="Full width" aria-label="Full width"></ui-textarea>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-transparent" header="Transparent" sticky collapsible dividing>
+                <ui-docs-example description="A transparent textarea has no box:  text only.">
+                  <ui-textarea transparent rows="2" placeholder="Write here..." aria-label="Transparent"></ui-textarea>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A textarea can be formatted to appear on dark backgrounds.">
+                  <ui-segment inverted>
+                    <ui-textarea inverted rows="2" placeholder="On a dark background" aria-label="Inverted"></ui-textarea>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A textarea can vary in size.">
+                  <ui-textarea size="mini" rows="1" placeholder="Mini" aria-label="Mini"></ui-textarea>
+                  <ui-textarea size="small" rows="1" placeholder="Small" aria-label="Small"></ui-textarea>
+                  <ui-textarea rows="1" placeholder="Medium" aria-label="Medium"></ui-textarea>
+                  <ui-textarea size="large" rows="1" placeholder="Large" aria-label="Large"></ui-textarea>
+                  <ui-textarea size="huge" rows="1" placeholder="Huge" aria-label="Huge"></ui-textarea>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  forms, validation, events, keyboard, accessibility, frameworks. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-textarea>` is a multi-line field. It shares its family, sheet, sizes, states and tokens with
+                  [`<ui-input>`](ui-input.html), so most attributes are the same: `size`, `state`, `fluid`, `transparent`,
+                  `inverted`, `placeholder`.
+
+                  - `rows` sets the visible lines; without it the field is Fomantic's form height (12em, between 8em and 24em).
+                  - No `icon`, `label` or `action`: those are `<ui-input>`'s.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-forms-and-validation" header="Forms and validation" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A textarea is a real form control: inside a `<form>` its `name` / `value` is submitted with it.
+
+                  - The `value` ATTRIBUTE is the starting value and the `value` PROPERTY the live one; `form.reset()` goes back to
+                    the attribute, and a disabled `<fieldset>` disables it.
+                  - `readonly` keeps the value in the submission, `disabled` leaves it out.
+                  - `required`, `minlength` and `maxlength` validate natively; the `rules` property adds Fomantic's rules on top
+                    (`["notEmpty", "minLength[20]"]`).
+                  - The field only shows as invalid once the user has interacted with it, as `:user-invalid` does.
+                  - **Enter** types a new line; it never submits the form.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-input` fires on every keystroke, with `event.detail.value`.
+                  - `ui-change` fires when the user commits: when the field loses focus after an edit.
+                  - Setting `value` from a `ui-input` handler wins over what was typed, so a handler can reformat or reject input.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const bio = document.querySelector("ui-textarea[name=bio]")
+                  bio.rules = ["notEmpty", "maxLength[280]"]
+                  bio.addEventListener("ui-input", (event) => console.log(280 - event.detail.value.length, "left"))
+                  bio.addEventListener("ui-change", (event) => console.log(event.detail.value, bio.validity.valid))
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The shadow root holds a real `<textarea>`, so the browser does the keyboard work.
+
+                  - **Tab** / **Shift+Tab** moves focus to and from the field; the host delegates focus, so it is never a tab stop
+                    of its own, and clicking the host focuses the control.
+                  - **Enter** types a new line.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - Typing, selection, autofill and the on-screen keyboard come from the browser's own control.
+                  - Name the field with a `<label for>` pointing at the host's `id` (as in a form) or an `aria-label` on the host;
+                    either becomes the control's accessible name. A `placeholder` is not a label.
+                  - A field that fails validation after the user has touched it gets `aria-invalid="true"`; a `<ui-form>` marks
+                    failing fields the same way.
+                  - Without JavaScript the native fallback keeps the same box with a plain native `<textarea>`: it still submits,
+                    validates its native constraints and fires `ui-input` / `ui-change`. It drops `rules`, the invalid state, reset
+                    to the starting value, and naming through `<label for>` (only `aria-label` or `placeholder` name the control).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Bind `value` as a property to control the field, set `rules` as a property, and listen for `ui-input`.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-textarea name="bio" rows="4" value={bio} onui-input={(e) => setBio(e.detail.value)} />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-textarea name="bio" rows="4" :value="bio" @ui-input="(e) => (bio = e.detail.value)" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-textarea
+                    name="bio"
+                    rows="4"
+                    prop:value={bio()}
+                    ref={(el) => el.addEventListener("ui-input", (e) => setBio(e.detail.value))}
+                  />
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  `<ui-textarea>`'s tables (`site/_data/components.json`);  the whole family's are on the input page. -->
+            <ui-docs-api tag="ui-textarea"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the input family's tokens a textarea reads, live. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A textarea reads the input family's `--ui-input-*` tokens: the shared box, border, colour and placeholder
+                  tokens, plus its own `--ui-input-textarea-*` (height, its limits, line height). Set one on the element, on any
+                  ancestor (a form, `:root`), or on the root box through `::part(input)`; style the native `<textarea>` itself
+                  with `::part(control)`. The [input page](ui-input.html#theming-tokens) lists every token of the family.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-textarea {
+                    --ui-input-textarea-height: 6em;
+                    --ui-input-radius: 0;
+                  }
+                  ui-textarea::part(control) {
+                    resize: none;
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens
+                family="ui-input"
+                tokens="--ui-input-textarea* --ui-input-padding* --ui-input-background* --ui-input-color* --ui-input-border* --ui-input-radius --ui-input-placeholder*"
+                playground
+              >
+                <ui-textarea fluid placeholder="Type here" aria-label="Preview"></ui-textarea>
+              </ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle textareas (the input family's): Chubby, Flat and
+                  GitHub. The one in the header applies a theme to the whole site.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+
+      </ui-container>
+    </main>
+  </body>
+</html>

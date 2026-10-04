@@ -3,15 +3,16 @@
  * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - A DOC-ONLY element (`src/docs-components/`):  filed under the `documentation` topic, left out of the component
  *   list, loaded by `<ui-root>` like any family.
- * - Class words:  `ui [size] nav` on the scroll box;  `size` is also handed to the inner `<ui-menu>`.
+ * - Class words:  `ui [size] nav` on the panel;  `size` scales the panel and the widgets in it (`--ui-scale`).
  */
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-docs-nav>`
- * The docs site's left sidebar, Fomantic's dark `.toc` menu:  the intro pages, EVERY component (A-Z or by topic,
- * searchable, with favourites), then the Foundation pages;  the current page highlighted.
+ * The docs site's left sidebar, a docked panel in the Spell brand's look:  a header band (the `header` slot, then
+ * search), then folding bands:  the intro pages, favourites, EVERY component (A-Z or a band per topic), the
+ * Foundation pages;  the current page highlighted.
  ****************/
 export const docsNavVocabulary = {
   tag: "ui-docs-nav",
@@ -26,8 +27,8 @@ export const docsNavVocabulary = {
   },
   noun: "nav",
   description:
-    "A docs nav lists the site's pages and every component, A-Z or by topic, with search and favourites;  the " +
-    "current page is highlighted and scrolled into view.",
+    "A docs nav is a panel listing the site's pages and every component, A-Z or by topic, in folding groups, with " +
+    "search and favourites;  the current page is highlighted and scrolled into view.",
   attributes: [
     {
       name: "current",
@@ -50,14 +51,12 @@ export const docsNavVocabulary = {
       description:
         "Components A-Z, or grouped by `topics` (a tag sits under each of its topics).  The switch sets it " +
         "(reflected, `ui-change`) and the viewer's choice is remembered;  set in markup, it wins.  Default:  the " +
-        "remembered one, else `az`."
+        "remembered one, else `topics`."
     },
     {
       name: "size",
       kind: "size",
-      description:
-        "Size of the menu, `mini` ... `massive`;  `medium` is the default:  Fomantic's sidebar is a `big` menu on " +
-        "a 14px page, ~15px, and ours is 16px already."
+      description: "Size of the panel and everything in it, `mini` ... `massive`;  `medium` is the default."
     }
   ],
   events: [
@@ -81,20 +80,25 @@ export const docsNavVocabulary = {
     }
   ],
   slots: [
-    { name: "header", description: "Above the links, in an item of its own:  a logo, the site name." },
-    { name: "footer", description: "Below the links, in an item of its own:  a version, a theme picker." }
+    { name: "header", description: "In the header band, above the search box:  a logo, the site name." },
+    { name: "footer", description: "Below the links, at the end of the scrolling list:  a version, a theme picker." }
   ],
   parts: [
-    { name: "nav", description: "The scroll box around the menu (the dark background below a short menu too)." },
-    { name: "menu", description: "The `<ui-menu vertical inverted>`." },
-    { name: "search", description: "The search `<ui-input>`." },
+    { name: "nav", description: "The panel:  a card holding the header band and the scrolling list." },
+    { name: "header", description: "The header band:  the `header` slot, then the search box and the view switch." },
+    { name: "menu", description: "The `<nav>` landmark:  the folding groups, scrolling inside the panel." },
+    { name: "search", description: "The site search, a `<ui-docs-search>`:  its text also filters the list." },
     { name: "views", description: "The A-Z / Topics `<ui-buttons>`." },
-    { name: "count", description: "The `<ui-label>` with how many components show." }
+    { name: "count", description: "The `<ui-label>` on the Components band:  how many components show." }
   ],
   states: [
     { name: "searching", description: "A search is typed:  only matches show, every topic with one open." },
     { name: "empty", description: "The search matches nothing." },
-    { name: "listed", description: "The component list has loaded and rendered." }
+    { name: "listed", description: "The component list has loaded and rendered." },
+    {
+      name: "settled",
+      description: "The list's widgets are ready and the current page is in view:  a topic that opens now eases open."
+    }
   ],
   texts: [
     { key: "navLabel", text: "Documentation", description: "Accessible name of the navigation landmark." },
@@ -102,15 +106,14 @@ export const docsNavVocabulary = {
     { key: "gettingStarted", text: "Getting started", description: "Link to `getting-started.html`." },
     { key: "grammar", text: "Grammar", description: "Link to `grammar.html`." },
     { key: "allComponents", text: "All components", description: "Link to `components/index.html`, the card index." },
-    { key: "components", text: "Components", description: "Header of the component lists." },
-    { key: "foundation", text: "Foundation", description: "Header of the Foundation links." },
+    { key: "getStarted", text: "Get started", description: "Band of the intro pages' links." },
+    { key: "components", text: "Components", description: "Band of the component lists." },
+    { key: "foundation", text: "Foundation", description: "Band of the Foundation links." },
     { key: "theming", text: "Theming", description: "Link to `theming.html`." },
     { key: "utilities", text: "Utilities", description: "Link to `utilities.html`." },
     { key: "icons", text: "Icons", description: "Link to `icons.html`." },
     { key: "kitchenSink", text: "Kitchen sink", description: "Link to `kitchen-sink.html`." },
-    { key: "favorites", text: "Favourites", description: "Header of the starred components." },
-    { key: "search", text: "Search components", description: "Accessible name of the search box." },
-    { key: "searchPlaceholder", text: "Search", description: "The search box's hint." },
+    { key: "favorites", text: "Favourites", description: "Band of the starred components." },
     { key: "views", text: "List components", description: "Accessible name of the A-Z / Topics switch." },
     { key: "az", text: "A-Z", description: "The A-Z button's name." },
     { key: "topics", text: "By topic", description: "The Topics button's name." },

@@ -12,84 +12,72 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Transition">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-transition.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-transition%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/transition.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Transition
+            <ui-header
+              >A transition is an animation used to show or hide content, or to draw attention to it.</ui-header
+            >
+          </ui-header>
+          <ui-docs-themes for="ui-transition" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
+              Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/epics/spell-ui-pages/PAGES.md.
+              - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
+              - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
+                IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
+              - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
+            -->
+            <ui-section id="examples-transitions" header="Transitions" sticky collapsible dividing>
+              <ui-message size="small" state="info"
+                >Each button toggles its leaf with an invoker command, <code>commandfor</code> +
+                <code>command="--toggle"</code>: no script. A leaf that has gone comes back on the next
+                click.</ui-message
+              >
 
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-transition.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-transition%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/modules/transition.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Transition
-                <ui-header
-                  >A transition is an animation used to show or hide content, or to draw attention to it.</ui-header
-                >
-              </ui-header>
-              <ui-docs-themes for="ui-transition" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Transition"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
-                  Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/epics/spell-ui-pages/PAGES.md.
-                  - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
-                  - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
-                    IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
-                  - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
-                -->
-
-                <ui-header level="2" dividing id="transitions">Transitions</ui-header>
-                <ui-message size="small" state="info"
-                  >Each button toggles its leaf with an invoker command, <code>commandfor</code> +
-                  <code>command="--toggle"</code>: no script. A leaf that has gone comes back on the next
-                  click.</ui-message
-                >
-
-                <ui-docs-example header="Scale" description="An element can scale into or out of view.">
+              <ui-section id="examples-transitions-scale" header="Scale" sticky collapsible dividing>
+                <ui-docs-example description="An element can scale into or out of view.">
                   <ui-button size="small" commandfor="tr-scale" command="--toggle">scale</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-scale" animation="scale" inline visible>
@@ -97,8 +85,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Zoom" description="An element can zoom into view from far away.">
+              <ui-section id="examples-transitions-zoom" header="Zoom" sticky collapsible dividing>
+                <ui-docs-example description="An element can zoom into view from far away.">
                   <ui-button size="small" commandfor="tr-zoom" command="--toggle">zoom</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-zoom" animation="zoom" inline visible>
@@ -106,11 +96,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Fade"
-                  description="An element can fade into or out of view descending and ascending."
-                >
+              <ui-section id="examples-transitions-fade" header="Fade" sticky collapsible dividing>
+                <ui-docs-example description="An element can fade into or out of view descending and ascending.">
                   <ui-button size="small" commandfor="tr-fade" command="--toggle">fade</ui-button>
                   <ui-button size="small" commandfor="tr-fade-up" command="--toggle">fade up</ui-button>
                   <ui-button size="small" commandfor="tr-fade-down" command="--toggle">fade down</ui-button>
@@ -134,11 +123,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Flip"
-                  description="An element can flip into or out of view vertically or horizontally."
-                >
+              <ui-section id="examples-transitions-flip" header="Flip" sticky collapsible dividing>
+                <ui-docs-example description="An element can flip into or out of view vertically or horizontally.">
                   <ui-button size="small" commandfor="tr-horizontal-flip" command="--toggle">horizontal flip</ui-button>
                   <ui-button size="small" commandfor="tr-vertical-flip" command="--toggle">vertical flip</ui-button>
                   <ui-segment basic>
@@ -150,8 +138,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Drop" description="An element can drop into view from above.">
+              <ui-section id="examples-transitions-drop" header="Drop" sticky collapsible dividing>
+                <ui-docs-example description="An element can drop into view from above.">
                   <ui-button size="small" commandfor="tr-drop" command="--toggle">drop</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-drop" animation="drop" inline visible>
@@ -159,8 +149,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Fly" description="An element can fly in from off canvas.">
+              <ui-section id="examples-transitions-fly" header="Fly" sticky collapsible dividing>
+                <ui-docs-example description="An element can fly in from off canvas.">
                   <ui-button size="small" commandfor="tr-fly-left" command="--toggle">fly left</ui-button>
                   <ui-button size="small" commandfor="tr-fly-right" command="--toggle">fly right</ui-button>
                   <ui-button size="small" commandfor="tr-fly-up" command="--toggle">fly up</ui-button>
@@ -180,8 +172,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Swing" description="An element can swing into view.">
+              <ui-section id="examples-transitions-swing" header="Swing" sticky collapsible dividing>
+                <ui-docs-example description="An element can swing into view.">
                   <ui-button size="small" commandfor="tr-swing-left" command="--toggle">swing left</ui-button>
                   <ui-button size="small" commandfor="tr-swing-right" command="--toggle">swing right</ui-button>
                   <ui-button size="small" commandfor="tr-swing-up" command="--toggle">swing up</ui-button>
@@ -201,8 +195,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Browse" description="An element can appear and disappear as part of a series.">
+              <ui-section id="examples-transitions-browse" header="Browse" sticky collapsible dividing>
+                <ui-docs-example description="An element can appear and disappear as part of a series.">
                   <ui-button size="small" commandfor="tr-browse" command="--toggle">browse</ui-button>
                   <ui-button size="small" commandfor="tr-browse-right" command="--toggle">browse right</ui-button>
                   <ui-segment basic>
@@ -214,8 +210,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Slide" description="An element can appear to slide in from above or below.">
+              <ui-section id="examples-transitions-slide" header="Slide" sticky collapsible dividing>
+                <ui-docs-example description="An element can appear to slide in from above or below.">
                   <ui-button size="small" commandfor="tr-slide-down" command="--toggle">slide down</ui-button>
                   <ui-button size="small" commandfor="tr-slide-up" command="--toggle">slide up</ui-button>
                   <ui-button size="small" commandfor="tr-slide-left" command="--toggle">slide left</ui-button>
@@ -235,15 +233,18 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="static-animations">Static Animations</ui-header>
-                <ui-message size="small" state="info"
-                  >Static (attention) animations run in place and leave the element as it was:
-                  <code>command="--transition"</code> runs the element's <code>animation</code>, and
-                  <code>looping pulsating</code> needs no command at all.</ui-message
-                >
+            <ui-section id="examples-static-animations" header="Static Animations" sticky collapsible dividing>
+              <ui-message size="small" state="info"
+                >Static (attention) animations run in place and leave the element as it was:
+                <code>command="--transition"</code> runs the element's <code>animation</code>, and
+                <code>looping pulsating</code> needs no command at all.</ui-message
+              >
 
-                <ui-docs-example header="Pulsating">
+              <ui-section id="examples-static-animations-pulsating" header="Pulsating" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     An element can have pulsating edges. This works best on circular or square elements.
                   </p>
@@ -264,8 +265,10 @@
                     <ui-button>CSS only transition</ui-button>
                   </ui-transition>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Jiggle" description="An element can jiggle to draw attention to its shape.">
+              <ui-section id="examples-static-animations-jiggle" header="Jiggle" sticky collapsible dividing>
+                <ui-docs-example description="An element can jiggle to draw attention to its shape.">
                   <ui-button size="small" commandfor="tr-jiggle" command="--transition">jiggle</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-jiggle" animation="jiggle" inline visible>
@@ -273,8 +276,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Flash" description="An element can flash to draw attention to itself.">
+              <ui-section id="examples-static-animations-flash" header="Flash" sticky collapsible dividing>
+                <ui-docs-example description="An element can flash to draw attention to itself.">
                   <ui-button size="small" commandfor="tr-flash" command="--transition">flash</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-flash" animation="flash" inline visible>
@@ -282,8 +287,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Shake" description="An element can shake to draw attention to its position.">
+              <ui-section id="examples-static-animations-shake" header="Shake" sticky collapsible dividing>
+                <ui-docs-example description="An element can shake to draw attention to its position.">
                   <ui-button size="small" commandfor="tr-shake" command="--transition">shake</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-shake" animation="shake" inline visible>
@@ -291,8 +298,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Pulse" description="An element can pulse to draw attention to its visibility.">
+              <ui-section id="examples-static-animations-pulse" header="Pulse" sticky collapsible dividing>
+                <ui-docs-example description="An element can pulse to draw attention to its visibility.">
                   <ui-button size="small" commandfor="tr-pulse" command="--transition">pulse</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-pulse" animation="pulse" inline visible>
@@ -300,8 +309,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Tada" description="An element can give user positive feedback for an action.">
+              <ui-section id="examples-static-animations-tada" header="Tada" sticky collapsible dividing>
+                <ui-docs-example description="An element can give user positive feedback for an action.">
                   <ui-button size="small" commandfor="tr-tada" command="--transition">tada</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-tada" animation="tada" inline visible>
@@ -309,8 +320,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Bounce" description="An element can bounce to politely remind you of itself.">
+              <ui-section id="examples-static-animations-bounce" header="Bounce" sticky collapsible dividing>
+                <ui-docs-example description="An element can bounce to politely remind you of itself.">
                   <ui-button size="small" commandfor="tr-bounce" command="--transition">bounce</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-bounce" animation="bounce" inline visible>
@@ -318,8 +331,10 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Glow" description="An element can glow to show its position in a page.">
+              <ui-section id="examples-static-animations-glow" header="Glow" sticky collapsible dividing>
+                <ui-docs-example description="An element can glow to show its position in a page.">
                   <ui-button size="small" commandfor="tr-glow" command="--transition">glow</ui-button>
                   <ui-segment basic>
                     <ui-transition id="tr-glow" animation="glow" inline visible>
@@ -327,10 +342,18 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="visibility">Visibility</ui-header>
-
-                <ui-docs-example header="Final visibility">
+            <ui-section id="examples-visibility" header="Visibility" sticky collapsible dividing>
+              <ui-section
+                id="examples-visibility-final-visibility"
+                header="Final visibility"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     After the animation queue finishes for an element, its final visibility state is determined. An
                     outward transition leaves it hidden; an inward one leaves it visible. Without
@@ -342,10 +365,24 @@
                     <ui-segment>Hidden until shown</ui-segment>
                   </ui-transition>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="specifying-a-direction">Specifying a direction</ui-header>
-
-                <ui-docs-example header="In and out">
+            <ui-section
+              id="examples-specifying-a-direction"
+              header="Specifying a direction"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-section
+                id="examples-specifying-a-direction-in-and-out"
+                header="In and out"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     To force an animation direction, use <code>--show</code> (in) or <code>--close</code> (out), or
                     <code>show()</code> / <code>hide()</code> from script. Showing a shown element does nothing.
@@ -358,10 +395,12 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="automatic-direction">Automatic Direction</ui-header>
-
-                <ui-docs-example header="Toggle">
+            <ui-section id="examples-automatic-direction" header="Automatic Direction" sticky collapsible dividing>
+              <ui-section id="examples-automatic-direction-toggle" header="Toggle" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     If an animation direction is not specified it will automatically be determined based on the
                     element's current visibility: <code>--toggle</code> (or <code>toggle()</code>) runs it out while
@@ -374,21 +413,22 @@
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="grouped-transitions">Grouped Transitions</ui-header>
+            <ui-section id="examples-grouped-transitions" header="Grouped Transitions" sticky collapsible dividing>
+              <!-- GAP I70:  no grouped transitions (Fomantic's `interval`, `reverse`);  each element animates on its own. -->
+              <ui-message size="small" class="site-not-ported"
+                >Not yet: Animation Intervals, Animation Order and Forcing Order -- one
+                <code>&lt;ui-transition&gt;</code> animates its own box, so a group that appears one after another
+                (<code>interval</code>, <code>reverse</code>) needs a script calling each element's
+                <code>transition()</code> in turn.</ui-message
+              >
+            </ui-section>
 
-                <!-- GAP I70:  no grouped transitions (Fomantic's `interval`, `reverse`);  each element animates on its own. -->
-                <ui-message size="small" class="site-not-ported"
-                  >Not yet: Animation Intervals, Animation Order and Forcing Order -- one
-                  <code>&lt;ui-transition&gt;</code> animates its own box, so a group that appears one after another
-                  (<code>interval</code>, <code>reverse</code>) needs a script calling each element's
-                  <code>transition()</code> in turn.</ui-message
-                >
-
-                <ui-header level="2" dividing id="looping">Looping</ui-header>
-
+            <ui-section id="examples-looping" header="Looping" sticky collapsible dividing>
+              <ui-section id="examples-looping-looping" header="Looping" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Looping"
                   description="Animation loops can be controlled by setting `looping`:  it repeats any animation until it's removed."
                 >
                   <ui-transition animation="pulse" looping inline visible>
@@ -398,19 +438,22 @@
                     <ui-label color="teal">Looping</ui-label>
                   </ui-transition>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example header="Inverted" description="An inverted ring for dark backgrounds.">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="An inverted ring for dark backgrounds.">
                   <ui-segment inverted>
                     <ui-transition pulsating looping inverted inline visible>
                       <ui-button inverted>Pulsating inverted</ui-button>
                     </ui-transition>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-display-type" header="Display Type" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Display Type"
                   description="Animations can be used on any display type, not just block level elements:  `inline` keeps a button an inline block while it animates."
                 >
                   <ui-button size="small" commandfor="tr-inline" command="--transition">Jiggle the button</ui-button>
@@ -419,189 +462,199 @@
                     <ui-button icon="user">Sign-up</ui-button>
                   </ui-transition>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Disabled" description="A disabled transition pauses its running animation.">
+              <ui-section id="examples-variations-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="A disabled transition pauses its running animation.">
                   <ui-transition pulsating looping disabled inline visible>
                     <ui-button>Paused</ui-button>
                   </ui-transition>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Wrap the content to animate in `<ui-transition>`. `visible` drives it: absent means hidden, and each
-                    change animates `animation` in or out. The first paint never animates.
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Wrap the content to animate in `<ui-transition>`. `visible` drives it: absent means hidden, and each
+                  change animates `animation` in or out. The first paint never animates.
 
-                    - `animation` takes Fomantic's names, spaces and all (`fade up`, `horizontal flip`, `browse right`);
-                      an attention one (`shake`, `pulse`...) runs in place and leaves visibility alone.
-                    - `duration` takes milliseconds (`300`) or a CSS time (`0.3s`); default the animation's own.
-                    - `inline` makes the box an inline block, for inline content (an image, a button).
-                    - Transitions are three kinds, as in Fomantic: inward (shows), outward (hides) and static
-                      (attention: visibility unchanged).
-                  </script>
-                </ui-markdown>
+                  - `animation` takes Fomantic's names, spaces and all (`fade up`, `horizontal flip`, `browse right`);
+                    an attention one (`shake`, `pulse`...) runs in place and leaves visibility alone.
+                  - `duration` takes milliseconds (`300`) or a CSS time (`0.3s`); default the animation's own.
+                  - `inline` makes the box an inline block, for inline content (an image, a button).
+                  - Transitions are three kinds, as in Fomantic: inward (shows), outward (hides) and static
+                    (attention: visibility unchanged).
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="methods">Methods and commands</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    There is no attribute for "shake now", so the host has methods, each resolving once its animation
-                    has run: `show()`, `hide()`, `toggle()` and `transition(name?)` (Fomantic's
-                    `$(el).transition(name)`; `animate` is the Web Animations API's). `show()` / `hide()` /
-                    `toggle()` write `visible`, so it reflects. Invoker commands do the same with no script, from a
-                    `<ui-button>` or a native `<button>`: `--show`, `--close`, `--toggle` and `--transition`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <ui-button commandfor="notice" command="--toggle">Toggle</ui-button>
-                    <ui-transition id="notice" animation="fade up" visible>
-                      <ui-message>Saved.</ui-message>
-                    </ui-transition>
-                  </script>
-                </ui-code>
+            <ui-section id="usage-methods-and-commands" header="Methods and commands" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  There is no attribute for "shake now", so the host has methods, each resolving once its animation
+                  has run: `show()`, `hide()`, `toggle()` and `transition(name?)` (Fomantic's
+                  `$(el).transition(name)`; `animate` is the Web Animations API's). `show()` / `hide()` /
+                  `toggle()` write `visible`, so it reflects. Invoker commands do the same with no script, from a
+                  `<ui-button>` or a native `<button>`: `--show`, `--close`, `--toggle` and `--transition`.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-button commandfor="notice" command="--toggle">Toggle</ui-button>
+                  <ui-transition id="notice" animation="fade up" visible>
+                    <ui-message>Saved.</ui-message>
+                  </ui-transition>
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="queuing">Queuing animations</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Animations queue, as Fomantic's did: each waits for the one before, and a queued one with no
-                    direction works it out from the visibility it will have by then. The same animation twice in a
-                    row is dropped (`allow-repeats` keeps it). With `interrupt`, a new animation stops the running one
-                    instead (Fomantic's `queue: false`).
+            <ui-section id="usage-queuing-animations" header="Queuing animations" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Animations queue, as Fomantic's did: each waits for the one before, and a queued one with no
+                  direction works it out from the visibility it will have by then. The same animation twice in a
+                  row is dropped (`allow-repeats` keeps it). With `interrupt`, a new animation stops the running one
+                  instead (Fomantic's `queue: false`).
 
-                    Fomantic's `stop`, `stop all` and `clear queue` behaviours are not ported: `interrupt` covers
-                    replacing the running animation.
-                  </script>
-                </ui-markdown>
+                  Fomantic's `stop`, `stop all` and `clear queue` behaviours are not ported: `interrupt` covers
+                  replacing the running animation.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - `ui-show` (`{ visible: true, animation }`): shown, its animation finished (Fomantic's
-                      `onVisible`).
-                    - `ui-hide` (`{ visible: false, animation }`): hidden, its animation finished (`onHidden`).
-                    - `ui-complete` (`{ visible, animation }`): any animation finished, attention ones included
-                      (`onComplete`).
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const notice = document.querySelector("#notice")
-                    await notice.hide() // resolves once animated out
-                    await notice.transition("shake") // attention:  in place
-                    notice.addEventListener("ui-show", (event) => console.log(event.detail.animation))
-                  </script>
-                </ui-code>
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-show` (`{ visible: true, animation }`): shown, its animation finished (Fomantic's
+                    `onVisible`).
+                  - `ui-hide` (`{ visible: false, animation }`): hidden, its animation finished (`onHidden`).
+                  - `ui-complete` (`{ visible, animation }`): any animation finished, attention ones included
+                    (`onComplete`).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const notice = document.querySelector("#notice")
+                  await notice.hide() // resolves once animated out
+                  await notice.transition("shake") // attention:  in place
+                  notice.addEventListener("ui-show", (event) => console.log(event.detail.animation))
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="without-wrapping">Animating any element</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Other components (dropdowns, modals, popups ...) animate with the same catalogue through the
-                    runtime's `UI.transitions`, which also plays it on any element without wrapping it. The animations
-                    themselves are the foundation's `animations.css`.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-animating-any-element" header="Animating any element" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Other components (dropdowns, modals, popups ...) animate with the same catalogue through the
+                  runtime's `UI.transitions`, which also plays it on any element without wrapping it. The animations
+                  themselves are the foundation's `animations.css`.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    None of its own: the box takes no focus. Drive transitions from real buttons (`commandfor`), so
-                    keyboard and screen reader users can reach them.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  None of its own: the box takes no focus. Drive transitions from real buttons (`commandfor`), so
+                  keyboard and screen reader users can reach them.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - Hidden content is out of the page and the accessibility tree, as `hidden` would make it: nothing
-                      inside can take focus or be read.
-                    - Showing or hiding content doesn't announce anything by itself; if the change matters, say so in
-                      a live region or move focus to it.
-                    - Under `prefers-reduced-motion` the element jumps straight to its end state, with the same events.
-                    - If the element can't render, its native fallback still follows `visible` at once, with no
-                      animation, and still fires `ui-show` / `ui-hide` and `ui-complete`.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - Hidden content is out of the page and the accessibility tree, as `hidden` would make it: nothing
+                    inside can take focus or be read.
+                  - Showing or hiding content doesn't announce anything by itself; if the change matters, say so in
+                    a live region or move focus to it.
+                  - Under `prefers-reduced-motion` the element jumps straight to its end state, with the same events.
+                  - If the element can't render, its native fallback still follows `visible` at once, with no
+                    animation, and still fires `ui-show` / `ui-hide` and `ui-complete`.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Bind `visible`, and call the methods through a ref for attention animations.
-                  </script>
-                </ui-markdown>
-                <ui-header level="4" id="framework-react">React 19</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    <ui-transition animation="fade up" visible={shown} ref={box} onui-hide={() => setGone(true)}>
-                      ...
-                    </ui-transition>
-                    // later:  box.current.transition("shake")
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                    <ui-transition ref="box" animation="fade up" :visible="shown" @ui-hide="gone = true">...</ui-transition>
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    // no `on:` namespace:  listen through a ref
-                    <ui-transition
-                      animation="fade up"
-                      visible={shown()}
-                      ref={(el) => el.addEventListener("ui-hide", () => setGone(true))}
-                    >
-                      ...
-                    </ui-transition>
-                  </script>
-                </ui-code>
-              </ui-tab>
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Bind `visible`, and call the methods through a ref for attention animations.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-transition animation="fade up" visible={shown} ref={box} onui-hide={() => setGone(true)}>
+                    ...
+                  </ui-transition>
+                  // later:  box.current.transition("shake")
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-transition ref="box" animation="fade up" :visible="shown" @ui-hide="gone = true">...</ui-transition>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-transition
+                    animation="fade up"
+                    visible={shown()}
+                    ref={(el) => el.addEventListener("ui-hide", () => setGone(true))}
+                  >
+                    ...
+                  </ui-transition>
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-transition"></ui-docs-api>
-              </ui-tab>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-transition"></ui-docs-api>
+          </ui-tab>
 
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A transition draws nothing of its own: the animations are the foundation's `animations.css`
-                    catalogue, shared by every component. The `pulsating` ring reads `--ui-transition-inverted-pulse` when `inverted`
-                    (set it on the element, an ancestor or `:root`), and `color` tints it. Style the animated
-                    box through `::part(transition)`. Never set the `--_*` names: they're the sheet's private plumbing.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    ui-transition::part(transition) {
-                      border-radius: 0.5em;
-                    }
-                  </script>
-                </ui-code>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-transition" playground></ui-docs-tokens>
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A transition draws nothing of its own: the animations are the foundation's `animations.css`
+                  catalogue, shared by every component. The `pulsating` ring reads `--ui-transition-inverted-pulse` when `inverted`
+                  (set it on the element, an ancestor or `:root`), and `color` tints it. Style the animated
+                  box through `::part(transition)`. Never set the `--_*` names: they're the sheet's private plumbing.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-transition::part(transition) {
+                    border-radius: 0.5em;
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-transition" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    No Fomantic theme restyles transitions: they keep the default animations under every theme. The
-                    one in the header still changes the page around them.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles transitions: they keep the default animations under every theme. The
+                  one in the header still changes the page around them.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>
