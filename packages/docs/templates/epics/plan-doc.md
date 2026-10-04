@@ -142,6 +142,23 @@ With details, the item's line IS the panel's title (it opens on a click, or on a
 - docs made before 2026-10-01 have `ol.plan-items` of `<li>`s with a "details" panel, and a phase list under
   `#plan`;  the script still edits those, and `migrate` converts them
 
+Review marks (`/epic review`, and any session that talks an item through with Owen;  `review`, `defer`, `queue`,
+`unqueue` write them):
+
+```html
+<ui-item id="i4" data-status="open" data-reviewed="2026-10-03" data-queued="2026-10-03" data-work="Skip short sections">
+  <ui-accordion class="plan-item">
+    <ui-title><a class="plan-id" href="#i4">I4</a> <span class="plan-title">One line</span> <ui-label class="plan-review" size="mini" basic color="blue" title="Skip short sections">to do</ui-label></ui-title>
+    ...
+```
+
+- `data-reviewed`:  gone through with Owen, that day.  `data-deferred`:  put off for now;  still not reviewed.
+  `data-queued` + `data-work`:  work a review decided on, not started yet;  the next review offers it first.
+- the label shows the strongest:  "to do" (blue), else "deferred" (grey, its date on hover), else "reviewed 10-03" (green)
+- REVIEWED also counts:  struck (`done`), `decided`, or linked (`href="#i4"`) from a decision's details.  So a doc
+  reviewed before the marks existed isn't all "not reviewed".
+- the outcome goes in the log (`I4 reviewed:  accepted`), not on the item
+
 Log line (in `#log`'s `<ui-feed class="plan-log">`;  a `<ul>` of `<time>` + text before 2026-10-01):
 
 ```html
@@ -210,6 +227,12 @@ decide from WITHOUT asking back:  in the item's details, or an Overview sub-sect
 | `log <name> "<text>"` | add a timestamped line to the log |
 | `prompt <name> "<text>"` / `prompt <name> --file <path>` | set (replace) the prompt quoted in the Overview;  `""` removes it |
 | `migrate <name>` | bring an older doc (before 2026-10-01, or with `section.s2` markup) into this layout (prints what changed;  "already current" otherwise) |
+| `review <name> <id> ["outcome"]` | mark an item reviewed today;  the outcome goes in the log |
+| `defer <name> <id>` | put an item off:  dated, still not reviewed |
+| `queue <name> <id> "work"` / `unqueue <name> <id>` | work a review decided on, waiting / started or dropped |
+| `items <name> [--section <s>] [--filter unreviewed\|open\|reviewed\|queued\|all] [--json]` | what a review walks:  where reviews stand, the to-do list, each section's counts and items |
+| `list [--json]` | every epic in main and the worktrees:  in progress / done, not reviewed / all |
+| `backfill <name> \| --all [--apply]` | one-off:  items not reviewed that Owen named in a past session of the epic (his message, or a modal he answered);  a dry run unless `--apply`, which marks them dated that day (`scripts/review-backfill.js`) |
 | `summary <name> [--json]` | open questions, issues, caveats, todos, tests, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
 | `open <name>` | show the doc rendered in VS Code (Simple Browser, beside the editor), reusing its tab and reloading it;  needs the spell extension (`yarn vscode`) |

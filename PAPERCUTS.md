@@ -1091,6 +1091,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   check crashed on `ui-import/examples/part.html`, an include fragment `findPages()` took for a page. ·
   `doc-links.py --check` accepts a missing target git ignores;  `findPages()` skips `examples/`;  the two real
   links fixed. · docs
+- 2026-10-03 · `check-spell.js` failed a fresh plan doc ("ui-section #todos not stuck at the top", earlier
+  `#phases`):  it scrolls to the MIDDLE top-level section, and an empty one is no taller than its title, so nothing
+  sticks.  Looked like a runtime regression;  the old bundle failed the same way. · `scrollToMiddleSection()` skips
+  sections 200px tall or less. · docs
 
 ## claude-code
 

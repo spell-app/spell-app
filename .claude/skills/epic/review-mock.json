@@ -1,0 +1,91 @@
+{
+  "//": "Canned data for `/epic review mock` (P1 of epics/epic-review):  a fake plan doc, so the review's interaction can be tried before plan-doc knows review state.  Nothing here is ever written back.  state:  outstanding | reviewed | deferred | queued | done | decided",
+  "epics": [
+    { "name": "mock", "status": "in progress", "checkout": ".claude/worktrees/mock", "outstanding": 8, "total": 13 },
+    { "name": "commands", "status": "in progress", "checkout": ".claude/worktrees/commands", "outstanding": 5, "total": 9 },
+    { "name": "unified-server", "status": "done", "checkout": "main", "outstanding": 27, "total": 41 },
+    { "name": "seo", "status": "done", "checkout": "main", "outstanding": 15, "total": 38 },
+    { "name": "ui-import", "status": "done", "checkout": "main", "outstanding": 12, "total": 30 },
+    { "name": "cli-additions", "status": "done", "checkout": "main", "outstanding": 2, "total": 17 },
+    { "name": "docs-workspace", "status": "done", "checkout": "main", "outstanding": 0, "total": 11 }
+  ],
+  "doc": {
+    "name": "mock",
+    "title": "Mock Epic",
+    "lastReview": { "date": "2026-10-02", "goneThrough": 4, "decisions": 1, "putOff": 1, "toDo": 1 },
+    "queued": [{ "id": "T2", "work": "Swap the CDN highlight.js for <ui-code> on docs pages", "why": "ui-code already ships the languages" }],
+    "sections": [
+      {
+        "id": "decisions",
+        "label": "Questions",
+        "items": [
+          {
+            "id": "Q3",
+            "state": "outstanding",
+            "title": "Where do throwaway review pages live",
+            "details": "The doc preview serves only files under the checkout's git root.  Options: (A) epics/<name>/review/, ignored by git (recommended): served by the page server already, next to the doc they explain.  (B) the scratchpad: outside the root, so the preview can't show it.  (C) packages/docs/tmp/: one shared folder, collisions between epics.",
+            "recommendation": "A. epics/<name>/review/, git-ignored"
+          },
+          { "id": "Q1", "state": "decided", "title": "Start modal: 4-option cap", "details": "Answered by D1." }
+        ]
+      },
+      {
+        "id": "issues",
+        "label": "Issues",
+        "items": [
+          {
+            "id": "I4",
+            "state": "outstanding",
+            "title": "plan-doc check fails on a stub doc: empty Phases can't stick",
+            "details": "check-spell scrolls each top-level section to the middle of the screen and checks its title sticks.  A stub's #phases is empty, so it's too short:  'ui-section #phases not stuck at the top'.  Every new /epic hits it until the first add-phase.  Fix: skip the stick check for a section shorter than the viewport, or give an empty #phases a placeholder line.",
+            "recommendation": "Skip the stick check for sections shorter than the viewport"
+          },
+          {
+            "id": "I5",
+            "state": "outstanding",
+            "title": "yarn -s is not a yarn 4 flag",
+            "details": "Scripts written as 'yarn -s plan-doc ...' print yarn's whole usage and exit 1.  Yarn 4 dropped -s / --silent for scripts.  No recommendation yet: either document it in PAPERCUTS or grep the skills for 'yarn -s'."
+          },
+          { "id": "I2", "state": "reviewed", "title": "Doc preview loses scroll position on reload", "details": "Reviewed 2026-10-01: accepted, it re-lands on the hash." },
+          { "id": "I3", "state": "deferred", "deferred": "2026-10-02", "title": "Log timestamps use local time without a zone", "details": "A log read from another time zone shows the wrong hour." },
+          { "id": "I1", "state": "done", "title": "plan-doc open picked the focused window", "details": "Fixed in P2." }
+        ]
+      },
+      {
+        "id": "caveats",
+        "label": "Caveats",
+        "items": [
+          {
+            "id": "C2",
+            "state": "outstanding",
+            "title": "Backfill sees only transcripts titled with the epic's name",
+            "details": "A session renamed by hand, or one that discussed the epic under another title, is missed.  Accept, or also scan sessions whose cwd is the epic's worktree.",
+            "recommendation": "Also scan sessions whose cwd is the epic's worktree"
+          },
+          {
+            "id": "C3",
+            "state": "outstanding",
+            "title": "Modals cap at 4 options",
+            "details": "AskUserQuestion takes 2-4 options plus a free-text Other.  Shapes every modal in the review."
+          },
+          { "id": "C1", "state": "reviewed", "title": "Goals pages still use the old section markup", "details": "Reviewed 2026-10-01: CODE-DEBT.md has it." }
+        ]
+      },
+      {
+        "id": "todos",
+        "label": "Todos",
+        "items": [
+          { "id": "T2", "state": "queued", "queued": "2026-10-02", "title": "Docs pages: render code with <ui-code>", "details": "Drop the CDN highlight.js; ui-code already ships the languages." },
+          { "id": "T3", "state": "outstanding", "title": "plan-doc summary --json for the docs index", "details": "The index's Running epics card could show open counts.  Small: the JSON exists, the index script doesn't read it." }
+        ]
+      },
+      {
+        "id": "tests",
+        "label": "To test",
+        "items": [
+          { "id": "V1", "state": "outstanding", "title": "Handoff moves the session to the worktree's window", "details": "Run /epic foo from a package window: the session opens in an editor tab in the new tinted window, 'continue' typed in, the old tab gone." }
+        ]
+      }
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `packages/docs/epics/<name>/<name>.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.
-argument-hint: <name> [what to plan]
+description: Run a planning session against a live plan doc, `packages/docs/epics/<name>/<name>.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  walk a plan doc's open items with Owen, one at a time ("review the seo epic", "go through unified-server's caveats").
+argument-hint: <name> [what to plan] | review [<name>]
 ---
 
 # /epic
@@ -31,6 +31,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 
 ## 1. Name
 
+- First word `review`:  NOT a new epic.  Go to "7. Review" and skip everything else here.  `review` is reserved:
+  never an epic's name.
 - `<name>` is the first word of `$ARGUMENTS` (or a quoted phrase:  `"Docs Index"`), lower-kebab-cased
   (`Docs Index` -> `docs-index`).  The rest, if any, is the plan:  the prompt that kicks it off.  No argument:  ask
   for a name.
@@ -167,6 +169,146 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
   session back to its package's window (the worktree's window closes).
 - Last line of the reply:  "All done ..." (see the top).
 
+## 7. Review:  `/epic review [<name>]`
+
+Walk a plan doc's open items with Owen:  pick a section, pick items, one item at a time.  FAST by default (the item
+as clean bullets, one modal);  deeper only when he asks.  Plan:  `epics/epic-review/epic-review.html`.
+
+> **MOCK (P1 of epic-review).**  Until `plan-doc` knows review state, the whole flow runs on CANNED data,
+> `review-mock.json` beside this file:  `epics` for the doc list, `doc` for the doc (any name reviews it, titled as
+> the name picked).  Write NOTHING:  no `plan-doc`, no files, no worktree, no handoff.  Keep the marks in the
+> conversation, so they show when a list comes round again.  Say ONCE, in the first reply's text:  "Mock:  made-up
+> data, every epic opens the same fake doc, nothing is saved."  Never in a modal.  Where a step would write, say in one italic line what
+> it would do (`_would run:  plan-doc review mock I4 "accepted:  skip short sections"_`).  Explain further:  the
+> explanation in chat, and a visual page only if Owen asks (say where it would go).
+
+Words:
+- OUTSTANDING:  open (or deferred), not reviewed.  REVIEWED:  marked reviewed, struck, decided, or linked from a
+  decision.  QUEUED:  work a review decided on, not started yet.  DEFERRED:  skipped for now;  still outstanding.
+- Sections:  Questions (open questions in "Questions & Decisions"), Issues, Caveats, Todos, To test.
+- These words are the SKILL's.  Owen never sees "queue", "outstanding", "Start modal", "kickoff prompt" or "mock" in
+  a modal.  Say "waiting to be done", "not reviewed yet", "pick a section", "a new window".
+
+Every modal:
+- header:  `Epic Review: <name>` (`Epic Review: commands`);  before an epic is picked, `Epic Review`.  Never a step
+  name ("Queue", "Start").  The tool says headers are 12 characters at most, but takes longer ones.
+- Owen comes to a review COLD:  he doesn't remember earlier reviews, or what an id means.  NEVER a bare id, in chat
+  or a modal:  always what it is in words ("the highlight.js swap (T2)").  In a modal, the words alone.
+- question:  one plain sentence, WITHOUT the epic's name (the header has it);  the context (lists, ids) goes in the
+  chat text just before it.
+- each option:  a short verb label;  its description says what happens NEXT, as Owen sees it ("Opens a new window
+  to work on T2;  this review stops"), never which step of this skill runs.
+
+### 7.1 Pick a doc (no `<name>`)
+
+- FIRST, as reply text BEFORE the modal (never skip it:  Owen reads the list, then picks), every epic, in two
+  groups, most not-reviewed first in each:
+  ```
+  **In progress** (phases left)          not reviewed / items
+  - commands        (worktree commands)   5 / 9
+  - epic-review     (worktree)            3 / 12
+
+  **Done**
+  - unified-server                        27 / 41
+  - seo                                   15 / 38
+  - ui-import                             12 / 30
+  - cli-additions                          2 / 17
+  - docs-workspace                         0 / 11
+  ```
+- THEN the modal, header `Epic Review`, nothing else in the question:  "Which epic do you want to review?"
+  - epics with anything not reviewed, in the list's order;  label `<name> (in progress)` / `<name> (done)`,
+    description `5 of 9 items not reviewed`
+  - 4 or fewer left:  all of them.  More:  the next 2, then "More" (description:  the next names, `ui-import,
+    cli-additions`);  "More" opens the same modal on the rest, 2 at a time + "More" until 4 or fewer are left
+  - any epic, even one with nothing to review:  Owen can type its name in Other
+- NEVER put mechanics in a modal (mock, canned data, "type in Other"):  say them in the chat text, once.
+
+### 7.2 Start
+
+- First, in chat, where things stand, for someone who remembers nothing:
+  - reviewed before:  when, how much, what came of it.  "You last reviewed commands on Oct 2:  4 of 13 items gone
+    through, 1 decision, 1 deferred."  Never reviewed:  "commands hasn't been reviewed yet:  13 items."
+  - work an earlier review decided on, not done yet, each in words, its id after:
+    ```
+    That review also decided to do this, and it isn't done yet:
+    - Swap the CDN highlight.js for <ui-code> on docs pages (T2).  Why:  ui-code already ships the languages.
+    ```
+- Work waiting:  then the modal "Start the work now, or review first?":
+  - "Resume review (Recommended)" ("Start review" when never reviewed):  "The highlight.js swap waits on the to-do
+    list.  Next you pick what to review."  -> the Start modal
+  - "Start work":  "Opens a new window to swap highlight.js for ui-code.  This review stops until you run
+    `/epic review commands` again."  Does:  a new worktree `<name>-fixes`, its own window, the waiting work as its
+    kickoff prompt (`/isolate` "Start", steps 3-6);  ends the turn.
+  - several waiting:  "the 3 waiting changes" in the descriptions, each listed in the chat text above
+  - Why review first:  Owen came to review;  the work waits safely in the doc.
+- Start modal:
+  - first, in chat, every section with its counts, one line each:  `Issues · 3 of 5 not reviewed`,
+    `Caveats · all 3 reviewed`;  sections with no items left out
+  - question "What do you want to review?"
+  - sections by most not reviewed, ties in page order:  label `Issues · 3/5`, description `3 not reviewed yet`.
+    NEVER list item ids in a description.
+  - "Finish Review" LAST, just above Other ("Wrap up:  a summary of what was decided")
+  - 3 sections or fewer with items:  those, then Finish.  More:  the top 2, then "More…" with description
+    `Todos 1/11 · To test 2/14` (the rest, `not reviewed/all`), then Finish;  "More…" opens the same modal with the
+    rest (up to 3 sections, then Finish)
+
+### 7.3 Section review
+
+- In chat:  the section, its filter, then its items, deferred ones marked:
+  ```
+  Issues · 3 outstanding of 5  (showing:  outstanding)
+  - I4  plan-doc check fails on a stub doc:  empty Phases can't stick
+  - I5  yarn -s is not a yarn 4 flag
+  - I3  Log timestamps use local time without a zone   (deferred 10-02)
+
+  Which?  ids ("I4, I5") · go (all shown) · all · open · reviewed · queued · back
+  ```
+- Then END THE TURN:  Owen types the reply (a modal can't take a list of ids).  His reply:
+  - ids:  those, in his order
+  - `go` (or `.`):  every item shown
+  - `all` / `open` / `reviewed` / `queued`:  this section again, that filter ("show all" works too)
+  - `back`:  the Start modal
+- Struck or decided items show only under `all` and `reviewed`.
+
+### 7.4 Item review
+
+Per picked item, in order:
+1. In chat, short:  `**I4 · title**`, then its details as 2-5 clean bullets (Claude's words, nothing lost), then its
+   state if not outstanding ("reviewed 10-01:  accepted").
+2. Modal (multiSelect:  Explore + Explain further together is a deep dive), "I4:  what now?":
+   - "Accept:  <recommendation>":  ONLY when the item already has one;  first
+   - "Explore":  find other options now
+   - "Explain further":  the full explanation now (real code, examples, a table);  a visual page when words won't do
+   - "Defer":  dated, still outstanding;  next item
+   - question text ends:  "type `exit` in Other to stop this section"
+3. Explore / Explain further:  do it in chat, then a second modal:  up to 2 options, recommended first, then "Defer",
+   then "Exit".
+4. Record the answer AT ONCE, then the next item:
+   - question -> `decide`;  issue -> close / to todo / queue;  caveat -> accept / to issue;  todo -> keep / close /
+     queue / to phase;  test -> passed (`close`) / failed (an issue)
+   - every answer also marks the item reviewed;  Defer marks it deferred
+   - work to do (fix it, build it) is QUEUED, never done mid-review
+5. `exit` / "Exit":  drop the rest of the picked items, back to 7.3 (same filter).  After the last item:  7.5.
+- Picked combinations that clash (Accept + Defer):  Accept wins;  say so in one line.
+- Visual page:  `epics/<name>/review/<id>.html` (git-ignored, on the template's assets), shown with
+  `node scripts/window.mjs show <file>`;  `yarn plan-doc open <name>` once the item is done (the preview shows one
+  doc).
+
+### 7.5 Section done
+
+- Summary line:  "Issues:  2 reviewed, 1 deferred, 1 to do".
+- Work waiting:  list it in chat (as 7.2), then the modal "Do this now or keep planning?":
+  - "Resume review (Recommended)":  "It waits on the to-do list.  Next you pick what to review."  -> Start modal
+  - "Start work":  as 7.2's "Start work", same description
+- Else:  the Start modal.
+
+### 7.6 Finish Review
+
+- A log line in the doc:  `Review:  7 items, 3 decisions, 2 deferred, 1 queued`.
+- Reply:  what was decided, deferred, queued (ids linked to the doc), and the queue, which stays for next time.
+- The doc on `main`:  stage, then ask before committing.  In a worktree:  leave it to that epic's session.
+- End with `/epic review <name>` picks up where this stopped.
+
 ## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)
 
 ```
@@ -183,4 +325,13 @@ migrate <name>                                      an older doc (any layout) in
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
 open <name>                                         show in VS Code's doc preview (right side bar)
+review <name> <id> ["outcome"]                      mark reviewed today (outcome to the log)
+defer <name> <id>                                   deferred:  dated, still not reviewed
+queue <name> <id> "work"  /  unqueue <name> <id>    work a review decided on, waiting  /  started or dropped
+items <name> [--section s] [--filter unreviewed|open|reviewed|queued|all] [--json]
+                                                    where reviews stand, the to-do list, sections and items
+list [--json]                                       every epic (main + worktrees):  status, not reviewed / all
+backfill <name> | --all [--apply]                   one-off:  mark what past sessions show Owen went through
 ```
+- `review` ... `items` edit the epic's LIVE doc wherever it is:  its own worktree, else main, else any worktree.
+  Every other command:  this checkout's.
