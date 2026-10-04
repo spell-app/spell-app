@@ -10,7 +10,7 @@ Owen leaves thoughts on goals pages (the bubble buttons, or `/goals-thought`).  
 digested with what came of it.  Thoughts stay on the page as a record:  never delete one.
 
 - `G` is `scripts/goals.sh` in the `goals` skill's base directory (`../goals/scripts/goals.sh` from this skill's
-  base directory, e.g. `~/.claude/skills/goals/scripts/goals.sh`).  Rules:  the goals folder's `AGENTS.md`.
+  base directory, e.g. `.claude/skills/goals/scripts/goals.sh`).  Rules:  the goals folder's `AGENTS.md`.
 
 ## 1. Gather
 
