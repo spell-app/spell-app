@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Spell UI Docs Rework</h1>
             <span class="plan-step"
-              ><ui-label basic color="orange" icon="circle half stroke" href="#p3">P3 · Nav Panel</ui-label></span
+              ><ui-label basic color="orange" icon="circle half stroke" href="#p6"
+                >P6 · Sections &amp; Ids</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -79,7 +81,7 @@
               icon which shows the current state, clicking it switches it.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 11h-15h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 9h-13h left</p>
           <ui-section id="o1" header="1.1 Today" sticky collapsible dividing>
             <p>Where the site stands, so the rest reads against it.</p>
             <ui-table celled compact striped unstackable>
@@ -438,7 +440,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -500,8 +502,8 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="active" header="P3 · Nav Panel" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Nav Panel" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> left sidebar as the brand panel (Color Set Chooser): lockup header band, search under it,
@@ -509,10 +511,23 @@
               ><ui-item icon="folder"
                 ><b>Files:</b> src/docs-components/ui-docs-nav/, _src/site.css, _parts/layout.html</ui-item
               ><ui-item icon="flask"><b>Verify:</b> screenshots light / dark / narrow; ui-docs-nav tests</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 2h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j19">J19</a> <a href="#j20">J20</a> <a href="#j21">J21</a>
+                <a href="#j22">J22</a> <a href="#j23">J23</a> <a href="#j24">J24</a> <a href="#j25">J25</a></ui-item
+              ></ui-list
             >
           </ui-section>
-          <ui-section id="p4" data-phase="4" data-status="done" header="P4 · Right Sidebar" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p4"
+            data-phase="4"
+            data-status="done"
+            header="P4 · Right Sidebar"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -1310,8 +1325,7 @@
                   <span class="plan-title"
                     >&lt;spell-site-header docked&gt;: a new attribute, two copies in the layout (right column, narrow
                     top bar)</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Chose one element with a compact <code>docked</code> mode over a second, Spell-UI-only bar: the
@@ -1330,14 +1344,220 @@
                   ><a class="plan-id" href="#j18">J18</a>
                   <span class="plan-title"
                     >Narrow screens: one slim top bar of the page's colours replaces the dark Spell UI menu</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Below 1200px (right column hidden): docked site header + look controls; below 992px also the menu
                     button (flyout) and a "Spell UI" brand; below 768px the site row moves to the flyout (no room). Its
                     Getting started / Grammar / Theming / Icons links are gone: the nav panel lists them. Options: keep
                     Fomantic's dark menu (off-brand), or a ui-menu (brings Fomantic's menu look).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j19" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j19">J19</a>
+                  <span class="plan-title"
+                    >P3 nav: topics are lighter sub-bands INSIDE a Components band, not top-level bands</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose a tinted <b>Components</b> band (with the count) holding one LIGHTER band per topic (no fill,
+                    the brand's mono eyebrow, a hairline above), over making every topic a top-level tinted band like
+                    Get started / Favourites / Foundation. Why: ~33 topic bands in the group style would bury Foundation
+                    and lose the Components heading; this keeps three levels (group band &gt; topic band &gt; row), like
+                    the brand's Spell Docs sidebar eyebrows. Other option: topic bands styled exactly as group bands
+                    (one token change: <code>.band.topic</code> rules in
+                    <a
+                      href="../../../ui/src/docs-components/ui-docs-nav/ui-docs-nav.css"
+                      target="src-packages-ui-src-docs-components-ui-docs-nav-ui-docs-nav-css"
+                      ><code>ui-docs-nav.css</code></a
+                    >).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j20" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j20">J20</a>
+                  <span class="plan-title"
+                    >P3 nav: the A-Z / Topics switch sits beside the search box in the header band</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose the header band (search + a two-button <code>&lt;ui-buttons&gt;</code>) over the Components
+                    band: a band is one <code>&lt;button aria-expanded&gt;</code> and can't hold other buttons, and 'how
+                    to list' reads naturally next to 'find'. The count moved onto the Components band.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j21" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j21">J21</a>
+                  <span class="plan-title"
+                    >P3 nav: groups fold too, remembered; every group starts open</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Get started, Favourites, Components and Foundation are collapsible bands; a folded group is
+                    remembered per viewer (new key <code>spell-ui-site:closed-groups</code>). While searching,
+                    Favourites and Components open regardless (a band click folds one for that search only). Option: not
+                    remembering group folds.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j22" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j22">J22</a>
+                  <span class="plan-title"
+                    >P3 nav: rows are native links, not ui-item; page rows get icons, component rows don't</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Rows are <code>&lt;li&gt;&lt;a class=item&gt;</code> drawn as the brand's <code>.sp-nav</code> (no
+                    ~100 <code>&lt;ui-item&gt;</code> + <code>&lt;ui-menu&gt;</code> widgets); stars stay
+                    <code>&lt;ui-button toggle&gt;</code>, shown on row hover / focus or when starred (0.4 on touch).
+                    Icons only on the 8 hand-written pages (house, rocket, spell check, cubes, palette, screwdriver
+                    wrench, icons, sink: solid FA, the free pack has few outline ones); 96 component rows stay text.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j23" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j23">J23</a>
+                  <span class="plan-title"
+                    >P3 nav: dark current row is lilac (the theme's primary), not violet-600</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The brand's dark current row is solid violet-600 + white; the theme's dark primary is lilac
+                    violet-300 with aubergine ink, so <code>--ui-docs-nav-current-background</code> defaults to
+                    <code>light-dark(var(--ui-primary-background), var(--ui-primary))</code> (consistent with Spell's
+                    dark buttons and tabs, and works in every theme). Override the token to <code>#6550ca</code> if the
+                    violet is wanted.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j24" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j24">J24</a>
+                  <span class="plan-title"
+                    >P3 nav: panel colours from theme tokens; only the ivory fill is a hex</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Panel fill <code>light-dark(#fffdf8, var(--ui-surface))</code>; header band
+                    <code>--ui-brown-background</code> (Polished Ivory accent-100 / dark warm surface #2c2152 in Spell);
+                    group bands halfway between; band titles <code>--ui-brown-text</code>; hairline a shade under the
+                    band (dark: <code>--ui-border-color</code>). In Classic / Fomantic themes the bands read as a light
+                    tan.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j25" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j25">J25</a>
+                  <span class="plan-title"
+                    >P3 layout: nav column 264px (was 250), panel docked with 12px margin; flyout clear, panel 340px
+                    max</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    264 = the brand's 240px sidebar + 12px each side. Below 992px the flyout loses
+                    <code>inverted</code> and its own fill / shadow, so the nav panel is the card over the dimmed page.
+                    The lockup is ONE <code>&lt;symbol&gt;</code> in the layout (12 KB, coordinates rounded to 0.1,
+                    metadata dropped) that both navs <code>&lt;use&gt;</code>; no tagline (docs3 shows one: easy to add
+                    under the lockup).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j26" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j26">J26</a>
+                  <span class="plan-title"
+                    >P5: one scheme key spell-site:scheme, applied as ui-light/ui-dark class AND inline
+                    color-scheme</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose a NEW key <code>spell-site:scheme</code> for both <code>ThemePreference</code> and
+                    <code>&lt;spell-site-header&gt;</code> over reusing the header's <code>spell-site:theme</code> (its
+                    name says theme, and the UI site already has a separate theme key). The old keys
+                    (<code>spell-site:theme</code>, then <code>spell-ui-site:scheme</code>; first valid wins) are copied
+                    once while the new one is absent, then removed. Both sites apply it the same way:
+                    <code>ui-light</code>/<code>ui-dark</code> on <code>&lt;html&gt;</code> (UI tokens and
+                    <code>--ui-scheme</code>, which <code>ui-invert</code> reads) AND inline
+                    <code>color-scheme</code> (goals pages without UI sheets, and the header's own
+                    <code>light-dark()</code>). Options: class only (goals pages would not switch), color-scheme only
+                    (<code>--ui-scheme</code> would stay on the OS's value).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j27" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j27">J27</a>
+                  <span class="plan-title"
+                    >P5: docs/goals header button flips light/dark; flipping back to the OS's scheme follows the OS
+                    again</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The non-docked <code>&lt;spell-site-header&gt;</code> button is now 2-state (sun/moon, showing what
+                    the page shows). Landing on the OS's own scheme forgets the choice, so two clicks always return to
+                    following the OS; the tooltip says so (<em>Light (click: dark, as the OS)</em>). Chose this over a
+                    third auto state (every other click looks like it did nothing) or a hidden gesture (long-press,
+                    alt-click). Caveat: someone who wants light pinned while the OS goes dark at night cannot pin it
+                    from the header, only via Spell UI's overlay (Match system off). On the Spell UI site the icon click
+                    always stores, as asked.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j28" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j28">J28</a>
+                  <span class="plan-title"
+                    >P5: overlay is ui-popup on=click with a menu of menuitemradio rows; stays open after a pick</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Built the overlay on <code>&lt;ui-popup on="click" basic&gt;</code> (Escape, outside click and focus
+                    return come from <code>UI.overlays</code>), its box restyled through
+                    <code>::part(popup)</code> (14px radius, the theme's surface and floating shadow). The list is a
+                    <code>role=menu</code> of native <code>menuitemradio</code> buttons (roving tabindex,
+                    arrows/Home/End, Enter/Space/click pick) rather than
+                    <code>&lt;ui-menu&gt;</code>/<code>&lt;ui-dropdown&gt;</code>, so it can look like the brand instead
+                    of Fomantic. A pick keeps the overlay open so themes can be compared; Escape or an outside click
+                    closes it. Tooltips are <code>&lt;ui-popup inverted size=mini&gt;</code>; the palette's hides while
+                    the overlay is open.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j29" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j29">J29</a>
+                  <span class="plan-title"
+                    >P5: the sun/moon swap uses one documented !important to survive the Spell theme's no-transition
+                    frame</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The Spell theme turns every transition off (<code>transition: none !important</code>) for the frame
+                    a scheme switch lands in, which is exactly when the icon swap starts. The swap's
+                    <code>transition</code> is <code>!important</code> in the component layer; an earlier layer's
+                    <code>!important</code> wins, and reduced motion (reset.css, earlier still) still turns it off.
+                    Other options: a keyframe animation (the brief asked for transitions), or exempting the icons in
+                    spell.css (cross-family coupling). Also: the light icon is FA's outline sun, since the solid one
+                    reads as a cog at 14px.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1473,6 +1693,33 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c9" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title">Docked site header clips inside the 340px phone flyout</span> </ui-title
+                ><ui-content
+                  ><p>
+                    In the flyout's header band (phones only, per the lead's ask) the docked
+                    <code>&lt;spell-site-header&gt;</code> row needs ~400px: 'App' and the branch pill are cut at 340px.
+                    The flyout was widened 300 → 340px; the rest is the docked header's own layout (wrap or
+                    overflow-scroll its row), lead's lane.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c10" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c10">C10</a>
+                  <span class="plan-title">After a page swap the main column shows a focus ring</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Seen in the P3 swap screenshot (a nav click at 1440px): a 2px blue outline round the whole page
+                    column after the router swaps the main. Probably the router's focus move after a swap meeting
+                    <code>:focus-visible</code>; lead's lane (SiteRouter).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1512,11 +1759,34 @@
                   ><a class="plan-id" href="#t3">T3</a>
                   <span class="plan-title"
                     >P4: spell-site-header shows the FIRST page's title and VS Code link after a swap</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     It reads <code>document.title</code> once. P4 docks it; it should re-render on the router's swap.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title"
+                    >P5 follow-up: update every page's inlined HEAD_SCRIPT and rebuild the docs bundle</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Pages and
+                    <a href="../../templates/spell-ui-docs.html" target="src-packages-docs-templates-spell-ui-docs-html"
+                      ><code>packages/docs/templates/spell-ui-docs.html</code></a
+                    >
+                    inline an old copy of <code>ThemePreference.HEAD_SCRIPT</code> that reads
+                    <code>spell-ui-site:scheme</code> and sets only the class. Re-inline the new one (reads
+                    <code>spell-site:scheme</code>, then the old keys; sets the class AND <code>color-scheme</code>).
+                    The P5 agent rebuilt
+                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>packages/docs/_assets/spell-ui.js</code></a
+                    >
+                    (node scripts/bundle-spell-ui.js) to check the docs side. Commit it, or rebuild it at commit time.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1540,6 +1810,24 @@
                     fallback even where Palatino is installed (macOS). Fix idea: copy the .otf files beside the bundle
                     and point the docs bundle's @font-face at them by URL. Spell UI docs are fine: their bundle keeps
                     the fonts as separate lazy files.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title"
+                    >Nav flyout stays open after a nav link swaps the page (phone)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Measured (Playwright, 390px): open the flyout, click Getting started: the router swaps the page
+                    (<code>preventDefault()</code> on <code>ui-navigate</code>), so no reload closes the
+                    <code>&lt;ui-flyout&gt;</code>, and nothing else does; the vocabulary promises 'a flyout holding the
+                    nav closes on it'. Fix belongs to the router / site glue (lead's lane: close
+                    <code>#site-nav-flyout</code> in <code>SiteRouter.onNavigate</code>, or a
+                    <code>ui-navigate</code> listener in <code>site.ts</code>), not the nav.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1768,6 +2056,43 @@
                   ><ui-date><time datetime="2026-10-04T03:19-04:00">2026-10-04 03:19</time></ui-date> P4 done: right
                   column header (docked site header + look controls), slim narrow top bar, spell-site-header docked mode
                   + re-draw on swap; checks: server 84 tests, ui tsc, screenshots 1440 / 1100 / 800 / 390</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:38-04:00">2026-10-04 03:38</time></ui-date> I2 closed: Nav
+                  flyout stays open after a nav link swaps the page (phone)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:38-04:00">2026-10-04 03:38</time></ui-date> C10 closed: After
+                  a page swap the main column shows a focus ring</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:38-04:00">2026-10-04 03:38</time></ui-date> C9 closed: Docked
+                  site header clips inside the 340px phone flyout</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:38-04:00">2026-10-04 03:38</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:38-04:00">2026-10-04 03:38</time></ui-date> P3 done:
+                  ui-docs-nav as the brand panel (lockup + search header band, folding group bands, .sp-nav rows);
+                  router closes the flyout after a swap, no focus ring on main, docked header wraps; checks: ui review
+                  passed (4502 browser tests), site:check ui-divider index OK</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

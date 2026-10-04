@@ -26,23 +26,38 @@ export type NavPage = {
   readonly file: string
   /** the vocabulary text of its label */
   readonly text: DocsNavText
+  /** its row's icon (the default `fa7-free` pack), as the brand's nav rows have */
+  readonly icon: string
 }
 
-/** Top links, above the components:  Fomantic's bold "Getting Started" items. */
+/** The "Get started" group's links, above the components. */
 export const TOP_PAGES: readonly NavPage[] = [
-  { id: "index", file: "index.html", text: "overview" },
-  { id: "getting-started", file: "getting-started.html", text: "gettingStarted" },
-  { id: "grammar", file: "grammar.html", text: "grammar" },
-  { id: "components", file: "components/index.html", text: "allComponents" }
+  { id: "index", file: "index.html", text: "overview", icon: "house" },
+  { id: "getting-started", file: "getting-started.html", text: "gettingStarted", icon: "rocket" },
+  { id: "grammar", file: "grammar.html", text: "grammar", icon: "spell check" },
+  { id: "components", file: "components/index.html", text: "allComponents", icon: "cubes" }
 ]
 
 /** Foundation links, below the components. */
 export const FOUNDATION_PAGES: readonly NavPage[] = [
-  { id: "theming", file: "theming.html", text: "theming" },
-  { id: "utilities", file: "utilities.html", text: "utilities" },
-  { id: "icons", file: "icons.html", text: "icons" },
-  { id: "kitchen-sink", file: "kitchen-sink.html", text: "kitchenSink" }
+  { id: "theming", file: "theming.html", text: "theming", icon: "palette" },
+  { id: "utilities", file: "utilities.html", text: "utilities", icon: "screwdriver wrench" },
+  { id: "icons", file: "icons.html", text: "icons", icon: "icons" },
+  { id: "kitchen-sink", file: "kitchen-sink.html", text: "kitchenSink", icon: "sink" }
 ]
+
+////////////////
+// ## Groups
+////////////////
+
+/**
+ * A group of the panel:  a band that folds its links away.
+ * - `start`:  the intro pages
+ * - `favorites`:  the starred components
+ * - `components`:  every component, A-Z or a band per topic
+ * - `foundation`:  the Foundation pages
+ */
+export type NavGroup = "start" | "favorites" | "components" | "foundation"
 
 /** `current` when the page's own file name says nothing (`/ui/`):  the overview. */
 export const INDEX_PAGE = "index"
@@ -99,27 +114,35 @@ export const SEARCH_SEPARATOR = "|"
  * - `favorites`:  starred tags, a JSON list
  * - `view`:  `topics`, or absent for A-Z
  * - `openTopics`:  topic ids the viewer opened, a JSON list
+ * - `closedGroups`:  `NavGroup`s the viewer folded away, a JSON list (new with the panel:  every group starts open)
  */
 export const STORAGE_KEYS = {
   favorites: "spell-ui-site:favorites",
   view: "spell-ui-site:components-view",
-  openTopics: "spell-ui-site:open-topics"
+  openTopics: "spell-ui-site:open-topics",
+  closedGroups: "spell-ui-site:closed-groups"
 } as const
 
 ////////////////
 // ## Element
 ////////////////
 
-/** Icons of the view switch, the star and the topic toggles (the default `fa7-free` pack). */
+/** Icons of the view switch, the star, the bands' chevron and the search box (the default `fa7-free` pack). */
 export const ICONS = {
   az: "arrow down a z",
   topics: "layer group",
   star: "star",
   starOutline: "star outline",
-  open: "angle down",
-  closed: "angle right",
+  chevron: "chevron down",
   search: "search"
 } as const
+
+/**
+ * Media query under which folding animates:  a fold eases open / shut, its chevron turns.
+ * - NOTE: the sheet says the same in its `@media`;  this copy decides whether a closing topic stays rendered until
+ *   its fold has shut (`UIDocsNav.closing`).
+ */
+export const MOTION_QUERY = "(prefers-reduced-motion: no-preference)"
 
 /**
  * `data-*` names the one click handler finds its targets by (in the shadow root).
@@ -131,16 +154,17 @@ export const DATA = {
   link: "data-nav-link",
   /** a favourite star:  its tag */
   star: "data-nav-star",
-  /** a topic toggle:  its topic id */
+  /** a topic band's toggle:  its topic id */
   topic: "data-nav-topic",
+  /** a group band's toggle:  its `NavGroup` */
+  group: "data-nav-group",
+  /** a topic's fold (the box around its rows):  its topic id;  its `transitionend` ends `UIDocsNav.closing` */
+  fold: "data-nav-fold",
   /** a view switch button:  its `NavView` */
   view: "data-nav-view",
-  /** the current page's item */
+  /** the current page's link */
   current: "data-nav-current"
 } as const
-
-/** Event the inner `<ui-menu>` fires for every activated item:  stopped at the nav (it fires `ui-navigate`). */
-export const MENU_SELECT_EVENT = "ui-select"
 
 /** Key that focuses the search box, as on the old site (and GitHub, MDN ...). */
 export const SEARCH_KEY = "/"

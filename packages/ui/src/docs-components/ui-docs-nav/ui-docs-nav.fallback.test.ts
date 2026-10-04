@@ -56,7 +56,12 @@ describe("DocsNavFallback", () => {
       "#/components/ui-input.html"
     ])
     expect(nav.querySelector("[aria-current=page]")!.textContent).toBe("Button")
-    expect([...nav.querySelectorAll("h2")].map((heading) => heading.textContent)).toEqual(["Components", "Foundation"])
+    expect([...nav.querySelectorAll("h2")].map((heading) => heading.textContent)).toEqual([
+      "Get started",
+      "Components",
+      "Foundation"
+    ])
+    expect(nav.querySelector("[aria-current=page]")!.className).toBe("item")
     await expectAccessible(host)
   })
 
