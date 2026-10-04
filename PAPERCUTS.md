@@ -1283,6 +1283,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `flyout's`);  the same call without one ran.  Several such calls in one turn:  the refused ones just drop out. ·
   Write the details without apostrophes (or `&#39;`), one `plan-doc add` per Bash call, and check each printed an
   id. · claude-code
+- 2026-10-04 · `git worktree remove --force .claude/worktrees/commands` (after `/isolate done`) failed "Directory not
+  empty":  the worktree's page server, vite and an old astro were still running from it and rewrote
+  `.spell-server.editor.json` into the deleted folder;  `yarn server stop --root <it>` said "not running", since
+  the removal had deleted the pid file. · Stop a worktree's servers BEFORE removing it (`yarn server stop` in it);
+  after the fact, `ps -eo pid,command | grep worktrees/<name>`, kill those, `rm -rf` the folder.  `/isolate done`
+  should do the stop. · claude-code
 
 ## vscode
 
