@@ -12,8 +12,6 @@ __pycache__/
 .spell-server.*.log
 .spell-server.*.json
 
-# `/bedtime`'s morning report:  never committed
-MORNING-*.md
 
 # `/park`'s note on where parked work stopped:  never committed
 PARKED-*.md

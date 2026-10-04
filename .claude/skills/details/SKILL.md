@@ -43,7 +43,7 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
 1. `yarn details new <slug> --title "<Title>"` -- prints the page's path.
    - many questions of one shape (a list to pick from):  `--from <spec.json>` builds the whole page from data
      instead:  title, lede, "Where we are", context, questions and their options (`DetailsSpec` in
-     `packages/docs/scripts/details.js`).  `/worktrees`, `/bedtime` and `/wakeup` use it.
+     `packages/docs/scripts/details.js`).  `/worktrees` and `/bedtime` use it.
    - in an epic (a plan doc this session keeps):  add `--epic <name>`.  The page goes in
      `epics/<name>/details/`, is committed with the plan doc, and the decision it leads to links it.
    - else scratch:  `packages/docs/details/`, ignored by version control, swept after 14 days (`new` sweeps).

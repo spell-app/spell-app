@@ -135,7 +135,8 @@ const ICONS = {
   "solid/download": ["download"],
   "solid/paper-plane": ["paper plane"],
   "solid/plug": ["plug"],
-  "solid/circle-play": ["circle play"]
+  "solid/circle-play": ["circle play"],
+  "solid/circle-pause": ["circle pause"] // the docs index:  a stalled epic
 }
 
 /** Bare specifiers that MUST resolve from UI's root:  Solid (all subpaths) and the element-layer fork. */

@@ -34,6 +34,7 @@
         <p class="lede">One sentence: what's being decided, and why it matters now.</p>
         <ui-list class="spell-meta">
           <ui-item icon="comments">Asked by: session <code>name</code>, while doing what</ui-item>
+          <ui-item icon="calendar" data-details-asked>Asked: 2026-01-01</ui-item>
           <ui-item icon="flag"
             >Status:
             <ui-label size="mini" color="orange" data-details-status>waiting for your answer</ui-label></ui-item
@@ -69,11 +70,7 @@
             <p>One line: what changes, and its cost.</p>
           </div>
         </ui-section>
-
-        <footer class="spell-doc-footer">
-          <ui-divider></ui-divider>
-          <p class="meta">Asked 2026-01-01.</p>
-        </footer>
+        <!-- no footer:  the Send bar `details.js` adds is the page's bottom;  the date is up top ("Asked") -->
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
