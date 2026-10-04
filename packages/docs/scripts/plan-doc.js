@@ -2,8 +2,10 @@
  * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic` skill and its agents.
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
- *   `commits`, `log`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate` (`node scripts/plan-doc.js` with
- *   no command lists them).
+ *   `commits`, `log`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate`, `inbox`
+ *   (`node scripts/plan-doc.js` with no command lists them).
+ * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`inbox.js`);  only
+ *   read here (P6 of `review-review` adds `wait | apply | clear`)
  * - a doc is FOUND under either name (`pages.js` `planDocIn()`):  `<name>.plan.html` since 2026-10-04, else the old
  *   `<name>.html`, which worktrees cut before then still have
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
@@ -22,6 +24,7 @@ import { parseHTML } from "linkedom"
 
 import { SRV } from "$/server"
 
+import { ACTIONS, inboxPath, isImmediate, markList, readInbox, unsentMarks } from "./inbox.js"
 import { DOCS, openInVSCode, planDocIn, serialize, tidy } from "./pages.js"
 import { findEvidence, sessionsOf } from "./review-backfill.js"
 import { convertSections, createElement } from "./to-ui-section.js"
@@ -2424,6 +2427,9 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   open <name>                                      show in VS Code's doc preview (right side bar)
   migrate <name>                                   bring an older doc (any layout) into the current one;
                                                    its decisions (D items) merge into its questions
+  inbox <name> [--json]                            the marks Owen left on the page (<name>.inbox.json), by
+                                                   action, sent or not;  requests for now, agents at work,
+                                                   the session listening
 Every command but \`new\` edits the epic's LIVE doc:  its own worktree's, else main's, else any worktree's.
 --here:  THIS checkout's copy instead, for a sweep over every doc on this branch (never an epic's own edits).`
 
@@ -2546,6 +2552,8 @@ function main(argv) {
       return check(file, flags)
     case "open":
       return open(file)
+    case "inbox":
+      return printInbox(read(file), file, flags.json)
     default:
       return usage()
   }
@@ -2984,6 +2992,65 @@ function printSummaries(files) {
     }
   }
   console.log(JSON.stringify(found, null, 2))
+}
+
+/**
+ * `inbox`:  the doc's review inbox (`inbox.js`), for a reply or (`json`) a script.
+ * - marks grouped by action (`ACTIONS`' order), oldest first, each with its item's title and whether it's sent
+ *   (`sent: false`:  newer than the last "send to Claude";  an immediate one, `details` or revisit `now`, counts
+ *   as sent:  `unsentMarks()`)
+ * - an item gone from the doc since it was marked:  title `null`, "(no such item)"
+ */
+function printInbox(plan, file, json) {
+  const path = inboxPath(file)
+  const inbox = readInbox(path)
+  const unsent = new Set(unsentMarks(inbox).map((mark) => mark.id))
+  const marks = Object.fromEntries(ACTIONS.map((action) => [action, []]))
+  for (const mark of markList(inbox)) {
+    const item = plan.findItem(mark.id)
+    marks[mark.action]?.push({ ...mark, title: item ? titleOf(item) : null, sent: !unsent.has(mark.id) })
+  }
+  const report = {
+    file: path,
+    sent: inbox.sent,
+    unsent: unsent.size,
+    marks,
+    now: inbox.now,
+    working: inbox.working,
+    listening: inbox.listening
+  }
+  if (json) return console.log(JSON.stringify(report, null, 2))
+  const lines = [`inbox:  ${relative(DOCS, path)}${existsSync(path) ? "" : "  (none:  no marks)"}`]
+  lines.push(
+    inbox.listening
+      ? `listening:  session ${inbox.listening.session}, since ${inbox.listening.since}`
+      : "listening:  nobody (no Claude session is reviewing this doc)"
+  )
+  lines.push(`sent:  ${inbox.sent ?? "never"};  ${unsent.size} unsent`)
+  for (const action of ACTIONS) {
+    if (!marks[action].length) continue
+    lines.push(`${action} (${marks[action].length}):`)
+    for (const mark of marks[action])
+      lines.push(`  - ${mark.id.toUpperCase()}  ${mark.title ?? "(no such item)"}${extra(mark)}`)
+  }
+  if (inbox.now.length) lines.push(`now (${inbox.now.length}):`)
+  for (const each of inbox.now)
+    lines.push(`  - ${each.id.toUpperCase()}  ${each.action}${each.note ? `  "${each.note}"` : ""}  (${each.at})`)
+  const working = Object.entries(inbox.working)
+  if (working.length) lines.push(`working (${working.length}):`)
+  for (const [id, { action, since }] of working) lines.push(`  - ${id.toUpperCase()}  ${action}  (since ${since})`)
+  console.log(lines.join("\n"))
+
+  /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
+  function extra(mark) {
+    const parts = []
+    if (mark.pick) parts.push(`picks ${mark.pick}`)
+    if (mark.when) parts.push(mark.when)
+    if (mark.note) parts.push(`"${mark.note}"`)
+    if (!mark.sent) parts.push("unsent")
+    else if (isImmediate(mark)) parts.push("requested now")
+    return parts.length ? `  · ${parts.join(" · ")}` : ""
+  }
 }
 
 /**

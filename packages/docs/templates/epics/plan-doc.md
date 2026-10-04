@@ -294,6 +294,14 @@ While a phase is active, flag what changed so the user can spot it:
   `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="2"><p>what changed</p></ui-message>`
 - `yarn plan-doc phase <name> 2 done` removes every `.plan-update[data-phase="2"]`
 
+## Review inbox
+
+Owen marks items ON the page (served by the page server):  approve, todo, Add Details, revisit (soon / now, with a
+note), pick an option card.  The marks wait in `<name>.inbox.json` beside the doc (git-ignored) until "send to
+Claude";  Add Details and revisit now go at once (the inbox's `now` queue).  Read it with `yarn plan-doc inbox
+<name>`;  shape, routes and helpers:  `packages/docs/AGENTS.md`, "Review inbox".  NEVER edit the file by hand:  go
+through `scripts/inbox.js` (its lock).
+
 ## Prose
 
 - Code:  ALWAYS folded and colored:
@@ -355,3 +363,4 @@ worktree took of an epic merged before it was cut:  editing that would fork the 
 | `summary <name> [--json]` | open questions, judgement calls, issues, caveats, todos, tests, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
 | `open <name>` | show the doc rendered in VS Code's doc preview (the right side bar's "Spell Docs" tab);  needs the spell extension (`yarn vscode`) |
+| `inbox <name> [--json]` | the marks Owen left on the page (`<name>.inbox.json`), by action, with their items' titles, sent or not;  the `now` queue, agents at work, the session listening |

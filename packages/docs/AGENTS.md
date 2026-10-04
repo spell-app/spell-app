@@ -91,6 +91,20 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
     show all" under it;  remembered per page
   - commits (`.plan-commits`):  hidden until the git button in a plan doc's page header shows them (remembered
     per page);  an item with commits gets a git icon on its line that shows its own
+  - review actions (`wireReview()`, a plan doc served by the page server, once its inbox answers;  see "Review
+    inbox"):
+    - every item's line ends in a round grey ellipsis (`.plan-act`, placed at the far right in room the line keeps
+      free, so a title never wraps under it);  its menu (a popover, opening in place) marks Approve (green), Add to
+      todo (violet), Add Details (blue), Revisit (orange), or clears;  the button takes the color, filled while
+      unsent, outlined once sent
+    - Add Details / revisit now:  `POST now`, a spinner beside the button while it waits or `working[id]` is set;
+      queued with no session listening:  a still dashed ring, and a notice at the window's bottom (D6)
+    - Revisit:  a note box under the line, a grey check ("soon") over a blue send ("now");  the unsaved note
+      survives reloads (`spell-revisit:<path>`)
+    - an open item's option cards:  a "Choose" pill on each label marks `pick`, the card framed orange
+    - the page header's paper plane, left of the git button:  grey, blue with unsent marks, outlined once sent
+    - re-reads the inbox on the page server's change event for `<name>.inbox.json`, else every 4s while visible;
+      nothing it does scrolls the page
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
   - the address follows the section being read (`#id`, replaced, not pushed), so a reload lands there
   - served by the page server, an edit to the page's file updates it IN PLACE (`wireLiveUpdate()`):  scroll,
@@ -178,6 +192,23 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 - Edit through `yarn plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
 
+### Review inbox
+
+- Owen marks a plan doc's items ON the page (approve, todo, Add Details, revisit, pick an option card);  the marks
+  wait in its INBOX FILE, `epics/<name>/<name>.inbox.json` beside the doc, until a Claude session takes them.
+  - absent until the first mark, deleted once empty;  git-ignored:  per-machine pending state, never the record
+  - shape and helpers:  `scripts/inbox.js` (`setMark()`, `requestNow()`, `markSent()`, `unsentMarks()`,
+    `takeNow()`, `setWorking()`, `setListening()`, `clearMarks()`);  EVERY write through `updateInbox()` /
+    `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
+- The page writes through the page server's route module `scripts/reviewRoutes.ts`, `/api/review/...`:
+  `GET inbox?page=`, `POST mark { page, id, mark | null }`, `POST now { page, id, action, note? }` (Add Details,
+  revisit now:  queued on `now`), `POST send { page }`.
+  - `page`:  the doc's URL path (`/worktrees/<w>/...` too);  only `<name>.plan.html` (else 403), only ids of its
+    items (else 400);  each answer is the whole inbox;  writes need the server's token and origin (`SRV.Guard`)
+- Unsent:  marks newer than `sent` (the last "send to Claude"), never an immediate one (`details`, revisit `now`).
+- `yarn plan-doc inbox <name> [--json]` prints it:  marks by action with their items' titles, sent or not, the
+  `now` queue, agents at work, the session listening.
+
 ## Details pages
 
 - `/details` (`.claude/skills/details/`):  how and when Claude writes one.
@@ -228,6 +259,7 @@ In this order, from `packages/docs`:
   has doesn't reload it (the page updates itself).
 - `yarn details` (`scripts/details.js`) -- details pages (see "Details pages");  `scripts/detailsRoutes.ts`, the
   page server's route module for their answers.
+- `scripts/inbox.js`, `scripts/reviewRoutes.ts` -- a plan doc's review inbox and its routes (see "Review inbox").
 - `yarn docs:link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`scripts/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
   `scripts/showRoutes.ts` (`GET /api/docs/show`).
@@ -242,6 +274,11 @@ In this order, from `packages/docs`:
   adds, then removes) must update it in place, keeping scroll, folds, typed text and focus;  the address must
   follow the scroll, and a fresh load of it land there.  Run it after touching `liveClient.ts` or the runtime's
   "Live update".
+- `node scripts/check-review.js [epic] [outDir]` -- Playwright, from the page server:  clicks through a plan doc's
+  review actions (approve, todo, Add Details, revisit soon with a note that must survive a reload, revisit now with
+  its spinner, "Choose" on Q7's cards, send) and checks each on the page AND in the inbox;  marks survive a reload
+  and an in-place update;  nothing runs under a button at 280 / 700px, light and dark;  writes screenshots.
+  Refuses an inbox with marks in it;  deletes the inbox file afterwards.  Run it after touching "Review actions".
 - `scripts/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its
   `convertSections()` is also `plan-doc.js` `migrate`'s last step.  Idempotent;  refuses goals pages.
 - `scripts/doc-links.js` -- see "Links".  Text and regexes, not a DOM:  it edits only what it links.

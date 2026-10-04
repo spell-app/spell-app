@@ -946,6 +946,9 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   on it):  another agent ran `yarn site:bundle` in the same worktree meanwhile, and the build empties `_assets/`
   before writing it again. · Rerun the page once the other build is done;  agents sharing a worktree:  say before
   rebuilding the bundle, and don't run `site:check --all` across someone's rebuild. · ui
+- 2026-10-04 · `yarn format` in `packages/ui` rewrote `src/styles/themes/spell.css`, a file the change never touched:
+  oxfmt joins its `@font-face` `src:` lists (one `local()` per line, as committed) onto two long lines. · `git checkout
+  --` the file after formatting;  better, format it once in its own commit so `yarn format` stops touching it. · ui
 
 ## app
 
