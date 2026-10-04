@@ -8,6 +8,8 @@
  *   data fetch or script of its own.  Rerun after `yarn site:data` (`yarn site:build` runs both).
  * - Writes ONLY between the page's `<!-- components:start -->` and `<!-- components:end -->` markers;  the rest of
  *   the page is hand-kept.  The markup is laid out as oxfmt lays it out, so formatting the page changes nothing.
+ * - Written flat, then nested into `<ui-section>`s (ids from the topic titles:  `#date-time`) by
+ *   `yarn site:sections`' converter (`SiteSections`), as every page is.
  * - `--check`:  write nothing;  exit 1 if the page is stale.
  */
 import { readFileSync, writeFileSync } from "node:fs"
@@ -15,6 +17,8 @@ import path from "node:path"
 
 import type { SiteDataFile, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import { NavIndex } from "../src/docs-components/ui-docs-nav/NavIndex.ts"
+
+import { SiteSections } from "./site-sections.ts"
 
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
@@ -113,7 +117,8 @@ class ComponentIndexWriter {
 
 const writer = new ComponentIndexWriter()
 const before = readFileSync(writer.file, "utf8")
-const after = writer.render(before)
+// the block is written flat (a header per topic), then nested into sections as every page is
+const after = SiteSections.convert(writer.render(before))
 const relative = path.relative(process.cwd(), writer.file)
 if (process.argv.includes("--check")) {
   if (after !== before) console.error(`stale:  ${relative} (run \`yarn site:index\`)`)

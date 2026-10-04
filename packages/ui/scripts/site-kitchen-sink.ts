@@ -16,13 +16,16 @@
  *   `<h4>`.  A section's own class (`ui-dark ui-p-m`) becomes a `<div>` around its body.  A file without sections is
  *   one example.
  * - Writes ONLY between the page's `<!-- kitchen:start -->` and `<!-- kitchen:end -->` markers;  the rest of the page
- *   is hand-kept.  Lines keep the example files' own layout, re-indented, so oxfmt may re-wrap a long one:  rerun.
+ *   is hand-kept.  Written flat (a header per group, the family's first example headed), then nested into
+ *   `<ui-section>`s by `yarn site:sections`' converter (`SiteSections`), as every page is.  Lines keep the example files' own layout, re-indented, so oxfmt may re-wrap a long one:  rerun.
  * - Rerun after changing an example (`yarn site:build` runs it).  `--check`:  write nothing;  exit 1 if stale.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
 import type { SiteDataFile, SiteFamily, SiteTag } from "../src/docs-components/docs-components.types.ts"
+
+import { SiteSections } from "./site-sections.ts"
 
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
@@ -205,7 +208,8 @@ type Section = {
 
 const writer = new KitchenSinkWriter()
 const before = readFileSync(writer.file, "utf8")
-const after = writer.render(before)
+// the block is written flat (headers, headed examples), then nested into sections as every page is
+const after = SiteSections.convert(writer.render(before))
 const relative = path.relative(process.cwd(), writer.file)
 if (process.argv.includes("--check")) {
   if (after !== before) console.error(`stale:  ${relative} (run \`yarn site:kitchen\`)`)

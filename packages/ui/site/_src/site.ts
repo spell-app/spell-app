@@ -54,6 +54,8 @@ defineSite()
 void SiteShell.mount(SITE_ROOT).then(async (content) => {
   const router = content && new SiteRouter(SITE_ROOT, content)
   router?.followPage()
+  // the swaps' landing, for the first page:  saved folds before the sections draw;  the hash once the root is ready
+  router?.land(new URL(location.href), undefined, true)
   // the theme's sheet in place BEFORE the root shows the page:  no restyle (and reflow) after first paint
   await theme
   await import("$/ui/components/ui-root")

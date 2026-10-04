@@ -63,8 +63,13 @@ export const docsTocVocabulary = {
     { name: "toc", description: 'The whole box (`<div class="ui toc">`).' },
     { name: "header", description: "The `<ui-header>` with `header`'s text." },
     { name: "menu", description: "The `<ui-menu vertical text>` of sections (a navigation landmark)." },
-    { name: "section", description: "A section's link `<ui-item>` (a level 2 heading)." },
-    { name: "entries", description: "The `<ui-menu>` of a section's entries (examples, level 3 headings)." },
+    { name: "section", description: "A section's link `<ui-item>` (a level 2 heading, a top-level `<ui-section>`)." },
+    {
+      name: "entries",
+      description:
+        "The `<ui-menu>` of a section's entries (examples, level 3 headings, nested `<ui-section>`s);  nested again " +
+        "under an entry with its own."
+    },
     { name: "entry", description: "One entry's link `<ui-item>`." }
   ],
   states: [{ name: "empty", description: "Nothing to list (the followed content has no headings)." }],

@@ -62,610 +62,640 @@
                 IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
               - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
             -->
+            <ui-section id="examples-usage" header="Usage" sticky collapsible dividing>
+              <ui-section id="examples-usage-how-to-use" header="How To Use" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    Visibility reports an element's position on screen: wrap the content in
+                    <code>&lt;ui-visibility&gt;</code> and listen for its events, each with the calculations as
+                    <code>detail</code>. Scroll the page and watch the table: it updates at every check.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Checks happen when something crosses (the element entering or leaving, an edge crossing the
+                    screen's top or bottom), not on every scrolled pixel: visibility runs on
+                    <code>IntersectionObserver</code>, with no scroll listener. The table beside the demo is filled by
+                    this page's script from the events.</ui-message
+                  >
+                  <ui-grid columns="2" stackable>
+                    <ui-column>
+                      <ui-visibility id="visibility-demo" once="false" continuous>
+                        <ui-segment>
+                          <ui-image src="../images/wireframe/centered-paragraph.png" alt=""></ui-image>
+                          <ui-divider></ui-divider>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-divider></ui-divider>
+                          <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                          <ui-divider></ui-divider>
+                          <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                          <ui-divider></ui-divider>
+                          <ui-image src="../images/wireframe/centered-paragraph.png" alt=""></ui-image>
+                          <ui-divider></ui-divider>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-divider></ui-divider>
+                          <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                          <ui-divider></ui-divider>
+                          <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        </ui-segment>
+                      </ui-visibility>
+                    </ui-column>
+                    <ui-column>
+                      <ui-sticky offset="64">
+                        <ui-table basic celled compact unstackable>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>Calculation</th>
+                                <th>Value</th>
+                              </tr>
+                            </thead>
+                            <tbody id="visibility-calculations">
+                              <tr data-key="pixelsPassed">
+                                <td>pixelsPassed</td>
+                                <td></td>
+                              </tr>
+                              <tr data-key="percentagePassed">
+                                <td>percentagePassed</td>
+                                <td></td>
+                              </tr>
+                              <tr data-key="onScreen">
+                                <td>onScreen</td>
+                                <td></td>
+                              </tr>
+                              <tr data-key="offScreen">
+                                <td>offScreen</td>
+                                <td></td>
+                              </tr>
+                              <tr data-key="passing">
+                                <td>passing</td>
+                                <td></td>
+                              </tr>
+                              <tr data-key="topVisible">
+                                <td>topVisible</td>
+                                <td></td>
+                              </tr>
+                              <tr data-key="bottomVisible">
+                                <td>bottomVisible</td>
+                                <td></td>
+                              </tr>
+                              <tr data-key="topPassed">
+                                <td>topPassed</td>
+                                <td></td>
+                              </tr>
+                              <tr data-key="bottomPassed">
+                                <td>bottomPassed</td>
+                                <td></td>
+                              </tr>
+                              <tr data-key="direction">
+                                <td>direction</td>
+                                <td></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </ui-table>
+                      </ui-sticky>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-header level="2" dividing id="how-it-works">Usage</ui-header>
-
-            <ui-docs-example header="How To Use">
-              <p slot="description">
-                Visibility reports an element's position on screen: wrap the content in
-                <code>&lt;ui-visibility&gt;</code> and listen for its events, each with the calculations as
-                <code>detail</code>. Scroll the page and watch the table: it updates at every check.
-              </p>
-              <ui-message slot="description" state="info" size="small"
-                >Checks happen when something crosses (the element entering or leaving, an edge crossing the
-                screen's top or bottom), not on every scrolled pixel: visibility runs on
-                <code>IntersectionObserver</code>, with no scroll listener. The table beside the demo is filled by
-                this page's script from the events.</ui-message
+              <ui-section
+                id="examples-usage-changing-callback-frequency"
+                header="Changing Callback Frequency"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-grid columns="2" stackable>
-                <ui-column>
-                  <ui-visibility id="visibility-demo" once="false" continuous>
+                <ui-docs-example>
+                  <p slot="description">
+                    By default each event fires only <b>the first time</b> its conditions are met.
+                    <code>once="false"</code> fires it each time its condition <b>becomes true</b>, and
+                    <code>continuous</code> at every check while it holds. Each segment below counts its
+                    <code>ui-top-visible</code> events: scroll them out of view and back.
+                  </p>
+                  <ui-visibility class="visibility-counter">
+                    <ui-segment>Default (once): <ui-label size="small">0</ui-label></ui-segment>
+                  </ui-visibility>
+                  <ui-visibility class="visibility-counter" once="false">
+                    <ui-segment><code>once="false"</code>: <ui-label size="small">0</ui-label></ui-segment>
+                  </ui-visibility>
+                  <ui-visibility class="visibility-counter" once="false" continuous>
+                    <ui-segment><code>once="false" continuous</code>: <ui-label size="small">0</ui-label></ui-segment>
+                  </ui-visibility>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-callbacks" header="Callbacks" sticky collapsible dividing>
+              <ui-section id="examples-callbacks-standard-events" header="Standard Events" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    Events occur at the first check where their conditions turn true. Each is Fomantic's callback as a
+                    <code>ui-*</code> event. The log below shows the demo's events as you scroll past it.
+                  </p>
+                  <ui-table slot="description" celled definition compact>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Event</th>
+                          <th>Fomantic's callback</th>
+                          <th>Occurs</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>ui-visible</code></td>
+                          <td><code>onOnScreen</code></td>
+                          <td>Any part of the element is on screen</td>
+                        </tr>
+                        <tr>
+                          <td><code>ui-hidden</code></td>
+                          <td><code>onOffScreen</code></td>
+                          <td>No part of the element is on screen</td>
+                        </tr>
+                        <tr>
+                          <td><code>ui-top-visible</code></td>
+                          <td><code>onTopVisible</code></td>
+                          <td>The element's top edge has passed the bottom of the screen</td>
+                        </tr>
+                        <tr>
+                          <td><code>ui-top-passed</code></td>
+                          <td><code>onTopPassed</code></td>
+                          <td>The element's top edge has passed the top of the screen</td>
+                        </tr>
+                        <tr>
+                          <td><code>ui-bottom-visible</code></td>
+                          <td><code>onBottomVisible</code></td>
+                          <td>The element's bottom edge has passed the bottom of the screen</td>
+                        </tr>
+                        <tr>
+                          <td><code>ui-passing</code></td>
+                          <td><code>onPassing</code></td>
+                          <td>The element spans the top of the screen</td>
+                        </tr>
+                        <tr>
+                          <td><code>ui-bottom-passed</code></td>
+                          <td><code>onBottomPassed</code></td>
+                          <td>The element's bottom edge has passed the top of the screen</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-visibility id="visibility-logged" once="false">
                     <ui-segment>
-                      <ui-image src="../images/wireframe/centered-paragraph.png" alt=""></ui-image>
-                      <ui-divider></ui-divider>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-divider></ui-divider>
-                      <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
-                      <ui-divider></ui-divider>
                       <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
                       <ui-divider></ui-divider>
-                      <ui-image src="../images/wireframe/centered-paragraph.png" alt=""></ui-image>
-                      <ui-divider></ui-divider>
                       <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-divider></ui-divider>
-                      <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
-                      <ui-divider></ui-divider>
-                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
                     </ui-segment>
                   </ui-visibility>
-                </ui-column>
-                <ui-column>
-                  <ui-sticky offset="64">
-                    <ui-table basic celled compact unstackable>
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Calculation</th>
-                            <th>Value</th>
-                          </tr>
-                        </thead>
-                        <tbody id="visibility-calculations">
-                          <tr data-key="pixelsPassed">
-                            <td>pixelsPassed</td>
-                            <td></td>
-                          </tr>
-                          <tr data-key="percentagePassed">
-                            <td>percentagePassed</td>
-                            <td></td>
-                          </tr>
-                          <tr data-key="onScreen">
-                            <td>onScreen</td>
-                            <td></td>
-                          </tr>
-                          <tr data-key="offScreen">
-                            <td>offScreen</td>
-                            <td></td>
-                          </tr>
-                          <tr data-key="passing">
-                            <td>passing</td>
-                            <td></td>
-                          </tr>
-                          <tr data-key="topVisible">
-                            <td>topVisible</td>
-                            <td></td>
-                          </tr>
-                          <tr data-key="bottomVisible">
-                            <td>bottomVisible</td>
-                            <td></td>
-                          </tr>
-                          <tr data-key="topPassed">
-                            <td>topPassed</td>
-                            <td></td>
-                          </tr>
-                          <tr data-key="bottomPassed">
-                            <td>bottomPassed</td>
-                            <td></td>
-                          </tr>
-                          <tr data-key="direction">
-                            <td>direction</td>
-                            <td></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </ui-table>
-                  </ui-sticky>
-                </ui-column>
-              </ui-grid>
-            </ui-docs-example>
+                  <ui-segment secondary>
+                    <ui-list id="visibility-log" divided size="small">
+                      <ui-item>Scroll the page: events appear here, newest first.</ui-item>
+                    </ui-list>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Changing Callback Frequency">
-              <p slot="description">
-                By default each event fires only <b>the first time</b> its conditions are met.
-                <code>once="false"</code> fires it each time its condition <b>becomes true</b>, and
-                <code>continuous</code> at every check while it holds. Each segment below counts its
-                <code>ui-top-visible</code> events: scroll them out of view and back.
-              </p>
-              <ui-visibility class="visibility-counter">
-                <ui-segment>Default (once): <ui-label size="small">0</ui-label></ui-segment>
-              </ui-visibility>
-              <ui-visibility class="visibility-counter" once="false">
-                <ui-segment><code>once="false"</code>: <ui-label size="small">0</ui-label></ui-segment>
-              </ui-visibility>
-              <ui-visibility class="visibility-counter" once="false" continuous>
-                <ui-segment><code>once="false" continuous</code>: <ui-label size="small">0</ui-label></ui-segment>
-              </ui-visibility>
-            </ui-docs-example>
+              <!-- GAP I112:  no grouped `onPassed` thresholds (pixels / percentages);  shown as a note. -->
+              <ui-message size="small" class="site-not-ported"
+                >Not yet: Grouped Events -- Fomantic's <code>onPassed: { 40: fn, "80%": fn }</code>, callbacks after a
+                distance into the element. There is no event or <code>UI.observeVisibility()</code> option for
+                them.</ui-message
+              >
 
-            <ui-header level="2" dividing id="callbacks">Callbacks</ui-header>
+              <ui-section id="examples-callbacks-reverse-events" header="Reverse Events" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    Reverse events occur under the same conditions, but as the user scrolls back up the page:
+                    <code>UI.observeVisibility(element, options)</code> takes Fomantic's <code>...Reverse</code>
+                    callbacks (the element has no events for them). The log shows this demo's reverse callbacks.
+                  </p>
+                  <ui-segment id="visibility-reversed">
+                    <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-segment secondary>
+                    <ui-list id="visibility-reverse-log" divided size="small">
+                      <ui-item>Scroll past, then back up: reverse callbacks appear here.</ui-item>
+                    </ui-list>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-            <ui-docs-example header="Standard Events">
-              <p slot="description">
-                Events occur at the first check where their conditions turn true. Each is Fomantic's callback as a
-                <code>ui-*</code> event. The log below shows the demo's events as you scroll past it.
-              </p>
-              <ui-table slot="description" celled definition compact>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Event</th>
-                      <th>Fomantic's callback</th>
-                      <th>Occurs</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><code>ui-visible</code></td>
-                      <td><code>onOnScreen</code></td>
-                      <td>Any part of the element is on screen</td>
-                    </tr>
-                    <tr>
-                      <td><code>ui-hidden</code></td>
-                      <td><code>onOffScreen</code></td>
-                      <td>No part of the element is on screen</td>
-                    </tr>
-                    <tr>
-                      <td><code>ui-top-visible</code></td>
-                      <td><code>onTopVisible</code></td>
-                      <td>The element's top edge has passed the bottom of the screen</td>
-                    </tr>
-                    <tr>
-                      <td><code>ui-top-passed</code></td>
-                      <td><code>onTopPassed</code></td>
-                      <td>The element's top edge has passed the top of the screen</td>
-                    </tr>
-                    <tr>
-                      <td><code>ui-bottom-visible</code></td>
-                      <td><code>onBottomVisible</code></td>
-                      <td>The element's bottom edge has passed the bottom of the screen</td>
-                    </tr>
-                    <tr>
-                      <td><code>ui-passing</code></td>
-                      <td><code>onPassing</code></td>
-                      <td>The element spans the top of the screen</td>
-                    </tr>
-                    <tr>
-                      <td><code>ui-bottom-passed</code></td>
-                      <td><code>onBottomPassed</code></td>
-                      <td>The element's bottom edge has passed the top of the screen</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </ui-table>
-              <ui-visibility id="visibility-logged" once="false">
-                <ui-segment>
-                  <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                  <ui-divider></ui-divider>
-                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                </ui-segment>
-              </ui-visibility>
-              <ui-segment secondary>
-                <ui-list id="visibility-log" divided size="small">
-                  <ui-item>Scroll the page: events appear here, newest first.</ui-item>
-                </ui-list>
-              </ui-segment>
-            </ui-docs-example>
+            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
+              <!-- C19:  items stack inside the docs column (under 768px), so these are unstackable (a 125px image). -->
+              <ui-section
+                id="examples-examples-lazy-loading-images"
+                header="Lazy Loading Images"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    <code>type="image"</code> gives every <code>&lt;img data-src&gt;</code> inside its
+                    <code>data-src</code> as <code>src</code> once its top is on screen. Keep a placeholder in
+                    <code>src</code> so the content doesn't jump when an image loads, or leave it out and have the image
+                    appear. Images fade in by default: <code>transition</code> names another animation (or
+                    <code>none</code>), and <code>duration</code> its length.
+                  </p>
+                  <ui-visibility type="image" transition="fade" duration="1000">
+                    <ui-items divided unstackable>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/elliot.jpg"
+                          alt="Elliot Fu"
+                        />
+                        <ui-content>
+                          <ui-header>Elliot Fu</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/helen.jpg"
+                          alt="Helen Troy"
+                        />
+                        <ui-content>
+                          <ui-header>Helen Troy</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/jenny.jpg"
+                          alt="Jenny Hess"
+                        />
+                        <ui-content>
+                          <ui-header>Jenny Hess</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/veronika.jpg"
+                          alt="Veronika Ossi"
+                        />
+                        <ui-content>
+                          <ui-header>Veronika Ossi</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/stevie.jpg"
+                          alt="Stevie"
+                        />
+                        <ui-content>
+                          <ui-header>Stevie</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/steve.jpg"
+                          alt="Steve Jobes"
+                        />
+                        <ui-content>
+                          <ui-header>Steve Jobes</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/ade.jpg"
+                          alt="Ade"
+                        />
+                        <ui-content>
+                          <ui-header>Ade</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/chris.jpg"
+                          alt="Chris"
+                        />
+                        <ui-content>
+                          <ui-header>Chris</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/joe.jpg"
+                          alt="Joe Henderson"
+                        />
+                        <ui-content>
+                          <ui-header>Joe Henderson</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                      <ui-item>
+                        <img
+                          src="../images/wireframe/square-image.png"
+                          data-src="../images/avatar/large/laura.jpg"
+                          alt="Laura"
+                        />
+                        <ui-content>
+                          <ui-header>Laura</ui-header>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                          <ui-button primary>Add Friend</ui-button>
+                          <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
+                        </ui-content>
+                      </ui-item>
+                    </ui-items>
+                  </ui-visibility>
+                </ui-docs-example>
+              </ui-section>
 
-            <!-- GAP I112:  no grouped `onPassed` thresholds (pixels / percentages);  shown as a note. -->
-            <ui-message size="small" class="site-not-ported"
-              >Not yet: Grouped Events -- Fomantic's <code>onPassed: { 40: fn, "80%": fn }</code>, callbacks after a
-              distance into the element. There is no event or <code>UI.observeVisibility()</code> option for
-              them.</ui-message
-            >
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Gradual Changes -- per-pixel <code>onPassing</code> updates (checks happen at crossings
+                only); for a style that follows the scroll, use CSS scroll-driven animations (<code
+                  >animation-timeline: view()</code
+                >), which need no script at all.</ui-message
+              >
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Fixing Content To Viewport (<code>type: 'fixed'</code>) -- that's
+                <a href="ui-sticky.html"><code>&lt;ui-sticky&gt;</code></a
+                >, on CSS <code>position: sticky</code> with no placeholder element.</ui-message
+              >
 
-            <ui-docs-example header="Reverse Events">
-              <p slot="description">
-                Reverse events occur under the same conditions, but as the user scrolls back up the page:
-                <code>UI.observeVisibility(element, options)</code> takes Fomantic's <code>...Reverse</code>
-                callbacks (the element has no events for them). The log shows this demo's reverse callbacks.
-              </p>
-              <ui-segment id="visibility-reversed">
-                <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
-              </ui-segment>
-              <ui-segment secondary>
-                <ui-list id="visibility-reverse-log" divided size="small">
-                  <ui-item>Scroll past, then back up: reverse callbacks appear here.</ui-item>
-                </ui-list>
-              </ui-segment>
-            </ui-docs-example>
+              <ui-section id="examples-examples-infinite-scroll" header="Infinite Scroll" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    As an alternative to pagination, listen for <code>ui-bottom-visible</code> with
+                    <code>once="false"</code> and load more content when the bottom of a container is reached. Here the
+                    page's script adds three items each time, up to twelve.
+                  </p>
+                  <ui-visibility id="visibility-infinite" once="false">
+                    <ui-segment>
+                      <ui-header level="3" text-align="center">Infinite Scroll Example</ui-header>
+                      <ui-list id="visibility-infinite-list" divided relaxed>
+                        <ui-item>Item 1</ui-item>
+                        <ui-item>Item 2</ui-item>
+                        <ui-item>Item 3</ui-item>
+                      </ui-list>
+                      <ui-loader id="visibility-infinite-loader" inline centered size="small"></ui-loader>
+                    </ui-segment>
+                  </ui-visibility>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-header level="2" dividing id="visibility-examples">Examples</ui-header>
+              <script type="module">
+                /*
+                 * Live readouts for the examples above:  the calculations table, the counters, the event logs and the
+                 * infinite list, all from `<ui-visibility>` events (and one `UI.observeVisibility()`).  `UI` is the
+                 * runtime's global.
+                 */
+                const EVENTS = [
+                  "ui-visible",
+                  "ui-hidden",
+                  "ui-top-visible",
+                  "ui-bottom-visible",
+                  "ui-top-passed",
+                  "ui-bottom-passed",
+                  "ui-passing"
+                ]
 
-            <!-- C19:  items stack inside the docs column (under 768px), so these are unstackable (a 125px image). -->
-            <ui-docs-example header="Lazy Loading Images">
-              <p slot="description">
-                <code>type="image"</code> gives every <code>&lt;img data-src&gt;</code> inside its
-                <code>data-src</code> as <code>src</code> once its top is on screen. Keep a placeholder in
-                <code>src</code> so the content doesn't jump when an image loads, or leave it out and have the image
-                appear. Images fade in by default: <code>transition</code> names another animation (or
-                <code>none</code>), and <code>duration</code> its length.
-              </p>
-              <ui-visibility type="image" transition="fade" duration="1000">
-                <ui-items divided unstackable>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/elliot.jpg"
-                      alt="Elliot Fu"
-                    />
-                    <ui-content>
-                      <ui-header>Elliot Fu</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/helen.jpg"
-                      alt="Helen Troy"
-                    />
-                    <ui-content>
-                      <ui-header>Helen Troy</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/jenny.jpg"
-                      alt="Jenny Hess"
-                    />
-                    <ui-content>
-                      <ui-header>Jenny Hess</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/veronika.jpg"
-                      alt="Veronika Ossi"
-                    />
-                    <ui-content>
-                      <ui-header>Veronika Ossi</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/stevie.jpg"
-                      alt="Stevie"
-                    />
-                    <ui-content>
-                      <ui-header>Stevie</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/steve.jpg"
-                      alt="Steve Jobes"
-                    />
-                    <ui-content>
-                      <ui-header>Steve Jobes</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/ade.jpg"
-                      alt="Ade"
-                    />
-                    <ui-content>
-                      <ui-header>Ade</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/chris.jpg"
-                      alt="Chris"
-                    />
-                    <ui-content>
-                      <ui-header>Chris</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/joe.jpg"
-                      alt="Joe Henderson"
-                    />
-                    <ui-content>
-                      <ui-header>Joe Henderson</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                  <ui-item>
-                    <img
-                      src="../images/wireframe/square-image.png"
-                      data-src="../images/avatar/large/laura.jpg"
-                      alt="Laura"
-                    />
-                    <ui-content>
-                      <ui-header>Laura</ui-header>
-                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                      <ui-button primary>Add Friend</ui-button>
-                      <ui-button floated="right" labeled="right" icon="chevron right">View</ui-button>
-                    </ui-content>
-                  </ui-item>
-                </ui-items>
-              </ui-visibility>
-            </ui-docs-example>
+                // How To Use:  every event's calculations into the table
+                const table = document.getElementById("visibility-calculations")
+                for (const name of EVENTS) {
+                  document.getElementById("visibility-demo").addEventListener(name, (event) => {
+                    for (const row of table.rows) {
+                      const value = event.detail[row.dataset.key]
+                      row.cells[1].textContent =
+                        typeof value === "number" ? String(Math.round(value * 100) / 100) : String(value)
+                    }
+                  })
+                }
 
-            <ui-message size="small" class="site-not-ported"
-              >Not ported: Gradual Changes -- per-pixel <code>onPassing</code> updates (checks happen at crossings
-              only); for a style that follows the scroll, use CSS scroll-driven animations (<code
-                >animation-timeline: view()</code
-              >), which need no script at all.</ui-message
-            >
-            <ui-message size="small" class="site-not-ported"
-              >Not ported: Fixing Content To Viewport (<code>type: 'fixed'</code>) -- that's
-              <a href="ui-sticky.html"><code>&lt;ui-sticky&gt;</code></a
-              >, on CSS <code>position: sticky</code> with no placeholder element.</ui-message
-            >
+                // Changing Callback Frequency:  count `ui-top-visible`
+                for (const counter of document.querySelectorAll(".visibility-counter")) {
+                  let count = 0
+                  counter.addEventListener("ui-top-visible", () => {
+                    counter.querySelector("ui-label").textContent = String(++count)
+                  })
+                }
 
-            <ui-docs-example header="Infinite Scroll">
-              <p slot="description">
-                As an alternative to pagination, listen for <code>ui-bottom-visible</code> with
-                <code>once="false"</code> and load more content when the bottom of a container is reached. Here the
-                page's script adds three items each time, up to twelve.
-              </p>
-              <ui-visibility id="visibility-infinite" once="false">
-                <ui-segment>
-                  <ui-header level="3" text-align="center">Infinite Scroll Example</ui-header>
-                  <ui-list id="visibility-infinite-list" divided relaxed>
-                    <ui-item>Item 1</ui-item>
-                    <ui-item>Item 2</ui-item>
-                    <ui-item>Item 3</ui-item>
-                  </ui-list>
-                  <ui-loader id="visibility-infinite-loader" inline centered size="small"></ui-loader>
-                </ui-segment>
-              </ui-visibility>
-            </ui-docs-example>
-
-            <script type="module">
-              /*
-               * Live readouts for the examples above:  the calculations table, the counters, the event logs and the
-               * infinite list, all from `<ui-visibility>` events (and one `UI.observeVisibility()`).  `UI` is the
-               * runtime's global.
-               */
-              const EVENTS = [
-                "ui-visible",
-                "ui-hidden",
-                "ui-top-visible",
-                "ui-bottom-visible",
-                "ui-top-passed",
-                "ui-bottom-passed",
-                "ui-passing"
-              ]
-
-              // How To Use:  every event's calculations into the table
-              const table = document.getElementById("visibility-calculations")
-              for (const name of EVENTS) {
-                document.getElementById("visibility-demo").addEventListener(name, (event) => {
-                  for (const row of table.rows) {
-                    const value = event.detail[row.dataset.key]
-                    row.cells[1].textContent =
-                      typeof value === "number" ? String(Math.round(value * 100) / 100) : String(value)
-                  }
+                // Standard / Reverse Events:  newest first, eight at most
+                function log(list, text) {
+                  const item = document.createElement("ui-item")
+                  item.textContent = text
+                  list.prepend(item)
+                  while (list.children.length > 8) list.lastElementChild.remove()
+                }
+                const logList = document.getElementById("visibility-log")
+                for (const name of EVENTS) {
+                  document
+                    .getElementById("visibility-logged")
+                    .addEventListener(name, (event) => log(logList, `${name}  (scrolling ${event.detail.direction})`))
+                }
+                await customElements.whenDefined("ui-root")
+                await globalThis.UI?.load?.()
+                const reverseList = document.getElementById("visibility-reverse-log")
+                const reverse = {}
+                for (const name of [
+                  "onTopVisibleReverse",
+                  "onBottomVisibleReverse",
+                  "onTopPassedReverse",
+                  "onBottomPassedReverse",
+                  "onPassingReverse"
+                ]) {
+                  reverse[name] = (calculations) => log(reverseList, `${name}  (scrolling ${calculations.direction})`)
+                }
+                globalThis.UI?.observeVisibility(document.getElementById("visibility-reversed"), {
+                  once: false,
+                  ...reverse
                 })
-              }
 
-              // Changing Callback Frequency:  count `ui-top-visible`
-              for (const counter of document.querySelectorAll(".visibility-counter")) {
-                let count = 0
-                counter.addEventListener("ui-top-visible", () => {
-                  counter.querySelector("ui-label").textContent = String(++count)
+                // Infinite Scroll:  three more items at each bottom, up to twelve
+                const list = document.getElementById("visibility-infinite-list")
+                const loader = document.getElementById("visibility-infinite-loader")
+                document.getElementById("visibility-infinite").addEventListener("ui-bottom-visible", () => {
+                  if (list.children.length >= 12) return loader.remove()
+                  loader.setAttribute("active", "")
+                  setTimeout(() => {
+                    for (let i = 0; i < 3; i++) {
+                      const item = document.createElement("ui-item")
+                      item.textContent = `Item ${list.children.length + 1}`
+                      list.append(item)
+                    }
+                    loader.removeAttribute("active")
+                    if (list.children.length >= 12) loader.remove()
+                  }, 500)
                 })
-              }
-
-              // Standard / Reverse Events:  newest first, eight at most
-              function log(list, text) {
-                const item = document.createElement("ui-item")
-                item.textContent = text
-                list.prepend(item)
-                while (list.children.length > 8) list.lastElementChild.remove()
-              }
-              const logList = document.getElementById("visibility-log")
-              for (const name of EVENTS) {
-                document
-                  .getElementById("visibility-logged")
-                  .addEventListener(name, (event) => log(logList, `${name}  (scrolling ${event.detail.direction})`))
-              }
-              await customElements.whenDefined("ui-root")
-              await globalThis.UI?.load?.()
-              const reverseList = document.getElementById("visibility-reverse-log")
-              const reverse = {}
-              for (const name of [
-                "onTopVisibleReverse",
-                "onBottomVisibleReverse",
-                "onTopPassedReverse",
-                "onBottomPassedReverse",
-                "onPassingReverse"
-              ]) {
-                reverse[name] = (calculations) => log(reverseList, `${name}  (scrolling ${calculations.direction})`)
-              }
-              globalThis.UI?.observeVisibility(document.getElementById("visibility-reversed"), {
-                once: false,
-                ...reverse
-              })
-
-              // Infinite Scroll:  three more items at each bottom, up to twelve
-              const list = document.getElementById("visibility-infinite-list")
-              const loader = document.getElementById("visibility-infinite-loader")
-              document.getElementById("visibility-infinite").addEventListener("ui-bottom-visible", () => {
-                if (list.children.length >= 12) return loader.remove()
-                loader.setAttribute("active", "")
-                setTimeout(() => {
-                  for (let i = 0; i < 3; i++) {
-                    const item = document.createElement("ui-item")
-                    item.textContent = `Item ${list.children.length + 1}`
-                    list.append(item)
-                  }
-                  loader.removeAttribute("active")
-                  if (list.children.length >= 12) loader.remove()
-                }, 500)
-              })
-            </script>
+              </script>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-            <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Visibility fires events when its content reaches a position on screen. Common uses:
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Visibility fires events when its content reaches a position on screen. Common uses:
 
-                - **Lazy loading images**: start loading an image just before the user sees it (`type="image"`).
-                - **Reactive content**: change an element as the user scrolls past it.
-                - **Event tracking**: log engagement, e.g. when a post is scrolled past (`ui-bottom-passed`).
-                - **Infinite scroll**: load more content when the bottom of a list comes on screen
-                  (`ui-bottom-visible`).
-                - Sticky headers are `<ui-sticky>`'s job, on CSS `position: sticky`.
+                  - **Lazy loading images**: start loading an image just before the user sees it (`type="image"`).
+                  - **Reactive content**: change an element as the user scrolls past it.
+                  - **Event tracking**: log engagement, e.g. when a post is scrolled past (`ui-bottom-passed`).
+                  - **Infinite scroll**: load more content when the bottom of a list comes on screen
+                    (`ui-bottom-visible`).
+                  - Sticky headers are `<ui-sticky>`'s job, on CSS `position: sticky`.
 
-                Wrap the content in `<ui-visibility>` and listen. It runs Fomantic's callbacks on an
-                `IntersectionObserver`: no scroll listener, nothing measured while the page scrolls. The checks
-                happen at crossings (the element entering or leaving, an edge crossing the screen's top or bottom),
-                so `continuous` means "at each crossing", not "at every scrolled pixel". `offset` moves the
-                screen's top down, under a fixed menu.
-              </script>
-            </ui-markdown>
+                  Wrap the content in `<ui-visibility>` and listen. It runs Fomantic's callbacks on an
+                  `IntersectionObserver`: no scroll listener, nothing measured while the page scrolls. The checks
+                  happen at crossings (the element entering or leaving, an edge crossing the screen's top or bottom),
+                  so `continuous` means "at each crossing", not "at every scrolled pixel". `offset` moves the
+                  screen's top down, under a fixed menu.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="events">Events</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Each event carries the calculations as `detail` (`topPassed`, `bottomVisible`, `percentagePassed`,
-                `pixelsPassed`, `direction` ...), and the element keeps `:state(visible)` while any of it is on
-                screen. By default each event fires at most once (`once`, Fomantic's default); `once="false"` fires
-                it each time its condition turns true.
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Each event carries the calculations as `detail` (`topPassed`, `bottomVisible`, `percentagePassed`,
+                  `pixelsPassed`, `direction` ...), and the element keeps `:state(visible)` while any of it is on
+                  screen. By default each event fires at most once (`once`, Fomantic's default); `once="false"` fires
+                  it each time its condition turns true.
 
-                - `ui-visible` (`onOnScreen`): some of it came on screen.
-                - `ui-hidden` (`onOffScreen`): none of it is on screen.
-                - `ui-top-visible` (`onTopVisible`): its top came on screen.
-                - `ui-bottom-visible` (`onBottomVisible`): its bottom came on screen.
-                - `ui-top-passed` (`onTopPassed`): its top passed the screen's top.
-                - `ui-bottom-passed` (`onBottomPassed`): its bottom passed the screen's top.
-                - `ui-passing` (`onPassing`): it spans the screen's top.
-                - `ui-load` (`{ image }`): with `type="image"`, an image got its source (and finished its fade).
-              </script>
-            </ui-markdown>
-            <ui-code language="js">
-              <script type="text/plain">
-                const watched = document.querySelector("#watched")
-                watched.addEventListener("ui-visible", (event) => console.log("on screen", event.detail.percentagePassed))
-                watched.addEventListener("ui-bottom-passed", () => analytics.track("read to the end"))
-              </script>
-            </ui-code>
+                  - `ui-visible` (`onOnScreen`): some of it came on screen.
+                  - `ui-hidden` (`onOffScreen`): none of it is on screen.
+                  - `ui-top-visible` (`onTopVisible`): its top came on screen.
+                  - `ui-bottom-visible` (`onBottomVisible`): its bottom came on screen.
+                  - `ui-top-passed` (`onTopPassed`): its top passed the screen's top.
+                  - `ui-bottom-passed` (`onBottomPassed`): its bottom passed the screen's top.
+                  - `ui-passing` (`onPassing`): it spans the screen's top.
+                  - `ui-load` (`{ image }`): with `type="image"`, an image got its source (and finished its fade).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const watched = document.querySelector("#watched")
+                  watched.addEventListener("ui-visible", (event) => console.log("on screen", event.detail.percentagePassed))
+                  watched.addEventListener("ui-bottom-passed", () => analytics.track("read to the end"))
+                </script>
+              </ui-code>
+            </ui-section>
 
-            <ui-header level="2" dividing id="observe-visibility">UI.observeVisibility()</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                `UI.observeVisibility(element, options)` runs the same checks on any element, without wrapping it.
-                It takes Fomantic's names, including the `...Reverse` callbacks (the condition turned false again)
-                and `onUpdate` (every check), plus `once`, `continuous`, `offset` and `context` (a scroll container
-                to measure against instead of the viewport). It returns the function that stops watching.
-              </script>
-            </ui-markdown>
-            <ui-code language="js">
-              <script type="text/plain">
-                import { UI } from "@spell-app/ui/core"
+            <ui-section id="usage-ui-observevisibility" header="UI.observeVisibility()" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `UI.observeVisibility(element, options)` runs the same checks on any element, without wrapping it.
+                  It takes Fomantic's names, including the `...Reverse` callbacks (the condition turned false again)
+                  and `onUpdate` (every check), plus `once`, `continuous`, `offset` and `context` (a scroll container
+                  to measure against instead of the viewport). It returns the function that stops watching.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  import { UI } from "@spell-app/ui/core"
 
-                await UI.load()
-                const stop = UI.observeVisibility(box, {
-                  once: false,
-                  context: scroller,
-                  onTopPassed: (calculations) => console.log("top passed", calculations.direction),
-                  onBottomVisible: () => loadMore(),
-                  onOffScreen: () => pause()
-                })
-                // later:  stop()
-              </script>
-            </ui-code>
+                  await UI.load()
+                  const stop = UI.observeVisibility(box, {
+                    once: false,
+                    context: scroller,
+                    onTopPassed: (calculations) => console.log("top passed", calculations.direction),
+                    onBottomVisible: () => loadMore(),
+                    onOffScreen: () => pause()
+                  })
+                  // later:  stop()
+                </script>
+              </ui-code>
+            </ui-section>
 
-            <ui-header level="2" dividing id="lazy-images">Lazy images</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                `type="image"` is Fomantic's lazy image loading: each `<img data-src>` (and `data-srcset`) inside
-                gets its source once it's on screen, preloaded, then fades in; `ui-load` fires per image. For
-                images alone, the browser's own `loading="lazy"` needs no script at all; `type="image"` adds the
-                fade and the event.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-lazy-images" header="Lazy images" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `type="image"` is Fomantic's lazy image loading: each `<img data-src>` (and `data-srcset`) inside
+                  gets its source once it's on screen, preloaded, then fades in; `ui-load` fires per image. For
+                  images alone, the browser's own `loading="lazy"` needs no script at all; `type="image"` adds the
+                  fade and the event.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                None of its own: it's a plain block around its content, which keeps its own keyboard behaviour.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  None of its own: it's a plain block around its content, which keeps its own keyboard behaviour.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                - Visibility changes nothing for assistive technology: it watches, and its content reads as usual.
-                - Don't hide content until it's scrolled to: keyboard and screen reader users move through a page
-                  without scrolling it the way a mouse does. Load more, or animate, but keep the content reachable.
-                - Lazy images keep their `alt` and their `width` / `height`, so the layout doesn't jump when they
-                  load.
-                - If the element can't render, its native fallback gives every `<img data-src>` its source at once,
-                  with `loading="lazy"`, so the browser still defers them and no image stays empty. The events are
-                  lost.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - Visibility changes nothing for assistive technology: it watches, and its content reads as usual.
+                  - Don't hide content until it's scrolled to: keyboard and screen reader users move through a page
+                    without scrolling it the way a mouse does. Load more, or animate, but keep the content reachable.
+                  - Lazy images keep their `alt` and their `width` / `height`, so the layout doesn't jump when they
+                    load.
+                  - If the element can't render, its native fallback gives every `<img data-src>` its source at once,
+                    with `loading="lazy"`, so the browser still defers them and no image stays empty. The events are
+                    lost.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Listen for the events you need; in a component, call `UI.observeVisibility()` in a mount hook, and
-                call what it returns on unmount.
-              </script>
-            </ui-markdown>
-            <ui-header level="4" id="framework-react">React 19</ui-header>
-            <ui-code language="jsx">
-              <script type="text/plain">
-                <ui-visibility once="false" onui-bottom-visible={loadMore}>...</ui-visibility>
-                useEffect(() => UI.observeVisibility(ref.current, { onTopPassed: showBackToTop, once: false }), [])
-              </script>
-            </ui-code>
-            <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-            <ui-code language="html">
-              <script type="text/plain">
-                <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                <ui-visibility once="false" @ui-bottom-visible="loadMore">...</ui-visibility>
-              </script>
-            </ui-code>
-            <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-            <ui-code language="jsx">
-              <script type="text/plain">
-                // no `on:` namespace:  listen through a ref
-                <ui-visibility once="false" ref={(el) => el.addEventListener("ui-bottom-visible", loadMore)}>
-                  ...
-                </ui-visibility>
-              </script>
-            </ui-code>
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Listen for the events you need; in a component, call `UI.observeVisibility()` in a mount hook, and
+                  call what it returns on unmount.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-visibility once="false" onui-bottom-visible={loadMore}>...</ui-visibility>
+                  useEffect(() => UI.observeVisibility(ref.current, { onTopPassed: showBackToTop, once: false }), [])
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-visibility once="false" @ui-bottom-visible="loadMore">...</ui-visibility>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-visibility once="false" ref={(el) => el.addEventListener("ui-bottom-visible", loadMore)}>
+                    ...
+                  </ui-visibility>
+                </script>
+              </ui-code>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="api" label="API">
@@ -675,28 +705,30 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                A visibility draws nothing: it's a plain block around its content, with no tokens of its own. Style
-                it through `::part(visibility)`, and the images' fade with `transition` and `duration`.
-              </script>
-            </ui-markdown>
-            <ui-code language="css">
-              <script type="text/plain">
-                ui-visibility::part(visibility) {
-                  min-height: 50vh;
-                }
-              </script>
-            </ui-code>
-            <ui-docs-tokens family="ui-visibility" playground></ui-docs-tokens>
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A visibility draws nothing: it's a plain block around its content, with no tokens of its own. Style
+                  it through `::part(visibility)`, and the images' fade with `transition` and `duration`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-visibility::part(visibility) {
+                    min-height: 50vh;
+                  }
+                </script>
+              </ui-code>
+              <ui-docs-tokens family="ui-visibility" playground></ui-docs-tokens>
+            </ui-section>
 
-            <ui-header level="2" dividing id="themes">Themes</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                No Fomantic theme restyles visibility: it has no look to restyle.
-              </script>
-            </ui-markdown>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles visibility: it has no look to restyle.
+                </script>
+              </ui-markdown>
+            </ui-section>
           </ui-tab>
         </ui-tabs>
       </ui-container>

@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url"
 
 import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright"
 
+import { TocIndex } from "../src/docs-components/ui-docs-toc/TocIndex.ts"
+
 /**
  * Checks the plain-HTML Spell UI docs pages (`site/*.html`, `site/components/ui-<name>.html`) in headless chromium,
  * served by this checkout's page server at `/ui/`.
@@ -20,6 +22,8 @@ import { chromium, type Browser, type BrowserContextOptions, type Page } from "p
  *   - component pages (`components/ui-*.html`, not the index):  not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming`;  a pane
  *     that isn't the shown one when loaded with its `#hash`, or shows under 50px
  *   - `ui-docs-toc`:  hidden or empty on desktop, visible on phone
+ *   - sections (`yarn site:sections`):  an id that doesn't follow its nesting, a flat level 2 header left, a deep link
+ *     to the first nested section that doesn't land (pane shown, unfolded, its title on its line below the stuck ones)
  *   - horizontal scroll at phone width, listing the elements past the edge, outermost and deepest:  what a fixer
  *     needs;  a nav button (`ui-button.site-menu-button`) whose flyout doesn't open
  * - Every page is checked, whatever failed before it.  Problems go to stderr, with each page's URL, counts and
@@ -62,6 +66,12 @@ export class SiteCheck {
 
   /** Pane shorter than this counts as empty. */
   static readonly MIN_PANE_HEIGHT = 50
+
+  /** `localStorage` key prefix of a page's folds, + its path (`site/_src/SiteSections.ts` `FOLDS_KEY`). */
+  static readonly FOLDS_KEY = "spell-ui-site:folds:"
+
+  /** How long a deep link may take to land after the page settles (the landing's settle is 400ms), ms. */
+  static readonly LAND_MS = 900
 
   /** Page files to check, absolute. */
   readonly files: string[]
@@ -226,7 +236,7 @@ export class SiteCheck {
     }
     const seen = new Map<string, number>()
     const context: CheckContext = { file, path, name: SiteCheck.shotName(path), report, problem, unsettled: false }
-    for (const step of [this.checkDesktop, this.checkPhone, this.checkDark]) {
+    for (const step of [this.checkDesktop, this.checkSections, this.checkPhone, this.checkDark]) {
       try {
         await step.call(this, context)
       } catch (error) {
@@ -303,6 +313,56 @@ export class SiteCheck {
         await this.shoot(page, check, `${name}-desk-${value}.png`)
         if (value === values[0]) await this.shoot(page, check, `${name}-desk-full.png`, true)
       }
+    } finally {
+      await page.context().close()
+    }
+  }
+
+  /**
+   * Sections (`yarn site:sections`):  ids that follow their nesting, no flat level 2 header left, and a deep link that
+   * lands.
+   * - every page section's id is its parent section's id (at the top:  its pane's value;  a page without tabs:
+   *   nothing) + `-` + the slug of its header (`TocIndex.slug()`), maybe + `-<n>` (made unique)
+   * - no `<ui-header level="2">` in a tab pane (outside examples), nor straight inside a page's article
+   * - a deep link to the first NESTED section (else the first), with its top-level section saved folded:  lands with
+   *   that pane shown, every section around it unfolded, its title on its line below the stuck ones;  screenshot
+   *   `<page>-desk-deep.png`
+   */
+  private async checkSections(check: CheckContext): Promise<void> {
+    const { report, problem, name } = check
+    const page = await this.open(check, SiteCheck.DESKTOP, "sections")
+    try {
+      await this.load(page, report.url, check)
+      const state = await page.evaluate(sectionsState)
+      report.counts.sections = state.sections.length
+      for (const text of state.flat) problem(`flat <ui-header level="2"> (${text}):  \`yarn site:sections\` nests it`)
+      for (const section of state.sections) {
+        const prefix = section.parent ?? section.pane
+        const base = prefix ? `${prefix}-${TocIndex.slug(section.text)}` : TocIndex.slug(section.text)
+        const follows = section.id === base || new RegExp(`^${base}-\\d+$`).test(section.id)
+        if (!follows)
+          problem(`section #${section.id || "(no id)"} should be #${base}:  \`yarn site:sections\` fixes the ids`)
+      }
+      const target = state.sections.find((section) => section.parent) ?? state.sections[0]
+      if (!target?.id) return
+      // fold its top-level section first:  the landing must unfold it (and not save that)
+      const outer = SiteCheck.outermost(state.sections, target)
+      const key = `${SiteCheck.FOLDS_KEY}${new URL(report.url).pathname}`
+      await page.evaluate(([key, id]) => localStorage.setItem(key!, JSON.stringify({ [id!]: true })), [key, outer.id])
+      await page.goto("about:blank")
+      await this.load(page, `${report.url}#${target.id}`, check)
+      await page.waitForTimeout(SiteCheck.LAND_MS)
+      const landed = await page.evaluate(landedState, target.id)
+      report.counts.deepLink = { id: target.id, ...landed }
+      if (!landed) problem(`deep link #${target.id}:  no such element once loaded`)
+      else {
+        if (!landed.shown) problem(`deep link #${target.id}:  its pane isn't the shown one`)
+        if (landed.folded) problem(`deep link #${target.id}:  still folded (it or a section around it)`)
+        if (Math.abs(landed.top - landed.line) > 3)
+          problem(`deep link #${target.id}:  its title at ${landed.top}px, not on its line ${landed.line}px`)
+      }
+      await this.shoot(page, check, `${name}-desk-deep.png`)
+      await page.evaluate((key) => localStorage.removeItem(key), key)
     } finally {
       await page.context().close()
     }
@@ -442,6 +502,17 @@ export class SiteCheck {
     }
   }
 
+  /** The top-level section holding `section` (or `section` itself), from `sectionsState()`'s list. */
+  static outermost(sections: readonly SectionState[], section: SectionState): SectionState {
+    let outer = section
+    while (outer.parent) {
+      const parent = sections.find((other) => other.id === outer.parent)
+      if (!parent) break
+      outer = parent
+    }
+    return outer
+  }
+
   /** Screenshot `page` to `out/<file>`:  the viewport, or the full page;  listed in the report. */
   private async shoot(page: Page, check: CheckContext, file: string, fullPage = false): Promise<void> {
     const path = join(this.out, file)
@@ -481,6 +552,18 @@ export type PageReport = {
   counts: Record<string, any>
   /** absolute PNG paths */
   screenshots: string[]
+}
+
+/** One page section, as `sectionsState()` reads it. */
+type SectionState = {
+  /** its id, `""` for none */
+  id: string
+  /** its title:  `header`, else its `slot="header"` child's text */
+  text: string
+  /** the id of the section it's in, `null` at the top */
+  parent: string | null
+  /** the value of the site tab pane it's in, `null` on a page without tabs */
+  pane: string | null
 }
 
 /** What the viewport steps share for one page. */
@@ -558,6 +641,69 @@ function tabsState() {
     shown = values.filter((_, i) => heights[i]! > 0)
   }
   return { count: all.length, values, heights, shown }
+}
+
+/**
+ * The page's sections (every `ui-section` in `main` but the demos inside examples), and the level 2 headers left
+ * flat:  any in a site tab pane outside an example, or straight inside a page's article.
+ */
+function sectionsState() {
+  const main = document.querySelector("main#main")
+  const tabs = main?.querySelector("ui-tabs.site-tabs")
+  const page = (element: Element) => !element.parentElement?.closest("ui-docs-example, template")
+  const sections = [...(main?.querySelectorAll("ui-section") ?? [])].filter(page).map((section) => {
+    const pane = section.closest("ui-tab")
+    const slotted = section.querySelector(':scope > [slot="header"]')
+    return {
+      id: section.id,
+      text: (section.getAttribute("header") || slotted?.textContent || "").replace(/\s+/g, " ").trim(),
+      parent: section.parentElement?.closest("ui-section")?.id ?? null,
+      pane: tabs && pane?.parentElement === tabs ? pane.getAttribute("value") : null
+    }
+  })
+  const flat: string[] = []
+  const roots = tabs
+    ? [...tabs.querySelectorAll(":scope > ui-tab")]
+    : [...(main?.querySelectorAll(".site-article") ?? [])]
+  for (const root of roots) {
+    const headers = root.querySelectorAll(tabs ? 'ui-header[level="2"]' : ':scope > ui-header[level="2"]')
+    for (const header of [...headers].filter(page))
+      flat.push(`${root.getAttribute("value") ?? "article"}:  ${header.textContent?.replace(/\s+/g, " ").trim()}`)
+  }
+  return { sections, flat }
+}
+
+/**
+ * Where the section `id` landed:  its title's top (its sentinel's:  where it is unstuck), the line it should be on
+ * (its top-level section's `offset` + the titles of the sections around it), folded (it or one around it), its
+ * pane shown;  null if there's no such element.
+ */
+function landedState(id: string) {
+  const target = document.getElementById(id)
+  if (!target) return null
+  const around: Element[] = []
+  let section = target.parentElement?.closest("ui-section")
+  while (section) {
+    around.push(section)
+    section = section.parentElement?.closest("ui-section")
+  }
+  let line = Number((around.at(-1) ?? target).getAttribute("offset") || 0)
+  for (const section of around)
+    line += section.shadowRoot?.querySelector('[part~="title"]')?.getBoundingClientRect().height ?? 0
+  const pane = target.closest("ui-tab")
+  let shown = true
+  try {
+    shown = !pane || pane.matches(":state(selected)")
+  } catch {
+    // a browser without custom states:  not checked
+  }
+  const box = target.shadowRoot?.querySelector(".sentinel") ?? target
+  return {
+    top: Math.round(box.getBoundingClientRect().top),
+    line: Math.round(line),
+    folded: [target, ...around].some((section) => section.hasAttribute("collapsed")),
+    shown
+  }
 }
 
 /** The `ui-docs-toc`, or null:  whether it has a box, and its entries (`ui-item` / `a` in its shadow root). */

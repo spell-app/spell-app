@@ -17,6 +17,8 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
+import { SiteSections } from "./site-sections.ts"
+
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
 
@@ -195,7 +197,8 @@ if (existsSync(file) && !args.includes("--force")) {
   console.error(`${path.relative(process.cwd(), file)} exists:  pass --force to overwrite it`)
   process.exit(1)
 }
-writeFileSync(file, writer.render(facts))
+// the template's section ids are written for its placeholder title:  fixed for the page's own (`#examples-types-card`)
+writeFileSync(file, SiteSections.convert(writer.render(facts)))
 console.log(`wrote ${path.relative(process.cwd(), file)}  (${facts.tag ? `component ${facts.tag}` : "page"})`)
 console.log(`  view:  yarn server url ${file}   (from the repo root);  check:  yarn site:check ${facts.file}`)
 

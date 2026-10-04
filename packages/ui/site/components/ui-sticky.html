@@ -57,364 +57,395 @@
               - Fomantic puts the stickies in `left` / `right` rails OUTSIDE the segment;  here the site's own nav and "On this
                 page" columns sit there, so the stickies go in `stretched` grid columns beside the content instead.
             -->
-            <ui-header level="2" dividing id="introduction">Introduction</ui-header>
+            <ui-section id="examples-introduction" header="Introduction" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Sticky content stays fixed to the browser viewport while another column of content is visible on the page.
 
-            <ui-markdown>
-              <script type="text/markdown">
-                Sticky content stays fixed to the browser viewport while another column of content is visible on the page.
-
-                Although sticky content can be used inside any container, sticky pairs well with `<ui-rail>`, because "stuck"
-                content often occupies additional canvas space outside the main content of a website, making sure follow-up
-                links, ads and other ancillary content remain on screen while the reader engages with the main content.
-              </script>
-            </ui-markdown>
-            <ui-message state="warning" size="small"
-              >The following examples work best on a large display: on a phone the columns get narrow.</ui-message
-            >
-
-            <ui-header level="2" dividing id="sticky-examples">Examples</ui-header>
-
-            <ui-docs-example header="Sticking to Adjacent Context">
-              <p slot="description">
-                Sticky content attaches itself to the viewport when it is passed, and stays fixed to the viewport
-                until it collides with the bottom edge of its context. Additional static content can exist above
-                sticky content without affecting its position.
-              </p>
-              <ui-message slot="description" state="info" size="small"
-                >The context is the sticky's PARENT, here a <code>stretched</code>
-                <code>&lt;ui-column&gt;</code> (Fomantic uses rails outside the segment, where this site keeps its
-                own columns): Fomantic's <code>context</code> setting (any element) has no CSS equivalent, so put
-                the sticky inside the element it belongs to.</ui-message
+                  Although sticky content can be used inside any container, sticky pairs well with `<ui-rail>`, because "stuck"
+                  content often occupies additional canvas space outside the main content of a website, making sure follow-up
+                  links, ads and other ancillary content remain on screen while the reader engages with the main content.
+                </script>
+              </ui-markdown>
+              <ui-message state="warning" size="small"
+                >The following examples work best on a large display: on a phone the columns get narrow.</ui-message
               >
-              <ui-segment>
-                <ui-grid>
-                  <ui-column width="4" stretched>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-sticky offset="64">
-                      <ui-header level="3">Stuck Content</ui-header>
-                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
-                    </ui-sticky>
-                  </ui-column>
-                  <ui-column width="8">
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                  </ui-column>
-                  <ui-column width="4" stretched>
-                    <ui-sticky offset="64">
-                      <ui-header level="3">Stuck Content</ui-header>
-                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
-                    </ui-sticky>
-                  </ui-column>
-                </ui-grid>
-              </ui-segment>
-            </ui-docs-example>
+            </ui-section>
 
-            <ui-docs-example header="Pushing">
-              <p slot="description">
-                With <code>pushing</code> the viewport &quot;pushes&quot; the sticky content: it sticks to the top
-                while scrolling down past it, and waits at the bottom edge (<code>bottom-offset</code> from it)
-                while it is still below the fold.
-              </p>
-              <ui-segment>
-                <ui-grid>
-                  <ui-column width="4" stretched>
-                    <ui-sticky offset="64" bottom-offset="16" pushing>
-                      <ui-header level="3">Stuck Content</ui-header>
-                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
-                    </ui-sticky>
-                  </ui-column>
-                  <ui-column width="8">
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                  </ui-column>
-                  <ui-column width="4" stretched>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-sticky offset="64" bottom-offset="16" pushing>
-                      <ui-header level="3">Stuck Content</ui-header>
-                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
-                    </ui-sticky>
-                  </ui-column>
-                </ui-grid>
-              </ui-segment>
-            </ui-docs-example>
-
-            <!-- GAP I67:  the narrow column stacks the items, so each tiny image grows to the column width (fixed in source;  shows after the next site build). -->
-            <ui-docs-example header="Oversized Content">
-              <p slot="description">
-                Sticky content that is larger than the viewport stays where the page puts it: a
-                <code>position: sticky</code>
-                box taller than the view scrolls with the page until its end is reached, then sticks.
-              </p>
-              <ui-message slot="description" size="small" class="site-not-ported"
-                >Not ported: Fomantic's scrolling of oversized content against the scroll direction -- the browser's
-                <code>position: sticky</code> does the sticking, with no scroll listener.</ui-message
+            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
+              <ui-section
+                id="examples-examples-sticking-to-adjacent-context"
+                header="Sticking to Adjacent Context"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-segment>
-                <ui-grid>
-                  <ui-column width="4" stretched>
-                    <ui-sticky offset="64">
-                      <ui-header level="3">Long Stuck Content</ui-header>
-                      <ui-items divided>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                        <ui-item>
-                          <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
-                          <ui-content vertical-align="middle">
-                            <ui-header href="#followup">Followup Article</ui-header>
-                            <ui-meta>By <a href="#author">Author</a></ui-meta>
-                          </ui-content>
-                        </ui-item>
-                      </ui-items>
-                    </ui-sticky>
-                  </ui-column>
-                  <ui-column width="8">
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                  </ui-column>
-                  <ui-column width="4" stretched>
-                    <ui-sticky offset="64">
-                      <ui-header level="3">Short Stuck Content</ui-header>
-                      <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
-                    </ui-sticky>
-                  </ui-column>
-                </ui-grid>
-              </ui-segment>
-            </ui-docs-example>
+                <ui-docs-example>
+                  <p slot="description">
+                    Sticky content attaches itself to the viewport when it is passed, and stays fixed to the viewport
+                    until it collides with the bottom edge of its context. Additional static content can exist above
+                    sticky content without affecting its position.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >The context is the sticky's PARENT, here a <code>stretched</code>
+                    <code>&lt;ui-column&gt;</code> (Fomantic uses rails outside the segment, where this site keeps its
+                    own columns): Fomantic's <code>context</code> setting (any element) has no CSS equivalent, so put
+                    the sticky inside the element it belongs to.</ui-message
+                  >
+                  <ui-segment>
+                    <ui-grid>
+                      <ui-column width="4" stretched>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-sticky offset="64">
+                          <ui-header level="3">Stuck Content</ui-header>
+                          <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        </ui-sticky>
+                      </ui-column>
+                      <ui-column width="8">
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="4" stretched>
+                        <ui-sticky offset="64">
+                          <ui-header level="3">Stuck Content</ui-header>
+                          <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        </ui-sticky>
+                      </ui-column>
+                    </ui-grid>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Sticking to Own Context">
-              <p slot="description">
-                Sticky content can also stick within the element it's in. It keeps its room while stuck, so the
-                content after it doesn't jump: no <code>ui fixed sticky + p</code> margin fix is needed.
-              </p>
-              <ui-segment>
-                <ui-sticky offset="64">
-                  <ui-menu fluid items="3" tabular aria-label="Tabs">
-                    <ui-item active href="#tab-1">Tab 1</ui-item>
-                    <ui-item href="#tab-2">Tab 2</ui-item>
-                    <ui-item href="#tab-3">Tab 3</ui-item>
-                  </ui-menu>
-                </ui-sticky>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-              </ui-segment>
-            </ui-docs-example>
+              <ui-section id="examples-examples-pushing" header="Pushing" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    With <code>pushing</code> the viewport &quot;pushes&quot; the sticky content: it sticks to the top
+                    while scrolling down past it, and waits at the bottom edge (<code>bottom-offset</code> from it)
+                    while it is still below the fold.
+                  </p>
+                  <ui-segment>
+                    <ui-grid>
+                      <ui-column width="4" stretched>
+                        <ui-sticky offset="64" bottom-offset="16" pushing>
+                          <ui-header level="3">Stuck Content</ui-header>
+                          <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        </ui-sticky>
+                      </ui-column>
+                      <ui-column width="8">
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="4" stretched>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-sticky offset="64" bottom-offset="16" pushing>
+                          <ui-header level="3">Stuck Content</ui-header>
+                          <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        </ui-sticky>
+                      </ui-column>
+                    </ui-grid>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I67:  the narrow column stacks the items, so each tiny image grows to the column width (fixed in source;  shows after the next site build). -->
+              <ui-section
+                id="examples-examples-oversized-content"
+                header="Oversized Content"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    Sticky content that is larger than the viewport stays where the page puts it: a
+                    <code>position: sticky</code>
+                    box taller than the view scrolls with the page until its end is reached, then sticks.
+                  </p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: Fomantic's scrolling of oversized content against the scroll direction -- the browser's
+                    <code>position: sticky</code> does the sticking, with no scroll listener.</ui-message
+                  >
+                  <ui-segment>
+                    <ui-grid>
+                      <ui-column width="4" stretched>
+                        <ui-sticky offset="64">
+                          <ui-header level="3">Long Stuck Content</ui-header>
+                          <ui-items divided>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                            <ui-item>
+                              <ui-image src="../images/wireframe/image.png" alt="" size="tiny"></ui-image>
+                              <ui-content vertical-align="middle">
+                                <ui-header href="#followup">Followup Article</ui-header>
+                                <ui-meta>By <a href="#author">Author</a></ui-meta>
+                              </ui-content>
+                            </ui-item>
+                          </ui-items>
+                        </ui-sticky>
+                      </ui-column>
+                      <ui-column width="8">
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-column>
+                      <ui-column width="4" stretched>
+                        <ui-sticky offset="64">
+                          <ui-header level="3">Short Stuck Content</ui-header>
+                          <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                        </ui-sticky>
+                      </ui-column>
+                    </ui-grid>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-examples-sticking-to-own-context"
+                header="Sticking to Own Context"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    Sticky content can also stick within the element it's in. It keeps its room while stuck, so the
+                    content after it doesn't jump: no <code>ui fixed sticky + p</code> margin fix is needed.
+                  </p>
+                  <ui-segment>
+                    <ui-sticky offset="64">
+                      <ui-menu fluid items="3" tabular aria-label="Tabs">
+                        <ui-item active href="#tab-1">Tab 1</ui-item>
+                        <ui-item href="#tab-2">Tab 2</ui-item>
+                        <ui-item href="#tab-3">Tab 3</ui-item>
+                      </ui-menu>
+                    </ui-sticky>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how it sticks, the context, the stuck state and events, accessibility, framework snippets. -->
-            <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                A sticky IS CSS `position: sticky` (Fomantic's `native` type): no scroll listener, no script positioning,
-                nothing to measure or refresh.
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A sticky IS CSS `position: sticky` (Fomantic's `native` type): no scroll listener, no script positioning,
+                  nothing to measure or refresh.
 
-                - `offset` and `bottom-offset` (px) become its `top` and `bottom`: leave room for a fixed header with `offset`.
-                - `pushing` also sticks it to the bottom edge: content below the fold waits there until the page reaches it.
-                - It sticks to its nearest scroll container, else the viewport (Fomantic's `scrollContext`).
-              </script>
-            </ui-markdown>
+                  - `offset` and `bottom-offset` (px) become its `top` and `bottom`: leave room for a fixed header with `offset`.
+                  - `pushing` also sticks it to the bottom edge: content below the fold waits there until the page reaches it.
+                  - It sticks to its nearest scroll container, else the viewport (Fomantic's `scrollContext`).
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="context">Context</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                The host has no box of its own (`display: contents`), so the sticky sticks within its PARENT, and the end of that
-                parent pushes it out. Fomantic's `context` setting (any element) has no CSS equivalent: put the sticky inside the
-                element it belongs to, such as a rail.
-              </script>
-            </ui-markdown>
-            <ui-code language="html">
-              <script type="text/plain">
-                <ui-segment>
-                  <ui-rail position="right">
-                    <ui-sticky offset="60">Table of contents</ui-sticky>
-                  </ui-rail>
-                  ...the article...
-                </ui-segment>
-              </script>
-            </ui-code>
+            <ui-section id="usage-context" header="Context" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The host has no box of its own (`display: contents`), so the sticky sticks within its PARENT, and the end of that
+                  parent pushes it out. Fomantic's `context` setting (any element) has no CSS equivalent: put the sticky inside the
+                  element it belongs to, such as a rail.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-segment>
+                    <ui-rail position="right">
+                      <ui-sticky offset="60">Table of contents</ui-sticky>
+                    </ui-rail>
+                    ...the article...
+                  </ui-segment>
+                </script>
+              </ui-code>
+            </ui-section>
 
-            <ui-header level="2" dividing id="events">Stuck state and events</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                What the element adds is reporting. It keeps `:state(stuck)` while stuck and `:state(bound)` while pushed out by
-                the end of its parent, and fires `ui-stick` / `ui-unstick` (Fomantic's `onStick` / `onUnstick`, with `{ edge }`,
-                `top` or `bottom`) as that changes. It watches with an `IntersectionObserver` on two 1px markers, against the
-                nearest scroll container (else the viewport).
-              </script>
-            </ui-markdown>
-            <ui-code language="css">
-              <script type="text/plain">
-                ui-sticky:state(stuck)::part(sticky) {
-                  box-shadow: 0 2px 4px oklch(0 0 0 / 0.15);
-                }
-              </script>
-            </ui-code>
-            <ui-code language="js">
-              <script type="text/plain">
-                document
-                  .querySelector("ui-sticky")
-                  .addEventListener("ui-stick", (event) => console.log("stuck to the", event.detail.edge))
-              </script>
-            </ui-code>
+            <ui-section id="usage-stuck-state-and-events" header="Stuck state and events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  What the element adds is reporting. It keeps `:state(stuck)` while stuck and `:state(bound)` while pushed out by
+                  the end of its parent, and fires `ui-stick` / `ui-unstick` (Fomantic's `onStick` / `onUnstick`, with `{ edge }`,
+                  `top` or `bottom`) as that changes. It watches with an `IntersectionObserver` on two 1px markers, against the
+                  nearest scroll container (else the viewport).
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-sticky:state(stuck)::part(sticky) {
+                    box-shadow: 0 2px 4px oklch(0 0 0 / 0.15);
+                  }
+                </script>
+              </ui-code>
+              <ui-code language="js">
+                <script type="text/plain">
+                  document
+                    .querySelector("ui-sticky")
+                    .addEventListener("ui-stick", (event) => console.log("stuck to the", event.detail.edge))
+                </script>
+              </ui-code>
+            </ui-section>
 
-            <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                - A sticky changes nothing for assistive technology: its content stays where it is in reading and Tab order.
-                - Stuck content covers what scrolls under it, so while stuck the element RESERVES its room: it sets its scroll
-                  container's `scroll-padding-top` (`-bottom` at the bottom edge) to the lowest stuck edge. Focus moves,
-                  `scrollIntoView()` and Page Down / Space (Chromium, Firefox; Safari pages the full viewport) then keep content
-                  out from under it.
-                - A sticky column (taller than half the view, or narrower than half its width) reserves nothing. Keep stuck
-                  content small all the same.
-                - If the element can't render, its native fallback still sticks (it's CSS); only `:state(stuck)` and the events
-                  are lost.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A sticky changes nothing for assistive technology: its content stays where it is in reading and Tab order.
+                  - Stuck content covers what scrolls under it, so while stuck the element RESERVES its room: it sets its scroll
+                    container's `scroll-padding-top` (`-bottom` at the bottom edge) to the lowest stuck edge. Focus moves,
+                    `scrollIntoView()` and Page Down / Space (Chromium, Firefox; Safari pages the full viewport) then keep content
+                    out from under it.
+                  - A sticky column (taller than half the view, or narrower than half its width) reserves nothing. Keep stuck
+                    content small all the same.
+                  - If the element can't render, its native fallback still sticks (it's CSS); only `:state(stuck)` and the events
+                    are lost.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Nothing to bind: put it in the template, and listen for `ui-stick` / `ui-unstick` if you need to know.
-              </script>
-            </ui-markdown>
-            <ui-header level="4" id="framework-react">React 19</ui-header>
-            <ui-code language="jsx">
-              <script type="text/plain">
-                <ui-sticky offset={60} onui-stick={() => setStuck(true)} onui-unstick={() => setStuck(false)}>
-                  ...
-                </ui-sticky>
-              </script>
-            </ui-code>
-            <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-            <ui-code language="html">
-              <script type="text/plain">
-                <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                <ui-sticky offset="60" @ui-stick="stuck = true" @ui-unstick="stuck = false">...</ui-sticky>
-              </script>
-            </ui-code>
-            <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-            <ui-code language="jsx">
-              <script type="text/plain">
-                // no `on:` namespace:  listen through a ref
-                <ui-sticky offset="60" ref={(el) => el.addEventListener("ui-stick", () => setStuck(true))}>
-                  ...
-                </ui-sticky>
-              </script>
-            </ui-code>
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Nothing to bind: put it in the template, and listen for `ui-stick` / `ui-unstick` if you need to know.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-sticky offset={60} onui-stick={() => setStuck(true)} onui-unstick={() => setStuck(false)}>
+                    ...
+                  </ui-sticky>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-sticky offset="60" @ui-stick="stuck = true" @ui-unstick="stuck = false">...</ui-sticky>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-sticky offset="60" ref={(el) => el.addEventListener("ui-stick", () => setStuck(true))}>
+                    ...
+                  </ui-sticky>
+                </script>
+              </ui-code>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="api" label="API">
@@ -424,41 +455,43 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Theme with the public `--ui-sticky-*` tokens on the sticky or any ancestor; `::part(sticky)` works too. Style the
-                box through `::part(sticky)`, and a stuck one through `:state(stuck)`.
-              </script>
-            </ui-markdown>
-            <ui-code language="css">
-              <script type="text/plain">
-                ui-sticky {
-                  --ui-sticky-z-index: 50;
-                }
-                ui-sticky:state(stuck)::part(sticky) {
-                  background: var(--ui-surface);
-                }
-              </script>
-            </ui-code>
-            <ui-message state="info" size="small">
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  The offsets come from the `offset` / `bottom-offset` attributes; `--ui-sticky-offset` /
-                  `--ui-sticky-bottom-offset` are for class-grammar markup only. Never set the `--_ui-sticky-*` names: the element
-                  writes them inline from its attributes.
+                  Theme with the public `--ui-sticky-*` tokens on the sticky or any ancestor; `::part(sticky)` works too. Style the
+                  box through `::part(sticky)`, and a stuck one through `:state(stuck)`.
                 </script>
               </ui-markdown>
-            </ui-message>
-            <ui-markdown>Edit a value below to try it.</ui-markdown>
-            <ui-docs-tokens family="ui-sticky" playground></ui-docs-tokens>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-sticky {
+                    --ui-sticky-z-index: 50;
+                  }
+                  ui-sticky:state(stuck)::part(sticky) {
+                    background: var(--ui-surface);
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The offsets come from the `offset` / `bottom-offset` attributes; `--ui-sticky-offset` /
+                    `--ui-sticky-bottom-offset` are for class-grammar markup only. Never set the `--_ui-sticky-*` names: the element
+                    writes them inline from its attributes.
+                  </script>
+                </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-sticky" playground></ui-docs-tokens>
+            </ui-section>
 
-            <ui-header level="2" dividing id="themes">Themes</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                No Fomantic theme restyles the sticky: it has no look of its own, only whatever it holds.
-              </script>
-            </ui-markdown>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles the sticky: it has no look of its own, only whatever it holds.
+                </script>
+              </ui-markdown>
+            </ui-section>
           </ui-tab>
         </ui-tabs>
       </ui-container>
