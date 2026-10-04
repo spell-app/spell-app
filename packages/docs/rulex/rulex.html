@@ -65,10 +65,12 @@
             </li>
             <li>
               TWO tokenizers are involved, and only one is the language's. The rules MATCH the language's tokens
-              (spell's, or a markdown tokenizer's). But rulex READS each syntax string with its own, today the default
-              spell-flavoured one. That is the only reason <code>--</code>, <code>//</code>, a line-start
-              <code>#</code>, quotes and <code>&lt;tag&gt;</code> misbehave in a syntax (<a href="#6-traps">6. Traps</a
-              >). Planned: give rulex a plain tokenizer (<a href="#8-open">8.</a>), and they become ordinary symbols.
+              (spell's, or a markdown tokenizer's). But rulex READS each syntax string with its own:
+              <code>RulexTokenizer</code>, words, numbers, symbols and whitespace only (since 2026-10-04). So
+              <code>--</code>, <code>//</code>, <code>#</code>, quotes and <code>&lt;tag&gt;</code> are ordinary symbols
+              in a syntax; before, spell's tokenizer turned them into comments, text and JSX (<a href="#6-traps"
+                >6. Traps</a
+              >).
             </li>
             <li>
               What the rules it builds match: token VALUES, exact and case-sensitive. Today whitespace is invisible:
@@ -213,9 +215,9 @@ math.addRule(plus, {
                   <td><code>1</code></td>
                   <td><code>Keyword(1)</code></td>
                   <td>
-                    Matches a number token of that value. Unused in spell. Today <code>1.1</code>, <code>.5</code> and
-                    <code>-1</code> are each ONE number, and <code>1.1.1</code> crashes the compile. Planned: digits
-                    only, so <code>1.1</code> is <code>1</code> <code>.</code> <code>1</code>
+                    Matches a number token of that value. Unused in spell. Digits only: <code>1.1</code> is
+                    <code>1</code> <code>.</code> <code>1</code>, <code>-1</code> is <code>-</code> <code>1</code>.
+                    (Before 2026-10-04 both were ONE number, and <code>1.1.1</code> crashed the compile.)
                   </td>
                 </tr>
                 <tr>
@@ -605,10 +607,11 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
               language picks its own, so nothing to fix in rulex.
             </li>
             <li>
-              <b>Syntax side</b>: rulex reads every syntax string with the DEFAULT <code>P.Tokenizer</code>, which knows
-              spell's comments, quotes and JSX. That's the column "Today" below. Planned (<a href="#8-open">8.</a>):
-              rulex gets its own plain tokenizer (words, numbers, symbols, whitespace), and every row but the
-              rulex-syntax ones goes away. No spell syntax uses any of those characters, so spell doesn't notice.
+              <b>Syntax side</b>: until 2026-10-04 rulex read every syntax string with the DEFAULT
+              <code>P.Tokenizer</code>, which knows spell's comments, quotes and JSX: the column "Before" below. Now it
+              has its own plain <code>RulexTokenizer</code> (words, numbers, symbols, whitespace), and every trap but
+              <code>**{text}**</code> (rulex's own syntax) is gone. No spell syntax used any of those characters, so
+              spell didn't notice.
             </li>
           </ul>
           <ui-table celled compact striped>
@@ -616,9 +619,9 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
               <thead>
                 <tr>
                   <th>Syntax</th>
-                  <th>Today</th>
-                  <th>Today's workaround</th>
-                  <th>With a plain rulex tokenizer</th>
+                  <th>Before</th>
+                  <th>Workaround then</th>
+                  <th>Now</th>
                 </tr>
               </thead>
               <tbody>
@@ -846,8 +849,8 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
 
         <ui-section id="8-open" header="8. Planned changes" sticky collapsible dividing collapsed>
           <p>
-            Decided with Owen on 2026-10-03, after reviewing this page. Built in the <code>markdown</code> epic's P2;
-            NOT built yet. This page will be updated as each one lands.
+            Decided with Owen on 2026-10-03, after reviewing this page. Built in the <code>markdown</code> epic's P2,
+            one at a time; this page is updated as each one lands. Built so far: the plain rulex tokenizer (2026-10-04).
           </p>
           <ui-table celled compact striped>
             <table>
@@ -861,10 +864,11 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
               <tbody>
                 <tr>
                   <td>
-                    <b>Plain rulex tokenizer</b>: rulex reads syntax with words, numbers, symbols and whitespace only;
-                    no comments, quotes, JSX, <code>¬</code>/<code>∆</code>. Numbers are digits only:
-                    <code>1.1</code> is <code>1</code> <code>.</code> <code>1</code>, <code>-1</code> is <code>-</code>
-                    <code>1</code> (fixes the <code>1.1.1</code> crash)
+                    <ui-label size="mini" color="green">built</ui-label>
+                    <b>Plain rulex tokenizer</b> (<code>RulexTokenizer</code>): rulex reads syntax with words, numbers,
+                    symbols and whitespace only; no comments, quotes, JSX, <code>¬</code>/<code>∆</code>. Numbers are
+                    digits only: <code>1.1</code> is <code>1</code> <code>.</code> <code>1</code>, <code>-1</code> is
+                    <code>-</code> <code>1</code> (fixes the <code>1.1.1</code> crash)
                   </td>
                   <td>
                     <code>#{1,6}\s{text}</code>, <code>---</code>, <code>"</code>, <code>&lt;b&gt;</code> as plain

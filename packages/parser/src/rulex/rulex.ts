@@ -530,6 +530,25 @@ rulex.addRule(sequence, {
           new P.Keywords([["a", "b"], { optional: true, literal: "c" }, "d", { optional: true, literal: ["e", "f"] }])
         ]
       ]
+    },
+    {
+      // `RulexTokenizer`:  no comments, quotes or JSX;  numbers are digits only
+      title: "plain tokens",
+      showAll: true,
+      tests: [
+        ["# {text}", new P.Sequence(new P.Symbol("#"), new P.Subrule("text"))],
+        ["a -- b", new P.Sequence(new P.Keyword("a"), new P.Symbols(["-", "-"]), new P.Keyword("b"))],
+        ["---", new P.Symbols(["-", "-", "-"])],
+        ["a // b", new P.Sequence(new P.Keyword("a"), new P.Symbols(["/", "/"]), new P.Keyword("b"))],
+        ["'{x}'", new P.Sequence(new P.Symbol("'"), new P.Subrule("x"), new P.Symbol("'"))],
+        [
+          "<b> {x}",
+          new P.Sequence(new P.Symbol("<"), new P.Keyword("b"), new P.Symbol(">"), new P.Subrule("x"))
+        ],
+        ["1.1", new P.Sequence(new P.Keyword({ literal: 1 as unknown as string }), new P.Symbol("."), new P.Keyword({ literal: 1 as unknown as string }))],
+        ["-1", new P.Sequence(new P.Symbol("-"), new P.Keyword({ literal: 1 as unknown as string }))],
+        ["¬", new P.Symbol("¬")]
+      ]
     }
   ]
 })
