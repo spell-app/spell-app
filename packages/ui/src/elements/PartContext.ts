@@ -1,4 +1,5 @@
 import { createEffect, onSettled, untrack } from "solid-js"
+import { isServer } from "@solidjs/web"
 import { onConnect } from "@spell-app/solid-element"
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
@@ -53,6 +54,11 @@ export class PartContext {
     this.barrier = barrier
     this.owner = new Cell(this.find(), { equals: PartContext.sameOwner })
     CONTEXTS.set(host, this)
+    // the server build runs an effect's compute only, never its apply:  set the state now
+    if (isServer) {
+      const ownerNoun = untrack(() => this.ownerNoun())
+      if (ownerNoun) host.setState(OwnerContext.stateName(ownerNoun), true)
+    }
     createEffect(
       () => this.owner.get()?.ownerNoun,
       (ownerNoun) => {
@@ -107,10 +113,11 @@ export class PartContext {
   private find(): OwnerMatch | undefined {
     if (!this.direct) return PartContext.ownerOf(this.host, this.noun, this.barrier)
     const root = this.host.getRootNode()
+    // `localName`, not `instanceof HTMLSlotElement`:  no such global in node (the server render)
     return PartContext.ownerOf(
       this.host,
       this.noun,
-      (element) => !(element instanceof HTMLSlotElement) && element.getRootNode() === root
+      (element) => element.localName !== "slot" && element.getRootNode() === root
     )
   }
 

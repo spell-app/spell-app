@@ -135,6 +135,13 @@ describe("ui-parts.css examples", () => {
       1.5 * parseFloat(getComputedStyle(plain.parentElement!).fontSize),
       0
     )
+    const picture = Fixture.render(
+      `<h2 class="ui icon header"><img src="" alt="" width="40" height="40" />Theming</h2>`
+    )
+    const img = getComputedStyle(picture.querySelector("img")!)
+    expect(img.display).toBe("block")
+    expect(parseFloat(img.marginLeft)).toBeCloseTo(parseFloat(img.marginRight), 0)
+    expect(parseFloat(img.marginBottom)).toBeGreaterThan(0)
     const sub = getComputedStyle(root.querySelector(".ui.header:not(.icon) > .sub.header")!)
     expect(sub.fontWeight).toBe("400")
     expect(sub.display).toBe("block")

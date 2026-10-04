@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Placeholder | Spell UI</title>
+    <meta
+      name="description"
+      content="A placeholder is used to reserve space for content that soon will appear in a layout."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Placeholder">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-placeholder.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-placeholder%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/elements/placeholder.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Placeholder
+            <ui-header
+              >A placeholder is used to reserve space for content that soon will appear in a layout.</ui-header
+            >
+          </ui-header>
+          <ui-docs-themes for="ui-placeholder" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's placeholder page, section by section, in its order (Types, Content, Variations), plus our
+              Consecutive placeholders.  Five tags, one family:  `<ui-placeholder>` and its shapes `<ui-placeholder-header>`,
+              `-paragraph`, `-line`, `-image`.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-placeholder" header="Placeholder" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A placeholder is used to reserve space for content that soon will appear in a layout.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Placeholders can include <code>&lt;ui-placeholder-paragraph&gt;</code>,
+                    <code>&lt;ui-placeholder-header&gt;</code> (<code>image</code> for an image header) and
+                    <code>&lt;ui-placeholder-image&gt;</code> to let you format the placeholder to emulate the content
+                    being loaded.</ui-message
+                  >
+                  <ui-placeholder>
+                    <ui-placeholder-header image>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-header>
+                    <ui-placeholder-paragraph>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-paragraph>
+                  </ui-placeholder>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid columns="3" stackable>
+                    <ui-column>
+                      <ui-segment raised>
+                        <ui-placeholder>
+                          <ui-placeholder-header image>
+                            <ui-placeholder-line></ui-placeholder-line>
+                            <ui-placeholder-line></ui-placeholder-line>
+                          </ui-placeholder-header>
+                          <ui-placeholder-paragraph>
+                            <ui-placeholder-line length="medium"></ui-placeholder-line>
+                            <ui-placeholder-line length="short"></ui-placeholder-line>
+                          </ui-placeholder-paragraph>
+                        </ui-placeholder>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment raised>
+                        <ui-placeholder>
+                          <ui-placeholder-header image>
+                            <ui-placeholder-line></ui-placeholder-line>
+                            <ui-placeholder-line></ui-placeholder-line>
+                          </ui-placeholder-header>
+                          <ui-placeholder-paragraph>
+                            <ui-placeholder-line length="medium"></ui-placeholder-line>
+                            <ui-placeholder-line length="short"></ui-placeholder-line>
+                          </ui-placeholder-paragraph>
+                        </ui-placeholder>
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column>
+                      <ui-segment raised>
+                        <ui-placeholder>
+                          <ui-placeholder-header image>
+                            <ui-placeholder-line></ui-placeholder-line>
+                            <ui-placeholder-line></ui-placeholder-line>
+                          </ui-placeholder-header>
+                          <ui-placeholder-paragraph>
+                            <ui-placeholder-line length="medium"></ui-placeholder-line>
+                            <ui-placeholder-line length="short"></ui-placeholder-line>
+                          </ui-placeholder-paragraph>
+                        </ui-placeholder>
+                      </ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: Fomantic's &quot;Simulate Loading&quot; button, which swaps the skeleton for a loaded
+                    card -- a page script, not part of the placeholder. Replace the placeholder with the real content
+                    when it arrives.</ui-message
+                  >
+                  <ui-cards columns="3" doubling stackable>
+                    <ui-card>
+                      <ui-placeholder>
+                        <ui-placeholder-image square></ui-placeholder-image>
+                      </ui-placeholder>
+                      <ui-content>
+                        <ui-placeholder>
+                          <ui-placeholder-header>
+                            <ui-placeholder-line length="very short"></ui-placeholder-line>
+                            <ui-placeholder-line length="medium"></ui-placeholder-line>
+                          </ui-placeholder-header>
+                          <ui-placeholder-paragraph>
+                            <ui-placeholder-line length="short"></ui-placeholder-line>
+                          </ui-placeholder-paragraph>
+                        </ui-placeholder>
+                      </ui-content>
+                      <ui-extra>
+                        <ui-button primary disabled>Add</ui-button>
+                        <ui-button disabled>Delete</ui-button>
+                      </ui-extra>
+                    </ui-card>
+                    <ui-card>
+                      <ui-placeholder>
+                        <ui-placeholder-image square></ui-placeholder-image>
+                      </ui-placeholder>
+                      <ui-content>
+                        <ui-placeholder>
+                          <ui-placeholder-header>
+                            <ui-placeholder-line length="very short"></ui-placeholder-line>
+                            <ui-placeholder-line length="medium"></ui-placeholder-line>
+                          </ui-placeholder-header>
+                          <ui-placeholder-paragraph>
+                            <ui-placeholder-line length="short"></ui-placeholder-line>
+                          </ui-placeholder-paragraph>
+                        </ui-placeholder>
+                      </ui-content>
+                      <ui-extra>
+                        <ui-button primary disabled>Add</ui-button>
+                        <ui-button disabled>Delete</ui-button>
+                      </ui-extra>
+                    </ui-card>
+                    <ui-card>
+                      <ui-placeholder>
+                        <ui-placeholder-image square></ui-placeholder-image>
+                      </ui-placeholder>
+                      <ui-content>
+                        <ui-placeholder>
+                          <ui-placeholder-header>
+                            <ui-placeholder-line length="very short"></ui-placeholder-line>
+                            <ui-placeholder-line length="medium"></ui-placeholder-line>
+                          </ui-placeholder-header>
+                          <ui-placeholder-paragraph>
+                            <ui-placeholder-line length="short"></ui-placeholder-line>
+                          </ui-placeholder-paragraph>
+                        </ui-placeholder>
+                      </ui-content>
+                      <ui-extra>
+                        <ui-button primary disabled>Add</ui-button>
+                        <ui-button disabled>Delete</ui-button>
+                      </ui-extra>
+                    </ui-card>
+                  </ui-cards>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-lines" header="Lines" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">A placeholder can contain lines of text.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >By default, repeated lines appear varied in width. It may be useful to give an exact
+                    <code>length</code> to make them match up with the content more closely.</ui-message
+                  >
+                  <ui-placeholder>
+                    <ui-placeholder-line></ui-placeholder-line>
+                    <ui-placeholder-line></ui-placeholder-line>
+                    <ui-placeholder-line></ui-placeholder-line>
+                    <ui-placeholder-line></ui-placeholder-line>
+                    <ui-placeholder-line></ui-placeholder-line>
+                  </ui-placeholder>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-headers" header="Headers" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">A placeholder can contain a header.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Header lines are slightly taller than paragraph lines.</ui-message
+                  >
+                  <ui-placeholder>
+                    <ui-placeholder-header image>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-header>
+                  </ui-placeholder>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-placeholder>
+                    <ui-placeholder-header>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-header>
+                  </ui-placeholder>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-paragraph" header="Paragraph" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">A placeholder can contain a paragraph.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Paragraphs are used to group lines together.</ui-message
+                  >
+                  <ui-placeholder>
+                    <ui-placeholder-paragraph>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-paragraph>
+                    <ui-placeholder-paragraph>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-paragraph>
+                  </ui-placeholder>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I50:  Fomantic sizes this image placeholder with style="width:150px;height:150px";  no attribute does, so it keeps the default fixed height at the placeholder's width. -->
+              <ui-section id="examples-content-image" header="Image" sticky collapsible dividing>
+                <ui-docs-example description="A placeholder can contain an image.">
+                  <ui-placeholder>
+                    <ui-placeholder-image></ui-placeholder-image>
+                  </ui-placeholder>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-message slot="description" state="info" size="small"
+                    >Using <code>square</code> (1:1) or <code>rectangular</code> (4:3) embeds an aspect ratio into the
+                    image placeholder, so it keeps its shape in responsive layouts.</ui-message
+                  >
+                  <ui-cards columns="3">
+                    <ui-card>
+                      <ui-content>
+                        <ui-placeholder>
+                          <ui-placeholder-image square></ui-placeholder-image>
+                        </ui-placeholder>
+                      </ui-content>
+                    </ui-card>
+                    <ui-card>
+                      <ui-content>
+                        <ui-placeholder>
+                          <ui-placeholder-image square></ui-placeholder-image>
+                        </ui-placeholder>
+                      </ui-content>
+                    </ui-card>
+                    <ui-card>
+                      <ui-content>
+                        <ui-placeholder>
+                          <ui-placeholder-image square></ui-placeholder-image>
+                        </ui-placeholder>
+                      </ui-content>
+                    </ui-card>
+                  </ui-cards>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-cards columns="3">
+                    <ui-card>
+                      <ui-content>
+                        <ui-placeholder>
+                          <ui-placeholder-image rectangular></ui-placeholder-image>
+                        </ui-placeholder>
+                      </ui-content>
+                    </ui-card>
+                    <ui-card>
+                      <ui-content>
+                        <ui-placeholder>
+                          <ui-placeholder-image rectangular></ui-placeholder-image>
+                        </ui-placeholder>
+                      </ui-content>
+                    </ui-card>
+                    <ui-card>
+                      <ui-content>
+                        <ui-placeholder>
+                          <ui-placeholder-image rectangular></ui-placeholder-image>
+                        </ui-placeholder>
+                      </ui-content>
+                    </ui-card>
+                  </ui-cards>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-line-length" header="Line Length" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A line can specify how long its contents should appear:  `length` is `full`, `very long`, `long`, `medium`, `short` or `very short`."
+                >
+                  <ui-placeholder>
+                    <ui-placeholder-line length="full"></ui-placeholder-line>
+                    <ui-placeholder-line length="very long"></ui-placeholder-line>
+                    <ui-placeholder-line length="long"></ui-placeholder-line>
+                    <ui-placeholder-line length="medium"></ui-placeholder-line>
+                    <ui-placeholder-line length="short"></ui-placeholder-line>
+                    <ui-placeholder-line length="very short"></ui-placeholder-line>
+                  </ui-placeholder>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-placeholder>
+                    <ui-placeholder-header image>
+                      <ui-placeholder-line length="medium"></ui-placeholder-line>
+                      <ui-placeholder-line length="full"></ui-placeholder-line>
+                    </ui-placeholder-header>
+                    <ui-placeholder-paragraph>
+                      <ui-placeholder-line length="full"></ui-placeholder-line>
+                      <ui-placeholder-line length="medium"></ui-placeholder-line>
+                    </ui-placeholder-paragraph>
+                  </ui-placeholder>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A fluid placeholder takes up the width of its container, instead of stopping at 30em."
+                >
+                  <ui-placeholder fluid>
+                    <ui-placeholder-header image>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-header>
+                    <ui-placeholder-paragraph>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-paragraph>
+                  </ui-placeholder>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A placeholder can have its colors inverted.">
+                  <ui-segment inverted>
+                    <ui-placeholder inverted>
+                      <ui-placeholder-header image>
+                        <ui-placeholder-line></ui-placeholder-line>
+                        <ui-placeholder-line></ui-placeholder-line>
+                      </ui-placeholder-header>
+                      <ui-placeholder-paragraph>
+                        <ui-placeholder-line></ui-placeholder-line>
+                        <ui-placeholder-line></ui-placeholder-line>
+                        <ui-placeholder-line></ui-placeholder-line>
+                      </ui-placeholder-paragraph>
+                    </ui-placeholder>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-variations-consecutive-placeholders"
+                header="Consecutive placeholders"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="Placeholders that follow each other are spaced apart automatically.">
+                  <ui-placeholder>
+                    <ui-placeholder-header image>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-header>
+                  </ui-placeholder>
+                  <ui-placeholder>
+                    <ui-placeholder-header image>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-header>
+                  </ui-placeholder>
+                  <ui-placeholder>
+                    <ui-placeholder-header image>
+                      <ui-placeholder-line></ui-placeholder-line>
+                      <ui-placeholder-line></ui-placeholder-line>
+                    </ui-placeholder-header>
+                  </ui-placeholder>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  building a skeleton, swapping it for content, accessibility. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Build a skeleton from four shapes inside a `<ui-placeholder>`:
+
+                  - `<ui-placeholder-header>`: two taller bars, with an optional square `image` beside them
+                  - `<ui-placeholder-paragraph>`: a group of lines
+                  - `<ui-placeholder-line>`: one bar; `length` fixes its length, else it varies by its position
+                  - `<ui-placeholder-image>`: a block of fixed height, or `square` (1:1) / `rectangular` (4:3) at its container's
+                    width
+
+                  The shapes must sit inside a `<ui-placeholder>`: that is where their look comes from. A shimmer sweeps across every
+                  shape on the page in step; it stops when the reader prefers reduced motion.
+
+                  A placeholder has no events and no "loaded" state: replace it with the real content when that arrives.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <section aria-busy="true">
+                    <ui-placeholder>
+                      <ui-placeholder-paragraph>
+                        <ui-placeholder-line></ui-placeholder-line>
+                        <ui-placeholder-line></ui-placeholder-line>
+                      </ui-placeholder-paragraph>
+                    </ui-placeholder>
+                  </section>
+                  <!-- when the data is in:  swap the placeholder for the content, then remove aria-busy -->
+                </script>
+              </ui-code>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Every tag that has a `skeleton` in its vocabulary gets one from `<ui-root>` while its family loads: the same shapes,
+                  built for you.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  None: a placeholder takes no focus and holds nothing to reach.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A placeholder is decorative: it is hidden from screen readers and holds no text.
+                  - Announce the loading once, on the region that is loading: `aria-busy="true"` on it, a
+                    [loader](ui-loader.html), or a [segment](ui-segment.html) with `loading`.
+                  - The shimmer stops for readers who prefer reduced motion; the shapes stay as a flat tint.
+                  - Without JavaScript the native fallback renders the same shapes with the same class words, still hidden from
+                    screen readers, so nothing is lost.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-placeholder"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-placeholder-*` tokens: set one on the element, on any ancestor (a region, `:root`), or
+                  on the inner box through `::part(placeholder)`; every shape inside follows. They inherit into the shadow roots,
+                  where the sheet reads each through a private alias, so nothing inside blocks them.
+
+                  - A single shape takes them too, on its own element or `::part()`.
+                  - The colours are tints of the ink colour, so they suit any surface in either scheme.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  /* every placeholder on the page */
+                  :root {
+                    --ui-placeholder-duration: 3s;
+                  }
+                  /* one region */
+                  .sidebar {
+                    --ui-placeholder-max-width: 40em;
+                    --ui-placeholder-radius: 0;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `fluid` lifts the `--ui-placeholder-max-width` cap whatever you set. Never set the `--_ui-placeholder-*` names:
+                    they're the sheet's private plumbing.
+                  </script>
+                </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-placeholder" playground></ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles placeholders: every theme keeps the default look, as on Fomantic's own placeholder page.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

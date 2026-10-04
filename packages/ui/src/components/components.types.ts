@@ -5,6 +5,7 @@
  */
 
 import type { FieldValue, MenuOption, ValidationRule } from "$/ui/elements"
+import type { SourceErrorKind } from "$/ui/runtime"
 
 ////////////////
 // ## Button
@@ -190,16 +191,90 @@ export const PART_OWNER_TOKENS = {
  */
 export const PART_STATIC_CLASS_PREFIX = "in-"
 
+/**
+ * Marks the NATIVE control in a static server render (`$/ui/server`), for the flattener:  the host's `id` and ARIA
+ * names belong there, so a `<label for>` the host's id labels the control.
+ * - Elements NEVER set it in a browser;  `StaticFlattener` moves the host's `id` / `aria-label*` /
+ *   `aria-describedby` there, then drops the mark (seo plan, T5).
+ */
+export const STATIC_CONTROL = "data-ui-control"
+
 ////////////////
 // ## Grid
 ////////////////
 
 /**
  * Size container a top-level `<ui-grid>` HOST establishes (`container: ui-grid / inline-size`), see `ui-grid.css`.
- * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport.
+ * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport (unless
+ *   `stack-with="page"`, see "Stacking").
  * - Page CSS may query it too, e.g. `@container ui-grid (width < 768px) { ... }` inside a column.
  */
 export const GRID_CONTAINER_NAME = "ui-grid"
+
+////////////////
+// ## Stacking
+////////////////
+
+/**
+ * `stack-with`'s values:  what a stacking layout's breakpoints (`stackable`, `doubling` ...) compare with.
+ * - `container`:  the element's OWN width (container queries), the default
+ * - `page`:  the screen's width (`@media`), as Fomantic
+ * - On `<ui-grid>`, `<ui-cards>`, `<ui-steps>`, `<ui-form>`, `<ui-items>`, `<ui-statistics>`, and on `<ui-root>`,
+ *   which sets `STACK_WITH_TOKEN` for everything inside
+ */
+export const STACK_WITH_VALUES = ["container", "page"] as const
+
+/** One of `STACK_WITH_VALUES`. */
+export type StackWith = (typeof STACK_WITH_VALUES)[number]
+
+/**
+ * Page-wide token the stacking sheets read when an element has no `stack-with` of its own:
+ * `--ui-stack-with: page` on any ancestor (`<ui-root stack-with="page">` sets it).
+ * - Inherited, global:  NOT a component token, declared nowhere by default (unset ~== `container`)
+ */
+export const STACK_WITH_TOKEN = "--ui-stack-with"
+
+/**
+ * Prefix of the private class an element's `stack-with` adds after the noun:  `ui stackable grid stack-with-page`.
+ * - A class, not a host state:  `:state()` rules left WebKit with stale viewport media queries (`ui-table.css`'s
+ *   `stack-by`, the same mechanism)
+ * - From the CANONICAL value, so a translated attribute still works
+ */
+export const STACK_WITH_CLASS = "stack-with-"
+
+/****************
+ * ### `StackClasses`
+ * The class `stack-with` adds, shared by every element that has the attribute.
+ ****************/
+export class StackClasses {
+  /** `stack-with-page` / `stack-with-container` for `value`;  `undefined` when unset (the token decides). */
+  static of(value: StackWith | undefined): string | undefined {
+    return value ? `${STACK_WITH_CLASS}${value}` : undefined
+  }
+}
+
+////////////////
+// ## Menu appearance
+////////////////
+
+/**
+ * `appearance` of `<ui-menu>` and `<ui-tabs>` (whose tab list IS a menu):  the menu's LOOK, one word.
+ * - Each value emits itself as the class word (`kind: "valueOnly"`), so `appearance="tabular"` ~== the older
+ *   boolean `tabular`, which stays as an alias;  `appearance="pointing" secondary` ~== `secondary pointing`.
+ * - `segmented` is ours:  a bordered group of joined items, the selected one filled with the menu's colour (the
+ *   primary colour by default) -- a segmented control.  It hugs its items;  `alignment` places it.
+ * - NOTE: not `vertical` (an orientation every look combines with) or `basic` (`<ui-tabs basic>` is the panes')
+ */
+export const MENU_APPEARANCES = ["tabular", "pointing", "secondary", "text", "segmented"] as const
+
+/**
+ * `alignment` of `<ui-menu>` and `<ui-tabs>`:  where the items sit along the bar, emitted as `<value> aligned`.
+ * - `fluid`:  the items fill the bar (each grows from its own width;  with `equal`, every item the same share)
+ * - `left` / `center` / `right`:  the items pack at that end;  the bar itself spans the row, except a `segmented`
+ *   one, which IS its items and moves as a whole
+ * - Unset:  as before (packed left, the bar as its look makes it)
+ */
+export const ITEM_ALIGNMENTS = ["fluid", "left", "center", "right"] as const
 
 ////////////////
 // ## Message
@@ -915,10 +990,14 @@ export type CalendarOpenDetail = {
 }
 
 /**
- * Invoker commands a `<ui-shape>` answers, `<button commandfor="id" command="--next">`:  turn to the next / previous
- * side, the `direction` attribute's way.
+ * Invoker commands a `<ui-shape>` answers, `<button commandfor="id" command="--next">`.
+ * - `next` / `previous`:  turn to the next / previous side, the `direction` attribute's way
+ * - `flip` + a `ShapeFlip`:  turn to the next side THAT way (`--flip-up` ...), Fomantic's `flip up` behaviour
  */
-export const SHAPE_COMMANDS = { next: "--next", previous: "--previous" } as const
+export const SHAPE_COMMANDS = { next: "--next", previous: "--previous", flip: "--flip-" } as const
+
+/** Every `ShapeFlip`, for the `--flip-<direction>` commands. */
+export const SHAPE_FLIPS: readonly ShapeFlip[] = ["up", "down", "left", "right", "over", "back"]
 
 ////////////////
 // ## Shared words
@@ -1095,3 +1174,138 @@ export const TEXT = "text"
 
 /** Orientations (`aria-orientation`, roving). */
 export const HORIZONTAL = "horizontal"
+
+////////////////
+// ## Sources:  shared by ui-include, ui-code, ui-markdown (`SourceElement`)
+////////////////
+
+/** When a `source` is fetched:  now, once scrolled into view, or when the browser is idle (Astro's islands). */
+export const SOURCE_LOAD_MODES = ["eager", "visible", "idle"] as const
+
+/** A `SOURCE_LOAD_MODES` value. */
+export type SourceLoadMode = (typeof SOURCE_LOAD_MODES)[number]
+
+/** Attributes every source element has;  spread first into its vocabulary's `attributes`. */
+export const SOURCE_ATTRIBUTES = [
+  {
+    name: "source",
+    kind: "string",
+    description:
+      "URL of the file to show, relative to the page;  same origin only (another site's URL shows an error).  " +
+      "Changing it loads the new file.  Without it, the element shows its own content."
+  },
+  {
+    name: "load",
+    kind: "enum",
+    values: SOURCE_LOAD_MODES,
+    default: "eager",
+    description:
+      "When to fetch `source`:  `eager` (at once), `visible` (once scrolled into view) or `idle` (when the browser " +
+      "has nothing else to do).  Like Astro's `client:visible` / `client:idle`."
+  }
+] as const
+
+/** Events every source element dispatches;  spread into its vocabulary's `events`. */
+export const SOURCE_EVENTS = [
+  {
+    name: "ui-load",
+    detail: "{ source?: string, content: string }",
+    description: "Content arrived:  fetched from `source`, or read from the element's own content."
+  },
+  {
+    name: "ui-change",
+    detail: "{ content: string }",
+    description: "The `content` property was set:  the element shows the new text, and is `dirty` until saved."
+  },
+  {
+    name: "ui-save",
+    detail: "{ source?: string, content: string, etag?: string }",
+    cancelable: true,
+    description:
+      "`host.save()` is about to save:  `preventDefault()` to save it yourself (an editor posting elsewhere)."
+  },
+  {
+    name: "ui-saved",
+    detail: "{ source?: string, etag?: string }",
+    description: "Saved;  `etag` is the file's new version."
+  },
+  {
+    name: "ui-error",
+    detail:
+      "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'save' | 'conflict' | 'no-saver' | 'render', source?: string, error: unknown }",
+    cancelable: true,
+    description:
+      "Loading, showing or saving failed;  `kind` says why.  Load and render failures show an error message " +
+      "unless cancelled;  save failures keep the content as it is."
+  }
+] as const
+
+/** Parts every source element has. */
+export const SOURCE_PARTS = [
+  { name: "loader", description: "The `<ui-loader>` shown while `source` loads." },
+  { name: "error", description: "The `<ui-message>` shown when loading or showing failed." }
+] as const
+
+/** States every source element has. */
+export const SOURCE_STATES = [
+  { name: "loading", description: "Fetching `source`." },
+  { name: "error", description: "Loading or showing failed:  the error message shows." },
+  { name: "saving", description: "`save()` is in progress." },
+  { name: "dirty", description: "`content` changed since it was loaded or saved." }
+] as const
+
+/** Texts every source element shows;  `{source}` is the URL as written. */
+export const SOURCE_TEXTS = [
+  { key: "sourceLoading", text: "Loading {source}", description: "Accessible name of the loader." },
+  { key: "sourceLoadError", text: "Couldn't load {source}.", description: "The fetch failed." },
+  {
+    key: "sourceCrossOrigin",
+    text: "Can't show {source}:  only files from this site can be shown.",
+    description: "`source` is on another origin."
+  },
+  {
+    key: "sourceFileProtocol",
+    text: "Can't load {source}:  this page was opened from disk.  Open it from a web server to see it.",
+    description: "The page is a `file://` page."
+  },
+  { key: "sourceRenderError", text: "Couldn't show {source}.", description: "The text arrived, but couldn't be shown." }
+] as const
+
+/** `detail` of `ui-load`. */
+export type SourceLoadDetail = {
+  /** `source` as written, or `undefined` for the element's own content */
+  source?: string
+  /** the text */
+  content: string
+}
+
+/** `detail` of `ui-change`. */
+export type SourceChangeDetail = {
+  /** the new text */
+  content: string
+}
+
+/** `detail` of the cancelable `ui-save`. */
+export type SourceSaveDetail = {
+  source?: string
+  /** what's about to be saved */
+  content: string
+  /** version it was edited from */
+  etag?: string
+}
+
+/** `detail` of `ui-saved`. */
+export type SourceSavedDetail = {
+  source?: string
+  /** the file's new version */
+  etag?: string
+}
+
+/** `detail` of a source element's `ui-error`. */
+export type SourceErrorDetail = {
+  /** why, see `SourceErrorKind` */
+  kind: SourceErrorKind
+  source?: string
+  /** what was thrown */
+  error: unknown
+}

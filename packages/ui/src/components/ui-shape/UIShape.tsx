@@ -1,5 +1,5 @@
 import { createEffect, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import { Cell, proto, UI, UIElement, type UIHost, UIT } from "$/ui/core"
 
@@ -92,7 +92,8 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   ////////////////
 
   render(): JSX.Element {
-    createEffect(
+    // a host effect:  a static render (`$/ui/server`) marks the sides once, before they render
+    this.hostEffect(
       () => this.sides.get(),
       (sides) => {
         this.firstSides(sides)
@@ -106,12 +107,33 @@ export class UIShape extends UIElement<ShapeVocabulary> {
         if (next !== this.target) void this.enqueue(untrack(() => this.attrs.direction) ?? DEFAULT_FLIP, next)
       }
     )
+    if (this.serverInline()) return this.renderInline()
     return (
       <div ref={(element) => (this.stage = element)} class={this.classes()} part={this.part("shape")}>
         <div ref={(element) => (this.box = element)} class={SIDES} part={this.part("sides")} aria-live={POLITE}>
           <slot />
         </div>
       </div>
+    )
+  }
+
+  /**
+   * A `text` shape in a server render (`$/ui/server`):  its static output is PHRASING content (`<span>`s, as the
+   * class grammar's), since the host it replaces sits in running text -- a `<div>` would close an open `<p>` when a
+   * browser parses the page.  Its sides follow (`UISide`).
+   */
+  serverInline(): boolean {
+    return isServer && untrack(() => !!this.attrs.text)
+  }
+
+  /** `render()`'s markup as `<span>`s (`serverInline()`). */
+  private renderInline(): JSX.Element {
+    return (
+      <span class={this.classes()} part={this.part("shape")}>
+        <span class={SIDES} part={this.part("sides")} aria-live={POLITE}>
+          <slot />
+        </span>
+      </span>
     )
   }
 
@@ -134,11 +156,15 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     return this.flipTo(undefined, this.target + step)
   }
 
-  /** An invoker command aimed at the host (`SHAPE_COMMANDS`). */
+  /** An invoker command aimed at the host (`SHAPE_COMMANDS`):  `--next`, `--previous`, `--flip-<direction>`. */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
     if (command === UIT.SHAPE_COMMANDS.next) void this.flipBy(1)
     else if (command === UIT.SHAPE_COMMANDS.previous) void this.flipBy(-1)
+    else if (command?.startsWith(UIT.SHAPE_COMMANDS.flip)) {
+      const direction = command.slice(UIT.SHAPE_COMMANDS.flip.length) as UIT.ShapeFlip
+      if (UIT.SHAPE_FLIPS.includes(direction)) void this.flipTo(direction)
+    }
   }
 
   ////////////////

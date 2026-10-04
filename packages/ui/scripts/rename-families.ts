@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url"
  *   - inside it, each file named `<family>.<rest>` => `ui-<family>.<rest>` (`button.css`, `button.vocabulary.en.ts`,
  *     `button.test.tsx` ...);  class files (`UIButton.tsx`), helpers (`SlottedItems.ts`) and everything under
  *     `examples/` keep their names (an example's `<name>.visual.ts` pairs with its `<name>.html`)
- *   - each docs page `site/src/content/components/<family>.mdx` => `ui-<family>.mdx` (its URL follows)
+ *   - each docs page `site/src/content/components/<family>.mdx` => `ui-<family>.mdx` (its URL follows).  NOTE:  the
+ *     old Astro site's pages, deleted in epic `spell-ui-pages` P7:  these moves and the `link` rule find nothing now
  *   - each visual baseline folder `test/visual/baselines/<os>/<browser>/<family>/` => `ui-<family>/`
  * - Rewrites references with PRECISE patterns only, never a bare word (`RULES`):  component paths, file names,
  *   package entries, `dist/` files, `family=` props, docs-site links, baseline paths, the `COMPONENTS` list.
@@ -58,7 +59,7 @@ class FamilyRenamer {
     "packages/ui/src/icons/data/",
     "packages/docs/_assets/spell-ui.js",
     "packages/docs/_assets/emoji/",
-    "packages/docs/epics/ui-component-creation/ui-component-creation.html",
+    "packages/docs/epics/ui-component-creation/ui-component-creation.plan.html",
     "yarn.lock"
   ]
 

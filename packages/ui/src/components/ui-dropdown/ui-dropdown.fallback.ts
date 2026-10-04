@@ -1,5 +1,5 @@
 import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
-import { itemVocabulary } from "$/ui/components/ui-item"
+import { itemVocabulary } from "$/ui/components/ui-item/ui-item.vocabulary.en"
 
 import { dropdownVocabulary } from "./ui-dropdown.vocabulary.en"
 import type { Choice, DropdownHost } from "./ui-dropdown.types"

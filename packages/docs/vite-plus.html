@@ -289,8 +289,15 @@ export default defineConfig({
             </li>
             <li>
               Fixed: a fresh install's first app browser test run used to fail (cold vite deps cache), also on
-              <code>main</code>. The tests import <code>spellRuntime.ts</code> by URL, so it is now listed in
-              <code>optimizeDeps.entries</code> (<code>packages/app/vitest.config.ts</code>).
+              <code>main</code>. The tests import
+              <a href="../app/src/runner/spellRuntime.ts" target="src-packages-app-src-runner-spellruntime-ts"
+                ><code>spellRuntime.ts</code></a
+              >
+              by URL, so it is now listed in <code>optimizeDeps.entries</code> (<a
+                href="../app/vitest.config.ts"
+                target="src-packages-app-vitest-config-ts"
+                ><code>packages/app/vitest.config.ts</code></a
+              >).
             </li>
             <li>cli's process-spawning tests can time out at 5s when everything runs at once; they pass alone.</li>
             <li>Vite+ also manages Node and the package manager; we keep corepack yarn 4.18 and don't use that.</li>
@@ -317,8 +324,8 @@ export default defineConfig({
             <ui-item>
               <ui-content>
                 <ui-header
-                  ><a href="epics/vite-plus/vite-plus.html" target="vite-plus"
-                    ><code>epics/vite-plus/vite-plus.html</code></a
+                  ><a href="epics/vite-plus/vite-plus.plan.html" target="vite-plus"
+                    ><code>epics/vite-plus/vite-plus.plan.html</code></a
                   ></ui-header
                 >
                 <ui-meta>plan doc</ui-meta>

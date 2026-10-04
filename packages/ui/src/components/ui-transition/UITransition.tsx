@@ -1,5 +1,5 @@
 import { createEffect, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
@@ -100,6 +100,13 @@ export class UITransition extends UIElement<TransitionVocabulary> {
         if (visible !== this.target) void this.queueVisibility(visible, this.animationName())
       }
     )
+    // a server render (`$/ui/server`) never calls `ref`:  first paint's `hidden` as an attribute
+    if (isServer)
+      return (
+        <div class={this.classes()} part={this.part("transition")} hidden={!this.target || undefined}>
+          <slot />
+        </div>
+      )
     return (
       <div ref={(element) => this.attach(element)} class={this.classes()} part={this.part("transition")}>
         <slot />

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="styles.css">
+<style>body{margin:0}</style>
+</helmet>
+<div style="min-height:100vh;background:var(--bg-canvas);color:var(--text-body);font-family:var(--font-sans);padding:36px 40px 72px;box-sizing:border-box">
+  <a data-backlink="1" href="Design%20System.dc.html" target="_top" style="position:fixed;right:16px;bottom:16px;z-index:100;display:flex;align-items:center;gap:8px;height:34px;padding:0 16px 0 12px;border-radius:999px;background:var(--surface-inverse);color:var(--text-inverse);box-shadow:var(--shadow-lg);font:500 13px/1 var(--font-sans);text-decoration:none;white-space:nowrap" style-hover="text-decoration:none;filter:brightness(1.1)"><i class="fa-solid fa-arrow-left"></i>Design System</a>
+  <div style="max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:32px">
+    <header style="display:flex;flex-direction:column;gap:8px">
+      <div style="font:500 12px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">Brand</div>
+      <h1 style="margin:0;font:700 40px/1.05 var(--font-serif);letter-spacing:-0.02em;color:var(--text-strong)">The Spell logo.</h1>
+      <p style="margin:0;max-width:620px;font:400 15px/1.55 var(--font-sans);color:var(--text-muted)">Every file is an outlined SVG, so it looks the same everywhere without the font installed. The hat is centred on the height of the capital letters. Pick a background, then download the colour that suits it.</p>
+    </header>
+
+    <section style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border-subtle)"><span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">Lockups</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px">
+        <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ lockups }}" as="l" hint-placeholder-count="0">
+          <div style="display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:var(--surface-card);border:1px solid var(--border-subtle);box-shadow:var(--shadow-sm)">
+            <div style="height:180px;display:grid;place-items:center;background:{{ l.bg }};border-bottom:1px solid var(--border-subtle)"><span role="img" aria-label="{{ l.name }}" style="display:block;width:80%;height:{{ l.h }};background:url('{{ l.src }}') center/contain no-repeat"></span></div>
+            <div style="padding:12px 16px;display:flex;align-items:center;gap:8px">
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font:700 15px/1.2 var(--font-serif);color:var(--text-strong)">{{ l.name }}</span><span style="font:400 12px/1.3 var(--font-sans);color:var(--text-muted)">{{ l.use }}</span></div>
+              <a href="{{ l.src }}" download="{{ l.file }}" title="Download SVG" style="margin-left:auto;flex:none;height:30px;padding:0 12px;border-radius:999px;background:var(--accent-soft);color:var(--text-accent);display:inline-flex;align-items:center;gap:6px;font:500 12px/1 var(--font-sans);text-decoration:none" style-hover="background:var(--accent-soft-hover);text-decoration:none"><i class="fa-solid fa-download" style="font-size:11px"></i>SVG</a>
+            </div>
+          </div>
+        </sc-for></sc-if>
+      </div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border-subtle)"><span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">Mark</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
+        <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ marks }}" as="m" hint-placeholder-count="0">
+          <div style="display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:var(--surface-card);border:1px solid var(--border-subtle);box-shadow:var(--shadow-sm)">
+            <div style="aspect-ratio:1;display:grid;place-items:center;background:{{ m.bg }};border-bottom:1px solid var(--border-subtle)"><span role="img" aria-label="{{ m.name }}" style="display:block;width:46%;aspect-ratio:1;background:url('{{ m.src }}') center/contain no-repeat"></span></div>
+            <div style="padding:12px 16px;display:flex;align-items:center;gap:8px">
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font:700 15px/1.2 var(--font-serif);color:var(--text-strong)">{{ m.name }}</span><span style="font:400 12px/1.3 var(--font-mono);color:var(--text-muted)">{{ m.hex }}</span></div>
+              <a href="{{ m.src }}" download="{{ m.file }}" title="Download SVG" aria-label="Download SVG" style="margin-left:auto;flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--text-accent);display:grid;place-items:center;text-decoration:none" style-hover="background:var(--accent-soft-hover);text-decoration:none"><i class="fa-solid fa-download" style="font-size:11px"></i></a>
+            </div>
+          </div>
+        </sc-for></sc-if>
+      </div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border-subtle)"><span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">App icon</span></div>
+      <div style="display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;padding:24px;border-radius:16px;background:var(--surface-card);border:1px solid var(--border-subtle);box-shadow:var(--shadow-sm)">
+        <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ icons }}" as="ic" hint-placeholder-count="0">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <span style="width:{{ ic.size }};height:{{ ic.size }};border-radius:22.5%;background:{{ ic.bg }};box-shadow:{{ ic.ring }};display:grid;place-items:center"><span aria-hidden="true" style="display:block;width:72%;aspect-ratio:1;background:url('{{ ic.src }}') center/contain no-repeat"></span></span>
+            <span style="font:400 11px/1 var(--font-mono);color:var(--text-muted)">{{ ic.label }}</span>
+          </div>
+        </sc-for></sc-if>
+      </div>
+      <p style="margin:0;font:400 13px/1.5 var(--font-sans);color:var(--text-muted)">Corners are 22.5% of the icon’s width; the hat fills about three-quarters of its width. Aubergine hat on white is the primary — it’s how the icon will appear most. White on aubergine and aubergine on lavender are alternates.</p>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border-subtle)"><span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">Using it well</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px">
+        <div style="display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:var(--surface-card);border:1px solid var(--border-subtle);box-shadow:var(--shadow-sm)">
+          <div style="height:170px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,transparent 0 6px,var(--violet-100) 6px 7px)"><div style="background:#fff;padding:20px;outline:1px dashed var(--violet-400)"><img src="assets/logo/logo-mark-aubergine.svg" alt="" style="height:60px;display:block"></div></div>
+          <div style="padding:12px 16px;display:flex;flex-direction:column;gap:4px"><span style="font:700 15px/1.2 var(--font-serif);color:var(--success)">✓ Give it room</span><span style="font:400 12px/1.4 var(--font-sans);color:var(--text-muted)">Keep clear space around it equal to the height of the hat’s brim.</span></div>
+        </div>
+        <sc-for list="{{ donts }}" as="d" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:var(--surface-card);border:1px solid var(--border-subtle);box-shadow:var(--shadow-sm)">
+            <div style="height:170px;display:grid;place-items:center;background:{{ d.bg }}"><span style="width:96px;height:84px;background:{{ d.fill }};-webkit-mask:url(assets/logo/logo-mark.svg) center/contain no-repeat;mask:url(assets/logo/logo-mark.svg) center/contain no-repeat;transform:{{ d.transform }};opacity:{{ d.opacity }}"></span></div>
+            <div style="padding:12px 16px;display:flex;flex-direction:column;gap:4px"><span style="font:700 15px/1.2 var(--font-serif);color:var(--danger)">✕ {{ d.title }}</span><span style="font:400 12px/1.4 var(--font-sans);color:var(--text-muted)">{{ d.note }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const L = 'assets/logo/';
+    const lockups = [
+      ['Primary', 'spell-lockup-tagline-aubergine.svg', 'var(--neutral-0, #fff)', '96px', 'Default on light backgrounds.'],
+      ['Primary, reversed', 'spell-lockup-tagline-white.svg', 'var(--spell-aubergine)', '96px', 'On aubergine and dark photos.'],
+      ['Wordmark', 'spell-lockup-aubergine.svg', 'var(--spell-ivory)', '52px', 'Headers and small spaces.'],
+      ['Wordmark, reversed', 'spell-lockup-white.svg', 'var(--violet-950)', '52px', 'Dark headers and footers.']
+    ].map(([name, file, bg, h, use]) => ({ name, file, src: L + file, bg, h, use }));
+    const marks = [
+      ['Aubergine', 'logo-mark-aubergine.svg', '#2A1D60', 'var(--neutral-0, #fff)'],
+      ['White', 'logo-mark-white.svg', '#FFFFFF', 'var(--spell-aubergine)'],
+      ['Purple', 'logo-mark-purple.svg', '#6550CA', 'var(--violet-50)'],
+      ['Lilac', 'logo-mark-lilac.svg', '#B8B4FF', 'var(--violet-950)']
+    ].map(([name, file, hex, bg]) => ({ name, file, hex, bg, src: L + file }));
+    const TONE = { white: ['#FFFFFF', 'logo-mark-aubergine.svg', 'inset 0 0 0 1px var(--border-default), var(--shadow-sm)'], aubergine: ['var(--spell-aubergine)', 'logo-mark-white.svg', 'none'], lavender: ['var(--spell-lavender)', 'logo-mark-aubergine.svg', 'none'] };
+    const icons = [[128, 'white'], [80, 'white'], [48, 'white'], [32, 'white'], [80, 'aubergine'], [80, 'lavender']].map(([px, tone]) => ({
+      size: px + 'px', label: tone === 'white' ? px + 'px' : tone, bg: TONE[tone][0], src: L + TONE[tone][1], ring: TONE[tone][2]
+    }));
+    const donts = [
+      ['Don’t rotate or tilt', 'The hat always sits upright.', 'var(--neutral-50, #F6F7FB)', 'var(--spell-aubergine)', 'rotate(-24deg)', '1'],
+      ['No gradients or effects', 'Use one flat colour from the palette.', 'var(--neutral-50, #F6F7FB)', 'linear-gradient(90deg,#ff5fa2,#6550CA,#29c6ff)', 'none', '1'],
+      ['Keep it readable', 'Never fade it or place it on a busy, low-contrast background.', 'var(--brand-400)', 'var(--brand-500)', 'none', '0.8']
+    ].map(([title, note, bg, fill, transform, opacity]) => ({ title, note, bg, fill, transform, opacity }));
+    return { ready: true, lockups, marks, icons, donts };
+  }
+}
+</script>
+</body>
+</html>

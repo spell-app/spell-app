@@ -71,14 +71,20 @@
 *******************************/
 
 @layer ui.components.item.content {
-  /* The icon box:  the glyph at text size in the text colour;  owners set spacing and alignment. */
+  /*
+   * The icon box:  the glyph at text size in the text colour;  owners set spacing and alignment.
+   * - The shorthand's `<svg>` is the FALLBACK of `<slot name="icon">` (a child of the `<slot>`), so a descendant of
+   *   `.icon`, not a child:  `.icon svg`, NEVER `.icon > svg` alone, which matched only static markup and left
+   *   element glyphs sized by their box (a list's 1.55em cell:  20px wide, a tall glyph 27px high;  a menu's flex
+   *   box:  0 x 0).  As in `ui-button.css`.
+   */
   .item > .icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
   }
-  .item > .icon > ::slotted(svg),
-  .item > .icon > svg {
+  .item > .icon ::slotted(svg),
+  .item > .icon svg {
     width: auto;
     height: 1em;
     fill: currentColor;

@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-CM1DJQSe.js";var t=e({default:()=>n}),n=`@layer ui.theme{:root{color-scheme:dark;--ui-scheme:dark;color:var(--ui-text-color);background-color:var(--ui-background)}}`;export{t};

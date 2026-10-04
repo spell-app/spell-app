@@ -208,7 +208,7 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
       from `ui-open` would save the browser's reveal as the reader's
     - workaround:  the runtime ignores non-cancelable `ui-open`s when saving folds, unfolds for links with
       `--ui-section-duration: 0s`, and lands again after the transition's time unless the reader scrolled
-    - suggest:  document it in `ui-section.mdx` "Behaviour";  maybe put `originalEvent` (the `beforematch`) in the
+    - suggest:  document it in `site/components/ui-section.html`'s Usage tab;  maybe put `originalEvent` (the `beforematch`) in the
       detail, so a listener can tell the browser's reveal from the reader's click
 
 25. **`ui-section`:  a slotted `<ui-icon slot="icon">` sits further from the title than the `icon` shorthand**

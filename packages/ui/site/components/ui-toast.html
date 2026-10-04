@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Toast | Spell UI</title>
+    <meta name="description" content="A toast allows users to receive a short, non-blocking notification." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Toast">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-toast.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-toast%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/toast.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Toast
+            <ui-header>A toast allows users to receive a short, non-blocking notification.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-toast" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
+              Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/epics/spell-ui-pages/PAGES.md.
+              - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
+              - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
+                IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
+              - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
+            -->
+            <ui-message size="small" state="info">
+              <ui-markdown>
+                <script type="text/markdown">
+                  Two ways to show a toast: `UI.toast({...})` stacks one in a corner of the screen and closes it after
+                  its display time (Fomantic's `$.toast()`, same settings), and a `<ui-toast>` written in the page
+                  shows where it is. Each example's **Show** button runs the `UI.toast()` call in its code; the
+                  header-less examples after it are the same toast as an element.
+                </script>
+              </ui-markdown>
+            </ui-message>
+
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-minimal" header="Minimal" sticky collapsible dividing>
+                <ui-docs-example description="A minimal toast will just display a message.">
+                  <template>
+                    <ui-button id="toast-minimal">Show</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-minimal").addEventListener("click", () => {
+                        UI.toast({ message: "I am a toast, nice to meet you!" })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+                <ui-docs-example description="A `<ui-toast>` in the page shows where it is, and stays until clicked.">
+                  <ui-toast message="I am a toast, nice to meet you!"></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-titled" header="Titled" sticky collapsible dividing>
+                <ui-docs-example description="You can add a title to your toast.">
+                  <template>
+                    <ui-button id="toast-titled">Show</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-titled").addEventListener("click", () => {
+                        UI.toast({ title: "Better?", message: "Hey look, I have a title!" })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-toast header="Better?" message="Hey look, I have a title!"></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-progress-bar" header="Progress Bar" sticky collapsible dividing>
+                <ui-docs-example description="You can attach a progress bar to your toast.">
+                  <template>
+                    <ui-button id="toast-progress">Show</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-progress").addEventListener("click", () => {
+                        UI.toast({ title: "LOOK", message: "See, how long I will last", showProgress: "bottom" })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+              </ui-section>
+              <!-- GAP I117:  no colour of the progress bar's own (Fomantic's `classProgress`). -->
+              <ui-message size="small" class="site-not-ported"
+                >Not yet: the progress bar's own colour (Fomantic's <code>classProgress: 'red'</code>) -- it takes the
+                toast's colour; restyle it with <code>ui-toast::part(bar)</code>.</ui-message
+              >
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-toast-type" header="Toast Type" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A toast can be used to display different types of information:  `type` (`class` in `UI.toast()`)."
+                >
+                  <template>
+                    <ui-button id="toast-success" positive>Success</ui-button>
+                    <ui-button id="toast-error" negative>Error</ui-button>
+                    <ui-button id="toast-warning" color="yellow">Warning</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-success").addEventListener("click", () => {
+                        UI.toast({ class: "success", message: "You're using the good framework!" })
+                      })
+                      document.querySelector("#toast-error").addEventListener("click", () => {
+                        UI.toast({ class: "error", message: "An error occurred!" })
+                      })
+                      document.querySelector("#toast-warning").addEventListener("click", () => {
+                        UI.toast({ class: "warning", message: "Behind you!" })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="A bare `icon` shows the type's own icon;  an `error` toast is announced at once (`role=alert`)."
+                >
+                  <ui-toast type="info" icon message="An info toast, with its icon."></ui-toast>
+                  <ui-toast type="success" icon message="You're using the good framework!"></ui-toast>
+                  <ui-toast type="warning" icon message="Behind you!"></ui-toast>
+                  <ui-toast type="error" icon message="An error occurred!"></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-position" header="Position" sticky collapsible dividing>
+                <ui-docs-example description="A toast can appear at different positions on the screen.">
+                  <template>
+                    <ui-button class="toast-position" data-position="top left">Top left</ui-button>
+                    <ui-button class="toast-position" data-position="top center">Top center</ui-button>
+                    <ui-button class="toast-position" data-position="top right">Top right</ui-button>
+                    <ui-button class="toast-position" data-position="centered">Centered</ui-button>
+                    <ui-button class="toast-position" data-position="bottom left">Bottom left</ui-button>
+                    <ui-button class="toast-position" data-position="bottom center">Bottom center</ui-button>
+                    <ui-button class="toast-position" data-position="bottom right">Bottom right</ui-button>
+                    <script type="module">
+                      for (const button of document.querySelectorAll(".toast-position")) {
+                        button.addEventListener("click", () => {
+                          UI.toast({ position: button.dataset.position, message: "Look, I'm here!" })
+                        })
+                      }
+                    </script>
+                  </template>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Attached Position (<code>position: 'top attached'</code> /
+                <code>'bottom attached'</code>, full-width toasts like a phone's notifications) and Center Aligned
+                content (<code>class: 'center aligned'</code>) -- left out of the toast sheets on purpose.</ui-message
+              >
+
+              <ui-section id="examples-variations-direction" header="Direction" sticky collapsible dividing>
+                <ui-docs-example description="Toasts can stack horizontally:  `horizontal: true`.">
+                  <template>
+                    <ui-button id="toast-horizontal">Show</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-horizontal").addEventListener("click", () => {
+                        UI.toast({ horizontal: true, position: "top left", message: "Next one will open to the right" })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-duration" header="Duration" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    You can choose how long a toast should be displayed: <code>displayTime</code> (<code
+                      >display-time</code
+                    >
+                    on the element), in milliseconds. <code>0</code> keeps it until it's clicked, and <code>auto</code>
+                    calculates the time from the number of words (120 a minute, at least a second).
+                  </p>
+                  <template>
+                    <ui-button id="toast-five">5 seconds</ui-button>
+                    <ui-button id="toast-forever">Until clicked</ui-button>
+                    <ui-button id="toast-auto">Auto</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-five").addEventListener("click", () => {
+                        UI.toast({ displayTime: 5000, message: "You will see me for 5 seconds." })
+                      })
+                      document.querySelector("#toast-forever").addEventListener("click", () => {
+                        UI.toast({ displayTime: 0, message: "I'll stay here until you click on me!" })
+                      })
+                      document.querySelector("#toast-auto").addEventListener("click", () => {
+                        UI.toast({
+                          displayTime: "auto",
+                          showProgress: "top",
+                          message: "The display time of this toast is calculated by its amount of containing words."
+                        })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Use Message Style (<code>className: { toast: 'ui message' }</code>) -- a toast is a
+                <code>&lt;ui-toast&gt;</code>; slot a message's content into one instead.</ui-message
+              >
+
+              <ui-section
+                id="examples-variations-increasing-progress-bar"
+                header="Increasing Progress Bar"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description="The progress bar can be raised instead of lowered:  `progressUp` (`progress-up`)."
+                >
+                  <template>
+                    <ui-button id="toast-progress-up">Show</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-progress-up").addEventListener("click", () => {
+                        UI.toast({
+                          title: "LOOK",
+                          message: "See, how long I will last",
+                          showProgress: "top",
+                          progressUp: true
+                        })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-color-variants" header="Color Variants" sticky collapsible dividing>
+                <ui-docs-example description="You can use all of the usual color names.">
+                  <template>
+                    <ui-button id="toast-colors">Show the next colour</ui-button>
+                    <script type="module">
+                      const colors = [
+                        "red",
+                        "orange",
+                        "yellow",
+                        "olive",
+                        "green",
+                        "teal",
+                        "blue",
+                        "violet",
+                        "purple",
+                        "pink",
+                        "brown",
+                        "grey",
+                        "black"
+                      ]
+                      let next = 0
+                      document.querySelector("#toast-colors").addEventListener("click", () => {
+                        UI.toast({
+                          message: "I am a colorful toast",
+                          class: colors[next++ % colors.length],
+                          showProgress: "bottom"
+                        })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-toast color="red" message="I am a colorful toast"></ui-toast>
+                  <ui-toast color="teal" message="I am a colorful toast"></ui-toast>
+                  <ui-toast color="purple" message="I am a colorful toast"></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-inverted-colors" header="Inverted Colors" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Same as above, just add `inverted`:  a plain toast turns dark, a coloured one takes the hue's inverted variant."
+                >
+                  <template>
+                    <ui-button id="toast-inverted-colors">Show the next colour</ui-button>
+                    <script type="module">
+                      const hues = [
+                        "red",
+                        "orange",
+                        "yellow",
+                        "olive",
+                        "green",
+                        "teal",
+                        "blue",
+                        "violet",
+                        "purple",
+                        "pink",
+                        "brown",
+                        "grey",
+                        "black"
+                      ]
+                      let hue = 0
+                      document.querySelector("#toast-inverted-colors").addEventListener("click", () => {
+                        UI.toast({
+                          message: "I am an inverted colorful toast",
+                          class: `inverted ${hues[hue++ % hues.length]}`,
+                          showProgress: "bottom"
+                        })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-toast inverted message="A dark toast."></ui-toast>
+                  <ui-toast inverted color="purple" message="I am an inverted colorful toast"></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-not-compact" header="Not compact" sticky collapsible dividing>
+                <ui-docs-example
+                  description='A toast is 350px wide by default;  `compact="false"` sizes it to its content.'
+                >
+                  <ui-toast compact="false" message="As wide as my text."></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-actions" header="Actions" sticky collapsible dividing>
+              <ui-section id="examples-actions-general" header="General" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    Define click actions on your toast with a text and/or icon, optional class and click handler.
+                  </p>
+                  <ui-message slot="description" size="small"
+                    >The default click handler closes the toast, so leave it out when the button should only close it. A
+                    handler returning <code>false</code> keeps the toast open. In the page, put
+                    <code>&lt;ui-button slot="actions"&gt;</code>s in the toast: any activated one closes it unless its
+                    click was <code>preventDefault()</code>ed.</ui-message
+                  >
+                  <template>
+                    <ui-button id="toast-actions">Show</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-actions").addEventListener("click", () => {
+                        UI.toast({
+                          message: "Do you really want to star Fomantic-UI?",
+                          displayTime: 0,
+                          class: "black",
+                          actions: [
+                            {
+                              text: "Yes",
+                              icon: "check",
+                              class: "green",
+                              click: () => UI.toast({ message: 'You clicked "yes", toast closes by default' })
+                            },
+                            { icon: "ban", class: "icon red" },
+                            {
+                              text: "?",
+                              class: "blue",
+                              click: () => {
+                                UI.toast({ message: "Returning false from the click handler avoids closing the toast" })
+                                return false
+                              }
+                            }
+                          ]
+                        })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-toast color="black" message="Do you really want to star Fomantic-UI?">
+                    <ui-button slot="actions" color="green" icon="check">Yes</ui-button>
+                    <ui-button slot="actions" color="red" icon="ban" aria-label="No"></ui-button>
+                    <ui-button slot="actions" color="blue">?</ui-button>
+                  </ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-actions-basic" header="Basic" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`basic` actions don't lighten the actions' background;  `left` aligns the buttons to the left (`classActions` in `UI.toast()`, `actions` on the element)."
+                >
+                  <ui-toast color="black" actions="basic left" message="Do you really want to star Fomantic-UI?">
+                    <ui-button slot="actions" color="yellow">Yes, really</ui-button>
+                  </ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I118:  no `centered` actions (Fomantic's `classActions: 'centered'`);  shown right-aligned. -->
+              <ui-section id="examples-actions-centered" header="Centered" sticky collapsible dividing>
+                <ui-docs-example description="The action buttons can also be shown centered.">
+                  <ui-toast color="black" message="Do you really want to star Fomantic-UI?">
+                    <ui-button slot="actions" color="yellow">Yes, really</ui-button>
+                  </ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I121:  the attached group sits inset in a light frame, not flush with the toast. -->
+              <ui-section id="examples-actions-attached" header="Attached" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`attached` turns the actions into a button group joined below the toast;  `attached top` joins it above."
+                >
+                  <ui-toast color="black" actions="attached top" message="Do you really want to star Fomantic-UI?">
+                    <ui-buttons slot="actions" fluid>
+                      <ui-button color="green">Yes, really</ui-button>
+                      <ui-button color="red">Maybe later</ui-button>
+                    </ui-buttons>
+                  </ui-toast>
+                  <ui-toast color="black" actions="attached" message="Do you really want to star Fomantic-UI?">
+                    <ui-buttons slot="actions" fluid>
+                      <ui-button color="green">Yes, really</ui-button>
+                      <ui-button color="red">Maybe later</ui-button>
+                    </ui-buttons>
+                  </ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-actions-vertical" header="Vertical" sticky collapsible dividing>
+                <ui-docs-example description="`vertical` displays the actions to the right of the toast.">
+                  <ui-toast color="black" actions="vertical" message="Do you really want to star Fomantic-UI?">
+                    <ui-button slot="actions" color="green">Yes, really</ui-button>
+                    <ui-button slot="actions" color="red">Maybe later</ui-button>
+                  </ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-actions-vertical-attached"
+                header="Vertical attached"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description="Vertical actions can also be a button group:  `vertical attached`, which also supports `left`."
+                >
+                  <ui-toast
+                    color="black"
+                    actions="left vertical attached"
+                    message="Do you really want to star Fomantic-UI?"
+                  >
+                    <ui-buttons slot="actions" vertical>
+                      <ui-button color="green">Yes, really</ui-button>
+                      <ui-button color="red">Maybe later</ui-button>
+                    </ui-buttons>
+                  </ui-toast>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
+              <ui-section id="examples-examples-without-icon" header="Without icon" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A toast shows no icon unless you ask for one (Fomantic's `showIcon: false`):  bare `icon` shows the type's own."
+                >
+                  <ui-toast type="warning" message="Hey, where is my icon?"></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-examples-individual-icon" header="Individual icon" sticky collapsible dividing>
+                <ui-docs-example description='Use whatever icon you like:  `icon="microphone"`.'>
+                  <ui-toast type="info" icon="microphone" message="Listen to me"></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Image toasts (<code>showImage</code>, <code>classImage</code>) -- left out of the toast
+                sheet on purpose; slot an <code>&lt;ui-image avatar&gt;</code> into the content instead.</ui-message
+              >
+
+              <ui-section id="examples-examples-close-icon" header="Close Icon" sticky collapsible dividing>
+                <ui-docs-example
+                  description="You can force the user to click a close icon instead of clicking anywhere on the toast to close it:  `closable` (`closeIcon`)."
+                >
+                  <ui-toast type="info" closable message="Click on the X to close me"></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: the close icon on the left (<code>closeIcon: 'left'</code>) -- left out of the toast
+                sheet on purpose.</ui-message
+              >
+
+              <!-- GAP I119:  no transition settings (Fomantic's `transition: { showMethod, hideMethod ... }`);  every toast scales. -->
+              <ui-message size="small" class="site-not-ported"
+                >Not yet: Transitions (<code>transition: { showMethod: 'zoom', hideMethod: 'fade' ... }</code>) --
+                every toast scales in and out, timed by <code>--ui-toast-duration</code>.</ui-message
+              >
+            </ui-section>
+
+            <ui-section id="examples-create-from-dom" header="Create from DOM" sticky collapsible dividing>
+              <ui-section id="examples-create-from-dom-toast" header="Toast" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A toast can be made from markup:  a `<ui-toast>` in the page, with rich content in its slot."
+                >
+                  <ui-toast header="DOM toast" icon="info">
+                    A Toast can be generated out of existing DOM nodes, with <b>any markup</b> inside.
+                  </ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-create-from-dom-approve-deny-callbacks"
+                header="Approve / Deny Callbacks"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    Just like a modal, a toast ties approve / deny to any positive / approve, negative / deny or ok /
+                    cancel button: <code>ui-approve</code> and <code>ui-deny</code>, cancelable, so
+                    <code>preventDefault()</code> keeps it open.
+                  </p>
+                  <template>
+                    <ui-toast id="toast-approve-deny" display-time="0" message="Want to close this DOM toast?">
+                      <ui-button slot="actions" positive>Yes</ui-button>
+                      <ui-button slot="actions" negative>No</ui-button>
+                    </ui-toast>
+                    <script type="module">
+                      const toast = document.querySelector("#toast-approve-deny")
+                      toast.addEventListener("ui-deny", (event) => {
+                        UI.toast({ message: "Wait not yet!" })
+                        event.preventDefault()
+                      })
+                      toast.addEventListener("ui-approve", () => UI.toast({ message: "Approved" }))
+                    </script>
+                  </template>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Template, Message and Card toasts (<code>$('.ui.message').toast()</code>) -- a toast is a
+                <code>&lt;ui-toast&gt;</code>; slot the content you'd have put in a message or card into
+                one.</ui-message
+              >
+            </ui-section>
+
+            <ui-section id="examples-interaction" header="Interaction" sticky collapsible dividing>
+              <ui-section
+                id="examples-interaction-prevent-pausing"
+                header="Prevent pausing"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description='Hovering over a toast pauses its countdown;  `pauseOnHover: false` (`pause-on-hover="false"`) keeps it running.  Focus inside always pauses it.'
+                >
+                  <template>
+                    <ui-button id="toast-no-pause">Show</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-no-pause").addEventListener("click", () => {
+                        UI.toast({
+                          message: "This toast does not pause when you hover on it",
+                          pauseOnHover: false,
+                          showProgress: "top"
+                        })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-interaction-prevent-closing"
+                header="Prevent closing"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description='A click on a toast closes it;  `closeOnClick: false` (`close-on-click="false"`) doesn&apos;t.'
+                >
+                  <ui-toast close-on-click="false" closable message="Clicking me does nothing;  use the X."></ui-toast>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-interaction-access-created-toast"
+                header="Access created toast"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    Each <code>UI.toast()</code> call returns a handle: <code>closed</code> resolves when the toast is
+                    gone, <code>element</code> is the <code>&lt;ui-toast&gt;</code>, and
+                    <code>UI.toasts.dismiss(id)</code> closes it early.
+                  </p>
+                  <template>
+                    <ui-button id="toast-handle">Show, then close it after a second</ui-button>
+                    <script type="module">
+                      document.querySelector("#toast-handle").addEventListener("click", async () => {
+                        const toast = UI.toast({ message: "I'll be gone in a second", displayTime: 0 })
+                        setTimeout(() => UI.toasts.dismiss(toast.id), 1000)
+                        await toast.closed
+                        UI.toast({ message: "The first toast is gone" })
+                      })
+                    </script>
+                  </template>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-interaction-close-with-a-command"
+                header="Close with a command"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description='A button with `command="--close"` dismisses the toast named by `commandfor`, no script.'
+                >
+                  <ui-toast id="toast-invoker" type="success" icon closable message="Saved your changes"></ui-toast>
+                  <ui-button commandfor="toast-invoker" command="--close">Dismiss it</ui-button>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Two ways to show a toast:
+
+                  - `UI.toast({...})` builds a `<ui-toast>` in a container per `position` (`top right` by default;
+                    `top left`, `top center`, `bottom right`, `bottom left`, `bottom center`, `centered`), in the top
+                    layer, and removes it once it has closed. Its options are Fomantic's `$.toast()` settings
+                    (`title`, `message`, `class`, `displayTime` (3000 by default), `showIcon`, `showProgress`,
+                    `progressUp`, `closeIcon`, `closeOnClick`, `pauseOnHover`, `compact`, `actions`, `classActions`,
+                    `newestOnTop`, `horizontal`). Text is always set as text, never parsed as HTML.
+                  - A `<ui-toast>` written in the page shows where it is, like any element, and stays until closed
+                    unless it has a `display-time` (milliseconds, or `auto`: about as long as it takes to read).
+
+                  `UI.toast()` returns `{ id, closed, element }`: `closed` resolves when the toast is gone, and
+                  `UI.toasts.dismiss(id)` closes it early. It exists once the toast family has loaded: import
+                  `@spell-app/ui/ui-toast`, or use a `<ui-toast>` somewhere under `<ui-root>`.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  import { UI } from "@spell-app/ui/core"
+                  import "@spell-app/ui/ui-toast" // registers UI.toast()
+
+                  await UI.load()
+                  const toast = UI.toast({ message: "Moved to archive", displayTime: 5000, actions: [{ text: "Undo", click: undo }] })
+                  await toast.closed // gone:  countdown, click, action ...
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-closing" header="Closing" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  What closes a toast: the countdown, the close icon, a click on it (`close-on-click`, off with a
+                  close icon, actions or form controls inside), Escape while focus is inside, an action, a `--close`
+                  invoker command, or `host.close()`. Each goes through the cancelable `ui-close` (`detail.reason`),
+                  then the exit animation, then `hidden` on the host and `ui-hide`.
+
+                  A `<ui-button commandfor="id" command="--close">` (or a native button) closes a toast in the page
+                  with no script. Only `--close`: a closed toast stays closed (`hidden`, never removed), so there is
+                  nothing for `--show` or `--toggle` to bring back; insert a new toast instead.
+
+                  The countdown pauses while the pointer is over the toast (`pause-on-hover`) and always while focus
+                  is inside it. `progress="top"` or `"bottom"` shows it as a bar, which keeps running under reduced
+                  motion: it tells time, it isn't decoration.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-show` (`{ displayTime }`): shown, its entry animation finished; the countdown has started.
+                  - `ui-close` (`{ reason }`, cancelable): about to close; `preventDefault()` keeps it.
+                  - `ui-hide` (`{ reason }`): closed, its exit animation finished; the host is `hidden` now.
+                  - `ui-approve` / `ui-deny` (`{ action }`, cancelable): an approve action (`positive`, `.approve`,
+                    `.ok`) or a deny one (`negative`, `.deny`, `.cancel`) was activated; `preventDefault()` keeps
+                    the toast open.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  document.querySelector("#saved").addEventListener("ui-close", (event) => {
+                    if (event.detail.reason === "timeout" && stillSaving) event.preventDefault() // keep it up
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A toast never takes focus.
+
+                  - **Tab** reaches its close icon and actions; focus inside pauses the countdown.
+                  - **Escape** closes the toast while focus is inside it.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A toast is a `role="status"` live region, so it's announced without moving focus;
+                    `type="error"` makes it a `role="alert"`, announced at once.
+                  - Keep toasts for news that can be missed. Anything the user must act on belongs in a
+                    [modal](ui-modal.html) or on the page: a toast with `displayTime: 0` and actions is a
+                    compromise.
+                  - The toast containers of `UI.toast()` are `region` landmarks named "Notifications" (translated).
+                  - KNOWN LIMIT: while a modal `<dialog>` is open, everything outside it is inert, toast containers
+                    included. A toast shown then still counts down, but can't be clicked, focused or announced.
+                  - If the element can't render, its native fallback still shows the message, is still announced,
+                    and its close button and a numeric `display-time` still close it.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Most apps call `UI.toast()` from an event handler. A `<ui-toast>` in a template is an ordinary
+                  element: listen for `ui-hide` to drop it from your state.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  {saved && <ui-toast type="success" message="Saved" display-time="3000" onui-hide={() => setSaved(false)} />}
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-toast v-if="saved" type="success" message="Saved" display-time="3000" @ui-hide="saved = false" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <Show when={saved()}>
+                    <ui-toast
+                      type="success"
+                      message="Saved"
+                      display-time="3000"
+                      ref={(el) => el.addEventListener("ui-hide", () => setSaved(false))}
+                    />
+                  </Show>
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-toast"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-toast-*` tokens: set one on the element, on any ancestor (`:root` for
+                  every toast), or on the box through `::part(box)`. They inherit into the shadow root, where the
+                  sheet reads each through a private alias. Never set the `--_ui-toast-*` names: they're the sheet's
+                  private plumbing.
+
+                  - `--ui-toast-width` applies on screens wider than a phone; phones (up to 420px) use
+                    `--ui-toast-mobile-width`.
+                  - `--ui-toast-container-distance` goes on `:root`: the containers are page-level. For
+                    `UI.toast()`'s toasts, set the rest on `:root` too.
+                  - Style the pieces with `::part()`: `box` (around the toast, its bar and attached actions),
+                    `toast`, `icon`, `content`, `header`, `message`, `close`, `actions`, `progress` and `bar`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  :root {
+                    --ui-toast-radius: 0.75em;
+                  }
+                  ui-toast::part(bar) {
+                    background: var(--ui-primary);
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-toast" playground></ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles toasts: they keep the default look under every theme. The one in the
+                  header still changes the page, and the colours a toast takes from it.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

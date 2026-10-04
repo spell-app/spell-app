@@ -20,6 +20,12 @@ export class VisualSettings {
   static readonly RESULTS = `${VisualSettings.ROOT}tools/results/visual`
   /** the fixture page, served by the Vite dev server */
   static readonly FIXTURE = "/tools/visual/fixture.html"
+  /**
+   * `--static`'s pages, served by the same dev server (`StaticPages`):
+   * - `<prefix><family>/<example>.html` -- the element example, rendered statically
+   * - `<prefix>ui.css` -- the stylesheet every static page links
+   */
+  static readonly STATIC_PAGES = "/static/"
   /** browsers, by Playwright project name */
   static readonly BROWSERS = ["chromium", "firefox", "webkit"] as const
   /** colour schemes every state is captured in, by `prefers-color-scheme` emulation */
@@ -43,7 +49,8 @@ export class VisualSettings {
    */
   static readonly TOLERANCE = { threshold: 0.02, maxDiffPixels: 8 }
   /**
-   * `--parity` comparison of the class-grammar and element renders:  looser, and it only REPORTS
+   * `--parity` comparison of the class-grammar and element renders (and `--static`'s, of the static and element
+   * renders):  looser, and it only REPORTS
    * - `threshold` -- per-pixel colour distance (0-255 per channel, max over RGB)
    * - `ratio` -- share of differing pixels over which a pair is listed as different
    */
@@ -59,6 +66,8 @@ export class VisualSettings {
     ws: "UI_VISUAL_WS",
     /** `1`:  add the parity checks */
     parity: "UI_VISUAL_PARITY",
+    /** `1`:  ONLY the static checks (static render vs elements), no captures against baselines */
+    static: "UI_VISUAL_STATIC",
     /** Playwright workers, e.g. `4` or `50%` */
     workers: "UI_VISUAL_WORKERS"
   } as const

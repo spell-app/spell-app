@@ -60,6 +60,9 @@ export const TO = "--_slider-to"
 /** Roles and ARIA values. */
 export const SLIDER = "slider"
 
+/** Hidden input carrying the value in a static server render:  `type`. */
+export const HIDDEN = "hidden"
+
 /** Keys. */
 export const ARROW_UP = "ArrowUp"
 export const ARROW_LEFT = "ArrowLeft"

@@ -29,8 +29,14 @@
   --spell-rule: var(--ui-border-color, light-dark(#e3e0d8, #34343b));
   --spell-accent: var(--ui-link, LinkText);
   --spell-accent-soft: var(--ui-primary-background, light-dark(#e8eff8, #1f2b3b));
-  /* no UI token is quite a code well:  `--ui-surface-muted` is too faint for inline code in light */
-  --spell-code-bg: light-dark(#f3f2ef, #26272d);
+  /*
+   * a code well:  the theme's `--ui-code-background` (the Spell theme sets one:  grey-blue / deep aubergine);
+   * else our own, as `--ui-surface-muted` is too faint for inline code in light
+   */
+  --spell-code-bg: var(--ui-code-background, light-dark(#f3f2ef, #26272d));
+  /* headings in the SYSTEM face (Owen, 2026-10-04:  back from the theme's serif), in the theme's heading ink */
+  --spell-heading-font: var(--spell-sans);
+  --spell-heading-ink: var(--ui-text-dark, inherit);
   --spell-toc-width: 300px;
 }
 
@@ -49,6 +55,8 @@ body {
   background: var(--spell-bg);
   color: var(--spell-ink);
   font: 16px/1.6 var(--spell-sans);
+  /* UI's own headings (section titles, cards) in the system face too, as `--spell-heading-font` */
+  --ui-font-family-heading: var(--spell-sans);
 }
 
 /*******************************
@@ -94,6 +102,11 @@ ui-sticky.spell-h3 {
 }
 .spell-doc-main section:has(> ui-sticky.spell-h3) {
   margin-top: 22px;
+}
+:is(h1, h2, h3) {
+  color: var(--spell-heading-ink);
+  font-family: var(--spell-heading-font);
+  text-wrap: balance;
 }
 h1 {
   font-size: 2rem;
@@ -220,16 +233,23 @@ ui-button.spell-fold {
   --ui-section-h6: 0.9;
   --ui-section-title-line-height: 1.3;
   --ui-section-title-gap: 0.4em;
-  --ui-section-title-padding: 12px 4px 8px;
+  --ui-section-title-padding: var(--spell-title-top) 4px 8px;
+  /* the title's top padding:  the fold chevron sits on its first line (below) */
+  --spell-title-top: 12px;
   --ui-section-content-padding: 10px 0 0;
   --ui-section-dividing-border: 1px solid var(--spell-rule);
   --ui-section-sticky-background: var(--spell-bg);
   --ui-section-stuck-shadow: none;
   --ui-section-z-index: 4;
 }
+/* a jump to a folded section (`spell-doc-runtime.js` `jump()`):  what it unfolds opens at once */
+:root[data-spell-jumping] .spell-doc-main ui-section {
+  --ui-section-duration: 0s;
+}
 .spell-doc-main ui-section ui-section {
   --ui-section-margin: 22px;
-  --ui-section-title-padding: 8px 4px 6px;
+  --ui-section-title-padding: var(--spell-title-top) 4px 6px;
+  --spell-title-top: 8px;
   --ui-section-content-padding: 6px 0 0;
 }
 /* a folded nested section doesn't need its room:  the next one follows right under it */
@@ -248,6 +268,49 @@ ui-button.spell-fold {
 /* the stuck title's background reaches a few px past the column, over the cards' outer 1px borders */
 .spell-doc-main ui-section::part(title) {
   margin-inline: -4px;
+}
+/*
+ * The fold chevron at the title's FAR end, after the count and the actions, so the section icons line up at the
+ * start (Owen, epic `review-review`).  Plan items (`ui-accordion.plan-item`) keep theirs in front.
+ * - it stays INSIDE the toggle `<button>` (clicks on it still fold):  only its box moves, `position: absolute`
+ *   against the title, which is positioned already when `sticky` (every page section);  `relative` otherwise
+ * - the title keeps room at its end for it:  `--spell-fold-end` (where it sits) plus its width
+ * - on the title's FIRST line (`lh`:  the heading's line height), so a narrow title whose count and actions wrap
+ *   to a second line (below) keeps it beside the text
+ * - Material's convention (Owen, J5):  open, it points UP (it folds up);  folded, DOWN (it opens down)
+ */
+.spell-doc-main ui-section {
+  --spell-fold-end: 8px;
+}
+.spell-doc-main ui-section::part(title) {
+  padding-inline-end: calc(var(--spell-fold-end) + 22px);
+}
+.spell-doc-main ui-section:not([sticky])::part(title) {
+  position: relative;
+}
+.spell-doc-main ui-section::part(fold-icon) {
+  position: absolute;
+  inset-inline-end: var(--spell-fold-end);
+  top: calc(var(--spell-title-top) + 0.5lh);
+  margin-top: calc(var(--ui-section-fold-icon-size, 0.75em) / -2);
+  color: var(--spell-muted);
+}
+.spell-doc-main ui-section::part(fold-icon) {
+  rotate: 180deg;
+}
+.spell-doc-main ui-section:state(collapsed)::part(fold-icon) {
+  rotate: 0deg;
+}
+/* a narrow title wraps its actions and count under its text rather than squeezing the text to a word a line */
+@media (max-width: 560px) {
+  .spell-doc-main ui-section::part(title) {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+}
+/* the `open/all` count:  big enough to read at a glance beside a title */
+.spell-doc-main ui-section {
+  --ui-section-badge-font-size: 0.9em;
 }
 /*
  * the content clips its block edges (`overflow-y: clip`, for the fold animation):  a card's or styled accordion's
@@ -345,6 +408,80 @@ pre code {
             Widgets
 *******************************/
 
+/*
+ * ## Item filter:  a section's round filter button (`span.spell-item-filter` > `ui-button` + its tooltip, slotted
+ * into its title's `actions` by the runtime's `wireItemFilters()`):  plan docs' item lists (`.plan-items`) and the
+ * index's epics (`.spell-epics`).  Just after the title, left of the count badge;  each click shows one state's
+ * items, hiding the rest (`data-spell-hidden`), with "6 hidden · show all" under them.
+ */
+.spell-doc-main ui-section::part(actions) {
+  order: 1;
+}
+.spell-doc-main ui-section::part(badge) {
+  order: 2;
+}
+.spell-doc-main .spell-item-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+/*
+ * The state buttons:  round, in their state's color, filled while its items show, outlined while hidden;  the grey
+ * one first, a filter icon, filled while everything shows
+ */
+.spell-doc-main button.spell-state-toggle {
+  --_state: var(--ui-grey, #767676);
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 2px solid var(--_state);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--_state);
+  font-size: 0.55rem;
+  cursor: pointer;
+}
+.spell-doc-main button.spell-state-toggle[data-state="all"] {
+  width: 20px;
+  height: 20px;
+}
+.spell-doc-main button.spell-state-toggle[data-color="orange"] {
+  --_state: var(--ui-orange, #f2711c);
+}
+.spell-doc-main button.spell-state-toggle[data-color="red"] {
+  --_state: var(--ui-red, #db2828);
+}
+.spell-doc-main button.spell-state-toggle[data-color="blue"] {
+  --_state: var(--ui-blue, #2185d0);
+}
+.spell-doc-main button.spell-state-toggle[data-color="green"] {
+  --_state: var(--ui-green, #21ba45);
+}
+.spell-doc-main button.spell-state-toggle[aria-pressed="true"] {
+  background: var(--_state);
+  color: var(--ui-surface, Canvas);
+}
+.spell-doc-main button.spell-state-toggle:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+.spell-doc-main :is(.plan-items, .spell-epics) > [data-spell-hidden] {
+  display: none;
+}
+.spell-doc-main a.spell-hidden-note:not([hidden]) {
+  display: inline-block;
+  margin: 4px 0 0 4px;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+}
+/* an epic card's state, before its title:  [3/6], or a done / planning / stalled icon */
+.spell-doc-main .spell-epic-state {
+  margin-right: 4px;
+  vertical-align: 0.1em;
+}
+
 /* ## Messages, tables, cards:  page spacing;  tables scroll inside their box at phone width */
 .spell-doc-main :is(ui-message, ui-cards, ui-accordion, ui-statistics, ui-steps, ui-tabs, ui-grid, ui-feed, ui-items) {
   margin: 16px 0;
@@ -362,14 +499,47 @@ ui-tab > pre {
   flex-wrap: wrap;
   margin: 0;
 }
-/* ## Trade-offs:  `ui-grid.spell-pros-cons` of two `ui-segment`s, each with a top-attached label */
+/*
+ * ## Trade-offs and options:  `ui-grid.spell-pros-cons` of `ui-segment`s, each with a top-attached label (pros /
+ * cons, or a plan item's A / B / C options), then `p`, `ul`, `pre` or `ui-code`.
+ * - the label is a light, small bar IN the flow (UI's is absolute, so it took no room and the text ran under
+ *   it):  static, pulled out to the segment's edges by the segment's padding (`--spell-card-pad`) plus its 1px
+ *   border, the content's own space below it
+ * - the content's first and last children drop their margins:  the segment's padding is the only space around
+ *   them, so no band under the text (the UA margins of a `<p>` made one)
+ * - columns in a row keep one height (`height: 100%`)
+ */
+.spell-doc-main ui-grid.spell-pros-cons {
+  --spell-card-pad: 12px;
+}
 .spell-doc-main ui-grid.spell-pros-cons ui-segment {
+  --ui-segment-padding: var(--spell-card-pad);
   display: block;
   height: 100%;
 }
-/* a top-attached label takes no room in the segment (UI can't reach "the element after it"):  clear it by hand */
-.spell-doc-main ui-grid.spell-pros-cons ul {
-  margin: 2.2em 0 0;
+.spell-doc-main ui-grid.spell-pros-cons ui-label[attached="top"] {
+  --ui-label-background: var(--ui-surface-strong, var(--spell-code-bg));
+}
+.spell-doc-main ui-grid.spell-pros-cons ui-label[attached="top"]::part(label) {
+  position: static;
+  display: block;
+  width: auto;
+  margin: calc(-1 * var(--spell-card-pad) - 1px) calc(-1 * var(--spell-card-pad) - 1px) 10px;
+  padding: 5px var(--spell-card-pad);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.spell-doc-main ui-grid.spell-pros-cons ui-segment > :is(p, ul, ol, pre, ui-code, ui-accordion, ui-message) {
+  margin-block: 8px;
+}
+.spell-doc-main ui-grid.spell-pros-cons ui-segment > :is(ui-label[attached="top"] + *, :first-child) {
+  margin-top: 0;
+}
+.spell-doc-main ui-grid.spell-pros-cons ui-segment > :last-child {
+  margin-bottom: 0;
+}
+.spell-doc-main ui-grid.spell-pros-cons :is(ul, ol) {
   padding-left: 18px;
 }
 /* the source's density:  smaller type, tighter cells than Fomantic's `compact` (public tokens) */
@@ -455,6 +625,8 @@ ui-accordion.spell-aside::part(content) {
   line-height: 1.4;
   /* UI sizes its widgets from this:  the contents' own small type, so `em`s agree inside and outside */
   --ui-font-size: 0.84rem;
+  /* small entries read best in the body face:  the theme's heading face (a serif, in Spell) stays on the page */
+  --ui-font-family-heading: var(--spell-sans);
 }
 .spell-toc-inner {
   max-height: calc(100vh - var(--spell-site-header-height, 0px));
@@ -565,10 +737,24 @@ ui-accordion.spell-toc ui-accordion::part(title) {
   font-weight: 600;
 }
 
-/* an h2's open items, after its contents link:  `ui-label.spell-toc-count` */
-.spell-toc ui-title > ui-label.spell-toc-count {
-  margin-inline-start: 4px;
-  vertical-align: middle;
+/*
+ * Open-item counts (`span.spell-toc-count` after a contents link, `span.spell-rail-count` beside a rail icon):  small
+ * ORANGE pills, apart from the ivory and the icons' brown (Owen, 2026-10-04)
+ */
+:is(.spell-toc-count, .spell-rail-count) {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 0.4em;
+  border-radius: 999px;
+  background: var(--ui-orange, #f2711c);
+  color: var(--ui-orange-on, #fff);
+  font: 700 0.72rem/1.5 var(--spell-sans);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.spell-toc ui-title > .spell-toc-count {
+  margin-inline-start: 6px;
+  vertical-align: 0.1em;
 }
 
 /*******************************
@@ -577,51 +763,161 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 
 /*
  * The rail (`nav.spell-rail`, built by the runtime):  a strip at the right edge -- the contents button (bars) on
- * top, then one icon per h2, its open items floating on it.  Shown while the contents column isn't:  narrow
- * screens, or `body.spell-toc-hidden` (the contents' hide button).  Below the fixed site header, as the drawer.
+ * top, then one icon per top-level section, its open items beside the icon.  Shown while the contents column
+ * isn't:  narrow screens, or `body.spell-toc-hidden` (the contents' hide button).  Below the fixed site header,
+ * as the drawer.
+ * - the brand's IVORY (Polished Ivory, the warm accent:  UI's `--ui-brown-background` / `--ui-brown-text`, a warm
+ *   surface in dark mode) for the strip, its flyout and the contents drawer;  the current section a deeper ivory,
+ *   hover a step between (Owen, 2026-10-04)
+ * - only as tall as its entries, its bottom-left corner rounded;  scrolls when the window is shorter
+ * - no padding:  entries run edge to edge, the attention bar flush with the left edge, a selected entry a square
+ *   full-width row (Owen, 2026-10-04)
+ * - every entry is `icon | label`:  the strip shows only the icons;  hovering it (or tabbing into it) widens it
+ *   LEFTWARD over the page to `--spell-rail-open`, the icons riding its left edge and the labels showing to
+ *   their right.  A short delay first, so crossing it on the way to the scrollbar doesn't
+ * - a section needing attention (open items) gets a thick ORANGE bar at its entry's left edge;  its count shows
+ *   only when the strip is widened, as an orange pill at the entry's right end (Owen, 2026-10-04)
+ * - very narrow (`max-width: 480px`, VS Code's side bar;  Owen, J3):  only the bars button, floating at the top right
  */
 :root {
-  --spell-rail-width: 48px;
+  --spell-rail-width: 32px;
+  --spell-rail-open: 240px;
+  --spell-rail-bg: var(--ui-brown-background, light-dark(#f7efe2, #2c2152));
+  --spell-rail-ink: var(--ui-brown-text, light-dark(#534323, #eaddc4));
+  --spell-rail-hover: color-mix(in srgb, var(--spell-rail-ink) 9%, var(--spell-rail-bg));
+  --spell-rail-selected: color-mix(in srgb, var(--spell-rail-ink) 18%, var(--spell-rail-bg));
+  --spell-rail-rule: color-mix(in srgb, var(--spell-rail-ink) 22%, transparent);
+  /* the ivory over the opaque surface, in case a theme's is see-through:  the strip and drawer float over the page */
+  --spell-rail-fill: linear-gradient(var(--spell-rail-bg), var(--spell-rail-bg)) var(--ui-surface, Canvas);
 }
 .spell-rail {
   display: none;
   position: fixed;
   top: var(--spell-site-header-height, 0px);
   right: 0;
-  bottom: 0;
   z-index: 899;
   width: var(--spell-rail-width);
+  max-height: calc(100vh - var(--spell-site-header-height, 0px) - 12px);
+  max-height: calc(100dvh - var(--spell-site-header-height, 0px) - 12px);
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 0;
-  overflow-y: auto;
-  background: var(--spell-bg);
-  border-left: 1px solid var(--spell-rule);
+  gap: 0;
+  padding: 0 0 6px;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  background: var(--spell-rail-fill);
+  border: 1px solid var(--spell-rail-rule);
+  border-width: 0 0 1px 1px;
+  border-bottom-left-radius: 14px;
+  transition:
+    width 0.16s var(--ui-ease, ease-out),
+    box-shadow 0.16s;
 }
-/* the menu's width is fixed:  icon items have none of their own, so a shrink-to-fit menu would collapse */
-.spell-rail ui-menu::part(menu) {
-  margin: 0;
-  min-height: 0;
-  width: calc(var(--spell-rail-width) - 12px);
+@media (hover: hover) {
+  .spell-rail:not(.spell-rail-resting):is(:hover, :focus-within) {
+    width: var(--spell-rail-open);
+    box-shadow: -10px 6px 28px -8px rgb(0 0 0 / 0.28);
+    transition-delay: 0.12s;
+  }
 }
-.spell-rail ui-item::part(item) {
+.spell-rail-items {
   display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+/* an entry:  its icon at the strip's left edge, then its label (shown when the rail is wide);  the markup is
+   `label, icon`, so the row runs reversed */
+.spell-rail-item {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: flex-end;
+  flex: none;
+  gap: 2px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: var(--spell-rail-ink);
+  font: 500 0.85rem/1.2 var(--spell-sans);
+  text-decoration: none;
+  cursor: pointer;
+}
+.spell-doc-page .spell-rail-item:hover {
+  background: var(--spell-rail-hover);
+  color: var(--spell-rail-ink);
+}
+.spell-rail-item:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: -2px;
+}
+.spell-rail-item[selected],
+.spell-doc-page .spell-rail-item[selected]:hover {
+  background: var(--spell-rail-selected);
+  color: var(--spell-rail-ink);
+  font-weight: 700;
+}
+.spell-rail-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  padding-inline: 6px 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: start;
+}
+/* the icon's box:  the glyph centred in the strip's width */
+.spell-rail-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
   justify-content: center;
-  padding: 8px 0;
-  border-radius: 6px;
-  color: var(--spell-muted);
+  width: var(--spell-rail-width);
+  height: 34px;
+  font-size: 0.95rem;
 }
-.spell-rail ui-item::part(item):hover {
-  background: var(--spell-accent-soft);
+/* needs attention:  a thick orange bar at the entry's left edge */
+.spell-rail-item:has(.spell-rail-count)::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 4px;
+  border-radius: 0;
+  background: var(--ui-orange, #f2711c);
 }
-.spell-rail ui-item[selected]::part(item) {
-  background: var(--spell-accent-soft);
-  color: var(--spell-accent);
+.spell-rail-item:has(.spell-rail-count) .spell-rail-label {
+  padding-inline-end: 36px;
 }
-/* the floating badge sits on the icon's corner, inside the strip */
-.spell-rail ui-label[floating] {
-  --ui-label-floating-offset: -0.4em;
+.spell-rail-icon > b {
+  font: 700 0.78rem var(--spell-sans);
+}
+/* the count:  hidden in the strip (the bar says it), an orange pill at the entry's right end once widened */
+.spell-rail-count {
+  display: none;
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  translate: 0 -50%;
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 0.66rem;
+  line-height: 17px;
+}
+@media (hover: hover) {
+  .spell-rail:not(.spell-rail-resting):is(:hover, :focus-within) .spell-rail-count {
+    display: inline-block;
+  }
+}
+/* the bars:  a plain icon, as the entries;  bold while its drawer is open */
+.spell-toc-open {
+  margin-bottom: 0;
+  color: var(--spell-rail-ink);
+}
+.spell-toc-open[aria-expanded="true"] {
+  background: var(--spell-rail-selected);
 }
 body.spell-toc-hidden .spell-rail {
   display: flex;
@@ -656,8 +952,8 @@ body.spell-toc-hidden .spell-doc-main {
     bottom: 0;
     z-index: 900;
     width: min(340px, 88vw);
-    background: var(--ui-surface, Canvas);
-    border-left: 1px solid var(--spell-rule);
+    background: var(--spell-rail-fill);
+    border-left: 1px solid var(--spell-rail-rule);
     box-shadow: -8px 0 24px rgb(0 0 0 / 0.25);
     transform: translateX(105%);
     visibility: hidden;
@@ -675,7 +971,56 @@ body.spell-toc-hidden .spell-doc-main {
     height: calc(100dvh - var(--spell-site-header-height, 0px));
   }
   .spell-toc-head {
-    background: var(--ui-surface, Canvas);
+    background: var(--spell-rail-fill);
+  }
+  /* the drawer is ivory, as the rail:  its entries in the rail's ink, hover and the current entry as the rail's */
+  .spell-doc-toc .spell-toc :is(ui-title > a, ui-item::part(item)) {
+    color: var(--spell-rail-ink);
+  }
+  .spell-doc-toc .spell-toc :is(ui-title > a:hover, ui-item::part(item):hover) {
+    background: var(--spell-rail-hover);
+  }
+  .spell-doc-toc .spell-toc :is(ui-title > a.active, ui-item[selected]::part(item)) {
+    background: var(--spell-rail-selected);
+    color: var(--spell-rail-ink);
+  }
+}
+
+/*
+ * ## Very narrow (VS Code's side bar, a phone):  the rail is just its bars button, at the top right, over the
+ * page header's end (which keeps room for it);  the page gets the width back.  Wide titles that stick at the very
+ * top (a page with no page header) keep room for it too.
+ * - the bars still open the drawer:  this is inside `NARROW` (`spell-doc-runtime.js`)
+ */
+@media (max-width: 480px) {
+  .spell-rail,
+  body.spell-toc-hidden .spell-rail {
+    bottom: auto;
+    width: auto;
+    padding: 6px 6px 0 0;
+    overflow: visible;
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+  .spell-rail-items,
+  .spell-toc-open > .spell-rail-label {
+    display: none;
+  }
+  .spell-toc-open {
+    margin: 0;
+    background: var(--spell-bg);
+  }
+  .spell-doc-main,
+  body.spell-toc-hidden .spell-doc-main {
+    padding-right: 16px;
+  }
+  /* `.spell-doc-main`:  outweighs the stuck headings' `padding-inline` rule (Sticky headings) */
+  .spell-doc-main .spell-page-head {
+    padding-inline-end: 40px;
+  }
+  body:not(:has(.spell-page-head)) .spell-doc-main > ui-section {
+    --spell-fold-end: 44px;
   }
 }
 
@@ -784,6 +1129,21 @@ body.spell-toc-hidden .spell-doc-main {
 .spell-filter ui-input {
   width: min(360px, 100%);
 }
+/*
+ * Command reference pages (`templates/commands.html`, drawn by `commands.js`):  a note under a cell's names, the
+ * packages after a yarn script;  names don't break at their dashes
+ */
+.spell-doc-main :is(.commands-notes, .commands-where) {
+  color: var(--spell-muted);
+  font-size: 0.85em;
+}
+.spell-doc-main .commands-notes {
+  margin-top: 4px;
+}
+.spell-doc-main [data-commands-families] td > code {
+  white-space: nowrap;
+}
+
 /* the badge legend under the header:  `ui-labels.spell-legend` */
 ui-labels.spell-legend {
   display: block;
@@ -833,4 +1193,23 @@ ui-labels.spell-legend {
 .hljs-property,
 .hljs-variable.language_ {
   color: var(--hl-attr);
+}
+
+/* agent B:  cloak */
+/*
+ * Cloak:  a custom element not yet defined (`spell-ui.js` is the page's LAST script) draws nothing, so its raw
+ * markup never flashes before it upgrades.
+ * - `visibility`, not `display`:  the page keeps its layout, and so its scroll position
+ * - never forever:  `spell-uncloak` shows it anyway after 2s, e.g. a page opened from `file://` whose bundle failed
+ *   to load (`check-spell.js` still reports an element that never defines)
+ */
+:not(:defined) {
+  visibility: hidden;
+  animation: spell-uncloak 0s 2s forwards;
+}
+
+@keyframes spell-uncloak {
+  to {
+    visibility: visible;
+  }
 }

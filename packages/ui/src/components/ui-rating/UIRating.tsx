@@ -1,5 +1,5 @@
 import { Repeat, Show, createEffect, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 import { onFormStateRestore } from "@spell-app/solid-element"
 
 import {
@@ -226,6 +226,7 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
           name={this.groupName}
           value={String(n)}
           aria-label={this.text("ratingItem", { value: n, max: this.max() })}
+          {...this.staticRadio(n)}
           onClick={this.onClick}
           onChange={this.onChange}
         />
@@ -246,8 +247,22 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
     return words.join(" ")
   }
 
-  /** A fresh glyph `<svg>` (with class `extra`), or nothing until the icon has loaded;  tracked. */
+  /**
+   * Server render only (`$/ui/server`):  radio `n` named for the form (the host's `name`) and `checked` when it is
+   * the value, so a static form submits the rating;  `{}` in a browser, where the HOST submits
+   * (`ElementInternals`) and the radios share a generated name.
+   */
+  private staticRadio(n: number): Record<string, unknown> {
+    if (!isServer) return {}
+    return { name: this.attrs.name ?? this.groupName, checked: this.value() === n }
+  }
+
+  /**
+   * A fresh glyph `<svg>` (with class `extra`), or nothing until the icon has loaded;  tracked.
+   * - Server render:  the glyph as markup (`IconGlyph.svg()`), which takes no class:  no partial `fill` copy.
+   */
   private svg(extra?: string): SVGSVGElement | undefined {
+    if (isServer) return extra ? undefined : this.glyph.svg()
     const template = this.glyph.data.get()
     if (!template) return undefined
     const svg = IconGlyph.draw(template)

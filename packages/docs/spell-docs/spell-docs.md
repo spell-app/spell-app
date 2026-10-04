@@ -30,12 +30,12 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
 
 | File | What |
 |---|---|
-| `scripts/update.js` (`yarn docs:update`) | bundle, `docs:index`, `doc-links.py --check`, `check-spell.js` on every page |
+| `scripts/update.js` (`yarn docs:update`) | bundle, `docs:index`, `doc-links.js --check`, `check-spell.js` on every page |
 | `scripts/bundle-spell-ui.js` | builds UI (fork + `yarn build`), then bundles `_assets/spell-ui.entry.js` -> `_assets/spell-ui.js` |
 | `scripts/index.js` (`yarn docs:index`) | rewrites the lists in `index.html` from every page's title and description |
 | `scripts/pages.js` | where the docs are, `findPages()`, `tidy()` (link targets + oxfmt) -- shared by the scripts |
 | `scripts/check-spell.js` | Playwright checks + four screenshots of one page |
-| `scripts/doc-links.py` | links `<code>path</code>` references;  `--check` verifies every link |
+| `scripts/doc-links.js` | links `<code>path</code>` references;  `--check` verifies every link |
 | `scripts/to-ui-section.js` | converts old `section.s2|s3` pages to `<ui-section>`;  `plan-doc.js` `migrate` runs its `convertSections()` |
 | `_assets/spell-ui.entry.js` | the bundle's entry:  icons first, then UI, then the runtime |
 | `_assets/spell-doc-runtime.js` | page behaviour (below) |
@@ -104,15 +104,20 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
     gets a nested one-pair accordion
   - every link carries `data-target="{id}"` for scroll-follow
   - an entry's `<ui-icon>`s (a plan phase's status) are copied in front of it;  `ui-label` badges are not
-  - a group with open items gets their count as a round badge (`ui-label.spell-toc-count`)
+  - a group with open items gets their count as a small accent pill (`span.spell-toc-count`)
 - Layout:  content column (max ~880px) + ~300px contents column that scrolls on its own.  Under 1100px the contents
   become a right drawer;  clicking a contents link closes it.
 - Rail (`buildRail()`, `nav.spell-rail`):  a fixed strip at the right edge, shown while the contents column isn't
   (under 1100px, or `body.spell-toc-hidden`):
-  - on top, the contents button (`ui-button.spell-toc-open`, bars):  narrow, it slides the drawer;  wide, it brings
-    the column back
-  - then one `ui-item` per top-level section (h2), its icon (else its number), its open count floating on it;
-    scroll-follow selects the current section's
+  - plain elements, styled by `spell-doc.css` "Rail":  each entry `label | icon`, the labels showing only while
+    hover or focus widens the strip leftward (36px -> 240px);  the current section filled with the accent
+  - on top, the contents button (`button.spell-toc-open`, plain bars):  narrow, it slides the drawer;  wide, it
+    brings the column back
+  - then one `a.spell-rail-item[data-rail]` per top-level section (h2), its icon (else its number), its open count
+    a pill on the icon's corner;  scroll-follow marks the current section's `selected`
+  - 480px wide and under:  only the bars button, at the top right over the page header's end
+  - `buildContents()` / `buildRail()` / `wireContents()` can run again (a page updated in place):  each replaces
+    what it built, or drops its listeners, first
   - pages from before 2026-10-01 hand-wrote a "Contents" `.spell-toc-open`:  the runtime removes it
 - The site header (`<spell-site-header>`, `$/server/site`):  fixed on top of every page, its height
   `--spell-site-header-height` on `:root` (`siteHeaderHeight()`).  Everything that sticks or lands starts below it:
@@ -145,8 +150,7 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
     folded.
 - Counts (`countItems()`):  a top-level section with `[data-status]` items shows "open/all" on its title:  its
   `badge` (`<ui-section>`), or a `ui-label.spell-count` at its h2's right.  Nested sections get no count of their own.
-  Not open:  `done`, and `decided` (a plan's decision in force:  "Questions & Decisions" counts the questions
-  waiting).
+  Not open:  `done`, and `decided` (an answered question:  "Questions" counts the ones still waiting).
 - Anchors (`wireAnchors()`):  any same-page link to an id in `main` -- a section, a heading or a plan item -- is the
   runtime's:  it unfolds every folded section around the target (`collapsed = false`:  not saved), opens the
   target's panel (a plan item's `ui-accordion`), and scrolls by the site header plus the target's

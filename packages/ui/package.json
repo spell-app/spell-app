@@ -12,6 +12,7 @@
     "**/*.css",
     "./src/index.ts",
     "./src/components/*/index.ts",
+    "./src/docs-components/*/index.ts",
     "./src/elements/HotDefinitions.ts",
     "./dist/index.js",
     "./dist/ui-button.js",
@@ -69,6 +70,9 @@
     "./dist/ui-embed.js",
     "./dist/ui-calendar.js",
     "./dist/ui-section.js",
+    "./dist/ui-markdown.js",
+    "./dist/ui-code.js",
+    "./dist/ui-include.js",
     "./tools/demo/**"
   ],
   "main": "./dist/index.js",
@@ -311,6 +315,18 @@
       "types": "./dist/components/ui-section/index.d.ts",
       "import": "./dist/ui-section.js"
     },
+    "./ui-markdown": {
+      "types": "./dist/components/ui-markdown/index.d.ts",
+      "import": "./dist/ui-markdown.js"
+    },
+    "./ui-code": {
+      "types": "./dist/components/ui-code/index.d.ts",
+      "import": "./dist/ui-code.js"
+    },
+    "./ui-include": {
+      "types": "./dist/components/ui-include/index.d.ts",
+      "import": "./dist/ui-include.js"
+    },
     "./styles": {
       "types": "./dist/styles/index.d.ts",
       "import": "./dist/styles.js"
@@ -352,22 +368,33 @@
     "icons:pack": "tsx tools/cli.ts icons:pack",
     "screenshots": "tsx tools/screenshots.ts",
     "/////// DOCS SITE": "",
-    "site:dev": "yarn --cwd site dev",
-    "site:build": "yarn --cwd site build",
-    "site:preview": "yarn --cwd site preview",
-    "site:check": "yarn --cwd site check",
+    "site:dev": "tsx scripts/site-dev.ts",
+    "site:data": "tsc -p scripts && tsx scripts/gen-site-data.ts",
+    "site:index": "tsx scripts/site-components-index.ts",
+    "site:kitchen": "tsx scripts/site-kitchen-sink.ts",
+    "site:bundle": "tsx scripts/site-bundle.ts",
+    "site:build": "yarn site:data && yarn site:index && yarn site:kitchen && yarn site:bundle",
+    "site:new": "tsc -p scripts && tsx scripts/site-new.ts",
+    "site:sections": "tsx scripts/site-sections.ts",
+    "site:check": "tsx tools/SiteCheck.ts",
     "/////// GENERATED": "",
     "gen:styles": "tsc -p scripts && tsx scripts/gen-styles.ts",
     "gen:icons": "tsc -p scripts && tsx scripts/gen-icons.ts",
     "gen:emoji": "tsc -p scripts && tsx scripts/gen-emoji.ts",
     "gen:root": "tsc -p scripts && tsx scripts/gen-root-catalog.ts",
+    "gen:spell": "tsc -p scripts && tsx scripts/gen-spell.ts",
     "tokens:alias": "tsx scripts/alias-tokens.ts",
     "/////// MANIFEST": "",
     "manifest": "custom-elements-manifest analyze --globs 'src/**/*.ts' 'src/**/*.tsx' --exclude 'src/**/*.test.ts' --exclude 'src/**/*.test.tsx'"
   },
   "dependencies": {
     "@spell-app/solid-element": "workspace:*",
+    "dompurify": "^3.4.0",
+    "highlight.js": "^11.12.0",
+    "linkedom": "^0.18.13",
     "lodash-es": "^4.18.1",
+    "marked": "^18.0.0",
+    "postcss": "^8.5.28",
     "temporal-polyfill": "^1.0.5"
   },
   "devDependencies": {

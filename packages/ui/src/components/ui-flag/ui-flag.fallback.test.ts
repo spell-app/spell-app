@@ -17,7 +17,7 @@ describe("FlagFallback", () => {
   it("renders the emoji as a named image, with the class grammar and part", async () => {
     const host = Fixture.render<StubHost>(`<x-fb-flag country="france" size="large"></x-fb-flag>`)
     const flag = FallbackStub.shadow(host).firstElementChild!
-    expect(flag.className).toBe("ui large flag")
+    expect(flag.className).toBe("ui large flag fr")
     expect(flag.getAttribute("part")).toBe("flag")
     expect(flag.getAttribute("role")).toBe("img")
     expect(flag.getAttribute("aria-label")).toBe("France")

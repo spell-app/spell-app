@@ -25,6 +25,9 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - The barrel NEVER exports it.  Other packages may import these files by name, the one deep-import exception
     (see `tsconfig.base.json`'s header);  the app's server does.
   - Nothing reachable from `$/spell`'s barrel may import it:  the barrel runs in browsers.
+- `src/highlight/` -- `SpellHighlighter` (`SP.SpellHighlighter.spans(text)`):  colours a snippet without a project, for
+  `<ui-code language="spell">`.  `browser.ts` is the entry `@spell-app/ui`'s `yarn gen:spell` bundles:  after changing
+  the grammar, run it there so `ui`'s committed bundle follows.
 - `src/test/` (`$/spell/test`) holds the test helpers, e.g. `loadFixtureProject()`, `fixturePath()`,
   `fixtureProjectId()`.
 - `projects/` holds every spell project, OUTSIDE `src/`:  `system/examples/`, `system/library/`, `system/guides/`,

@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Feed | Spell UI</title>
+    <meta name="description" content="A feed presents user activity chronologically." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Feed">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-feed.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-feed%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/views/feed.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Feed
+            <ui-header>A feed presents user activity chronologically.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-feed" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's feed page, section by section, in its order (Types, Content, States, Variations).
+              Fomantic's `.label` + `<img>` / `<i class="icon">` / `data-text` are `<ui-event image|icon|label>` (or the `label`
+              slot);  `.user` is `<ui-author>`;  `.extra.text` is `<ui-extra text>`;  `.extra.images` is a `<ui-images
+              size="tiny">` in a `<ui-extra>`.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-feed" header="Feed" sticky collapsible dividing>
+                <ui-docs-example description="A feed:  a list of `<ui-event>`s.">
+                  <ui-feed>
+                    <ui-event image="../images/avatar/small/elliot.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          <ui-author href="#">Elliot Fu</ui-author> added you as a friend
+                          <ui-date>1 Hour Ago</ui-date>
+                        </ui-summary>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 4 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event image="../images/avatar/small/helen.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          <a href="#">Helen Troy</a> added <a href="#">2 new illustrations</a>
+                          <ui-date>4 days ago</ui-date>
+                        </ui-summary>
+                        <ui-extra>
+                          <ui-images size="tiny">
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                          </ui-images>
+                        </ui-extra>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 1 Like</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event image="../images/avatar/small/jenny.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          <ui-author href="#">Jenny Hess</ui-author> added you as a friend
+                          <ui-date>2 Days Ago</ui-date>
+                        </ui-summary>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 8 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event image="../images/avatar/small/joe.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          <a href="#">Joe Henderson</a> posted on his page
+                          <ui-date>3 days ago</ui-date>
+                        </ui-summary>
+                        <ui-extra text>
+                          Ours is a life of constant reruns. We're always circling back to where we'd we started, then
+                          starting all over again. Even if we don't run extra laps that day, we surely will come back
+                          for more of the same another day soon.
+                        </ui-extra>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 5 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event image="../images/avatar/small/justen.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          <a href="#">Justen Kitsune</a> added <a href="#">2 new photos</a> of you
+                          <ui-date>4 days ago</ui-date>
+                        </ui-summary>
+                        <ui-extra>
+                          <ui-images size="tiny">
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                          </ui-images>
+                        </ui-extra>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 41 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-label" header="Label" sticky collapsible dividing>
+                <ui-docs-example
+                  description="An event label can contain an image, icon, text or label.  `image` is the shorthand for a picture;  the `label` slot takes anything."
+                >
+                  <ui-feed>
+                    <ui-event image="../images/avatar/small/elliot.jpg">
+                      <ui-content> You added Elliot Fu to the group <a href="#">Coworkers</a> </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example description="`icon` takes an icon name.">
+                  <ui-feed>
+                    <ui-event icon="pencil">
+                      <ui-content>
+                        <ui-summary>
+                          You posted on your friend <a href="#">Stevie Feliciano's</a> wall.
+                          <ui-date>Today</ui-date>
+                        </ui-summary>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example>
+                  <p slot="description">A <code>&lt;ui-text&gt;</code> in the <code>label</code> slot.</p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: Fomantic's <code>multiline</code> label text (a nudge for a text label that wraps) --
+                    the label box stays one line; keep label texts short.</ui-message
+                  >
+                  <ui-feed>
+                    <ui-event>
+                      <ui-text slot="label" color="purple">NEW</ui-text>
+                      <ui-content> Check the latest sales offers </ui-content>
+                    </ui-event>
+                    <ui-event>
+                      <ui-text slot="label" color="purple">THIS FALL</ui-text>
+                      <ui-content> Only in selected theaters! </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example description="A `<ui-label>` in the `label` slot.">
+                  <ui-feed>
+                    <ui-event>
+                      <ui-label slot="label" size="small" color="green">OK</ui-label>
+                      <ui-content> Deployment was successful </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example>
+                  <p slot="description">
+                    <code>label</code> (Fomantic's <code>data-text</code>) makes a round label holding the given text.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Add a <code>color</code> too, and <code>basic</code> for a variant without background
+                    color.</ui-message
+                  >
+                  <ui-feed>
+                    <ui-event label="Run">
+                      <ui-content> Run, Forrest, run! </ui-content>
+                    </ui-event>
+                    <ui-event color="red" label="Stop">
+                      <ui-content> Don't move! </ui-content>
+                    </ui-event>
+                    <ui-event color="yellow" basic label="Zzz">
+                      <ui-content> Nap time </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-date" header="Date" sticky collapsible dividing>
+                <ui-docs-example
+                  description="An event or an event summary can contain a date:  on its own a `<ui-date>` sits above the summary."
+                >
+                  <ui-feed>
+                    <ui-event image="../images/avatar/small/jenny.jpg">
+                      <ui-content>
+                        <ui-date>3 days ago</ui-date>
+                        <ui-summary
+                          >You added <a href="#">Jenny Hess</a> to your <a href="#">coworker</a> group.</ui-summary
+                        >
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example description="Inside the summary it sits inline after the text.">
+                  <ui-feed>
+                    <ui-event image="../images/avatar/small/jenny.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          You added <a href="#">Jenny Hess</a> to your <a href="#">coworker</a> group.
+                          <ui-date>3 days ago</ui-date>
+                        </ui-summary>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I42:  `<ui-date>` has no `floated`, so Fomantic's right floated date sits above the summary. -->
+              <ui-section
+                id="examples-content-additional-information"
+                header="Additional information"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">An event can contain additional information like a set of images or text.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Fomantic's <code>right floated</code> date (to the right of the content block) has no attribute
+                    yet: the date sits above the summary.</ui-message
+                  >
+                  <ui-feed>
+                    <ui-event image="../images/avatar/small/helen.jpg">
+                      <ui-content>
+                        <ui-date>3 days ago</ui-date>
+                        <ui-summary><a href="#">Helen Troy</a> added 2 photos</ui-summary>
+                        <ui-extra>
+                          <ui-images size="tiny">
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                          </ui-images>
+                        </ui-extra>
+                      </ui-content>
+                    </ui-event>
+                    <ui-event image="../images/avatar/small/laura.jpg">
+                      <ui-content>
+                        <ui-date>3 days ago</ui-date>
+                        <ui-summary><a href="#">Laura Faucet</a> created a post</ui-summary>
+                        <ui-extra text>Have you seen what's going on in Israel? Can you believe it.</ui-extra>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="A feed or a single event can be disabled.">
+                  <ui-feed>
+                    <ui-event disabled image="../images/avatar/small/elliot.jpg">
+                      <ui-content>
+                        <ui-summary><ui-author href="#">I am a disabled feed event</ui-author></ui-summary>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 4 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event image="../images/avatar/small/elliot.jpg">
+                      <ui-content>
+                        <ui-summary><ui-author href="#">I am a normal feed event</ui-author></ui-summary>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 4 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example>
+                  <ui-feed disabled>
+                    <ui-event image="../images/avatar/small/elliot.jpg">
+                      <ui-content>
+                        <ui-summary
+                          ><ui-author href="#">I am a feed event of a whole disabled feed</ui-author></ui-summary
+                        >
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 4 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event image="../images/avatar/small/elliot.jpg">
+                      <ui-content>
+                        <ui-summary><ui-author href="#">Me too</ui-author></ui-summary>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 4 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-connected" header="Connected" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">Feed events can be connected to visualize a linear timeline.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Add a <code>color</code>, <code>&lt;ui-feed connected color="blue"&gt;</code>, to colour the
+                    connection line.</ui-message
+                  >
+                  <ui-feed connected>
+                    <ui-event image="../images/avatar/small/elliot.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          <ui-author href="#">Elliot Fu</ui-author> added you as a friend
+                          <ui-date>1 Hour Ago</ui-date>
+                        </ui-summary>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 4 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event icon="pencil">
+                      <ui-content>
+                        <ui-summary>
+                          You submitted a new post to the page
+                          <ui-date>3 days ago</ui-date>
+                        </ui-summary>
+                        <ui-extra text>I'm having a BBQ this weekend. Come by around 4pm if you can.</ui-extra>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 11 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event image="../images/avatar/small/helen.jpg">
+                      <ui-content>
+                        <ui-date>4 days ago</ui-date>
+                        <ui-summary><a href="#">Helen Troy</a> added <a href="#">2 new illustrations</a></ui-summary>
+                        <ui-extra>
+                          <ui-images size="tiny">
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                          </ui-images>
+                        </ui-extra>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 1 Like</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-ordered" header="Ordered" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    Ordered feeds will automatically create ordered label content for the event. You can again combine
+                    this using a color for the whole feed or each event individually. Also a basic variant is available.
+                  </p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >With <code>connected</code> the connection line takes the feed's color. An event's own
+                    <code>color</code> colours both its circle and the line to the next event (Fomantic can colour the
+                    label alone).</ui-message
+                  >
+                  <ui-feed color="orange" ordered connected>
+                    <ui-event color="blue">
+                      <ui-content>
+                        <ui-summary>Different label color than whole feed color</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                    <ui-event color="black">
+                      <ui-content>
+                        <ui-summary>Automatic label content, line color taken from event color</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                    <ui-event label="3rd">
+                      <ui-content>
+                        <ui-summary>Content via the label attribute</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                    <ui-event basic>
+                      <ui-content>
+                        <ui-summary>Basic Label</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-divided" header="Divided" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Feed events can be divided to better distinguish between grouped content."
+                >
+                  <ui-feed divided>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary><a href="#">Elliot Fu</a> added <a href="#">Jenny Hess</a> as a friend</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary
+                          ><a href="#">Stevie Feliciano</a> added <a href="#">Elliot Fu</a> as a friend</ui-summary
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary
+                          ><a href="#">Helen Troy</a> added <a href="#">Christian Rocha</a> as a friend</ui-summary
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary><a href="#">Christian Rocha</a> signed up for the site.</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A feed can have different sizes.">
+                  <ui-feed size="small">
+                    <ui-header level="4">Followers Activity</ui-header>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary><a href="#">Elliot Fu</a> added <a href="#">Jenny Hess</a> as a friend</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary
+                          ><a href="#">Stevie Feliciano</a> added <a href="#">Elliot Fu</a> as a friend</ui-summary
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary
+                          ><a href="#">Helen Troy</a> added <a href="#">Christian Rocha</a> as a friend</ui-summary
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary><a href="#">Christian Rocha</a> signed up for the site.</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example>
+                  <ui-feed size="large">
+                    <ui-event image="../images/avatar/small/elliot.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          <ui-author href="#">Elliot Fu</ui-author> added you as a friend
+                          <ui-date>1 Hour Ago</ui-date>
+                        </ui-summary>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 4 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event icon="pencil">
+                      <ui-content>
+                        <ui-summary>
+                          You submitted a new post to the page
+                          <ui-date>3 days ago</ui-date>
+                        </ui-summary>
+                        <ui-extra text>I'm having a BBQ this weekend. Come by around 4pm if you can.</ui-extra>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 11 Likes</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                    <ui-event image="../images/avatar/small/helen.jpg">
+                      <ui-content>
+                        <ui-date>4 days ago</ui-date>
+                        <ui-summary><a href="#">Helen Troy</a> added <a href="#">2 new illustrations</a></ui-summary>
+                        <ui-extra>
+                          <ui-images size="tiny">
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                            <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                          </ui-images>
+                        </ui-extra>
+                        <ui-meta
+                          ><a href="#"><ui-icon name="like"></ui-icon> 1 Like</a></ui-meta
+                        >
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A feed's color can be inverted.">
+                  <ui-segment inverted>
+                    <ui-feed inverted>
+                      <ui-event image="../images/avatar/small/elliot.jpg">
+                        <ui-content>
+                          <ui-date>Just now</ui-date>
+                          <ui-summary><ui-author href="#">Elliot Fu</ui-author> posted on his page</ui-summary>
+                          <ui-extra text>Hey there !</ui-extra>
+                        </ui-content>
+                      </ui-event>
+                      <ui-event image="../images/avatar/small/elliot.jpg">
+                        <ui-content>
+                          <ui-summary>
+                            <ui-author href="#">Elliot Fu</ui-author> added you as a friend
+                            <ui-date>1 Hour Ago</ui-date>
+                          </ui-summary>
+                        </ui-content>
+                      </ui-event>
+                      <ui-event image="../images/avatar/small/helen.jpg">
+                        <ui-content>
+                          <ui-summary>
+                            <a href="#">Helen Troy</a> added <a href="#">2 new illustrations</a>
+                            <ui-date>4 days ago</ui-date>
+                          </ui-summary>
+                          <ui-extra>
+                            <ui-images size="tiny">
+                              <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                              <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                            </ui-images>
+                          </ui-extra>
+                          <ui-meta
+                            ><a href="#"><ui-icon name="like"></ui-icon> 1 Like</a></ui-meta
+                          >
+                        </ui-content>
+                      </ui-event>
+                      <ui-event image="../images/avatar/small/jenny.jpg">
+                        <ui-content>
+                          <ui-summary>
+                            <ui-author href="#">Jenny Hess</ui-author> added you as a friend
+                            <ui-date>2 Days Ago</ui-date>
+                          </ui-summary>
+                          <ui-meta
+                            ><a href="#"><ui-icon name="like"></ui-icon> 8 Likes</a></ui-meta
+                          >
+                        </ui-content>
+                      </ui-event>
+                      <ui-event image="../images/avatar/small/joe.jpg">
+                        <ui-content>
+                          <ui-summary>
+                            <a href="#">Joe Henderson</a> posted on his page
+                            <ui-date>3 days ago</ui-date>
+                          </ui-summary>
+                          <ui-extra text>
+                            Ours is a life of constant reruns. We're always circling back to where we'd we started, then
+                            starting all over again. Even if we don't run extra laps that day, we surely will come back
+                            for more of the same another day soon.
+                          </ui-extra>
+                          <ui-meta
+                            ><a href="#"><ui-icon name="like"></ui-icon> 5 Likes</a></ui-meta
+                          >
+                        </ui-content>
+                      </ui-event>
+                      <ui-event image="../images/avatar/small/justen.jpg">
+                        <ui-content>
+                          <ui-summary>
+                            <a href="#">Justen Kitsune</a> added <a href="#">2 new photos</a> of you
+                            <ui-date>4 days ago</ui-date>
+                          </ui-summary>
+                          <ui-extra>
+                            <ui-images size="tiny">
+                              <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                              <ui-image src="../images/wireframe/image.png" href="#" alt=""></ui-image>
+                            </ui-images>
+                          </ui-extra>
+                          <ui-meta
+                            ><a href="#"><ui-icon name="like"></ui-icon> 41 Likes</a></ui-meta
+                          >
+                        </ui-content>
+                      </ui-event>
+                    </ui-feed>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  from the old Astro page (Behaviour, Accessibility), tightened. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A feed is a list of events, newest or oldest first as you order them. Each `<ui-event>` is a label beside a block
+                  of content.
+
+                  - The label is optional: a round picture (`image`), an `icon`, a short text in a circle (`label`, Fomantic's
+                    `data-text`), or anything you put in the `label` slot (a `<ui-text>`, a `<ui-label>`, your own `<img>`).
+                  - In an `ordered` feed every event gets a label for its number; a `label` text still wins.
+                  - The feed styles the content parts inside its events, so you write plain parts and they take the feed's look:
+                    - `<ui-content>` holds the event
+                    - `<ui-summary>` says what happened
+                    - `<ui-author>` names who (Fomantic's `.user`)
+                    - `<ui-date>` says when: inline inside the summary, a line of its own outside it
+                    - `<ui-extra>` adds more: `text` for a block of text, or a `<ui-images size="tiny">` for pictures
+                    - `<ui-meta>` holds small actions such as a like count
+                  - `connected`, `ordered`, `divided`, `basic` and `color` are set on the feed and reach every event; `color` and
+                    `basic` also work on a single event.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-feed connected>
+                    <ui-event image="/avatars/elliot.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          <ui-author href="/people/elliot">Elliot Fu</ui-author> added you as a friend
+                          <ui-date datetime="2026-10-03T09:00">1 Hour Ago</ui-date>
+                        </ui-summary>
+                        <ui-meta><a href="/likes/1"><ui-icon name="like"></ui-icon> 4 Likes</a></ui-meta>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Neither element fires events of its own. Links and buttons inside the content are yours: listen for their
+                  native `click`. A feed that grows appends `<ui-event>`s; the numbers of an `ordered` feed and the line of a
+                  `connected` one follow by themselves (CSS counters and inherited tokens).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const feed = document.querySelector("ui-feed")
+                  const event = document.createElement("ui-event")
+                  event.setAttribute("icon", "pencil")
+                  event.innerHTML = `<ui-content><ui-summary>You posted on the page <ui-date>Just now</ui-date></ui-summary></ui-content>`
+                  feed.prepend(event)
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The feed itself takes no keys and is never a tab stop. **Tab** reaches the links and buttons inside its events in
+                  reading order; **Enter** / **Space** come from the browser.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The shadow root holds a real `<ul>` (`<ol>` when `ordered`, since the numbers mean something) with an explicit
+                    `role="list"`, because Safari drops list semantics from unstyled lists. Each `<ui-event>` in a feed is a
+                    `listitem`.
+                  - The `image` and `icon` labels are decorative (`alt=""`, hidden glyph): the summary must say who and what. Give
+                    a picture in the `label` slot its own `alt` (`""` when it is decoration).
+                  - A `label` text and the numbers of an `ordered` feed are drawn by CSS, so don't rely on them to carry meaning a
+                    screen reader must hear.
+                  - `disabled` fades the event, blocks the mouse and sets `aria-disabled`. Links inside stay in the tab order; add
+                    `inert` to the event when they must not be reached at all.
+                  - If the feed or an event can't render, its native fallback keeps the same list, event boxes, labels and class
+                    words, so the feed still reads in order. It drops the `icon` label's glyph (the box stays empty) and the feed
+                    styling of the content parts, and counts only an event directly inside a `<ui-feed>` as a list item.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-feed"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-feed-*` tokens: set one on the feed, on any ancestor (`:root` for every feed), or on
+                  its box through `::part(feed)`. Its events inherit them.
+
+                  - Style an event's pieces with `::part()`: `event`, `label`, `image` and `icon`.
+                  - The feed's content parts also read a few tokens that are unset by default, so they are not in the table:
+                    `--ui-feed-summary-color`, `--ui-feed-author-color` (a linked author; default the link colour),
+                    `--ui-feed-date-color`, `--ui-feed-meta-color`, `--ui-feed-meta-action-color`, `--ui-feed-extra-color` and
+                    `--ui-feed-extra-text-width` (default `500px`).
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-feed {
+                    --ui-feed-label-width: 3em;
+                    --ui-feed-connected-color: var(--ui-primary);
+                    --ui-feed-date-color: var(--ui-text-muted);
+                  }
+                  ui-event::part(label) {
+                    filter: grayscale(1);
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `connected`, `ordered`, `divided` and `basic` reach the events as private switches (`--_feed-connected` ...);
+                    use the attributes, never set the `--_*` names. `color` (on the feed or one event) colours the number circles
+                    and the connecting line through `--ui-color`.
+                  </script>
+                </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-feed" playground></ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
+
+                  The one theme that restyles feeds is Timeline -- the same list as Fomantic's own feed page (Default, Timeline).
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

@@ -33,7 +33,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `src/runtime/` (`UI`) -- the shared `UI` runtime, ONE instance per page (`globalThis.UI ??= new UIRuntime()`).
     Components call `UI.load()` on connect, which dynamic-imports this chunk once.  Services are classes:
     `Browser` (sniffing + `UI.browser.supports` flags), `Keyboard`, `Overlays`, `Focus`, `Styles`, `Vocabulary`,
-    `I18n`, `Transitions`, `Ids`, `Toasts`, `Modals`, `Api`, `IconPacks` (`UI.icons`)
+    `I18n`, `Transitions`, `Ids`, `Toasts`, `Modals`, `Api`, `IconPacks` (`UI.icons`), `Sources` (`UI.sources`)
   - `src/icons/` -- the icon PACK format (`IconPackIndex`, `IconName`, `BuiltInPacks`) and the built-in packs
     (`icon-packs/<id>/`:  SVG files + `pack.js`);  loading and caching are the runtime's (`UI.icons`);  packs are built by
     `tools/IconPackBuilder.ts` (`yarn icons:pack`);  see `docs/icons.md`
@@ -42,7 +42,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     - the Solid layer:  `UIHost` / `FormHost` (host base classes), `UIElement` (the CONTROLLER base:  one instance
       per element, `render()` returns JSX), `ElementDefinition` (vocabulary => the fork's props), `FormElement`,
       `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `PartContext` + `ContentPart` (owner context),
-      `IconGlyph`, and the dev-only `HotDefinitions` (NOT in the barrel)
+      `IconGlyph`, `SourceElement` + `SourceHost` (the base of the elements that show a text file:  `source`, inline
+      text, loading / error look, `save()`), and the dev-only `HotDefinitions` (NOT in the barrel)
   - `src/components/ui-<name>/` -- one folder per component FAMILY, named after its main tag (`ui-button/`);  the
     family's own files carry the same name (`ui-button.css`):
     - `UI<Name>.tsx` (or `.ts` without JSX) -- one element class per file:  `UIButton.tsx`, `UIButtons.tsx`,
@@ -57,7 +58,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
         + `aka` (other libraries' / everyday names:  `ui-modal`:  `dialog`, `lightbox`).  A NEW TAG MUST fill both;
         `src/components/component-definitions.ts` rolls them up (the docs' component browser) and
         `test/component-definitions.test.ts` fails on a tag without them.  A new or moved tag also needs `yarn gen:root`
-        (`<ui-root>`'s catalog of tag => family;  `test/root-catalog.test.ts` fails while it's stale).  Live:  `UIButton.describe()`
+        (`<ui-root>`'s catalog of tag => family;  `test/root-catalog.test.ts` fails while it's stale) and `yarn site:data`
+        (the docs site's data;  `tools/SiteDataBuilder.test.ts` fails while it's stale).  Live:  `UIButton.describe()`
     - `ui-<name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces (nothing top-level
       stays loose in an element / fallback / helper file);  a helper function becomes a private static on the one class
       that uses it, else a static on a small class here.  Constants used by SEVERAL folders live in
@@ -66,8 +68,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       `ui-parts.types.ts` is the exception
     - vocabularies and types files are PURE DATA:  `$/ui/core` for types only;  shared constants by value come
       straight from `components.types` (`import * as UIT from "$/ui/components/components.types"`).  Why:  core loads
-      the element layer, and the docs site's server render (`astro dev`) evaluates vocabularies, where Solid's client
-      APIs throw.  `test/vocabularies.test.ts` enforces it
+      the element layer, which node can't, and `yarn site:data` / `yarn gen:root` import every vocabulary in node
+      (tsx).  `test/vocabularies.test.ts` enforces it
     - `ui-<name>.fallback.ts` -- the native fallback (plain DOM, no Solid) shown when the element's render throws
     - `ui-<name>.test.tsx` (elements), `ui-<name>.css.test.ts` (the sheet on class-grammar markup),
       `ui-<name>.fallback.test.ts`, `ui-<name>.a11y.test.ts`, `ui-<name>.perf.test.tsx`
@@ -75,6 +77,19 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       `examples/elements/*.html` -- the same examples as `ui-*` ELEMENT markup (axe in `ui-<name>.test.tsx`,
       `yarn dev`, `yarn test:visual`);  `examples/elements/<example>.visual.ts` -- optional OPEN states for the
       visual tests (`docs/visual-testing.md`)
+  - `src/docs-components/ui-docs-<name>/` -- DOC-ONLY element families (`<ui-docs-example>`, `<ui-docs-api>` ...):  the
+    widgets the docs site is built from, laid out and written EXACTLY like a component family (same files, same
+    rules), but NOT components:  no lib entry, not in `ComponentDefinitions.all` / the component list
+    (`ComponentDefinitions.docs`), every tag filed under the `documentation` topic.  `<ui-root>` knows them (`yarn gen:root`
+    scans this folder too;  `RootLoader` has a second literal glob for it).  A family that renders other widgets in
+    its shadow root imports their families in its barrel, and adds their tags to `DocsJSXTags`.  They read the site's
+    data through `SiteData` (`site/_data/components.json`), NEVER the vocabularies.  The barrel's header says how to
+    add one
+  - `src/server/` (`$/ui/server`, `SSR`) -- the STATIC server render:  `StaticRender.page()` / `fragment()` turn
+    `ui-*` markup into plain light-DOM HTML (no shadow DOM, no JS) in node, for SEO.  Stand-in hosts are linkedom
+    elements (`ServerHost`), controllers render with `renderToString`, `StaticFlattener` swaps each host for its
+    root, `StaticInteractions` wires what works without JS.  Node only:  NEVER imported by a component or `$/ui`.
+    Plan:  `packages/docs/epics/seo/seo.plan.html`
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
     (`FormElement`, `FormHost`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
@@ -94,10 +109,30 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     vendoring, import-map smoke pages (framework hosts), LOC, report tables, the HMR end-to-end test;
     `tools/demo/` is the `yarn dev` site;  `tools/visual/` the visual tests;  results go to `tools/results/`
     (git-ignored)
-  - `site/` -- Astro docs site, modelled on Fomantic's docs, on the live components
+  - `site/` -- the docs site, modelled on Fomantic's docs, served at `/ui/` by the page server (a static folder,
+    live-reloading;  `packages/server`'s `UI_SITE`):  plain `.html` pages on `<ui-*>` widgets, no build step to view
+    one (epic `spell-ui-pages`, which replaced the old Astro site).  `site/README.md` says how pages are made:
+    - `*.html`, `components/ui-<name>.html` -- the pages;  `images/` -- Fomantic's docs images
+    - `_assets/` -- GENERATED, committed:  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what every
+      page loads:  `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module" src="_assets/site.js">`,
+      `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink to `src/icons/icon-packs`.
+      NEVER edit
+    - `_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS (`site.css`);
+      config `vite.site.config.ts`
+    - `_data/` -- `components.json`, `icons.json` (the icon browser's search terms) and `search.json` (every page's
+      sections, for `<ui-docs-search>`, read from the page files), GENERATED, committed (`yarn site:data`;  shapes
+      `SiteDataFile` / `SiteIconsFile` / `SiteSearchFile` in `src/docs-components/docs-components.types.ts`;  rerun
+      after renaming or moving a section too), and `pages.json`, hand-kept per-family facts it reads (title, summary,
+      status, token-table overrides, `pages`:  the sub-tags with a page of their own)
+    - `_parts/` -- shared header / footer, pulled in with `<ui-include>`
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
-  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`)
+  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`, `gen-site-data.ts`,
+    `site-new.ts`, `site-components-index.ts`, `site-kitchen-sink.ts`) and the site bundle's build (`site-bundle.ts`,
+    watched by `site-dev.ts`)
+  - `src/languages/` -- GENERATED, committed:  `spell.<lang>.js`, spell's pre-compiled highlighter for
+    `<ui-code language="spell">` (`yarn gen:spell`;  the root `AGENTS.md`'s one `ui` -> spell exception).  NEVER edit;
+    lint and format skip it
   - `reference/Fomantic-UI/` -- READ-ONLY, git-ignored clone of Fomantic for porting.  NEVER edit or import it.
 - Commands:
   - `yarn review` -- tsc (root, node configs, the fork) + oxlint `--fix` + oxfmt + every test (`ssr`, `browser`,
@@ -115,6 +150,9 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       markup, tokens, an example) is handed back
     - a change that alters rendering MUST update its baselines in the SAME change (`--update`), after reviewing
       every diff in the HTML report;  never update to silence a diff you haven't looked at
+    - `--static` -- instead, compare the STATIC server render (`$/ui/server`) of the families in
+      `tools/visual/StaticFamilies.ts` with the elements;  report only (`tools/results/visual/static-parity.md`),
+      `--os local` by default
   - `yarn dev` -- `tools/demo/`:  every example as class grammar beside elements;  edits hot-reload
   - `yarn icons:pack <folder> --id <id> [--sanitize] [--skip-unsafe | --allow-unsafe]` -- verify a folder of SVGs
     and write its `pack.js` (keeps hand edits);  `--sanitize` strips unsafe attributes first;  files that still fail
@@ -124,7 +162,25 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `yarn fork <script>`, `yarn fork:install`, `yarn fork:build` -- the fork's own scripts.  Its `dist/` is only
     needed by `yarn vendor` / `yarn measure`, which build it when stale (`tools/ForkBuild.ts`);  dev, tests,
     the site and the library build use its source
-  - `yarn site:dev`, `yarn site:build`
+  - `yarn site:build` ~== `yarn site:data` (`site/_data/components.json`, `icons.json`) + `yarn site:index` (the
+    component index's cards, `site/components/index.html`;  `--check`) + `yarn site:kitchen` (the kitchen sink's
+    examples, `site/kitchen-sink.html`, from every family's `examples/elements/types.html`;  `--check`) + `yarn
+    site:bundle` (`site/_assets/`, sizes printed):  rerun after changing a vocabulary, a family sheet, an example or any
+    source the site shows, and commit the output
+  - `yarn site:dev` -- `scripts/site-dev.ts`:  `yarn site:bundle`, then the page server (started if needed) serves
+    `/ui/` while a Vite WATCH build rebuilds `site/_assets/` on every `src/` / `site/_src/` edit, and live reload
+    reloads the open pages.  Not watched:  `site:data` / `site:index` / `site:kitchen`.  A watch rebuild leaves stale
+    hashed chunks:  `yarn site:build` before committing
+  - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
+    (`packages/docs/templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a
+    tag (`<tag>.html` for a sub-tag its family's `pages` lists:  `ui-radio`), else `site/<page>.html`;  title /
+    summary / status from `site/_data/pages.json`.  How to write one:  `packages/docs/epics/spell-ui-pages/PAGES.md`
+  - `yarn site:sections [--check] [page...]` -- `scripts/site-sections.ts`:  nests every page's flat level 2 / 3
+    headers and headed examples into `<ui-section>`s and writes (or fixes) their ids, `<tab>-<section>-<example>`;
+    idempotent.  `site:index`, `site:kitchen` and `site:new` run it on what they write
+  - `yarn site:check <page...> | --all` -- `tools/SiteCheck.ts`:  loads pages from the page server (Playwright),
+    fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an empty toc, phone-width overflow,
+    a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK at them
   - Use `yarn tsc`, not `npx tsc`:  yarn picks the workspace's TypeScript 7.  (The `@typescript/typescript6` that
     `vite-plugin-dts` needs once linked `.bin/tsc` as TypeScript 6;  with hoisting the root `.bin/tsc` is 7 today,
     but that's luck of the hoister -- see the root's `PAPERCUTS.md`, `## ui`.)
@@ -216,7 +272,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   `NativeFallback`, same class grammar, no Solid).  When a render throws, the element logs once, dispatches a
   cancelable `ui-error`, gets `:state(errored)` and shows the fallback;  siblings keep working
   (`docs/fallback.md`).
-- **Hot reload** (`yarn dev`, `yarn site:dev`):  edits to a family's classes, vocabulary, fallback or sheet
+- **Hot reload** (`yarn dev`):  edits to a family's classes, vocabulary, fallback or sheet
   update live instances in place;  internal state (a query, an open menu) resets.  Changes the platform reads
   once (observed attributes, `formAssociated`, the host base class, shadow options) and edits to shared code
   (`core`, `forms`, `src/elements/`, the runtime) reload the page.  `yarn test:hmr` MUST pass after touching
@@ -224,13 +280,17 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - **One Solid per page:**  every Vite config dedupes `solid-js` / `@solidjs/web` (`SOLID_DEDUPE`);  NEVER
   `import * as` a Solid package in shipped code (it pins every export into bundles and vendored copies).
 - SSR:  anything that reads the DOM in a constructor needs an `isServer` guard (`test/ssr.ssr.test.tsx`).
+  - Static render (`$/ui/server`):  hosts are linkedom elements, so NEVER `instanceof Element` / `Node` /
+    `ShadowRoot` / `HTMLSlotElement` in shared code (node has no such globals):  `nodeType`, `localName`.
+  - An effect whose APPLY writes the host (`internals.role`, ARIA, states) is `this.hostEffect(compute, apply)`:  the
+    server build never runs an apply, so a plain `createEffect` leaves the static output without it.
 
 ## Decorators
 
 As the root's, plus:
 
-- `vite.decorators.ts` (repo root) is used by `vite.config.ts` (`baseConfig()`, shared with `vitest.config.ts`) and
-  the Astro config.
+- `vite.decorators.ts` (repo root) is used by `vite.config.ts` (`baseConfig()`, shared with `vitest.config.ts` and
+  the site bundle's `vite.site.config.ts`).
 - The decorator pre-pass MUST run BEFORE the Solid plugin (both are `enforce: "pre"`;  `baseConfig()` orders them):
   the Solid compiler must see decorator-free code.
 
@@ -240,6 +300,7 @@ As the root's, plus our self-namespaces:
 
 - `UI` ~== the runtime singleton from `$/ui/runtime`
 - `E` ~== `$/ui/elements`
+- `SSR` ~== `$/ui/server` (node only)
 - `UIT` ~== `$/ui/components/components.types` -- the constants, types and `ToggleCommands` several families share:
   `UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
   never flat;  inside the folder itself, plain named imports

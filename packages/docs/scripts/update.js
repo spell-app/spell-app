@@ -8,11 +8,11 @@
  *   1. `bundle-spell-ui.js` -- builds UI, bundles `_assets/spell-ui.js`
  *   2. `index.js` -- rewrites the docs index's lists
  *   3. finds the pages (`pages.js` `findPages()`)
- *   4. `doc-links.py --check` on the pages
+ *   4. `doc-links.js --check` on the pages
  *   5. `check-spell.js` on each page, screenshots in a temp folder -- checks every page, THEN fails if any did
  */
 import { spawnSync } from "node:child_process"
-import { mkdtempSync, statSync } from "node:fs"
+import { mkdtempSync, readFileSync, statSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, relative } from "node:path"
 
@@ -35,12 +35,15 @@ const pages = findPages().map((path) => relative(DOCS, path))
 if (!pages.length) fail("find pages", "no .html pages")
 console.log(`\n== pages:  ${pages.join(", ")}`)
 
-step("check links", "python3", ["scripts/doc-links.py", "--check", ...pages])
+step("check links", "node", ["scripts/doc-links.js", "--check", ...pages])
 
 const results = []
 if (check) {
   const shots = mkdtempSync(join(tmpdir(), "spell-docs-"))
   for (const output of pages) {
+    // a Spell UI site page (the `spell-ui-docs` template) loads the site bundle, not `spell-ui.js`:
+    // `yarn site:check` (packages/ui) checks those
+    if (readFileSync(join(DOCS, output), "utf8").includes("ui/site/_assets/site.js")) continue
     const outDir = join(shots, output.replace(/\.html$/, "").replaceAll("/", "--"))
     const run = step(`check ${output}`, "node", ["scripts/check-spell.js", output, outDir], {
       capture: true,

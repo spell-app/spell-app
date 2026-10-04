@@ -20,7 +20,8 @@ Documentation for people who write spells, people who build spell, and agents, a
 ### Today
 
 - **Developer docs:**  `packages/docs/index.html`:  precedence, Solid 2, how the docs work, plan docs.
-- **@spell-app/ui docs:**  an Astro site in `packages/ui/site` (53 pages), not deployed.
+- **@spell-app/ui docs:**  plain HTML pages on `<ui-*>` widgets in `packages/ui/site` (66 pages, Fomantic's docs
+  style), not deployed.
 - **In the app:**  a `@system:guides` root is configured, with no folder behind it.
 - **2020 vision** (`site-structure.md`):  guides are spell projects with inline playgrounds;  a "dictionary and
   phrase book" generated from rule descriptions and tests.
@@ -73,5 +74,5 @@ _None yet._
 ## Pointers
 
 - `packages/docs/AGENTS.md` -- how docs pages are written;  `packages/docs/templates/`
-- `packages/ui/site/` -- the Astro site
+- `packages/ui/site/` -- ui's docs site (plain HTML pages)
 - `packages/spell/thoughts/site-structure.md` -- 2020 notes on guides and the phrase book

@@ -54,7 +54,9 @@
    *   table cell), so the host is the cell and the image fills it.  `--_ui-image-owner-max-width: none` there:  a
    *   percentage maximum inside a shrink-to-fit cell would collapse the image to nothing.
    * - `--_ui-image-owner-width` (stacked Items:  `auto`) beats the image's own size, as Fomantic's mobile
-   *   `.ui.items > .item > .image { width: auto !important }` does.
+   *   `.ui.items > .item > .image { width: auto !important }` does;  `--_ui-image-owner-max-height` (stacked Items:
+   *   250px) caps that natural size, as its `.image > img { max-height: 250px !important }` does, and
+   *   `--_ui-image-owner-align-self` (stacked Items:  `center`) centres it instead of stretching it to the column.
    */
   :host {
     display: var(--_ui-image-owner-display, contents);
@@ -98,10 +100,11 @@
     position: relative;
     box-sizing: border-box;
     display: var(--_image-display, inline-block);
-    align-self: var(--_image-align, var(--_ui-images-align, auto));
+    align-self: var(--_image-align, var(--_ui-images-align, var(--_ui-image-owner-align-self, auto)));
     vertical-align: var(--_image-valign, middle);
     width: var(--_ui-image-owner-width, var(--_image-width, var(--_ui-images-width, auto)));
     max-width: var(--_ui-image-owner-max-width, 100%);
+    max-height: var(--_ui-image-owner-max-height, none);
     height: var(--_image-height, var(--_ui-images-height, auto));
     margin: var(--_image-margin, var(--_ui-images-margin, 0));
     border: var(--_image-border, var(--_ui-images-border, none));

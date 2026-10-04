@@ -175,7 +175,14 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
     html: `<ui-calendar type="date" value="2026-09-30" placeholder="Fallback date"></ui-calendar>`,
     root: "[part~=calendar] input[type=date][part~=control]"
   },
-  { family: "ui-section", html: `<ui-section header="Details" collapsible>Body</ui-section>`, root: "[part~=section]" }
+  { family: "ui-section", html: `<ui-section header="Details" collapsible>Body</ui-section>`, root: "[part~=section]" },
+  {
+    family: "ui-include",
+    html: `<ui-include source="/test/fixtures/sources/part.html">Placeholder</ui-include>`,
+    root: "[part~=content]"
+  },
+  { family: "ui-code", html: `<ui-code language="text">let x = 1</ui-code>`, root: "[part~=box]" },
+  { family: "ui-markdown", html: `<ui-markdown size="small"># Title</ui-markdown>`, root: "[part~=body]" }
 ]
 
 export const FALLBACK_CASES: readonly FallbackCase[] = [

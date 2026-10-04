@@ -1,4 +1,4 @@
-import { Show, createEffect, createMemo, onSettled } from "solid-js"
+import { Show, createMemo, onSettled } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { Cell, ContentPart, PartContext, proto, type AttributeName, type UIHost, UIElement, UIT } from "$/ui/core"
@@ -75,7 +75,7 @@ export class UICard extends UIElement<Vocabulary> {
     const { host } = this
     const { internals } = host
     // SIDE EFFECT:  a list item in a group;  busy / disabled for assistive tech
-    createEffect(
+    this.hostEffect(
       () => [this.group() ? UIT.LISTITEM : null, this.attrs.loading, this.attrs.disabled] as const,
       ([role, loading, disabled]) => {
         internals.role = role

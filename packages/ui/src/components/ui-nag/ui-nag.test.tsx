@@ -165,6 +165,24 @@ describe("<ui-nag> closing", () => {
     expect(localStorage.getItem(KEY)).toBeNull()
   })
 
+  it("invoker commands:  --show shows a hidden nag, --toggle then closes it (remembered)", async () => {
+    const wrapper = await ElementFixture.render(
+      `<div><button id="show" commandfor="n" command="--show">Show</button>` +
+        `<button id="toggle" commandfor="n" command="--toggle">Toggle</button>` +
+        `<ui-nag id="n" hidden key="${KEY}" storage="local">Hello</ui-nag></div>`
+    )
+    const host = wrapper.querySelector<Nag>("ui-nag")!
+    const shown = next(host, "ui-show")
+    wrapper.querySelector<HTMLButtonElement>("#show")!.click()
+    await shown
+    expect(host.hidden).toBe(false)
+    const hidden = next(host, "ui-hide")
+    wrapper.querySelector<HTMLButtonElement>("#toggle")!.click()
+    expect((await hidden).reason).toBe("dismiss")
+    expect(host.hidden).toBe(true)
+    expect(localStorage.getItem(KEY)).not.toBeNull()
+  })
+
   it("closes with Enter on the close icon, reached with Tab", async () => {
     const { host } = await nag(`<ui-nag>Hello</ui-nag>`)
     const before = Fixture.render<HTMLButtonElement>(`<button>Before</button>`)

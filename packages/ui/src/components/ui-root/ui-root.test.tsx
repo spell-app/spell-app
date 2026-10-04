@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test"
 import { expectAccessible } from "$/ui/test/a11y"
 import { Fixture } from "$/ui/test/fixture"
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Viewport } from "$/ui/test/viewport"
 import { UIHost } from "$/ui/elements"
 
 import { RootLoader, UIRoot, type RootFailure } from "$/ui/components/ui-root"
@@ -227,6 +228,28 @@ describe("<ui-root> theme, size and box", () => {
     await controller.settled
     await ElementFixture.tick()
     expect(Number(getComputedStyle(host.querySelector("p")!).getPropertyValue("--ui-scale"))).toBe(0.875)
+  })
+
+  it("stack-with sets `--ui-stack-with` for everything inside:  `page` grids lay out by the SCREEN", async () => {
+    const { host, controller } = await root(
+      `<ui-root stack-with="page"><div style="width: 500px"><ui-grid stackable columns="3"><ui-column>A</ui-column>` +
+        `<ui-column>B</ui-column></ui-grid><ui-grid stackable columns="3" stack-with="container"><ui-column>C` +
+        `</ui-column><ui-column>D</ui-column></ui-grid></div></ui-root>`
+    )
+    await controller.settled
+    await ElementFixture.settle(host)
+    expect(getComputedStyle(host.querySelector("div")!).getPropertyValue("--ui-stack-with").trim()).toBe("page")
+    const columns = [...host.querySelectorAll("ui-column")].map((column) => column.shadowRoot!.firstElementChild!)
+    /** Whether the first two columns of grid `index` share a line. */
+    const oneLine = (index: number) =>
+      columns[index * 2]!.getBoundingClientRect().top === columns[index * 2 + 1]!.getBoundingClientRect().top
+    await Viewport.resize(1200)
+    await expect.poll(() => [oneLine(0), oneLine(1)]).toEqual([true, false])
+    await Viewport.resize(500)
+    await expect.poll(() => [oneLine(0), oneLine(1)]).toEqual([false, false])
+    host.setAttribute("stack-with", "junk")
+    await ElementFixture.tick()
+    expect(getComputedStyle(host.querySelector("div")!).getPropertyValue("--ui-stack-with")).toBe("")
   })
 
   it("width / height make a box;  `window` is the viewport;  junk is ignored", async () => {

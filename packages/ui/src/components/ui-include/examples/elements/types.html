@@ -1,0 +1,23 @@
+<!-- `src/components/ui-include/examples/types.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Include</h4>
+    <ui-include source="/src/components/ui-include/examples/sources/notes.html"
+      >Loading the release notes...</ui-include
+    >
+  </section>
+
+  <section>
+    <h4>One part, with the page's styles</h4>
+    <ui-include
+      source="/src/components/ui-include/examples/sources/notes.html"
+      select="#notes"
+      page-styles
+    ></ui-include>
+  </section>
+
+  <section>
+    <h4>Another site</h4>
+    <ui-include source="https://example.com/"></ui-include>
+  </section>
+</div>

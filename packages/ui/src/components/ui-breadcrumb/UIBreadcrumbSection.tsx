@@ -1,5 +1,5 @@
 import { Show } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import { proto, UIElement, UIT } from "$/ui/core"
 
@@ -35,7 +35,7 @@ export class UIBreadcrumbSection extends UIElement<typeof breadcrumbSectionVocab
   }
 
   render(): JSX.Element {
-    return (
+    const content = (
       <>
         <span class={DIVIDER} part={this.part("divider")} aria-hidden="true" />
         <Show when={this.attrs.href && !this.attrs.active} fallback={this.plainSection()}>
@@ -45,6 +45,9 @@ export class UIBreadcrumbSection extends UIElement<typeof breadcrumbSectionVocab
         </Show>
       </>
     )
+    // a server render (`$/ui/server`) has no host to be the list item:  ONE root, which the flattener makes the
+    // `<li>` -- the class grammar's semantic form, `<li><span class="divider"></span><a class="section">`
+    return isServer ? <span>{content}</span> : content
   }
 
   /** The section as text:  the current page (`aria-current`), or a level without a link. */

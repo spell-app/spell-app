@@ -1,0 +1,40 @@
+<!-- `<ui-markdown>` in class grammar:  the article as the element renders it. -->
+<div class="ui-stack">
+  <section>
+    <h4>Markdown</h4>
+    <article class="ui markdown">
+      <h1 id="release-notes">Release notes</h1>
+      <p>Version 2 adds three elements. See <a href="#elements">the list</a> below.</p>
+      <h2 id="elements">Elements</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Shows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;ui-include&gt;</code></td>
+            <td>another page of the site</td>
+          </tr>
+          <tr>
+            <td><code>&lt;ui-code&gt;</code></td>
+            <td>highlighted code</td>
+          </tr>
+        </tbody>
+      </table>
+      <ul>
+        <li><input type="checkbox" disabled checked aria-label="done" /> include</li>
+        <li><input type="checkbox" disabled aria-label="not done" /> <del>editing</del> (later)</li>
+      </ul>
+      <blockquote><p>Everything loads lazily.</p></blockquote>
+      <hr />
+    </article>
+  </section>
+
+  <section>
+    <h4>Small</h4>
+    <article class="ui small markdown"><p>Smaller text, the same look.</p></article>
+  </section>
+</div>

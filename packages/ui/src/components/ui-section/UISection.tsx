@@ -226,6 +226,15 @@ export class UISection extends UIElement<SectionVocabulary> {
     )
   }
 
+  /**
+   * The title's inline tokens:  stick offset and nesting depth.
+   * - A method, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
+   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   */
+  private titleStyle(): Record<string, string> {
+    return { [STICK_TOP_PROPERTY]: `${this.stickTop()}px`, [DEPTH_PROPERTY]: String(this.depth()) }
+  }
+
   /** `<header class="title">`:  the heading around the toggle, then the badge and actions. */
   private renderTitle(): JSX.Element {
     return (
@@ -233,7 +242,7 @@ export class UISection extends UIElement<SectionVocabulary> {
         ref={(element) => (this.title = element)}
         class={TITLE}
         part={this.part("title")}
-        style={{ [STICK_TOP_PROPERTY]: `${this.stickTop()}px`, [DEPTH_PROPERTY]: String(this.depth()) }}
+        style={this.titleStyle()}
       >
         <Dynamic component={`${HEADING_TAG}${this.level()}`} class={HEADING} part={this.part("heading")}>
           <Dynamic

@@ -339,3 +339,21 @@ export type DeclarationsImport = {
    */
   module?: string
 }
+
+////////////////
+// ## Highlighting
+////////////////
+
+/**
+ * One coloured stretch of spell source, from `SpellHighlighter.spans()`.
+ * - `kind` is a highlight.js scope (`keyword`, `title.function`, `section` ...), so `<ui-code>` colours spell with
+ *   the same `hljs-*` classes as every other language.
+ */
+export type SpellHighlightSpan = {
+  /** first character */
+  start: number
+  /** one past the last */
+  end: number
+  /** highlight.js scope */
+  kind: string
+}

@@ -1,0 +1,52 @@
+import { describe, expect, it } from "vite-plus/test"
+
+import { foundationCSS } from "$/ui/styles"
+
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
+
+import { markdownVocabulary } from "./ui-markdown.vocabulary.en"
+
+import markdownCSS from "./ui-markdown.css?inline"
+import markdownRaw from "./ui-markdown.css?raw"
+
+/** Every example fragment, by path. */
+const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
+
+describe("ui-markdown.css source", () => {
+  it("never uses rem, nor !important", () => {
+    expect(Sheets.withoutComments(markdownRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
+    expect(Sheets.withoutComments(markdownRaw)).not.toMatch(/!important/)
+  })
+
+  it("declares its sublayer order before any rule", () => {
+    const text = Sheets.withoutComments(markdownRaw).trim()
+    expect(text.replace(/\s+/g, " ").startsWith(Sheets.layers("markdown"))).toBe(true)
+  })
+
+  it("covers every class word the vocabulary can emit", () => {
+    for (const phrase of Sheets.classPhrases(markdownVocabulary))
+      expect(Sheets.covers(markdownRaw, phrase), `${markdownVocabulary.tag}: ${phrase}`).toBe(true)
+  })
+})
+
+describe("ui-markdown.css examples", () => {
+  it("draws GitHub's look:  ruled h1 / h2, bordered cells, task items without bullets", () => {
+    Sheets.adopt([...foundationCSS, markdownCSS])
+    const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
+    const h1 = getComputedStyle(root.querySelector("h1")!)
+    expect(h1.borderBottomStyle).toBe("solid")
+    expect(parseFloat(h1.fontSize)).toBeCloseTo(32, 0)
+    expect(getComputedStyle(root.querySelector("td")!).borderTopStyle).toBe("solid")
+    expect(getComputedStyle(root.querySelector("li")!).listStyleType).toBe("none")
+    expect(getComputedStyle(root.querySelector("blockquote")!).borderLeftStyle).toBe("solid")
+  })
+
+  it("scales with `size`", () => {
+    Sheets.adopt([...foundationCSS, markdownCSS])
+    const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
+    const normal = parseFloat(getComputedStyle(root.querySelector(".ui.markdown:not(.small)")!).fontSize)
+    const small = parseFloat(getComputedStyle(root.querySelector(".ui.small.markdown")!).fontSize)
+    expect(small).toBeLessThan(normal)
+  })
+})

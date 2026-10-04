@@ -1,0 +1,2286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Dropdown | Spell UI</title>
+    <meta name="description" content="A dropdown allows a user to select a value from a series of options." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Dropdown">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-dropdown.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-dropdown%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/dropdown.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Dropdown
+            <ui-header>A dropdown allows a user to select a value from a series of options.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-dropdown" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's dropdown page, section by section, in its order (Types, Content, States, Variations, then
+              its Examples tab:  Selection Dropdowns, Remote Content, Menus, Adjusting Actions, Coupling), plus our extras
+              (Form states, Colored, Invoker commands).
+              - Options are slotted `<ui-item>`s;  Fomantic's long country / state lists are shortened.
+              - Fomantic's `<select class="ui dropdown">` forms are `<ui-dropdown selection>` (with `multiple` for a multi-select).
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <!-- GAP I53:  no nested sub-menu (`Publish To Web`);  left out. -->
+              <ui-section id="examples-types-dropdown" header="Dropdown" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown. Items are <code>&lt;ui-item&gt;</code>s; <code>description</code> sits at the end of a
+                    row, <code>icon</code> before the text.
+                  </p>
+                  <ui-dropdown text="File">
+                    <ui-item>New</ui-item>
+                    <ui-item description="ctrl + o">Open...</ui-item>
+                    <ui-item description="ctrl + s">Save as...</ui-item>
+                    <ui-item description="ctrl + r">Rename</ui-item>
+                    <ui-item>Make a copy</ui-item>
+                    <ui-item icon="folder">Move to folder</ui-item>
+                    <ui-item icon="trash">Move to trash</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item>Download As...</ui-item>
+                    <ui-item>E-mail Collaborators</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-selection" header="Selection" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown can be used to select between choices in a form: <code>selection</code>, with a
+                    <code>name</code> and a <code>placeholder</code>.
+                  </p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: initializing on a native <code>&lt;select&gt;</code> (write the
+                    <code>&lt;ui-item&gt;</code>s; the native fallback IS a <code>&lt;select&gt;</code>) and
+                    <code>scrollhint</code> (a touch-only scroll animation).</ui-message
+                  >
+                  <ui-dropdown selection name="pet" placeholder="Pet">
+                    <ui-item value="0">Cat</ui-item>
+                    <ui-item value="1">Dog</ui-item>
+                    <ui-item value="2">Bird</ui-item>
+                    <ui-item value="3">Rabbit</ui-item>
+                    <ui-item value="4">Squirrel</ui-item>
+                    <ui-item value="5">Horse</ui-item>
+                    <ui-item value="6">Turtle</ui-item>
+                    <ui-item value="7">Parrot</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example description="Items can lead with an image:  `image`.">
+                  <ui-dropdown fluid selection name="user" placeholder="Select Friend">
+                    <ui-item value="jenny" image="../images/avatar/small/jenny.jpg">Jenny Hess</ui-item>
+                    <ui-item value="elliot" image="../images/avatar/small/elliot.jpg">Elliot Fu</ui-item>
+                    <ui-item value="stevie" image="../images/avatar/small/stevie.jpg">Stevie Feliciano</ui-item>
+                    <ui-item value="christian" image="../images/avatar/small/christian.jpg">Christian</ui-item>
+                    <ui-item value="matt" image="../images/avatar/small/matt.jpg">Matt</ui-item>
+                    <ui-item value="justen" image="../images/avatar/small/justen.jpg">Justen Kitsune</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-search-selection" header="Search Selection" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A selection dropdown can allow a user to search through a large list of choices:  `search`."
+                >
+                  <ui-dropdown fluid search selection name="country" placeholder="Select Country">
+                    <ui-item value="af" flag="af">Afghanistan</ui-item>
+                    <ui-item value="ax" flag="ax">Aland Islands</ui-item>
+                    <ui-item value="al" flag="al">Albania</ui-item>
+                    <ui-item value="dz" flag="dz">Algeria</ui-item>
+                    <ui-item value="as" flag="as">American Samoa</ui-item>
+                    <ui-item value="ad" flag="ad">Andorra</ui-item>
+                    <ui-item value="ao" flag="ao">Angola</ui-item>
+                    <ui-item value="ai" flag="ai">Anguilla</ui-item>
+                    <ui-item value="ag" flag="ag">Antigua</ui-item>
+                    <ui-item value="ar" flag="ar">Argentina</ui-item>
+                    <ui-item value="am" flag="am">Armenia</ui-item>
+                    <ui-item value="aw" flag="aw">Aruba</ui-item>
+                    <ui-item value="au" flag="au">Australia</ui-item>
+                    <ui-item value="at" flag="at">Austria</ui-item>
+                    <ui-item value="az" flag="az">Azerbaijan</ui-item>
+                    <ui-item value="bs" flag="bs">Bahamas</ui-item>
+                    <ui-item value="bh" flag="bh">Bahrain</ui-item>
+                    <ui-item value="bd" flag="bd">Bangladesh</ui-item>
+                    <ui-item value="bb" flag="bb">Barbados</ui-item>
+                    <ui-item value="by" flag="by">Belarus</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I106:  no unfilterable items. -->
+              <ui-section
+                id="examples-types-unfilterable-items-in-search-selection"
+                header="Unfilterable items in Search Selection"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    Fomantic can keep some items listed whatever the search (<code>unfilterable</code> items). Ours
+                    filters every item; the example shows the list without the extra rule.
+                  </p>
+                  <ui-dropdown search selection name="states" placeholder="States">
+                    <ui-item value="AL">Alabama (unfilterable)</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona (unfilterable)</ui-item>
+                    <ui-item value="AR">Arkansas (unfilterable)</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I106:  no ignore-diacritics setting on the element (MenuOptions has one). -->
+              <ui-section
+                id="examples-types-search-ignoring-diacritics"
+                header="Search ignoring Diacritics"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    Fomantic can ignore diacritics while searching (<code>ignoreDiacritics</code>). Ours matches them as
+                    typed: type <code>cafe</code> and only <code>cafetería</code> matches, not <code>café</code>.
+                  </p>
+                  <ui-dropdown
+                    search
+                    selection
+                    name="diacritics"
+                    placeholder="Search diacritics by only typing usual vowels"
+                  >
+                    <ui-item>André</ui-item>
+                    <ui-item>Bokmål</ui-item>
+                    <ui-item>café</ui-item>
+                    <ui-item>cafetería</ui-item>
+                    <ui-item>château</ui-item>
+                    <ui-item>décolleté</ui-item>
+                    <ui-item>Élysée</ui-item>
+                    <ui-item>Fräulein</ui-item>
+                    <ui-item>garçon</ui-item>
+                    <ui-item>háček</ui-item>
+                    <ui-item>Québec</ui-item>
+                    <ui-item>Škoda</ui-item>
+                    <ui-item>über</ui-item>
+                    <ui-item>voilà</ui-item>
+                    <ui-item>Zoë</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-types-highlight-search-matches"
+                header="Highlight search matches"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    The matching strings inside the search results are highlighted: always on, no setting.
+                  </p>
+                  <ui-dropdown fluid multiple search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-types-clearable-selection"
+                header="Clearable Selection"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description="A clearable selection dropdown can allow a user to cancel a previous selection:  `clearable`."
+                >
+                  <ui-dropdown clearable selection name="language" value="English" placeholder="Select Language">
+                    <ui-item>Arabic</ui-item>
+                    <ui-item>Chinese</ui-item>
+                    <ui-item>Danish</ui-item>
+                    <ui-item>Dutch</ui-item>
+                    <ui-item>English</ui-item>
+                    <ui-item>French</ui-item>
+                    <ui-item>German</ui-item>
+                    <ui-item>Greek</ui-item>
+                    <ui-item>Hungarian</ui-item>
+                    <ui-item>Italian</ui-item>
+                    <ui-item>Japanese</ui-item>
+                    <ui-item>Korean</ui-item>
+                    <ui-item>Lithuanian</ui-item>
+                    <ui-item>Persian</ui-item>
+                    <ui-item>Polish</ui-item>
+                    <ui-item>Portuguese</ui-item>
+                    <ui-item>Russian</ui-item>
+                    <ui-item>Spanish</ui-item>
+                    <ui-item>Swedish</ui-item>
+                    <ui-item>Turkish</ui-item>
+                    <ui-item>Vietnamese</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown
+                    clearable
+                    multiple
+                    selection
+                    name="languages"
+                    value="Dutch,English,French"
+                    placeholder="Select Languages"
+                  >
+                    <ui-item>Arabic</ui-item>
+                    <ui-item>Chinese</ui-item>
+                    <ui-item>Danish</ui-item>
+                    <ui-item>Dutch</ui-item>
+                    <ui-item>English</ui-item>
+                    <ui-item>French</ui-item>
+                    <ui-item>German</ui-item>
+                    <ui-item>Greek</ui-item>
+                    <ui-item>Hungarian</ui-item>
+                    <ui-item>Italian</ui-item>
+                    <ui-item>Japanese</ui-item>
+                    <ui-item>Korean</ui-item>
+                    <ui-item>Lithuanian</ui-item>
+                    <ui-item>Persian</ui-item>
+                    <ui-item>Polish</ui-item>
+                    <ui-item>Portuguese</ui-item>
+                    <ui-item>Russian</ui-item>
+                    <ui-item>Spanish</ui-item>
+                    <ui-item>Swedish</ui-item>
+                    <ui-item>Turkish</ui-item>
+                    <ui-item>Vietnamese</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-types-multiple-selection"
+                header="Multiple Selection"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description="A selection dropdown can allow multiple selections:  `multiple`.  `value` is a comma-separated list."
+                >
+                  <ui-dropdown fluid multiple selection name="skills" placeholder="Skills">
+                    <ui-item value="angular">Angular</ui-item>
+                    <ui-item value="css">CSS</ui-item>
+                    <ui-item value="design">Graphic Design</ui-item>
+                    <ui-item value="ember">Ember</ui-item>
+                    <ui-item value="html">HTML</ui-item>
+                    <ui-item value="ia">Information Architecture</ui-item>
+                    <ui-item value="javascript">Javascript</ui-item>
+                    <ui-item value="mech">Mechanical Engineering</ui-item>
+                    <ui-item value="meteor">Meteor</ui-item>
+                    <ui-item value="node">NodeJS</ui-item>
+                    <ui-item value="plumbing">Plumbing</ui-item>
+                    <ui-item value="python">Python</ui-item>
+                    <ui-item value="rails">Rails</ui-item>
+                    <ui-item value="react">React</ui-item>
+                    <ui-item value="repair">Kitchen Repair</ui-item>
+                    <ui-item value="ruby">Ruby</ui-item>
+                    <ui-item value="ui">UI Design</ui-item>
+                    <ui-item value="ux">User Experience</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-types-multiple-search-selection"
+                header="Multiple Search Selection"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="A selection dropdown can allow multiple search selections.">
+                  <ui-dropdown fluid multiple search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <!-- GAP I106:  no keep-search-term (the query clears on each choice). -->
+                <ui-docs-example>
+                  <p slot="description">
+                    Fomantic can keep the search term after a choice (<code>keepSearchTerm</code>) so the menu stays
+                    filtered; ours clears it.
+                  </p>
+                  <ui-dropdown fluid multiple search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example description="Items can hold content a native `<option>` can't, such as flags.">
+                  <ui-dropdown fluid multiple search selection name="country" placeholder="Select Country">
+                    <ui-item value="af" flag="af">Afghanistan</ui-item>
+                    <ui-item value="ax" flag="ax">Aland Islands</ui-item>
+                    <ui-item value="al" flag="al">Albania</ui-item>
+                    <ui-item value="dz" flag="dz">Algeria</ui-item>
+                    <ui-item value="as" flag="as">American Samoa</ui-item>
+                    <ui-item value="ad" flag="ad">Andorra</ui-item>
+                    <ui-item value="ao" flag="ao">Angola</ui-item>
+                    <ui-item value="ai" flag="ai">Anguilla</ui-item>
+                    <ui-item value="ag" flag="ag">Antigua</ui-item>
+                    <ui-item value="ar" flag="ar">Argentina</ui-item>
+                    <ui-item value="am" flag="am">Armenia</ui-item>
+                    <ui-item value="aw" flag="aw">Aruba</ui-item>
+                    <ui-item value="au" flag="au">Australia</ui-item>
+                    <ui-item value="at" flag="at">Austria</ui-item>
+                    <ui-item value="az" flag="az">Azerbaijan</ui-item>
+                    <ui-item value="bs" flag="bs">Bahamas</ui-item>
+                    <ui-item value="bh" flag="bh">Bahrain</ui-item>
+                    <ui-item value="bd" flag="bd">Bangladesh</ui-item>
+                    <ui-item value="bb" flag="bb">Barbados</ui-item>
+                    <ui-item value="by" flag="by">Belarus</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I11:  no basic button look. -->
+              <ui-section id="examples-types-search-dropdown" header="Search Dropdown" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can be searchable, on a labeled icon button too.">
+                  <ui-dropdown floating labeled button search icon="world" placeholder="Select Language">
+                    <ui-item>Arabic</ui-item>
+                    <ui-item>Chinese</ui-item>
+                    <ui-item>Danish</ui-item>
+                    <ui-item>Dutch</ui-item>
+                    <ui-item>English</ui-item>
+                    <ui-item>French</ui-item>
+                    <ui-item>German</ui-item>
+                    <ui-item>Greek</ui-item>
+                    <ui-item>Hungarian</ui-item>
+                    <ui-item>Italian</ui-item>
+                    <ui-item>Japanese</ui-item>
+                    <ui-item>Korean</ui-item>
+                    <ui-item>Lithuanian</ui-item>
+                    <ui-item>Persian</ui-item>
+                    <ui-item>Polish</ui-item>
+                    <ui-item>Portuguese</ui-item>
+                    <ui-item>Russian</ui-item>
+                    <ui-item>Spanish</ui-item>
+                    <ui-item>Swedish</ui-item>
+                    <ui-item>Turkish</ui-item>
+                    <ui-item>Vietnamese</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I106:  an input in the menu doesn't filter it (Fomantic's search in-menu);  the header slot just shows it. -->
+              <ui-section id="examples-types-search-in-menu" header="Search In-Menu" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown can include content at the top of its menu: the <code>header</code> slot. Fomantic's
+                    in-menu search input also filters the items; ours is only shown, so use <code>search</code> to
+                    filter.
+                  </p>
+                  <ui-dropdown floating labeled button scrolling icon="filter" text="Filter Posts">
+                    <ui-input
+                      slot="header"
+                      icon="search"
+                      placeholder="Search tags..."
+                      aria-label="Search tags"
+                    ></ui-input>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item type="header" icon="tags">Tag Label</ui-item>
+                    <ui-item value="important"><ui-label color="red" empty circular></ui-label>Important</ui-item>
+                    <ui-item value="announcement"
+                      ><ui-label color="blue" empty circular></ui-label>Announcement</ui-item
+                    >
+                    <ui-item value="cannotfix"><ui-label color="black" empty circular></ui-label>Cannot Fix</ui-item>
+                    <ui-item value="news"><ui-label color="purple" empty circular></ui-label>News</ui-item>
+                    <ui-item value="enhancement"
+                      ><ui-label color="orange" empty circular></ui-label>Enhancement</ui-item
+                    >
+                    <ui-item value="declined"><ui-label empty circular></ui-label>Change Declined</ui-item>
+                    <ui-item value="off-topic"><ui-label color="yellow" empty circular></ui-label>Off Topic</ui-item>
+                    <ui-item value="interesting"><ui-label color="pink" empty circular></ui-label>Interesting</ui-item>
+                    <ui-item value="discussion"><ui-label color="green" empty circular></ui-label>Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown multiple scrolling name="filters" placeholder="Filter Posts">
+                    <ui-item value="important"><ui-label color="red" empty circular></ui-label>Important</ui-item>
+                    <ui-item value="announcement"
+                      ><ui-label color="blue" empty circular></ui-label>Announcement</ui-item
+                    >
+                    <ui-item value="cannotfix"><ui-label color="black" empty circular></ui-label>Cannot Fix</ui-item>
+                    <ui-item value="news"><ui-label color="purple" empty circular></ui-label>News</ui-item>
+                    <ui-item value="enhancement"
+                      ><ui-label color="orange" empty circular></ui-label>Enhancement</ui-item
+                    >
+                    <ui-item value="declined"><ui-label empty circular></ui-label>Change Declined</ui-item>
+                    <ui-item value="off-topic"><ui-label color="yellow" empty circular></ui-label>Off Topic</ui-item>
+                    <ui-item value="interesting"><ui-label color="pink" empty circular></ui-label>Interesting</ui-item>
+                    <ui-item value="discussion"><ui-label color="green" empty circular></ui-label>Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-inline" header="Inline" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can be formatted to appear inline in other content.">
+                  <p>
+                    Show me posts by
+                    <ui-dropdown inline value="jenny">
+                      <ui-item value="jenny" image="../images/avatar/small/jenny.jpg">Jenny Hess</ui-item>
+                      <ui-item value="elliot" image="../images/avatar/small/elliot.jpg">Elliot Fu</ui-item>
+                      <ui-item value="stevie" image="../images/avatar/small/stevie.jpg">Stevie Feliciano</ui-item>
+                      <ui-item value="christian" image="../images/avatar/small/christian.jpg">Christian</ui-item>
+                      <ui-item value="matt" image="../images/avatar/small/matt.jpg">Matt</ui-item>
+                      <ui-item value="justen" image="../images/avatar/small/justen.jpg">Justen Kitsune</ui-item>
+                    </ui-dropdown>
+                  </p>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-header level="4">
+                    <ui-icon name="trophy"></ui-icon>
+                    Trending repos
+                    <ui-dropdown inline value="today">
+                      <ui-item type="header">Adjust time span</ui-item>
+                      <ui-item value="today" text="today">Today</ui-item>
+                      <ui-item value="this week" text="this week">This Week</ui-item>
+                      <ui-item value="this month" text="this month">This Month</ui-item>
+                    </ui-dropdown>
+                  </ui-header>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I53:  no dropdown menu item, no nested sub-menus;  the menu examples keep a dropdown inside an item. -->
+              <ui-section id="examples-types-pointing" header="Pointing" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown can be formatted so that its menu is pointing: <code>pointing</code>, with a value for
+                    where the menu's arrow sits.
+                  </p>
+                  <ui-dropdown pointing text="Shopping">
+                    <ui-item type="header">Categories</ui-item>
+                    <ui-item>Clothing</ui-item>
+                    <ui-item>Home Goods</ui-item>
+                    <ui-item>Bedroom</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item type="header">Order</ui-item>
+                    <ui-item>Status</ui-item>
+                    <ui-item>Cancellations</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown pointing="left" text="Messages">
+                    <ui-item>Inbox</ui-item>
+                    <ui-item>Starred</ui-item>
+                    <ui-item>Sent Mail</ui-item>
+                    <ui-item>Drafts (143)</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item>Spam (1009)</ui-item>
+                    <ui-item>Trash</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown button pointing="top left" aria-label="Settings">
+                    <ui-icon slot="trigger" name="wrench"></ui-icon>
+                    <ui-item type="header">Display Density</ui-item>
+                    <ui-item>Comfortable</ui-item>
+                    <ui-item>Cozy</ui-item>
+                    <ui-item>Compact</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item>Settings</ui-item>
+                    <ui-item>Upload Settings</ui-item>
+                    <ui-item>Manage Apps</ui-item>
+                    <ui-item>Keyboard Shortcuts</ui-item>
+                    <ui-item>Help</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown button pointing="bottom left" aria-label="File">
+                    <ui-icon slot="trigger" name="wrench"></ui-icon>
+                    <ui-item>New</ui-item>
+                    <ui-item>Open...</ui-item>
+                    <ui-item>Save...</ui-item>
+                    <ui-item>Edit Permissions</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item type="header">Export</ui-item>
+                    <ui-item>Share...</ui-item>
+                    <ui-item>Save As...</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown button pointing="bottom right" aria-label="File">
+                    <ui-icon slot="trigger" name="wrench"></ui-icon>
+                    <ui-item>New</ui-item>
+                    <ui-item>Open...</ui-item>
+                    <ui-item>Save As...</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown labeled button pointing="top left" icon="filter" text="Filter Posts">
+                    <ui-item type="header" icon="tags">Filter by tag</ui-item>
+                    <ui-item value="important"><ui-label color="red" empty circular></ui-label>Important</ui-item>
+                    <ui-item value="announcement"
+                      ><ui-label color="blue" empty circular></ui-label>Announcement</ui-item
+                    >
+                    <ui-item value="discussion"><ui-label color="black" empty circular></ui-label>Discussion</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item type="header">Filter by date</ui-item>
+                    <ui-item><ui-icon name="circle" color="olive"></ui-icon>This Week</ui-item>
+                    <ui-item><ui-icon name="circle" color="violet"></ui-icon>This Month</ui-item>
+                    <ui-item><ui-icon name="circle" color="orange"></ui-icon>This Year</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown button pointing="right" aria-label="Settings">
+                    <ui-icon slot="trigger" name="cog"></ui-icon>
+                    <ui-item type="header">Filter by tag</ui-item>
+                    <ui-item value="important"><ui-label color="red" empty circular></ui-label>Important</ui-item>
+                    <ui-item value="announcement"
+                      ><ui-label color="blue" empty circular></ui-label>Announcement</ui-item
+                    >
+                    <ui-item value="discussion"><ui-label color="black" empty circular></ui-label>Discussion</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown button pointing="left" aria-label="Settings">
+                    <ui-icon slot="trigger" name="cog"></ui-icon>
+                    <ui-item type="header">Tag Label</ui-item>
+                    <ui-item value="important"><ui-label color="red" empty circular></ui-label>Important</ui-item>
+                    <ui-item value="announcement"
+                      ><ui-label color="blue" empty circular></ui-label>Announcement</ui-item
+                    >
+                    <ui-item value="discussion"><ui-label color="black" empty circular></ui-label>Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-floating" header="Floating" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown menu can appear to be floating below an element.">
+                  <ui-buttons color="teal">
+                    <ui-button>Save</ui-button>
+                    <ui-dropdown floating button color="teal" aria-label="More actions">
+                      <ui-item icon="edit">Edit Post</ui-item>
+                      <ui-item icon="delete">Remove Post</ui-item>
+                      <ui-item icon="eye slash">Hide Post</ui-item>
+                    </ui-dropdown>
+                  </ui-buttons>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-simple" header="Simple" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A simple dropdown can open without JavaScript:  on hover and focus, with no popover."
+                >
+                  <ui-dropdown simple text="Dropdown">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <!-- GAP I107:  a header item's `icon` draws nothing;  slotted labels are tiny dots touching the text. -->
+              <ui-section id="examples-content-header" header="Header" sticky collapsible dividing>
+                <ui-docs-example description='A dropdown menu can contain a header:  `type="header"`.'>
+                  <ui-dropdown floating labeled button icon="filter" text="Filter">
+                    <ui-item type="header" icon="tags">Filter by tag</ui-item>
+                    <ui-item>Important</ui-item>
+                    <ui-item>Announcement</ui-item>
+                    <ui-item>Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-divider" header="Divider" sticky collapsible dividing>
+                <ui-docs-example
+                  description='A dropdown menu can contain dividers to separate related content:  `type="divider"`.'
+                >
+                  <ui-dropdown floating labeled button icon="filter" text="Filter">
+                    <ui-item type="header" icon="tags">Filter by tag</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item>Important</ui-item>
+                    <ui-item>Announcement</ui-item>
+                    <ui-item>Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-icon" header="Icon" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown menu can contain an icon:  `icon`.">
+                  <ui-dropdown floating labeled button icon="filter" text="Filter">
+                    <ui-item type="header" icon="tags">Filter by tag</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item icon="exclamation">Important</ui-item>
+                    <ui-item icon="comment">Announcement</ui-item>
+                    <ui-item icon="comments">Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-description" header="Description" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown menu can contain a description:  `description`.">
+                  <ui-dropdown floating labeled button icon="filter" text="Filter Tags">
+                    <ui-item type="header">Filter by tag</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item description="2 new">Important</ui-item>
+                    <ui-item description="10 new">Hopper</ui-item>
+                    <ui-item description="5 new">Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+              <!-- GAP I107:  no vertical item (the description under the text). -->
+              <ui-message size="small" class="site-not-ported"
+                >Fomantic's <code>vertical item</code> (the description underneath the entry) has no attribute yet
+                (plan issue I107).</ui-message
+              >
+
+              <ui-section id="examples-content-label" header="Label" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A dropdown menu can contain a label:  any markup inside an item is projected into its row."
+                >
+                  <ui-dropdown floating labeled button icon="filter" text="Filter">
+                    <ui-item type="header">Search Issues</ui-item>
+                    <ui-item type="header" icon="tags">Filter by tag</ui-item>
+                    <ui-item value="important"><ui-label color="red" empty circular></ui-label>Important</ui-item>
+                    <ui-item value="announcement"
+                      ><ui-label color="blue" empty circular></ui-label>Announcement</ui-item
+                    >
+                    <ui-item value="discussion"><ui-label color="black" empty circular></ui-label>Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I107:  the header slot is unpadded, and an item-less menu adds "No results found." under the message. -->
+              <ui-section id="examples-content-message" header="Message" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A dropdown menu can contain a message:  the `header` slot holds any markup."
+                >
+                  <ui-dropdown floating labeled button icon="filter" text="Login">
+                    <ui-message slot="header" state="error" header="Error"
+                      >You must log-in to see all categories</ui-message
+                    >
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="A search that matches nothing shows the translated `noResults` text, or `no-results-text`."
+                >
+                  <ui-dropdown search selection no-results-text="No country by that name." placeholder="Select Country">
+                    <ui-item value="af" flag="af">Afghanistan</ui-item>
+                    <ui-item value="ax" flag="ax">Aland Islands</ui-item>
+                    <ui-item value="al" flag="al">Albania</ui-item>
+                    <ui-item value="dz" flag="dz">Algeria</ui-item>
+                    <ui-item value="as" flag="as">American Samoa</ui-item>
+                    <ui-item value="ad" flag="ad">Andorra</ui-item>
+                    <ui-item value="ao" flag="ao">Angola</ui-item>
+                    <ui-item value="ai" flag="ai">Anguilla</ui-item>
+                    <ui-item value="ag" flag="ag">Antigua</ui-item>
+                    <ui-item value="ar" flag="ar">Argentina</ui-item>
+                    <ui-item value="am" flag="am">Armenia</ui-item>
+                    <ui-item value="aw" flag="aw">Aruba</ui-item>
+                    <ui-item value="au" flag="au">Australia</ui-item>
+                    <ui-item value="at" flag="at">Austria</ui-item>
+                    <ui-item value="az" flag="az">Azerbaijan</ui-item>
+                    <ui-item value="bs" flag="bs">Bahamas</ui-item>
+                    <ui-item value="bh" flag="bh">Bahrain</ui-item>
+                    <ui-item value="bd" flag="bd">Bangladesh</ui-item>
+                    <ui-item value="bb" flag="bb">Barbados</ui-item>
+                    <ui-item value="by" flag="by">Belarus</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I107:  no floated content in an item (`right floated icon`). -->
+              <ui-section id="examples-content-floated-content" header="Floated Content" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown menu can contain floated content. Ours has <code>description</code> at the end of a row;
+                    an icon can't float right yet.
+                  </p>
+                  <ui-dropdown fluid selection placeholder="Select Type">
+                    <ui-item description="!">Important</ui-item>
+                    <ui-item icon="comment">Announcement</ui-item>
+                    <ui-item icon="comments">Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-input" header="Input" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown menu can contain an input, in the <code>header</code> slot. It doesn't filter the items:
+                    use <code>search</code> for that.
+                  </p>
+                  <ui-dropdown floating labeled button icon="filter" text="Filter">
+                    <ui-input
+                      slot="header"
+                      icon="search"
+                      icon-position="left"
+                      placeholder="Search..."
+                      aria-label="Search"
+                    ></ui-input>
+                    <ui-item type="header" icon="tags">Filter by tag</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item value="important"><ui-label color="red" empty circular></ui-label>Important</ui-item>
+                    <ui-item value="announcement"
+                      ><ui-label color="blue" empty circular></ui-label>Announcement</ui-item
+                    >
+                    <ui-item value="discussion"><ui-label color="black" empty circular></ui-label>Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-image" header="Image" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown menu can contain an image:  `image`.">
+                  <ui-dropdown floating labeled button icon="user plus" text="Add User">
+                    <ui-item type="header">People You Might Know</ui-item>
+                    <ui-item image="../images/avatar/small/jenny.jpg">Jenny Hess</ui-item>
+                    <ui-item image="../images/avatar/small/elliot.jpg">Elliot Fu</ui-item>
+                    <ui-item image="../images/avatar/small/stevie.jpg">Stevie Feliciano</ui-item>
+                    <ui-item type="header">Your Friends' Friends</ui-item>
+                    <ui-item image="../images/avatar/small/christian.jpg">Christian</ui-item>
+                    <ui-item image="../images/avatar/small/matt.jpg">Matt</ui-item>
+                    <ui-item image="../images/avatar/small/justen.jpg">Justen Kitsune</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example description="Or a flag:  `flag`.">
+                  <ui-dropdown selection value="fr" placeholder="Country">
+                    <ui-item value="fr" flag="fr">France</ui-item>
+                    <ui-item value="de" flag="de">Germany</ui-item>
+                    <ui-item value="jp" flag="jp">Japan</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I53:  no actionable items (an item that runs a callback instead of being chosen). -->
+              <ui-message size="small" class="site-not-ported"
+                >Actionable (an item that runs a callback instead of being chosen) can't be built yet: every item is
+                an option (plan issue I53). Listen for <code>ui-change</code> and set the value back.</ui-message
+              >
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-loading" header="Loading" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can show that it is currently loading data.">
+                  <ui-dropdown loading text="Dropdown">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <!-- GAP I108:  no slow / double / elastic loader;  the colour tints the box, not the loader. -->
+                <ui-docs-example>
+                  <ui-dropdown loading color="red" fluid multiple search selection value="kp" placeholder="Search...">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown loading color="teal" selection text="Dropdown">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-error" header="Error" sticky collapsible dividing>
+                <ui-docs-example description='An errored dropdown can alert a user to a problem:  `state="error"`.'>
+                  <ui-dropdown floating state="error" text="Dropdown">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown selection state="error" text="Dropdown">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-states-form-states" header="Form states" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`state` also takes `info`, `success` and `warning`:  it tints the box, the text and the menu."
+                >
+                  <ui-dropdown state="info" selection text="Info"><ui-item>One</ui-item></ui-dropdown>
+                  <ui-dropdown state="success" selection text="Success"><ui-item>One</ui-item></ui-dropdown>
+                  <ui-dropdown state="warning" multiple selection placeholder="Warning" value="warning">
+                    <ui-item value="warning">Warning</ui-item>
+                    <ui-item>One</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    An active dropdown has its menu open: <code>open</code>. Setting it fires no event.
+                  </p>
+                  <ui-dropdown open text="Dropdown">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A disabled dropdown menu or item does not allow user interaction.  A disabled dropdown isn't submitted."
+                >
+                  <ui-dropdown disabled text="Dropdown">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown text="Disabled Item">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item disabled>Disabled</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-read-only" header="Read-Only" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A dropdown can be read-only and does not allow user interaction, but still submits with a form."
+                >
+                  <ui-dropdown readonly text="Dropdown">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can have different sizes.">
+                  <ui-dropdown size="mini" selection name="gender" placeholder="Mini">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown size="tiny" selection name="gender" placeholder="Tiny">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown size="small" selection name="gender" placeholder="Small">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown size="medium" selection name="gender" placeholder="Medium">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown size="large" selection name="gender" placeholder="Large">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown size="big" selection name="gender" placeholder="Big">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown size="huge" selection name="gender" placeholder="Huge">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown size="massive" selection name="gender" placeholder="Massive">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-scrolling" header="Scrolling" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown can have its menu scroll: <code>scrolling</code>; add <code>resizable</code> for a native
+                    resize handle at the bottom of the menu.
+                  </p>
+                  <ui-dropdown scrolling name="choice" placeholder="Select choice">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                    <ui-item>Choice 4</ui-item>
+                    <ui-item>Choice 5</ui-item>
+                    <ui-item>Choice 6</ui-item>
+                    <ui-item>Choice 7</ui-item>
+                    <ui-item>Choice 8</ui-item>
+                    <ui-item>Choice 9</ui-item>
+                    <ui-item>Choice 10</ui-item>
+                    <ui-item>Choice 11</ui-item>
+                    <ui-item>Choice 12</ui-item>
+                    <ui-item>Choice 13</ui-item>
+                    <ui-item>Choice 14</ui-item>
+                    <ui-item>Choice 15</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown scrolling resizable name="choice" placeholder="Resizable">
+                    <ui-item>Choice 1</ui-item>
+                    <ui-item>Choice 2</ui-item>
+                    <ui-item>Choice 3</ui-item>
+                    <ui-item>Choice 4</ui-item>
+                    <ui-item>Choice 5</ui-item>
+                    <ui-item>Choice 6</ui-item>
+                    <ui-item>Choice 7</ui-item>
+                    <ui-item>Choice 8</ui-item>
+                    <ui-item>Choice 9</ui-item>
+                    <ui-item>Choice 10</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-dropdown scrolling text="Filter Posts">
+                    <ui-item type="header" icon="tags">Tag Label</ui-item>
+                    <ui-item value="important"><ui-label color="red" empty circular></ui-label>Important</ui-item>
+                    <ui-item value="announcement"
+                      ><ui-label color="blue" empty circular></ui-label>Announcement</ui-item
+                    >
+                    <ui-item value="cannotfix"><ui-label color="black" empty circular></ui-label>Cannot Fix</ui-item>
+                    <ui-item value="news"><ui-label color="purple" empty circular></ui-label>News</ui-item>
+                    <ui-item value="enhancement"
+                      ><ui-label color="orange" empty circular></ui-label>Enhancement</ui-item
+                    >
+                    <ui-item value="declined"><ui-label empty circular></ui-label>Change Declined</ui-item>
+                    <ui-item value="off-topic"><ui-label color="yellow" empty circular></ui-label>Off Topic</ui-item>
+                    <ui-item value="interesting"><ui-label color="pink" empty circular></ui-label>Interesting</ui-item>
+                    <ui-item value="discussion"><ui-label color="green" empty circular></ui-label>Discussion</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can be inverted.">
+                  <ui-segment inverted>
+                    <ui-dropdown inverted selection name="choices" placeholder="Select choice">
+                      <ui-item>Choice 1</ui-item>
+                      <ui-item>Choice 2</ui-item>
+                      <ui-item>Choice 3</ui-item>
+                    </ui-dropdown>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+              <!-- GAP I107:  no inverted menu on a plain dropdown. -->
+              <ui-message size="small" class="site-not-ported"
+                >Fomantic can invert only the menu of a non-inverted dropdown (<code>inverted menu</code>); ours
+                inverts the whole dropdown (plan issue I107).</ui-message
+              >
+
+              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+                <ui-docs-example description="A compact dropdown has no minimum width:  `compact`.">
+                  <ui-dropdown compact selection text="Compact">
+                    <ui-item>A</ui-item>
+                    <ui-item>B</ui-item>
+                    <ui-item>C</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown compact selection text="Compact">
+                    <ui-item>A very long item that takes up a lot of space</ui-item>
+                    <ui-item>B</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can take the full width of its parent:  `fluid`.">
+                  <ui-menu vertical>
+                    <ui-item href="#link-1">Link 1</ui-item>
+                    <ui-item href="#link-2">Link 2</ui-item>
+                    <ui-item type="header">All Sections</ui-item>
+                    <ui-item>
+                      <ui-dropdown fluid selection text="More">
+                        <ui-item>Choice 1</ui-item>
+                        <ui-item>Choice 2</ui-item>
+                        <ui-item>Choice 3</ui-item>
+                      </ui-dropdown>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-height" header="Height" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A selection dropdown can be <code>long</code> (2x of default height) so that more items can be
+                    glanced.
+                  </p>
+                  <ui-dropdown long multiple search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="Very long:  3x of default height (`very-long`).  `short` and `very-short` go the other way."
+                >
+                  <ui-dropdown very-long multiple search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <p slot="description">
+                    Unlimited: no scrollbar and no height limitation (<code>unlimited</code>), especially with
+                    <code>pointing</code>, to keep the arrow displayed.
+                  </p>
+                  <ui-dropdown unlimited pointing multiple search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-menu-direction" header="Menu Direction" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown menu can specify the direction it should open: <code>direction="left"</code> right-aligns
+                    it, so it extends toward the start; <code>upward</code> opens it above.
+                  </p>
+                  <ui-dropdown floating labeled button icon="caret down" direction="left" text="Menu">
+                    <ui-item>Left</ui-item>
+                    <ui-item>Still Left</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown floating labeled button icon="caret down" text="Menu">
+                    <ui-item>Right</ui-item>
+                    <ui-item>Still Right</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown upward selection text="Upward">
+                    <ui-item>One</ui-item>
+                    <ui-item>Two</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-columnar-menu" header="Columnar Menu" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A selection dropdown can allow its menu to be equally divided so that more items can be glanced:
+                    <code>columnar="2"</code> ... <code>"5"</code>.
+                  </p>
+                  <ui-dropdown columnar="2" multiple selection placeholder="Two columns">
+                    <ui-item value="1">one</ui-item>
+                    <ui-item value="2">two</ui-item>
+                    <ui-item value="3">three</ui-item>
+                    <ui-item value="4">four</ui-item>
+                    <ui-item value="5">five</ui-item>
+                    <ui-item value="6">six</ui-item>
+                    <ui-item value="7">seven</ui-item>
+                    <ui-item value="8">eight</ui-item>
+                    <ui-item value="9">nine</ui-item>
+                    <ui-item value="10">ten</ui-item>
+                    <ui-item value="0">zero</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example description="Three columns.">
+                  <ui-dropdown columnar="3" fluid multiple search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example description="Four columns.">
+                  <ui-dropdown columnar="4" fluid multiple search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+                <ui-docs-example description="Five columns.">
+                  <ui-dropdown columnar="5" fluid multiple search selection placeholder="State">
+                    <ui-item value="AL">Alabama</ui-item>
+                    <ui-item value="AK">Alaska</ui-item>
+                    <ui-item value="AZ">Arizona</ui-item>
+                    <ui-item value="AR">Arkansas</ui-item>
+                    <ui-item value="CA">California</ui-item>
+                    <ui-item value="CO">Colorado</ui-item>
+                    <ui-item value="CT">Connecticut</ui-item>
+                    <ui-item value="DE">Delaware</ui-item>
+                    <ui-item value="DC">District Of Columbia</ui-item>
+                    <ui-item value="FL">Florida</ui-item>
+                    <ui-item value="GA">Georgia</ui-item>
+                    <ui-item value="HI">Hawaii</ui-item>
+                    <ui-item value="ID">Idaho</ui-item>
+                    <ui-item value="IL">Illinois</ui-item>
+                    <ui-item value="IN">Indiana</ui-item>
+                    <ui-item value="IA">Iowa</ui-item>
+                    <ui-item value="KS">Kansas</ui-item>
+                    <ui-item value="KY">Kentucky</ui-item>
+                    <ui-item value="LA">Louisiana</ui-item>
+                    <ui-item value="ME">Maine</ui-item>
+                    <ui-item value="MD">Maryland</ui-item>
+                    <ui-item value="MA">Massachusetts</ui-item>
+                    <ui-item value="MI">Michigan</ui-item>
+                    <ui-item value="MN">Minnesota</ui-item>
+                    <ui-item value="MS">Mississippi</ui-item>
+                    <ui-item value="MO">Missouri</ui-item>
+                    <ui-item value="MT">Montana</ui-item>
+                    <ui-item value="NE">Nebraska</ui-item>
+                    <ui-item value="NV">Nevada</ui-item>
+                    <ui-item value="NH">New Hampshire</ui-item>
+                    <ui-item value="NJ">New Jersey</ui-item>
+                    <ui-item value="NM">New Mexico</ui-item>
+                    <ui-item value="NY">New York</ui-item>
+                    <ui-item value="NC">North Carolina</ui-item>
+                    <ui-item value="ND">North Dakota</ui-item>
+                    <ui-item value="OH">Ohio</ui-item>
+                    <ui-item value="OK">Oklahoma</ui-item>
+                    <ui-item value="OR">Oregon</ui-item>
+                    <ui-item value="PA">Pennsylvania</ui-item>
+                    <ui-item value="RI">Rhode Island</ui-item>
+                    <ui-item value="SC">South Carolina</ui-item>
+                    <ui-item value="SD">South Dakota</ui-item>
+                    <ui-item value="TN">Tennessee</ui-item>
+                    <ui-item value="TX">Texas</ui-item>
+                    <ui-item value="UT">Utah</ui-item>
+                    <ui-item value="VT">Vermont</ui-item>
+                    <ui-item value="VA">Virginia</ui-item>
+                    <ui-item value="WA">Washington</ui-item>
+                    <ui-item value="WV">West Virginia</ui-item>
+                    <ui-item value="WI">Wisconsin</ui-item>
+                    <ui-item value="WY">Wyoming</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`color` accents the focus border and the labels of a multiple selection, and fills a button dropdown."
+                >
+                  <ui-dropdown color="red" multiple selection placeholder="Colors" value="red">
+                    <ui-item value="red">Red</ui-item>
+                    <ui-item value="blue">Blue</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown color="primary" button text="Actions">
+                    <ui-item>Edit</ui-item>
+                    <ui-item>Delete</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-selection-dropdowns" header="Selection Dropdowns" sticky collapsible dividing>
+              <ui-section id="examples-selection-dropdowns-clearable" header="Clearable" sticky collapsible dividing>
+                <ui-docs-example description="`clearable` lets users remove their selection from a dropdown.">
+                  <ui-dropdown clearable fluid search selection name="country" placeholder="Select Country">
+                    <ui-item value="af" flag="af">Afghanistan</ui-item>
+                    <ui-item value="ax" flag="ax">Aland Islands</ui-item>
+                    <ui-item value="al" flag="al">Albania</ui-item>
+                    <ui-item value="dz" flag="dz">Algeria</ui-item>
+                    <ui-item value="as" flag="as">American Samoa</ui-item>
+                    <ui-item value="ad" flag="ad">Andorra</ui-item>
+                    <ui-item value="ao" flag="ao">Angola</ui-item>
+                    <ui-item value="ai" flag="ai">Anguilla</ui-item>
+                    <ui-item value="ag" flag="ag">Antigua</ui-item>
+                    <ui-item value="ar" flag="ar">Argentina</ui-item>
+                    <ui-item value="am" flag="am">Armenia</ui-item>
+                    <ui-item value="aw" flag="aw">Aruba</ui-item>
+                    <ui-item value="au" flag="au">Australia</ui-item>
+                    <ui-item value="at" flag="at">Austria</ui-item>
+                    <ui-item value="az" flag="az">Azerbaijan</ui-item>
+                    <ui-item value="bs" flag="bs">Bahamas</ui-item>
+                    <ui-item value="bh" flag="bh">Bahrain</ui-item>
+                    <ui-item value="bd" flag="bd">Bangladesh</ui-item>
+                    <ui-item value="bb" flag="bb">Barbados</ui-item>
+                    <ui-item value="by" flag="by">Belarus</ui-item>
+                  </ui-dropdown>
+                  <ui-divider></ui-divider>
+                  <ui-segment secondary>
+                    Show me
+                    <ui-dropdown clearable inline scrolling name="skill" value="css" placeholder="any">
+                      <ui-item value="angular">Angular</ui-item>
+                      <ui-item value="css">CSS</ui-item>
+                      <ui-item value="design">Graphic Design</ui-item>
+                      <ui-item value="ember">Ember</ui-item>
+                      <ui-item value="html">HTML</ui-item>
+                      <ui-item value="ia">Information Architecture</ui-item>
+                      <ui-item value="javascript">Javascript</ui-item>
+                      <ui-item value="mech">Mechanical Engineering</ui-item>
+                      <ui-item value="meteor">Meteor</ui-item>
+                      <ui-item value="node">NodeJS</ui-item>
+                      <ui-item value="plumbing">Plumbing</ui-item>
+                      <ui-item value="python">Python</ui-item>
+                      <ui-item value="rails">Rails</ui-item>
+                      <ui-item value="react">React</ui-item>
+                      <ui-item value="repair">Kitchen Repair</ui-item>
+                      <ui-item value="ruby">Ruby</ui-item>
+                      <ui-item value="ui">UI Design</ui-item>
+                      <ui-item value="ux">User Experience</ui-item>
+                    </ui-dropdown>
+                    classes currently available.
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I106:  no `useLabels: false` (a count instead of labels). -->
+              <ui-section
+                id="examples-selection-dropdowns-maximum-selections"
+                header="Maximum Selections"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    <code>max-selections</code> forces a maximum number of selections. Form validation can also set a
+                    minimum and a maximum for multi-selects inside forms.
+                  </p>
+                  <ui-header level="5">Selection</ui-header>
+                  <ui-dropdown max-selections="3" fluid multiple selection name="skills" placeholder="Skills">
+                    <ui-item value="angular">Angular</ui-item>
+                    <ui-item value="css">CSS</ui-item>
+                    <ui-item value="design">Graphic Design</ui-item>
+                    <ui-item value="ember">Ember</ui-item>
+                    <ui-item value="html">HTML</ui-item>
+                    <ui-item value="ia">Information Architecture</ui-item>
+                    <ui-item value="javascript">Javascript</ui-item>
+                    <ui-item value="mech">Mechanical Engineering</ui-item>
+                    <ui-item value="meteor">Meteor</ui-item>
+                    <ui-item value="node">NodeJS</ui-item>
+                    <ui-item value="plumbing">Plumbing</ui-item>
+                    <ui-item value="python">Python</ui-item>
+                    <ui-item value="rails">Rails</ui-item>
+                    <ui-item value="react">React</ui-item>
+                    <ui-item value="repair">Kitchen Repair</ui-item>
+                    <ui-item value="ruby">Ruby</ui-item>
+                    <ui-item value="ui">UI Design</ui-item>
+                    <ui-item value="ux">User Experience</ui-item>
+                  </ui-dropdown>
+                  <ui-header level="5">Search Selection</ui-header>
+                  <ui-dropdown
+                    max-selections="3"
+                    fluid
+                    multiple
+                    search
+                    selection
+                    name="country"
+                    placeholder="Select Country"
+                  >
+                    <ui-item value="af" flag="af">Afghanistan</ui-item>
+                    <ui-item value="ax" flag="ax">Aland Islands</ui-item>
+                    <ui-item value="al" flag="al">Albania</ui-item>
+                    <ui-item value="dz" flag="dz">Algeria</ui-item>
+                    <ui-item value="as" flag="as">American Samoa</ui-item>
+                    <ui-item value="ad" flag="ad">Andorra</ui-item>
+                    <ui-item value="ao" flag="ao">Angola</ui-item>
+                    <ui-item value="ai" flag="ai">Anguilla</ui-item>
+                    <ui-item value="ag" flag="ag">Antigua</ui-item>
+                    <ui-item value="ar" flag="ar">Argentina</ui-item>
+                    <ui-item value="am" flag="am">Armenia</ui-item>
+                    <ui-item value="aw" flag="aw">Aruba</ui-item>
+                    <ui-item value="au" flag="au">Australia</ui-item>
+                    <ui-item value="at" flag="at">Austria</ui-item>
+                    <ui-item value="az" flag="az">Azerbaijan</ui-item>
+                    <ui-item value="bs" flag="bs">Bahamas</ui-item>
+                    <ui-item value="bh" flag="bh">Bahrain</ui-item>
+                    <ui-item value="bd" flag="bd">Bangladesh</ui-item>
+                    <ui-item value="bb" flag="bb">Barbados</ui-item>
+                    <ui-item value="by" flag="by">Belarus</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-selection-dropdowns-tagging-and-user-additions"
+                header="Tagging and User Additions"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    <code>allow-additions</code> gives users the ability to add their own options. This can work with
+                    either single or multiple search selection dropdowns; <code>addition-text</code> words the add item.
+                  </p>
+                  <ui-header level="5">Single</ui-header>
+                  <ui-dropdown allow-additions fluid search selection name="skills" placeholder="Skills">
+                    <ui-item value="angular">Angular</ui-item>
+                    <ui-item value="css">CSS</ui-item>
+                    <ui-item value="design">Graphic Design</ui-item>
+                    <ui-item value="ember">Ember</ui-item>
+                    <ui-item value="html">HTML</ui-item>
+                    <ui-item value="ia">Information Architecture</ui-item>
+                    <ui-item value="javascript">Javascript</ui-item>
+                    <ui-item value="mech">Mechanical Engineering</ui-item>
+                    <ui-item value="meteor">Meteor</ui-item>
+                    <ui-item value="node">NodeJS</ui-item>
+                    <ui-item value="plumbing">Plumbing</ui-item>
+                    <ui-item value="python">Python</ui-item>
+                    <ui-item value="rails">Rails</ui-item>
+                    <ui-item value="react">React</ui-item>
+                    <ui-item value="repair">Kitchen Repair</ui-item>
+                    <ui-item value="ruby">Ruby</ui-item>
+                    <ui-item value="ui">UI Design</ui-item>
+                    <ui-item value="ux">User Experience</ui-item>
+                  </ui-dropdown>
+                  <ui-header level="5">Multiple</ui-header>
+                  <ui-dropdown allow-additions fluid multiple search selection name="tags" placeholder="Skills">
+                    <ui-item value="angular">Angular</ui-item>
+                    <ui-item value="css">CSS</ui-item>
+                    <ui-item value="design">Graphic Design</ui-item>
+                    <ui-item value="ember">Ember</ui-item>
+                    <ui-item value="html">HTML</ui-item>
+                    <ui-item value="ia">Information Architecture</ui-item>
+                    <ui-item value="javascript">Javascript</ui-item>
+                    <ui-item value="mech">Mechanical Engineering</ui-item>
+                    <ui-item value="meteor">Meteor</ui-item>
+                    <ui-item value="node">NodeJS</ui-item>
+                    <ui-item value="plumbing">Plumbing</ui-item>
+                    <ui-item value="python">Python</ui-item>
+                    <ui-item value="rails">Rails</ui-item>
+                    <ui-item value="react">React</ui-item>
+                    <ui-item value="repair">Kitchen Repair</ui-item>
+                    <ui-item value="ruby">Ruby</ui-item>
+                    <ui-item value="ui">UI Design</ui-item>
+                    <ui-item value="ux">User Experience</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Stuck User Additions (<code>hideAdditions: false</code> + <code>stuck</code>) -- our add
+                item is the first row of the filtered menu, so it is always in view.</ui-message
+              >
+
+              <ui-message size="small" class="site-not-ported"
+                >Text Labels (<code>useLabels: false</code>: a "3 selected" count instead of labels) can't be set yet
+                (plan issue I106).</ui-message
+              >
+
+              <ui-section
+                id="examples-selection-dropdowns-clearing-dropdown"
+                header="Clearing Dropdown"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    You can reset a dropdown to its placeholder: set its <code>value</code> to <code>""</code> (see
+                    Usage, "Values"). Here a <code>clearable</code> dropdown's own clear button does it.
+                  </p>
+                  <ui-dropdown clearable multiple selection name="gender" value="0,1" placeholder="Default">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                  <ui-dropdown clearable selection name="gender" placeholder="Select a value">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-selection-dropdowns-restoring-defaults"
+                header="Restoring Defaults"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    A form reset restores a dropdown to its <code>value</code> attribute (Fomantic's
+                    <code>restore defaults</code>). Change them, then reset.
+                  </p>
+                  <ui-form>
+                    <form>
+                      <ui-field>
+                        <ui-dropdown multiple selection name="defaults" value="default,default2" placeholder="Default">
+                          <ui-item value="default">Default</ui-item>
+                          <ui-item value="default2">Another Default</ui-item>
+                          <ui-item value="1">Male</ui-item>
+                          <ui-item value="0">Female</ui-item>
+                        </ui-dropdown>
+                      </ui-field>
+                      <ui-field>
+                        <ui-dropdown selection name="default" value="default" placeholder="Select a value">
+                          <ui-item value="default">Default Value</ui-item>
+                          <ui-item value="1">Male</ui-item>
+                          <ui-item value="0">Female</ui-item>
+                        </ui-dropdown>
+                      </ui-field>
+                      <ui-button primary type="reset">Restore All Dropdowns</ui-button>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-selection-dropdowns-upward" header="Upward" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown menu will automatically change which direction it opens if it can't fit on screen. To
+                    open in a specific direction, use <code>upward</code>.
+                  </p>
+                  <ui-segment attached="top">
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-menu attached="bottom">
+                    <ui-item>
+                      <ui-dropdown upward aria-label="Settings">
+                        <ui-icon slot="trigger" name="cog"></ui-icon>
+                        <ui-item>New</ui-item>
+                        <ui-item>Open...</ui-item>
+                        <ui-item>Save...</ui-item>
+                        <ui-item>Edit Permissions</ui-item>
+                        <ui-item type="divider"></ui-item>
+                        <ui-item type="header">Export</ui-item>
+                        <ui-item>Share...</ui-item>
+                        <ui-item>Save As...</ui-item>
+                      </ui-dropdown>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-remote-content" header="Remote Content" sticky collapsible dividing>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Fomantic's API settings (<code>apiSettings</code>, <code>filterRemoteData</code>,
+                response mapping) -- fetch the data yourself on <code>ui-search</code> and set the
+                <code>options</code> property (Usage tab, "Rich data").</ui-message
+              >
+            </ui-section>
+
+            <ui-section id="examples-menus" header="Menus" sticky collapsible dividing>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Changing Transitions (<code>transition</code>) -- the menu fades through CSS; restyle it
+                with <code>::part(menu)</code>.</ui-message
+              >
+              <ui-message size="small" class="site-not-ported"
+                >Multiple Levels and Category Selection (sub-menus inside the menu,
+                <code>allowCategorySelection</code>) can't be built: the menu is one listbox deep (plan issue
+                I53).</ui-message
+              >
+
+              <ui-section
+                id="examples-menus-preserving-user-selections"
+                header="Preserving User Selections"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown shows the item whose value is its <code>value</code> on page load;
+                    <code>text</code> shows a text before the items (or <code>options</code>) arrive.
+                  </p>
+                  <ui-dropdown selection value="trash" placeholder="Folder">
+                    <ui-item value="inbox">Inbox</ui-item>
+                    <ui-item value="drafts">Drafts</ui-item>
+                    <ui-item value="trash">Trash</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-menus-dropdown-dividers-headers"
+                header="Dropdown Dividers / Headers"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    A dropdown menu can contain dividers and headers to separate related content. While searching, they
+                    hide and only the matching items show (Fomantic's <code>hideDividers</code>).
+                  </p>
+                  <ui-dropdown labeled button search pointing="top left" icon="filter" placeholder="Filter Posts">
+                    <ui-item type="header" icon="tags">Filter by tag</ui-item>
+                    <ui-item value="important"><ui-label color="red" empty circular></ui-label>Important</ui-item>
+                    <ui-item value="announcement"
+                      ><ui-label color="blue" empty circular></ui-label>Announcement</ui-item
+                    >
+                    <ui-item value="discussion"><ui-label color="black" empty circular></ui-label>Discussion</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item type="header" icon="calendar">Filter by date</ui-item>
+                    <ui-item value="week">This Week</ui-item>
+                    <ui-item value="month">This Month</ui-item>
+                    <ui-item value="year">This Year</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-adjusting-actions" header="Adjusting Actions" sticky collapsible dividing>
+              <ui-message size="small" class="site-not-ported"
+                >Combo Dropdowns and Link Dropdowns (<code>action: "combo" | "nothing" | "hide"</code>: an item that
+                changes a button, or a menu of links) can't be built yet: every dropdown is a select with a value
+                (plan issue I53).</ui-message
+              >
+            </ui-section>
+
+            <ui-section id="examples-coupling" header="Coupling" sticky collapsible dividing>
+              <!-- GAP I11:  no basic look, so the button group's dropdowns are filled. -->
+              <ui-section id="examples-coupling-button-group" header="Button Group" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A button group can be formatted to show additional content as a dropdown."
+                >
+                  <ui-buttons>
+                    <ui-dropdown button pointing="top left" text="Visit">
+                      <ui-item>Home</ui-item>
+                      <ui-item>Blog</ui-item>
+                    </ui-dropdown>
+                    <ui-dropdown button pointing="top left" text="Edit">
+                      <ui-item>Edit Post</ui-item>
+                      <ui-item>Remove Post</ui-item>
+                    </ui-dropdown>
+                    <ui-dropdown button pointing="top right" text="Share">
+                      <ui-item>Facebook</ui-item>
+                      <ui-item>Twitter</ui-item>
+                    </ui-dropdown>
+                  </ui-buttons>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I53:  no dropdown that IS a menu item;  a dropdown sits inside an item. -->
+              <ui-section id="examples-coupling-menu" header="Menu" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A menu can contain a dropdown, inside an item. Fomantic's dropdown that IS the item (<code
+                      >ui dropdown item</code
+                    >) isn't there yet.
+                  </p>
+                  <ui-menu>
+                    <ui-item href="#home">Home</ui-item>
+                    <ui-item>
+                      <ui-dropdown text="Categories">
+                        <ui-item>Electronics</ui-item>
+                        <ui-item>Automotive</ui-item>
+                        <ui-item>Home</ui-item>
+                      </ui-dropdown>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-coupling-form" header="Form" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A dropdown can be formatted to allow selection inside a form:  it is a form control."
+                >
+                  <ui-form>
+                    <form>
+                      <ui-field>
+                        <label for="dropdown-form-gender">Gender</label>
+                        <ui-dropdown id="dropdown-form-gender" selection name="gender" placeholder="Gender">
+                          <ui-item value="male">Male</ui-item>
+                          <ui-item value="female">Female</ui-item>
+                        </ui-dropdown>
+                      </ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-coupling-invoker-commands" header="Invoker commands" sticky collapsible dividing>
+                <ui-docs-example
+                  description='Buttons drive a dropdown with no script:  `commandfor` + `command="--show"`, `--close` or `--toggle`.'
+                >
+                  <ui-button commandfor="dropdown-invoker" command="--show">Open the menu</ui-button>
+                  <ui-button commandfor="dropdown-invoker" command="--close">Close it</ui-button>
+                  <ui-dropdown id="dropdown-invoker" selection placeholder="Pick one">
+                    <ui-item value="a">Alpha</ui-item>
+                    <ui-item value="b">Beta</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  items vs options, values, forms, events, invokers, keyboard, accessibility, frameworks. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write `<ui-dropdown>` with `<ui-item>`s inside: the options, headers (`type="header"`) and dividers
+                  (`type="divider"`), in order. No JavaScript to call: Fomantic's settings are attributes.
+
+                  - The look: `selection` (a form select), `search`, `multiple`, `inline`, `button` (+ `labeled` with an `icon`),
+                    `floating`, `pointing`, `simple`, `compact`, `fluid`, `scrolling`, the heights ...
+                  - An item's `value` defaults to its text; `text` overrides what the dropdown shows once it's chosen;
+                    `description`, `icon`, `image` and `flag` decorate the row, and any markup inside is projected into it.
+                  - Slots: `trigger` (your own trigger content), `header` (content at the top of the menu), `icon` (replaces the
+                    caret, or a `labeled` icon).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-values" header="Values" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `value` is the chosen value: a string, or with `multiple` a `string[]` property (the attribute is a comma / space
+                  list). Set it to choose from code (no event); set it to `""` (or `[]`) to clear, which shows the placeholder
+                  again -- Fomantic's `clear` behaviour. A form reset restores the `value` attribute (`restore defaults`).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-rich-data" header="Rich data" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Attributes carry primitives and are reflected; the rich `options` array is a JS property (frameworks find it with
+                  `"options" in element`), and first paint never needs it -- slotted `<ui-item>`s or the `value` / `text`
+                  attributes carry what server rendering must show. Options set through the property are added after the slotted
+                  items. For remote data, fetch on `ui-search` and set `options`.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  // <ui-dropdown selection clearable placeholder="Pick a framework"></ui-dropdown>
+                  const dropdown = document.querySelector("ui-dropdown")
+                  dropdown.options = [
+                    { value: "react", text: "React" },
+                    { value: "vue", text: "Vue" },
+                    { value: "solid", text: "Solid", description: "2.0" },
+                    { value: "svelte", text: "Svelte", disabled: true }
+                  ]
+                  dropdown.addEventListener("ui-change", (event) => console.log(event.detail.value))
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A dropdown is a form control: `name` submits the value (`multiple`: one entry per value), `required` validates,
+                  `disabled` leaves it out and `readonly` keeps it in but unchangeable. `max-selections` caps a `multiple`.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-change` (`{ value }`): the user chose, added, removed or cleared a value.
+                  - `ui-open` / `ui-close` (`{ open }`): the menu is about to open / close; cancelable.
+                  - `ui-search` (`{ query }`): a `search` dropdown's query changed.
+                  - `ui-add` / `ui-remove` (`{ value }`): a `multiple` dropdown gained or lost a value (`ui-add` also for an
+                    `allow-additions` addition).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const tags = document.querySelector("ui-dropdown[name=tags]")
+                  tags.addEventListener("ui-add", (event) => console.log("added", event.detail.value))
+                  tags.addEventListener("ui-search", async (event) => {
+                    tags.options = await fetch(`/tags?q=${encodeURIComponent(event.detail.query)}`).then((r) => r.json())
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-invoker-commands" header="Invoker commands" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A button with `commandfor="id"` and `command="--toggle"` (or `--show` / `--close`) opens and closes the menu with
+                  no script, as a user action (the cancelable `ui-open` / `ui-close` first), and focuses the dropdown so the arrow
+                  keys work. A disabled or read-only dropdown ignores commands. Live: "Invoker commands" on the Examples tab.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - **Arrow Down** / **Arrow Up**: open the menu, then move the highlight.
+                  - **Home** / **End**: highlight the first / last enabled option (open).
+                  - **Page Down** / **Page Up**: move the highlight several rows (open).
+                  - **Enter**: choose the highlighted option (or the addition); opens a `search` dropdown.
+                  - **Space**: choose the highlighted option (not in `search`, where it types a space).
+                  - **Escape**: close the menu. **Tab**: close it and move on.
+                  - **Backspace** (`multiple` + `search`, empty query): remove the last label.
+                  - Any character (no `search`): type-ahead -- open and highlight the next matching option.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The trigger is an ARIA 1.2 combobox with a listbox popup (the WAI-ARIA authoring practices pattern).
+
+                  - `role="combobox"` with `aria-expanded`, `aria-controls`, `aria-haspopup="listbox"` and `aria-activedescendant`
+                    pointing at the highlighted row. Focus stays on the trigger while you move through the list.
+                  - The menu is `role="listbox"` (`aria-multiselectable` for `multiple`); rows are `role="option"` with
+                    `aria-selected` and `aria-disabled`. Headers and dividers are presentational.
+                  - `aria-label` on the host names the combobox, otherwise the placeholder does. `loading`, `readonly`, `required`
+                    and validation set `aria-busy`, `aria-readonly`, `aria-required` and `aria-invalid`.
+                  - The clear button and each `multiple` label's delete button get translated names (`Clear`, `Remove {value}`).
+                  - Escape and outside clicks close the menu; leaving the dropdown with Tab closes it too.
+                  - Without JavaScript the native fallback is a real `<select>` (`multiple` when `multiple`), built from the same
+                    `<ui-item>`s or `options`. It keeps the value, the form submission, `ui-change`, and the browser's own keyboard
+                    pattern; it drops search, additions, clearable, option icons and images, and the open / close events.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set `options` as a property, not an attribute, and listen for `ui-change`.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-dropdown selection options={options} value="x" onui-change={(e) => setValue(e.detail.value)} />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-dropdown selection :options="options" value="x" @ui-change="(e) => (value = e.detail.value)" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref;  `prop:` for the rich data
+                  <ui-dropdown
+                    selection
+                    prop:options={options}
+                    value="x"
+                    ref={(el) => el.addEventListener("ui-change", (e) => setValue(e.detail.value))}
+                  />
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-dropdown"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-dropdown-*` tokens: set one on the element or on any ancestor (`:root` included).
+                  They inherit into the shadow root, where the sheet reads each through a private alias, so nothing inside blocks
+                  them. Style the pieces with `::part()`: `trigger`, `text`, `icon`, `menu`, `item`, `label`, `search` and
+                  `clear`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-dropdown::part(menu) {
+                    max-height: 20em;
+                  }
+                  ui-dropdown {
+                    --ui-dropdown-arrow-size: 0.8em;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Variations build on the tokens: `floating` and `pointing` swap in their own `--ui-dropdown-floating-*` /
+                    `--ui-dropdown-pointing-*` values. A `button` dropdown reads the button tokens. Never set the
+                    `--_ui-dropdown-*` names: they're the sheet's private plumbing.
+                  </script>
+                </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-dropdown" playground></ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
+
+                  Themes that restyle dropdowns: Chubby, Flat, GitHub and Material.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

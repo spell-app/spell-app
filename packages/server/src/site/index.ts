@@ -1,12 +1,14 @@
 /**
  * `$/server/site` barrel:  browser code every page of the site shares -- the site header and the section editor.
  * - Opt-in, NOT in `$/server`'s barrel:  browser code (DOM), while the barrel is node's.
- * - Importing defines nothing:  call `defineSite()` -- the docs bundle (`spell-ui.entry.js`) and Spell UI's Astro
- *   layout do.
+ * - Importing defines nothing:  call `defineSite()` -- the docs bundle (`spell-ui.entry.js`) and Spell UI's site
+ *   bundle (`packages/ui/site/_src/site.ts`) do.
  */
 import { SectionEditor, SiteHeader } from "$/server/site"
 
 export * from "./site.types"
+export * from "./logoMark"
+export * from "./favicon"
 
 export * from "./SiteHeader"
 export * from "./SectionEditor"

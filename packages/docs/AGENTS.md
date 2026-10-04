@@ -7,12 +7,19 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 - `index.html` -- the docs index.  The list between `<!-- index:start -->` / `<!-- index:end -->` is written by
   `yarn docs:index`;  edit only outside the markers.
+- `changelog.html` -- what the repo shipped, newest first;  every `/isolate` and `/epic` adds to it (the root's
+  `AGENTS.md`, "Changelog").
 - `<topic>/<topic>.html` -- a doc, folder and file in lower-kebab-case, e.g. `solid/solid-2.html`.
   - One-file docs with nothing beside them MAY sit at the top level:  `<name>.html`.
   - `<topic>/experiments/` -- runnable scripts backing the doc's claims (see "Experiments").
   - `<topic>/<topic>.md` -- a distilled version for agents, when agents need the doc's rules (see "Agent rules").
 - `templates/` -- starting points, one per kind of doc (see "Templates").
-- `epics/<name>/<name>.html` -- plan docs, one per `/epic` session (see "Plan docs").
+- `epics/<name>/<name>.plan.html` -- plan docs, one per `/epic` session (see "Plan docs").  `<name>.html` before
+  2026-10-04:  the tools find either (`scripts/pages.js` `planDocIn()`), a worktree cut before keeps the old name
+  until it merges `main`, and the page server redirects the old URL;  `scripts/plan-rename.js` did the rename.
+- `details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page (`/details`, see
+  "Details pages").  Scratch:  ignored by version control, swept after 14 days.  An epic's go in
+  `epics/<name>/details/`, committed.
 - `_assets/` -- shared page assets:
   - `spell-doc.css` -- page layout, and what UI doesn't cover;  reaches into widgets via UI tokens and `::part()`
   - `spell-doc-runtime.js` -- page behaviour (contents sidebar, sticky headers, scroll-follow, code colors)
@@ -21,15 +28,20 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - `emoji/<set>/<letter>.js` -- UI's emoji name chunks as classic scripts, loaded lazily by the bundle on first use
     of a name (both sets:  `cldr`, `fomantic`).  GENERATED with `spell-ui.js`;  never edit.
   - `plan-doc.css` -- plan docs, on top of `spell-doc.css`
+  - `details.css`, `details.js` -- details pages:  the option cards, Other, notes and Send `details.js` builds from
+    the page's `.spell-option` markup, and the answer once sent
   - `goals.css`, `goals-live.js` -- goals pages (the repo root's `goals/`, and `templates/goals/`):  their look, and
     their live buttons (thoughts, Claude sessions) when the page server serves them (goals' route module)
+  - `commands.js` -- command reference pages (`templates/commands.html`):  draws their tables from the page's JSON,
+    then loads `spell-ui.js` itself (the page loads `commands.js` INSTEAD of the bundle)
 - `scripts/` -- the tooling (see "Scripts").
 - `spell-docs/` -- how the pages work (`spell-docs.md`) and the @spell-app/ui problems they hit (`spell-ui-findings.md`).
 
 ## Writing a page
 
-- Start from a template:  `yarn docs:new durable|cheatsheet <topic>/<topic>.html --title "Title"` copies it, fixes
-  the `_assets` paths for the page's depth, and lists it in the index.
+- Start from a template:  `yarn docs:new durable|cheatsheet|commands <topic>/<topic>.html --title "Title"` copies
+  it (and `commands`' JSON, as `<topic>.json`), fixes the `_assets` paths for the page's depth, and lists it in the
+  index.
 - Every page (templates too) starts its `<body>` with the site header, `<spell-site-header root="../..">`:  `root` is
   the path from the page's folder to the REPO root.  The template tools (`docs:new`, `plan-doc new`, `goals new`)
   set it;  everything that sticks or lands starts below it (`spell-doc-runtime.js` `siteHeaderHeight()`, and its
@@ -38,6 +50,10 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 - Pages MUST still open straight from disk (`file://`):  no ES modules -- hence the one classic bundle.  But the
   openers (`docs:open`, `plan-doc open`) show them from this checkout's PAGE SERVER (`yarn server`, see
   `packages/server/AGENTS.md`):  live reload, edit mode, and the server-only properties (Spell UI, Editor).
+  - The ONE exception:  a `commands` page fetches its JSON, so it draws its tables only from the page server;  from
+    `file://` it says so where they'd go.  Its `<body data-spell-needs-server>` makes `check-spell.js` load it from
+    the server.  Why:  Owen chose a plain JSON file over a JS data file or tables rendered into the HTML (epic
+    `commands`, D4).
 - Sections are `<ui-section>` elements (`spell-docs/spell-docs.md` "Page skeleton";  every piece of the markup:
   `spell-docs/ui-section-test.html`):
   - `<ui-section id="..." header="1. Summary" sticky collapsible dividing>`, EVERY one `sticky collapsible
@@ -56,14 +72,30 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
     "Contents" button.
   - the rail:  a strip of the top-level sections' icons at the right edge, the contents button (bars) on top, shown
     while the contents column isn't (narrow screens, or hidden by its button:  remembered for every page).  Give
-    every top-level section an icon:  without one, the rail shows its number
+    every top-level section an icon:  without one, the rail shows its number.  Hover widens it to show the names;
+    the current section is the accent;  at 480px and under, only the bars button shows
   - sticky titles:  each top-level section's title sticks below the page header, nested ones stack below their
     parents' (the runtime sets the top-level `offset`s)
-  - folding:  folds are remembered per page;  a link's unfold isn't
+  - folding:  folds are remembered per page;  a link's unfold isn't.  A plan doc (`body.plan-doc`) starts EVERY
+    section folded that the reader hasn't opened or closed:  Owen opens what he wants (2026-10-03)
   - counts:  a top-level section holding `[data-status]` items shows `open/all` on its title (its `badge`) and the
     open count as a badge in the contents and the rail (open:  any status but `done` or `decided`);  nested
     sections get no count of their own
+  - a plan doc's review line under its page header:  "To review this doc, type `/epic review <name>`", copied on
+    click
+  - item states:  each plan item's id chip is colored by its `data-state` (red needs Owen, blue open, orange in
+    progress, green recent, grey older;  docs without one:  open blue, done / decided grey), and so are the links
+    of a phase's "To review" line
+  - item filter:  a top-level section with plan items (`.plan-items`) gets a round filter button left of its
+    count, stepping through all and each state the section has (colored as it);  a filtered list says "N hidden ·
+    show all" under it;  remembered per page
+  - commits (`.plan-commits`):  hidden until the git button in a plan doc's page header shows them (remembered
+    per page);  an item with commits gets a git icon on its line that shows its own
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
+  - the address follows the section being read (`#id`, replaced, not pushed), so a reload lands there
+  - served by the page server, an edit to the page's file updates it IN PLACE (`wireLiveUpdate()`):  scroll,
+    folds, open panels and typed text stay.  Anything the runtime adds inside `main` must carry
+    `data-spell-added`, so the patch steps around it.  Pages with scripts of their own still reload
   - code colors (highlight.js from cdnjs)
 - Headings:
   - one `h1`;  a numbered top-level `<ui-section>` per major section (`header="2. Read-after-write"`), each with a
@@ -118,23 +150,42 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 ## Templates
 
 - `templates/durable.html` -- design notes, research, references:  prose sections, tables, code, callouts.
+- `templates/commands.html` + `commands.json` -- a command reference:  operations by family, which CLI / skill /
+  yarn command does each, in tables `_assets/commands.js` draws from the JSON (its header has the JSON's shape);
+  hand-written prose around them.  E.g. `dev/commands/commands.html`.
 - `templates/cheatsheet.html` -- an API reference:  a grid of cards, filtered by text and by badge
   (`ui-select[data-spell-filter-badge]`);  a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link).
 - `templates/epics/plan.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
+- `templates/details.html` -- a details page.  NEVER copy by hand:  `yarn details new <slug>`.
+- `templates/review.html` -- "Review":  a details page reviewing a finished run's calls, one question each (keep,
+  change, talk over), then "Where first?";  saved from `ui-docs-rework`'s morning review as the model.
 - `templates/goals/` -- goals pages, laid out as a goals folder is, so their links work in place:
   `index.html` (the home page:  every goal set), `set/index.html` (a set's contents page), `set/topic/topic.html`
   and `topic.md` (a topic's page and its agent notes).  NEVER copy by hand:  `yarn goals new-set` / `yarn goals new`
   fill the `{{placeholders}}` and fix the asset paths.  Rules:  the repo root's `goals/AGENTS.md`.
-- Every template but the goals pages is `<ui-section>` markup (see "Writing a page");  the goals pages keep the old
+- `templates/spell-ui-docs.html` -- a Spell UI docs page (`packages/ui/site/`):  Fomantic's docs layout in `<ui-*>`
+  widgets (nav, masthead, Examples / Usage / API / Theming tabs, an "On this page" rail), loading the UI site's
+  bundle, NOT `spell-ui.js`.  NEVER copy by hand:  `yarn site:new <tag|page>` in `packages/ui`;  how to write one:
+  `epics/spell-ui-pages/PAGES.md`;  checked by `yarn site:check` there (`docs:update` skips it).
+- Every template but the goals pages and `spell-ui-docs.html` is `<ui-section>` markup (see "Writing a page");  the goals pages keep the old
   `section.s2` markup until they migrate (`CODE-DEBT.md`).
 - A new KIND of doc gets a template here, and a card in the index.
 
 ## Plan docs
 
-- `/epic <name>` (`.claude/skills/epic/`) runs a planning session against `epics/<name>/<name>.html`.
+- `/epic <name>` (`.claude/skills/epic/`) runs a planning session against `epics/<name>/<name>.plan.html`.
 - How to write one, its sections, ids and markers:  `templates/epics/plan-doc.md`.
 - Edit through `yarn plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
+
+## Details pages
+
+- `/details` (`.claude/skills/details/`):  how and when Claude writes one.
+- `yarn details new | show [--wait] | wait | answer | list | sweep` (`scripts/details.js`).
+- Owen's answer:  the page posts it to the page server's route module `scripts/detailsRoutes.ts`, which writes
+  `<slug>.answer.json` beside the page;  `yarn details wait`, run in the background, exits with it and so wakes the
+  session.
+- `findPages()` skips every `details/` folder:  not in the index, not checked by `docs:update`.
 
 ## Experiments
 
@@ -147,19 +198,19 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 - Every reference to a file, folder or external page is a link that opens a NEW TAB with its own named target per
   destination (re-clicks reuse that tab).
-  - `python3 scripts/doc-links.py <page>` links `<code>path</code>` references and targets existing links
+  - `node scripts/doc-links.js <page>` links `<code>path</code>` references and targets existing links
     (idempotent).  Paths resolve against the page's folder, its `experiments/`, the repo root, `packages/`, and
     `#name/...` aliases.
-  - `python3 scripts/doc-links.py --check <page>` must pass:  every local link resolves, one target per destination,
+  - `node scripts/doc-links.js --check <page>` must pass:  every local link resolves, one target per destination,
     no nested links.
 
 ## Finishing a page
 
 In this order, from `packages/docs`:
 
-1. `python3 scripts/doc-links.py <page>`
+1. `node scripts/doc-links.js <page>`
 2. `yarn vp fmt <page>` (`yarn format` would reformat it anyway)
-3. `python3 scripts/doc-links.py --check <page>`
+3. `node scripts/doc-links.js --check <page>`
 4. `node scripts/check-spell.js <page>` must pass -- and LOOK at its four screenshots:  the checks can't see
    overlap, clipping or bad wrapping
 5. `yarn docs:index` when the page is new, renamed, or its `<title>` / description changed
@@ -167,21 +218,33 @@ In this order, from `packages/docs`:
 ## Scripts
 
 - `yarn docs:update` (`scripts/update.js`) -- rebuild the bundle from the LATEST UI, `docs:index`, then
-  `doc-links.py --check` and `check-spell.js` on every page.  `--skip-ui-build` reuses `../ui/dist`;  `--no-check` skips the browser.
+  `doc-links.js --check` and `check-spell.js` on every page.  `--skip-ui-build` reuses `../ui/dist`;  `--no-check` skips the browser.
 - `scripts/bundle-spell-ui.js` -- builds UI (fork + `yarn build`), bundles `_assets/spell-ui.js`.
 - `yarn docs:index` (`scripts/index.js`) -- rewrites the lists in `index.html`.
 - `yarn docs:new` (`scripts/new-page.js`) -- a page from a template, at any depth.
-- `yarn docs:open [page] [--vs]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome, reusing its
-  tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" view (`/spell-docs`).
-- `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `tidy()` (link targets + oxfmt),
-  `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview through the spell extension's
-  `DocPreview`).
-- `scripts/check-spell.js <page> [outDir]` -- Playwright:  fails on console errors, undefined / unrendered
-  `ui-*`, contents vs sections, phone-width overflow, top-level titles that don't stick, a section that won't fold /
-  unfold or forgets its fold on reload, a drawer that won't open;  writes screenshots.
+- `yarn docs:open [page] [--vs | --review]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome,
+  reusing its tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" tab (`/spell-docs`);
+  `--review`:  its "Review" tab (`/epic review`).  Each tab keeps its own page;  showing the page a tab already
+  has doesn't reload it (the page updates itself).
+- `yarn details` (`scripts/details.js`) -- details pages (see "Details pages");  `scripts/detailsRoutes.ts`, the
+  page server's route module for their answers.
+- `yarn docs:link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`scripts/link.ts`) -- the markdown links
+  Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
+  `scripts/showRoutes.ts` (`GET /api/docs/show`).
+- `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `atDepth()` (a template at a page's depth),
+  `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
+  through the spell extension's `DocPreview`;  `{ view: "review" }`:  the "Review" tab).
+- `scripts/check-spell.js <page> [outDir]` -- Playwright, from `file://` (from the page server when the page says
+  `data-spell-needs-server`):  fails on console errors, undefined / unrendered `ui-*`, contents vs sections,
+  phone-width overflow, top-level titles that don't stick, a section that won't fold / unfold or forgets its fold
+  on reload, a drawer that won't open;  writes screenshots.
+- `node scripts/check-live.js [epic]` -- Playwright, from the page server:  an edit to a plan doc (a log line it
+  adds, then removes) must update it in place, keeping scroll, folds, typed text and focus;  the address must
+  follow the scroll, and a fresh load of it land there.  Run it after touching `liveClient.ts` or the runtime's
+  "Live update".
 - `scripts/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its
   `convertSections()` is also `plan-doc.js` `migrate`'s last step.  Idempotent;  refuses goals pages.
-- `scripts/doc-links.py` -- see "Links".
+- `scripts/doc-links.js` -- see "Links".  Text and regexes, not a DOM:  it edits only what it links.
 - A @spell-app/ui problem:  fix it in `packages/ui` when it's a real `ui` bug (the same change may touch both), else work
   around it here;  either way, add it to `spell-docs/spell-ui-findings.md`.
 

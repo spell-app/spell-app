@@ -53,10 +53,11 @@ describe("FlagCountry", () => {
 
 describe("<ui-flag> classes", () => {
   it.each([
-    ['country="fr"', "ui flag"],
-    ['country="fr" size="large"', "ui large flag"],
-    ['country="fr" size="medium"', "ui flag"],
-    ['country="fr" size="massive"', "ui massive flag"]
+    ['country="fr"', "ui flag fr"],
+    ['country="fr" size="large"', "ui large flag fr"],
+    ['country="fr" size="medium"', "ui flag fr"],
+    ['country="fr" size="massive"', "ui massive flag fr"],
+    ['country="england"', "ui flag gb-eng"]
   ])("<ui-flag %s>", async (attributes, classes) => {
     const { root } = await flag(`<ui-flag ${attributes}></ui-flag>`)
     expect(root.localName).toBe("span")

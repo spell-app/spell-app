@@ -20,6 +20,11 @@
  *   inlined;  each is written as a classic script, `_assets/emoji/<set>/<letter>.js`, which a `<script>` tag loads on
  *   first use of a name in that chunk (`spell-ui:emoji` sets `EmojiData.chunkLoader`).  A page with no `<ui-emoji>`
  *   loads none.
+ * - The source elements' ENGINES stay lazy the same way (`LAZY`):  `<ui-code>`'s highlight.js (with all its
+ *   languages), `<ui-markdown>`'s marked + DOMPurify, and spell's pre-compiled highlighter are each built from UI's
+ *   SOURCE into a classic script, `_assets/lazy/<name>.js`;  their `dist/` chunks are stubbed out of the bundle, and
+ *   `spell-ui:lazy` points UI's loader hooks (`CodeHighlighter.engineLoader` ...) at the scripts.  A page that shows
+ *   no code loads none.
  */
 
 import { build } from "esbuild"
@@ -61,6 +66,9 @@ const ICONS = {
   "solid/link": ["link"],
   "solid/copy": ["copy"],
   "solid/bars": ["bars"],
+  // spell-ui-site.html sections
+  "solid/table-columns": ["table columns"],
+  "solid/sun": ["sun"],
   // status:  not done / in progress / done (plan docs)
   "regular/circle": ["circle outline"],
   "solid/circle-half-stroke": ["circle half stroke", "adjust"],
@@ -96,6 +104,8 @@ const ICONS = {
   "solid/desktop": ["desktop"],
   "solid/puzzle-piece": ["puzzle piece", "puzzle"],
   "solid/book-open": ["book open"],
+  // a plan doc's "Durable doc:" line (and a durable doc's "Plan doc:" line is `map`)
+  "solid/book": ["book"],
   "solid/cubes": ["cubes"],
   "solid/globe": ["globe"],
   "solid/language": ["language"],
@@ -127,7 +137,18 @@ const ICONS = {
   "solid/download": ["download"],
   "solid/paper-plane": ["paper plane"],
   "solid/plug": ["plug"],
-  "solid/circle-play": ["circle play"]
+  "solid/circle-play": ["circle play"],
+  "solid/circle-pause": ["circle pause"], // the docs index:  a stalled epic
+  // plan docs' review (epic `review-review`):  section icons, the item action menu and filter, the page header's
+  // send / files / git buttons
+  "solid/file-circle-question": ["file circle question"],
+  "solid/filter": ["filter"],
+  "solid/ellipsis": ["ellipsis", "ellipsis horizontal"],
+  "regular/circle-check": ["circle check outline", "check circle outline"],
+  "regular/paper-plane": ["paper plane outline"],
+  "regular/circle-right": ["circle right"],
+  "regular/folder": ["folder outline"],
+  "../fa7-brands/brands/git-alt": ["git", "git alt"] // the brands pack, beside `ICON_PACK`
 }
 
 /** Bare specifiers that MUST resolve from UI's root:  Solid (all subpaths) and the element-layer fork. */
@@ -142,9 +163,43 @@ const EMOJI_OUT = join(ASSETS, "emoji")
 /** An emoji data chunk of UI's `dist/` (`emoji/cldr/a-UMC54g9e.js`), as imported by the emoji family. */
 const EMOJI_CHUNK = /(?:^|\/)emoji\/[\w-]+\/\w+-[\w-]+\.js$/
 
+/** Where the lazy engine scripts go, and their URL relative to the bundle. */
+const LAZY_OUT = join(ASSETS, "lazy")
+
+/**
+ * The source elements' engines, each a lazy classic script `lazy/<name>.js` defining `global`:
+ * - `source`:  UI SOURCE file it's built from (it MUST import nothing of UI's by value)
+ * - `chunk`:  its chunk in UI's `dist/`, stubbed out of the bundle
+ * - `hook`:  how `spell-ui:lazy` installs it
+ */
+const LAZY = [
+  {
+    name: "code-engine",
+    global: "__spellCodeEngine",
+    source: join(UI_DIR, "src/components/ui-code/CodeEngine.ts"),
+    chunk: /(?:^|\/)CodeEngine-[\w-]+\.js$/,
+    hook: `CodeHighlighter.engineLoader = () => lazy("code-engine", "__spellCodeEngine")`
+  },
+  {
+    name: "markdown-engine",
+    global: "__spellMarkdownEngine",
+    source: join(UI_DIR, "src/components/ui-markdown/MarkdownEngine.ts"),
+    chunk: /(?:^|\/)MarkdownEngine-[\w-]+\.js$/,
+    hook: `MarkdownRenderer.engineLoader = () => lazy("markdown-engine", "__spellMarkdownEngine")`
+  },
+  {
+    name: "spell-en",
+    global: "__spellHighlightEn",
+    source: join(UI_DIR, "src/languages/spell.en.bundle.js"),
+    chunk: /(?:^|\/)spell\.en-[\w-]+\.js$/,
+    hook: `SpellLanguage.bundleLoader = (variant) => variant === "en" ? lazy("spell-en", "__spellHighlightEn") : undefined`
+  }
+]
+
 const args = process.argv.slice(2)
 if (!args.includes("--skip-ui-build")) buildUI()
 writeEmojiChunks()
+await writeLazyScripts()
 const warnings = await bundle()
 report(warnings)
 
@@ -226,12 +281,19 @@ function spellUiResolver() {
     setup(pluginBuild) {
       pluginBuild.onResolve({ filter: /^spell-ui:icons$/ }, () => ({ path: "icons", namespace: "spell-ui" }))
       pluginBuild.onResolve({ filter: /^spell-ui:emoji$/ }, () => ({ path: "emoji", namespace: "spell-ui" }))
+      pluginBuild.onResolve({ filter: /^spell-ui:lazy$/ }, () => ({ path: "lazy", namespace: "spell-ui" }))
+      // the engines' `dist/` chunks:  never inlined (`spell-ui:lazy` loads them as scripts);  an empty stand-in
+      for (const { chunk } of LAZY) {
+        pluginBuild.onResolve({ filter: chunk }, () => ({ path: "lazy-chunk", namespace: "spell-ui" }))
+      }
       // UI's emoji data chunks:  never inlined (`EmojiData.chunkLoader` loads them as scripts);  an empty stand-in
       pluginBuild.onResolve({ filter: EMOJI_CHUNK }, () => ({ path: "emoji-chunk", namespace: "spell-ui" }))
       pluginBuild.onLoad({ filter: /.*/, namespace: "spell-ui" }, (loaded) => {
         if (loaded.path === "icons") return { contents: iconsModule(), resolveDir: ASSETS, loader: "js" }
         if (loaded.path === "emoji") return { contents: emojiModule(), resolveDir: ASSETS, loader: "js" }
         if (loaded.path === "emoji-chunk") return { contents: "export default {}", loader: "js" }
+        if (loaded.path === "lazy") return { contents: lazyModule(), resolveDir: ASSETS, loader: "js" }
+        if (loaded.path === "lazy-chunk") return { contents: "export {}", loader: "js" }
         return { contents: "", loader: "js" }
       })
       pluginBuild.onResolve({ filter: /^@spell-app\/ui(\/.*)?$/ }, ({ path }) => ({ path: uiDistPath(path) }))
@@ -350,14 +412,80 @@ function checkOneSolid(metafile) {
 }
 
 /** Fails if the output still needs ES module machinery a classic script on `file://` doesn't have. */
-function checkClassicScript() {
-  const code = readFileSync(OUTFILE, "utf8")
+function checkClassicScript(file = OUTFILE) {
+  const code = readFileSync(file, "utf8")
   const problems = [
-    [/\bimport\s*\(/, "a runtime import()"],
+    // a call, not a METHOD called `import` (spell's parser has one:  `x.import(y)`, `import(...rules) {`)
+    [/(?<![.\w$])import\s*\((?![^)]*\)\s*\{)/, "a runtime import()"],
     [/\bimport\.meta\b/, "import.meta"],
     [/^\s*(import|export)\s[\w{*"]/m, "a top-level import / export"]
   ].filter(([pattern]) => pattern.test(code))
-  if (problems.length) fail(`${relative(DOCS, OUTFILE)} still has ${problems.map(([, what]) => what).join(", ")}`)
+  if (problems.length) fail(`${relative(DOCS, file)} still has ${problems.map(([, what]) => what).join(", ")}`)
+}
+
+////////////////
+// ## Lazy engines
+////////////////
+
+/**
+ * Builds each of `LAZY` from UI's source into `_assets/lazy/<name>.js`:  a classic script (IIFE) defining its
+ * `global` as the module's exports, every `import()` inside it inlined.
+ * - Sizes are printed;  each is checked like the bundle (no `import()` / `import.meta` may survive).
+ */
+async function writeLazyScripts() {
+  rmSync(LAZY_OUT, { recursive: true, force: true })
+  mkdirSync(LAZY_OUT, { recursive: true })
+  for (const { name, global, source } of LAZY) {
+    const outfile = join(LAZY_OUT, `${name}.js`)
+    await build({
+      entryPoints: [source],
+      outfile,
+      bundle: true,
+      format: "iife",
+      globalName: global,
+      platform: "browser",
+      target: "esnext",
+      supported: { "dynamic-import": false },
+      minify: true,
+      keepNames: true,
+      legalComments: "eof",
+      // `$/ui/runtime/runtime.types` (each engine's `SourceError`)
+      tsconfig: join(UI_DIR, "tsconfig.json"),
+      logLevel: "silent"
+    })
+    checkClassicScript(outfile)
+    const code = readFileSync(outfile)
+    console.log(
+      `-- ${relative(DOCS, outfile)}  ${(code.length / 1024).toFixed(1)} KB  (gzip ${(gzipSync(code).length / 1024).toFixed(1)} KB)`
+    )
+  }
+}
+
+/**
+ * Source of `spell-ui:lazy`:  points UI's engine loaders at `lazy/<name>.js`, loaded once as a classic script next to
+ * the bundle, resolving with the global it defines.
+ * - The bundle's own URL (`document.currentScript`, read while it runs) locates the scripts, at any page depth.
+ */
+function lazyModule() {
+  return [
+    `import { CodeHighlighter, SpellLanguage } from "@spell-app/ui/ui-code"`,
+    `import { MarkdownRenderer } from "@spell-app/ui/ui-markdown"`,
+    `const base = new URL("lazy/", document.currentScript?.src ?? location.href)`,
+    `const loading = new Map()`,
+    `function lazy(name, global) {`,
+    `  if (!loading.has(name)) {`,
+    `    loading.set(name, new Promise((resolve, reject) => {`,
+    `      const script = document.createElement("script")`,
+    `      script.src = new URL(name + ".js", base).href`,
+    `      script.onload = () => (globalThis[global] ? resolve(globalThis[global]) : reject(new Error(name + " defined nothing")))`,
+    `      script.onerror = () => { loading.delete(name); script.remove(); reject(new Error("no lazy script " + name)) }`,
+    `      document.head.append(script)`,
+    `    }))`,
+    `  }`,
+    `  return loading.get(name)`,
+    `}`,
+    ...LAZY.map(({ hook }) => hook)
+  ].join("\n")
 }
 
 ////////////////

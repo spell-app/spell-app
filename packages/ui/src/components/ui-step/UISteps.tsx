@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { proto, UIElement, UIT } from "$/ui/core"
 
 import { stepsVocabulary } from "./ui-steps.vocabulary.en"
 import { StepFallback } from "./ui-step.fallback"
@@ -15,7 +15,8 @@ import { LIST } from "$/ui/components/components.types"
  * - `role="list"` explicitly:  `list-style: none` drops the list semantics in Safari.
  * - The root resolves every variation into inherited `--_ui-steps-*` tokens the steps read (`ui-step.css`), including
  *   stacking:  the host is a block and the size container `ui-steps` (`:state(steps)`), and the root turns
- *   `stacked` below 768px of it unless `unstackable`.
+ *   `stacked` below 768px of it unless `unstackable` -- or of the screen, with `stack-with="page"` (a private class
+ *   after the noun).
  * - Numbering (`ordered`) is a CSS counter reset here and incremented by each step, across the shadow boundaries.
  ****************/
 export class UISteps extends UIElement<typeof stepsVocabulary> {
@@ -24,8 +25,21 @@ export class UISteps extends UIElement<typeof stepsVocabulary> {
   @proto static Fallback = StepFallback
   @proto static delegatesFocus = false
 
+  /**
+   * `steps` always;  `block` while the root is block-level (`fluid`, or `circular` and not `vertical`), `circular`
+   * while circular.
+   * - Why:  the host is a size container (its own formatting context), so a block-level root's outer margin sits on
+   *   the HOST to collapse with the content above, as class grammar's does;  an inline-flex root's never collapses,
+   *   so it stays on the root (`ui-step.css`).
+   */
   protected hostStates() {
-    return { steps: true }
+    const circular = !!this.attrs.circular
+    return { steps: true, block: !!this.attrs.fluid || (circular && !this.attrs.vertical), circular }
+  }
+
+  /** `stack-with`'s class (`UIT.StackClasses`). */
+  protected extraClasses(): string | undefined {
+    return UIT.StackClasses.of(this.attrs.stackWith)
   }
 
   render(): JSX.Element {

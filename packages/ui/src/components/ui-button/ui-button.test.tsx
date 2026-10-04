@@ -91,6 +91,16 @@ describe("<ui-button> classes", () => {
     expect(host.matches(":state(fluid)")).toBe(true)
     expect(host.matches(":state(left-floated)")).toBe(true)
   })
+
+  it("hides with the `hidden` attribute, fluid or not", async () => {
+    const { host } = await button(`<ui-button hidden>Go</ui-button>`)
+    expect(getComputedStyle(host).display).toBe("none")
+    host.setAttribute("fluid", "")
+    await ElementFixture.settle()
+    expect(getComputedStyle(host).display).toBe("none")
+    host.removeAttribute("hidden")
+    expect(getComputedStyle(host).display).toBe("flex")
+  })
 })
 
 describe("<ui-button> behaviour", () => {
@@ -234,7 +244,45 @@ describe("<ui-buttons> / <ui-or>", () => {
     const group = await ElementFixture.render<UIHost>(`<ui-buttons width="equal"><ui-button>A</ui-button></ui-buttons>`)
     expect(group.shadowRoot!.firstElementChild!.className).toBe("ui equal width buttons")
   })
+
+  it("`equal`:  every button as wide as the widest, the group hugging them", async () => {
+    const natural = await group("")
+    const widest = Math.max(...natural.buttons.map((button) => button.getBoundingClientRect().width))
+    const { host, root, buttons } = await group("equal")
+    expect(root.className).toBe("ui equal buttons")
+    expect(host.matches(":state(fluid)")).toBe(false)
+    for (const button of buttons) expect(button.getBoundingClientRect().width).toBeCloseTo(widest, -0.5)
+    expect(root.getBoundingClientRect().width).toBeLessThan(GROUP_WIDTH)
+  })
+
+  it("`equal fluid`:  an equal share of the row each, as the older `width`", async () => {
+    const { root, buttons } = await group("equal fluid")
+    const share = root.clientWidth / buttons.length
+    for (const button of buttons) expect(button.getBoundingClientRect().width).toBeCloseTo(share, -0.5)
+    const older = await group('width="3"')
+    expect(older.buttons.map((button) => Math.round(button.getBoundingClientRect().width))).toEqual(
+      buttons.map((button) => Math.round(button.getBoundingClientRect().width))
+    )
+  })
 })
+
+/** Width of the box `group()` renders a button group in. */
+const GROUP_WIDTH = 800
+
+/** A `<ui-buttons attributes>` of three uneven buttons in a `GROUP_WIDTH` box;  returns it, its root and button boxes. */
+async function group(attributes: string) {
+  const box = await ElementFixture.render(
+    `<div style="width: ${GROUP_WIDTH}px"><ui-buttons ${attributes}>` +
+      `<ui-button>A</ui-button><ui-button>A much longer button</ui-button><ui-button>C</ui-button>` +
+      `</ui-buttons></div>`
+  )
+  const host = box.querySelector<UIHost>("ui-buttons")!
+  const root = host.shadowRoot!.firstElementChild as HTMLElement
+  const buttons = [...host.querySelectorAll<UIHost>("ui-button")].map((button) =>
+    button.shadowRoot!.querySelector<HTMLElement>("[part~=button]")!
+  )
+  return { host, root, buttons }
+}
 
 /**
  * Public `--ui-button-*` tokens set from OUTSIDE the shadow root reach the box:  the sheet declares only private
