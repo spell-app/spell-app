@@ -24,6 +24,8 @@ export abstract class Literal<
   declare literal: string | string[]
   /** Whether the literal must be escaped when converting to rulex syntax. */
   declare isEscaped: boolean | undefined
+  /** Match any case (rulex `/i`):  `note` matches `NOTE`, `Note`. */
+  declare caseInsensitive: boolean | undefined
 
   /** Class-level `literal`, for rules defined as classes -- declare as `@proto static`. */
   static literal?: string | string[]
@@ -35,10 +37,18 @@ export abstract class Literal<
     } else super(props)
   }
 
-  /** `true` if token at `start` equals `this.literal` (or one of them, when it's an array). */
+  /**
+   * `true` if token at `start` equals `this.literal` (or one of them, when it's an array).
+   * - `caseInsensitive` (rulex `/i`):  compares lowercased;  the match still keeps the input's own case.
+   */
   test(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
-    return tokens[start].matchesLiteral(this.literal)
+    const token = tokens[start]
+    if (!this.caseInsensitive) return token.matchesLiteral(this.literal)
+    if (typeof token.value !== "string") return false
+    const value = token.value.toLowerCase()
+    const literals = Array.isArray(this.literal) ? this.literal : [this.literal]
+    return literals.some((literal) => String(literal).toLowerCase() === value)
   }
 
   /** Match a single token literally against `this.literal`. */
@@ -66,8 +76,9 @@ export abstract class Literal<
     else if (this.isEscaped) literalString = `\\${this.literal}`
 
     const { matchGroup, optional } = this.getRulexFlags()
+    const caseFlag = this.caseInsensitive ? "/i" : ""
     const wrapInParens = isVariable || matchGroup || (this.isEscaped && optional)
-    if (wrapInParens) return `(${matchGroup}${literalString})${optional}`
-    return `${literalString}${optional}`
+    if (wrapInParens) return `(${matchGroup}${literalString})${caseFlag}${optional}`
+    return `${literalString}${caseFlag}${optional}`
   }
 }
