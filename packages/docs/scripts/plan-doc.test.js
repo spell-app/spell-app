@@ -80,7 +80,7 @@ describe("PlanDoc phases", () => {
     expect(phase.getAttribute("data-phase")).toBe("2")
     expect(phase.querySelector(':scope > ui-icon[slot="icon"]').getAttribute("name")).toBe("circle outline")
     expect(plan.toString()).toContain(
-      '<ui-section id="p2" data-phase="2" data-status="todo" header="P2 · Runtime + Index" sticky collapsible dividing>'
+      '<ui-section id="p2" data-phase="2" data-status="todo" header="P2 · Runtime + Index" sticky collapsible dividing collapsed>'
     )
     const body = plan.document.querySelector('ui-section[data-phase="2"] > ui-list.plan-phase-body')
     expect(Array.from(body.children, (item) => item.getAttribute("icon"))).toEqual([
@@ -127,17 +127,18 @@ describe("PlanDoc phases", () => {
     expect(step.hasAttribute("hidden")).toBe(false)
   })
 
-  it("folds every done phase but the one finished last", () => {
+  it("starts phases folded, folds done ones, and never unfolds one", () => {
     const plan = freshPlan()
     for (const name of ["One", "Two", "Three"]) plan.addPhase(name)
+    expect(folds(plan)).toEqual([true, true, true])
+    // the reader opens P2 and P3;  finishing P2 folds it, P3 stays as the reader left it
+    for (const n of [2, 3]) plan.document.getElementById(`p${n}`).removeAttribute("collapsed")
     plan.setPhase(1, "done")
     plan.setPhase(2, "done")
-    expect(folds(plan)).toEqual([true, false, false])
-    // redoing P1:  it's the last finished now, P2 folds
+    expect(folds(plan)).toEqual([true, true, false])
+    // going active doesn't unfold
     plan.setPhase(1, "active")
-    expect(folds(plan)).toEqual([false, false, false])
-    plan.setPhase(1, "done")
-    expect(folds(plan)).toEqual([false, true, false])
+    expect(folds(plan)).toEqual([true, true, false])
   })
 
   it("keeps the progress bar at done of all phases, hidden while there are none", () => {
@@ -479,7 +480,8 @@ describe("PlanDoc migrate", () => {
     expect(decision.querySelector("ui-accordion.plan-item > ui-content").innerHTML).toBe("<p>why</p>")
     expect(plan.document.querySelector("#i1 > .plan-title").textContent).toBe("plain")
     expect(plan.document.querySelector("ui-list.plan-phase-body > ui-item[icon=bullseye]")).not.toBeNull()
-    expect(folds(plan)).toEqual([true, false, false])
+    // both done phases fold;  the active one is left as it was
+    expect(folds(plan)).toEqual([true, true, false])
     const active = plan.document.querySelector('ui-section[data-phase="3"] > ui-icon[slot="icon"]')
     expect(active.getAttribute("name")).toBe("circle half stroke")
     expect(plan.check()).toEqual([])

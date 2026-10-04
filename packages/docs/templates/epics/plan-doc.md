@@ -57,10 +57,10 @@ Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan
 Section markup (the template's;  a hand-written Overview sub-section is the same, nested in `#overview`):
 
 ```html
-<ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+<ui-section id="overview" header="1. Overview" sticky collapsible dividing collapsed>
   <ui-icon slot="icon" name="lightbulb"></ui-icon>
   <p class="plan-summary lede">...</p>
-  <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
+  <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing collapsed>
     ...  <!-- sub-sub-items:  <h4 id> -->
   </ui-section>
 </ui-section>
@@ -68,7 +68,8 @@ Section markup (the template's;  a hand-written Overview sub-section is the same
 
 - `header` is the title;  a title with markup is a `<span slot="header">` first inside instead (`1.2 The <code>x</code>
   API`)
-- every section `sticky collapsible dividing`;  `collapsed` starts it folded
+- every section `sticky collapsible dividing collapsed`:  everything starts folded, the reader opens what they want
+  (`packages/docs/AGENTS.md`, "Writing a page")
 - NEVER change an `id`:  the items, the log and other docs link to them
 
 ## Ids:  short, so they're easy to say in chat
@@ -89,7 +90,7 @@ Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `valu
 `hidden` while there are none):
 
 ```html
-<ui-section id="p2" data-phase="2" data-status="active" header="P2 · Short Name" sticky collapsible dividing>
+<ui-section id="p2" data-phase="2" data-status="active" header="P2 · Short Name" sticky collapsible dividing collapsed>
   <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
   <ui-list class="plan-phase-body">
     <ui-item icon="bullseye"><b>Goal:</b>  one line</ui-item>
@@ -113,8 +114,8 @@ Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `valu
 
 - the status icon (`slot="icon"`):  `todo` -> `circle outline` grey, `active` -> `circle half stroke` orange,
   `done` -> `circle check` green;  it shows in the contents sidebar too
-- `collapsed`:  starts folded.  Setting a phase `done` folds every OTHER done phase:  the one finished last stays
-  open
+- `collapsed`:  every phase starts folded.  Setting a phase `done` folds every done phase;  no status change ever
+  unfolds one
 - docs not yet migrated (`section.s3[data-phase]` in `#phases-section`, an h3 with the icon, `data-fold="closed"`):
   the script still edits them as they are
 
@@ -173,8 +174,8 @@ While a phase is active, flag what changed so the user can spot it:
 ## Prose
 
 - Code:  ALWAYS folded and colored:
-  `<ui-accordion class="spell-code" styled open="0"><ui-title>file.ts · N lines</ui-title><ui-content><pre><code class="language-ts">`
-  (`open="0"` for 30 lines or fewer).
+  `<ui-accordion class="spell-code" styled><ui-title>file.ts · N lines</ui-title><ui-content><pre><code class="language-ts">`
+  (never `open`).
 - Digressions:  a collapsed `<ui-accordion class="spell-aside" styled>`, title starting "Aside:".
 - Link caveats, issues, decisions and phases wherever prose mentions them.
 
