@@ -1,0 +1,689 @@
+import { For, Show, createEffect, untrack } from "solid-js"
+import type { JSX } from "@solidjs/web"
+
+import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue } from "$/ui/core"
+import { ControlLabels, FormElement } from "$/ui/forms"
+import { Palette, type Hsl, type Oklch } from "$/brand"
+
+import { brandColorPickerVocabulary } from "./ui-brand-color-picker.vocabulary.en"
+import { BrandColorPickerFallback } from "./ui-brand-color-picker.fallback"
+import {
+  BRAND_COLOR,
+  CLASSES,
+  COPIED_ICON,
+  COPIED_MS,
+  COPY_ICON,
+  DEFAULT_VALUE,
+  GREY,
+  KEYS,
+  ROWS,
+  STEPS,
+  VARS,
+  type BrandColorPickerVocabulary,
+  type CopyFormat,
+  type Drafts,
+  type FieldKey,
+  type Row,
+  type RowField
+} from "./ui-brand-color-picker.types"
+
+import pickerCSS from "./ui-brand-color-picker.css?inline"
+
+/****************
+ * ### `<ui-brand-color-picker>`
+ * An inline colour picker, the brand's (the Color Set Chooser's "Choose a colour" popover, without its title and
+ * close button):  `<div class="picker brand color" part="picker">` > the head row (chip, `header` slot, hex, `actions`
+ * slot), the hue slider, the HSL SQUARE for that hue, the HSL / RGB / OKLCH rows (each with a copy button),
+ * then the default slot (e.g. family chips).
+ * - The square:  saturation 0 -> 100% across, lightness 100% (top) -> 0% down, for the current hue;  every point is a
+ *   real sRGB colour.  Drawn by CSS (`ui-brand-color-picker.css`):  two gradients over the hue, exact, since HSL is
+ *   linear in sRGB along both axes;  a hue change repaints, nothing is computed per pixel.
+ * - The colour being edited (`working`) is HSL, apart from `value` (`#RRGGBB`), so a grey keeps its hue (and black
+ *   or white their saturation too):  the square and the hue slider don't jump when the colour passes through them.
+ * - Keyboard (see the docs page):  the square is two visually hidden native range inputs, Saturation and Lightness
+ *   (one tab stop:  the Lightness one is `tabindex=-1`);  on either, Left / Right move S and Up / Down move L by 1%
+ *   (Shift:  10%), PageUp / PageDown L by 10%, Home / End S to 0 / 100%.  Each key is `ui-input` then `ui-change`.
+ *   An assistive technology's own increment arrives as their `input`.
+ * - Pointer:  press on the square jumps the marker there and drags it (pointer capture);  `ui-input` per new colour,
+ *   `ui-change` on release.  The hue slider:  `ui-input` per step, `ui-change` on its native `change`.
+ * - Typing:  the hex field takes anything `Palette.parse()` reads;  the HSL and OKLCH fields numbers (H in degrees,
+ *   S / L in %, C plain).  An OKLCH colour a screen can't show is mapped in (`Palette.oklchToHex()`:  same L and H,
+ *   less C).  A valid keystroke is `ui-input`;  unreadable text shows the field's `error` look and changes nothing.
+ *   Enter or leaving the field commits (`ui-change`) and shows the value again;  Escape drops the draft.
+ * - Copy buttons:  `hsl(250 54% 55%)` (the HSL row as shown), `#RRGGBB`, `oklch(52.0% 0.181 286)` to the clipboard,
+ *   then `ui-copy`, a check for `COPIED_MS`, and "Copied ..." announced.  A refused clipboard write does nothing.
+ * - `value` is auto-controlled (`Controlled`) and reflects;  a `ui-input` handler that re-sets it wins.  Its FIRST
+ *   attribute value is the form's reset value.  Outside changes redraw without events.
+ * - Form:  `value` under `name`.
+ ****************/
+export class UIBrandColorPicker extends FormElement<BrandColorPickerVocabulary> {
+  @proto static vocabulary = brandColorPickerVocabulary
+  @proto static styles = { picker: pickerCSS }
+  @proto static Fallback = BrandColorPickerFallback
+
+  ////////////////
+  // ## State
+  ////////////////
+
+  /** `value`:  the host's property, else `DEFAULT_VALUE`. */
+  readonly valueState = this.controlled("value", undefined)
+
+  /** The colour being edited, HSL (see the class doc). */
+  readonly working = new Cell<Hsl>(untrack(() => Palette.hexToHsl(this.value())))
+
+  /** Text typed in the fields and not committed yet. */
+  readonly drafts = new Cell<Drafts>({})
+
+  /** The square's marker is being dragged. */
+  readonly dragging = new Cell(false)
+
+  /** What was just copied (its row and text), `undefined` once the check has gone. */
+  readonly copied = new Cell<{ format: CopyFormat; value: string } | undefined>(undefined)
+
+  /** Light-DOM slot occupancy:  header, actions, the default slot. */
+  readonly slots = new SlotContent(this.host)
+
+  /** Host `<label>`s and `aria-label` (a `<ui-brand-field>` names it so), as the group's name. */
+  readonly labels = new ControlLabels(this.formHost)
+
+  /** Each row's copy icon and check, loaded up front so the check shows at once. */
+  readonly glyphs = {
+    hsl: this.copyGlyphs(),
+    hex: this.copyGlyphs(),
+    oklch: this.copyGlyphs()
+  }
+
+  /** `value` when the element was created:  the form's reset value. */
+  private readonly initialValue = untrack(() => this.attrs.value)
+
+  // NOTE:  plain mirrors of the cells, for handlers:  a cell's write lands on a microtask, and two events can arrive
+  // before it (a test, a fast drag)
+
+  /** `working`, now. */
+  private latest: Hsl = untrack(() => this.working.get())
+
+  /** `value`, now. */
+  private latestHex = untrack(() => this.value())
+
+  /** `value` at the last `ui-change` (or outside set):  a commit fires only when it differs. */
+  private committedHex = this.latestHex
+
+  /** `drafts`, now. */
+  private latestDrafts: Drafts = {}
+
+  /** The square:  pointer target, and what pointer positions are measured against. */
+  private plane?: HTMLElement
+
+  /** The square's Saturation slider:  its tab stop, focused on a press. */
+  private saturationInput?: HTMLInputElement
+
+  /** Pointer dragging the marker, if any. */
+  private dragPointer?: number
+
+  /** Timer clearing `copied`. */
+  private copiedTimer: ReturnType<typeof setTimeout> | undefined
+
+  ////////////////
+  // ## Values
+  ////////////////
+
+  /** The colour, `#RRGGBB`:  `value` read as `Palette.parse()` reads it, else `DEFAULT_VALUE`;  tracked. */
+  value(): string {
+    const value = this.valueState.get()
+    return (typeof value === "string" ? Palette.parse(value) : undefined) ?? DEFAULT_VALUE
+  }
+
+  isDisabled(): boolean {
+    return this.attrs.disabled || this.formDisabled.get()
+  }
+
+  protected classValue(name: AttributeName<BrandColorPickerVocabulary>): unknown {
+    if (name === "disabled") return this.isDisabled()
+    return super.classValue(name)
+  }
+
+  protected extraClasses(): string | undefined {
+    return BRAND_COLOR
+  }
+
+  protected hostStates() {
+    return { disabled: this.isDisabled(), dragging: this.dragging.get(), copied: !!this.copied.get() }
+  }
+
+  ////////////////
+  // ## Form
+  ////////////////
+
+  formValue(): FieldValue {
+    return this.value()
+  }
+
+  protected formName(): string | undefined {
+    return this.attrs.name
+  }
+
+  /** Back to the first `value`. */
+  formReset() {
+    this.valueState.set(this.initialValue)
+  }
+
+  ////////////////
+  // ## Wiring
+  ////////////////
+
+  /** Adds following outside `value` changes, and the labels' refresh. */
+  mount(): JSX.Element {
+    createEffect(
+      () => this.connected.get(),
+      (connected) => {
+        if (connected) this.labels.refresh()
+      }
+    )
+    createEffect(
+      () => this.value(),
+      (hex) => {
+        this.adopt(hex)
+      }
+    )
+    return super.mount()
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
+  render(): JSX.Element {
+    return (
+      <div
+        class={this.classes()}
+        part={this.part("picker")}
+        role="group"
+        aria-label={this.groupName()}
+        style={this.colorStyle()}
+      >
+        {this.renderHead()}
+        {/* the hue first:  it picks the square's colour (Owen, 2026-10-04) */}
+        {this.renderHue()}
+        {this.renderPlane()}
+        <div class={CLASSES.rows}>
+          <For each={ROWS}>{(row) => this.renderRow(row)}</For>
+        </div>
+        <span class={CLASSES.status} role="status">
+          {this.copied.get() ? this.text("copied", { value: this.copied.get()!.value }) : ""}
+        </span>
+        <Show when={this.slots.has("")}>
+          <div class={CLASSES.families} part={this.part("families")}>
+            <slot />
+          </div>
+        </Show>
+      </div>
+    )
+  }
+
+  /** The head row:  chip, the `header` slot over the hex, the `actions` slot at the far end. */
+  private renderHead(): JSX.Element {
+    return (
+      <div class={CLASSES.head} part={this.part("head")}>
+        <span class={CLASSES.chip} part={this.part("chip")} aria-hidden="true" />
+        <span class={CLASSES.readout}>
+          <slot name={this.slot("header")} />
+          <span class={CLASSES.hex} part={this.part("hex")}>
+            {this.value()}
+          </span>
+        </span>
+        <Show when={this.slots.has(this.slot("actions"))}>
+          <span class={CLASSES.actions}>
+            <slot name={this.slot("actions")} />
+          </span>
+        </Show>
+      </div>
+    )
+  }
+
+  /** The square:  heading + readout, the gradients, the marker, its two hidden sliders. */
+  private renderPlane(): JSX.Element {
+    return (
+      <div class={CLASSES.section}>
+        <span class={CLASSES.label}>
+          <span id="plane-label">{this.text("plane")}</span>
+          <span class={CLASSES.value} aria-hidden="true">
+            {this.text("planeValue", { s: this.percent(this.working.get().s), l: this.percent(this.working.get().l) })}
+          </span>
+        </span>
+        <div
+          ref={(element) => (this.plane = element)}
+          class={CLASSES.plane}
+          part={this.part("plane")}
+          role="group"
+          aria-labelledby="plane-label"
+          onPointerDown={this.onPointerDown}
+          onPointerMove={this.onPointerMove}
+          onPointerUp={this.onPointerUp}
+          onPointerCancel={this.onPointerUp}
+        >
+          <span class={CLASSES.marker} part={this.part("marker")} aria-hidden="true" />
+          {this.renderAxis("s")}
+          {this.renderAxis("l")}
+        </div>
+      </div>
+    )
+  }
+
+  /** One of the square's hidden sliders:  Saturation (the tab stop) or Lightness. */
+  private renderAxis(axis: "s" | "l"): JSX.Element {
+    const amount = () => this.percent(this.working.get()[axis])
+    return (
+      <input
+        ref={axis === "s" ? (element: HTMLInputElement) => (this.saturationInput = element) : undefined}
+        class={CLASSES.axis}
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        tabindex={axis === "s" ? undefined : "-1"}
+        value={String(amount())}
+        aria-label={this.text(axis === "s" ? "saturation" : "lightness")}
+        aria-valuetext={this.text("percent", { value: amount() })}
+        aria-roledescription={this.text("planeRole")}
+        disabled={this.isDisabled()}
+        onKeyDown={this.onPlaneKeyDown}
+        onInput={(event) => this.onAxisInput(axis, event)}
+        onChange={this.onCommit}
+      />
+    )
+  }
+
+  /** The hue slider, a native range on the HSL rainbow (the sheet's). */
+  private renderHue(): JSX.Element {
+    const hue = () => Math.round(this.working.get().h)
+    return (
+      <div class={CLASSES.section}>
+        <span class={CLASSES.label} aria-hidden="true">
+          <span>{this.text("hue")}</span>
+          <span class={CLASSES.value}>{this.text("hueValue", { h: hue() % 360 })}</span>
+        </span>
+        <input
+          class={CLASSES.hue}
+          part={this.part("hue")}
+          type="range"
+          min="0"
+          max="360"
+          step="1"
+          value={String(hue())}
+          aria-label={this.text("hue")}
+          aria-valuetext={this.text("hueValue", { h: hue() % 360 })}
+          disabled={this.isDisabled()}
+          onInput={this.onHueInput}
+          onChange={this.onCommit}
+        />
+      </div>
+    )
+  }
+
+  /** A format row:  its label, its inputs joined in one box, its copy button. */
+  private renderRow(row: Row): JSX.Element {
+    const labelId = `${row.format}-label`
+    const glyphs = this.glyphs[row.format]
+    const justCopied = () => this.copied.get()?.format === row.format
+    return (
+      <div class={CLASSES.row} part={this.part("row")} role="group" aria-labelledby={labelId}>
+        <span id={labelId} class={CLASSES.rowLabel}>
+          {this.text(row.label)}
+        </span>
+        <span
+          class={[
+            CLASSES.field,
+            row.format,
+            { [CLASSES.error]: row.fields.some((field) => this.isInvalid(field.key)) }
+          ]}
+        >
+          <For each={row.fields}>{(field) => this.renderField(row, field)}</For>
+        </span>
+        <button
+          type="button"
+          class={[CLASSES.copy, { [CLASSES.copied]: justCopied() }]}
+          part={this.part("copy")}
+          aria-label={this.text("copy", { format: this.text(row.label) })}
+          disabled={this.isDisabled()}
+          onClick={(event) => void this.copy(row.format, event)}
+        >
+          <Show when={justCopied()} fallback={glyphs.copy.svg()}>
+            {glyphs.check.svg()}
+          </Show>
+        </button>
+      </div>
+    )
+  }
+
+  /** One input of a row, and its unit. */
+  private renderField(row: Row, field: RowField): JSX.Element {
+    const key = field.key
+    return (
+      <span class={[CLASSES.segment, key, { [CLASSES.error]: this.isInvalid(key) }]}>
+        <input
+          class={CLASSES.input}
+          part={this.part(row.format === "hex" ? "rgb" : row.format)}
+          type="text"
+          inputmode={key === "rgb" ? undefined : "decimal"}
+          spellcheck="false"
+          autocomplete="off"
+          placeholder={key === "rgb" ? this.text("rgbPlaceholder") : undefined}
+          aria-label={this.text(key === "rgb" ? "rgb" : key)}
+          title={key === "rgb" ? undefined : this.text(key)}
+          value={this.drafts.get()[key] ?? this.fieldText(key)}
+          aria-invalid={this.isInvalid(key) ? "true" : undefined}
+          disabled={this.isDisabled()}
+          onInput={(event) => this.onTextInput(key, event)}
+          onKeyDown={(event) => this.onTextKeyDown(key, event)}
+          onFocusOut={(event) => this.commitText(key, event)}
+        />
+        <Show when={field.suffix}>
+          <span class={CLASSES.suffix} aria-hidden="true">
+            {field.suffix}
+          </span>
+        </Show>
+      </span>
+    )
+  }
+
+  /**
+   * The root's inline tokens:  the marker's place (ratios), the hue, the current colour.
+   * - A method, not an inline object:  Solid's server compile drops the `;` between COMPUTED keys.
+   */
+  private colorStyle(): Record<string, string> {
+    const { h, s, l } = this.working.get()
+    return {
+      [VARS.x]: String(s),
+      [VARS.y]: String(1 - l),
+      [VARS.hue]: String(h),
+      [VARS.color]: this.value()
+    }
+  }
+
+  /** The group's name:  `label`, else what names the host, else "Colour". */
+  private groupName(): string {
+    return this.attrs.label ?? this.labels.name() ?? this.text("group")
+  }
+
+  /** What field `key` shows while not typed in:  HSL from `working`, the hex and OKLCH from `value`;  tracked. */
+  private fieldText(key: FieldKey): string {
+    const { h, s, l } = this.working.get()
+    if (key === "hslH") return String(Math.round(h) % 360)
+    if (key === "hslS") return String(this.percent(s))
+    if (key === "hslL") return String(this.percent(l))
+    const hex = this.value()
+    if (key === "rgb") return hex
+    const oklch = Palette.hexToOklch(hex)
+    if (key === "oklchL") return (oklch.l * 100).toFixed(1)
+    // a grey's chroma is a rounding error away from 0:  never `-0.000`
+    if (key === "oklchC") return (oklch.c < 0.0005 ? 0 : oklch.c).toFixed(3)
+    return Math.round(oklch.h).toFixed(0)
+  }
+
+  /** Is field `key`'s draft unreadable?  Tracked. */
+  private isInvalid(key: FieldKey): boolean {
+    const draft = this.drafts.get()[key]
+    if (draft === undefined) return false
+    return key === "rgb" ? !Palette.parse(draft) : !Number.isFinite(UIBrandColorPicker.number(draft))
+  }
+
+  /** `amount` (0-1) as a whole percentage. */
+  private percent(amount: number): number {
+    return Math.round(amount * 100)
+  }
+
+  /** A copy icon and a check, for one row's button. */
+  private copyGlyphs(): { copy: IconGlyph; check: IconGlyph } {
+    return { copy: new IconGlyph(this, () => COPY_ICON), check: new IconGlyph(this, () => COPIED_ICON) }
+  }
+
+  ////////////////
+  // ## Changes
+  ////////////////
+
+  /**
+   * Edit the colour to `next` as the user:  `ui-input` when `value` changes, then the host property, unless a handler
+   * re-set it (then the edit is undone).
+   */
+  private move(next: Hsl, originalEvent: Event) {
+    const previous = this.latest
+    this.setWorking(next)
+    const hex = Palette.hslToHex(next)
+    if (hex === this.latestHex) return
+    const applied = this.valueState.request(hex, () => this.emit("ui-input", { value: hex, originalEvent }))
+    if (applied) this.latestHex = hex
+    else this.setWorking(previous)
+  }
+
+  /** Commit:  `ui-change` if `value` differs from the last commit. */
+  private commit(originalEvent: Event) {
+    if (this.latestHex === this.committedHex) return
+    this.committedHex = this.latestHex
+    this.emit("ui-change", { value: this.latestHex, originalEvent })
+  }
+
+  /** `value` changed:  from outside (not one of our own edits), follow it without events. */
+  private adopt(hex: string) {
+    if (hex === this.latestHex) return
+    this.latestHex = hex
+    this.committedHex = hex
+    if (hex !== Palette.hslToHex(this.latest)) this.setWorking(UIBrandColorPicker.fromHex(hex, this.latest))
+  }
+
+  /** Write `working` and its mirror. */
+  private setWorking(color: Hsl) {
+    this.latest = color
+    this.working.set(color)
+  }
+
+  /** Write `drafts` and its mirror. */
+  private setDrafts(drafts: Drafts) {
+    this.latestDrafts = drafts
+    this.drafts.set(drafts)
+  }
+
+  ////////////////
+  // ## Copying
+  ////////////////
+
+  /** What row `format`'s button copies:  the HSL row as shown, the hex, or `Palette.format()`'s OKLCH. */
+  private copyText(format: CopyFormat): string {
+    if (format === "hsl") return Palette.formatHsl(this.latest)
+    return Palette.format(this.latestHex, format)
+  }
+
+  /**
+   * A copy button:  write the clipboard, then `ui-copy`, the check and the announcement.
+   * - SIDE EFFECT:  writes the clipboard;  a refused write (no permission) does nothing.
+   */
+  private async copy(format: CopyFormat, originalEvent: MouseEvent) {
+    if (untrack(() => this.isDisabled())) return
+    const value = this.copyText(format)
+    try {
+      await navigator.clipboard.writeText(value)
+    } catch {
+      return
+    }
+    this.copied.set({ format, value })
+    this.emit("ui-copy", { value, format, originalEvent })
+    clearTimeout(this.copiedTimer)
+    this.copiedTimer = setTimeout(() => this.copied.set(undefined), COPIED_MS)
+  }
+
+  ////////////////
+  // ## Handlers
+  ////////////////
+
+  /** Press on the square:  the marker jumps there and is dragged;  the square takes focus. */
+  private readonly onPointerDown = (event: PointerEvent) => {
+    if (event.button !== 0 || untrack(() => this.isDisabled()) || !this.plane) return
+    event.preventDefault()
+    this.dragPointer = event.pointerId
+    try {
+      this.plane.setPointerCapture(event.pointerId)
+    } catch {
+      // not an active pointer (a synthetic event):  moves arrive only while over the square
+    }
+    this.dragging.set(true)
+    this.saturationInput?.focus({ preventScroll: true })
+    this.pick(event)
+  }
+
+  /** Drag:  follow the pointer. */
+  private readonly onPointerMove = (event: PointerEvent) => {
+    if (this.dragPointer === event.pointerId) this.pick(event)
+  }
+
+  /** Release:  commit. */
+  private readonly onPointerUp = (event: PointerEvent) => {
+    if (this.dragPointer !== event.pointerId) return
+    this.dragPointer = undefined
+    if (this.plane?.hasPointerCapture(event.pointerId)) this.plane.releasePointerCapture(event.pointerId)
+    this.dragging.set(false)
+    this.commit(event)
+  }
+
+  /** The colour under the pointer:  S from across, L from up, the current hue. */
+  private pick(event: PointerEvent) {
+    const box = this.plane!.getBoundingClientRect()
+    const x = Math.min(1, Math.max(0, (event.clientX - box.left) / box.width))
+    const y = Math.min(1, Math.max(0, (event.clientY - box.top) / box.height))
+    this.move({ h: this.latest.h, s: x, l: 1 - y }, event)
+  }
+
+  /** A key on the square's sliders (see the class doc):  `ui-input`, then `ui-change`. */
+  private readonly onPlaneKeyDown = (event: KeyboardEvent) => {
+    const next = this.keyMove(event)
+    if (!next) return
+    event.preventDefault()
+    if (untrack(() => this.isDisabled())) return
+    this.move(next, event)
+    this.commit(event)
+  }
+
+  /** Where key `event` moves the colour, or `undefined` for other keys. */
+  private keyMove(event: KeyboardEvent): Hsl | undefined {
+    const { h, s, l } = this.latest
+    const step = event.shiftKey ? STEPS.big : STEPS.small
+    const at = UIBrandColorPicker.onPlane
+    switch (event.key) {
+      case KEYS.up:
+        return at(h, s, l + step)
+      case KEYS.down:
+        return at(h, s, l - step)
+      case KEYS.right:
+        return at(h, s + step, l)
+      case KEYS.left:
+        return at(h, s - step, l)
+      case KEYS.pageUp:
+        return at(h, s, l + STEPS.big)
+      case KEYS.pageDown:
+        return at(h, s, l - STEPS.big)
+      case KEYS.home:
+        return at(h, 0, l)
+      case KEYS.end:
+        return at(h, 1, l)
+      default:
+        return undefined
+    }
+  }
+
+  /** A square slider's own `input` (an assistive technology's increment):  its axis to its value. */
+  private onAxisInput(axis: "s" | "l", event: Event) {
+    const value = (event.currentTarget as HTMLInputElement).valueAsNumber
+    if (Number.isFinite(value)) this.move({ ...this.latest, [axis]: value / 100 }, event)
+  }
+
+  /** The hue slider moved;  `360` stays `360` (not `0`), so the thumb stays at the end it was dragged to. */
+  private readonly onHueInput = (event: Event) => {
+    const hue = (event.currentTarget as HTMLInputElement).valueAsNumber
+    if (Number.isFinite(hue)) this.move({ ...this.latest, h: hue }, event)
+  }
+
+  /** A native `change` (the hue slider released, a square slider's increment):  commit. */
+  private readonly onCommit = (event: Event) => {
+    this.commit(event)
+  }
+
+  /** A keystroke in field `key`:  keep the draft;  if it reads as a colour, edit to it. */
+  private onTextInput(key: FieldKey, event: Event) {
+    const text = (event.currentTarget as HTMLInputElement).value
+    this.setDrafts({ ...this.latestDrafts, [key]: text })
+    const next = this.readDraft(key, text)
+    if (next) this.move(next, event)
+  }
+
+  /** Enter commits field `key`;  Escape drops its draft. */
+  private onTextKeyDown(key: FieldKey, event: KeyboardEvent) {
+    if (event.key === KEYS.enter) {
+      event.preventDefault()
+      this.commitText(key, event)
+    } else if (event.key === KEYS.escape && this.latestDrafts[key] !== undefined) {
+      event.preventDefault()
+      this.dropDraft(key)
+    }
+  }
+
+  /** Commit field `key` (Enter, leaving it):  drop its draft (an unreadable one reverts), then commit. */
+  private commitText(key: FieldKey, event: Event) {
+    if (this.latestDrafts[key] === undefined) return
+    this.dropDraft(key)
+    this.commit(event)
+  }
+
+  /** Forget field `key`'s draft:  it shows the value again. */
+  private dropDraft(key: FieldKey) {
+    const { [key]: _dropped, ...rest } = this.latestDrafts
+    this.setDrafts(rest)
+  }
+
+  /** The colour field `key`'s `text` asks for, or `undefined` if it can't be read. */
+  private readDraft(key: FieldKey, text: string): Hsl | undefined {
+    if (key === "rgb") {
+      const hex = Palette.parse(text)
+      return hex ? UIBrandColorPicker.fromHex(hex, this.latest) : undefined
+    }
+    const number = UIBrandColorPicker.number(text)
+    if (!Number.isFinite(number)) return undefined
+    const { h, s, l } = this.latest
+    const at = UIBrandColorPicker.onPlane
+    if (key === "hslH") return at(number, s, l)
+    if (key === "hslS") return at(h, number / 100, l)
+    if (key === "hslL") return at(h, s, number / 100)
+    const oklch: Oklch = Palette.hexToOklch(this.latestHex)
+    if (key === "oklchL") oklch.l = Math.min(100, Math.max(0, number)) / 100
+    else if (key === "oklchC") oklch.c = Math.max(0, number)
+    else oklch.h = ((number % 360) + 360) % 360
+    return UIBrandColorPicker.fromHex(Palette.oklchToHex(oklch), this.latest)
+  }
+
+  ////////////////
+  // ## Colour helpers
+  ////////////////
+
+  /**
+   * `hex` as HSL, keeping what it can't say from `keep`:
+   * - black and white:  `keep`'s hue and saturation (any would do)
+   * - a grey:  `keep`'s hue (any would do), saturation 0
+   */
+  private static fromHex(hex: string, keep: Hsl): Hsl {
+    const color = Palette.hexToHsl(hex)
+    if (color.l <= 0 || color.l >= 1) return { h: keep.h, s: keep.s, l: color.l }
+    return color.s < GREY ? { ...color, h: keep.h } : color
+  }
+
+  /** HSL with saturation and lightness kept to 0-1 and the hue to 0-360. */
+  private static onPlane(hue: number, saturation: number, lightness: number): Hsl {
+    return {
+      h: ((hue % 360) + 360) % 360,
+      s: Math.min(1, Math.max(0, saturation)),
+      l: Math.min(1, Math.max(0, lightness))
+    }
+  }
+
+  /** A typed number (`67.7`, `67,7`, ` 0.05 `), else `NaN`. */
+  private static number(text: string): number {
+    const trimmed = text.trim().replace(",", ".")
+    return trimmed && /^[-+]?(\d+\.?\d*|\.\d+)$/.test(trimmed) ? Number(trimmed) : Number.NaN
+  }
+}

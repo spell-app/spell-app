@@ -28,7 +28,10 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
     THE list of pages;  flip a page's `built` to `true` in the change that adds its `.spell.html`.
   - `ui/` -- GENERATED, committed:  the copies' bundle, `brand-ui.js` + `brand-ui.css` + lazy chunks (`yarn build`);
     `icon-packs` a symlink to Spell UI's.  NEVER edit.
-- `src/` (`$/brand`) -- shared code, and the bundle's entry `brand-ui.ts` (what's in it and why).
+- `src/` (`$/brand`, self-namespace `B`) -- shared code:  `Palette` (the brand's colour math from Claude Design's
+  `lib/palette.mjs`:  sRGB <-> OKLCH, contrast, `generateScale()` 17-step ladders, `buildPalette()`;
+  `Palette.test.ts` pins it to `lib/palette.json`), `brand.types.ts`;  and the bundles' entries `brand-ui.ts`,
+  `brand-docs.ts`, `hues.ts` (what's in each and why).
 - `components/` (`$/brand/components`) -- the `<ui-brand-*>` elements, one folder per family, written exactly like
   a Spell UI family (`packages/ui/AGENTS.md`, "Solid authoring"), importing shared code from `$/ui/core` /
   `$/ui/forms`.  Generic ones move into Spell UI later (epic decision D2).  `components.spell.html`:  the specimen page.
@@ -44,6 +47,8 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   (`spell-brand.css`, "Brand roles":  `--spell-surface-warm`, `--spell-type-eyebrow` ...), so dark mode works.
 - Dark mode:  Spell UI's `color-scheme` (`ui-dark` on `<html>`), never the brand's `data-theme`.
 - Anything the theme can't do:  the plan doc's "What the theme can't do today" table, and an issue.
+- Spell UI's "UI rules" (`packages/ui/AGENTS.md`) apply to the pages and the `<ui-brand-*>` elements too, e.g.
+  numeric fields right-aligned against their unit.
 
 ## Commands
 

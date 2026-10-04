@@ -6,4 +6,3 @@ import { UIBrandField } from "./UIBrandField"
 UIBrandField.define()
 
 export { UIBrandField }
-export * from "./ui-brand-field.types"

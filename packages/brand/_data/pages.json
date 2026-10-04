@@ -1,6 +1,26 @@
 {
   "$comment": "Hand-kept facts per family (title, summary, status, mainTag, `pages`:  sub-tags with a page of their own, token-table overrides) and per theme sheet (`themes`:  title), read by `yarn site:data`.  Shape:  `SitePagesFile` in src/docs-components/docs-components.types.ts.  Edit by hand;  a new family is added (seeded) by `yarn site:data`.",
   "families": {
+    "ui-brand-color": {
+      "title": "Brand color",
+      "summary": "A brand color is a square colour chip:  a label inside, an AA mark, a selected ring, a details tip;  click to copy.",
+      "status": "done"
+    },
+    "ui-brand-color-picker": {
+      "title": "Brand color picker",
+      "summary": "A brand color picker chooses a colour by lightness and colourfulness for a hue, or by typing its hex or OKLCH.",
+      "status": "done"
+    },
+    "ui-brand-color-range": {
+      "title": "Brand color range",
+      "summary": "A brand color range is a 17-step ladder of shades made from one base colour, the base colour's step ringed.",
+      "status": "done"
+    },
+    "ui-brand-color-set": {
+      "title": "Brand color set",
+      "summary": "A brand color set lays out colour chips in a row or a grid;  `selectable` makes it a radio group to pick one.",
+      "status": "done"
+    },
     "ui-brand-field": {
       "title": "Brand field",
       "summary": "A brand field wraps one control with its label, a value readout, action buttons, an info tip, help and errors.",

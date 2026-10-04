@@ -1,0 +1,369 @@
+/*
+ * `<ui-brand-color-picker>`:  the brand's inline colour picker (Color Set Chooser's "Choose a colour" popover).
+ * - Markup:  `div.picker.brand.color` > `.head` (`.chip`, `.readout` > `slot[name=header]` + `.hex`, `.actions`),
+ *   `.section` (`.label`, `.plane` > `.marker` + two `input.axis`), `.section` (`.label`, `input.hue`), `.rows` >
+ *   `.row` x 3 (`.row-label`, `.field` > `.segment` > `input.input` + `.suffix`, `button.copy`), `.status`,
+ *   `.families` > `slot`.
+ * - The element writes `--_brand-color-picker-x` / `-y` (the marker's place, 0-1), `-hue` (degrees) and `-color`
+ *   (the colour) on the root.
+ * - The HSL square is exact CSS:  HSL is linear in sRGB along both axes, so the middle row (L 50%) is a gradient from
+ *   grey to the pure hue, and white / black fade over the top / bottom halves.  Gradients and compositing both work
+ *   in gamma-encoded sRGB, as HSL does.
+ * - Thumbs (the marker, the hue thumb) are the current colour, set off by a soft shadow, never a white ring (the
+ *   brand's "Controls" rule);  a soft light glow keeps them visible on dark colours.
+ * - Public tokens (`--ui-brand-color-picker-*`) are never declared here:  read through private aliases.  Defaults:
+ *   the `spell-brand` roles, else plain `--ui-*` tokens.
+ * - NOTE:  sizes are `em` of the root's `--ui-font-size` (16px):  a box with its own `font-size` uses `calc()`s of
+ *   its own, never the private size aliases.
+ */
+
+@layer ui.components.brand-color-picker.types, ui.components.brand-color-picker.content, ui.components.brand-color-picker.states;
+
+@layer ui.components.brand-color-picker.types {
+  /* in a flex row (`<ui-brand-field>`'s control box), take the row's width as a block would */
+  :host {
+    display: block;
+    flex: 1 1 auto;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  .picker.brand.color {
+    --_ui-brand-color-picker-gap: var(--ui-brand-color-picker-gap, 1em);
+    --_ui-brand-color-picker-plane-height: var(--ui-brand-color-picker-plane-height, 10em);
+    --_ui-brand-color-picker-radius: var(--ui-brand-color-picker-radius, 0.625em);
+    --_ui-brand-color-picker-marker-size: var(--ui-brand-color-picker-marker-size, 0.875em);
+    --_ui-brand-color-picker-chip-size: var(--ui-brand-color-picker-chip-size, 2.75em);
+    --_ui-brand-color-picker-track-height: var(--ui-brand-color-picker-track-height, 0.875em);
+    --_ui-brand-color-picker-field-background: var(--ui-brand-color-picker-field-background, var(--ui-surface));
+    --_ui-brand-color-picker-field-border-color: var(
+      --ui-brand-color-picker-field-border-color,
+      var(--spell-border-default, var(--ui-border-color))
+    );
+    /* the marker and hue thumb:  a hairline, a soft drop shadow, a soft light glow (not a ring) */
+    --_brand-color-picker-thumb-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.18), 0 1px 5px rgb(0 0 0 / 0.4), 0 0 6px 1px rgb(255 255 255 / 0.35);
+    --_brand-color-picker-hairline: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: var(--_ui-brand-color-picker-gap);
+    min-width: 0;
+    font-family: var(--ui-font-family);
+    font-size: var(--ui-font-size);
+    color: var(--spell-text-body, var(--ui-text-color));
+  }
+}
+
+@layer ui.components.brand-color-picker.content {
+  /* ## Head row:  the chip, the header slot over the hex, the actions at the far end */
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    min-width: 0;
+  }
+  .head > .chip {
+    flex: none;
+    width: var(--_ui-brand-color-picker-chip-size);
+    height: var(--_ui-brand-color-picker-chip-size);
+    border-radius: var(--_ui-brand-color-picker-radius);
+    background: var(--_brand-color-picker-color);
+    box-shadow: var(--_brand-color-picker-hairline);
+  }
+  .head > .readout {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    min-width: 0;
+  }
+  /* a title in the header slot:  the original's "Choose a colour" (bold serif 15px) */
+  .head > .readout > ::slotted(*) {
+    margin: 0;
+    font: 700 0.9375em/1 var(--spell-font-serif, var(--ui-font-family-heading, var(--ui-font-family)));
+    color: var(--spell-text-strong, var(--ui-text-dark));
+  }
+  .head > .readout > .hex {
+    font: 400 0.75em/1 var(--ui-font-family-mono);
+    color: var(--spell-text-muted, var(--ui-text-muted));
+    font-variant-numeric: tabular-nums;
+  }
+  .head > .actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    margin-inline-start: auto;
+  }
+
+  /* ## Sections:  a label row (name, readout) over a control */
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+  .section > .label {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5em;
+    font: 500 0.75em/1 var(--ui-font-family);
+    color: var(--spell-text-strong, var(--ui-text-dark));
+  }
+  .section > .label > .value {
+    font: 400 calc(11em / 12) / 1 var(--ui-font-family-mono);
+    color: var(--spell-text-muted, var(--ui-text-muted));
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ## The HSL square:  white over the top half, black over the bottom, on grey -> the pure hue */
+  .plane {
+    position: relative;
+    height: var(--_ui-brand-color-picker-plane-height);
+    border-radius: var(--_ui-brand-color-picker-radius);
+    background:
+      linear-gradient(to bottom in srgb, rgb(255 255 255) 0%, rgb(255 255 255 / 0) 50%, rgb(0 0 0 / 0) 50%, rgb(0 0 0) 100%),
+      linear-gradient(to right in srgb, hsl(0 0% 50%), hsl(var(--_brand-color-picker-hue, 0) 100% 50%));
+    box-shadow: var(--_brand-color-picker-hairline);
+    cursor: crosshair;
+    touch-action: none;
+    user-select: none;
+  }
+  .plane > .marker {
+    position: absolute;
+    inset-inline-start: calc(var(--_brand-color-picker-x, 0) * 100%);
+    inset-block-start: calc(var(--_brand-color-picker-y, 0) * 100%);
+    z-index: 1;
+    box-sizing: border-box;
+    width: var(--_ui-brand-color-picker-marker-size);
+    height: var(--_ui-brand-color-picker-marker-size);
+    margin: calc(var(--_ui-brand-color-picker-marker-size) / -2);
+    border-radius: 50%;
+    background: var(--_brand-color-picker-color);
+    box-shadow: var(--_brand-color-picker-thumb-shadow);
+    pointer-events: none;
+  }
+  /* the square's two sliders, and the copy announcement:  for the keyboard and screen readers, not seen */
+  .plane > .axis,
+  .status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .plane > .axis {
+    opacity: 0;
+  }
+
+  /* ## The hue slider:  a native range on the HSL rainbow (exact:  HSL's hue is linear in sRGB per 60°) */
+  .hue {
+    appearance: none;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: var(--_ui-brand-color-picker-track-height);
+    margin: 0;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right in srgb,
+      hsl(0 100% 50%),
+      hsl(60 100% 50%),
+      hsl(120 100% 50%),
+      hsl(180 100% 50%),
+      hsl(240 100% 50%),
+      hsl(300 100% 50%),
+      hsl(360 100% 50%)
+    );
+    box-shadow: var(--_brand-color-picker-hairline);
+    cursor: pointer;
+  }
+  .hue::-webkit-slider-thumb {
+    appearance: none;
+    width: 1.125em;
+    height: 1.125em;
+    border: 0;
+    border-radius: 50%;
+    background: hsl(var(--_brand-color-picker-hue, 0) 100% 50%);
+    box-shadow: var(--_brand-color-picker-thumb-shadow);
+  }
+  .hue::-moz-range-thumb {
+    width: 1.125em;
+    height: 1.125em;
+    border: 0;
+    border-radius: 50%;
+    background: hsl(var(--_brand-color-picker-hue, 0) 100% 50%);
+    box-shadow: var(--_brand-color-picker-thumb-shadow);
+  }
+  .hue::-moz-range-track {
+    background: transparent;
+  }
+
+  /* ## Format rows, 8px apart:  label, the inputs joined in one box, the copy button */
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 0;
+  }
+  .row > .row-label {
+    flex: none;
+    width: calc(48em / 11);
+    font: 500 0.6875em/1 var(--ui-font-family-mono);
+    color: var(--spell-text-muted, var(--ui-text-muted));
+  }
+  .row > .field {
+    box-sizing: border-box;
+    display: flex;
+    align-items: stretch;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 2.125em;
+    overflow: hidden;
+    border: 1px solid var(--_ui-brand-color-picker-field-border-color);
+    border-radius: var(--_ui-brand-color-picker-radius);
+    background: var(--_ui-brand-color-picker-field-background);
+    transition:
+      border-color var(--ui-duration-fast) var(--ui-ease),
+      box-shadow var(--ui-duration-fast) var(--ui-ease);
+  }
+  /* segments:  equal shares, a hairline between;  L takes a little more in OKLCH (`52.0`) */
+  .row > .field > .segment {
+    display: flex;
+    align-items: stretch;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .row > .field > .segment + .segment {
+    border-inline-start: 1px solid var(--spell-border-subtle, var(--ui-border-color));
+  }
+  .row > .field > .segment.oklchL {
+    flex-grow: 1.2;
+  }
+  .row > .field > .segment > .input {
+    box-sizing: border-box;
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    /* numbers RIGHT-aligned, against their unit (`250°`, `55%`):  Owen's standing rule (2026-10-04) */
+    padding: 0 calc(2em / 13) 0 calc(6em / 13);
+    border: 0;
+    background: transparent;
+    font: 400 0.8125em/1 var(--ui-font-family);
+    font-variant-numeric: tabular-nums;
+    color: var(--spell-text-body, var(--ui-text-color));
+    text-align: end;
+    outline: none;
+  }
+  /* a number with no unit (OKLCH's C and H):  the field's own end padding, as the hex has */
+  .row > .field > .segment > .input:last-child {
+    padding-inline-end: calc(10em / 13);
+  }
+  /* the hex:  one wide input, upper-case as the value */
+  .row > .field > .segment.rgb > .input {
+    padding: 0 calc(12em / 13);
+    text-align: start;
+    text-transform: uppercase;
+  }
+  .row > .field > .segment > .input::placeholder {
+    color: var(--spell-text-subtle, var(--ui-text-muted));
+    text-transform: none;
+  }
+  .row > .field > .segment > .suffix {
+    flex: none;
+    display: grid;
+    place-items: center;
+    padding-inline-end: 0.5em;
+    font: 500 0.75em/1 var(--ui-font-family);
+    color: var(--spell-text-subtle, var(--ui-text-muted));
+  }
+
+  /* ## Copy buttons:  circular, basic (a hairline, no fill), an icon */
+  .row > .copy {
+    box-sizing: border-box;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.75em;
+    height: 1.75em;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--spell-border-default, var(--ui-border-color));
+    color: var(--spell-text-subtle, var(--ui-text-muted));
+    cursor: pointer;
+    transition:
+      background var(--ui-duration-fast) var(--ui-ease),
+      color var(--ui-duration-fast) var(--ui-ease);
+  }
+  .row > .copy > svg {
+    width: 0.8125em;
+    height: 0.8125em;
+    fill: currentColor;
+  }
+  .row > .copy:hover {
+    background: var(--spell-accent-soft, var(--ui-surface-strong));
+    color: var(--spell-text-accent, var(--ui-text-dark));
+  }
+
+  /* ## Slotted content (families) */
+  .families {
+    min-width: 0;
+  }
+}
+
+@layer ui.components.brand-color-picker.states {
+  /* Focus:  the square's marker, the hue slider, a field, a copy button */
+  .plane:has(> .axis:focus-visible) > .marker {
+    outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color, Highlight);
+    outline-offset: 2px;
+  }
+  .hue:focus-visible,
+  .row > .copy:focus-visible {
+    outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color, Highlight);
+    outline-offset: 2px;
+  }
+  .row > .field:focus-within {
+    border-color: var(--spell-border-accent, var(--ui-focus-border, var(--ui-focus-color)));
+    box-shadow: var(--spell-shadow-focus, 0 0 0 var(--ui-focus-width, 2px) var(--ui-focus-color, Highlight));
+  }
+
+  /* Unreadable text:  the field in the danger colour (nothing changed;  leaving it reverts) */
+  .row > .field.error {
+    border-color: var(--spell-danger, var(--ui-red-text, red));
+  }
+  .row > .field.error:focus-within {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--spell-danger, var(--ui-red-text, red)) 25%, transparent);
+  }
+
+  /* Just copied:  the check, in the success colour */
+  .row > .copy.copied {
+    color: var(--spell-success, var(--ui-green-text, green));
+  }
+
+  /* Dragging:  the marker follows the pointer */
+  :host(:state(dragging)) .plane {
+    cursor: grabbing;
+  }
+
+  /* Disabled:  faded, nothing reacts */
+  :host(:state(disabled)) > .picker.brand.color {
+    opacity: var(--ui-disabled-opacity, 0.45);
+  }
+  :host(:state(disabled)) :is(.plane, .hue, .copy) {
+    cursor: default;
+    pointer-events: none;
+  }
+}

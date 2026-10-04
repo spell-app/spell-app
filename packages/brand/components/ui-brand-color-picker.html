@@ -1,0 +1,291 @@
+<!doctype html>
+<!--
+  A brand element's docs page, in Spell UI's docs format (`packages/docs/templates/spell-ui-docs.html`):  masthead, then
+  Examples / Usage / API / Theming tabs.  Without the Spell UI site's shell:  the site header on top, one page.
+  - Loads `brand-docs.js` (`src/brand-docs.ts`):  the brand bundle + Spell UI's docs widgets;  API and tokens come
+    from `_data/components.json` (`yarn site:data` here).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - The family chips are plain buttons with a `data-pick` colour;  the script at the end hands it to the picker
+    they're in, closes a popup from its picker's close button, and writes `ui-copy` into a `data-copy-log` line.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Color Picker</title>
+    <meta
+      name="description"
+      content="<ui-brand-color-picker>:  choose a colour on an HSL square and a hue slider, or type HSL, hex or OKLCH;  copy any of them."
+    />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <link rel="stylesheet" href="../_assets/brand-docs.css" />
+    <script type="module" src="../_assets/ui/brand-docs.js"></script>
+    <style>
+      /* the family chips of the examples:  10 to a row, as the Color Set Chooser's */
+      .brand-docs-families {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font: 500 12px/1 var(--ui-font-family);
+        color: var(--spell-text-strong, var(--ui-text-dark));
+      }
+      .brand-docs-families > div {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 4px;
+      }
+      .brand-docs-families button {
+        aspect-ratio: 1;
+        padding: 0;
+        border: 0;
+        border-radius: 5px;
+        box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+        cursor: pointer;
+        transition: transform var(--ui-duration-fast) var(--ui-ease);
+      }
+      .brand-docs-families button:hover {
+        transform: scale(1.12);
+      }
+      .brand-docs-copy-log {
+        margin: 12px 0 0;
+        font: 400 12px/1.4 var(--ui-font-family-mono);
+        color: var(--spell-text-muted, var(--ui-text-muted));
+      }
+      .brand-docs-popup-picker {
+        display: block;
+        width: 300px;
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../.."></spell-site-header>
+    <main id="main" class="brand-docs-main">
+      <ui-segment vertical basic class="brand-docs-masthead">
+        <ui-container>
+          <div class="brand-docs-eyebrow"><a href="../index.html">Brand</a> · Components</div>
+          <ui-header level="1" class="brand-docs-title">
+            Brand Color Picker
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header>Choose a colour on an HSL square, or type HSL, hex or OKLCH;  copy any of them.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="brand-docs-body">
+        <ui-tabs
+          id="brand-docs-tabs"
+          class="brand-docs-tabs"
+          history
+          basic
+          appearance="segmented"
+          alignment="fluid"
+          equal
+        >
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" collapsible dividing>
+              <ui-section id="examples-types-picker" header="Picker" collapsible dividing>
+                <ui-docs-example
+                  description="The HSL square shows every saturation (right) and lightness (up) of the current hue.  Drag the marker, slide the hue, or type HSL, a hex or OKLCH;  each row's button copies that format."
+                >
+                  <ui-brand-color-picker value="#6550CA" class="brand-docs-panel"></ui-brand-color-picker>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-in-a-popup" header="In a popup" collapsible dividing>
+                <ui-docs-example
+                  description='Not a popover itself:  put it in a `<ui-popup on="click">` (or a `<dialog>`).  `slot="header"` takes the title, `slot="actions"` a close button;  the default slot, family chips.'
+                >
+                  <ui-button>Choose a colour</ui-button>
+                  <ui-popup on="click" position="bottom left" flowing>
+                    <ui-brand-color-picker value="#8E96B5" class="brand-docs-popup-picker">
+                      <b slot="header">Choose a colour</b>
+                      <ui-button slot="actions" size="mini" basic icon="close" aria-label="Done" data-close></ui-button>
+                      <div class="brand-docs-families">
+                        <span>Or start from a family</span>
+                        <div>
+                          <button type="button" title="Brand" data-pick="#8E96B5" style="background: #8e96b5"></button>
+                          <button type="button" title="Accent" data-pick="#F1E7D4" style="background: #f1e7d4"></button>
+                          <button type="button" title="Violet" data-pick="#6550CA" style="background: #6550ca"></button>
+                          <button type="button" title="Red" data-pick="#E23B4A" style="background: #e23b4a"></button>
+                          <button type="button" title="Orange" data-pick="#F2711C" style="background: #f2711c"></button>
+                          <button type="button" title="Amber" data-pick="#F0A020" style="background: #f0a020"></button>
+                          <button type="button" title="Green" data-pick="#22A55B" style="background: #22a55b"></button>
+                          <button type="button" title="Teal" data-pick="#14A39A" style="background: #14a39a"></button>
+                          <button type="button" title="Blue" data-pick="#3B6FE0" style="background: #3b6fe0"></button>
+                          <button type="button" title="Rose" data-pick="#E8436A" style="background: #e8436a"></button>
+                        </div>
+                      </div>
+                    </ui-brand-color-picker>
+                  </ui-popup>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-in-a-panel" header="In a panel" collapsible dividing>
+                <ui-docs-example
+                  description="In the brand's inspector:  a `<ui-brand-field>` labels it (and names it for screen readers), inside a `<ui-brand-panel>`."
+                >
+                  <ui-brand-panel header="Color Set" color="accent" class="brand-docs-panel">
+                    <ui-brand-field
+                      label="Base color"
+                      info="The colour you're starting from.  Drag in the square, or type HSL, RGB or OKLCH."
+                    >
+                      <ui-brand-color-picker value="#14A39A" name="base"></ui-brand-color-picker>
+                    </ui-brand-field>
+                  </ui-brand-panel>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" collapsible dividing>
+              <ui-section id="examples-content-families" header="Families" collapsible dividing>
+                <ui-docs-example
+                  description="The default slot sits under the rows:  here, chips that set `value` when clicked."
+                >
+                  <ui-brand-color-picker value="#E8436A" class="brand-docs-panel">
+                    <div class="brand-docs-families">
+                      <span>Or start from a family</span>
+                      <div>
+                        <button type="button" title="Brand" data-pick="#8E96B5" style="background: #8e96b5"></button>
+                        <button type="button" title="Accent" data-pick="#F1E7D4" style="background: #f1e7d4"></button>
+                        <button type="button" title="Violet" data-pick="#6550CA" style="background: #6550ca"></button>
+                        <button type="button" title="Red" data-pick="#E23B4A" style="background: #e23b4a"></button>
+                        <button type="button" title="Orange" data-pick="#F2711C" style="background: #f2711c"></button>
+                        <button type="button" title="Amber" data-pick="#F0A020" style="background: #f0a020"></button>
+                        <button type="button" title="Green" data-pick="#22A55B" style="background: #22a55b"></button>
+                        <button type="button" title="Teal" data-pick="#14A39A" style="background: #14a39a"></button>
+                        <button type="button" title="Blue" data-pick="#3B6FE0" style="background: #3b6fe0"></button>
+                        <button type="button" title="Rose" data-pick="#E8436A" style="background: #e8436a"></button>
+                      </div>
+                    </div>
+                  </ui-brand-color-picker>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" collapsible dividing>
+              <ui-section id="examples-states-copy-any-format" header="Copy any format" collapsible dividing>
+                <ui-docs-example
+                  description="Each row's button copies its format:  `hsl(250 54% 55%)` (as the row shows it), `#6550CA`, or `oklch(52.0% 0.181 286)`.  It shows a check for a moment (`:state(copied)`), announces what it copied, and dispatches `ui-copy` `{ value, format }`:  the line under the picker listens."
+                >
+                  <ui-brand-color-picker value="#6550CA" class="brand-docs-panel"></ui-brand-color-picker>
+                  <p class="brand-docs-copy-log" data-copy-log>Copy a row to see its <code>ui-copy</code> here.</p>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-out-of-gamut" header="Out of gamut" collapsible dividing>
+                <ui-docs-example
+                  description="The square is HSL, so every point is a real screen colour.  OKLCH can ask for more:  `oklch(70% 0.37 150)` (or a bigger C typed in its row) becomes the nearest colour a screen shows, at the same lightness and hue."
+                >
+                  <ui-brand-color-picker value="oklch(70% 0.37 150)" class="brand-docs-panel"></ui-brand-color-picker>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-disabled" header="Disabled" collapsible dividing>
+                <ui-docs-example description="`disabled`:  faded, and nothing in it reacts.">
+                  <ui-brand-color-picker value="#F1E7D4" disabled class="brand-docs-panel"></ui-brand-color-picker>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  An inline picker: put it where it should show, or in a `<ui-popup on="click">` / `<dialog>`.
+
+                  - `value` is `#RRGGBB`. Set it as an attribute or property; anything the hex field reads works
+                    (`#abc`, `142 150 181`, `hsl(250 54% 55%)`, `oklch(67.7% 0.047 274)`), and reads back upper-case.
+                  - `ui-input` fires as the colour changes (dragging, sliding, typing); `ui-change` when a choice is
+                    committed (release, Enter, leaving a field, a key on the square).
+                  - Each row's copy button writes its format to the clipboard and dispatches `ui-copy`
+                    `{ value, format: "hsl" | "hex" | "oklch" }`.
+                  - The picker remembers a grey's hue (and black's or white's saturation), so the square and the hue
+                    slider don't jump as the colour passes through them.
+                  - In a `<form>`, it submits `value` under `name`; `form.reset()` goes back to its first `value`.
+                  - A `ui-input` handler that re-sets `value` wins, as on Spell UI's controls.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const picker = document.querySelector("ui-brand-color-picker")
+                  picker.addEventListener("ui-change", (event) => {
+                    document.body.style.setProperty("--seed", event.detail.value)
+                  })
+                  picker.value = "#14A39A" // redraws, no events
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-keyboard" header="Keyboard" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The square is one tab stop. On it:
+
+                  - Up / Down: lighter / darker (1%; Shift 10%). PageUp / PageDown: 10%.
+                  - Right / Left: more / less saturated (1%; Shift 10%).
+                  - Home: grey (saturation 0%). End: saturation 100%.
+
+                  Each key commits (`ui-input`, then `ui-change`). The hue slider is a native range: arrows,
+                  PageUp / PageDown, Home / End. In the fields, Enter commits and Escape drops what you typed. The
+                  copy buttons are buttons: Enter or Space.
+                </script>
+              </ui-markdown>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The picker is a group, named by `label`, else by what names the element (a `<ui-brand-field>`'s
+                    label, a `<label for>`, `aria-label`), else "Colour".
+                  - The square is TWO native range inputs, hidden from sight: "Saturation" and "Lightness" (spoken
+                    as percentages), both described as a "2D slider". There's no ARIA role for a 2D control, so each
+                    axis is its own slider, which a screen reader can read and step on its own; the keyboard moves
+                    both from the one tab stop.
+                  - Each row is a group named by its label (HSL, RGB, OKLCH); each field is named ("HSL hue,
+                    0–360°" ...); text that can't be read is marked invalid until it's fixed or dropped.
+                  - Copy buttons are named "Copy HSL" ...; what they copied is announced ("Copied #6550CA").
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="ui-brand-color-picker"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--ui-brand-color-picker-*` token on the picker, any ancestor or `:root`. The defaults come
+                  from the `spell-brand` theme's roles, with plain Spell UI tokens under any other theme. Edit a value
+                  below to try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="ui-brand-color-picker" playground>
+                <ui-brand-color-picker value="#6550CA" class="brand-docs-panel"></ui-brand-color-picker>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+    <script type="module">
+      // a family chip sets its picker's colour;  a picker's close button closes its popup
+      document.addEventListener("click", (event) => {
+        const chip = event.target.closest?.("[data-pick]")
+        const picker = chip?.closest("ui-brand-color-picker")
+        if (picker) picker.value = chip.dataset.pick
+        const close = event.target.closest?.("[data-close]")
+        const popup = close?.closest("ui-popup")
+        if (popup) popup.open = false
+      })
+      // `ui-copy`:  written into the `data-copy-log` line beside its picker
+      document.addEventListener("ui-copy", (event) => {
+        const log = event.target.parentElement?.querySelector("[data-copy-log]")
+        if (log) log.textContent = `ui-copy:  ${event.detail.format} -> ${event.detail.value}`
+      })
+    </script>
+  </body>
+</html>
