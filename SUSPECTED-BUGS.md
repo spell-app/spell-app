@@ -295,6 +295,13 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- `yarn measure` (2026-10-04, markdown epic P8) prints three `CHECK` lines its docs say should be empty:
+  `entriesMissingCore: [ 'ui-flyout' ]`, `runtimeChunks: [ 'rolldown-runtime-B72Djju_.js' ]` and a long
+  `coreOutsideCore` list (`$/util`'s `decorators.ts` / `dom.ts` / `string.ts`, `vocabulary/`, `icons/`,
+  `docs-components/SiteData.ts`, `runtime/load.ts` ...).  None of them names a markdown file, and the `dist/` built
+  before P8 already holds that same `rolldown-runtime-B72Djju_.js`, so they look older than the markdown branch.
+  Not checked on `main`.  NOTE:  `own ui-markdown` reads 92.59 kB because `md.bundle.js` sits in the family folder
+  (`groups()` buckets by folder);  it's a LAZY chunk (`MDEngine`), not eager code.
 - `src/components/ui-step/` horizontal `<ui-steps circular>`:  a description that wraps to a third line spills out of
   the group's box (the next example's header crowds it;  inside an `<ui-segment inverted>` the last line is clipped
   at the segment's bottom edge).  Seen on the site page `site/components/ui-step.html`, Ordered (second block) and

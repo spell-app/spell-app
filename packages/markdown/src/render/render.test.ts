@@ -35,9 +35,9 @@ describe("MD.render() -- ui-* elements", () => {
     )
   })
 
-  it("task items:  a read-only ui-checkbox", () => {
+  it("task items:  a read-only ui-checkbox, no bullets", () => {
     expect(ui("- [x] done\n- [ ] not\n")).toBe(
-      '<ui-list bulleted=""><ui-item class="task-list-item"><ui-checkbox readonly="" checked=""></ui-checkbox> done</ui-item>' +
+      '<ui-list><ui-item class="task-list-item"><ui-checkbox readonly="" checked=""></ui-checkbox> done</ui-item>' +
         '<ui-item class="task-list-item"><ui-checkbox readonly=""></ui-checkbox> not</ui-item></ui-list>'
     )
   })

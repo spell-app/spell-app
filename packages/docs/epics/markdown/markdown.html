@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Markdown on the parser</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p8">next: P8 · Live Preview</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Doc Review</ui-label></span
             >
           </header></ui-sticky
         >
@@ -78,6 +78,10 @@
                 italic / link / strike, code as string); extension modifiers declared, not installed; checks: markdown
                 32, lsp 97, app browser tests green; <a href="#j8">J8</a>, <a href="#j9">J9</a>
               </li>
+              <li>
+                <b>P7</b> a8628835 ui Bundle: yarn gen:markdown; 88.2 kB gz vs marked 25 kB, measure only, plain
+                &amp;lt;ui-markdown&amp;gt; keeps marked (<a href="#i6">I6</a>)
+              </li>
             </ul>
           </ui-section>
           <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
@@ -108,7 +112,7 @@
               preview editor); scope = useful GFM subset first.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 5h-7h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 1h left</p>
           <ui-section id="o1" header="1.1 Shape" sticky collapsible dividing collapsed>
             <p>
               New package
@@ -279,7 +283,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="7" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="8" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -600,14 +604,14 @@
           <ui-section
             id="p8"
             data-phase="8"
-            data-status="todo"
+            data-status="done"
             header="P8 · Live Preview"
             sticky
             collapsible
             dividing
             collapsed
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>&lt;ui-markdown editable&gt;</code> (<a href="#q6">Q6</a>): textarea + live preview,
@@ -626,6 +630,13 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> Incremental vs full parse identical on edit sequences; ui tests; Owen types in the docs
                 site</ui-item
+              ><ui-item icon="flag"
+                ><b>Outcome:</b> <code>&lt;ui-markdown editable&gt;</code>: Write / Preview tabs, the preview drawn by
+                <code>MDEngine</code> (its own lazy chunk, 230 kB) with <code>ui-*</code> elements, patched block by
+                block; no incremental parser (a full render is ~2 ms). Site example + Usage, 6 element tests, ui
+                <code>yarn review</code> green. V1 looked at (light and dark), C7 fixed.</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j10">J10</a> <a href="#j11">J11</a> <a href="#j12">J12</a></ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
             >
           </ui-section>
@@ -1970,6 +1981,92 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j10">J10</a>
+                  <span class="plan-title"
+                    >P8: no incremental parser (MD.MarkdownDocument): the preview re-renders the whole text, then swaps
+                    only changed blocks</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The plan had <code>MD.MarkdownDocument</code> re-parsing only edited blocks. Measured first:
+                    <code>MD.render()</code> takes <b>~2.2 ms</b> for
+                    <a href="../../../spell/PARSING.md" target="src-packages-spell-parsing-md"
+                      ><code>packages/spell/PARSING.md</code></a
+                    >
+                    (32 kB, the repo's biggest markdown file), well under a frame. So the preview renders everything
+                    each time and <code>patchBody()</code> keeps the unchanged lead and tail of top-level blocks (by
+                    their markup), swapping only the middle.
+                  </p>
+                  <ul>
+                    <li>
+                      Why not the incremental parser: correct block-level re-parsing needs lazy continuation, list
+                      looseness and document-global reference definitions (C4) handled; all that complexity buys ~2 ms.
+                    </li>
+                    <li>
+                      What the patch keeps: unchanged <code>ui-*</code> elements aren't re-created, so code blocks
+                      aren't re-highlighted, and a scrolled table keeps its scroll. Pinned by a test (the first and last
+                      block are the same nodes after an edit in the middle).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j11">J11</a>
+                  <span class="plan-title"
+                    >P8: the preview renders only while shown, opening on Write; plain &lt;ui-markdown&gt; still uses
+                    marked</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Opens on <b>Write</b>, as GitHub's comment box does. The preview renders when its tab is shown
+                      (and on every edit while it is), so a page with an editable that nobody previews never loads the
+                      230 kB <code>MDEngine</code> chunk.
+                    </li>
+                    <li>
+                      <code>MDEngine</code> is its own lazy chunk (<code>MarkdownRenderer.loadMD()</code>), beside
+                      marked's; it defines the families MD draws with (<code>ui-list</code>, <code>ui-parts</code>,
+                      <code>ui-table</code>, <code>ui-checkbox</code>, <code>ui-segment</code>,
+                      <code>ui-divider</code>).
+                    </li>
+                    <li>
+                      Sanitizing: DOMPurify, as marked's output, but <code>ui-*</code> tags are kept with every
+                      attribute except <code>on*</code> handlers.
+                    </li>
+                    <li>
+                      The preview's <code>&lt;article&gt;</code> now sits in a <code>&lt;section&gt;</code> (the
+                      <code>tabpanel</code>: axe refuses that role on an article), for plain
+                      <code>&lt;ui-markdown&gt;</code> too; it has no name, so no landmark.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j12">J12</a>
+                  <span class="plan-title"
+                    >P8: a bullet list of task items only draws no bullets (MD's ui output)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Seen in the preview: <code>ui-list bulleted</code> drew a bullet AND a checkbox on each task item.
+                    GitHub drops the bullet, so
+                    <a
+                      href="../../../markdown/src/render/renderBlocks.ts"
+                      target="src-packages-markdown-src-render-renderblocks-ts"
+                      ><code>renderBlocks.ts</code></a
+                    >
+                    now writes a plain <code>&lt;ui-list&gt;</code> when every item of a bullet list is a task. A list
+                    mixing tasks and plain items keeps its bullets.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1993,11 +2090,11 @@
                 >ui bundle may come out too big (the P barrel loads AST.ts, scopes ...): P7 may keep marked for plain
                 &lt;ui-markdown&gt;</span
               ></ui-item
-            ><ui-item id="c4" data-status="open"
+            ><ui-item id="c4" data-status="done"
               ><a class="plan-id" href="#c4">C4</a>
               <span class="plan-title"
                 >Reference-link definitions are document-global: incremental re-parse needs a post-pass (P8)</span
-              ></ui-item
+              > </ui-item
             ><ui-item id="c5" data-status="open"
               ><a class="plan-id" href="#c5">C5</a>
               <span class="plan-title"
@@ -2021,7 +2118,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c7" data-status="open"
+            ><ui-item id="c7" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c7">C7</a>
@@ -2073,8 +2170,49 @@
               ><a class="plan-id" href="#t4">T4</a>
               <span class="plan-title"
                 >After merging: yarn vscode from main, to get markdown colouring in spell docstrings</span
-              >
-            </ui-item></ui-list
+              > </ui-item
+            ><ui-item id="t5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t5">T5</a>
+                  <span class="plan-title"
+                    >Docs' classic bundle: hook MarkdownRenderer.mdLoader, so &lt;ui-markdown editable&gt; works on docs
+                    pages</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../scripts/bundle-spell-ui.js" target="src-packages-docs-scripts-bundle-spell-ui-js"
+                      ><code>packages/docs/scripts/bundle-spell-ui.js</code></a
+                    >
+                    replaces <code>MarkdownRenderer.engineLoader</code> with a classic-script loader;
+                    <code>mdLoader</code> (P8) isn't replaced, so an editable <code>&lt;ui-markdown&gt;</code> on a docs
+                    page can't load its engine. Nothing uses one there yet.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t6">T6</a>
+                  <span class="plan-title"
+                    >Run yarn test:visual for ui-markdown (Docker wasn't running overnight)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    P8 changed
+                    <a
+                      href="../../../ui/src/components/ui-markdown/ui-markdown.css"
+                      target="src-packages-ui-src-components-ui-markdown-ui-markdown-css"
+                      ><code>ui-markdown.css</code></a
+                    >
+                    (table rules scoped off <code>&lt;ui-table&gt;</code>, spacing for <code>ui-*</code> blocks, the
+                    tabs) and wrapped the article in a <code>&lt;section&gt;</code>. The existing examples should look
+                    the same, but the visual baselines weren't checked:
+                    <code>yarn test:visual --grep markdown</code> needs Docker.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
           >
         </ui-section>
 
@@ -2289,7 +2427,7 @@
             What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
           </p>
           <ui-list class="plan-items" data-kind="test" divided relaxed
-            ><ui-item id="v1" data-status="open"
+            ><ui-item id="v1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v1">V1</a>
@@ -2761,6 +2899,51 @@
                   ><ui-date><time datetime="2026-10-04T03:32-04:00">2026-10-04 03:32</time></ui-date> P7 done: yarn
                   gen:markdown writes ui's md.bundle.js; 88.2 kB gz vs marked 25 kB, so plain &lt;ui-markdown&gt; keeps
                   marked (I6)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:32-04:00">2026-10-04 03:32</time></ui-date> P8
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:44-04:00">2026-10-04 03:44</time></ui-date> C7 closed: ui-*
+                  inside &lt;ui-markdown&gt;'s shadow root: ui-table's page-level styles don't reach it; ui-markdown.css
+                  styles plain tags only</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:44-04:00">2026-10-04 03:44</time></ui-date> V1 closed: Look at
+                  MD's ui-* output on a real page (P8's editable preview)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:44-04:00">2026-10-04 03:44</time></ui-date> C4 closed:
+                  Reference-link definitions are document-global: incremental re-parse needs a post-pass
+                  (P8)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:44-04:00">2026-10-04 03:44</time></ui-date> P8
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:44-04:00">2026-10-04 03:44</time></ui-date> P8 done:
+                  &lt;ui-markdown editable&gt; (Write / Preview, MDEngine lazy chunk, block patching); J10-J12, T5
+                  T6</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

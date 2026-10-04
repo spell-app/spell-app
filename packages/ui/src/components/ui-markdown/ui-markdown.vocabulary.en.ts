@@ -11,7 +11,7 @@ import * as UIT from "$/ui/components/components.types"
 /****************
  * ### `<ui-markdown>`
  * GitHub-flavoured markdown, rendered:  the element's own text or a `source` file, sanitized, its code blocks as
- * `<ui-code>`.
+ * `<ui-code>`;  `editable` adds Write / Preview tabs.
  ****************/
 export const markdownVocabulary = {
   tag: "ui-markdown",
@@ -39,6 +39,13 @@ export const markdownVocabulary = {
         "`headingLevelOffset`:  `headingOffset` is WebKit's native `headingoffset`."
     },
     {
+      name: "editable",
+      kind: "boolean",
+      description:
+        "Write / Preview tabs:  a text box for the markdown, and its preview, drawn with `ui-*` elements by spell's " +
+        "markdown engine (`@spell-app/markdown`, its own lazy chunk).  Each edit is a `ui-change`;  `save()` writes it."
+    },
+    {
       name: "trusted",
       kind: "boolean",
       description:
@@ -55,7 +62,18 @@ export const markdownVocabulary = {
     }
   ],
   slots: [],
-  parts: [...UIT.SOURCE_PARTS, { name: "body", description: "The `<article>` holding the rendered markdown." }],
+  parts: [
+    ...UIT.SOURCE_PARTS,
+    { name: "body", description: "The `<article>` holding the rendered markdown." },
+    { name: "tabs", description: "`editable`:  the Write / Preview tab list." },
+    { name: "tab", description: "`editable`:  each tab button." },
+    { name: "editor", description: "`editable`:  the `<textarea>` holding the markdown." }
+  ],
   states: [...UIT.SOURCE_STATES],
-  texts: [...UIT.SOURCE_TEXTS]
+  texts: [
+    ...UIT.SOURCE_TEXTS,
+    { key: "write", text: "Write", description: "`editable`:  the editing tab." },
+    { key: "preview", text: "Preview", description: "`editable`:  the preview tab." },
+    { key: "editor", text: "Markdown", description: "`editable`:  accessible name of the text box." }
+  ]
 } as const satisfies ComponentVocabulary

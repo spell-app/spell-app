@@ -35,6 +35,27 @@ export type MarkdownResult = {
   headings: MarkdownHeading[]
 }
 
+/** What renders markdown:  marked (`MarkdownEngine`) or spell's (`MDEngine`, `editable`). */
+export type MarkdownRendering = {
+  render(text: string, options: MarkdownOptions): MarkdownResult
+}
+
+/** `editable`'s tabs. */
+export type MarkdownTab = "write" | "preview"
+
+/** `editable`'s tabs, in order. */
+export const MARKDOWN_TABS: readonly MarkdownTab[] = ["write", "preview"]
+
+/** `<ui-table>`'s sheet (`UI.styles` name):  a page sheet, so `editable` adopts it into its shadow root too. */
+export const TABLE_SHEET = "table"
+
+/** `editable`'s tab roles and keys. */
+export const TAB_ROLES = { list: "tablist", tab: "tab", panel: "tabpanel" } as const
+export const TAB_KEYS = { previous: "ArrowLeft", next: "ArrowRight", first: "Home", last: "End" } as const
+
+/** Task-list checkboxes:  marked's (`<input>`) and spell's engine's (`<ui-checkbox>`). */
+export const TASK_BOXES = "li > input[type=checkbox], ui-item > ui-checkbox"
+
 /** Tag a fenced code block becomes. */
 export const CODE_TAG = "ui-code"
 

@@ -1,9 +1,12 @@
 import type { MarkdownEngine } from "./MarkdownEngine"
+import type { MDEngine } from "./MDEngine"
 
 /****************
  * ### `MarkdownRenderer`
- * What `<ui-markdown>` asks to render:  loads the engine (marked + DOMPurify, the lazy chunk) on first use.
- * - The seam for another engine later:  the element only knows `render(text, options) -> { fragment, headings }`.
+ * What `<ui-markdown>` asks to render:  loads an engine on first use, each in its own lazy chunk.
+ * - `load()`:  marked + DOMPurify (`MarkdownEngine`), for plain `<ui-markdown>`.
+ * - `loadMD()`:  spell's engine (`MDEngine`, on `@spell-app/markdown`'s bundle), for `<ui-markdown editable>`.
+ * - The element only knows `render(text, options) -> { fragment, headings }` (`MarkdownRendering`).
  ****************/
 export class MarkdownRenderer {
   /**
@@ -13,13 +16,25 @@ export class MarkdownRenderer {
   static engineLoader: () => Promise<{ MarkdownEngine: { instance: MarkdownEngine } }> = () =>
     import("./MarkdownEngine")
 
-  /** The engine's import, started once. */
+  /**
+   * Imports `MDEngine`;  replaceable as `engineLoader`.
+   * - NOTE:  the docs' classic script doesn't replace it yet:  an editable `<ui-markdown>` there can't load it.
+   */
+  static mdLoader: () => Promise<{ MDEngine: { instance: MDEngine } }> = () => import("./MDEngine")
+
+  /** The engines' imports, each started once. */
   private static engine?: Promise<MarkdownEngine>
+  private static md?: Promise<MDEngine>
 
   /** marked + DOMPurify, loaded on first use. */
   static load(): Promise<MarkdownEngine> {
     return (MarkdownRenderer.engine ??= MarkdownRenderer.engineLoader().then(
       (module) => module.MarkdownEngine.instance
     ))
+  }
+
+  /** Spell's engine, loaded on first use. */
+  static loadMD(): Promise<MDEngine> {
+    return (MarkdownRenderer.md ??= MarkdownRenderer.mdLoader().then((module) => module.MDEngine.instance))
   }
 }
