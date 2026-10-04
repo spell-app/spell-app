@@ -297,7 +297,8 @@ While a phase is active, flag what changed so the user can spot it:
 ## Review inbox
 
 Owen marks items ON the page (served by the page server):  approve, todo, Add Details, revisit (soon / now, with a
-note), pick an option card.  The marks wait in `<name>.inbox.json` beside the doc (git-ignored) until "send to
+note), pick an option card.  A question may carry a pick AND a revisit note together ("pick B, but ..."):  the
+revisit mark holds the `pick`.  The marks wait in `<name>.inbox.json` beside the doc (git-ignored) until "send to
 Claude";  Add Details and revisit now go at once (the inbox's `now` queue).  Read it with `yarn plan-doc inbox
 <name>`;  shape, routes and helpers:  `packages/docs/AGENTS.md`, "Review inbox".  NEVER edit the file by hand:  go
 through `scripts/inbox.js` (its lock).
@@ -306,6 +307,8 @@ How a `/epic review` session takes the marks (nothing outside a session can wake
 it started ending):
 
 1. `yarn plan-doc inbox <name> listen`:  the page stops saying nobody is reviewing.
+   - a HEARTBEAT keeps it so:  `wait` stamps `listening.seen` every 30s, and `apply`, `done`, `clear`, `working`
+     each time;  silent for 90s (a killed session, no `unlisten`), the page says nobody is reviewing again
 2. `yarn plan-doc inbox <name> wait` in the BACKGROUND, then end the turn.  It exits when there's work, which wakes
    the session;  it prints, for each item, its id, kind, status and title, the mark, the note, and a pick's option
    card:
@@ -320,12 +323,16 @@ it started ending):
      pick (1):
        - Q7  question, open · Should a reload land on the remembered section without unfolding it?
            picks B · Land and unfold it
+     revisit, to talk over (1):
+       - Q3  question, open · Where should the send button sit?
+           picks A · In the page header, asks:  "A, but only on plan docs?"
      ...
    next:  `yarn plan-doc inbox review-review apply` (approve, pick, todo)
    ```
 
    - `now`:  Add Details and revisit now, TAKEN off the queue, each item marked `working` (its spinner);  the mark
-     stays until `done`
+     stays until `done`, unless Owen changed it meanwhile to one waiting for a send (e.g. chose a card:  a revisit
+     `soon` with the pick):  that one stays for the next send
    - `sent`:  every mark the last "send to Claude" covered, once per send (`handedOver` in the inbox);  a mark an
      earlier send already handed over (a revisit still being talked over) says "(sent before)"
    - timeout (3300s):  exit 2, nothing taken;  run it again
@@ -340,6 +347,7 @@ it started ending):
    | pick | a question | answered with that card's title, the card chosen, reviewed |
    | todo | any item | a new todo "Follow up:  <title>" linking back, the item reviewed |
    | revisit soon | any item | left:  talk it over in the chat, then `inbox <name> clear <id>` |
+   | revisit with a pick | a question | left, NOT answered ("to talk over:  picks B · ..., asks:  ..."):  answer the note about that option;  once Owen agrees, `decide <name> <id> "<card title>" --option B`, then `clear` |
 
    Each applied mark logs one line (`J9 approved:  closed (accepted)`);  a mark Owen changed meanwhile stays.
 4. Requests for now:  a background agent per item writes into it with `yarn plan-doc details <name> <id> --file

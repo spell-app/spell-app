@@ -6,12 +6,14 @@
  *   (`inbox.js`), until a Claude session takes them (P6 of `review-review`, `yarn plan-doc inbox`)
  * - `page`:  the plan doc's URL path, as it was served:  `/packages/docs/epics/x/x.plan.html`, or a worktree's
  *   `/worktrees/<w>/packages/docs/...` on the main checkout's server.  ONLY a plan doc:  anything else is a 403
- * - every answer is the whole inbox, as `inbox.js` keeps it (an empty one when there's no file)
+ * - every answer is the whole inbox, as `inbox.js` keeps it (an empty one when there's no file), except a
+ *   `listening` whose heartbeat stopped:  `null` (`inbox.js` `forPage()`), so the page warns nobody is reviewing
  * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
  * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark (`{ action, when?, note?, pick? }`, `at`
- *   stamped here), or remove it (`mark: null`);  `id` must be an item of that doc (400 otherwise)
- * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request (`details`, or `revisit`):  queued on
- *   `now`, and the item's mark set
+ *   stamped here;  a revisit may carry a `pick` letter too), or remove it (`mark: null`);  `id` must be an item of
+ *   that doc (400 otherwise)
+ * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request (`details`, or `revisit`, which
+ *   keeps the item's pick):  queued on `now`, and the item's mark set
  * - `POST /api/review/send` `{ page }` -- "send to Claude":  `sent` is now
  * - writes:  under the inbox's lock, atomic (`inbox.js` `updateInboxAsync()`);  each needs the page server's token
  *   (`x-server-token`) and its own origin (`SRV.Guard`)
@@ -23,6 +25,7 @@ import type { RouteModule } from "$/server/page"
 
 import {
   InboxError,
+  forPage,
   inboxPath,
   itemIds,
   markSent,
@@ -48,7 +51,7 @@ const reviewRoutes: RouteModule = {
     const api = new SRV.Router()
     api.get("/inbox", (request, reply) => {
       const inbox = readInbox(inboxPath(planDoc(web.files, request.query.page)))
-      reply.set("Cache-Control", "no-store").json(inbox)
+      reply.set("Cache-Control", "no-store").json(forPage(inbox))
     })
     api.use(guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }))
     api.post("/mark", async (request, reply) => {
@@ -99,11 +102,12 @@ function itemOf(file: string, id: unknown): string {
 }
 
 /**
- * Change plan doc `file`'s inbox with `change`, under its lock;  the inbox after.
+ * Change plan doc `file`'s inbox with `change`, under its lock;  the inbox after, as the page reads it
+ * (`forPage()`).
  * - an `InboxError` (a bad mark, a bad action) is a 400
  */
-function update(file: string, change: (inbox: Inbox) => unknown): Promise<Inbox> {
-  return updateInboxAsync(inboxPath(file), (inbox: Inbox) => asHttp(() => change(inbox)))
+async function update(file: string, change: (inbox: Inbox) => unknown): Promise<Inbox> {
+  return forPage(await updateInboxAsync(inboxPath(file), (inbox: Inbox) => asHttp(() => change(inbox))))
 }
 
 /** Run `fn`;  an `InboxError` it throws becomes a 400. */

@@ -125,6 +125,37 @@ test("now:  queued and marked;  revisit carries its note", async () => {
   expect((await post("now", { page: PLAN_URL, id: "j3", action: "approve" })).status).toBe(400)
 })
 
+test("a pick and a revisit together:  the mark carries both;  revisit now keeps the pick;  a bad letter is a 400", async () => {
+  await post("mark", { page: PLAN_URL, id: "q8", mark: { action: "pick", pick: "B" } })
+  const both = await post("mark", {
+    page: PLAN_URL,
+    id: "q8",
+    mark: { action: "revisit", when: "soon", note: "only plan docs?", pick: "B" }
+  })
+  expect(both.status).toBe(200)
+  expect(both.body.marks.q8).toMatchObject({ action: "revisit", when: "soon", note: "only plan docs?", pick: "B" })
+  const now = await post("now", { page: PLAN_URL, id: "q8", action: "revisit", note: "now?" })
+  expect(now.body.marks.q8).toMatchObject({ action: "revisit", when: "now", note: "now?", pick: "B" })
+  expect(now.body.now).toMatchObject([{ id: "q8", action: "revisit", note: "now?", pick: "B" }])
+  const bad = { action: "revisit", note: "x", pick: "b" }
+  expect((await post("mark", { page: PLAN_URL, id: "q8", mark: bad })).status).toBe(400)
+  expect(written(PAGES.plan).marks.q8.note).toBe("now?")
+})
+
+test("a stale listening answers null;  a live one as written;  the file keeps it", async () => {
+  const old = new Date(Date.now() - 5 * 60_000).toISOString()
+  const listening = { session: "gone", since: old, seen: old }
+  writeFileSync(inboxFile(PAGES.plan), JSON.stringify({ ...emptyInbox(), listening }))
+  const stale = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
+  expect(JSON.parse(stale.text).listening).toBeNull()
+  expect((await post("send", { page: PLAN_URL })).body.listening).toBeNull()
+  expect(written(PAGES.plan).listening).toEqual(listening)
+  const fresh = { ...listening, seen: new Date().toISOString() }
+  writeFileSync(inboxFile(PAGES.plan), JSON.stringify({ ...emptyInbox(), listening: fresh }))
+  const live = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
+  expect(JSON.parse(live.text).listening).toEqual(fresh)
+})
+
 test("send:  dates the marks so far", async () => {
   await post("mark", { page: PLAN_URL, id: "j3", mark: { action: "approve" } })
   const sent = await post("send", { page: PLAN_URL })

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T16:10:37-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
+  <body data-recent-since="2026-10-04T16:32:35-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -1025,8 +1025,7 @@
                 ><b>Verify:</b> A dry run on a real doc: approve, todo, pick, revisit soon and now; the doc ends up
                 right</ui-item
               ><ui-item icon="list check" class="plan-to-review"
-                ><b>To review:</b> <a href="#j33">J33</a>, <a href="#j34">J34</a>, <a href="#j35">J35</a>,
-                <a href="#i3">I3</a>, <a href="#i4">I4</a></ui-item
+                ><b>To review:</b> <a href="#j33">J33</a>, <a href="#j34">J34</a>, <a href="#j35">J35</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -3214,6 +3213,96 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item data-state="attention" data-changed="2026-10-04T19:30:17-04:00" id="j36" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j36">J36</a>
+                  <span class="plan-title"
+                    >Choosing a card on a "revisit now" item makes it a revisit soon, kept by done</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    A pick waits for the send, so choosing a card on an item already asked "revisit now" turns its mark
+                    into a revisit <b>soon</b> with the note and the new pick; <code>inbox done</code> then keeps it.
+                  </p>
+                  <ul>
+                    <li>
+                      Why: an immediate mark counts as sent the moment it is made, so a pick added to it would never
+                      reach Claude.
+                    </li>
+                    <li>
+                      <code>inbox done</code> used to drop whatever mark the item had; it now drops only immediate marks
+                      (<code>finishMarks()</code>), so a mark you changed while the agent worked stays for the next
+                      send. <code>clear</code> still drops anything.
+                    </li>
+                    <li>
+                      Unchanged: Approve, Add to todo or Add Details on a picked question replaces the pick (one mark
+                      per item, the latest wins).
+                    </li>
+                    <li>
+                      Example: you ask "revisit now" on Q7 ("why not reuse it?"); while the agent answers, you choose B.
+                      Q7 turns filled orange with a B, the send button turns blue; the agent finishes,
+                      <code>done Q7</code> prints "changed since, kept for the next send: Q7"; your next send hands over
+                      "picks B, asks: why not reuse it?".
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a pick made during a "revisit now" is never lost</li>
+                    <li>
+                      the alternative, keeping it "now": the pick would ride on a request Claude may already have taken
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="attention" data-changed="2026-10-04T19:30:27-04:00" id="j37" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j37">J37</a>
+                  <span class="plan-title"
+                    >The server judges a stale listener; every session command is a heartbeat</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Whether a listening session is gone is decided in one place,
+                    <a href="../../scripts/inbox.js" target="src-packages-docs-scripts-inbox-js"
+                      ><code>inbox.js</code></a
+                    >: the routes answer <code>listening: null</code> once its heartbeat is over 90 seconds old, so the
+                    page needs no clock rule of its own.
+                  </p>
+                  <ul>
+                    <li>
+                      The two times are named once each: <code>LISTEN_HEARTBEAT_MS</code> (30s) and
+                      <code>LISTEN_STALE_MS</code> (90s), in
+                      <a href="../../scripts/inbox.js" target="src-packages-docs-scripts-inbox-js"
+                        ><code>scripts/inbox.js</code></a
+                      >; the stale <code>listening</code> stays in the file until the next <code>listen</code> or
+                      <code>unlisten</code>.
+                    </li>
+                    <li>
+                      Beyond the ask: besides <code>wait</code> (every 30s) and <code>listen</code>, the session's
+                      <code>inbox apply</code>, <code>done</code>, <code>clear</code> and <code>working</code> also
+                      stamp the heartbeat, so a session busy between waits still counts.
+                    </li>
+                    <li>
+                      Still a gap: a session talking a revisit over with you for more than 90s, running none of those,
+                      shows "nobody is reviewing" until it runs <code>wait</code> again. Marks you make then do wait for
+                      that <code>wait</code>, so the warning is roughly true.
+                    </li>
+                    <li>
+                      Example: you close the review tab mid-wait. 90s later the send button's tooltip says "No Claude
+                      session is reviewing this doc", "revisit now" shows the notice, and
+                      <code>yarn plan-doc inbox review-review</code> prints "listening: nobody (session ... last seen
+                      ..., over 90s ago: gone without unlisten)".
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>after a crash the warning comes back within 90 seconds, with no page change needed</li>
+                    <li>a long chat with no inbox command can show the warning while the session is still there</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -3559,14 +3648,16 @@
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="attention"
-              data-changed="2026-10-04T17:36:42-04:00"
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T19:30:04-04:00"
               id="i3"
-              data-status="open"
+              data-status="done"
               data-phase="6"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i3">I3</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >An item holds one mark: you can't pick an option AND ask about it</span
                   > </ui-title
@@ -3600,14 +3691,16 @@
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="attention"
-              data-changed="2026-10-04T17:36:44-04:00"
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T19:30:07-04:00"
               id="i4"
-              data-status="open"
+              data-status="done"
               data-phase="6"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i4">I4</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >A session that ends without unlisten leaves the page saying someone is reviewing</span
                   > </ui-title
@@ -3631,6 +3724,46 @@
                   <p><b>Net effect (once fixed):</b></p>
                   <ul>
                     <li>the "nobody is reviewing" warning is right even after a crash</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="attention" data-changed="2026-10-04T19:31:11-04:00" id="i5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i5">I5</a>
+                  <span class="plan-title"
+                    >After a commit, the next edit to a plan doc reloads the page instead of updating it</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Each plan-doc edit rewrites <code>&lt;body data-recent-since&gt;</code> (the commit time green items
+                    count from). After a commit that value changes, and the in-place update falls back to a full reload
+                    whenever anything outside <code>main</code> changed.
+                  </p>
+                  <ul>
+                    <li>
+                      Example: you're reading the doc in the side bar; Claude commits a phase, then logs a line: the
+                      page reloads once (a short flash, your scroll kept) instead of patching quietly.
+                    </li>
+                    <li>
+                      Also breaks
+                      <a href="../../scripts/check-review.js" target="src-packages-docs-scripts-check-review-js"
+                        ><code>check-review.js</code></a
+                      >
+                      /
+                      <a href="../../scripts/check-live.js" target="src-packages-docs-scripts-check-live-js"
+                        ><code>check-live.js</code></a
+                      >
+                      on a doc whose stamp is behind (PAPERCUTS).
+                    </li>
+                    <li>
+                      Fix: let the in-place update copy changed <code>&lt;body&gt;</code> attributes instead of
+                      reloading.
+                    </li>
+                  </ul>
+                  <p><b>Net effect (once fixed):</b></p>
+                  <ul>
+                    <li>no reload after a commit; the checks pass on any doc</li>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
@@ -4565,6 +4698,37 @@
                   review rewritten for the on-page review; inbox listen / wait / apply / working / done / clear,
                   plan-doc details; checks: docs scripts 148, check-spell, check-review, check-live, commands:check
                   ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:30-04:00">2026-10-04 19:30</time></ui-date> I3 closed: An item
+                  holds one mark: you can't pick an option AND ask about it</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:30-04:00">2026-10-04 19:30</time></ui-date> I3 reviewed:
+                  fixed: a question's revisit mark carries the pick too ("pick B, but ..."): kept both ways on the page,
+                  shown as the letter in orange, never applied, printed by wait as "picks B · &lt;card&gt;, asks:
+                  &lt;note&gt;" under to talk over</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:30-04:00">2026-10-04 19:30</time></ui-date> I4 closed: A
+                  session that ends without unlisten leaves the page saying someone is reviewing</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:30-04:00">2026-10-04 19:30</time></ui-date> I4 reviewed:
+                  fixed: wait stamps listening.seen every 30s (the session's other inbox commands too); silent 90s, the
+                  routes answer listening null, so the page and inbox summary say nobody is reviewing</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -29,11 +29,15 @@ import { SRV } from "$/server"
 import {
   ACTIONS,
   InboxError,
+  LISTEN_HEARTBEAT_MS,
+  LISTEN_STALE_MS,
   clearApplied,
   clearMarks,
+  finishMarks,
   hasWork,
   inboxPath,
   isImmediate,
+  liveListener,
   markList,
   readInbox,
   sentMarks,
@@ -41,6 +45,7 @@ import {
   setWorking,
   takeWork,
   toItemId,
+  touchListening,
   unsentMarks,
   updateInbox
 } from "./inbox.js"
@@ -1043,6 +1048,8 @@ ${list}`
    * - `todo`:  a new todo, "Follow up:  <title>", linking back;  the item reviewed
    * - `revisit` soon:  left, for Claude to talk over in the chat;  `details`, revisit `now`:  left, an agent's
    *   (`plan-doc inbox done`)
+   *   - a revisit carrying a `pick` ("pick B, but ..."):  left too, NOT answered:  the note may change the pick
+   *     (`picks B · <card title>, asks:  "<note>"`)
    * - an applied mark adds ONE log line (`J9 approved:  closed (accepted)`);  the methods it calls stamp the item
    */
   applyMark(mark) {
@@ -1088,9 +1095,13 @@ ${list}`
         this.review(item.id)
         return { applied: true, did: `to todo ${todo.toUpperCase()}` }
       }
-      case "revisit":
+      case "revisit": {
         if (when === "now") return { applied: false, left: "revisit now:  an agent's (`inbox done` once answered)" }
-        return { applied: false, left: `to talk over${note ? `:  "${note}"` : ""}` }
+        if (!pick) return { applied: false, left: `to talk over${note ? `:  "${note}"` : ""}` }
+        // "pick B, but ...":  never applied, the remark may change the pick
+        const option = this.optionCards(item).find((card) => card.letter === pick)
+        return { applied: false, left: `to talk over:  ${pickAsks(pick, option, note)}` }
+      }
       case "details":
         return { applied: false, left: "Add Details:  an agent's (`inbox done` once written)" }
       default:
@@ -2601,11 +2612,14 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
                                                    $CLAUDE_CODE_SESSION_ID) / stopped:  the page says which
   inbox <name> wait [--timeout <s>] [--json]       block (default 3300s) until there's work, print it, exit 0:
                                                    requests for now (taken;  their items marked working) and a
-                                                   send not yet handed over (its marks by action);  timeout:  exit 2
+                                                   send not yet handed over (its marks by action);  timeout:  exit 2;
+                                                   stamps the session's heartbeat every ${LISTEN_HEARTBEAT_MS / 1000}s (silent ${LISTEN_STALE_MS / 1000}s:  gone)
   inbox <name> apply [ids...]                      apply the sent approve / pick / todo marks to the doc, clear
-                                                   them;  prints each, and what it left (revisits:  to talk over)
+                                                   them;  prints each, and what it left (revisits, a pick with a
+                                                   revisit:  to talk over)
   inbox <name> working <id> on|off                 the page's spinner on an item
-  inbox <name> done <id>...                        an agent finished an item:  its mark and spinner go
+  inbox <name> done <id>...                        an agent finished an item:  its mark and spinner go (a mark
+                                                   Owen changed meanwhile stays)
   inbox <name> clear <id>...                       drop marks (a revisit talked over)
   details <name> <id> --file <html> [--append]     replace an item's details with the file's HTML, or (--append)
                                                    add it, e.g. a reply:  between the answer card and commits
@@ -3204,14 +3218,18 @@ function printInbox(plan, file, json) {
     marks,
     now: inbox.now,
     working: inbox.working,
-    listening: inbox.listening
+    // `live:  false`:  its heartbeat stopped (`liveListener()`):  the session is gone, the page says nobody
+    listening: inbox.listening && { ...inbox.listening, live: !!liveListener(inbox) }
   }
   if (json) return console.log(JSON.stringify(report, null, 2))
   const lines = [`inbox:  ${relative(DOCS, path)}${existsSync(path) ? "" : "  (none:  no marks)"}`]
+  const { listening } = inbox
   lines.push(
-    inbox.listening
-      ? `listening:  session ${inbox.listening.session}, since ${inbox.listening.since}`
-      : "listening:  nobody (no Claude session is reviewing this doc)"
+    !listening
+      ? "listening:  nobody (no Claude session is reviewing this doc)"
+      : liveListener(inbox)
+        ? `listening:  session ${listening.session}, since ${listening.since}`
+        : `listening:  nobody (session ${listening.session} last seen ${listening.seen ?? listening.since}, over ${LISTEN_STALE_MS / 1000}s ago:  gone without \`unlisten\`)`
   )
   lines.push(`sent:  ${inbox.sent ?? "never"};  ${unsent.size} unsent`)
   for (const action of ACTIONS) {
@@ -3243,6 +3261,8 @@ function printInbox(plan, file, json) {
 /**
  * `inbox <name> [<what> ...]`:  the review inbox of epic `name`'s doc at `file`;  `what` none prints it.
  * - every write goes through `updateInbox()` (the inbox's lock);  doc edits through `edit()` (the doc's)
+ * - the session's commands (`wait`, `apply`, `working`, `done`, `clear`) stamp its heartbeat (`touchListening()`):
+ *   a session busy between `wait`s still counts as listening
  */
 function inbox(name, file, [what, ...args], flags) {
   const path = inboxPath(file)
@@ -3266,23 +3286,32 @@ function inbox(name, file, [what, ...args], flags) {
       const id = toItemId(need(args[0], "an item id"))
       const on = need(args[1], "on | off")
       if (!["on", "off"].includes(on)) throw new PlanDocError(`working ${id} on | off, not '${on}'`)
-      updateInbox(path, (box) => setWorking(box, id, on === "on" ? workOf(box.marks[id]) : null))
+      updateInbox(path, (box) => {
+        setWorking(box, id, on === "on" ? workOf(box.marks[id]) : null)
+        touchListening(box)
+      })
       return console.log(`${id.toUpperCase()} working:  ${on}`)
     }
     case "done":
     case "clear": {
       if (!args.length) throw new PlanDocError(`${what} which items?  ids`)
       const ids = args.map(toItemId)
+      // `done` keeps a mark Owen changed while the agent worked (`finishMarks()`);  `clear` drops it
       let had = []
+      let kept = []
       updateInbox(path, (box) => {
-        had = clearMarks(box, ids)
+        if (what === "done") ({ had, kept } = finishMarks(box, ids))
+        else had = clearMarks(box, ids)
         for (const id of ids) setWorking(box, id, null)
+        touchListening(box)
       })
-      const none = ids.filter((id) => !had.includes(id))
+      const none = ids.filter((id) => !had.includes(id) && !kept.includes(id))
       const label = what === "done" ? "done" : "cleared"
-      return console.log(
-        `${label}:  ${ids.map((id) => id.toUpperCase()).join(", ")}${none.length ? `  (no mark:  ${none.map((id) => id.toUpperCase()).join(", ")})` : ""}`
-      )
+      const notes = [
+        none.length ? `no mark:  ${upper(none)}` : "",
+        kept.length ? `changed since, kept for the next send:  ${upper(kept)}` : ""
+      ].filter(Boolean)
+      return console.log(`${label}:  ${upper(ids)}${notes.length ? `  (${notes.join(";  ")})` : ""}`)
     }
     default:
       throw new PlanDocError(`inbox what?  listen | unlisten | wait | apply | working | done | clear (not '${what}')`)
@@ -3292,6 +3321,11 @@ function inbox(name, file, [what, ...args], flags) {
   function workOf(mark) {
     return mark?.action === "revisit" ? "revisit" : "details"
   }
+
+  /** `["q7", "i2"]` -> `Q7, I2` */
+  function upper(ids) {
+    return ids.map((id) => id.toUpperCase()).join(", ")
+  }
 }
 
 /**
@@ -3299,17 +3333,24 @@ function inbox(name, file, [what, ...args], flags) {
  * (`takeWork()`) and print it (`printWork()`);  none by `timeout` seconds (default 3300, 55 minutes):  exit code 2.
  * - how a `/epic review` session hears the page:  run in the background, its EXIT wakes the session
  * - the poll reads without the lock (atomic writes:  never half a file);  only taking locks
+ * - the session's HEARTBEAT:  stamps `listening.seen` at the start and every `LISTEN_HEARTBEAT_MS`
+ *   (`touchListening()`, one locked write), so a session killed mid-wait goes stale on the page (`liveListener()`)
  */
 async function waitForWork(name, file, { timeout = 3300, json }) {
   const path = inboxPath(file)
   const seconds = Number(timeout)
   if (!(seconds > 0)) throw new PlanDocError(`--timeout in seconds, not '${timeout}'`)
   const end = Date.now() + seconds * 1000
+  let beat = 0
   for (;;) {
     let work = null
     if (hasWork(peek(path))) updateInbox(path, (box) => (work = takeWork(box)))
     if (work) return printWork(name, read(file), work, json)
     if (Date.now() >= end) break
+    if (Date.now() - beat >= LISTEN_HEARTBEAT_MS) {
+      beat = Date.now()
+      heartbeat()
+    }
     await sleep(1000)
   }
   if (json) console.log(JSON.stringify({ timeout: seconds, now: [], sent: null }))
@@ -3323,6 +3364,19 @@ async function waitForWork(name, file, { timeout = 3300, json }) {
     } catch (error) {
       if (error instanceof InboxError) return { now: [], sent: null }
       throw error
+    }
+  }
+
+  /**
+   * Stamp the listening session's heartbeat;  nobody listening:  no write at all.  A file that can't be read
+   * (hand-edited mid-poll) is skipped:  the next beat tries again.
+   */
+  function heartbeat() {
+    if (!peek(path).listening) return
+    try {
+      updateInbox(path, (box) => touchListening(box))
+    } catch (error) {
+      if (!(error instanceof InboxError)) throw error
     }
   }
 }
@@ -3344,9 +3398,9 @@ function printWork(name, plan, work, json) {
     )
     for (const each of now) {
       lines.push(`  - ${line(each)}`)
-      lines.push(
-        `      ${each.action === "details" ? "Add Details" : `revisit now${each.note ? `:  "${each.note}"` : ""}`}`
-      )
+      if (each.action === "details") lines.push("      Add Details")
+      else if (each.pick) lines.push(`      revisit now:  ${pickAsks(each.pick, each.option, each.note)}`)
+      else lines.push(`      revisit now${each.note ? `:  "${each.note}"` : ""}`)
     }
   }
   if (sent) {
@@ -3354,12 +3408,16 @@ function printWork(name, plan, work, json) {
     for (const action of ACTIONS) {
       const marks = sent.marks.filter((mark) => mark.action === action)
       if (!marks.length) continue
-      lines.push(`  ${action} (${marks.length}):`)
+      lines.push(`  ${action === "revisit" ? "revisit, to talk over" : action} (${marks.length}):`)
       for (const mark of marks) {
         lines.push(`    - ${line(mark)}${mark.again ? "  (sent before)" : ""}`)
-        if (mark.option) lines.push(`        picks ${mark.pick} · ${mark.option.title}`)
-        else if (mark.pick) lines.push(`        picks ${mark.pick} (no such option card)`)
-        if (mark.note) lines.push(`        note:  "${mark.note}"`)
+        // a revisit with a pick:  "pick B, but ...", one line
+        if (mark.action === "revisit" && mark.pick) lines.push(`        ${pickAsks(mark.pick, mark.option, mark.note)}`)
+        else {
+          if (mark.option) lines.push(`        picks ${mark.pick} · ${mark.option.title}`)
+          else if (mark.pick) lines.push(`        picks ${mark.pick} (no such option card)`)
+          if (mark.note) lines.push(`        note:  "${mark.note}"`)
+        }
       }
     }
     const talk = sent.marks.filter((mark) => mark.action === "revisit")
@@ -3388,6 +3446,16 @@ function printWork(name, plan, work, json) {
 }
 
 /**
+ * "Pick B, but ...":  a revisit's pick and note as one phrase, `picks B · <card title>, asks:  "<note>"`.
+ * - `option`:  the card (`PlanDoc.optionCards()`'s);  none with that letter:  "(no such option card)"
+ * - `printWork()` (under "revisit, to talk over") and `PlanDoc.applyMark()` (what it left) say it the same way
+ */
+export function pickAsks(pick, option, note) {
+  const card = option ? `picks ${pick} · ${option.title}` : `picks ${pick} (no such option card)`
+  return note ? `${card}, asks:  "${note}"` : `${card}, no note`
+}
+
+/**
  * `inbox <name> apply [ids...]`:  apply the SENT mechanical marks (`PlanDoc.applyMark()`:  approve, pick, todo),
  * all or those of `ids`, then clear them;  prints a line per item, and what it left.
  * - a dry run on a parsed copy first:  the doc is written (`edit()`, its lock) only when something applies
@@ -3405,7 +3473,10 @@ function applyInbox(name, file, ids) {
     ? edit(file, (plan) => marks.map((mark) => ({ mark, ...plan.applyMark(mark) })))
     : planned
   const cleared = results.filter((each) => each.applied || each.gone).map((each) => each.mark)
-  if (cleared.length) updateInbox(path, (box) => clearApplied(box, cleared))
+  updateInbox(path, (box) => {
+    clearApplied(box, cleared)
+    touchListening(box)
+  })
   const lines = []
   for (const each of results.filter((result) => result.applied))
     lines.push(`${each.mark.id.toUpperCase()}  ${each.did}`)
