@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Details Pages</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Details CLI</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Skill and Rule</ui-label></span
             >
           </header></ui-sticky
         >
@@ -71,7 +71,7 @@
               type a letter) when the page server or extension isn't available.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 5h-6h in all, 2h 30m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 5h-6h in all, 1h 30m left</p>
           <ui-section id="o1" header="1.1 What already works" sticky collapsible dividing>
             <ul>
               <li>
@@ -163,8 +163,10 @@
                 >.
               </li>
               <li>
-                <code>packages/docs/scripts/details.js</code> --
-                <code>yarn details new | show [--wait] | wait | list</code>.
+                <a href="../../scripts/details.js" target="src-packages-docs-scripts-details-js"
+                  ><code>packages/docs/scripts/details.js</code></a
+                >
+                -- <code>yarn details new | show [--wait] | wait | list</code>.
               </li>
               <li>
                 <code>.claude/skills/details/SKILL.md</code> -- when to reach for it, how to write a good page, the flow
@@ -180,7 +182,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="5" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="5" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -217,7 +219,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1h-1h30m</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p2" data-phase="2" data-status="done" header="P2 · Page Template" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p2"
+            data-phase="2"
+            data-status="done"
+            header="P2 · Page Template"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -248,8 +259,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Details CLI" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Details CLI" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -258,7 +269,10 @@
                   &lt;slug&gt; | list | sweep</code
                 >; <code>wait</code> prints the answer as plain text, then exits</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> <code>packages/docs/scripts/details.js</code>, package scripts, ignore rule for
+                ><b>Files:</b>
+                <a href="../../scripts/details.js" target="src-packages-docs-scripts-details-js"
+                  ><code>packages/docs/scripts/details.js</code></a
+                >, package scripts, ignore rule for
                 <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/details/</code></a
                 >, skip <a href="../../details/" target="src-packages-docs-details"><code>details/</code></a> in
                 <code>docs:index</code> /
@@ -548,12 +562,70 @@
         <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
           <ui-icon slot="icon" name="list check"></ui-icon>
           <p class="meta">For later: not caveats, not issues.</p>
-          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title"
+                    >Review: Claude writes short option markup; details.js builds the ui-* cards</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    J1. Claude writes
+                    <code>&lt;div class="spell-option" data-option="A" data-title="..." data-recommended&gt;</code> plus
+                    a folded <code>.spell-option-details</code>;
+                    <a href="../../_assets/details.js" target="src-packages-docs-assets-details-js"
+                      ><code>_assets/details.js</code></a
+                    >
+                    turns it into <code>ui-segment</code> + <code>ui-radio</code> / <code>ui-checkbox</code> +
+                    <code>ui-accordion</code>. Chose this over Claude writing the full <code>ui-*</code> markup per
+                    option: a third of the typing per question, and every page gets fixes to the cards at once. The page
+                    Owen sees is all
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                    either way (<a href="#d6">D6</a>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title">Review: Send works with some questions unanswered</span> </ui-title
+                ><ui-content
+                  ><p>
+                    J2. Send refuses only a fully empty answer (no pick, no Other, no note anywhere). A page with Q1-Q3
+                    can go back with only Q1 answered; the answer text says <code>(no answer)</code> for the rest, and
+                    Claude asks again. Alternative: require every question (blocks a quick "just Q1 for now").
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title"
+                    >Review: details pages are left out of the docs index and docs:update's checks</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    J3. <code>findPages()</code> skips every
+                    <a href="../../details/" target="src-packages-docs-details"><code>details/</code></a> folder, an
+                    epic's committed ones too: not listed in the index (they'd crowd the Epics list), not run through
+                    <code>check-spell</code> on every <code>docs:update</code>. An epic's details pages are reached from
+                    the decisions that link them. Alternative: check (but not list) an epic's committed ones.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed>
+            <ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t1">T1</a> <a href="#t2">T2</a></ui-item></ui-list
+          >
         </ui-section>
 
         <ui-section id="tests" header="7. To test" sticky collapsible dividing>
@@ -561,7 +633,9 @@
           <p class="meta">
             What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
           </p>
-          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="test" divided relaxed>
+            <ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t3">T3</a></ui-item></ui-list
+          >
         </ui-section>
 
         <ui-section id="log" header="8. Log" sticky collapsible dividing>
@@ -693,6 +767,29 @@
                   ui-checkbox, folding details, Other, notes, Send, answered + Change); GET /api/details/answer; route
                   listed before appRoutes (its /api catch-all 404s); checks: route tests 6, Playwright click-through,
                   check-spell ok, docs lint/ts</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:08-04:00">2026-10-03 20:08</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:12-04:00">2026-10-03 20:12</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:12-04:00">2026-10-03 20:12</time></ui-date> P3 done: yarn
+                  details new|show [--wait]|wait|answer|list|sweep (scripts/details.js); atDepth() shared with docs:new;
+                  findPages() skips details/; checks: docs tests 48, ts, lint; real loop: background wait woke with the
+                  answer sent from the page</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

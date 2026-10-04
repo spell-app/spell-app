@@ -1091,6 +1091,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   check crashed on `ui-import/examples/part.html`, an include fragment `findPages()` took for a page. ·
   `doc-links.py --check` accepts a missing target git ignores;  `findPages()` skips `examples/`;  the two real
   links fixed. · docs
+- 2026-10-03 · A new page server route module's `POST /api/details/answer` answered 404 "API routine not defined on
+  server":  `packages/app/src/server/appRoutes.ts` mounts the app's `/api` router, whose last route is a catch-all
+  404, so route modules listed AFTER it in the root `package.json` never see `/api/...`. · List the module before
+  `appRoutes.ts`;  goals' is before it too. · docs
 
 ## claude-code
 
