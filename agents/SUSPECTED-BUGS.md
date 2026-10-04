@@ -459,12 +459,6 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
-- `src/server/EditorServer.ts:102` starts the editor with `node_modules/vite/bin/vite.js`, which no longer exists
-  since `vite-plus` merged (2026-10-04;  `vite` isn't installed at the root, in `main` or a worktree):  the editor
-  never answers, and `packages/cli` `src/cli.test.ts` "spell serve --headless" fails ("Starting the editor  the
-  editor didn't answer";  `.spell-server.editor.log`:  `Cannot find module .../node_modules/vite/bin/vite.js`).
-  Prove:  `ls node_modules/vite/bin/vite.js`, then `spell serve --headless`.  (found by epic `shared-content`, P2)
-
 - `src/runner/element.build.test.ts` "one Solid per page" fails on `main` (2026-10-04, plain vite) and on
   `vite-plus` alike:  the element build puts Solid code in `ui/customElement.js` as well as `spell-solid.js`, so a
   page may load a second Solid.  Prove:  `yarn vitest run src/runner/element.build.test.ts` in `packages/app`.
