@@ -32,6 +32,7 @@
     "**/src/icons/icon-packs/**",
     "**/src/components/ui-emoji/data/**",
     "**/src/languages/spell.*.js",
+    "**/src/components/ui-markdown/md.bundle.js",
     "**/ui/site/_assets/**",
     "**/ui/site/_data/**",
     "**/ui/site/**/*.html",

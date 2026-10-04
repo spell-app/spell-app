@@ -28,6 +28,7 @@
     "**/src/icons/data",
     "**/src/components/ui-emoji/data",
     "**/src/languages",
+    "**/src/components/ui-markdown/md.bundle.js",
     "**/site/dist",
     "**/tools/frameworks/solid/dist",
     "**/tools/results",
