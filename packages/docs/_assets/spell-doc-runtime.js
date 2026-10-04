@@ -20,7 +20,9 @@
  *   (`data-fold="closed"` on HEADINGS pages) starts one folded
  * - counts:  a top-level section holding `[data-status]` items (plan docs' phases, questions, issues ...) shows
  *   open / all on its title, and the open count as a badge in the contents and the rail;  plan item sections also
- *   get "Open | All" (`wireItemFilters()`)
+ *   get a round filter button stepping through the items' states (`wireItemFilters()`)
+ * - plan docs' commits:  a git button in the page header shows or hides them all, a git icon on an item's line
+ *   shows its own (`wireCommits()`)
  * - scroll-follow:  the current section's (heading's) contents link is highlighted and its panels open;  panels the
  *   scroll opened close again, panels the USER opened stay open
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
@@ -91,8 +93,11 @@ const FILTER_KEY_PREFIX = "spell-filter:"
 /** `localStorage` key prefix of a page's folds (`{ [section or heading id]: folded }`), per page like the filter's. */
 const FOLD_KEY_PREFIX = "spell-folds:"
 
-/** `localStorage` key prefix of a page's item filters (`{ [section id]: "open" | "all" }`), per page. */
-const ITEM_FILTER_KEY_PREFIX = "spell-item-filter:"
+/**
+ * `localStorage` key prefix of a page's item filters (`{ [section id]: "all" | state }`), per page.
+ * - NOTE: not `spell-item-filter:`, Open | All's before P3 of `review-review`:  its saved "open" meant "not done"
+ */
+const ITEM_FILTER_KEY_PREFIX = "spell-item-state:"
 
 /** `localStorage` key of "contents column hidden":  one reader preference for every page. */
 const TOC_HIDDEN_KEY = "spell-toc-hidden"
@@ -169,11 +174,11 @@ function land({ hash, scroll }, jump, follow) {
 }
 
 /**
- * A plan doc (`epics/<name>/<name>.html`) names its tab `<name>`:  every link to it has `target="<name>"`
- * (`doc-links.js`), so they reuse this tab, as `yarn plan-doc open <name>` does.
+ * A plan doc (`epics/<name>/<name>.plan.html`;  before 2026-10-04 `<name>.html`) names its tab `<name>`:  every
+ * link to it has `target="<name>"` (`doc-links.js`), so they reuse this tab, as `yarn plan-doc open <name>` does.
  */
 function nameTab() {
-  const plan = /\/epics\/([^/]+)\/\1\.html$/.exec(decodeURIComponent(location.pathname))
+  const plan = /\/epics\/([^/]+)\/\1(?:\.plan)?\.html$/.exec(decodeURIComponent(location.pathname))
   if (plan) window.name = plan[1]
 }
 
@@ -903,10 +908,11 @@ function attr(value) {
 ////////////////
 
 /**
- * Item statuses that DON'T count as open:  finished (`done`), and a plan's decisions in force (`decided`) -- in
- * "Questions & Decisions" only the questions waiting on the reader are open.
+ * Item statuses that DON'T count as open:  finished (`done`), made moot (`canceled`), and a plan's answered
+ * questions (`decided`) -- in "Questions" only the questions waiting on the reader are open.
+ * - `plan-doc.js` `CLOSED` is the same set
  */
-const CLOSED = new Set(["done", "decided"])
+const CLOSED = new Set(["done", "decided", "canceled"])
 
 /**
  * Each top-level section's items -- `[data-status]` elements, not counting ones inside another -- as
@@ -953,68 +959,200 @@ function outermost(item, section) {
   return !outer || !section.contains(outer)
 }
 
-/**
- * An "Open | All" button group on every top-level `<ui-section>` with a filterable list:  a plan doc's items
- * (`.plan-items`), the index's epics (`.spell-epics`), each holding `[data-status]` children.  Open hides the done
- * ones (`data-status="done"`), All shows them again.
- * - in the title's `actions` slot;  `spell-doc.css` moves it left of the count badge
- * - Open also shows "3 hidden · show all" under the list (`.spell-hidden-note`):  a click there is All's
- * - the choice:  `data-show="open"` on the section (CSS hides);  remembered per page (`localStorage`,
- *   `{ [section id]: "open" | "all" }`);  Open by default, set before the page first draws
- * - SIDE EFFECT:  adds the buttons and the note to the page;  callable again (it replaces the ones it added)
- */
-function wireItemFilters(main) {
-  const key = `${ITEM_FILTER_KEY_PREFIX}${location.pathname}`
-  const saved = readJSON(key)
-  for (const old of main.querySelectorAll(":scope > ui-section > ui-buttons.spell-item-filter, a.spell-hidden-note"))
-    old.remove()
-  for (const section of main.querySelectorAll(":scope > ui-section[id]")) {
-    const list = section.querySelector(".plan-items, .spell-epics")
-    if (!list?.querySelector(":scope > [data-status]")) continue
-    const group = document.createElement("ui-buttons")
-    group.className = "spell-item-filter"
-    for (const [name, value] of Object.entries({ slot: "actions", size: "mini", basic: "" }))
-      group.setAttribute(name, value)
-    const note = document.createElement("a")
-    note.className = "spell-hidden-note"
-    note.href = "#"
-    const filter = { section, list, note, buttons: [] }
-    for (const show of ["open", "all"]) {
-      const button = document.createElement("ui-button")
-      button.dataset.show = show
-      button.textContent = show === "open" ? "Open" : "All"
-      button.addEventListener("click", () => choose(show))
-      group.append(button)
-      filter.buttons.push(button)
-    }
-    note.addEventListener("click", (event) => {
-      event.preventDefault()
-      choose("all")
-    })
-    section.append(group)
-    list.after(note)
-    showItems(filter, saved[section.id] === "all" ? "all" : "open")
+////////////////
+// ## Item states and filter
+////////////////
 
-    /** The reader picked `show`:  apply it and remember it. */
-    function choose(show) {
-      showItems(filter, show)
-      saved[section.id] = show
-      writeJSON(key, saved)
-    }
+/**
+ * Where an item stands, in the colors Owen reads at a glance (plan doc `review-review`, 1.4 "Item status colors"):
+ * `[state, button color, tooltip words]`, in the item filter's order after "all".
+ * - `plan-doc.js` writes `data-state` on every plan item;  docs from before P3 have none (`stateOf()`)
+ * - `plan-doc.css` colors an item's id chip by it, and the "To review" line's links
+ */
+const ITEM_STATES = [
+  ["progress", "orange", "in progress"],
+  ["attention", "red", "needs attention"],
+  ["open", "blue", "open, not urgent"],
+  ["recent", "green", "decided or reviewed recently"],
+  ["old", "grey", "decided or reviewed earlier"]
+]
+
+/** The state names, for checking a `data-state`. */
+const STATE_NAMES = new Set(ITEM_STATES.map(([state]) => state))
+
+/** Plan items, and the index's epic cards:  what states and the filter apply to. */
+const STATE_ITEMS = ":is(.plan-items, .spell-epics) > [data-status]"
+
+/**
+ * An item's state:  its `data-state`, else (docs from before P3, the index's epic cards) from its status:  `done`
+ * / `decided` are `old`, anything else `open`.
+ */
+function stateOf(item) {
+  const state = item.dataset.state
+  if (STATE_NAMES.has(state)) return state
+  return CLOSED.has(item.dataset.status) ? "old" : "open"
+}
+
+/**
+ * An item's id chip's tooltip:  where it stands in words, then its review marks (Owen, 2026-10-04), e.g.
+ * "Needs your attention · not reviewed yet", "Decided or reviewed recently · reviewed 2026-10-03".
+ */
+function stateTip(item) {
+  const words = ITEM_STATES.find(([state]) => state === item.dataset.spellState)?.[2] ?? ""
+  const parts = [words.charAt(0).toUpperCase() + words.slice(1)]
+  const { reviewed, deferred, queued, work, status } = item.dataset
+  if (queued) parts.push(`to do:  ${work || "queued"}`)
+  if (reviewed) parts.push(`reviewed ${reviewed}`)
+  else if (deferred) parts.push(`deferred ${deferred}`)
+  else if (status === "open") parts.push("not reviewed yet")
+  return parts.join(" · ")
+}
+
+/**
+ * Mark every item's state as `data-spell-state` (`stateOf()`), and every "To review" link
+ * (`.plan-to-review a[href^="#"]`) with its item's, so CSS has ONE attribute to color by, old docs included.
+ * - SIDE EFFECT:  sets `data-spell-state`;  callable again (a page updated in place:  a replaced item comes back
+ *   without it)
+ */
+function markItemStates(main) {
+  for (const item of main.querySelectorAll(STATE_ITEMS)) {
+    item.dataset.spellState = stateOf(item)
+    const chip = item.querySelector(".plan-id")
+    if (chip) chip.title = stateTip(item)
+  }
+  for (const link of main.querySelectorAll('.plan-to-review a[href^="#"]')) {
+    const target = document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1)))
+    const item = target?.closest("[data-spell-state]")
+    if (item) link.dataset.spellState = item.dataset.spellState
+    else delete link.dataset.spellState
   }
 }
 
 /**
- * Show `show`'s items (`"open"` / `"all"`) in a filter's section (`{ section, list, note, buttons }`):  that button
- * pressed, the "N hidden" note under the list while Open hides any.
+ * The status filter on every top-level `<ui-section>` with a filterable list (a plan doc's `.plan-items`, the
+ * index's `.spell-epics`, each holding `[data-status]` children):  ONE round button per state the section has items
+ * in, used like checkboxes -- filled in its color while its items show, outlined while hidden -- and first a grey
+ * filter button that flips between "show all" and "show only what needs you" (red), rather than a useless "none"
+ * (Owen, 2026-10-04).
+ * - in the title's `actions` slot (`span.spell-item-filter`);  `spell-doc.css` puts it left of the count badge
+ * - a filtered list shows "3 hidden · show all" under it (`.spell-hidden-note`):  a click there shows all
+ * - the choice:  `data-show="<states shown>"` on the section (none for all), `data-spell-hidden` on the items it
+ *   hides (CSS hides them);  remembered per page (`localStorage`, `{ [section id]: [states] }`);  all by default
+ * - SIDE EFFECT:  marks the items' states (`markItemStates()`), adds the buttons and notes to the page;  callable
+ *   again (it replaces the ones it added)
  */
-function showItems({ section, list, note, buttons }, show) {
-  if (show === "open") section.dataset.show = "open"
-  else delete section.dataset.show
-  for (const button of buttons) button.toggleAttribute("active", button.dataset.show === show)
-  const hidden = show === "open" ? list.querySelectorAll(':scope > [data-status="done"]').length : 0
-  note.hidden = hidden === 0
-  note.textContent = `${hidden} hidden · show all`
+function wireItemFilters(main) {
+  const key = `${ITEM_FILTER_KEY_PREFIX}${location.pathname}`
+  const saved = readJSON(key)
+  for (const old of main.querySelectorAll(":scope > ui-section > .spell-item-filter, a.spell-hidden-note")) old.remove()
+  markItemStates(main)
+  for (const section of main.querySelectorAll(":scope > ui-section[id]")) {
+    const lists = Array.from(section.querySelectorAll(".plan-items, .spell-epics")).filter((list) =>
+      list.querySelector(":scope > [data-status]")
+    )
+    if (!lists.length) continue
+    const has = new Set(lists.flatMap((list) => itemsOf(list).map((item) => item.dataset.spellState)))
+    const present = ITEM_STATES.filter(([state]) => has.has(state))
+    const group = document.createElement("span")
+    group.className = "spell-item-filter"
+    group.slot = "actions"
+    group.dataset.spellAdded = ""
+    const all = stateButton("all", "grey", "")
+    all.innerHTML = `<ui-icon name="filter"></ui-icon>`
+    group.append(all)
+    const buttons = present.map(([state, color, words]) => stateButton(state, color, words))
+    group.append(...buttons)
+    const notes = lists.map((list) => {
+      const note = document.createElement("a")
+      note.className = "spell-hidden-note"
+      note.href = "#"
+      note.dataset.spellAdded = ""
+      note.addEventListener("click", (event) => {
+        event.preventDefault()
+        choose(present.map(([state]) => state))
+      })
+      list.after(note)
+      return note
+    })
+    const filter = { section, lists, notes, all, buttons, present }
+    all.addEventListener("click", () => {
+      const showingAll = filterShown(filter).length === present.length
+      const red = present.some(([state]) => state === "attention")
+      choose(showingAll && red ? ["attention"] : present.map(([state]) => state))
+    })
+    for (const button of buttons)
+      button.addEventListener("click", () => {
+        const shown = new Set(filterShown(filter))
+        if (shown.has(button.dataset.state)) shown.delete(button.dataset.state)
+        else shown.add(button.dataset.state)
+        choose([...shown])
+      })
+    section.append(group)
+    const remembered = Array.isArray(saved[section.id]) ? saved[section.id].filter((state) => has.has(state)) : []
+    showItems(filter, remembered.length ? remembered : present.map(([state]) => state))
+
+    /** The reader picked the states `shown`:  apply them and remember. */
+    function choose(shown) {
+      showItems(filter, shown)
+      saved[section.id] = shown
+      writeJSON(key, saved)
+    }
+  }
+
+  /** A round state button:  `state`, its UI `color`, its tooltip's `words`. */
+  function stateButton(state, color, words) {
+    const button = document.createElement("button")
+    button.type = "button"
+    button.className = "spell-state-toggle"
+    button.dataset.state = state
+    button.dataset.color = color
+    if (words) button.title = words
+    return button
+  }
+}
+
+/** The states a filter shows now (`{ buttons }`, see `wireItemFilters()`). */
+function filterShown({ buttons }) {
+  return buttons
+    .filter((button) => button.getAttribute("aria-pressed") === "true")
+    .map((button) => button.dataset.state)
+}
+
+/**
+ * Show the items of the states `shown` in a filter's section (`{ section, lists, notes, all, buttons, present }`):
+ * each state button pressed or not, the grey button's tooltip saying what its click does, an "N hidden" note under
+ * each list that hides any.
+ */
+function showItems({ section, lists, notes, all, buttons, present }, shown) {
+  const showing = new Set(shown)
+  for (const button of buttons) {
+    const on = showing.has(button.dataset.state)
+    button.setAttribute("aria-pressed", String(on))
+    const words = ITEM_STATES.find(([state]) => state === button.dataset.state)?.[2] ?? ""
+    button.title = `${on ? "Showing" : "Hiding"}:  ${words}`
+  }
+  const everything = showing.size >= present.length
+  if (everything) delete section.dataset.show
+  else section.dataset.show = [...showing].join(" ")
+  const red = present.some(([state]) => state === "attention")
+  all.title = everything && red ? "Show only what needs you" : "Show everything"
+  all.setAttribute("aria-label", all.title)
+  all.setAttribute("aria-pressed", String(everything))
+  lists.forEach((list, index) => {
+    let hidden = 0
+    for (const item of itemsOf(list)) {
+      const hide = !showing.has(item.dataset.spellState)
+      item.toggleAttribute("data-spell-hidden", hide)
+      if (hide) hidden++
+    }
+    notes[index].hidden = hidden === 0
+    notes[index].textContent = `${hidden} hidden · show all`
+  })
+}
+
+/** A filterable list's items:  its `[data-status]` children. */
+function itemsOf(list) {
+  return Array.from(list.querySelectorAll(":scope > [data-status]"))
 }
 
 ////////////////
@@ -1058,8 +1196,22 @@ function buildRail(outline, counts) {
     `<span class="spell-rail-label">Contents</span>` +
     `<span class="spell-rail-icon"><ui-icon name="bars"></ui-icon></span></button>` +
     `<div class="spell-rail-items">${entries.join("")}</div>`
+  rail.addEventListener("click", (event) => {
+    if (event.target.closest?.("a.spell-rail-item")) restRail(rail)
+  })
   document.body.append(rail)
   return rail
+}
+
+/**
+ * A section was picked from the widened rail:  it narrows back at once, though the pointer is still over it (Owen,
+ * 2026-10-04:  it stayed open until a click in the page).  `spell-rail-resting` holds it narrow until the pointer
+ * leaves;  the focus leaves too (`:focus-within` widens it).
+ */
+function restRail(rail) {
+  rail.classList.add("spell-rail-resting")
+  rail.addEventListener("pointerleave", () => rail.classList.remove("spell-rail-resting"), { once: true })
+  if (rail.contains(document.activeElement)) document.activeElement.blur()
 }
 
 ////////////////
@@ -1193,6 +1345,20 @@ function wireFolds(main, outline) {
     }
     const panel = self ? element.querySelector(":scope > ui-accordion > ui-title") : null
     if (panel && !isPanelOpen(panel)) setPanel(panel, true)
+    // an id INSIDE a closed panel (an old decision's `#d7`, now the answer card in its question):  open the panels
+    // around it, or the jump lands on nothing
+    for (
+      let content = element.closest("ui-accordion > ui-content");
+      content;
+      content = content.parentElement.parentElement?.closest("ui-accordion > ui-content")
+    ) {
+      const accordion = content.parentElement
+      const contents = Array.from(accordion.children).filter((child) => child.localName === "ui-content")
+      const title = titlesOf(accordion)[contents.indexOf(content)]
+      if (!title || isPanelOpen(title)) continue
+      setPanel(title, true)
+      unfolded = true
+    }
     return unfolded
   }
 }
@@ -1405,8 +1571,13 @@ function wireAnchors(main, outline, sticky, follow, folds) {
     const target = targetIn(id)
     if (!target) return
     let landed = NaN
+    // what a jump unfolds opens at once, without the fold animation, so the page gets there quickly (Owen,
+    // 2026-10-04):  `spell-doc.css` zeroes `--ui-section-duration` under `data-spell-jumping`
+    const root = document.documentElement
+    root.setAttribute("data-spell-jumping", "")
     if (folds.reveal(target, { self: unfoldTarget })) void nextFrames(UNFOLD_FRAMES).then(land)
     else land()
+    setTimeout(() => root.removeAttribute("data-spell-jumping"), SETTLE_MS)
     if (outline.sections) setTimeout(() => Math.abs(scrollY - landed) < 2 && land(), SETTLE_MS)
 
     /** Scroll to the target, pin its entry. */
@@ -2068,11 +2239,107 @@ function buildChrome() {
   const main = document.querySelector("main.spell-doc-main") ?? document.querySelector("main")
   if (!main) return
   buildReviewLine(main)
+  wireOptions(main)
   wirePhaseToggles(main)
+  wireCommits(main)
   void wireTips(main)
   addEventListener("spell-doc:updated", () => {
     wirePhaseToggles(main)
+    wireCommits(main)
     void wireTips(main)
+  })
+}
+
+/** localStorage key prefix of a plan doc's "show commits":  `spell-commits:<path>`, `"1"` while shown. */
+const COMMITS_KEY_PREFIX = "spell-commits:"
+
+/**
+ * A plan doc's commits (`.plan-commits`:  a phase body's `ui-item`, or a `div` ending an item's details), hidden
+ * until asked for (plan doc `review-review`, P3):
+ * - a round git button in the page header (`.spell-page-head`, before the step label) shows or hides them all;
+ *   pressed = colored;  remembered per page (`localStorage`);  only on a doc that has commits
+ * - a small git icon on the line of each item whose details hold commits (`button.plan-git-hint`, in its title's
+ *   right-hand extras):  a click opens the item and shows its commits, a second hides them again
+ * - the choice:  `data-show-commits` on `main` (all), or on the item (`plan-doc.css` hides the rest)
+ * - SIDE EFFECT:  adds the button and the icons (`data-spell-added`);  callable again (a page updated in place):
+ *   replaces the ones it added
+ */
+function wireCommits(main) {
+  if (!document.body.classList.contains("plan-doc")) return
+  for (const old of main.querySelectorAll(".plan-git-toggle, .plan-git-hint")) old.remove()
+  const head = main.querySelector(".spell-page-head")
+  if (!head || !main.querySelector(".plan-commits")) return
+  const key = `${COMMITS_KEY_PREFIX}${location.pathname}`
+  const group = document.createElement("span")
+  group.className = "plan-git-toggle"
+  group.dataset.spellAdded = ""
+  // icon only, as tall as the step label beside it (Owen, 2026-10-04)
+  group.innerHTML = `<button type="button" class="plan-git-button"><ui-icon name="git"></ui-icon></button>`
+  const button = group.firstElementChild
+  button.addEventListener("click", () => show(!main.hasAttribute("data-show-commits")))
+  const step = head.querySelector(":scope > .plan-step")
+  if (step) step.before(group)
+  else head.append(group)
+  show(readSaved(key) === "1", false)
+  for (const item of main.querySelectorAll(".plan-items > [data-status]")) {
+    const title = item.querySelector(":scope > ui-accordion.plan-item > ui-title")
+    if (!title || !item.querySelector(":scope > ui-accordion > ui-content .plan-commits")) continue
+    const hint = document.createElement("button")
+    hint.type = "button"
+    hint.className = "plan-git-hint"
+    hint.dataset.spellAdded = ""
+    hint.title = "Show this item's commits"
+    hint.setAttribute("aria-label", hint.title)
+    hint.innerHTML = `<ui-icon name="git"></ui-icon>`
+    hint.addEventListener("click", (event) => {
+      // the line's own click would toggle the panel
+      event.preventDefault()
+      event.stopPropagation()
+      const showing = item.hasAttribute("data-show-commits") && isPanelOpen(title)
+      item.toggleAttribute("data-show-commits", !showing)
+      if (!showing) setPanel(title, true)
+    })
+    title.append(hint)
+  }
+
+  /** Show (or hide) every commit, press the button to match;  remember it unless `save` is false. */
+  function show(on, save = true) {
+    main.toggleAttribute("data-show-commits", on)
+    button.setAttribute("aria-pressed", String(on))
+    const label = on ? "Hide the commits" : "Show the commits"
+    button.setAttribute("aria-label", label)
+    button.title = label
+    if (!save) return
+    try {
+      localStorage.setItem(key, on ? "1" : "")
+    } catch {
+      // private mode:  the choice lasts the visit
+    }
+  }
+}
+
+/** The option cards' labels inside plan items:  a click folds or unfolds the card (`wireOptions()`). */
+const OPTION_LABEL = ".plan-items ui-grid.spell-pros-cons > ui-column ui-label[attached]"
+
+/**
+ * A plan item's option cards (`ui-grid.spell-pros-cons`, A / B / C) fold to their labels;  a click on a label
+ * opens or closes that card.  The CHOSEN one (`data-chosen` on its `ui-column`, `plan-doc.js decide --option`)
+ * shows open, framed green (Owen, 2026-10-04).
+ * - open:  `data-open`;  a chosen card closed by the reader:  `data-shut` (`plan-doc.css` reads both)
+ * - one listener on `main`, so cards an in-place update brings in fold too;  wired once
+ */
+function wireOptions(main) {
+  if (main.dataset.spellOptions) return
+  main.dataset.spellOptions = ""
+  main.addEventListener("click", (event) => {
+    const label = event.target.closest?.(OPTION_LABEL)
+    if (!label) return
+    const column = label.closest("ui-column")
+    const open = column.hasAttribute("data-chosen")
+      ? !column.hasAttribute("data-shut")
+      : column.hasAttribute("data-open")
+    if (column.hasAttribute("data-chosen")) column.toggleAttribute("data-shut", open)
+    else column.toggleAttribute("data-open", !open)
   })
 }
 

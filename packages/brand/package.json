@@ -9,22 +9,26 @@
     "build": "tsx scripts/build.ts",
     "compare": "tsx scripts/compare.ts",
     "site:data": "tsx scripts/site-data.ts",
-    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vitest run && echo '<< TESTS PASSED\n'",
     "/////// CORRECTNESS": "",
+    "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && echo '<< TSC PASSED\n'",
-    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && oxfmt src components scripts vite.config.ts index.html compare.html _assets/brand-pages.js _assets/brand-pages.css && echo '<< OXFMT PASSED\n'"
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src components scripts && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src components scripts && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components scripts vite.config.ts vitest.config.ts index.html compare.html _assets/brand-pages.js _assets/brand-pages.css _assets/brand-docs.css && echo '<< OXFMT PASSED\n'",
+    "/////// TESTING": "",
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'"
   },
   "devDependencies": {
     "@solidjs/web": "2.0.0-rc.13",
     "@types/node": "^22.20.4",
-    "oxfmt": "^0.71.0",
     "solid-js": "2.0.0-rc.13",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "vite": "^8.3.1"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
   "engines": {
-    "node": ">=22.17"
+    "node": ">=24.11"
   },
   "packageManager": "yarn@4.18.0"
 }

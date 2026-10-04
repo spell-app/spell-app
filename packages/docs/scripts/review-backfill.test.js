@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { findEvidence, projectSlug, sessionsOf } from "./review-backfill.js"
 
@@ -83,7 +83,9 @@ describe("review backfill", () => {
 
   it("matches whole ids only, any case", () => {
     const dir = projects({
-      [slug]: { s: [JSON.stringify({ type: "custom-title", customTitle: "seo" }), user("see i7, not I7x, AI7 or I70x")] }
+      [slug]: {
+        s: [JSON.stringify({ type: "custom-title", customTitle: "seo" }), user("see i7, not I7x, AI7 or I70x")]
+      }
     })
     expect(Object.keys(findEvidence(sessionsOf("seo", ROOT, dir), ["I7", "I70"]))).toEqual(["I7"])
   })

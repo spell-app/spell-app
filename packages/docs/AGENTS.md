@@ -14,7 +14,9 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - `<topic>/experiments/` -- runnable scripts backing the doc's claims (see "Experiments").
   - `<topic>/<topic>.md` -- a distilled version for agents, when agents need the doc's rules (see "Agent rules").
 - `templates/` -- starting points, one per kind of doc (see "Templates").
-- `epics/<name>/<name>.html` -- plan docs, one per `/epic` session (see "Plan docs").
+- `epics/<name>/<name>.plan.html` -- plan docs, one per `/epic` session (see "Plan docs").  `<name>.html` before
+  2026-10-04:  the tools find either (`scripts/pages.js` `planDocIn()`), a worktree cut before keeps the old name
+  until it merges `main`, and the page server redirects the old URL;  `scripts/plan-rename.js` did the rename.
 - `details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page (`/details`, see
   "Details pages").  Scratch:  ignored by version control, swept after 14 days.  An epic's go in
   `epics/<name>/details/`, committed.
@@ -71,7 +73,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - the rail:  a strip of the top-level sections' icons at the right edge, the contents button (bars) on top, shown
     while the contents column isn't (narrow screens, or hidden by its button:  remembered for every page).  Give
     every top-level section an icon:  without one, the rail shows its number.  Hover widens it to show the names;
-    the current section is the accent;  at 400px and under, only the bars button shows
+    the current section is the accent;  at 480px and under, only the bars button shows
   - sticky titles:  each top-level section's title sticks below the page header, nested ones stack below their
     parents' (the runtime sets the top-level `offset`s)
   - folding:  folds are remembered per page;  a link's unfold isn't.  A plan doc (`body.plan-doc`) starts EVERY
@@ -81,9 +83,14 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
     sections get no count of their own
   - a plan doc's review line under its page header:  "To review this doc, type `/epic review <name>`", copied on
     click
-  - item filter:  a top-level section with plan items (`.plan-items`) gets an "Open | All" button group left of
-    its count;  Open (the default) hides struck items, with "N hidden · show all" under the list;  remembered
-    per page
+  - item states:  each plan item's id chip is colored by its `data-state` (red needs Owen, blue open, orange in
+    progress, green recent, grey older;  docs without one:  open blue, done / decided grey), and so are the links
+    of a phase's "To review" line
+  - item filter:  a top-level section with plan items (`.plan-items`) gets a round filter button left of its
+    count, stepping through all and each state the section has (colored as it);  a filtered list says "N hidden ·
+    show all" under it;  remembered per page
+  - commits (`.plan-commits`):  hidden until the git button in a plan doc's page header shows them (remembered
+    per page);  an item with commits gets a git icon on its line that shows its own
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
   - the address follows the section being read (`#id`, replaced, not pushed), so a reload lands there
   - served by the page server, an edit to the page's file updates it IN PLACE (`wireLiveUpdate()`):  scroll,
@@ -135,7 +142,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - ALWAYS folded and colored:  `<ui-accordion class="spell-code" styled>` + `<ui-title>What it is · N lines</ui-title>`
     + `<ui-content><pre><code class="language-ts">`.  30 lines or fewer start open (`open="0"`).
   - TypeScript by default, formatted by oxfmt:  write the snippet to a `.ts` / `.tsx` file and run
-    `yarn oxfmt <file>`
+    `yarn vp fmt <file>`
   - valid code only:  no bare JSX statements after other statements -- assign them to a `const`
   - prefer excerpts pasted from a real, runnable file over hand-typed examples
 - Colors only from the `spell-doc.css` / UI tokens, so dark mode keeps working.
@@ -166,7 +173,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 ## Plan docs
 
-- `/epic <name>` (`.claude/skills/epic/`) runs a planning session against `epics/<name>/<name>.html`.
+- `/epic <name>` (`.claude/skills/epic/`) runs a planning session against `epics/<name>/<name>.plan.html`.
 - How to write one, its sections, ids and markers:  `templates/epics/plan-doc.md`.
 - Edit through `yarn plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
@@ -202,7 +209,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 In this order, from `packages/docs`:
 
 1. `node scripts/doc-links.js <page>`
-2. `yarn oxfmt <page>` (`yarn format` would reformat it anyway)
+2. `yarn vp fmt <page>` (`yarn format` would reformat it anyway)
 3. `node scripts/doc-links.js --check <page>`
 4. `node scripts/check-spell.js <page>` must pass -- and LOOK at its four screenshots:  the checks can't see
    overlap, clipping or bad wrapping

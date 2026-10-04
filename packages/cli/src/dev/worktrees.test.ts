@@ -1,8 +1,8 @@
 import { execFileSync } from "child_process"
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "fs"
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { join } from "path"
-import { afterAll, describe, expect, test } from "vitest"
+import { afterAll, describe, expect, test } from "vite-plus/test"
 
 import { CLI } from "$/cli"
 
@@ -96,6 +96,26 @@ describe("takeStock()", () => {
     expect([...report.groups.active, ...report.groups.stalled, ...report.groups.dead].sort()).toEqual(
       [...byKey.keys()].sort()
     )
+  })
+})
+
+describe("planFile()", () => {
+  test("the worktree's plan doc, else main's;  <name>.plan.html, else an old <name>.html that is a plan doc", () => {
+    const wip = join(MAIN, ".claude", "worktrees", "wip")
+    expect(CLI.planFile("x", wip, MAIN)).toBeNull()
+    epic(MAIN, "x.html", "<body>not a plan doc</body>")
+    expect(CLI.planFile("x", wip, MAIN)).toBeNull()
+    const old = epic(wip, "x.html", '<body class="spell-doc-page plan-doc">')
+    expect(CLI.planFile("x", wip, MAIN)).toBe(old)
+    const renamed = epic(wip, "x.plan.html", '<body class="spell-doc-page plan-doc">')
+    expect(CLI.planFile("x", wip, MAIN)).toBe(renamed)
+
+    /** Write `html` as `epics/x/<file>` in checkout `root`;  returns its path. */
+    function epic(root: string, file: string, html: string): string {
+      mkdirSync(join(root, "packages", "docs", "epics", "x"), { recursive: true })
+      writeFileSync(join(root, "packages", "docs", "epics", "x", file), html)
+      return join(root, "packages", "docs", "epics", "x", file)
+    }
   })
 })
 

@@ -1,10 +1,19 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { DOCS } from "./pages.js"
-import { PlanDoc, PlanDocError, parseDuration, pickerSpec, timeTag } from "./plan-doc.js"
+import {
+  PlanDoc,
+  PlanDocError,
+  githubBase,
+  isoTime,
+  parseCommitSubject,
+  parseDuration,
+  pickerSpec,
+  timeTag
+} from "./plan-doc.js"
 import { convertSections } from "./to-ui-section.js"
 
 /** When the tests' edits happen:  local 2026-10-01 09:05. */
@@ -51,7 +60,9 @@ describe("PlanDoc layout", () => {
       "tests",
       "log"
     ])
-    expect(headers(plan)[2]).toBe("3. Questions & Decisions")
+    expect(headers(plan)[2]).toBe("3. Questions")
+    const icon = (id) => plan.document.querySelector(`#${id} > ui-icon[slot="icon"]`).getAttribute("name")
+    expect([icon("decisions"), icon("judgements")]).toEqual(["file circle question", "gavel"])
     for (const section of plan.document.querySelectorAll("main > ui-section")) {
       expect(section.querySelector(':scope > ui-icon[slot="icon"]')).not.toBeNull()
       for (const flag of ["sticky", "collapsible", "dividing"]) expect(section.hasAttribute(flag)).toBe(true)
@@ -146,14 +157,17 @@ describe("PlanDoc phases", () => {
     expect(step.hasAttribute("hidden")).toBe(true)
     plan.addPhase("One")
     plan.addPhase("Two")
-    expect(step.querySelector("ui-label").textContent).toBe("next:  P1 · One")
+    expect(step.querySelector("ui-label").textContent).toBe("P1")
+    expect(step.querySelector("ui-label").getAttribute("title")).toBe("Next:  P1 · One")
+    expect(step.querySelector("ui-label").getAttribute("icon")).toBe("circle right")
     plan.setPhase(1, "active")
     const active = step.querySelector("ui-label")
     expect([active.textContent, active.getAttribute("color"), active.getAttribute("href")]).toEqual([
-      "P1 · One",
+      "P1",
       "orange",
       "#p1"
     ])
+    expect(active.getAttribute("title")).toBe("P1 · One")
     plan.setPhase(1, "done")
     plan.setPhase(2, "done")
     expect(step.querySelector("ui-label").textContent).toBe("DONE")
@@ -305,8 +319,8 @@ describe("PlanDoc items", () => {
   it("titles an item's details panel with the item's line, not 'details'", () => {
     const plan = freshPlan()
     plan.addItem("decision", "padding tokens stay public (Q8)", { details: "<p>why</p>" })
-    const panel = plan.document.querySelector("#d1 > ui-accordion.plan-item")
-    expect(panel.querySelector("ui-title > a.plan-id").textContent).toBe("D1")
+    const panel = plan.document.querySelector("#q1 > ui-accordion.plan-item")
+    expect(panel.querySelector("ui-title > a.plan-id").textContent).toBe("Q1")
     expect(panel.querySelector("ui-title > .plan-title").textContent).toBe("padding tokens stay public (Q8)")
     expect(panel.querySelector("ui-content").innerHTML).toBe("<p>why</p>")
   })
@@ -347,40 +361,338 @@ describe("PlanDoc questions and decisions", () => {
     return Array.from(list.children, (item) => `${item.id}:${item.getAttribute("data-status")}`)
   }
 
-  it("share one list:  open questions on top, decisions in force `decided`", () => {
+  it("one Q list (D13):  open questions on top, then the answered ones in id order;  a decision is born answered", () => {
     const plan = freshPlan()
-    plan.addItem("decision", "first")
+    expect(plan.addItem("decision", "first")).toBe("q1")
     plan.addItem("question", "which?")
     plan.addItem("decision", "second")
     plan.addItem("question", "and?")
-    expect(order(plan)).toEqual(["q1:open", "q2:open", "d1:decided", "d2:decided"])
-    expect(plan.items("question").map((item) => item.id)).toEqual(["q1", "q2"])
-    expect(plan.summary().open.question.map((item) => item.id)).toEqual(["q1", "q2"])
+    expect(order(plan)).toEqual(["q2:open", "q4:open", "q1:decided", "q3:decided"])
+    expect(plan.document.getElementById("q1").querySelector(".plan-title").textContent).toBe("first")
+    expect(plan.summary().open.question.map((item) => item.id)).toEqual(["q2", "q4"])
+    expect(plan.document.getElementById("decisions").querySelector('[id^="d"]')).toBe(null)
   })
 
-  it("decide:  the answer at the end, linked to its question, which is struck and moved beside it", () => {
+  it("decide:  the answer goes INTO the question, which keeps its title and moves among the answered", () => {
     const plan = freshPlan()
-    plan.addItem("question", "which browser?")
+    plan.addItem("question", "which browser?", { details: "<p>the options</p>" })
     plan.addItem("question", "later?")
     plan.addItem("decision", "earlier")
-    expect(plan.decide("Q1", "Chrome first", { details: "<p>most readers</p>" })).toBe("d2")
-    expect(order(plan)).toEqual(["q2:open", "d1:decided", "q1:done", "d2:decided"])
-    const decision = plan.document.getElementById("d2")
-    expect(decision.querySelector(".plan-title").textContent).toBe("Chrome first (Q1)")
-    expect(decision.querySelector(".plan-title a").getAttribute("href")).toBe("#q1")
-    expect(decision.querySelector("ui-content").textContent).toContain("Answers Q1:  which browser?")
-    expect(plan.document.querySelector("#q1 a.plan-answer").getAttribute("href")).toBe("#d2")
-    expect(() => plan.decide("d1", "nope")).toThrow(PlanDocError)
+    expect(plan.decide("Q1", "Chrome first", { details: "<p>most readers</p>" })).toBe("q1")
+    expect(order(plan)).toEqual(["q2:open", "q1:decided", "q3:decided"])
+    const question = plan.document.getElementById("q1")
+    expect(question.querySelector(".plan-title").textContent).toBe("which browser?")
+    expect(question.querySelector("ui-content").innerHTML).toBe(
+      '<div class="plan-answer-block"><div class="plan-answer-title"><b>Answer</b> · Chrome first</div>' +
+        "<p>most readers</p></div><p>the options</p>"
+    )
+    expect(plan.document.querySelector(".plan-answer")).toBe(null)
+    // no details yet:  it gets a panel, the line its title
+    plan.decide("q2", "not now")
+    const panel = plan.document.querySelector("#q2 > ui-accordion.plan-item")
+    expect(panel.querySelector(":scope > ui-title > .plan-id").textContent).toBe("Q2")
+    expect(panel.querySelector(":scope > ui-content > .plan-answer-block").textContent).toBe("Answer · not now")
+    expect(order(plan)).toEqual(["q1:decided", "q2:decided", "q3:decided"])
+    // answering again replaces the answer
+    plan.decide("q2", "maybe later")
+    expect(plan.document.querySelectorAll("#q2 .plan-answer-block").length).toBe(1)
+    plan.addItem("caveat", "x")
+    expect(() => plan.decide("c1", "nope")).toThrow(PlanDocError)
     expect(plan.check()).toEqual([])
   })
 
-  it("closing a decision supersedes it;  reopening puts it back in force", () => {
+  it("decide --option marks the chosen option card, and only it", () => {
+    const plan = freshPlan()
+    const card = (letter) =>
+      `<ui-column><ui-segment><ui-label attached="top">${letter} · way ${letter}</ui-label><p>x</p></ui-segment></ui-column>`
+    plan.addItem("question", "which way?", {
+      details: `<ui-grid class="spell-pros-cons" columns="2">${card("A")}${card("B")}</ui-grid>`
+    })
+    plan.decide("q1", "way B", { option: "b" })
+    const chosen = () => Array.from(plan.document.querySelectorAll("#q1 ui-column[data-chosen]"), (c) => c.textContent)
+    expect(chosen()).toEqual(["B · way Bx"])
+    plan.decide("q1", "way A", { option: "A" })
+    expect(chosen()).toEqual(["A · way Ax"])
+    expect(() => plan.decide("q1", "way C", { option: "C" })).toThrow(PlanDocError)
+  })
+
+  it("closing an answered question supersedes it;  reopening puts it back in force;  an unanswered one reopens open", () => {
     const plan = freshPlan()
     plan.addItem("decision", "one")
+    plan.addItem("question", "two?")
+    plan.setItem("q1", "done")
+    plan.setItem("q2", "done")
+    expect(order(plan)).toEqual(["q1:done", "q2:done"])
+    plan.setItem("q1", "open")
+    plan.setItem("q2", "open")
+    expect(order(plan)).toEqual(["q2:open", "q1:decided"])
+  })
+
+  it("still reads an old doc's D items and struck question + decision pairs", () => {
+    const plan = freshPlan()
+    for (const title of ["linked from D1", "linked from Q2", "neither"]) plan.addItem("caveat", title)
+    const list = plan.document.querySelector('.plan-items[data-kind="decision"]')
+    list.innerHTML =
+      '<ui-item id="q1" data-status="done"><a class="plan-id" href="#q1">Q1</a> <span class="plan-title">which?</span> ' +
+      '<a class="plan-answer" href="#d1">→ D1</a></ui-item>' +
+      '<ui-item id="d1" data-status="decided"><ui-accordion class="plan-item"><ui-title><a class="plan-id" href="#d1">D1</a> ' +
+      '<span class="plan-title">this (<a href="#q1">Q1</a>)</span></ui-title><ui-content><p>see <a href="#c1">C1</a></p>' +
+      "</ui-content></ui-accordion></ui-item>"
+    plan.addItem("question", "open?")
+    plan.decide("q2", "yes", { details: '<p>see <a href="#c2">C2</a></p>' })
+    const sections = plan.reviewSections({ filter: "all" })
+    const caveats = sections.find((s) => s.kind === "caveat").items.map((item) => [item.id, item.state])
+    expect(caveats).toEqual([
+      ["C1", "reviewed"],
+      ["C2", "reviewed"],
+      ["C3", "outstanding"]
+    ])
+    // Questions:  the Q items, never D1
+    expect(sections[0].items.map((item) => item.id)).toEqual(["Q1", "Q2"])
+    // the old struck question stays beside its decision;  the new answer goes after
+    expect(order(plan)).toEqual(["q1:done", "d1:decided", "q2:decided"])
     plan.setItem("d1", "done")
-    expect(order(plan)).toEqual(["d1:done"])
     plan.setItem("d1", "open")
-    expect(order(plan)).toEqual(["d1:decided"])
+    expect(plan.document.getElementById("d1").getAttribute("data-status")).toBe("decided")
+    plan.updateStates()
+    expect(plan.document.getElementById("d1").getAttribute("data-state")).toBe("old")
+    expect(plan.summary().open.question).toEqual([])
+  })
+})
+
+describe("PlanDoc states", () => {
+  /** `data-state` of each item id, after the whole-doc pass. */
+  function stateOf(plan, ...ids) {
+    plan.updateStates()
+    return ids.map((id) => plan.document.getElementById(id).getAttribute("data-state"))
+  }
+
+  it("stamps every change:  data-changed (ISO local time);  data-bedtime during a /bedtime run, until reviewed", () => {
+    const plan = freshPlan()
+    const stamp = isoTime(NOW)
+    expect(stamp).toMatch(/^2026-10-01T09:05:00[+-]\d\d:\d\d$/)
+    plan.addItem("issue", "one")
+    plan.addItem("question", "two?")
+    const changed = (id) => plan.document.getElementById(id).getAttribute("data-changed")
+    expect([changed("i1"), changed("q1")]).toEqual([stamp, stamp])
+    for (const id of ["i1", "q1"]) plan.document.getElementById(id).removeAttribute("data-changed")
+    plan.setItem("i1", "done")
+    plan.decide("q1", "yes")
+    expect([changed("i1"), changed("q1")]).toEqual([stamp, stamp])
+    plan.startOvernight("P1")
+    expect(plan.bedtime).toBe(true)
+    plan.addItem("todo", "overnight")
+    plan.defer("i1")
+    const bedtime = (id) => plan.document.getElementById(id).hasAttribute("data-bedtime")
+    expect([bedtime("t1"), bedtime("i1"), bedtime("q1")]).toEqual([true, true, false])
+    plan.review("t1")
+    plan.queue("i1", "fix it")
+    expect([bedtime("t1"), bedtime("i1")]).toEqual([false, false])
+    // a backfilled review is stamped that day, not now
+    plan.review("q1", { date: "2026-09-20" })
+    expect(changed("q1")).toBe(isoTime(new Date(2026, 8, 20)))
+  })
+
+  it("colors items:  attention, progress, open, recent, old", () => {
+    const plan = freshPlan()
+    plan.document.body.setAttribute("data-recent-since", isoTime(new Date(2026, 8, 30)))
+    plan.addItem("question", "open?")
+    plan.addItem("judgement", "chose x")
+    plan.addItem("judgement", "chose y")
+    plan.addItem("issue", "bug")
+    plan.addItem("issue", "fixed long ago")
+    plan.addItem("caveat", "limit")
+    plan.addItem("todo", "later")
+    plan.addItem("test", "click it")
+    plan.addItem("decision", "settled")
+    plan.review("j2")
+    plan.queue("i1", "fix it")
+    plan.setItem("i2", "done")
+    plan.document.getElementById("i2").setAttribute("data-changed", isoTime(new Date(2026, 8, 1)))
+    plan.document.getElementById("t1").setAttribute("data-working", "")
+    expect(stateOf(plan, "q1", "j1", "j2", "i1", "i2", "c1", "t1", "v1", "q2")).toEqual([
+      "attention",
+      "attention",
+      "recent",
+      "progress",
+      "old",
+      "open",
+      "progress",
+      "open",
+      "recent"
+    ])
+    // a reviewed judgement call is blue once its review is no longer recent
+    plan.document.body.setAttribute("data-recent-since", isoTime(new Date(2026, 9, 2)))
+    expect(stateOf(plan, "j2", "q2")).toEqual(["open", "old"])
+    // no git history:  only a /bedtime run makes green
+    plan.document.body.removeAttribute("data-recent-since")
+    plan.document.getElementById("q2").setAttribute("data-bedtime", "")
+    expect(stateOf(plan, "q2", "c1")).toEqual(["recent", "open"])
+  })
+
+  it("writes <body data-recent-since> from recentSince:  a time sets it, null removes it, undefined leaves it", () => {
+    const html = readFileSync(join(DOCS, "templates/epics/plan.html"), "utf8")
+    const since = "2026-10-03T21:14:02-04:00"
+    const plan = PlanDoc.parse(html, NOW, { recentSince: since })
+    plan.updateStates()
+    expect(plan.document.body.getAttribute("data-recent-since")).toBe(since)
+    const kept = PlanDoc.parse(plan.toString(), NOW)
+    kept.updateStates()
+    expect(kept.document.body.getAttribute("data-recent-since")).toBe(since)
+    const none = PlanDoc.parse(plan.toString(), NOW, { recentSince: null })
+    none.updateStates()
+    expect(none.document.body.hasAttribute("data-recent-since")).toBe(false)
+  })
+
+  it("review labels:  to do orange, deferred grey, reviewed green while recent, then grey", () => {
+    const plan = freshPlan()
+    plan.document.body.setAttribute("data-recent-since", isoTime(new Date(2026, 8, 30)))
+    for (const title of ["a", "b", "c"]) plan.addItem("todo", title)
+    plan.queue("t1", "do it")
+    plan.defer("t2")
+    plan.review("t3")
+    const color = (id) => plan.document.querySelector(`#${id} .plan-review`).getAttribute("color")
+    plan.updateStates()
+    expect([color("t1"), color("t2"), color("t3")]).toEqual(["orange", "grey", "green"])
+    plan.document.body.setAttribute("data-recent-since", isoTime(new Date(2026, 9, 2)))
+    plan.updateStates()
+    expect(color("t3")).toBe("grey")
+  })
+
+  it("items added while a phase is active carry it;  each phase ends with what it raised that isn't reviewed", () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.addPhase("Two")
+    plan.addItem("todo", "before any phase")
+    plan.setPhase(1, "active")
+    plan.addItem("issue", "reviewed")
+    plan.addItem("judgement", "a call")
+    plan.addItem("caveat", "a limit")
+    plan.addItem("todo", "closed")
+    plan.addItem("question", "which?")
+    plan.addItem("todo", "queued")
+    plan.review("i1")
+    plan.setItem("t2", "done")
+    plan.queue("t3", "do it")
+    const phase = (id) => plan.document.getElementById(id).getAttribute("data-phase")
+    expect([phase("t1"), phase("i1"), phase("q1")]).toEqual([null, "1", "1"])
+    plan.updateStates()
+    const line = plan.document.querySelector("#p1 > .plan-phase-body > .plan-to-review")
+    expect(line.getAttribute("icon")).toBe("list check")
+    expect(line.innerHTML).toBe('<b>To review:</b>  <a href="#q1">Q1</a>, <a href="#j1">J1</a>, <a href="#c1">C1</a>')
+    expect(line.nextElementSibling).toBe(null)
+    expect(plan.document.querySelector("#p2 .plan-to-review")).toBe(null)
+    // nothing left:  the line goes
+    for (const id of ["q1", "j1", "c1"]) plan.review(id)
+    plan.updateStates()
+    expect(plan.document.querySelector("#p1 .plan-to-review")).toBe(null)
+    expect(plan.check()).toEqual([])
+  })
+
+  it("the review picker colors by the plan doc's state", () => {
+    const plan = freshPlan()
+    plan.addItem("issue", "bug")
+    plan.addItem("issue", "queued")
+    plan.queue("i2", "fix")
+    const section = plan.reviewSections({ filter: "open" }).find((s) => s.kind === "issue")
+    const spec = pickerSpec(plan, "/r/docs/epics/demo/demo.html", section, plan.reviewStatus(), "/r/docs/details")
+    expect(spec.questions[0].options.map((option) => option.state.color)).toEqual(["red", "orange"])
+  })
+})
+
+describe("PlanDoc commits", () => {
+  const SHA = "cd6a9d7600000000000000000000000000000001"
+  const BASE = "https://github.com/spell-app/spell-app"
+
+  it("reads phase and item commits from subjects", () => {
+    const parse = (subject) => parseCommitSubject(subject)
+    expect(parse("P1:  Side Bar And Chrome -- Spell Docs + Review tabs")).toEqual({
+      phases: [1],
+      items: [],
+      sentence: "Spell Docs + Review tabs"
+    })
+    expect(parse("P1 follow-up:  ivory rail").phases).toEqual([1])
+    expect(parse("P1 follow-up:  ivory rail").sentence).toBe("ivory rail")
+    expect(parse("P4 + P5:  both -- did both").phases).toEqual([4, 5])
+    expect(parse("WIP P3:  half").phases).toEqual([3])
+    expect(parse("review-review P3:  x").phases).toEqual([3])
+    expect(parse("P6a:  first half").phases).toEqual([6])
+    expect(parse("Fix I3:  the label").items).toEqual(["i3"])
+    expect(parse("review-review J2:  y").items).toEqual(["j2"])
+    expect(parse("P052 fonts:  x")).toBe(null)
+    expect(parse("P052:  x")).toBe(null)
+    expect(parse("Merge branch 'main' into review-review")).toBe(null)
+    expect(parse("goals skills:  linked")).toBe(null)
+  })
+
+  it("finds the GitHub page from the remote, https or ssh", () => {
+    expect(githubBase("https://github.com/spell-app/spell-app.git")).toBe(BASE)
+    expect(githubBase("git@github.com:spell-app/spell-app.git")).toBe(BASE)
+    expect(githubBase("ssh://git@github.com/spell-app/spell-app")).toBe(BASE)
+    expect(githubBase("https://gitlab.com/x/y.git")).toBe(null)
+    expect(githubBase("")).toBe(null)
+  })
+
+  it("lists a phase's commits after Done (else Goal), before the To review line;  replaces by sha", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { goal: "<ul><li>g</li></ul>" })
+    plan.setPhase(1, "active")
+    plan.addItem("caveat", "x")
+    plan.updateStates()
+    expect(plan.addCommit({ phase: 1 }, SHA, "built <it>", { base: BASE })).toBe("added")
+    const fields = () =>
+      Array.from(
+        plan.document.querySelectorAll("#p1 > .plan-phase-body > *"),
+        (field) => field.getAttribute("class") || null
+      )
+    expect(fields()).toEqual([null, "plan-commits", null, null, "plan-to-review"])
+    const field = plan.document.querySelector("#p1 .plan-commits")
+    expect(field.getAttribute("icon")).toBe("code branch")
+    expect(field.querySelector("ul.plan-commit-list").innerHTML).toBe(
+      `<li data-sha="${SHA}"><a class="plan-commit" href="${BASE}/commit/${SHA}" target="github">cd6a9d7</a>  built &lt;it&gt;</li>`
+    )
+    plan.setPhase(1, "done", { done: "<ul><li>d</li></ul>" })
+    expect(plan.addCommit({ phase: 1 }, SHA, "built it again")).toBe("replaced")
+    expect(field.querySelectorAll("li").length).toBe(1)
+    expect(field.querySelector("li").innerHTML).toBe('<code class="plan-commit">cd6a9d7</code>  built it again')
+    expect(plan.hasCommit({ phase: 1 }, SHA)).toBe(true)
+  })
+
+  it("lists an item's commits at the end of its details, giving it a panel when it has none", () => {
+    const plan = freshPlan()
+    plan.addItem("issue", "plain")
+    plan.addItem("issue", "detailed", { details: "<p>why</p>" })
+    plan.addCommit({ item: "I1" }, SHA, "fixed it", { base: BASE })
+    plan.addCommit({ item: "i2" }, SHA, "fixed it too", { base: BASE })
+    const plain = plan.document.querySelector("#i1 > ui-accordion.plan-item")
+    expect(plain.querySelector(":scope > ui-title > .plan-id").textContent).toBe("I1")
+    expect(plain.querySelector(":scope > ui-content > div.plan-commits > ul.plan-commit-list > li")).not.toBe(null)
+    const content = plan.document.querySelector("#i2 > ui-accordion > ui-content")
+    expect(Array.from(content.children, (child) => child.localName)).toEqual(["p", "div"])
+    expect(plan.check()).toEqual([])
+  })
+
+  it("backfills from the doc's history, oldest first, once", () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.addPhase("Two")
+    plan.addItem("issue", "bug")
+    const log = [
+      { sha: "c".repeat(40), subject: "Fix I1:  the bug" },
+      { sha: "b".repeat(40), subject: "P1 follow-up:  more" },
+      { sha: "a".repeat(40), subject: "P1:  One -- the first" },
+      { sha: "d".repeat(40), subject: "P9:  no such phase" },
+      { sha: "e".repeat(40), subject: "Merge branch 'main'" }
+    ]
+    const added = plan.backfillCommits(log, { base: BASE })
+    expect(added.map((entry) => [entry.sha[0], entry.phase ?? entry.item])).toEqual([
+      ["a", 1],
+      ["b", 1],
+      ["c", "i1"]
+    ])
+    const entries = plan.document.querySelectorAll("#p1 .plan-commit-list > li")
+    expect(Array.from(entries, (entry) => entry.textContent)).toEqual(["aaaaaaa  the first", "bbbbbbb  more"])
+    expect(plan.backfillCommits(log, { base: BASE })).toEqual([])
   })
 })
 
@@ -463,18 +775,31 @@ describe("PlanDoc migrate", () => {
     plan.setPhase(1, "done")
     plan.setPhase(2, "done")
     plan.setPhase(3, "active")
-    plan.addItem("decision", "padding tokens stay public", { details: "<p>why</p>" })
+    oldDecision(plan, "padding tokens stay public", "<p>why</p>")
     plan.addItem("question", "which emoji names?")
     plan.addItem("question", "still open?")
-    plan.addItem("decision", "CLDR names (Q1)")
+    oldDecision(plan, "CLDR names (Q1)")
     plan.setItem("q1", "done")
-    // decisions in old docs are `open`
-    for (const id of ["d1", "d2"]) plan.document.getElementById(id).setAttribute("data-status", "open")
     plan.addItem("issue", "plain")
     plan
       .require("#o1")
       .insertAdjacentHTML("afterend", '<p>back to <a href="#plan">the plan</a>, <a href="#questions">questions</a></p>')
     return plan
+  }
+
+  /**
+   * Append a decision as docs before D13 had them:  its own `D` id, `open` (as before 2026-10-01), `details` in its
+   * panel.
+   */
+  function oldDecision(plan, title, details) {
+    const list = plan.document.querySelector('.plan-items[data-kind="decision"]')
+    const id = `d${list.querySelectorAll(':scope > [id^="d"]').length + 1}`
+    const line = `<a class="plan-id" href="#${id}">${id.toUpperCase()}</a> <span class="plan-title">${title}</span>`
+    const item = plan.element(list.localName === "ol" ? "li" : "ui-item", { id, "data-status": "open" })
+    item.innerHTML = details
+      ? `<ui-accordion class="plan-item"><ui-title>${line}</ui-title><ui-content>${details}</ui-content></ui-accordion>`
+      : line
+    list.append(item)
   }
 
   it("brings an old doc into the current layout", () => {
@@ -493,7 +818,7 @@ describe("PlanDoc migrate", () => {
       "log"
     ])
     expect(headers(plan)[0]).toBe("1. Overview")
-    expect(headers(plan)[2]).toBe("3. Questions & Decisions")
+    expect(headers(plan)[2]).toBe("3. Questions")
     expect(headers(plan)[3]).toBe("4. Judgement calls")
     expect(headers(plan)[7]).toBe("8. To test")
     expect(headers(plan)[8]).toBe("9. Log")
@@ -502,27 +827,32 @@ describe("PlanDoc migrate", () => {
     expect(plan.document.getElementById("phases-section")).toBeNull()
     for (const section of plan.document.querySelectorAll("main > ui-section"))
       expect(section.querySelector(':scope > ui-icon[slot="icon"]')).not.toBeNull()
-    // open question on top, the answered one just before its decision, decisions in force `decided`
+    // open question on top;  D2 answered Q1, so it went INTO it;  D1 stood alone:  a question born answered, Q3
     const list = plan.document.querySelector('ui-list.plan-items[data-kind="decision"]')
     expect(Array.from(list.children, (item) => `${item.id}:${item.getAttribute("data-status")}`)).toEqual([
       "q2:open",
-      "d1:decided",
-      "q1:done",
-      "d2:decided"
+      "q1:decided",
+      "q3:decided"
     ])
-    expect(plan.document.querySelector("#q1 a.plan-answer").getAttribute("href")).toBe("#d2")
+    expect(plan.document.querySelector("a.plan-answer")).toBeNull()
+    expect(plan.document.querySelector("#q1 .plan-answer-block#d2 > .plan-answer-title").textContent).toBe(
+      "D2 · CLDR names"
+    )
     expect(plan.document.querySelector('a[href="#questions"]')).toBeNull()
     expect(plan.document.getElementById("o1").getAttribute("header")).toBe("1.1 Structure")
     expect(plan.document.querySelector(".plan-phases")).toBeNull()
     expect(plan.document.querySelector("ui-section#overview > .plan-summary.lede")).not.toBeNull()
     expect(plan.document.querySelector("ui-section#phases > ui-progress.plan-progress")).not.toBeNull()
-    expect(plan.document.querySelector("ui-sticky.spell-h1 .plan-step ui-label").textContent).toBe("P3 · Three")
-    const decision = plan.document.getElementById("d1")
+    expect(plan.document.querySelector("ui-sticky.spell-h1 .plan-step ui-label").textContent).toBe("P3")
+    const decision = plan.document.getElementById("q3")
     expect(decision.localName).toBe("ui-item")
     expect(decision.querySelector("ui-accordion.plan-item > ui-title > .plan-title").textContent).toBe(
       "padding tokens stay public"
     )
-    expect(decision.querySelector("ui-accordion.plan-item > ui-content").innerHTML).toBe("<p>why</p>")
+    expect(decision.querySelector("ui-accordion.plan-item > ui-content").innerHTML).toBe(
+      '<div class="plan-answer-block" id="d1"><div class="plan-answer-title"><b>D1</b> · padding tokens stay public' +
+        "</div><p>why</p></div>"
+    )
     expect(plan.document.querySelector("#i1 > .plan-title").textContent).toBe("plain")
     expect(plan.document.querySelector("ui-list.plan-phase-body > ui-item[icon=bullseye]")).not.toBeNull()
     expect(folds(plan)).toEqual([true, false, false])
@@ -565,6 +895,187 @@ describe("PlanDoc migrate", () => {
     expect(judgements.getAttribute("data-tip")).toMatch(/^Choices made without you/)
     expect(plan.document.querySelector("main > ui-section > p.meta")).toBe(null)
     expect(freshPlan().document.querySelector("main > ui-section > p.meta")).toBe(null)
+  })
+
+  it('renames "Questions & Decisions" to "Questions", its note too;  old default icons swap, custom ones stay', () => {
+    const plan = freshPlan()
+    const decisions = plan.document.getElementById("decisions")
+    decisions.setAttribute("header", "3. Questions & Decisions")
+    decisions.setAttribute(
+      "data-tip",
+      "Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: " +
+        "settled, don't re-argue without new facts. An answered question sits just above its decision."
+    )
+    decisions.querySelector('ui-icon[slot="icon"]').setAttribute("name", "gavel")
+    plan.document.querySelector('#judgements > ui-icon[slot="icon"]').setAttribute("name", "compass")
+    plan.document.querySelector('#caveats > ui-icon[slot="icon"]').setAttribute("name", "star")
+    const changes = plan.migrate()
+    expect(changes).toContain('"Questions & Decisions" titled "Questions", its note too')
+    expect(decisions.getAttribute("header")).toBe("3. Questions")
+    expect(decisions.getAttribute("data-tip")).toBe(
+      freshPlan().document.getElementById("decisions").getAttribute("data-tip")
+    )
+    const icon = (id) => plan.document.querySelector(`#${id} > ui-icon[slot="icon"]`).getAttribute("name")
+    expect([icon("decisions"), icon("judgements"), icon("caveats")]).toEqual(["file circle question", "gavel", "star"])
+  })
+
+  it('keeps the hand-written "Judgement calls:" lines (J14);  the "To review" line goes after them', () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.setPhase(1, "active")
+    plan.addItem("judgement", "a call")
+    plan.addItem("judgement", "accepted")
+    plan.setItem("j2", "done")
+    plan.document
+      .querySelector("#p1 > .plan-phase-body")
+      .append(
+        plan.fragment(
+          '<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j1">J1</a> <a href="#j2">J2</a></ui-item>'
+        )
+      )
+    plan.migrate()
+    const body = plan.document.querySelector("#p1 > .plan-phase-body")
+    const lines = Array.from(body.children, (line) => line.textContent.trim().split(":")[0])
+    expect(lines.slice(-2)).toEqual(["Judgement calls", "To review"])
+    expect(body.querySelector(".plan-to-review").textContent).toBe("To review:  J1")
+    expect(plan.migrate()).toEqual([])
+  })
+
+  /** An old doc's question list:  struck questions with `→ Dn`, their decisions, stand-alone ones (`html`). */
+  function oldQuestions(html) {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.document.querySelector('.plan-items[data-kind="decision"]').innerHTML = html
+    return plan
+  }
+
+  /** An old struck question `n`, answered by `d` (`→ D<d>`), `details` in its panel. */
+  function struck(n, d, details = "") {
+    const line =
+      `<a class="plan-id" href="#q${n}">Q${n}</a> <span class="plan-title">question ${n}?</span> ` +
+      `<a class="plan-answer" href="#d${d}">→ D${d}</a>`
+    return details
+      ? `<ui-item id="q${n}" data-status="done"><ui-accordion class="plan-item"><ui-title>${line}</ui-title>` +
+          `<ui-content>${details}</ui-content></ui-accordion></ui-item>`
+      : `<ui-item id="q${n}" data-status="done">${line}</ui-item>`
+  }
+
+  /** An old decision `n`, titled `title` (HTML), `details` in its panel, `attributes` on the item. */
+  function decision(n, title, details = "", attributes = 'data-status="decided"') {
+    const line = `<a class="plan-id" href="#d${n}">D${n}</a> <span class="plan-title">${title}</span>`
+    return details
+      ? `<ui-item id="d${n}" ${attributes}><ui-accordion class="plan-item"><ui-title>${line}</ui-title>` +
+          `<ui-content>${details}</ui-content></ui-accordion></ui-item>`
+      : `<ui-item id="d${n}" ${attributes}>${line}</ui-item>`
+  }
+
+  /** Two option cards, `A · ...` and `B. ...`, as old docs label them. */
+  function cards(a, b) {
+    const card = (label) =>
+      `<ui-column><ui-segment><ui-label attached="top">${label}</ui-label></ui-segment></ui-column>`
+    return `<ui-grid class="spell-pros-cons" columns="2">${card(a)}${card(b)}</ui-grid>`
+  }
+
+  it("merges each answering decision INTO its question:  the answer card, keeping its id, marks and details", () => {
+    const plan = oldQuestions(
+      struck(1, 2, "<p>the options</p>") +
+        decision(
+          2,
+          'Inbox file (<a href="#q1">Q1</a>)',
+          '<p>why</p><p class="meta">Answers <a href="#q1">Q1</a>: question 1?</p>',
+          'data-status="decided" data-reviewed="2026-10-02" data-changed="2026-10-02T10:00:00-04:00"'
+        ) +
+        '<ui-item id="q2" data-status="open"><a class="plan-id" href="#q2">Q2</a> <span class="plan-title">open?</span></ui-item>'
+    )
+    plan.document.getElementById("o1").insertAdjacentHTML("afterend", '<p>see <a href="#d2">D2</a></p>')
+    expect(plan.migrate()).toContain("1 decisions merged into questions:  1 answering one, 0 stand-alone")
+    const question = plan.document.getElementById("q1")
+    expect(question.getAttribute("data-status")).toBe("decided")
+    expect(question.hasAttribute("data-answered")).toBe(true)
+    expect(question.getAttribute("data-reviewed")).toBe("2026-10-02")
+    expect(question.querySelector(".plan-review").textContent).toBe("reviewed 10-02")
+    expect(question.querySelector(".plan-answer")).toBeNull()
+    expect(question.querySelector("ui-content").innerHTML).toBe(
+      '<div class="plan-answer-block" id="d2"><div class="plan-answer-title"><b>D2</b> · Inbox file</div>' +
+        "<p>why</p></div><p>the options</p>"
+    )
+    // the old link lands inside Q1;  open questions stay on top;  `item()` finds Q1 by D2
+    expect(plan.check()).toEqual([])
+    const order = Array.from(question.parentElement.children, (item) => item.id)
+    expect(order).toEqual(["q2", "q1"])
+    expect(plan.item("D2")).toBe(question)
+    // idempotent
+    const html = plan.toString()
+    expect(plan.migrate()).toEqual([])
+    expect(plan.toString()).toBe(html)
+  })
+
+  it("turns a stand-alone decision into a question born answered;  a struck (superseded) one is canceled", () => {
+    const plan = oldQuestions(
+      struck(1, 1) +
+        decision(1, "first (Q1)") +
+        decision(2, "<code>alone</code>", "<p>because</p>") +
+        decision(3, "superseded", "", 'data-status="done"')
+    )
+    expect(plan.migrate()).toContain("3 decisions merged into questions:  1 answering one, 2 stand-alone")
+    const list = plan.document.querySelector('.plan-items[data-kind="decision"]')
+    expect(Array.from(list.children, (item) => `${item.id}:${item.getAttribute("data-status")}`)).toEqual([
+      "q1:decided",
+      "q2:decided",
+      "q3:canceled"
+    ])
+    const alone = plan.document.getElementById("q2")
+    expect(alone.querySelector(":scope > ui-accordion > ui-title").innerHTML).toBe(
+      '<a class="plan-id" href="#q2">Q2</a> <span class="plan-title"><code>alone</code></span>'
+    )
+    expect(alone.querySelector("ui-content").innerHTML).toBe(
+      '<div class="plan-answer-block" id="d2"><div class="plan-answer-title"><b>D2</b> · <code>alone</code></div>' +
+        "<p>because</p></div>"
+    )
+    expect(plan.document.querySelector("#q3 > ui-accordion > ui-content > .plan-answer-block#d3")).not.toBeNull()
+    expect(plan.document.querySelector("#q1 .plan-answer-title").textContent).toBe("D1 · first")
+    plan.updateStates()
+    expect(plan.document.getElementById("q3").getAttribute("data-state")).toBe("old")
+    expect(plan.summary().open.question).toEqual([])
+    expect(plan.check()).toEqual([])
+  })
+
+  it("chooses the option the decision names:  a letter first, 'option B', or every word of one option's title", () => {
+    const plan = oldQuestions(
+      struck(1, 1, cards("A · Inbox file (recommended)", "B · In the doc")) +
+        decision(1, "B: written into the doc (Q1)") +
+        struck(2, 2, cards("A. Merge each phase (recommended)", "B. Merge at the end")) +
+        decision(2, "Merge at the end: main stays as it is (Q2)") +
+        struck(3, 3, cards("A · Top-down", "B · Bottom-up")) +
+        decision(3, "Neither, really (Q3)", "<p>we went with option A after all</p>") +
+        struck(4, 4, cards("A · Page-wide", "B · Per subtree")) +
+        decision(4, "Per root (Q4)") +
+        struck(5, 5, cards("A · One", "B · Two").replace("<ui-column>", "<ui-column data-chosen>")) +
+        decision(5, "B: two (Q5)")
+    )
+    expect(plan.migrate()).toContain(
+      "5 decisions merged into questions:  5 answering one, 0 stand-alone;  options chosen:  3, not inferred:  1"
+    )
+    const chosen = (id) =>
+      plan.document.querySelector(`#${id} ui-column[data-chosen] ui-label`)?.textContent.slice(0, 1) ?? null
+    expect(["q1", "q2", "q3", "q4", "q5"].map(chosen)).toEqual(["B", "B", "A", null, "A"])
+  })
+
+  it("cancel:  struck through, closed;  reopen undoes it", () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.setPhase(1, "active")
+    plan.addItem("issue", "moot")
+    plan.setItem("i1", "canceled")
+    plan.document.body.setAttribute("data-recent-since", "2026-09-01T00:00:00-04:00")
+    plan.updateStates()
+    const item = plan.document.getElementById("i1")
+    expect([item.getAttribute("data-status"), item.getAttribute("data-state")]).toEqual(["canceled", "recent"])
+    expect(plan.document.querySelector("#p1 .plan-to-review")).toBeNull()
+    expect(plan.summary().open.issue).toEqual([])
+    expect(plan.reviewSections({ filter: "all" }).find((s) => s.kind === "issue").items[0].state).toBe("reviewed")
+    plan.setItem("i1", "open")
+    expect(item.getAttribute("data-status")).toBe("open")
   })
 
   it("does nothing to a current doc", () => {
@@ -730,7 +1241,7 @@ describe("PlanDoc review", () => {
     plan.defer("i3")
     plan.setItem("i4", "done")
     const section = plan.reviewSections({ filter: "open" }).find((s) => s.kind === "issue")
-    const spec = pickerSpec(plan, "/r/docs/epics/demo/demo.html", section, plan.reviewStatus(), "/r/docs/details")
+    const spec = pickerSpec(plan, "/r/docs/epics/demo/demo.plan.html", section, plan.reviewStatus(), "/r/docs/details")
     const [question] = spec.questions
     expect([spec.bare, question.multiple, question.selectAll, question.filter, question.moreDetails]).toEqual([
       true,
@@ -746,7 +1257,7 @@ describe("PlanDoc review", () => {
     ])
     // the whole text, its links made to work from the page's folder;  no fold
     expect(question.options[0].body).toBe(
-      '<p>why:  see <a href="../epics/demo/demo.html#c1">C1</a> and <a href="../scripts/x.js">x.js</a></p><ul><li>more</li></ul>'
+      '<p>why:  see <a href="../epics/demo/demo.plan.html#c1">C1</a> and <a href="../scripts/x.js">x.js</a></p><ul><li>more</li></ul>'
     )
     expect(question.options[0].details).toBeUndefined()
     expect(question.title).toBe("Issues (2/4)")

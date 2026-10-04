@@ -104,6 +104,8 @@ const ICONS = {
   "solid/desktop": ["desktop"],
   "solid/puzzle-piece": ["puzzle piece", "puzzle"],
   "solid/book-open": ["book open"],
+  // a plan doc's "Durable doc:" line (and a durable doc's "Plan doc:" line is `map`)
+  "solid/book": ["book"],
   "solid/cubes": ["cubes"],
   "solid/globe": ["globe"],
   "solid/language": ["language"],
@@ -144,6 +146,7 @@ const ICONS = {
   "solid/ellipsis": ["ellipsis", "ellipsis horizontal"],
   "regular/circle-check": ["circle check outline", "check circle outline"],
   "regular/paper-plane": ["paper plane outline"],
+  "regular/circle-right": ["circle right"],
   "regular/folder": ["folder outline"],
   "../fa7-brands/brands/git-alt": ["git", "git alt"] // the brands pack, beside `ICON_PACK`
 }

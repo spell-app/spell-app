@@ -10,7 +10,7 @@
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync } from "node:fs"
 import path from "node:path"
 import { gzipSync } from "node:zlib"
-import { build, type Rolldown } from "vite"
+import { build, type Rolldown } from "vite-plus"
 
 import { BRAND_ASSETS } from "../vite.config.ts"
 

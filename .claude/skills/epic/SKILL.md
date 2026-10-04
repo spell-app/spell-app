@@ -1,6 +1,6 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `packages/docs/epics/<name>/<name>.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  walk a plan doc's open items with Owen, one at a time ("review the seo epic", "go through unified-server's caveats").
+description: Run a planning session against a live plan doc, `packages/docs/epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  walk a plan doc's open items with Owen, one at a time ("review the seo epic", "go through unified-server's caveats").
 argument-hint: <name> [what to plan] | review [<name>]
 ---
 
@@ -9,7 +9,7 @@ argument-hint: <name> [what to plan] | review [<name>]
 An EPIC is a planning session and the work it plans;  its live record is the PLAN DOC.  (Was `/plan-doc` until
 2026-10-02;  `yarn plan-doc` keeps its name, since it edits the plan doc.)
 
-Plan, then build, in worktree `<name>`, keeping `packages/docs/epics/<name>/<name>.html` (the PLAN DOC) current
+Plan, then build, in worktree `<name>`, keeping `packages/docs/epics/<name>/<name>.plan.html` (the PLAN DOC) current
 the whole time.  The plan doc is the user's view of the work:  they read it in VS Code's doc preview (the right side bar's "Spell Docs" view) while you work.
 
 - Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/epics/plan-doc.md`.  Read it first.
@@ -62,7 +62,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 When the session already has work under way ("make this a plan doc"), carry it over -- don't start again:
 - Plan mode and edits already made on `main`:  `.claude/skills/isolate/SKILL.md`, "Start", step 0.
 - Step 3:  start from the plan drafted so far (harness plan file, conversation), reshaped into the plan doc's
-  shape;  explore only to fill gaps.  Decisions and questions already settled become `decision` items.
+  shape;  explore only to fill gaps.  Decisions and questions already settled become `decision` items (questions
+  born answered:  `Q7`).
 
 ## 2. Session:  stub doc, then move
 
@@ -137,11 +138,15 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 1. `yarn plan-doc phase <name> <N> active`, and check the session's name (`.claude/skills/isolate/SKILL.md`,
    "Session name").
 2. Do the work.  Record as you go, not at the end:
-   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`;  a
-     choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement` (ids `J1` ...;  see `/bedtime`)
+   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision` (a
+     question born answered);  a choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement`
+     (ids `J1` ...;  see `/bedtime`)
+   - items added while the phase is active carry it:  the phase's "To review" line (written by the script on every
+     edit) lists the ones Owen hasn't reviewed.  Never hand-write a "Judgement calls:" line
    - something only Owen can check (a live window, a click, a look):  `add ... test "<step>" --details "<p>what
      should happen</p>"`, into "To test";  `close` it once he says it passed
-   - fixed or obsolete:  `close <name> <id>` (it stays, struck through)
+   - fixed or done:  `close <name> <id>` (it stays, closed, NOT struck);  made moot by another decision:
+     `cancel <name> <id> "why"` (struck through:  the one struck status, J16 of `review-review`)
    - an item talked through with Owen (he answered, accepted, or said leave it):  `review <name> <id> "outcome"`,
      so the next `/epic review` doesn't bring it up again ("7. Review")
    - changed a prose block:  put
@@ -152,6 +157,9 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 4. `yarn plan-doc phase <name> <N> done --done "<ul><li>...</li></ul>"` (drops that phase's UPDATE markers, writes
    its Done field, brings the doc forward), then `yarn plan-doc summary <name>`.  Done:  what was BUILT, ordered by
    what Owen asks about first:  where to see it, what changed in how he works, what's rough or not yet tried by hand.
+   - commit messages, so the doc can list them (its phase's and items' "Commits"):  a phase `P<n>:  <Name> --
+     <summary>` (`P4 + P5:` for two;  `WIP P3:` for a parked part), an item fix `Fix I3:  ...`
+   - after the phase's commit:  `yarn plan-doc commits <name> --backfill` (its change goes in with the next commit)
 5. Reply:  a short bulleted list (done, issues, caveats, next), the "complete.  Next is" line (see the top), THEN
    AskUserQuestion so the user picks without copying anything.  Options, most useful first:
    - "Start P<N+1> · <Name> (Recommended)"
@@ -159,7 +167,8 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
    - a caveat or todo worth acting on now
    - "Stop here"
    Questions the user must answer also go in the doc (`add ... question`);  once answered,
-   `decide <name> Q3 "what was decided"` (never `close`:  `decide` records the answer beside the question).
+   `decide <name> Q3 "what was decided"` (never `close`:  `decide` writes the answer INTO the question, D13 of
+   `review-review`).
 6. Explain every question and every issue the user must weigh in on WITH EXAMPLES, in the doc (rules:
    `plan-doc.md`, "Explaining a question or issue"), so the user can decide from the doc alone:  define each coined
    word in plain language ("stacking", "nudge"), show the real code / markup it's about, compare many values in a
@@ -188,7 +197,7 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 ## 7. Review:  `/epic review [<name>]`
 
 Walk a plan doc's open items with Owen:  pick a section, pick items, one item at a time.  FAST by default (the item
-as clean bullets, one modal);  deeper only when he asks.  Plan:  `epics/epic-review/epic-review.html`.
+as clean bullets, one modal);  deeper only when he asks.  Plan:  `epics/epic-review/epic-review.plan.html`.
 
 - Runs from ANY window, `main` or a worktree:  the prompt hook lets `/epic review` through, never renames the session.
   No worktree, no plan mode.
@@ -212,7 +221,7 @@ yarn plan-doc decide | close | add | log <name> ...      as in "5. Each phase"
 Words:
 - OUTSTANDING:  open (or deferred), not reviewed.  REVIEWED:  marked reviewed, struck, decided, or linked from a
   decision.  QUEUED:  work a review decided on, not started yet.  DEFERRED:  skipped for now;  still outstanding.
-- Sections:  Questions (open questions in "Questions & Decisions"), Judgement calls, Caveats, Todos, Issues,
+- Sections:  Questions (the `Q` items in "Questions", open and answered), Judgement calls, Caveats, Todos, Issues,
   To test.
 - These words are the SKILL's.  Owen never sees "queue", "outstanding", "Start modal", "kickoff prompt" or "mock" in
   a modal.  Say "waiting to be done", "not reviewed yet", "pick a section", "a new window".
@@ -371,12 +380,16 @@ add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..] [--estimate
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)
-decide <name> <Q id> "decision" [--details html]   answer a question:  prints the decision's id (D7)
-close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
+decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
+commit <name> <sha> --phase N | --item <id> "..."   list a commit under a phase or an item
+commits <name> --backfill                           every phase / item commit in the doc's git history, once
+close <name> <id>  /  reopen <name> <id>            close (done) / open again, never delete
+cancel <name> <id> ["why"]                          made moot by another decision:  struck;  reopen undoes it
 log <name> "text"                                   timestamped line in the doc's log
 overnight <name> start|phase|problem|done|remove    a /bedtime run's report, on top of the doc (`/bedtime`)
 prompt <name> "text" | --file f                     set the prompt quoted in the Overview
-migrate <name>                                      an older doc (any layout) into the current one
+migrate <name>                                      an older doc (any layout) into the current one;  its D
+                                                    items merge into its questions
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
 open <name>                                         show in VS Code's doc preview (right side bar)

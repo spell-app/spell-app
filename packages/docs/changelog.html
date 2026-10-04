@@ -74,31 +74,60 @@
             </li>
             <li>Each moves to section 3, with plan-doc links, when it merges.</li>
           </ul>
-
-          <ui-section id="vite-plus" header="vite-plus · done 2026-10-02" sticky collapsible dividing>
-            <ui-list class="spell-meta">
-              <ui-item icon="code branch">Branch <code>vite-plus</code>, worktree only, deliberately unmerged</ui-item>
-            </ui-list>
-            <ul>
-              <li>Vite+ 1.0 (<code>vp</code>) in the root and 11 packages; Node 24.11 via volta, CI on 24.</li>
-              <li>
-                Vitest imports rewritten to <code>vite-plus/test</code>; lint and format configs folded into a root
-                <code>vite.lint.ts</code>.
-              </li>
-              <li>Tests 318-345 s → 270-276 s with <code>vp run -r</code>; <code>ts</code> 6.0 s → 3.1 s.</li>
-              <li>Found: the type-check cache can replay a stale "TSC PASSED" (needs explicit inputs).</li>
-              <li>
-                Left: format-on-save check, format 63 files, merge + <code>yarn install</code> /
-                <code>yarn vscode</code>.
-              </li>
-            </ul>
-          </ui-section>
         </ui-section>
 
         <ui-section id="3-merged" header="3. Merged into main" sticky collapsible dividing>
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section id="vite-plus" header="2026-10-02 → 10-04 · Vite+ toolchain" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/vite-plus/vite-plus.plan.html" target="vite-plus">epics/vite-plus</a></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc: <a href="vite-plus.html" target="src-packages-docs-vite-plus-html">Vite+</a></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>vite-plus</code>, one <code>/bedtime</code> run, merged 2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: <code>vite-plus</code> 1.0 replaces vite, vitest, oxlint, oxfmt and tsgolint in the root and 11
+                  packages (<code>catalog:</code> versions; <code>vite</code> aliased to <code>vite-plus-core</code>).
+                </li>
+                <li>
+                  P1: lint and format settings out of <code>.oxlintrc*.json</code> / <code>.oxfmtrc.json</code> into
+                  each <a href="../../vite.config.ts" target="src-vite-config-ts"><code>vite.config.ts</code></a
+                  >, spreading one root module,
+                  <a href="../../vite.lint.ts" target="src-vite-lint-ts"><code>vite.lint.ts</code></a
+                  >.
+                </li>
+                <li>P1: test imports <code>vitest</code> → <code>vite-plus/test</code>; Node 24.11+, CI on 24.</li>
+                <li>P1: oxfmt 0.70 (Vite+&apos;s pin) rewraps 4 files.</li>
+                <li>
+                  P2: measured, verdict adopt: <code>yarn ts</code> 6.0 s → 3.1 s, tests about 15% faster, dev and build
+                  unchanged.
+                </li>
+                <li>
+                  P3: root <code>ts</code> / <code>test:packages</code> / <code>review</code> run through
+                  <code>vp run</code>;
+                  <a href="AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> Toolchain section.
+                  <code>yarn vp fmt</code> / <code>yarn vp lint</code> replace <code>yarn oxfmt</code> /
+                  <code>yarn oxlint</code> in packages.
+                </li>
+                <li>Found: <code>vp run --cache</code> replays a stale "TSC PASSED" (I1), so nothing caches yet.</li>
+                <li>
+                  C6: the app&apos;s browser tests pass on a cold vite cache:
+                  <a href="../app/src/runner/spellRuntime.ts" target="src-packages-app-src-runner-spellruntime-ts"
+                    ><code>spellRuntime.ts</code></a
+                  >, imported by URL, is one of <code>optimizeDeps.entries</code>.
+                </li>
+                <li>Left: format-on-save check, format 63 files and add a root <code>vp check</code> script.</li>
+              </ul>
+            </ui-section>
             <ui-section
               id="commands"
               header="2026-10-02 → 10-04 · Commands:  CLI, skills, yarn"
@@ -108,7 +137,7 @@
             >
               <ui-list class="spell-meta">
                 <ui-item icon="map"
-                  >Plan doc: <a href="epics/commands/commands.html" target="commands">epics/commands</a></ui-item
+                  >Plan doc: <a href="epics/commands/commands.plan.html" target="commands">epics/commands</a></ui-item
                 >
                 <ui-item icon="book"
                   >Durable doc:
@@ -198,7 +227,7 @@
               <ui-list class="spell-meta">
                 <ui-item icon="map"
                   >Plan doc:
-                  <a href="epics/ui-docs-rework/ui-docs-rework.html" target="ui-docs-rework"
+                  <a href="epics/ui-docs-rework/ui-docs-rework.plan.html" target="ui-docs-rework"
                     >epics/ui-docs-rework</a
                   ></ui-item
                 >
@@ -248,7 +277,7 @@
               <ui-list class="spell-meta">
                 <ui-item icon="map"
                   >Plan doc:
-                  <a href="epics/epic-review/epic-review.html" target="epic-review">epics/epic-review</a></ui-item
+                  <a href="epics/epic-review/epic-review.plan.html" target="epic-review">epics/epic-review</a></ui-item
                 >
                 <ui-item icon="book open"
                   >Durable doc:
@@ -393,7 +422,9 @@
               <ui-list class="spell-meta">
                 <ui-item icon="map"
                   >Plan doc:
-                  <a href="epics/details/details.html" target="details">epics/details/details.html</a></ui-item
+                  <a href="epics/details/details.plan.html" target="details"
+                    >epics/details/details.plan.html</a
+                  ></ui-item
                 >
                 <ui-item icon="book open"
                   >Durable doc:
@@ -524,7 +555,9 @@
               <ui-list class="spell-meta">
                 <ui-item icon="code branch"
                   >Branch <code>spell-ui-pages</code>; plan doc
-                  <a href="epics/spell-ui-pages/spell-ui-pages.html" target="spell-ui-pages">Spell UI Pages</a></ui-item
+                  <a href="epics/spell-ui-pages/spell-ui-pages.plan.html" target="spell-ui-pages"
+                    >Spell UI Pages</a
+                  ></ui-item
                 >
                 <ui-item icon="book"
                   >Durable doc:
@@ -592,7 +625,7 @@
               <ui-list class="spell-meta">
                 <ui-item icon="code branch"
                   >Branch <code>seo</code>; plan doc
-                  <a href="epics/seo/seo.html" target="seo">Static Pages for SEO</a></ui-item
+                  <a href="epics/seo/seo.plan.html" target="seo">Static Pages for SEO</a></ui-item
                 >
                 <ui-item icon="book"
                   >Durable doc: <a href="seo/seo.html" target="src-packages-docs-seo-seo-html">seo/seo.html</a></ui-item
@@ -657,7 +690,7 @@
               <ui-list class="spell-meta">
                 <ui-item icon="code branch"
                   >Branch <code>isolate-changes</code>; plan doc
-                  <a href="epics/isolate-changes/isolate-changes.html" target="isolate-changes"
+                  <a href="epics/isolate-changes/isolate-changes.plan.html" target="isolate-changes"
                     >Isolate &amp; Epic Changes</a
                   >, written after the merge</ui-item
                 >
@@ -859,7 +892,7 @@
             <ui-section id="ui-import" header="2026-10-02 · ui-import" sticky collapsible dividing>
               <ui-list class="spell-meta">
                 <ui-item icon="map"
-                  >Plan doc: <a href="epics/ui-import/ui-import.html" target="ui-import">ui-import</a></ui-item
+                  >Plan doc: <a href="epics/ui-import/ui-import.plan.html" target="ui-import">ui-import</a></ui-item
                 >
                 <ui-item icon="book open"
                   >Durable doc:
@@ -901,7 +934,7 @@
               <ui-list class="spell-meta">
                 <ui-item icon="map"
                   >Plan doc:
-                  <a href="epics/solid-migration/solid-migration.html" target="solid-migration"
+                  <a href="epics/solid-migration/solid-migration.plan.html" target="solid-migration"
                     >solid-migration</a
                   ></ui-item
                 >
@@ -956,7 +989,9 @@
               <ui-list class="spell-meta">
                 <ui-item icon="map"
                   >Plan doc:
-                  <a href="epics/unified-server/unified-server.html" target="unified-server">unified-server</a></ui-item
+                  <a href="epics/unified-server/unified-server.plan.html" target="unified-server"
+                    >unified-server</a
+                  ></ui-item
                 >
                 <ui-item icon="book open"
                   >Durable doc: <a href="server.html" target="src-packages-docs-server-html">Page Server</a></ui-item
@@ -1002,7 +1037,7 @@
               <ui-list class="spell-meta">
                 <ui-item icon="map"
                   >Plan doc:
-                  <a href="epics/ui-component-creation/ui-component-creation.html" target="ui-component-creation"
+                  <a href="epics/ui-component-creation/ui-component-creation.plan.html" target="ui-component-creation"
                     >ui-component-creation</a
                   ></ui-item
                 >
@@ -1061,7 +1096,9 @@
               <ui-list class="spell-meta">
                 <ui-item icon="map"
                   >Plan doc:
-                  <a href="epics/cli-additions/cli-additions.html" target="cli-additions">cli-additions</a></ui-item
+                  <a href="epics/cli-additions/cli-additions.plan.html" target="cli-additions"
+                    >cli-additions</a
+                  ></ui-item
                 >
                 <ui-item icon="book open"
                   >Durable doc: <a href="cli.html" target="src-packages-docs-cli-html">spell Command Line</a></ui-item
@@ -1158,7 +1195,9 @@
               <ui-list class="spell-meta">
                 <ui-item icon="map"
                   >Plan doc:
-                  <a href="epics/docs-workspace/docs-workspace.html" target="docs-workspace">docs-workspace</a></ui-item
+                  <a href="epics/docs-workspace/docs-workspace.plan.html" target="docs-workspace"
+                    >docs-workspace</a
+                  ></ui-item
                 >
                 <ui-item icon="book open"
                   >Durable doc:
@@ -1333,7 +1372,7 @@
           <ui-divider></ui-divider>
           <p class="meta">
             Last updated 2026-10-04 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages, stay-put,
-            epic-review and commands.
+            epic-review, commands and vite-plus.
           </p>
         </footer>
       </main>

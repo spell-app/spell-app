@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 
 import { SP } from "$/spell"
 import { CLI } from "$/cli"

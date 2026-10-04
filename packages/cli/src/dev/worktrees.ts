@@ -1,5 +1,5 @@
 import { spawnSync } from "child_process"
-import { existsSync } from "fs"
+import { existsSync, readFileSync } from "fs"
 import { basename, dirname, join, relative, resolve } from "path"
 import { pathToFileURL } from "url"
 
@@ -90,11 +90,19 @@ export function planStatus(
   return { folder: dirname(file), done: phases.length > 0 && phases.every((phase) => phase.status === "done") }
 }
 
-/** Plan doc `name`'s live copy:  the worktree's `<name>.html` when it has one, else the main checkout's;  or `null`. */
+/**
+ * Plan doc `name`'s live copy:  the worktree's when it has one, else the main checkout's;  or `null`.
+ * - in each:  `<name>.plan.html`, else an old `<name>.html` that is a plan doc (`<body class="... plan-doc">`):
+ *   plan docs were renamed on 2026-10-04, and worktrees cut before keep the old name until they merge `main`
+ *   (`packages/docs/scripts/pages.js` `planDocIn()` is the same)
+ */
 export function planFile(name: string, worktree: string, main = CLI.mainRoot()): string | null {
   for (const root of [worktree, main]) {
-    const file = join(root, "packages", "docs", "epics", name, `${name}.html`)
+    const folder = join(root, "packages", "docs", "epics", name)
+    const file = join(folder, `${name}.plan.html`)
     if (existsSync(file)) return file
+    const old = join(folder, `${name}.html`)
+    if (existsSync(old) && /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(readFileSync(old, "utf8"))) return old
   }
   return null
 }

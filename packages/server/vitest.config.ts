@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config"
+import { defineConfig } from "vite-plus"
 
 /**
  * vitest config for `@spell-app/server`:  every test in node, since this package IS node (`node:http`, `fs`).

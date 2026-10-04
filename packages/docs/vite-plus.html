@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vite+</title>
+    <meta
+      name="description"
+      content="The repo's toolchain on Vite+ 1.0:  one vite-plus dependency pins vite, vitest, oxlint and oxfmt;  how it's set up, what it bought, and its limits."
+    />
+    <link rel="stylesheet" href="_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Vite+</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <h1>Vite+</h1>
+        <p class="lede">
+          How the repo's build, test, lint and format tools run on Vite+ 1.0, and what to watch for when changing them.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="user">Written for: anyone touching configs, scripts or tool versions</ui-item>
+          <ui-item icon="flag"
+            >Status: <ui-label size="mini" color="green">built</ui-label> on branch <code>vite-plus</code></ui-item
+          >
+          <ui-item icon="flask"
+            >Checked 2026-10-02: every package's checks run before and after, on the same machine (see
+            <a href="#3-measured">Measured</a>)</ui-item
+          >
+        </ui-list>
+
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
+          <ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="1" label="tool dependency"></ui-statistic>
+            <ui-statistic value="2×" label="faster yarn ts"></ui-statistic>
+            <ui-statistic value="0" label="new failures"></ui-statistic>
+          </ui-statistics>
+          <ul>
+            <li>
+              <code>vite-plus</code> 1.0.0 (command <code>vp</code>, MIT) replaces vite, vitest, oxlint, oxfmt and
+              tsgolint in every
+              <a href="package.json" target="src-packages-docs-package-json"><code>package.json</code></a
+              >; their versions move together.
+            </li>
+            <li>
+              Same engines underneath: dev, build and test are no faster. The gain is <code>vp run</code>: root scripts
+              run packages in parallel (<code>yarn ts</code> 6.0s to 3.1s) and carry on past a failing one.
+            </li>
+            <li>
+              Its pins trail the standalone tools by a week or two (vitest 5.0.1, oxlint 1.85, oxfmt 0.70): cost us 4
+              rewrapped files and no new lint warnings.
+            </li>
+            <li>Node 24.11+.</li>
+          </ul>
+          <ui-message state="negative" header="Never cache a plain script">
+            <ul>
+              <li>
+                <code>vp run --cache</code> replayed "TSC PASSED" for a package with a type error: its file tracking
+                can't see TS 7's native <code>tsc</code>. A cached task needs explicit inputs (<a href="#5-limits"
+                  >Limits</a
+                >).
+              </li>
+            </ul>
+          </ui-message>
+        </ui-section>
+
+        <ui-section id="2-setup" header="2. How it's set up" sticky collapsible dividing>
+          <ui-section id="versions" header="Versions" sticky collapsible dividing>
+            <ul>
+              <li>
+                One yarn <code>catalog:</code> in
+                <a href="../../.yarnrc.yml" target="src-yarnrc-yml"><code>.yarnrc.yml</code></a
+                >: <code>vite</code> is <code>npm:@voidzero-dev/vite-plus-core@1.0.0</code> (Vite 8.3.1 repackaged),
+                <code>vitest</code> and <code>@vitest/*</code> 5.0.1, <code>vite-plus</code> 1.0.0. Packages say
+                <code>"catalog:"</code>.
+              </li>
+              <li>Bump all of them together, to what <code>vp toolchain</code> lists; never one tool on its own.</li>
+              <li>
+                <a href="../vscode/" target="src-packages-vscode"><code>packages/vscode</code></a> is its own yarn
+                project and stays on plain vite.
+              </li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>tool</th>
+                    <th>before</th>
+                    <th>vite-plus 1.0.0</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>vite</td>
+                    <td>8.3.1</td>
+                    <td>vite-plus-core (on 8.3.1)</td>
+                  </tr>
+                  <tr>
+                    <td>vitest, browser-playwright</td>
+                    <td>5.0.2</td>
+                    <td>5.0.1</td>
+                  </tr>
+                  <tr>
+                    <td>oxlint</td>
+                    <td>1.86.0</td>
+                    <td>1.85.0</td>
+                  </tr>
+                  <tr>
+                    <td>oxfmt</td>
+                    <td>0.71.0</td>
+                    <td>0.70.0</td>
+                  </tr>
+                  <tr>
+                    <td>oxlint-tsgolint</td>
+                    <td>7.0.2003</td>
+                    <td>7.0.2003</td>
+                  </tr>
+                  <tr>
+                    <td>node</td>
+                    <td>22.17+</td>
+                    <td>24.11+</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="lint-fmt" header="Lint and format settings" sticky collapsible dividing>
+            <ul>
+              <li>
+                <a href="../../vite.lint.ts" target="src-vite-lint-ts"><code>vite.lint.ts</code></a> at the repo root
+                holds them (was <code>.oxlintrc.json</code>, <code>.oxlintrc.react.json</code>,
+                <code>.oxfmtrc.json</code>): <code>lintBase</code>, <code>reactLint</code>, <code>packageLint()</code>,
+                <code>rootLint()</code>, <code>fmtConfig</code>.
+              </li>
+              <li>
+                Every <a href="../../vite.config.ts" target="src-vite-config-ts"><code>vite.config.ts</code></a> spreads
+                them into its <code>lint</code> / <code>fmt</code> blocks: <code>vp lint</code> /
+                <code>vp fmt</code> read the nearest one.
+              </li>
+              <li>
+                The editor (<code>oxc.disableNestedConfig</code>) and <code>vp check</code> read the ROOT block only, so
+                <code>rootLint()</code> carries React's rules as <code>overrides</code> for app, cli, core, lsp, parser,
+                spell and util.
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>packages/parser/vite.config.ts · 12 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">import { defineConfig } from "vite-plus"
+
+import { fmtConfig, packageLint } from "../../vite.lint.ts"
+
+/**
+ * `parser`'s Vite+ config:  only the `lint` / `fmt` blocks (`vp lint`, `vp fmt`), from the repo root's `vite.lint.ts`.
+ * - Tests:  `vitest.config.ts` beside this.
+ */
+export default defineConfig({
+  fmt: fmtConfig,
+  lint: packageLint({ react: true })
+})</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="commands" header="Commands and scripts" sticky collapsible dividing>
+            <ul>
+              <li>
+                In a package or the root: <code>yarn vp lint</code>, <code>yarn vp fmt [--check]</code>,
+                <code>yarn vp test</code>, <code>yarn vp check</code>. <code>yarn oxfmt</code> /
+                <code>yarn oxlint</code> no longer work in a package; <code>yarn vitest</code> does.
+              </li>
+              <li>
+                Tests import from <code>vite-plus/test</code> (<code>/browser</code>, <code>/browser-playwright</code>),
+                configs from <code>vite-plus</code>: lint rule <code>vite-plus/prefer-vite-plus-imports</code>.
+              </li>
+              <li>
+                Root <code>ts</code>, <code>test:packages</code>, <code>review</code>:
+                <code>vp run --fail-if-no-match -F '@spell-app/*' &lt;task&gt;</code>, 4 at a time;
+                <code>review</code> one at a time (<code>--concurrency-limit 1</code>).
+              </li>
+            </ul>
+            <ui-message state="warning" header="Heads up">
+              <ul>
+                <li><code>vp run -r</code> includes the root package: its all-in-one <code>test</code> runs too.</li>
+                <li>A filter matching nothing exits 0: hence <code>--fail-if-no-match</code>.</li>
+                <li>Flags go BEFORE the task name; after it, they're handed to the task.</li>
+              </ul>
+            </ui-message>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="3-measured" header="3. Measured" sticky collapsible dividing>
+          <p>Worktree on an M-series Mac, Node 24; "before": the same checks on <code>main</code>'s tools first.</p>
+          <ui-table celled compact striped unstackable>
+            <table>
+              <thead>
+                <tr>
+                  <th>what</th>
+                  <th>before</th>
+                  <th>Vite+</th>
+                  <th>note</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>each package's ts / lint / format:check / test</td>
+                  <td colspan="2">same results</td>
+                  <td class="yes positive">only failures already on <code>main</code></td>
+                </tr>
+                <tr>
+                  <td>oxfmt 0.71 to 0.70</td>
+                  <td>-</td>
+                  <td class="num right aligned">4 files</td>
+                  <td>rewraps at the 120-column edge</td>
+                </tr>
+                <tr>
+                  <td>oxlint 1.86 to 1.85</td>
+                  <td>-</td>
+                  <td class="num right aligned">0</td>
+                  <td class="yes positive">no new warnings</td>
+                </tr>
+                <tr>
+                  <td>type check, all packages</td>
+                  <td class="num right aligned">6.0s</td>
+                  <td class="num right aligned">3.1s</td>
+                  <td class="yes positive">parallel; 0.6s cached, but unsafe</td>
+                </tr>
+                <tr>
+                  <td>tests, all packages (2 runs)</td>
+                  <td class="num right aligned">318-345s</td>
+                  <td class="num right aligned">262-276s</td>
+                  <td class="meh warning">cli's 240s suite caps it</td>
+                </tr>
+                <tr>
+                  <td>app build, build:element, <code>yarn vscode</code></td>
+                  <td colspan="2">ok</td>
+                  <td class="yes positive">vite-plus-core builds</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+        </ui-section>
+
+        <ui-section id="4-why" header="4. Why" sticky collapsible dividing>
+          <ul>
+            <li>
+              Vite+'s pinned versions across the board, not newer standalone ones: one set to bump, nothing to drift.
+            </li>
+            <li>Node 24 LTS, not the minimum 22.18: one bump covers the next pins.</li>
+            <li>
+              Settings folded into
+              <a href="../../vite.config.ts" target="src-vite-config-ts"><code>vite.config.ts</code></a
+              >, through ONE module: <code>vp migrate</code> left each package's <code>lint.extends</code> pointing at
+              deleted files, and dropped every comment saying why a rule is set.
+            </li>
+            <li>
+              No <code>options.typeCheck</code>: <code>yarn ts</code> already runs <code>tsc</code>; a second type check
+              reports every error twice.
+            </li>
+            <li>Imports rewritten to <code>vite-plus/test</code> in their own commit: 380 lines, nothing else.</li>
+            <li>
+              Root scripts on <code>vp run</code>: parallel, and they run every package instead of stopping at the first
+              failure.
+            </li>
+            <li>No git hooks, no cached tasks, no root <code>check</code> script yet (see Limits).</li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="5-limits" header="5. Limits" sticky collapsible dividing>
+          <ul>
+            <li>
+              <b>No caching.</b> Input auto-tracking misses TS 7's native <code>tsc</code>, so
+              <code>vp run --cache</code> replays a stale pass. To cache: a <code>run.tasks</code> entry with explicit
+              <code>cache.input</code> globs, including the packages its <code>tsc</code> reads through
+              <code>$/</code> aliases.
+            </li>
+            <li>
+              <code>vp check</code> fails today on 63 files already unformatted on <code>main</code> (56 in docs).
+            </li>
+            <li>
+              The Oxc editor extension must read <code>fmt</code> from the root
+              <a href="../../vite.config.ts" target="src-vite-config-ts"><code>vite.config.ts</code></a
+              >; if saves add semicolons, it isn't.
+            </li>
+            <li>
+              Fixed: a fresh install's first app browser test run used to fail (cold vite deps cache), also on
+              <code>main</code>. The tests import
+              <a href="../app/src/runner/spellRuntime.ts" target="src-packages-app-src-runner-spellruntime-ts"
+                ><code>spellRuntime.ts</code></a
+              >
+              by URL, so it is now listed in <code>optimizeDeps.entries</code> (<a
+                href="../app/vitest.config.ts"
+                target="src-packages-app-vitest-config-ts"
+                ><code>packages/app/vitest.config.ts</code></a
+              >).
+            </li>
+            <li>cli's process-spawning tests can time out at 5s when everything runs at once; they pass alone.</li>
+            <li>Vite+ also manages Node and the package manager; we keep corepack yarn 4.18 and don't use that.</li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="6-history" header="6. History" sticky collapsible dividing>
+          <ui-feed class="spell-history" size="small">
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary>Built and measured, unattended overnight <ui-date>2026-10-02</ui-date></ui-summary>
+              </ui-content>
+            </ui-event>
+            <ui-event icon="gavel">
+              <ui-content>
+                <ui-summary>Decided: Vite+ versions across the board, Node 24 <ui-date>2026-10-02</ui-date></ui-summary>
+              </ui-content>
+            </ui-event>
+          </ui-feed>
+        </ui-section>
+
+        <ui-section id="7-sources" header="7. Sources" sticky collapsible dividing>
+          <ui-items class="spell-sources" divided>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="epics/vite-plus/vite-plus.plan.html" target="vite-plus"
+                    ><code>epics/vite-plus/vite-plus.plan.html</code></a
+                  ></ui-header
+                >
+                <ui-meta>plan doc</ui-meta>
+                <ui-description>The record: decisions, judgement calls, issue I1, the log.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="https://voidzero.dev/posts/announcing-vite-plus-1-0" target="ext-voidzero-dev"
+                    >Announcing Vite+ 1.0</a
+                  ></ui-header
+                >
+                <ui-meta>reference · read 2026-10-02</ui-meta>
+                <ui-description>What 1.0 bundles; MIT, free.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="https://viteplus.dev/guide/migrate" target="ext-viteplus-dev"
+                    >Vite+ migration guide</a
+                  ></ui-header
+                >
+                <ui-meta>reference · read 2026-10-02</ui-meta>
+                <ui-description>Import rewrites, monorepo migration from the root, editor settings.</ui-description>
+              </ui-content>
+            </ui-item>
+          </ui-items>
+        </ui-section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">Last checked 2026-10-02 against branch <code>vite-plus</code>.</p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="_assets/spell-ui.js"></script>
+  </body>
+</html>

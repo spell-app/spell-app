@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, test } from "vitest"
-import { userEvent } from "vitest/browser"
+import { afterEach, describe, expect, test } from "vite-plus/test"
+import { userEvent } from "vite-plus/test/browser"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { editor } from "$/app/editor"

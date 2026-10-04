@@ -27,29 +27,28 @@
     }
   },
   "scripts": {
-    "build": "vite build && vite build -c vite.node.config.ts",
-    "test": "vitest run",
+    "build": "vp build && vp build -c vite.node.config.ts",
+    "test": "vp test run",
     "tsc": "tsc",
     "measure": "node --experimental-strip-types --no-warnings scripts/measure.ts",
-    "lint": "oxlint -c .oxlintrc.json --report-unused-disable-directives --max-warnings 0 src scripts *.ts",
-    "format": "oxfmt -c .oxfmtrc.json .",
-    "format:check": "oxfmt -c .oxfmtrc.json --check ."
+    "lint": "vp lint --report-unused-disable-directives --max-warnings 0 src scripts *.ts",
+    "format": "vp fmt .",
+    "format:check": "vp fmt --check ."
   },
   "devDependencies": {
     "@solidjs/element": "2.0.0-rc.13",
     "@solidjs/vite-plugin": "3.0.0-next.47",
     "@solidjs/web": "2.0.0-rc.13",
     "@types/node": "22.20.4",
-    "@vitest/browser-playwright": "5.0.2",
+    "@vitest/browser-playwright": "catalog:",
     "component-register": "0.8.8",
     "esbuild": "0.28.2",
-    "oxfmt": "^0.71.0",
-    "oxlint": "^1.86.0",
     "playwright": "1.63.0",
     "solid-js": "2.0.0-rc.13",
     "typescript": "7.0.2",
-    "vite": "8.3.1",
-    "vitest": "5.0.2"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "@solidjs/web": "2.0.0-rc.13",

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { beforeAll, describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { StaticRender } from "$/ui/server"
 import { UITable } from "$/ui/components/ui-table/UITable"

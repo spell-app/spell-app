@@ -176,7 +176,7 @@ Keep `<ui-docs-tokens family="ui-<name>" playground>` exactly.  Around it, in se
 A Fomantic example (or a piece of the page) a widget can't render right -- missing attribute / value, wrong look,
 needs hand CSS -- is a GAP:
 
-1. Look for it first:  `grep -o 'Gap: [^<]*' packages/docs/epics/spell-ui-pages/spell-ui-pages.html`.
+1. Look for it first:  `grep -o 'Gap: [^<]*' packages/docs/epics/spell-ui-pages/spell-ui-pages.plan.html`.
 2. New:  from the WORKTREE ROOT,
    `yarn plan-doc add spell-ui-pages issue "Gap:  <ui-tag> <what's missing>" --details "<p>Fomantic example: ...  What the page does instead: ...</p>"`
    (raw `<tags>` in the title:  the script escapes them).  It prints the id.

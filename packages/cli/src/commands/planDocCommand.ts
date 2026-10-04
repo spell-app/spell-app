@@ -9,7 +9,7 @@ const TOOL = join("packages", "docs", "scripts", "plan-doc.js")
 
 /**
  * `spell plan-doc <command> <name> ...`:  `yarn plan-doc`, the tool that edits a plan doc
- * (`packages/docs/epics/<name>/<name>.html`), as the `/epic` skill uses it.  `spell plan-doc` alone lists its
+ * (`packages/docs/epics/<name>/<name>.plan.html`), as the `/epic` skill uses it.  `spell plan-doc` alone lists its
  * commands, e.g. `spell plan-doc summary seo`, `spell plan-doc phase seo 2 done`.
  * - Which checkout:  the nearest one from the current folder up (a worktree's, when run in one), else this
  *   checkout's (`CLI.findCheckout()`).

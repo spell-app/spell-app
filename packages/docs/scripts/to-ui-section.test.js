@@ -1,5 +1,5 @@
 import { parseHTML } from "linkedom"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { serialize } from "./pages.js"
 import { convertSections } from "./to-ui-section.js"

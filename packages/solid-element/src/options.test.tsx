@@ -5,7 +5,7 @@
 
 /** FIX 1:  `customElement(tag, props, Component, options)` -- base class, registry, shadow root, form association. */
 
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { cleanup, mount, nextTag, reproduce } from "./testing"

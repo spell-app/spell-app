@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from "vitest"
+import { describe, test, expect, beforeEach } from "vite-plus/test"
 
 import { observe } from "$/util"
 import { spellCore, Thing, List, App } from "$/core"

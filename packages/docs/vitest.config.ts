@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config"
+import { defineConfig } from "vite-plus"
 
 /**
  * vitest config for `@spell-app/docs`:  only the doc scripts' own tests (`scripts/*.test.{js,ts}`), in node.
