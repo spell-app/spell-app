@@ -1290,6 +1290,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   after the fact, `ps -eo pid,command | grep worktrees/<name>`, kill those, `rm -rf` the folder.  `/isolate done`
   should do the stop. · claude-code
 
+- 2026-10-04 · Claude Edit refused `PAPERCUTS.md` reached through a FILE symlink ("it is a symbolic link.  Write to
+  the link's target path instead"), and every Write into a linked folder whose target sat outside the repo stopped for a
+  permission prompt. · File links:  no setting helps, so share whole FOLDERS only (Edit / Write through a folder link
+  work).  Prompts:  `permissions.additionalDirectories` + `Edit(//<abs path>/**)` for the target, in
+  `~/.claude/settings.json` (every session, worktrees too) and `.claude/settings.json`. · claude-code
+
 ## vscode
 
 - 2026-10-02 · A freshly installed extension feature (`DocView`) never showed after a reload:  docs still opened in a
