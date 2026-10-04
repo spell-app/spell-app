@@ -2466,6 +2466,37 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="i4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i4">I4</a>
+                  <span class="plan-title"
+                    >Component pages still have their own Spell theme dropdown in the masthead, besides the merged
+                    palette overlay</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The prompt asked to merge the theme / light / dark controls into one small overlay. P5 did that for
+                    the site-wide control (right column, top bar), but every component page keeps
+                    <code>&lt;ui-docs-themes for="ui-x" show="theme"&gt;</code> under its title: the themes that restyle
+                    THAT component. Options: remove it; fold its filter into the overlay (themes touching this page
+                    first); keep it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i5">I5</a>
+                  <span class="plan-title">The light-mode sun icon reads as a cog at 14px</span></ui-title
+                ><ui-content
+                  ><p>
+                    The scheme button in <code>&lt;ui-docs-themes&gt;</code> uses Font Awesome's outline sun (the solid
+                    one read as a cog; J29 area). At the button's size it still looks busy. Options: another sun glyph,
+                    a larger icon, or a custom SVG.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
