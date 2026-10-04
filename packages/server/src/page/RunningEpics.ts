@@ -169,7 +169,8 @@ function folders(dir: string): string[] {
  */
 function read(file: string): Pick<RunningEpic, "title" | "done" | "total" | "active" | "updated"> {
   const html = readFileSync(file, "utf8")
-  const title = /<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? ""
+  // without the `Epic: ` plan docs' titles start with since 2026-10-04:  the card is in Epics already
+  const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
   const phases = [...html.matchAll(/<ui-section\b[^>]*\bdata-phase="\d+"[^>]*>/g)].map(([tag]) => ({
     status: /\bdata-status="(\w+)"/.exec(tag)?.[1] ?? "todo",
     header: /\bheader="([^"]*)"/.exec(tag)?.[1] ?? ""

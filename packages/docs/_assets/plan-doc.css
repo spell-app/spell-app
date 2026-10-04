@@ -16,12 +16,74 @@
 .plan-step {
   flex: none;
 }
+/*
+ * The review line under the header:  `button.plan-review-cmd`, "To review this doc, type `/epic review <name>`",
+ * built by the runtime (`buildReviewLine()`).  Reads as a quiet line of text;  a click copies the command and
+ * flashes it yellow (`.flash`, as long as the runtime's `FLASH_MS`).
+ */
+button.plan-review-cmd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 6px 0 2px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--spell-muted);
+  font: 0.9rem/1.4 var(--spell-sans);
+  text-align: start;
+  cursor: copy;
+}
+button.plan-review-cmd:hover {
+  background: var(--spell-accent-soft);
+  color: var(--spell-ink);
+}
+button.plan-review-cmd:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+button.plan-review-cmd > ui-icon {
+  flex: none;
+}
+.plan-review-cmd-done {
+  margin-inline-start: auto;
+  color: var(--spell-ink);
+  font-weight: 600;
+}
+button.plan-review-cmd.flash {
+  animation: plan-review-cmd-flash 0.9s ease-out;
+}
+@keyframes plan-review-cmd-flash {
+  from {
+    background: var(--ui-yellow-background, light-dark(#fff3c4, #4a3c10));
+    box-shadow: inset 0 0 0 1px var(--ui-yellow, #e0b000);
+  }
+  to {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button.plan-review-cmd.flash {
+    animation: none;
+    background: var(--ui-yellow-background, light-dark(#fff3c4, #4a3c10));
+  }
+}
 
 /*******************************
            Overview
 *******************************/
 
-/* the prompt that started the plan:  `blockquote.plan-prompt`, one `<p>` per paragraph */
+/*
+ * The prompt that started the plan:  `blockquote.plan-prompt`, one `<p>` per paragraph, folded away in an aside
+ * titled "Kickoff prompt" (`ui-accordion.plan-prompt-panel.spell-aside`;  bare under the summary before
+ * 2026-10-04)
+ */
+ui-accordion.plan-prompt-panel ui-content > blockquote.plan-prompt {
+  margin: 4px 0;
+}
 blockquote.plan-prompt {
   margin: 12px 0 16px;
   padding: 8px 14px;
@@ -186,7 +248,8 @@ ui-section:has(> ui-list.plan-items:empty)::after {
   display: block;
   padding-top: 6px;
 }
-.spell-doc-main :is(section.spell-folded, ui-section[collapsed])::after {
+/* folded:  nothing under the title (`ui-section` twice:  this must outweigh the `:has()` rules above) */
+.spell-doc-main :is(section.spell-folded, ui-section:state(collapsed)):is(section, ui-section)::after {
   content: none;
 }
 

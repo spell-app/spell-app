@@ -115,6 +115,9 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 
 ## 4. Fill the doc (right after ExitPlanMode is approved)
 
+- Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04):  in `~/.claude/plans/`,
+  `mv <file>.md epic-<name>--<file>.md`, then `ln -s epic-<name>--<file>.md <file>.md` (the harness still reads
+  the old name).
 - `yarn plan-doc add-phase <name> "Short Name" --goal "..." --files "..." --verify "..." --estimate "1-2h"` per
   phase, in order:  the Overview's total (`p.plan-estimate`) follows by itself
 - `yarn plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item

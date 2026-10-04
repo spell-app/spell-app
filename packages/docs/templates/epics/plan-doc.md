@@ -22,19 +22,24 @@ The h1 sits in a sticky header, `<ui-sticky class="spell-h1"><header class="spel
 label at its right (`.plan-step`, written by the script):  the active phase (orange), else `DONE` (green) once every
 phase is, else the next phase (grey).
 
+- The h1 and `<title>` read `Epic: <Title>` (`new` writes both;  `migrate` brings an old doc's in line).  Scripts
+  reading the title drop the `Epic: ` (`plan-doc.js` `TITLE_PREFIX`).
+- Under the header, the runtime adds the review line (every plan doc, no markup):  "To review this doc, type
+  `/epic review <name>`";  a click copies the command.  Never write it by hand.
+
 Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan-hung`.
 - How to restart a hung plan:  a new session in the worktree's window, `/epic <name>`, "Reuse".  Plus the kickoff
   prompt in a `ui-code.plan-hung-prompt` with a copy button (`setPrompt()` keeps it in step with the Overview's
   quote).
 - Why:  `/epic` writes this stub doc BEFORE planning, so the prompt survives a hung or lost session.
-- The script removes it once any phase leaves `todo`;  never add it back by hand.
+- The script removes it when the first phase is added (`add-phase`):  the plan exists;  never add it back by hand.
 
 ## Sections (ids are fixed)
 
 | Section | id | What |
 |---|---|---|
 | Overnight · `<date>` | `#overnight` | TEMPORARY, unnumbered, above the Overview:  a `/bedtime` run's report (summary, a line per phase, problems), `data-bedtime="active"` while it runs, `"done"` after.  Only `yarn plan-doc overnight` writes it;  `/epic review` removes it once the night's judgement calls are reviewed.  Nothing in it is only there:  calls, problems and todos are items, phases are log lines |
-| 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`), the total estimate (`p.plan-estimate`, written by the script), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
+| 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`, folded in a "Kickoff prompt" aside), the total estimate (`p.plan-estimate`, written by the script), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
 | 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  goal, files, verify, estimate |
 | 3. Questions & Decisions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then what was decided and why:  settled unless new facts arrive.  `decide` answers a question:  the decision goes at the end, the struck question just above it |
 | 4. Judgement calls | `#judgements` | choices Claude made WITHOUT the user (a `/bedtime` run, an agent mid-phase):  title the choice, details "chose X over Y because Z" + the options;  open until the user reviews it, `close` = accepted, disagreement becomes a question.  Every one ALSO linked from its phase's body (`<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j2">J2</a></ui-item>`) |
@@ -176,10 +181,16 @@ Log line (in `#log`'s `<ui-feed class="plan-log">`;  a `<ul>` of `<time>` + text
 Each top-level section carries an icon (`<ui-icon slot="icon">`:  `lightbulb`, `layer group`, `gavel` ...):  keep
 it when editing a section.  It is also the section's entry in the rail.
 
-Prompt (in `#overview`, after the summary;  `new --prompt` / `prompt` write it, escaped):
+Prompt (in `#overview`, after the summary, folded away in a closed aside;  `new --prompt` / `prompt` write it,
+escaped;  `migrate` folds an old doc's bare quote):
 
 ```html
-<blockquote class="plan-prompt"><p>first paragraph<br>next line</p><p>second paragraph</p></blockquote>
+<ui-accordion class="plan-prompt-panel spell-aside" styled>
+  <ui-title>Kickoff prompt</ui-title>
+  <ui-content>
+    <blockquote class="plan-prompt"><p>first paragraph<br>next line</p><p>second paragraph</p></blockquote>
+  </ui-content>
+</ui-accordion>
 ```
 
 ## UPDATE markers

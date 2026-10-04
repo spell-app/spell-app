@@ -14,10 +14,10 @@ argument-hint: "[page]"
    - `<page>` is relative to `packages/docs`;  `.html` and a folder's own page may be left off (`solid/solid-2`,
      `server`).
    - It starts the page server first (live reload), then asks THIS session's window, through the spell extension,
-     to show the page in the doc preview:  the "Spell Docs" view, in the right (secondary) side bar.  ONE page at a
-     time, shared with `yarn plan-doc open`.  Setting `spell.docPreview.location` `beside`:  Simple Browser beside
-     the editor instead.
-   - Its title bar:  docs index, reload, open in the browser.
+     to show the page in the doc preview:  the "Spell Docs" tab, in the right (secondary) side bar.  ONE page at a
+     time, shared with `yarn plan-doc open`;  the "Review" tab beside it keeps its own (`--review`, `/epic
+     review`).  Setting `spell.docPreview.location` `beside`:  Simple Browser beside the editor instead.
+   - Its title bar:  back, forward, reload, restart the page server, open in the browser.
    - Mid-move to a worktree's window (`/isolate`, `/epic`):  shown there once the session has moved.
    - Not running in VS Code (a CLI session in another terminal):  Chrome, as `yarn docs:open` without `--vs`.
 2. `no page <page>`:  `ls packages/docs` (and the folder it named), offer the closest in AskUserQuestion, run again.

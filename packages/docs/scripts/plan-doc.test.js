@@ -58,7 +58,10 @@ describe("PlanDoc layout", () => {
     }
     expect(plan.document.querySelector("#overview > ui-section#o1").getAttribute("header")).toBe("1.1 Structure")
     expect(plan.document.querySelector("section, h2, h3")).toBeNull()
-    expect(plan.document.querySelector("ui-sticky.spell-h1 > header.spell-page-head > h1")).not.toBeNull()
+    expect(plan.document.querySelector("ui-sticky.spell-h1 > header.spell-page-head > h1").textContent).toBe(
+      "Epic: {{title}}"
+    )
+    expect(plan.title).toBe("{{title}}")
     expect(plan.document.getElementById("plan")).toBeNull()
     expect(plan.check()).toEqual([])
   })
@@ -228,7 +231,7 @@ describe("PlanDoc estimates", () => {
     plan.addPhase("One")
     expect(total(plan)).toBeUndefined()
     plan.setEstimate(1, "2h")
-    expect(plan.document.querySelector("blockquote.plan-prompt").nextElementSibling.className).toBe("plan-estimate")
+    expect(plan.document.querySelector(".plan-prompt-panel").nextElementSibling.className).toBe("plan-estimate")
   })
 
   it("adds the field to a phase made without one", () => {
@@ -357,15 +360,32 @@ describe("PlanDoc prompt", () => {
     const plan = freshPlan()
     plan.setPrompt("Update the template\n- make <h1> sticky\n\nAlso & more")
     const quote = plan.document.querySelector("blockquote.plan-prompt")
-    expect(quote.parentElement.id).toBe("overview")
+    expect(quote.closest("ui-section").id).toBe("overview")
     expect(quote.innerHTML).toBe("<p>Update the template<br>- make &lt;h1&gt; sticky</p><p>Also &amp; more</p>")
     plan.setPrompt("")
-    expect(plan.document.querySelector("blockquote.plan-prompt")).toBeNull()
+    expect(plan.document.querySelector("blockquote.plan-prompt, .plan-prompt-panel")).toBeNull()
     plan.setPrompt("again")
-    expect(plan.document.querySelector(".plan-summary + blockquote.plan-prompt").textContent).toBe("again")
+    const panel = "ui-section#overview > .plan-summary + ui-accordion.plan-prompt-panel"
+    expect(plan.document.querySelector(`${panel} > ui-content > blockquote.plan-prompt`).textContent).toBe("again")
   })
 
-  it('copies it into the "Plan hung?" notice, exact, with a copy button;  the notice goes once a phase starts', () => {
+  it('folds it away in a "Kickoff prompt" aside, closed;  an old bare quote moves into one', () => {
+    const plan = freshPlan()
+    plan.setPrompt("make it so")
+    const panel = plan.document.querySelector("ui-accordion.plan-prompt-panel.spell-aside")
+    expect(panel.querySelector(":scope > ui-title").textContent).toBe("Kickoff prompt")
+    expect(panel.hasAttribute("open")).toBe(false)
+    // a doc from before 2026-10-04:  the quote bare under the summary
+    const quote = panel.querySelector("blockquote.plan-prompt")
+    panel.replaceWith(quote)
+    expect(plan.migrate()).toContain('kickoff prompt folded into a "Kickoff prompt" aside')
+    expect(plan.document.querySelector(".plan-summary + .plan-prompt-panel blockquote.plan-prompt").textContent).toBe(
+      "make it so"
+    )
+    expect(plan.document.querySelectorAll("blockquote.plan-prompt").length).toBe(1)
+  })
+
+  it('copies it into the "Plan hung?" notice, exact, with a copy button;  the notice goes with the first phase', () => {
     const plan = freshPlan()
     const copy = () => plan.document.querySelector("ui-message.plan-hung > ui-code.plan-hung-prompt[copy]")
     plan.setPrompt("make <h1> & co\n\nline 3 </script> x")
@@ -376,9 +396,6 @@ describe("PlanDoc prompt", () => {
     plan.setPrompt("again")
     expect(plan.document.querySelectorAll("ui-code.plan-hung-prompt").length).toBe(1)
     plan.addPhase("First")
-    plan.setPhase(1, "todo")
-    expect(plan.document.querySelector("ui-message.plan-hung")).not.toBeNull()
-    plan.setPhase(1, "active")
     expect(plan.document.querySelector("ui-message.plan-hung")).toBeNull()
     // and with it gone, a new prompt doesn't bring it back
     plan.setPrompt("later")
@@ -499,6 +516,17 @@ describe("PlanDoc migrate", () => {
     expect(order(converted)).toEqual(order(direct))
     expect(converted.document.querySelector("ui-section#overview > .plan-summary.lede")).not.toBeNull()
     expect(converted.check()).toEqual([])
+  })
+
+  it('titles the page "Epic: <title>", h1 and <title>;  readers drop the prefix', () => {
+    const plan = filledOldPlan()
+    plan.document.querySelector("h1").textContent = "Old Title"
+    plan.document.querySelector("title").textContent = "Old Title"
+    expect(plan.migrate()).toContain('page title "Epic: <title>"')
+    expect(plan.document.querySelector("h1").textContent).toBe("Epic: Old Title")
+    expect(plan.document.querySelector("title").textContent).toBe("Epic: Old Title")
+    expect(plan.title).toBe("Old Title")
+    expect(plan.summary().title).toBe("Old Title")
   })
 
   it("does nothing to a current doc", () => {

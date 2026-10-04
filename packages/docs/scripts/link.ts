@@ -1,6 +1,6 @@
 /**
- * `yarn docs:link <page> [--hash <id>] [--text "..."] [--show]`:  the markdown link Claude gives Owen for a page:  a SIDE BAR link,
- * then a `(_browser_)` one.
+ * `yarn docs:link <page> [--hash <id>] [--text "..."] [--review] [--show]`:  the markdown link Claude gives Owen for a
+ * page:  a SIDE BAR link, then a `(_browser_)` one.
  *
  *     [Details Pages](http://127.0.0.1:4747/api/docs/show?path=...&window=123) (_[browser](http://127.0.0.1:4747/...)_)
  *
@@ -10,6 +10,7 @@
  * - Which server:  a worktree's page on the MAIN checkout's server (one port for every link), else this checkout's
  *   (started if need be).  Each must have the route (a server started before it existed doesn't):  else the next;
  *   none:  the browser link alone, and a note on stderr.
+ * - `--review`:  the side bar link (and `--show`) uses the side bar's "Review" tab, not its "Spell Docs" tab.
  * - `--show`:  also show it in this session's side bar now (`Window.show()`), so Owen needn't click at all.
  * - `<page>`:  absolute, or relative to `packages/docs` or the repo root.
  * - `--text`:  the link's text (`P2 · Page Template`);  default:  the page's `<title>`.
@@ -26,16 +27,18 @@ const { positional, flags } = parseArgs(process.argv.slice(2))
 // `yarn workspace` sets `INIT_CWD` to `packages/docs`, not where `yarn` was run:  so try the docs, then the root
 const file = [DOCS, ROOT].map((base) => resolve(base, positional[0] ?? "")).find((each) => existsSync(each)) ?? ""
 if (!positional[0] || !file.endsWith(".html") || !existsSync(file)) {
-  console.error('usage:  yarn docs:link <page.html> [--hash <id>] [--text "..."] [--show]')
+  console.error('usage:  yarn docs:link <page.html> [--hash <id>] [--text "..."] [--review] [--show]')
   process.exit(1)
 }
 const hash = typeof flags.hash === "string" ? flags.hash : undefined
 const text = typeof flags.text === "string" ? flags.text : undefined
-console.log(await markdownLink(file, { hash, text, window: Window.current()?.pid }))
+const view = flags.review ? "review" : undefined
+console.log(await markdownLink(file, { hash, text, view, window: Window.current()?.pid }))
 if (flags.show) {
   try {
     // `window.mjs` is plain JS:  TS infers its options from the destructuring defaults alone, missing `hash`
-    await (Window.show as (file: string, options: { hash?: string }) => Promise<unknown>)(file, { hash })
+    const show = Window.show as (file: string, options: { hash?: string; view?: string }) => Promise<unknown>
+    await show(file, { hash, view })
   } catch (error) {
     console.error(`couldn't show it:  ${(error as Error).message}`)
   }
@@ -44,11 +47,11 @@ if (flags.show) {
 /**
  * The side bar link and the browser link for `file`, as markdown.
  * - `hash`:  an id on the page to land on;  `text`:  the link's text (default:  the page's title);  `window`:  the
- *   VS Code window's pid
+ *   VS Code window's pid;  `view`:  `"review"` for the side bar's "Review" tab
  */
 export async function markdownLink(
   file: string,
-  { hash, text, window }: { hash?: string; text?: string; window?: number } = {}
+  { hash, text, window, view }: { hash?: string; text?: string; window?: number; view?: "review" } = {}
 ) {
   const title = (text ?? titleOf(file)).replace(/[[\]]/g, "")
   const pages = [await SRV.mainServerUrl(file), ownUrl(file)].filter((url): url is string => !!url)
@@ -59,7 +62,8 @@ export async function markdownLink(
     const query = new URLSearchParams({
       path: url.pathname,
       ...(window && { window: String(window) }),
-      ...(hash && { hash })
+      ...(hash && { hash }),
+      ...(view && { view })
     })
     const browser = new URLSearchParams({ path: url.pathname, ...(hash && { hash }), in: "browser" })
     return `[${title}](${url.origin}/api/docs/show?${query}) (_[browser](${url.origin}/api/docs/show?${browser})_)`
