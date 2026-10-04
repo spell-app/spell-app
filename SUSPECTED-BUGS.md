@@ -506,6 +506,10 @@ every entry below that date was fixed or disproven;  what's left:
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
   tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
   `yarn plan-doc add-phase x "A" --goal "write <Project>.js"`, then look at the `#p1` body.
+- `scripts/plan-doc.js` `summary` (and likely other commands) fails on a plan doc made before judgement calls became
+  their own item kind (`195ab6a4`):  "no .plan-items[data-kind="judgement"] in the doc:  is it a plan doc?".  Breaks
+  `packages/cli`'s `spell plan-doc > summarizes a plan doc` test (`unified-server`).  Prove:
+  `yarn plan-doc summary unified-server`.  Fix:  treat a missing list as empty, or have `migrate` add it.
 - Every plan doc's phase "Estimate" line has a blank icon:  `PHASE_FIELDS` in `scripts/plan-doc.js` gives it
   `clock`, which isn't in `ICONS` in `scripts/bundle-spell-ui.js` (only `clock rotate left` is).  Prove:
   `node scripts/check-spell.js epics/isolate-changes/isolate-changes.html` notes "5 icon(s) with no <svg> drawn",
