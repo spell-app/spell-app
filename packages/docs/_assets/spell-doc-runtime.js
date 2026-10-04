@@ -174,11 +174,11 @@ function land({ hash, scroll }, jump, follow) {
 }
 
 /**
- * A plan doc (`epics/<name>/<name>.html`) names its tab `<name>`:  every link to it has `target="<name>"`
- * (`doc-links.js`), so they reuse this tab, as `yarn plan-doc open <name>` does.
+ * A plan doc (`epics/<name>/<name>.plan.html`;  before 2026-10-04 `<name>.html`) names its tab `<name>`:  every
+ * link to it has `target="<name>"` (`doc-links.js`), so they reuse this tab, as `yarn plan-doc open <name>` does.
  */
 function nameTab() {
-  const plan = /\/epics\/([^/]+)\/\1\.html$/.exec(decodeURIComponent(location.pathname))
+  const plan = /\/epics\/([^/]+)\/\1(?:\.plan)?\.html$/.exec(decodeURIComponent(location.pathname))
   if (plan) window.name = plan[1]
 }
 
@@ -908,10 +908,11 @@ function attr(value) {
 ////////////////
 
 /**
- * Item statuses that DON'T count as open:  finished (`done`), and a plan's decisions in force (`decided`) -- in
- * "Questions & Decisions" only the questions waiting on the reader are open.
+ * Item statuses that DON'T count as open:  finished (`done`), made moot (`canceled`), and a plan's answered
+ * questions (`decided`) -- in "Questions" only the questions waiting on the reader are open.
+ * - `plan-doc.js` `CLOSED` is the same set
  */
-const CLOSED = new Set(["done", "decided"])
+const CLOSED = new Set(["done", "decided", "canceled"])
 
 /**
  * Each top-level section's items -- `[data-status]` elements, not counting ones inside another -- as
@@ -1195,8 +1196,22 @@ function buildRail(outline, counts) {
     `<span class="spell-rail-label">Contents</span>` +
     `<span class="spell-rail-icon"><ui-icon name="bars"></ui-icon></span></button>` +
     `<div class="spell-rail-items">${entries.join("")}</div>`
+  rail.addEventListener("click", (event) => {
+    if (event.target.closest?.("a.spell-rail-item")) restRail(rail)
+  })
   document.body.append(rail)
   return rail
+}
+
+/**
+ * A section was picked from the widened rail:  it narrows back at once, though the pointer is still over it (Owen,
+ * 2026-10-04:  it stayed open until a click in the page).  `spell-rail-resting` holds it narrow until the pointer
+ * leaves;  the focus leaves too (`:focus-within` widens it).
+ */
+function restRail(rail) {
+  rail.classList.add("spell-rail-resting")
+  rail.addEventListener("pointerleave", () => rail.classList.remove("spell-rail-resting"), { once: true })
+  if (rail.contains(document.activeElement)) document.activeElement.blur()
 }
 
 ////////////////
@@ -1330,6 +1345,20 @@ function wireFolds(main, outline) {
     }
     const panel = self ? element.querySelector(":scope > ui-accordion > ui-title") : null
     if (panel && !isPanelOpen(panel)) setPanel(panel, true)
+    // an id INSIDE a closed panel (an old decision's `#d7`, now the answer card in its question):  open the panels
+    // around it, or the jump lands on nothing
+    for (
+      let content = element.closest("ui-accordion > ui-content");
+      content;
+      content = content.parentElement.parentElement?.closest("ui-accordion > ui-content")
+    ) {
+      const accordion = content.parentElement
+      const contents = Array.from(accordion.children).filter((child) => child.localName === "ui-content")
+      const title = titlesOf(accordion)[contents.indexOf(content)]
+      if (!title || isPanelOpen(title)) continue
+      setPanel(title, true)
+      unfolded = true
+    }
     return unfolded
   }
 }

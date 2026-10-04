@@ -1,6 +1,6 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `packages/docs/epics/<name>/<name>.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  walk a plan doc's open items with Owen, one at a time ("review the seo epic", "go through unified-server's caveats").
+description: Run a planning session against a live plan doc, `packages/docs/epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  walk a plan doc's open items with Owen, one at a time ("review the seo epic", "go through unified-server's caveats").
 argument-hint: <name> [what to plan] | review [<name>]
 ---
 
@@ -9,7 +9,7 @@ argument-hint: <name> [what to plan] | review [<name>]
 An EPIC is a planning session and the work it plans;  its live record is the PLAN DOC.  (Was `/plan-doc` until
 2026-10-02;  `yarn plan-doc` keeps its name, since it edits the plan doc.)
 
-Plan, then build, in worktree `<name>`, keeping `packages/docs/epics/<name>/<name>.html` (the PLAN DOC) current
+Plan, then build, in worktree `<name>`, keeping `packages/docs/epics/<name>/<name>.plan.html` (the PLAN DOC) current
 the whole time.  The plan doc is the user's view of the work:  they read it in VS Code's doc preview (the right side bar's "Spell Docs" view) while you work.
 
 - Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/epics/plan-doc.md`.  Read it first.
@@ -145,7 +145,8 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
      edit) lists the ones Owen hasn't reviewed.  Never hand-write a "Judgement calls:" line
    - something only Owen can check (a live window, a click, a look):  `add ... test "<step>" --details "<p>what
      should happen</p>"`, into "To test";  `close` it once he says it passed
-   - fixed or obsolete:  `close <name> <id>` (it stays, struck through)
+   - fixed or done:  `close <name> <id>` (it stays, closed, NOT struck);  made moot by another decision:
+     `cancel <name> <id> "why"` (struck through:  the one struck status, J16 of `review-review`)
    - an item talked through with Owen (he answered, accepted, or said leave it):  `review <name> <id> "outcome"`,
      so the next `/epic review` doesn't bring it up again ("7. Review")
    - changed a prose block:  put
@@ -196,7 +197,7 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 ## 7. Review:  `/epic review [<name>]`
 
 Walk a plan doc's open items with Owen:  pick a section, pick items, one item at a time.  FAST by default (the item
-as clean bullets, one modal);  deeper only when he asks.  Plan:  `epics/epic-review/epic-review.html`.
+as clean bullets, one modal);  deeper only when he asks.  Plan:  `epics/epic-review/epic-review.plan.html`.
 
 - Runs from ANY window, `main` or a worktree:  the prompt hook lets `/epic review` through, never renames the session.
   No worktree, no plan mode.
@@ -382,11 +383,13 @@ add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details
 decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
 commit <name> <sha> --phase N | --item <id> "..."   list a commit under a phase or an item
 commits <name> --backfill                           every phase / item commit in the doc's git history, once
-close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
+close <name> <id>  /  reopen <name> <id>            close (done) / open again, never delete
+cancel <name> <id> ["why"]                          made moot by another decision:  struck;  reopen undoes it
 log <name> "text"                                   timestamped line in the doc's log
 overnight <name> start|phase|problem|done|remove    a /bedtime run's report, on top of the doc (`/bedtime`)
 prompt <name> "text" | --file f                     set the prompt quoted in the Overview
-migrate <name>                                      an older doc (any layout) into the current one
+migrate <name>                                      an older doc (any layout) into the current one;  its D
+                                                    items merge into its questions
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
 open <name>                                         show in VS Code's doc preview (right side bar)

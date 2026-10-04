@@ -549,7 +549,7 @@ every entry below that date was fixed or disproven;  what's left:
   `yarn plan-doc summary unified-server`.  Fix:  treat a missing list as empty, or have `migrate` add it.
 - Every plan doc's phase "Estimate" line has a blank icon:  `PHASE_FIELDS` in `scripts/plan-doc.js` gives it
   `clock`, which isn't in `ICONS` in `scripts/bundle-spell-ui.js` (only `clock rotate left` is).  Prove:
-  `node scripts/check-spell.js epics/isolate-changes/isolate-changes.html` notes "5 icon(s) with no <svg> drawn",
+  `node scripts/check-spell.js epics/isolate-changes/isolate-changes.plan.html` notes "5 icon(s) with no <svg> drawn",
   all `ui-item[clock]`.  Fix:  add `solid/clock` to `ICONS`, then `yarn docs:update`.
 
 ## server

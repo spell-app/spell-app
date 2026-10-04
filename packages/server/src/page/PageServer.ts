@@ -74,6 +74,15 @@ export class PageServer {
     router.get("/packages/docs/plans/*", (request, reply) =>
       reply.redirect(request.originalUrl.replace("/packages/docs/plans/", "/packages/docs/epics/"))
     )
+    // plan docs renamed `epics/<n>/<n>.html` -> `<n>.plan.html` (2026-10-04):  old links and open tabs still land,
+    // here and in a worktree served from here (`/worktrees/<w>/`).  302, and only while the old file is gone:  a
+    // worktree cut before the rename still has `<n>.html`
+    for (const prefix of ["/packages/docs/epics/*", "/worktrees/*"])
+      router.get(prefix, (request, reply, next) => {
+        const renamed = renamedPlanDoc(request.originalUrl, this.root)
+        if (renamed) reply.redirect(renamed)
+        else next()
+      })
     router.get("/_server/ping", (_request, reply) => reply.set("Cache-Control", "no-store").json(this.info))
     // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams
     new PageEditor(this.root).route(router, this.web.guard)
@@ -193,6 +202,31 @@ function worktreeOf(file: string, root: string): { branch?: string; worktree?: s
 
 /** `worktreeOf()`'s cache, by worktree name. */
 const WORKTREES = new Map<string, { branch?: string; worktree?: string }>()
+
+/**
+ * The new URL of an old plan doc's URL `url` (`/packages/docs/epics/<n>/<n>.html`, or the same under
+ * `/worktrees/<w>/`):  `<n>.plan.html`, query kept, when the old file is gone and the new one is there;  else
+ * `undefined`.
+ * - `root`:  the checkout served;  `/worktrees/<w>/...` is its `.claude/worktrees/<w>/...` (`RunningEpics`)
+ */
+export function renamedPlanDoc(url: string, root: string): string | undefined {
+  const [path = "", query] = url.split("?")
+  let decoded: string
+  try {
+    decoded = decodeURIComponent(path)
+  } catch {
+    return undefined
+  }
+  if (!/^\/(?:worktrees\/[^/]+\/)?packages\/docs\/epics\/([^/]+)\/\1\.html$/.test(decoded)) return undefined
+  const renamed = decoded.replace(/\.html$/, ".plan.html")
+  if (existsSync(onDisk(decoded)) || !existsSync(onDisk(renamed))) return undefined
+  return `${path.replace(/\.html$/, ".plan.html")}${query === undefined ? "" : `?${query}`}`
+
+  /** URL path `served` as a file under `root`. */
+  function onDisk(served: string): string {
+    return served.startsWith("/worktrees/") ? join(root, ".claude", served) : join(root, served)
+  }
+}
 
 /** Branch and worktree name of the checkout at `root`, when git knows. */
 function checkout(root: string): { branch?: string; worktree?: string } {

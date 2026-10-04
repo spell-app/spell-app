@@ -123,7 +123,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
     nothing worth a reader's time:  typo fixes, a papercut)
 - An entry:  one nested `<ui-section id="<epic or worktree name>" header="YYYY-MM-DD · Title">` under its month,
   newest first (the page's header comment has the markup):
-  - a `spell-meta` list with LINKS:  the plan doc (`epics/<name>/<name>.html`, `target="<name>"`), the durable
+  - a `spell-meta` list with LINKS:  the plan doc (`epics/<name>/<name>.plan.html`, `target="<name>"`), the durable
     doc, the branch
   - EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary
 - Then finish the page as `packages/docs/AGENTS.md` says ("Finishing a page"), and bump its footer's date and
