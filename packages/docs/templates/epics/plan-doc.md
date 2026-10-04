@@ -221,6 +221,10 @@ decide from WITHOUT asking back:  in the item's details, or an Overview sub-sect
 
 ## Commands (`yarn plan-doc ...`, from anywhere in the repo)
 
+Every command but `new` edits the epic's LIVE doc wherever it is:  its own worktree's
+(`.claude/worktrees/<name>`), else the main checkout's, else the first worktree that has it.  Never the copy a
+worktree took of an epic merged before it was cut:  editing that would fork the record.
+
 | Command | Does |
 |---|---|
 | `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `epics/<name>/<name>.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
@@ -236,6 +240,7 @@ decide from WITHOUT asking back:  in the item's details, or an Overview sub-sect
 | `defer <name> <id>` | put an item off:  dated, still not reviewed |
 | `queue <name> <id> "work"` / `unqueue <name> <id>` | work a review decided on, waiting / started or dropped |
 | `items <name> [--section <s>] [--filter unreviewed\|open\|reviewed\|queued\|all] [--json]` | what a review walks:  where reviews stand, the to-do list, each section's counts and items |
+| `items <name> --section <s> --spec <file>` | `/epic review`'s item picker as a details page spec (`yarn details new --from`):  a checkbox per open item, the not-reviewed ones ticked, each labelled by its id |
 | `list [--json]` | every epic in main and the worktrees:  in progress / done, not reviewed / all |
 | `backfill <name> \| --all [--apply]` | one-off:  items not reviewed that Owen named in a past session of the epic (his message, or a modal he answered);  a dry run unless `--apply`, which marks them dated that day (`scripts/review-backfill.js`) |
 | `summary <name> [--json]` | open questions, judgement calls, issues, caveats, todos, tests, and the next phase |

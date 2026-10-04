@@ -1405,21 +1405,17 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   queue <name> <id> "work"  /  unqueue <name> <id> work a review decided on, waiting  /  started or dropped
   items <name> [--section issues] [--filter unreviewed|open|reviewed|queued|all] [--json]
                                                    what a review walks:  sections, counts, items, the queue
+  items <name> --section issues --spec <file>      the review's item picker, a details page spec:
+                                                   \`yarn details new <slug> --from <file>\`
   list [--json]                                    every epic, main and worktrees:  status, not reviewed / all
   backfill <name> | --all [--apply]                items Owen already went through, from past sessions;
                                                    a dry run unless --apply (review-backfill.js)
-    (review ... items find the epic's doc in its own worktree, else main, else any worktree)
   summaries <file.html> ...                        \`summary --json\` of each doc, by path (worktrees' too):
                                                    JSON \`{ <file>: summary | { error } }\`;  for \`/epics\`
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
   open <name>                                      show in VS Code, beside the editor (reloads its tab)
-  migrate <name>                                   bring an older doc (any layout) into the current one`
-
-/**
- * Commands that find the epic's doc in any checkout (`findDoc()`), not just this one.
- * - up here:  `main()` runs below, before any later `const` exists
- */
-const REVIEW_COMMANDS = ["review", "defer", "queue", "unqueue", "items"]
+  migrate <name>                                   bring an older doc (any layout) into the current one
+Every command but \`new\` edits the epic's LIVE doc:  its own worktree's, else main's, else any worktree's.`
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {
@@ -1439,8 +1435,8 @@ function main(argv) {
   if (command === "backfill") return backfill(name, flags)
   if (!command || !name) return usage()
   if (command === "summaries") return printSummaries(positional.slice(1))
-  // a review edits the epic's doc wherever it lives (its worktree, else main);  everything else, this checkout's
-  const file = REVIEW_COMMANDS.includes(command) ? findDoc(name) : docPath(name)
+  // the epic's LIVE doc, wherever it is (its worktree, else main:  `findDoc()`);  `new` makes one HERE
+  const file = command === "new" ? docPath(name) : findDoc(name)
   switch (command) {
     case "new":
       return create(name, file, flags)
@@ -1802,8 +1798,8 @@ function printEpics(epics, json) {
  * `items`:  where reviews stand, then each section with items (or `--section <kind or label>` only), its counts
  * and the items `--filter` picks;  `--json`:  `{ file, status, sections }`.
  */
-function printItems(plan, file, { section, filter = "unreviewed", json }) {
-  let sections = plan.reviewSections({ filter })
+function printItems(plan, file, { section, filter = "unreviewed", json, spec }) {
+  let sections = plan.reviewSections({ filter: spec ? "open" : filter })
   if (section) {
     const wanted = String(section).toLowerCase().replace(/s$/, "")
     sections = sections.filter((s) => s.kind === wanted || s.label.toLowerCase().replace(/s$/, "") === wanted)
@@ -1812,6 +1808,11 @@ function printItems(plan, file, { section, filter = "unreviewed", json }) {
     }
   }
   const status = plan.reviewStatus()
+  if (spec) {
+    if (sections.length !== 1) throw new PlanDocError("--spec needs one --section")
+    writeFileSync(spec, JSON.stringify(pickerSpec(plan, file, sections[0], status), null, 2))
+    return console.log(spec)
+  }
   if (json) return console.log(JSON.stringify({ file, status, sections }, null, 2))
   const lines = [
     status.last
@@ -1848,6 +1849,65 @@ function printSummaries(files) {
   }
   console.log(JSON.stringify(found, null, 2))
 }
+
+/**
+ * `items --section <s> --spec <file>`:  `/epic review`'s item picker, as a details page spec (`details.js`
+ * `DetailsSpec`, for `yarn details new --from`):  one checkbox per open item of `section` (`reviewSections()`'s,
+ * filter `open`), the not-reviewed ones ticked.
+ * - each option's letter is the item's id (`I4`), so the answer names the ids
+ * - written for Owen coming cold ("Writing for Owen" in the details skill):  where reviews stand, what each item is
+ */
+export function pickerSpec(plan, file, section, status) {
+  const name = basename(file, ".html")
+  const title = plan.document.querySelector("h1")?.textContent.trim() ?? name
+  const label = section.label.toLowerCase()
+  const notReviewed = section.items.filter((item) => item.state === "outstanding" || item.state === "deferred")
+  const last = status.last
+    ? `You last reviewed this epic on ${status.last}${status.queued.length ? `;  ${status.queued.length} decided to do, not done yet` : ""}.`
+    : "This epic hasn't been reviewed before."
+  return {
+    lede: `Pick the ${label} to go through.  Each comes up in chat, one at a time.`,
+    askedBy: `<code>/epic review ${name}</code>`,
+    where: {
+      epic: `${text(title)} (<code>${name}</code>)`,
+      justNow: `${last}  ${section.label}:  ${section.notReviewed} of ${section.total} not reviewed yet (ticked).`,
+      decides: `Which ${label} to go through now.  Unticked ones stay as they are.`
+    },
+    questions: [
+      {
+        id: "items",
+        title: `Which ${label}?`,
+        text: notReviewed.length
+          ? `The ticked ones haven't been reviewed.  Untick any to skip;  tick a reviewed one to go through it again.`
+          : `All of them have been reviewed;  tick any to go through again.`,
+        multiple: true,
+        options: section.items.map((item) => ({
+          letter: item.id,
+          title: item.title,
+          summary: pickerSummary(item),
+          // the summary already shows a short one whole
+          details: item.details.length > PICKER_SUMMARY ? `<p>${text(item.details)}</p>` : undefined,
+          checked: item.state === "outstanding" || item.state === "deferred"
+        }))
+      }
+    ]
+  }
+}
+
+/** One picker option's line:  its review state in words, and the start of its details. */
+function pickerSummary(item) {
+  const state = {
+    outstanding: "Not reviewed yet.",
+    deferred: `Deferred on ${item.deferred}.`,
+    reviewed: item.reviewed ? `Reviewed ${item.reviewed}.` : "Settled (closed, decided, or a decision links it).",
+    queued: `Reviewed ${item.reviewed};  to do:  ${item.work}.`
+  }[item.state]
+  const start = item.details.length > PICKER_SUMMARY ? `${item.details.slice(0, PICKER_SUMMARY)}…` : item.details
+  return text(start ? `${state}  ${start}` : state)
+}
+
+/** How much of an item's details a picker option's line shows;  longer ones fold the rest in "More on I4". */
+const PICKER_SUMMARY = 140
 
 /** `check`:  structural problems, then the browser check;  exits 1 on any. */
 function check(file, { noBrowser }) {
