@@ -80,7 +80,7 @@
             </p>
             <p>Update plan doc with decisions.</p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 8h-10h 30m in all, 3h 30m-4h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 10h-13h 30m in all, 4h-5h left</p>
           <ui-section id="o1" header="1.1 The Flow" sticky collapsible dividing>
             <p>
               As decided in <a href="#d1">D1</a>-<a href="#d5">D5</a>. <a href="#p1">P1</a> mocks it on canned data
@@ -180,7 +180,7 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="6" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -232,6 +232,7 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p3"
             data-phase="3"
             data-status="done"
@@ -253,20 +254,46 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
               ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
             >
           </ui-section>
+          <ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="4"
+            ><p>
+              P4 now uses details pages (picking items, Explain further); P5 is new (one Epics section); Dry Run moved
+              to P6, Doc Review to P7.
+            </p></ui-message
+          >
           <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Real Review" sticky collapsible dividing>
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
-                ><b>Goal:</b> Swap the mock for real plan-doc calls; queue + 'do this now' into a new worktree; every
-                /epic session marks what it discusses</ui-item
+                ><b>Goal:</b> Swap the mock for real plan-doc calls. Picking items: a details page, a checkbox per item
+                (not reviewed ones ticked). Explain further: a details page kept with the epic, answered there when the
+                options don't fit a popup. Work waiting: 'Start work' into a new worktree. Every /epic session marks
+                what it talks through</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> .claude/skills/epic/SKILL.md (Review; rule in 5. Each phase),
-                prompt-gate.test.mjs</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> Hook tests; skill reads end to end</ui-item
+                ><b>Files:</b> .claude/skills/epic/SKILL.md (Review; rule in 5. Each phase), review-mock.json (gone),
+                maybe a details spec builder for a section's items</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> Hook tests; a section's checkbox page builds and its answer parses; skill reads end to
+                end</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p5" data-phase="5" data-status="done" header="P5 · Epics Index" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> One 'Epics' section in the docs index, running and merged together, with Open | All in its
+                title. Each card's title starts with its state: in progress [3/6], done (green check), planning (blue
+                thought bubble), stalled (yellow pause: phases left, no update for a few days)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/docs/scripts/index.js, packages/server/src/page/RunningEpics.ts (folds its cards
+                into Epics), spell-doc-runtime.js (Open | All on the index), plan-doc.css / spell-doc.css</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> Index served by main's page server shows epic-review in Epics with [3/7]; Open hides
+                done ones; check-spell on the index</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · Dry Run" sticky collapsible dividing>
+          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Dry Run" sticky collapsible dividing>
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -277,7 +304,7 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
               ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Doc Review" sticky collapsible dividing>
+          <ui-section id="p7" data-phase="7" data-status="todo" header="P7 · Doc Review" sticky collapsible dividing>
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> Prune, durable doc, changelog, finish</ui-item
@@ -486,7 +513,7 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d3" data-status="decided"
+            ><ui-item id="d3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d3">D3</a>
@@ -637,7 +664,7 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d8" data-status="decided"
+            ><ui-item id="d8" data-status="done"
               ><a class="plan-id" href="#d8">D8</a>
               <span class="plan-title"
                 >Visual pages: ignored by version control, epics/&lt;name&gt;/review/&lt;id&gt;.html, shown with
@@ -712,6 +739,64 @@ back      to Start</code></pre>
                     Excluded: skill bodies, reminders, background agents' notices (they name agents T1, T2 ... and gave
                     4 false hits on ui-import), compacted-session summaries (1 false hit on ui-component-creation), meta
                     and sub-agent entries. Dates are local, not the transcripts' UTC.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d15" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d15">D15</a>
+                  <span class="plan-title"
+                    >Picking a section's items: a details page with a checkbox per item, the not-reviewed ones ticked;
+                    Send</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, after the details skill landed. Replaces typing ids and filter words in chat (D3).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d16" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d16">D16</a>
+                  <span class="plan-title"
+                    >Explain further: a details page kept with the epic (epics/&amp;lt;name&amp;gt;/details/), linked
+                    from the decision it leads to; answered on the page when the options don't fit a popup</span
+                  ></ui-title
+                ><ui-content><p>Replaces the throwaway review/ pages (D8).</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d17" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d17">D17</a>
+                  <span class="plan-title"
+                    >One Epics section in the docs index, running and merged together, with Open | All; each card's
+                    title starts with its state</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen: 'One Epics section, with an Open | All toggle in the header like we just did for issues.'
+                    Before the title: in progress [3/6]; done: a green check in a circle; planning: a blue thought
+                    bubble; stalled: yellow, Claude's pick (a pause: phases left, no update for a few days). New phase
+                    P5 · Epics Index.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d18" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d18">D18</a>
+                  <span class="plan-title"
+                    >Epics index: docs:index writes the merged cards plus a slot; the page server puts running epics'
+                    cards in it and drops a merged card of the same name</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    One list, no separate Running epics section. Both sides write the same card markup and state mark
+                    (index.js epicState(), RunningEpics.ts stateMark()): each says 'change both'. Stalled: phases left
+                    and the doc's 'updated' date more than 3 days old; for merged epics that's judged when docs:index
+                    runs.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -793,6 +878,20 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c8">C8</a>
+                  <span class="plan-title"
+                    >A merged epic's 'stalled' is frozen at the last docs:index run</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Running epics are judged on every page load; merged ones only when the index is rebuilt. Merged
+                    epics are nearly always done, so it rarely shows.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -809,6 +908,20 @@ back      to Start</code></pre>
             ><ui-item id="i1" data-status="done"
               ><a class="plan-id" href="#i1">I1</a>
               <span class="plan-title">check-spell failed on an empty section: too short to stick</span></ui-item
+            ><ui-item id="i2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title"
+                    >packages/server lint fails on main: two 'void' operators in liveClient.ts</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    src/liveClient.ts:167 and :170, no-meaningless-void-operator. From main (Spell Docs panel buttons
+                    commit), not this branch; left for that work's owner.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -869,6 +982,21 @@ back      to Start</code></pre>
                     <code>yarn plan-doc backfill --all</code>: 10 questions on precedence-and-types (an epic running in
                     its own session), each a modal you answered on 10-03. <code>--apply</code> marks them reviewed in
                     that epic's worktree doc.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v4">V4</a>
+                  <span class="plan-title"
+                    >Docs index: one Epics section with state marks and Open | All</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    After this merges, on main's page server: the index has no 'Running epics' section; Epics starts
+                    with the running ones (epic-review [n/7], markdown [1/9] ...), Open hides the done ones with '12
+                    hidden · show all' under them, All shows every card with a green check on the done ones.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1111,6 +1239,59 @@ back      to Start</code></pre>
                   ><ui-date><time datetime="2026-10-03T23:17-04:00">2026-10-03 23:17</time></ui-date> P3 feedback: Open
                   | All defaults to Open (struck items hidden on load); '6 hidden · show all' under the list switches to
                   All</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:46-04:00">2026-10-03 23:46</time></ui-date> D3 closed: Chat
+                  reply: ids, go, all, open, reviewed, queued, back ('show X' also works); hint under every list
+                  (Q3)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:47-04:00">2026-10-03 23:47</time></ui-date> D8 closed: Visual
+                  pages: ignored by version control, epics/&lt;name&gt;/review/&lt;id&gt;.html, shown with window.mjs
+                  show; plan doc reopened after</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:47-04:00">2026-10-03 23:47</time></ui-date> P4 estimate:
+                  2-3h</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:47-04:00">2026-10-03 23:47</time></ui-date> Plan: P4 uses
+                  details pages; new P5 Epics Index; Dry Run now P6, Doc Review P7. Main merged (judgement calls join
+                  the review's sections)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:49-04:00">2026-10-03 23:49</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:54-04:00">2026-10-03 23:54</time></ui-date> P5: one Epics
+                  section (docs:index + RunningEpics), state marks, Open | All on epic cards; circle pause
+                  icon</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:54-04:00">2026-10-03 23:54</time></ui-date> P5
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
