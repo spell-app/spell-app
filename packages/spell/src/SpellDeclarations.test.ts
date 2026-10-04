@@ -348,3 +348,20 @@ describe("SpellDeclarations of an exclusive list", () => {
     expect(imports.types.get("Card", "LOCAL_ONLY")).toBeUndefined()
   })
 })
+
+/** A multi-word member keeps its words as written through an import, so an importer's editors show `short rank`. */
+describe("SpellDeclarations of a multi-word member", () => {
+  const library = [{ path: "/Card.spell", contents: "a card is a thing\na card has short rank as text\na card has a suit" }]
+  const declarations = SP.SpellDeclarations.read(compiledProject(library))!
+
+  test("says its `words` when they aren't its name -- not for a one-word member", () => {
+    expect(declarations.statements.find(({ property }) => property === "short_rank")?.words).toBe("short rank")
+    expect(declarations.statements.find(({ property }) => property === "suit")?.words).toBeUndefined()
+  })
+
+  test("loads them again", () => {
+    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from: "@library/c", declarations }])
+    const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("short_rank", "LOCAL_ONLY")
+    expect(member?.words).toBe("short rank")
+  })
+})

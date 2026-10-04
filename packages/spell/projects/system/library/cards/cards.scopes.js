@@ -285,18 +285,18 @@
     {
       path: "project:cards/file:Deck.spell/type:Deck", line: 3,
       super: "type:List",
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes"
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes"
     },
     {
       path: "project:cards/file:Deck.spell/type:Deck/property:with_jokers", line: 6,
-      name: "with-jokers",
+      name: "with jokers",
       detail: "choice",
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
-      description: "with-jokers:  yes to add the red and the black joker when it's set up, after the 52 cards"
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
+      description: "with jokers:  yes to add the red and the black joker when it's set up, after the 52 cards"
     },
     {
       path: "project:cards/file:Deck.spell/type:Deck/method:set up a deck", line: [8, 19],
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
       rules: [
         { name: "set_up", syntax: "set up {thisArg:expression}" }
       ]
@@ -305,25 +305,25 @@
       path: "project:cards/file:Deck.spell/type:Deck/property:is_set_up", line: 19,
       name: "is-set-up",
       detail: "choice",
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes"
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes"
     },
     {
       path: "project:cards/file:Deck.spell/type:Deck/method:display a deck", line: [21, 25],
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
       rules: [
         { name: "display", syntax: "display {thisArg:expression}" }
       ]
     },
     {
       path: "project:cards/file:Deck.spell/function:test deck creation", line: [27, 46],
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
       rules: [
         { name: "test_deck_creation", syntax: "test deck creation" }
       ]
     },
     {
       path: "project:cards/file:Deck.spell/function:test deck with jokers", line: [49, 56],
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
       rules: [
         { name: "test_deck_with_jokers", syntax: "test deck with jokers" }
       ]

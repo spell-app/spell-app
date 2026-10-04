@@ -326,7 +326,15 @@ export class ScopeExplorer {
       const propertyPath = LSP.scopePath(path, "property", record.name)
       members.push({
         at: record.declaredBy,
-        add: () => this.addLeaf(propertyPath, subject, record.declaredBy, tree, record.datatype, record.words)
+        add: () =>
+          this.addLeaf(
+            propertyPath,
+            subject,
+            record.declaredBy,
+            tree,
+            record.datatype,
+            LSP.SpellLanguageService.memberWords(record.name, record)
+          )
       })
     }
     // a compiled import's type -- not swapped for its source, see `sourceType()` -- has just its imported rules

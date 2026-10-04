@@ -98,6 +98,14 @@ const MEMBER_STOP_WORDS = new Set([
 ])
 
 /**
+ * Stop words which may still START a member's name, e.g. `with jokers` in `a deck has with jokers as yes or no`,
+ *   `in play`, `on top`.
+ * - They END a run anywhere else:  `the jokers with ...` is `jokers`.
+ * - Safe:  a name starts only where a rule's syntax expects one, e.g. after `has` or `the`.
+ */
+const MEMBER_LEADING_WORDS = new Set(["with", "for", "from", "in", "on", "by", "at", "into"])
+
+/**
  * 1..N words naming a member, e.g. `short rank`, `short-rank`, `rank`:  every word up to the first STRUCTURAL one
  * (`MEMBER_STOP_WORDS`), e.g. `of` in `the short rank of a card is:`.  No other bound.
  * - NOT the identifier blacklist:  `short` and `long` are fine.  Safe, as a READ takes these words only if the type
@@ -113,15 +121,15 @@ class member_words extends P.Pattern {
   @proto static pattern = P.ALPHANUMERIC_WORD_WITH_DASHES
   @proto static highlightAs: P.HighlightKind = "property"
 
-  /** Does a member's word start at `start`:  a lower-case word, not a structural one? */
+  /** Does a member's word start at `start`:  a word, not a structural one -- or one which may lead a name? */
   test(scope: P.Scope, tokens: P.Token[], start = 0) {
-    return start < tokens.length && isMemberWord(tokens[start]!, this.pattern)
+    return start < tokens.length && isMemberWord(tokens[start]!, this.pattern, true)
   }
 
   /** Every member word from the first token on -- see class docs. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     let count = 0
-    while (count < tokens.length && isMemberWord(tokens[count]!, this.pattern)) count++
+    while (count < tokens.length && isMemberWord(tokens[count]!, this.pattern, count === 0)) count++
     if (!count) return undefined
     const words = tokens.slice(0, count)
     return new P.Match({
@@ -146,16 +154,22 @@ properties.addRule(member_words, {
         { title: "several words", input: "short rank", output: "short_rank" },
         { title: "a blacklisted word", input: "short", output: "short" },
         { title: "dashed", input: "short-rank", output: "short_rank" },
-        { title: "a structural word", input: "of", output: undefined }
+        { title: "a structural word", input: "of", output: undefined },
+        { title: "a leading preposition", input: "with jokers", output: "with_jokers" },
+        { title: "a preposition after the first word ends it", input: "jokers with", output: "jokers" }
       ]
     }
   ]
 })
 
-/** Is `token` one of a member's words:  matches `pattern`, and isn't structural?  See `MEMBER_STOP_WORDS`. */
-function isMemberWord(token: P.Token, pattern: RegExp): boolean {
+/**
+ * Is `token` one of a member's words:  matches `pattern`, and isn't structural?  See `MEMBER_STOP_WORDS`.
+ * - `first`:  the name's first word, which may also be one of `MEMBER_LEADING_WORDS`, e.g. `with` in `with jokers`.
+ */
+function isMemberWord(token: P.Token, pattern: RegExp, first = false): boolean {
   if (!(token instanceof P.WordToken) || !token.matchesPattern(pattern)) return false
-  return !MEMBER_STOP_WORDS.has(`${token.value}`.toLowerCase())
+  const word = `${token.value}`.toLowerCase()
+  return !MEMBER_STOP_WORDS.has(word) || (first && MEMBER_LEADING_WORDS.has(word))
 }
 
 ////////////////

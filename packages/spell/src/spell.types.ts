@@ -361,6 +361,11 @@ export type SpellDeclaration = {
   /** Instance property it declares, e.g. `suit`. */
   property?: string
   /**
+   * `property`'s words as written, when not its name, e.g. `short rank` for `short_rank` -- so an importer's
+   *   editors show what the author typed.  See `P.ScopeVariable.words`.
+   */
+  words?: string
+  /**
    * Class variable holding an enumerated property's values, e.g. `Suits` -- instances see it too.
    * - Its values are `enumeration`.
    */

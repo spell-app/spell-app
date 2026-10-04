@@ -202,24 +202,28 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "defined": "/Card.spell:1139-1300",
       "of": "Card",
       "property": "short_suit",
+      "words": "short-suit",
     },
     {
       "datatype": "text",
       "defined": "/Card.spell:1302-1466",
       "of": "Card",
       "property": "short_rank",
+      "words": "short-rank",
     },
     {
       "datatype": "text",
       "defined": "/Card.spell:1468-1548",
       "of": "Card",
       "property": "short_direction",
+      "words": "short-direction",
     },
     {
       "datatype": "text",
       "defined": "/Card.spell:1551-1611",
       "of": "Card",
       "property": "short_name",
+      "words": "short-name",
     },
     {
       "datatype": "text",
@@ -359,6 +363,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "defined": "/Deck.spell:277-313",
       "of": "Deck",
       "property": "is_set_up",
+      "words": "is-set-up",
     },
     {
       "alias": "statement",
