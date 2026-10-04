@@ -3,72 +3,81 @@
  * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - A DOC-ONLY element (`src/docs-components/`):  filed under the `documentation` topic, left out of the component
  *   list, loaded by `<ui-root>` like any family.
- * - Class words:  `inverted` (`ui inverted themes`), passed on to the widgets inside.
+ * - Class words:  `inverted` (`ui inverted themes`), for dark backgrounds.
  */
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-docs-themes>`
- * The docs site's look controls:  a theme dropdown (our own look, Classic, every Fomantic theme) and a light / dark
- * / system button group, both remembered per viewer.
+ * The docs site's look controls:  a sun / moon button flipping light and dark, and a palette button opening a small
+ * overlay with the theme list and "Match system";  or, on a component page, a theme dropdown.  Remembered per
+ * viewer.
  ****************/
 export const docsThemesVocabulary = {
   tag: "ui-docs-themes",
   topics: ["documentation", "controls", "selection"],
   aka: ["theme picker", "theme switcher", "dark mode toggle", "colour scheme", "appearance", "skin"],
-  skeleton: { display: "inline", width: "16em", height: "2.5em" },
+  skeleton: { display: "inline", width: "5em", height: "2.25em" },
   noun: "themes",
   description:
-    "Theme controls pick the page's theme and its light, dark or system colour scheme, and remember both for the " +
-    "next page.",
+    "Theme controls switch the page between light and dark, and pick its theme, and remember both for the next " +
+    "page.",
   attributes: [
     {
       name: "for",
       kind: "string",
       description:
         "A tag, e.g. `ui-button`:  list only the themes that restyle its family, and say how many (`3 Themes`), as " +
-        "Fomantic's per-page theme dropdown does.  Default and Classic stay on top."
+        "Fomantic's per-page theme dropdown does.  Spell, Plain and Classic stay on top."
     },
     {
       name: "show",
       kind: "enum",
       values: ["both", "theme", "scheme"],
       default: "both",
-      description: "Which controls to show:  the theme dropdown, the scheme buttons, or `both`."
+      description:
+        "Which controls to show:  `both` (the light / dark button and the palette button with its overlay), " +
+        "`scheme` (the light / dark button alone) or `theme` (a theme dropdown, e.g. with `for`)."
     },
     {
       name: "size",
       kind: "size",
-      description: "Size of the dropdown and buttons, `mini` ... `massive`;  `medium` is the default."
+      description: "Size of the buttons (or the dropdown), `mini` ... `massive`;  `medium` is the default."
     },
     {
       name: "inverted",
       kind: "keyOnly",
-      description: "For dark backgrounds (the site header):  inverted dropdown and buttons."
+      description: "For dark backgrounds (a dark header or side panel):  light buttons, an inverted dropdown."
     }
   ],
   events: [
     {
       name: "ui-change",
-      detail: "{ theme?: string, scheme: 'light' | 'dark' | 'system', originalEvent?: Event }",
+      detail: "{ theme?: string, scheme: 'light' | 'dark' | 'system', shown: 'light' | 'dark', originalEvent?: Event }",
       description:
-        "The viewer picked a theme or a scheme here;  `theme` is a `ThemeSheets` name, absent for our own look.  " +
-        "Fired after the look is stored and while its sheets load."
+        "The viewer picked a theme or a scheme here;  `theme` is a `ThemeSheets` name, absent for our own look;  " +
+        "`scheme` is `system` while following the OS, and `shown` the scheme the page shows.  Fired after the look " +
+        "is stored and while its sheets load."
     }
   ],
   slots: [],
   parts: [
-    { name: "controls", description: "The wrapper around both controls." },
-    { name: "theme", description: "The theme `<ui-dropdown>`." },
-    { name: "scheme", description: "The scheme `<ui-buttons>` group." },
-    { name: "light", description: "The light scheme `<ui-button>`." },
-    { name: "dark", description: "The dark scheme `<ui-button>`." },
-    { name: "system", description: "The system scheme `<ui-button>`." }
+    { name: "controls", description: "The wrapper around the controls." },
+    { name: "scheme", description: "The light / dark `<button>`:  a sun or a moon, the scheme the page shows." },
+    { name: "palette", description: "The `<button>` opening the overlay." },
+    { name: "overlay", description: 'The overlay, a `<ui-popup on="click">`;  its box is `::part(popup)`.' },
+    { name: "menu", description: "The overlay's theme list (`role=menu`)." },
+    { name: "option", description: "One theme in the list (`role=menuitemradio`)." },
+    { name: "system", description: 'The overlay\'s "Match system" switch (`role=switch`).' },
+    { name: "tip", description: 'A button\'s tooltip, a `<ui-popup inverted size="mini">`.' },
+    { name: "theme", description: 'The theme `<ui-dropdown>` (`show="theme"`).' }
   ],
   states: [
     { name: "themed", description: "A theme other than our own look is applied." },
-    { name: "dark", description: "The dark scheme is chosen (not `system`)." }
+    { name: "dark", description: "The page shows the dark scheme (chosen, or the OS's while following it)." },
+    { name: "following", description: 'The scheme follows the OS (nothing chosen, or "Match system" on).' },
+    { name: "open", description: "The overlay is open." }
   ],
   texts: [
     { key: "themeLabel", text: "{title} theme", description: "The dropdown's text:  the chosen theme." },
@@ -78,15 +87,29 @@ export const docsThemesVocabulary = {
       description: "The dropdown's text with `for`, while the chosen theme isn't one of the family's."
     },
     { key: "themeCountOne", text: "1 theme", description: "`themeCount` when the family has exactly one theme." },
-    { key: "themeName", text: "Theme", description: "Accessible name of the theme dropdown." },
+    {
+      key: "themeName",
+      text: "Theme",
+      description: "Accessible name of the theme dropdown, and the overlay's header."
+    },
     { key: "default", text: "Plain", description: "Our own look, no theme." },
-    { key: "defaultDescription", text: "Spell UI, unthemed", description: "Beside `Plain` in the menu." },
-    { key: "spellDescription", text: "The Spell brand", description: "Beside `Spell` in the menu:  the default." },
-    { key: "classicDescription", text: "Fomantic's look", description: "Beside `Classic` in the menu." },
-    { key: "fomanticThemes", text: "Fomantic themes", description: "Menu header above Fomantic's themes." },
-    { key: "schemeName", text: "Colour scheme", description: "Accessible name of the scheme buttons." },
-    { key: "light", text: "Light", description: "The light scheme button's name." },
-    { key: "dark", text: "Dark", description: "The dark scheme button's name." },
-    { key: "system", text: "System", description: "The system scheme button's name:  follow the OS." }
+    { key: "defaultDescription", text: "Spell UI, unthemed", description: "Under `Plain` in the list." },
+    { key: "spellDescription", text: "The Spell brand", description: "Under `Spell` in the list:  the default." },
+    { key: "classicDescription", text: "Fomantic's look", description: "Under `Classic` in the list." },
+    { key: "fomanticThemes", text: "Fomantic themes", description: "List header above Fomantic's themes." },
+    { key: "toDark", text: "Switch to dark", description: "The light / dark button's name, while the page is light." },
+    { key: "toLight", text: "Switch to light", description: "The light / dark button's name, while the page is dark." },
+    {
+      key: "palette",
+      text: "Theme:  {title}",
+      description: "The palette button's name and tooltip:  the chosen theme."
+    },
+    { key: "overlayName", text: "Theme and colour scheme", description: "Accessible name of the overlay." },
+    { key: "matchSystem", text: "Match system", description: "The overlay's switch:  follow the OS's scheme." },
+    {
+      key: "matchSystemDescription",
+      text: "Follow your device",
+      description: "Under `Match system`."
+    }
   ]
 } as const satisfies ComponentVocabulary

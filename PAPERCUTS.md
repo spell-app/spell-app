@@ -1252,6 +1252,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   update a flagged file even when it's unchanged.  `git checkout -- <file>` alone doesn't help while flagged. ·
   Back them up, `git update-index --no-skip-worktree` (paths from the REPO ROOT), `git checkout -- workspaces`,
   merge, write the local edits back on top, `git update-index --skip-worktree` again. · claude-code
+- 2026-10-04 · In a worktree-isolated session, a Bash call running `python3 - <<'EOF' ... EOF` (a multi-line edit
+  script) was refused:  "too complex to verify that it stays inside the worktree".  Same for a long `grep -rn` with
+  several `--include` flags.  Also zsh:  an unquoted `--include=*.ts` fails with "no matches found". · Write the
+  script to the scratchpad with the Write tool and run `python3 <file>`;  quote globs (`--include='*.ts'`), and
+  keep each command short and plain. · claude-code
 
 ## vscode
 

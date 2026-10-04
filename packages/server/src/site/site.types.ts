@@ -35,8 +35,25 @@ export const PROPERTIES: SiteProperty[] = [
   { name: "App", path: "/editor/", serverOnly: true, ownTab: true, match: (path) => /^\/editor(\/|$)/.test(path) }
 ]
 
-/** `localStorage` key of the chosen color scheme:  `light`, `dark`, or absent for the OS's. */
-export const THEME_KEY = "spell-site:theme"
+/**
+ * `localStorage` key of the chosen color scheme:  `light`, `dark`, or absent for the OS's.
+ * - ONE key for every doc site:  Spell UI's `ThemePreference` reads and writes it too, as
+ *   `DOCS_LOOK_KEYS.scheme` (`packages/ui/src/docs-components/docs-components.types.ts`), so a switch on one site
+ *   holds on the others.  MUST stay equal:  `ui`'s `ui-docs-themes.test.tsx` pins it.
+ */
+export const SCHEME_KEY = "spell-site:scheme"
+
+/**
+ * Keys the scheme lived under before `SCHEME_KEY` (2026-10-04):  read once while `SCHEME_KEY` is absent, copied to
+ * it, then removed.  First valid one wins.
+ * - `spell-site:theme`:  this header's
+ * - `spell-ui-site:scheme`:  Spell UI's site
+ * - MUST equal `DOCS_LEGACY_SCHEME_KEYS` in `ui`'s `docs-components.types.ts`
+ */
+export const LEGACY_SCHEME_KEYS = ["spell-site:theme", "spell-ui-site:scheme"] as const
+
+/** Media query of the OS's dark scheme:  what an absent `SCHEME_KEY` follows. */
+export const DARK_QUERY = "(prefers-color-scheme: dark)"
 
 /** `sessionStorage` key:  edit mode on for this tab. */
 export const EDIT_KEY = "spell-site:edit"
