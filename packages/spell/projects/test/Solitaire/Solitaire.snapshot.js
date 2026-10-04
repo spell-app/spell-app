@@ -667,7 +667,7 @@ export let tableaus = new List({ instanceType: "Pile" })
 } */
 export class Stock_Pile extends Pile {
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} pick up {expression:simple_expression}", output: "can_pick_up_$card",
+    syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Stock_Pile", kind: "method", name: '"can pick up (a card)"',
     defined: "/Solitaire.spell:433-500",
   } */
@@ -705,7 +705,7 @@ spellCore.append(all_piles, stock)
 } */
 export class Discard_Pile extends Pile {
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} pick up {expression:simple_expression}", output: "can_pick_up_$card",
+    syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Discard_Pile", kind: "method", name: '"can pick up (a card)"',
     defined: "/Solitaire.spell:691-760",
   } */
@@ -734,7 +734,7 @@ spellCore.append(all_piles, discards)
 } */
 export class Foundation extends Pile {
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} pick up {expression:simple_expression}", output: "can_pick_up_$card",
+    syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Foundation", kind: "method", name: '"can pick up (a card)"',
     defined: "/Solitaire.spell:949-991",
   } */
@@ -743,7 +743,7 @@ export class Foundation extends Pile {
   }
 
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} play {expression:simple_expression}", output: "can_play_$card",
+    syntax: "{operator:can} play {expression:operand}", output: "can_play_$card",
     rule: "method_infix", of: "Foundation", kind: "method", name: '"can play (a card)"',
     defined: "/Solitaire.spell:992-1117",
   } */
@@ -808,7 +808,7 @@ spellCore.map(foundations, (pile) => {
 } */
 export class Tableau extends Pile {
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} pick up {expression:simple_expression}", output: "can_pick_up_$card",
+    syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Tableau", kind: "method", name: '"can pick up (a card)"',
     defined: "/Solitaire.spell:1660-1716",
   } */
@@ -817,7 +817,7 @@ export class Tableau extends Pile {
   }
 
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} play {expression:simple_expression}", output: "can_play_$card",
+    syntax: "{operator:can} play {expression:operand}", output: "can_play_$card",
     rule: "method_infix", of: "Tableau", kind: "method", name: '"can play (a card)"',
     defined: "/Solitaire.spell:1717-1894",
   } */

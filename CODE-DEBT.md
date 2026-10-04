@@ -352,34 +352,6 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-### Expression rules ending in `{expression}` swallow the operator after them
-
-- **Cost**:  `the bottom card of the deck is the black joker` parses as `the bottom card of (the deck is the black
-  joker)`, compiling to `getItemOf(deck.is_the_$color_joker('black'), -1)` -- the method runs on the DECK, and
-  throws.  It is NOT just position expressions.  Probed 2026-09-28:
-  - `the first card of the deck is red` => `getItemOf(deck.is_red, 1)`
-  - `the first card of the deck is not empty` => `getItemOf(!isEmpty(deck), 1)`
-  - `the number of cards in the deck is 52` => `itemCountOf(deck == 52)`
-  - `the suit of the first card of the deck is hearts` => `getItemOf(deck == 'hearts', 1).suit`
-
-  So any comparison or method alias after a list / position / count expression silently compiles to nonsense,
-  and authors have to parenthesize, e.g. `(the last card of the deck) is ...`, or split the line with
-  `get ...` + `it ...`.
-- **Cause**:  a rule whose syntax ENDS in a full `{expression}` operand -- `the {ordinal} {arg:singular_identifier}
-  (in|of) {expression}` (`lists.ts`), `the? number of ... (in|of) {list:expression}`, and ~20 more in `lists.ts`,
-  `math.ts` and elsewhere -- matches its tail as a whole expression, infix operators included.  The infix
-  rules (`is`, `is not`, `==`, method aliases) never get to wrap the prefix expression, because the trailing
-  operand consumes them first.  Rule `precedence` only breaks ties between whole matches;  it doesn't limit
-  what an operand may contain.
-- **Fix**:  make trailing operands precedence-aware -- e.g. a narrower operand rule (a `{term}` / non-infix
-  expression:  literals, variables, property / position chains, parenthesized) for the last slot of prefix
-  expressions, or real precedence climbing in the parser, where an operand only accepts rules binding tighter
-  than its owner.  Either way it touches every rule ending in `{expression}`, and their tests.
-- **Pinned at**:  `projects/system/library/cards/Deck.spell` `test deck with jokers`, which parenthesizes:
-  `expect (the last card of the deck) is the black joker to be yes`.
-
----
-
 ### Thing Explorer's top-level things only update when something else redraws it
 
 - **Cost**:  a top-level variable set to a different thing mid-run, e.g. `the deck is a new deck` in an event

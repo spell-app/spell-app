@@ -8,7 +8,7 @@ import { proto } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
-import { SpellExpression, InfixOperatorSuffix } from "./expressions"
+import { SpellExpression, InfixOperatorSuffix, Precedence } from "./expressions"
 
 /**
  * Rule module for math rules (comparison/arithmetic operators, standalone math functions).
@@ -30,7 +30,7 @@ export const math = new SpellParser({ module: "math" })
  *   TODO: confirm this is genuinely dead code, and if so remove it.
  */
 class gt_lt extends InfixOperatorSuffix<"operator|expression"> {
-  @proto static precedence = 11
+  @proto static precedence = Precedence.comparison
   @proto static parenthesize = true
 
   getAST(match: P.MatchFor<this>) {
@@ -42,7 +42,7 @@ class gt_lt extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 math.addRule(gt_lt, {
-  syntax: "(operator:(<|>) =?) {expression:simple_expression}",
+  syntax: "(operator:(<|>) =?) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -79,7 +79,7 @@ math.addRule(gt_lt, {
  * - `getAST()` below looks unreachable in practice, same as `gt_lt` above -- see `TODO` there.
  */
 class is_gt_lt extends InfixOperatorSuffix<"operator|expression"> {
-  @proto static precedence = 11
+  @proto static precedence = Precedence.comparison
   @proto static parenthesize = true
 
   getOutputOperator({ value }: P.Match) {
@@ -94,7 +94,7 @@ class is_gt_lt extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 math.addRule(is_gt_lt, {
-  syntax: "(operator:is (greater|less) than (or equal to)?) {expression:simple_expression}",
+  syntax: "(operator:is (greater|less) than (or equal to)?) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -117,9 +117,9 @@ math.addRule(is_gt_lt, {
 //    e.g. "price + tax"
 ////////////////
 
-/** `plus` / `+`, e.g. `price + tax` -- precedence 13, above comparison operators, below `*`/`/`. */
+/** `plus` / `+`, e.g. `price + tax` -- `Precedence.sum`:  tighter than comparisons, looser than `*` `/`. */
 class plus extends InfixOperatorSuffix {
-  @proto static precedence = 13
+  @proto static precedence = Precedence.sum
   @proto static parenthesize = true
 
   getOutputOperator() {
@@ -127,7 +127,7 @@ class plus extends InfixOperatorSuffix {
   }
 }
 math.addRule(plus, {
-  syntax: "(operator:plus|+) {expression:simple_expression}",
+  syntax: "(operator:plus|+) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -155,7 +155,7 @@ math.addRule(plus, {
  *   see commented-out test below.
  */
 class minus extends InfixOperatorSuffix {
-  @proto static precedence = 13
+  @proto static precedence = Precedence.sum
   @proto static parenthesize = true
 
   getOutputOperator() {
@@ -163,7 +163,7 @@ class minus extends InfixOperatorSuffix {
   }
 }
 math.addRule(minus, {
-  syntax: "(operator:minus|-) {expression:simple_expression}",
+  syntax: "(operator:minus|-) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -185,9 +185,9 @@ math.addRule(minus, {
 //    e.g. "price*taxRate"
 ////////////////
 
-/** `*` / `times`, e.g. `price * taxRate` -- precedence 14, highest, alongside `/`. */
+/** `*` / `times`, e.g. `price * taxRate` -- `Precedence.product`, tightest, alongside `/`. */
 class times extends InfixOperatorSuffix {
-  @proto static precedence = 14
+  @proto static precedence = Precedence.product
   @proto static parenthesize = true
 
   getOutputOperator() {
@@ -195,7 +195,7 @@ class times extends InfixOperatorSuffix {
   }
 }
 math.addRule(times, {
-  syntax: "(operator:*|times) {expression:simple_expression}",
+  syntax: "(operator:*|times) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -217,9 +217,9 @@ math.addRule(times, {
 //    e.g. "price/taxRate"
 ////////////////
 
-/** `/` / `divided by`, e.g. `price / taxRate` -- precedence 14, same as `*`. */
+/** `/` / `divided by`, e.g. `price / taxRate` -- `Precedence.product`, same as `*`. */
 class divided_by extends InfixOperatorSuffix {
-  @proto static precedence = 14
+  @proto static precedence = Precedence.product
   @proto static parenthesize = true
 
   getOutputOperator() {
@@ -227,7 +227,7 @@ class divided_by extends InfixOperatorSuffix {
   }
 }
 math.addRule(divided_by, {
-  syntax: "(operator:/|divided by) {expression:simple_expression}",
+  syntax: "(operator:/|divided by) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -259,6 +259,8 @@ math.addRule(divided_by, {
 
 /**
  * `the absolute value of {expression}`.
+ * - Takes a sum, like `|x + 1|`, but stops before a comparison (`arithmetic_expression`):
+ *   `the absolute value of x + 1 is 3` => `absoluteValue(x + 1) == 3`.
  */
 class absolute_value extends SpellExpression<"operator|expression"> {
   getAST(match: P.MatchFor<this>) {
@@ -271,7 +273,7 @@ class absolute_value extends SpellExpression<"operator|expression"> {
   }
 }
 math.addRule(absolute_value, {
-  syntax: "(operator:the? absolute value of) {expression}",
+  syntax: "(operator:the? absolute value of) {expression:arithmetic_expression}",
   tests: [
     {
       compileAs: "expression",
@@ -290,11 +292,10 @@ math.addRule(absolute_value, {
 
 /**
  * `the biggest`/`largest` [thing] `of`/`in` {expression}, e.g. `largest of the prices`.
- * - `precedence: 2` is low, so this only wins over other `expression` alternatives when nothing more
- *   specific already claimed the tokens.
+ * - `priority: 2` beats `the biggest of x` read as a property (`property_expression`).
  */
 class max extends SpellExpression<"operator|argument?|expression"> {
-  @proto static precedence = 2
+  @proto static priority = 2
 
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
@@ -306,7 +307,7 @@ class max extends SpellExpression<"operator|argument?|expression"> {
   }
 }
 math.addRule(max, {
-  syntax: "(operator:the? (biggest|largest)) {argument:singular_identifier}? (of|in) {expression}",
+  syntax: "(operator:the? (biggest|largest)) {argument:singular_identifier}? (of|in) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -330,10 +331,10 @@ math.addRule(max, {
 
 /**
  * `the smallest` [thing] `of`/`in` {expression}, e.g. `smallest of prices`.
- * - `precedence: 2`, same reasoning as `max` above.
+ * - `priority: 2`, same reasoning as `max` above.
  */
 class min extends SpellExpression<"operator|argument?|expression"> {
-  @proto static precedence = 2
+  @proto static priority = 2
 
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
@@ -345,7 +346,7 @@ class min extends SpellExpression<"operator|argument?|expression"> {
   }
 }
 math.addRule(min, {
-  syntax: "(operator:the? smallest) {argument:singular_identifier}? (of|in) {expression}",
+  syntax: "(operator:the? smallest) {argument:singular_identifier}? (of|in) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -368,10 +369,10 @@ math.addRule(min, {
 /**
  * `round {expression}`, optionally `off`/`up`/`down`, e.g. `round price up`.
  * - TODO: precision:  to the nearest tenth ?
- * - `precedence: 1`, lowest of the `expression` alternatives here.
+ * - `priority: 1`, lowest of the `expression` alternatives here.
  */
 class round_number extends SpellExpression<"expression|operator?"> {
-  @proto static precedence = 1
+  @proto static priority = 1
 
   /** Maps `off`/`up`/`down` suffix to `round`/`roundUp`/`roundDown` spellCore method. */
   getAST(match: P.MatchFor<this>) {
@@ -387,7 +388,7 @@ class round_number extends SpellExpression<"expression|operator?"> {
   }
 }
 math.addRule(round_number, {
-  syntax: "round {expression} (operator:off|up|down)?",
+  syntax: "round {expression:arithmetic_expression} (operator:off|up|down)?",
   tests: [
     {
       compileAs: "expression",

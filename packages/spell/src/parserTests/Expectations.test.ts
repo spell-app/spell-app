@@ -124,7 +124,7 @@ describe("expectedAfter()", () => {
     test("`if c` => `then` or `:`, and operators only as continuations", () => {
       const { own, continues } = expected("if c")
       expect(describeAll(own)).toEqual(["(then|:)?"])
-      expect(describeAll(continues)).toContain("+(rhsChain:{expression_suffix})+")
+      expect(describeAll(continues)).toContain("+(rhsChain:{expression_suffix})*")
     })
 
     test("`move c` => `to`, where it sits in the method's call rule", () => {

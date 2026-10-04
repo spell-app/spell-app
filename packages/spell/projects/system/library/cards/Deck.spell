@@ -37,8 +37,7 @@ to test deck creation
 
 	echo "the deck before shuffling:"
 	display the deck
-	get the first card of the deck
-	expect it is the ace of clubs to be yes
+	expect the first card of the deck is the ace of clubs to be yes
 
 	shuffle the deck
 	shuffle the deck
@@ -53,7 +52,6 @@ to test deck with jokers
 	expect the number of cards in the deck to be 54
 	set the jokers to the cards in the deck where the card is a joker
 	expect the number of cards in the jokers to be 2
-	expect (the last card of the deck) is the black joker to be yes
-	get the first card of the deck
-	expect it is the ace of clubs to be yes
+	expect the last card of the deck is the black joker to be yes
+	expect the first card of the deck is the ace of clubs to be yes
 test deck with jokers

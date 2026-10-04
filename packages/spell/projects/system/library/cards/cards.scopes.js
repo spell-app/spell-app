@@ -253,7 +253,7 @@
       section: "A joker: a wild card with no rank or suit -- there's a red one and a black one",
       description: "\"card is the red joker\", \"...is the black joker\" -- asked of ANY card, which only a joker of that color is",
       rules: [
-        { name: "is_the_$color_joker", syntax: "{operator:is} the {expression:simple_expression} joker" }
+        { name: "is_the_$color_joker", syntax: "{operator:is} the {expression:operand} joker" }
       ]
     },
     {
@@ -347,14 +347,14 @@
       ]
     },
     {
-      path: "project:cards/file:Deck.spell/function:test deck creation", line: [27, 47],
+      path: "project:cards/file:Deck.spell/function:test deck creation", line: [27, 46],
       section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
       rules: [
         { name: "test_deck_creation", syntax: "test deck creation" }
       ]
     },
     {
-      path: "project:cards/file:Deck.spell/function:test deck with jokers", line: [50, 58],
+      path: "project:cards/file:Deck.spell/function:test deck with jokers", line: [49, 56],
       section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
       rules: [
         { name: "test_deck_with_jokers", syntax: "test deck with jokers" }

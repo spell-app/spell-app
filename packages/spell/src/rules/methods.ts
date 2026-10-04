@@ -7,7 +7,13 @@ import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement, type SpellStatementProps } from "./Statement"
 import { SpellType } from "./types"
 import { SpellIdentifier } from "./variables"
-import { PostfixOperatorSuffix, InfixOperatorSuffix, Negatable, type SpellExpressionProps } from "./expressions"
+import {
+  PostfixOperatorSuffix,
+  InfixOperatorSuffix,
+  Negatable,
+  Precedence,
+  type SpellExpressionProps
+} from "./expressions"
 
 /**
  * Rule module for dynamic method definitions (`to foo ...`, `animation ...`) and their call sites, plus
@@ -123,7 +129,9 @@ type DynamicMethodRuleGroups = P.GroupsFor<"thisArg?|callArgs[]?|props?">
  */
 export class MethodPostfixRule extends PostfixOperatorSuffix {
   @proto static importableAs = "method_postfix"
-  @proto static precedence = 20
+  /** A user's alias wins over a built-in suffix matching the same words, e.g. `is face up` over `is {x}`. */
+  @proto static priority = 20
+  @proto static precedence = Precedence.comparison
 
   /** Generated method to read, e.g. `is_face_up`. */
   declare methodName: string
@@ -176,7 +184,9 @@ type MethodRuleDeclared = { output: string }
  */
 export class MethodInfixRule extends InfixOperatorSuffix {
   @proto static importableAs = "method_infix"
-  @proto static precedence = 20
+  /** A user's alias wins over a built-in suffix matching the same words -- see `MethodPostfixRule`. */
+  @proto static priority = 20
+  @proto static precedence = Precedence.comparison
   @proto static parenthesize = true
 
   /** Generated method to call, e.g. `nerds_out_with_$another`. */
@@ -1306,7 +1316,7 @@ methods.addRule(create_animation, {
 /**
  * Define an ad-hoc expression on a type from a QUOTED signature, e.g. `a thing "nerds out" if`,
  * `a thing "is a bug" if`, `a thing "nerds out with (another as a thing)" if`.
- * - `precedence = 9` -- defers to more specific method-definition rules in `classes.ts` (e.g.
+ * - `priority = 9` -- defers to more specific method-definition rules in `classes.ts` (e.g.
  *   `define_property_has`) when both could match the same tokens.
  * - Quoting the signature (`quoted_method_signature`) lets it start with plain english words (`is`,
  *   `has`, `can`, `will`, ...) that would otherwise collide with other statement/expression rules.
@@ -1324,7 +1334,7 @@ methods.addRule(create_animation, {
  *   the output.
  */
 class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
-  @proto static precedence = 9 // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
+  @proto static priority = 9 // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
   @proto static alias = "statement"
 
   /**
@@ -1358,10 +1368,10 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
    *   capture -- bypasses `MethodDefinition`'s normal inline-type-promotion path (`inlineInitialType`)
    *   entirely, since the type here is captured outside the (quoted) signature, not inside it.
    * - Zero args => `asPostfixExpression`; one arg => `asInfixExpression` and its single
-   *   `{callArgs:expression}` syntax bit is rewritten to `{expression:simple_expression}` (see
+   *   `{callArgs:expression}` syntax bit is rewritten to `{expression:operand}` (see
    *   `getRule()`'s infix-rule branch).
    * - More than one arg isn't handled (see `parse()`'s rejection above) -- the `TODO` in the `else`
-   *   branch notes the unimplemented `{thisArg:simple_expression}` prefix for that case.
+   *   branch notes the unimplemented `{thisArg:operand}` prefix for that case.
    * - Rewrites the FIRST `is`/`can`/`will`/`has` bit found (scanning signature order) into an
    *   `(operator:...)` alternation so all its negated spellings (`is not`, `isn't`, `isnt`, etc.) share
    *   one compiled rule; `shouldNegateOutput()` then flips `P.ASTExpression` output for a match on
@@ -1377,12 +1387,10 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
       signature.asPostfixExpression = true
     } else if (signature.args.length === 1) {
       signature.asInfixExpression = true
-      signature.syntaxBits = signature.syntaxBits.map((bit) =>
-        bit.startsWith("{") ? "{expression:simple_expression}" : bit
-      )
+      signature.syntaxBits = signature.syntaxBits.map((bit) => (bit.startsWith("{") ? "{expression:operand}" : bit))
     } else {
       // TODO: we don't handle this currently...
-      // signature.syntaxBits.unshift("{thisArg:simple_expression}")
+      // signature.syntaxBits.unshift("{thisArg:operand}")
     }
     // FIRST negatable word, e.g. `is`, matches all its forms, e.g. `isn't` -- see `Negatable`
     if (signature.asPostfixExpression || signature.asInfixExpression) {

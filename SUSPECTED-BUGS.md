@@ -4,6 +4,10 @@ Things that look like bugs but haven't been confirmed.  Add to the right section
 fixed, or disproven, delete it (note a disproof in a line at the top if the reasoning is worth keeping).
 - Fixed 2026-10-02 (unified-server P6, the app's API off Express):  `:filePath*` kept only the first segment (nested
   project files 404 / EISDIR);  an unknown `DELETE /api/...` missed the API's own 404.
+- Fixed 2026-10-04 (precedence-and-types P3, binding power):  `draw the cards of the deck` as an expression gave
+  `drawThing(deck.cards)` (`draw_items` now outranks `draw_thing`, priority 2 vs 1, and its test runs);
+  `draw_thing`'s odd `precedence: 100` (now priority 1, with its why);  `print the card is a new card` gave
+  `isOfType(card, 'New')` plus a parse error (now `card == new Card()`:  the longer `is` + `a new card` suffix wins).
 `[V]` = checked against the code by hand.  Everything else is unverified.
 
 Entry format:  `` - `path/to/file.ts` `symbol()`: what looks wrong, why, and how to prove it. ``
@@ -56,14 +60,12 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `parser/rules/Choice.ts` `getBestMatch()`: two comments claimed it prefers LATER-defined rules on a tie ("takes
   LATEST one", "we run this BACKWARDS to put later-defined rules first").  It has always done the OPPOSITE -- the
-  precedence loop runs forwards, and the length loop scans backwards with `>=`, so an equally-long EARLIER match
+  priority (was precedence) loop runs forwards, and the length loop scans backwards with `>=`, so an equally-long EARLIER match
   replaces a later one.  Verified 2026-09-20 with a two-rule `Group`: the first-registered rule wins.  Comments now
   describe the real behaviour and `Rule.test.ts` pins it, but if the author's stated INTENT was right then the code
   is wrong and rule-ordering across every module would flip -- someone who knows the grammar should decide.
 
 - `src/rules/UI.ts` `css`: reads `match.data.file` (was ad hoc `match.file`, documented as "set externally by `SpellCSSFile`") but NOTHING sets it -- `SpellCSSFile.parse()` doesn't.  So compiled output is always `spellCore.installStyles(undefined, ...)`.  Likely fix: `match.data.file = this.file` after parsing, but untested so left alone.
-
-- `src/rules/draw.ts` `draw_items`: `draw the cards of the deck` compiles to `spellCore.drawThing(deck.cards)`, test expects `spellCore.drawItems(deck)`.  `draw_thing` wins on `precedence: 100` (see §3).  Never noticed because `draw.ts` had no `draw.test.ts`, so its embedded tests never ran -- file added 2026-09-20, this one case marked `skip`.
 
 - [V] `src/rules/assignment.ts` `get.getAST`: `variables.replace("it")` unconditionally;
   sibling `assignment.getAST()` guards with `if (originalVar?.isAlias)`.  A real `it` variable loses `kind` / `datatype`.
@@ -163,15 +165,17 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   `created`.  Likely fix:  `refresh()` also reloads each file's contents from disk.
 
 - `packages/spell/src/rules/expressions.ts` `is_a`:  its operand is `{expression:type}`, and `type` accepts ANY word --
-  so `print the card is a new card` compiles to `spellCore.isOfType(card, 'New')` and leaves `card` as a parse
-  error, where `is_equal` + `a new card` was meant.  Probably wants `known_type`.  Run:
-  `packages/docs/precedence/experiments/grammar-today.mts`, probe P7.  Found 2026-09-30;  still so 2026-10-03.
-  Epic `precedence-and-types` (types) should fix it.
+  so `print the card is a foo` compiles to `spellCore.isOfType(card, 'Foo')`, no error.  Probably wants
+  `known_type`.  (Its worst case, `the card is a new card`, was fixed in P3:  see the top.)  Run:
+  `spell parse --in @test/Solitaire "print the card is a foo"` (`packages/cli`).  Found 2026-09-30;  still so
+  2026-10-04.  Epic `precedence-and-types` P4 (one type vocabulary) should fix it.
 
-- `packages/spell/src/rules/lists.ts` `list_length` (precedence 3) vs `list_filter` (2):  `the number of cards in the
-  deck where ...` matches `list_length` with `the deck` and leaves `where ...` unparsed, as precedence is
+- `packages/spell/src/rules/lists.ts` `list_length` (priority 3) vs `list_filter` (2):  `the number of cards in the
+  deck where ...` matches `list_length` with `the deck` and leaves `where ...` unparsed, as priority is
   compared before length.  CONFIRMED by running 2026-10-03:  `itemCountOf(deck)`, then Don't understand
   "where the card is red";  `the cards in the deck where its color is red` alone works.  Found 2026-09-30.
+  FIXED 2026-10-04 (epic `precedence-and-types` P3, probe P1f):  `list_length` has a second syntax ending
+  `where {inline_expression}?`, compiling to `itemCountOf(filter(deck, ...))`.
 
 - An ad-hoc property is not reactive:  `set the pile of the card to the pile` compiles to a plain `this.pile = pile`
   (`Card.move_to_$pile` in the Solitaire snapshot), never through `setProp()` -- so nothing drawn from
@@ -206,8 +210,6 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 - `util/LoadableFile.ts`: generic param `JSONFileType` on `JSONFile` / `JSON5File` shadows exported `JSONFileType` type.
 
 - `parser/tokenizer/Tokens.ts`: `JSXExpressionTokenProps.contents` is `string | Token`; `JSXAttribute` value still `any`.
-
-- `src/rules/draw.ts` `draw_thing`: `precedence: 100`, everything else uses ~1-20.
 
 - `src/rules/methods.ts` `type_method_arg`: `method` fragment from `type.raw`, sibling `arg.name` uses `instanceCase(type.value)`.
 
@@ -273,7 +275,7 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `parser/rules/Subrule.ts` `getGroupSpecContribution()`: assumes anonymous `{foo}` lands in `groups.foo`.  Not true if `foo` resolves to a single rule registered only under ALIAS `foo` -- match keeps that rule's own name.  Does real parsing have the same surprise?
 
-- `rules/if.ts` `else_if`: is `precedence` load-bearing, or does rule order suffice?
+- `rules/if.ts` `else_if`: is `priority` (was `precedence`) load-bearing, or does rule order suffice?
 
 - `rules/Sequence.ts` `parse()`: author's `TODOC: WHY?? FOR USE AS A LITERAL STRING??` still unanswered.
 
@@ -450,6 +452,9 @@ every entry below that date was fixed or disproven;  what's left:
 
 - `packages/spell/src/node/response-utils.ts` `sendJSFile` / `request_getCompiled` / `request_getScopes` [V]: the content-type is set
   to `text/javascript` BEFORE the existence check, so a not-found 404 carries a JSON `{errors}` body labelled `text/javascript`.
+- `packages/app/src/runner/element.build.test.ts` "one Solid per page":  fails on branch `precedence-and-types`
+  (2026-10-04), whose changes are parser-only -- the element build's `ui/customElement.js` also holds Solid, beside
+  `spell-solid.js`.  Prove:  run it on `main`.  (The same root run's `*.browser.test.tsx` failures all passed alone.)
 - `packages/app/src/ui/ConsoleLines.tsx` (and its Solid twin `src/solid/ConsoleLines.tsx`) `<ConsoleObject>`:  a logged `true`,
   `false` or `undefined` shows as an EMPTY value -- it's handed to JSX as is, which draws no text for them (React and
   Solid alike).  Probably wants `String(thing)`;  kept as is in the Solid port (P6b) to keep behaviour.
@@ -504,8 +509,11 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
-- (none yet:  the CLI's spell-side suspicions -- `SpellDiskWorkspace.diskChanged(uri, "created")`, `ScopeExplorer`
+- (the CLI's spell-side suspicions -- `SpellDiskWorkspace.diskChanged(uri, "created")`, `ScopeExplorer`
   property names -- are under `spell`.)
+- `src/cli.test.ts` "summarizes a plan doc":  fails on branch `precedence-and-types` (2026-10-04), unrelated to its
+  changes -- `yarn plan-doc summary unified-server` exits 1 with `no .plan-items[data-kind="judgement"] in the doc`.
+  Either `unified-server.html` lost its judgement list or `plan-doc` now requires one.  Prove:  run it on `main`.
 
 ## docs
 

@@ -43,24 +43,36 @@ export class Sequence<
    *   - failing on a child after one ran out of tokens INSIDE it, records that one as `within`:  we're partway
    *     through it, e.g. an argument of a method call being typed -- for signature help
    *   - children parse one level deeper
+   * - A required word failing right after a `{slot}` may make the slot GIVE BACK what it took -- see `giveBack()`.
    * - NOTE: HOT -- normal parsing reads `P.Expectations.current` once, and only after `test()` passes.
    */
   parse(scope: P.Scope, tokens: P.Token[]) {
     if (this.test(scope, tokens) === false) return undefined
-    const expecting = P.Expectations.current
+    return this.parseFrom(scope, tokens, 0, 0, [])
+  }
 
-    const matched = []
-    let length = 0
+  /**
+   * Match our `rules` from the `index`th on, at `start` of `tokens`, after `matched` -- the body of `parse()`,
+   *   a method of its own so `giveBack()` can resume it.
+   */
+  private parseFrom(
+    scope: P.Scope,
+    tokens: P.Token[],
+    index: number,
+    start: number,
+    matched: P.Match[]
+  ): P.Match | undefined {
+    const expecting = P.Expectations.current
     // expecting only:  index of the last child which ran out of tokens inside itself
     let within = -1
 
-    let remainingTokens = tokens
-    for (let i = 0, rule; (rule = this.rules[i++]);) {
+    let remainingTokens = start ? tokens.slice(start) : tokens
+    for (let i = index, rule; (rule = this.rules[i++]);) {
       // If we're out of tokens, bail if rule is not optional
       if (remainingTokens.length === 0) {
         if (expecting) expecting.expect(rule, this, i - 1)
         if (rule.optional) continue
-        return undefined
+        return expecting ? undefined : this.giveBack(scope, tokens, i - 1, start, matched)
       }
       let match: P.Match | undefined
       if (expecting) {
@@ -73,15 +85,15 @@ export class Sequence<
       if (!match) {
         if (rule.optional) continue
         if (expecting && within >= 0) expecting.expect(this.rules[within]!, this, within, false, true)
-        return undefined
+        return expecting ? undefined : this.giveBack(scope, tokens, i - 1, start, matched)
       }
 
       matched.push(match)
-      length += match.length
+      start += match.length
       remainingTokens = remainingTokens.slice(match.length)
     }
     // if we get here, we matched all the rules!
-    const usedTokens = tokens.slice(0, length)
+    const usedTokens = tokens.slice(0, start)
     return new P.Match({
       rule: this,
       matched,
@@ -90,6 +102,42 @@ export class Sequence<
       tokens: flattenDeep(matched.map((next) => next.tokens)),
       scope
     })
+  }
+
+  /**
+   * Our `index`th rule, a required word, failed right after a `{slot}` -- maybe because the slot took it, e.g. `of`
+   *   in `remove the card of the pile` for `remove {thisArg:expression} of {callArgs:expression}`.  Re-parse the slot
+   *   on tokens ending just before each place the word is, LAST first, and go on from there.
+   * - Only on the way to failing:  whatever parsed before still parses the same.
+   * - Only a required `{slot}` straight before a required word -- so `matched`'s last match is the slot's.
+   * - NEVER in expecting mode (`parseFrom()` doesn't call us):  a cut-short slot would record that it ran out of
+   *   tokens, and completion would offer what can't come next.
+   */
+  private giveBack(
+    scope: P.Scope,
+    tokens: P.Token[],
+    index: number,
+    start: number,
+    matched: P.Match[]
+  ): P.Match | undefined {
+    const word = this.rules[index]!
+    const slot = this.rules[index - 1]
+    const taken = matched.at(-1)
+    if (!taken || !slot || slot.optional || !(slot instanceof P.Subrule) || !this.isWord(word)) return undefined
+    const slotStart = start - taken.length
+    for (let cut = taken.length - 1; cut > 0; cut--) {
+      if (!word.test(scope, tokens, slotStart + cut)) continue
+      const shorter = slot.parse(scope, tokens.slice(slotStart, slotStart + cut))
+      if (shorter?.length !== cut) continue
+      const rest = this.parseFrom(scope, tokens, index, slotStart + cut, [...matched.slice(0, -1), shorter])
+      if (rest) return rest
+    }
+    return undefined
+  }
+
+  /** Is `rule` a required word or words matched literally, e.g. `of`, `(in|of)`, `does not`?  See `giveBack()`. */
+  protected isWord(rule: P.Rule): boolean {
+    return !rule.optional && (rule instanceof P.Literal || rule instanceof P.Literals)
   }
 
   /**

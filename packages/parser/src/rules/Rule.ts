@@ -33,7 +33,7 @@ import { P } from "$/parser"
  *   "type|property|specifier?",                  // `Groups`:  see `P.GroupsFor`, copy from module's `__snapshots__`
  *   { bits?: PropertyBits }                        // `MatchData`:  what we stash in `match.data`
  * > {
- *   @proto static precedence = 10                // the class says what the rule IS...
+ *   @proto static priority = 10                  // the class says what the rule IS...
  *   @proto static declares = {...}
  *   getAST(match: P.MatchFor<this>) {...}        // ...and how it behaves
  * }
@@ -49,6 +49,9 @@ import { P } from "$/parser"
  * - Why only `syntax` + `tests` at registration:  the class can then be reused by another language's parser.
  * - `@proto static` values are inherited by subclasses;  `@proto` rejects a prop the rule doesn't declare.
  * - Class name IS the rule name;  plain `static ruleName = "if"` for reserved words (`class _if`).
+ * - `priority` picks between rules matching the SAME words:  a `Choice` takes the highest priority, then the
+ *   longest match, then the earliest rule (`Choice.getBestMatch()`).  It is NOT how tightly an operator binds --
+ *   that's spell's operator `precedence`, read only by its expression loop.
  * - Several syntaxes => register the class once per syntax, each with its own `tests`.  Instances merge into
  *   a `P.Group` under the rule's name.
  * - A `Sequence` tests its own words / symbols before parsing any subrule, e.g. `remove {thing} from {list}`
@@ -349,8 +352,12 @@ export abstract class Rule<
 
   /** Name aliases -- inherited, so e.g. a `Statement` base class can set `"statement"` once. */
   static alias?: string | string[]
-  /** Precedence.  Default lives on prototype, so only rules with non-default precedence carry their own. */
-  @proto static precedence?: number = 0
+  /**
+   * Priority:  which of several rules matching the SAME words wins a `Choice` -- see `Choice.getBestMatch()`.
+   * - Default lives on prototype, so only rules with non-default priority carry their own.
+   * - NOT how tightly an operator binds:  that's a language's own business, e.g. spell's operator `precedence`.
+   */
+  @proto static priority?: number = 0
   /**
    * What committing our match changes in scope -- see `getScopeChanges()`.
    * - Leave `undefined` to work it out from whether we override `mutateScope()`.
@@ -409,14 +416,12 @@ export abstract class Rule<
   // ## Matching behavior
   ////////////////
 
-  /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0, from prototype. */
-  declare precedence: number
+  /** Which of several matches of the same words wins a `Choice`, highest first.  Default = 0, from prototype. */
+  declare priority: number
   /** Name our match goes under in containing rule's `match.groups`, e.g. `thing` for `{thing:expression}`. */
   declare matchGroup: string | undefined
   /** Whether this rule is optional. */
   declare optional: boolean | undefined
-  /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
-  declare isLeftRecursive: boolean | undefined
   /** What committing our match changes in scope, if set explicitly -- see `getScopeChanges()`. */
   declare changesScope: P.ScopeChanges | undefined
   /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */
@@ -636,8 +641,8 @@ export type RuleProps = {
   datatype?: string
   /** Rulex syntax string used to define this rule. */
   syntax?: string
-  /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0. */
-  precedence?: number
+  /** Which of several matches of the same words wins a `Choice`, highest first.  Default = 0. */
+  priority?: number
   /** Tests for this rule. */
   tests?: P.RuleTests
   /** Name our match goes under in containing rule's `match.groups`. */
@@ -646,8 +651,6 @@ export type RuleProps = {
   optional?: boolean
   /** Whether literal must be escaped when converting to rulex syntax -- see `Literal.isEscaped`. */
   isEscaped?: boolean
-  /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
-  isLeftRecursive?: boolean
   /** What committing our match changes in scope -- see `getScopeChanges()`. */
   changesScope?: P.ScopeChanges
   /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */
