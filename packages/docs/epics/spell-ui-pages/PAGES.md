@@ -15,6 +15,10 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
 
 - Title, summary and status come from `site/_data/pages.json` (`families.<folder>`).  A wrong summary:  fix it THERE
   (hand-kept, the durable home) and rerun `yarn site:data`;  never only in the page.
+- One page per FAMILY, except tags that stand alone (epic ui-docs-rework, P7):  a family's `pages` map in
+  `pages.json` names them (`ui-radio`, `ui-textarea`, the Parts tags but `ui-header`), and `yarn site:new <tag>`
+  writes `site/components/<tag>.html` for one:  one tag's API (`<ui-docs-api tag>`), its own theme picker.  The
+  family page keeps the family's whole API and links each own page.
 - It refuses to overwrite;  `--force` regenerates (and loses your content:  don't).
 - What you get (DON'T change it;  it is the template's, `packages/docs/templates/spell-ui-docs.html`):
   - `<head>`:  the scheme script, `../_assets/site.css`, `../_assets/site.js`

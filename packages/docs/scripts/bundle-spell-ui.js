@@ -66,6 +66,9 @@ const ICONS = {
   "solid/link": ["link"],
   "solid/copy": ["copy"],
   "solid/bars": ["bars"],
+  // spell-ui-site.html sections
+  "solid/table-columns": ["table columns"],
+  "solid/sun": ["sun"],
   // status:  not done / in progress / done (plan docs)
   "regular/circle": ["circle outline"],
   "solid/circle-half-stroke": ["circle half stroke", "adjust"],

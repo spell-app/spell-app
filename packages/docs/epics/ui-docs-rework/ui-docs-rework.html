@@ -24,9 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Spell UI Docs Rework</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Doc Review</ui-label></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -52,7 +50,9 @@
               ><code>packages/ui/site/</code></a
             >, served at <code>/ui/</code>) the Spell brand look, one layout that stays put while only the page's
             content changes, and no flash on load. Then nested, foldable, deep-linkable sections, sticky tabs, a
-            site-wide search, and one small theme / light-dark control.
+            site-wide search, and one small theme / light-dark control. Built overnight (<code>/bedtime</code>), P1-P9
+            on branch <code>ui-docs-rework</code>, not merged; the record:
+            <a href="../../spell-ui-site.html" target="src-packages-docs-spell-ui-site-html">Spell UI Docs Site</a>.
           </p>
           <blockquote class="plan-prompt">
             <p>
@@ -79,7 +79,7 @@
               icon which shows the current state, clicking it switches it.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 1h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 0m left</p>
           <ui-section id="o1" header="1.1 Today" sticky collapsible dividing>
             <p>Where the site stands, so the rest reads against it.</p>
             <ui-table celled compact striped unstackable>
@@ -433,12 +433,16 @@
               <code>&lt;ui-buttons&gt;</code>, <code>&lt;ui-or&gt;</code>; Parts covers 13 tags. Options and costs:
               <a href="#q3">Q3</a>.
             </p>
+            <p>
+              Built (<a href="#d3">D3</a>, <a href="#p7">P7</a>): own pages for <code>ui-radio</code>,
+              <code>ui-textarea</code> and the 12 Parts tags besides <code>ui-header</code>; 80 pages in all.
+            </p>
           </ui-section>
         </ui-section>
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="8" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="9" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -605,7 +609,16 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p7" data-phase="7" data-status="done" header="P7 · Page Split" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p7"
+            data-phase="7"
+            data-status="done"
+            header="P7 · Page Split"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -645,8 +658,8 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Doc Review" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p9" data-phase="9" data-status="done" header="P9 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> prune the plan doc, durable doc, changelog (no merge tonight)</ui-item
@@ -2030,12 +2043,12 @@
         <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed
-            ><ui-item id="c1" data-status="open"
+            ><ui-item id="c1" data-status="done"
               ><a class="plan-id" href="#c1">C1</a>
               <span class="plan-title"
                 >ui-include drops the included page's head: per-page styles and scripts must live in site.css / the
                 bundle</span
-              ></ui-item
+              > </ui-item
             ><ui-item id="c2" data-status="open"
               ><a class="plan-id" href="#c2">C2</a>
               <span class="plan-title">A page opened with JS off shows no chrome (Q1 B)</span></ui-item
@@ -2230,7 +2243,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c14" data-status="open"
+            ><ui-item id="c14" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c14">C14</a>
@@ -2352,6 +2365,17 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="t6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t6">T6</a>
+                  <span class="plan-title"
+                    >After a page swap the nav does not open the new page topic band (only on a full load)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Found in P7; small: UIDocsNav opens the current page topic once, on load.</p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2402,7 +2426,122 @@
           <p class="meta">
             What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
           </p>
-          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="test" divided relaxed
+            ><ui-item id="v1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v1">V1</a>
+                  <span class="plan-title">Load a Spell UI page cold (hard reload)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Blank canvas for a moment, then the whole page at once, already in the Spell theme: no unstyled
+                    flash, no jump.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v2">V2</a>
+                  <span class="plan-title">Click around the nav, then back / forward</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Only the page content changes; nav, right column and top bar stay put (no flicker), the nav marks
+                    the new page, the URL and title follow, back / forward swap pages back.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v3">V3</a>
+                  <span class="plan-title"
+                    >Deep link: /ui/components/ui-divider.html#examples-types-vertical-divider</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Lands on Vertical Divider, unfolded, just below the stuck tabs and Types title. Fold Types, reload:
+                    it stays folded. An old link (#types) lands on Types.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v4">V4</a>
+                  <span class="plan-title">Search: press Cmd-K, type or, Enter</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Field focuses, the results card opens (On this page / Components / ...), Enter swaps to Button at
+                    its ui-or part. Try circular and vertical too.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v5">V5</a>
+                  <span class="plan-title"
+                    >Scheme: flip to dark on a Spell UI page, then open the docs index</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The docs index opens dark too; flipping there carries back. The palette button opens the theme
+                    overlay; Match system follows your OS.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v6">V6</a>
+                  <span class="plan-title">Phone width (or a narrow window)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Slim top bar: menu, search, Spell UI, look controls. Menu opens the nav panel as a card; picking a
+                    page closes it. The search button opens it with the field focused.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v7">V7</a>
+                  <span class="plan-title">Favicon in a browser tab</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The white hat on aubergine on docs, goals, plan docs, /ui/ and the app (/editor/). Needs the merged
+                    page server (main runs the old code until merge).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v8">V8</a>
+                  <span class="plan-title">The look against the brand</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Nav panel, headings, buttons, dark mode read as the Spell brand (compare
+                    packages/brand/leonardo/docs1.jpg, docs3.jpg). Judgement calls J6-J11, J19-J25 are the ones to
+                    eyeball.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v9">V9</a>
+                  <span class="plan-title">New pages: Radio, Textarea, a Parts page (Meta)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Nav and search lead to their own pages; each shows its examples, usage and one-tag API; Checkbox /
+                    Input / Content parts link to them.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="log" header="9. Log" sticky collapsible dividing>
@@ -2752,6 +2891,50 @@
                   ><ui-date><time datetime="2026-10-04T04:49-04:00">2026-10-04 04:49</time></ui-date> P7 done: own pages
                   for ui-radio, ui-textarea and 12 Parts tags (pages.json pages map, own-page hrefs everywhere); checks:
                   ui review passed (4550 browser), site:check --all 80 OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:49-04:00">2026-10-04 04:49</time></ui-date> P9
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:50-04:00">2026-10-04 04:50</time></ui-date> C1 closed:
+                  ui-include drops the included page's head: per-page styles and scripts must live in site.css / the
+                  bundle</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:50-04:00">2026-10-04 04:50</time></ui-date> C14 closed: P7:
+                  PAGES.md still says one page per family</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:59-04:00">2026-10-04 04:59</time></ui-date> P9
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:59-04:00">2026-10-04 04:59</time></ui-date> P9 done: durable
+                  doc spell-ui-site.html, changelog entry (in worktrees), PAGES.md, 9 hand checks in To test; checks:
+                  docs:update passed on every docs page</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:59-04:00">2026-10-04 04:59</time></ui-date> Bedtime done: 9 of
+                  9 phases done, 0 WIP, 0 skipped; not merged</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
