@@ -24,9 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Details Pages</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p5">next: P5 · Doc Review</ui-label></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -71,7 +69,7 @@
               type a letter) when the page server or extension isn't available.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 5h-6h in all, 45m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 5h-6h in all, 0m left</p>
           <ui-section id="o1" header="1.1 What already works" sticky collapsible dividing>
             <ul>
               <li>
@@ -149,14 +147,19 @@
                 <a href="../../_assets/details.js" target="src-packages-docs-assets-details-js"
                   ><code>packages/docs/_assets/details.js</code></a
                 >
-                (+ css) -- turns the question markup into a form, posts the answer, shows the answered state from
-                <code>.answer.json</code> on load.
+                (+ css) -- turns the question markup into
+                <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> cards,
+                posts the answer, shows the answered state on load (through the route's <code>GET</code>).
               </li>
               <li>
                 <a href="../../scripts/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
                   ><code>packages/docs/scripts/detailsRoutes.ts</code></a
                 >
-                -- the route module: <code>POST /api/details/answer</code>; maps the page's URL (main, or
+                -- the route module: <code>POST</code> / <code>GET /api/details/answer</code>, listed before
+                <a href="../../../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                  ><code>appRoutes.ts</code></a
+                >
+                (its <code>/api</code> ends in a catch-all 404); maps the page's URL (main, or
                 <code>/worktrees/&lt;w&gt;/</code>) to its file, ONLY inside a
                 <a href="../../details/" target="src-packages-docs-details"><code>details/</code></a> folder under
                 <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
@@ -166,7 +169,8 @@
                 <a href="../../scripts/details.js" target="src-packages-docs-scripts-details-js"
                   ><code>packages/docs/scripts/details.js</code></a
                 >
-                -- <code>yarn details new | show [--wait] | wait | list</code>.
+                -- <code>yarn details new | show [--wait] | wait | answer | list | sweep</code>. Built as planned; the
+                durable doc is <a href="../../details.html" target="src-packages-docs-details-html">Details Pages</a>.
               </li>
               <li>
                 <a href="../../../../.claude/skills/details/SKILL.md" target="src-claude-skills-details-skill-md"
@@ -184,7 +188,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="4" total="5" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="5" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -298,6 +302,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p4"
             data-phase="4"
             data-status="done"
@@ -326,12 +331,15 @@
               ><ui-item icon="clock"><b>Estimate:</b> 45m</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · Doc Review" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p5" data-phase="5" data-status="done" header="P5 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> plan doc true to what was built; durable doc; changelog</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> <code>packages/docs/details.html</code>,
+                ><b>Files:</b>
+                <a href="../../details.html" target="src-packages-docs-details-html"
+                  ><code>packages/docs/details.html</code></a
+                >,
                 <a href="../../changelog.html" target="src-packages-docs-changelog-html"><code>changelog.html</code></a
                 >, docs index</ui-item
               ><ui-item icon="flask"
@@ -862,6 +870,35 @@
                   .claude/skills/details/SKILL.md; CLAUDE.md line; modal-questions memory; new sweeps old scratch pages;
                   dogfood page epics/details/details/morning-review.html (check-spell ok, 7 radios + 5 checkboxes
                   built); live answer waits for Owen (V1)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:15-04:00">2026-10-03 20:15</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:17-04:00">2026-10-03 20:17</time></ui-date> P5
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:17-04:00">2026-10-03 20:17</time></ui-date> P5 done: durable
+                  doc packages/docs/details.html; server.html route list + ordering note; changelog entry (In
+                  worktrees); docs index; checks: check-spell ok on details, server, changelog; doc-links ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:17-04:00">2026-10-03 20:17</time></ui-date> Bedtime done: 5
+                  done, 0 WIP, 0 skipped</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
