@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
-  <body class="spell-doc-page plan-doc" data-plan="design-system">
+  <body data-recent-since="2026-10-04T16:58:30-04:00" class="spell-doc-page plan-doc" data-plan="design-system">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Epic: Design System</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p5">next: P5 · Tool Pages</ui-label></span
+              ><ui-label basic color="grey" icon="circle right" href="#p5" title="Next:  P5 · Tool Pages"
+                >P5</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -1115,22 +1117,43 @@
 
         <ui-section
           id="decisions"
-          header="3. Questions & Decisions"
+          header="3. Questions"
           sticky
           collapsible
           dividing
-          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, don't re-argue without new facts. An answered question sits just above its decision."
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts."
         >
-          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
           <ui-list class="plan-items" data-kind="decision" divided relaxed
-            ><ui-item id="q1" data-status="done"
+            ><ui-item data-state="old" data-answered id="q1" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q1">Q1</a>
-                  <span class="plan-title">New spell-brand theme, or converge the existing spell theme?</span>
-                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                  <span class="plan-title">New spell-brand theme, or converge the existing spell theme?</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d1">
+                    <div class="plan-answer-title">
+                      <b>D1</b> · B: spell-brand.css starts as a full copy of spell.css, then converges
+                    </div>
+                    <p>Asked: a new spell-brand theme, or converge the existing spell theme?</p>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>
+                        new
+                        <a
+                          href="../../../ui/src/styles/themes/spell-brand.css"
+                          target="src-packages-ui-src-styles-themes-spell-brand-css"
+                          ><code>packages/ui/src/styles/themes/spell-brand.css</code></a
+                        >, a full copy of <code>spell.css</code> to start
+                      </li>
+                      <li>
+                        docs pages stay on <code>spell</code> until the Docs Restyle phase (<a href="#p9">P9</a>) moves
+                        them to <code>spell-brand</code>
+                      </li>
+                      <li>the two sheets can drift: folding them back together is a later call</li>
+                    </ul>
+                  </div>
+                  <p>
                     You asked for a new "spell brand" theme. But Spell UI's <code>spell</code> theme (<a href="#o2"
                       >1.2</a
                     >) was already built from these brand files, and it's the look of every docs page. A brand-new theme
@@ -1151,7 +1174,7 @@
                         </p>
                         <p>Cost: a small change so a theme can name the theme it builds on.</p></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B. Full copy</ui-label>
                         <p>
@@ -1186,46 +1209,34 @@
                   </ul>
                 </ui-content></ui-accordion
               ></ui-item
-            ><ui-item id="d1" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d1">D1</a>
-                  <span class="plan-title"
-                    >B: spell-brand.css starts as a full copy of spell.css, then converges (<a href="#q1">Q1</a>)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>Asked: a new spell-brand theme, or converge the existing spell theme?</p>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>
-                      new
-                      <a
-                        href="../../../ui/src/styles/themes/spell-brand.css"
-                        target="src-packages-ui-src-styles-themes-spell-brand-css"
-                        ><code>packages/ui/src/styles/themes/spell-brand.css</code></a
-                      >, a full copy of <code>spell.css</code> to start
-                    </li>
-                    <li>
-                      docs pages stay on <code>spell</code> until the Docs Restyle phase (<a href="#p9">P9</a>) moves
-                      them to <code>spell-brand</code>
-                    </li>
-                    <li>the two sheets can drift: folding them back together is a later call</li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q1">Q1</a>: New spell-brand theme, or converge the existing spell theme?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q2" data-status="done"
+            ><ui-item data-state="old" data-answered id="q2" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q2">Q2</a>
                   <span class="plan-title"
                     >Where do the generic elements live: packages/ui, or packages/brand first?</span
-                  >
-                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                  ></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d2">
+                    <div class="plan-answer-title">
+                      <b>D2</b> · B: every new element in packages/brand/components as &lt;ui-brand-*&gt; first
+                    </div>
+                    <p>Asked: where do the generic elements live?</p>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>
+                        <code>&lt;ui-brand-panel&gt;</code>, <code>&lt;ui-brand-field&gt;</code>,
+                        <code>&lt;ui-brand-color&gt;</code>, <code>-color-set</code>, <code>-color-picker</code>,
+                        <code>-color-range</code>, and the page-art elements, all in
+                        <a href="../../../brand/components/" target="src-packages-brand-components"
+                          ><code>packages/brand/components/</code></a
+                        >
+                      </li>
+                      <li>a later epic moves the good ones into Spell UI and drops the <code>brand-</code></li>
+                      <li>accepted cost: caveat <a href="#c1">C1</a></li>
+                    </ul>
+                  </div>
+                  <p>
                     Where do the new GENERIC elements live: <code>&lt;ui-panel&gt;</code>, the extended
                     <code>&lt;ui-field&gt;</code>, and the four color elements? Your prompt says
                     <code>&lt;ui-brand-xxx&gt;</code> in
@@ -1262,7 +1273,7 @@
                           element from day one.
                         </p></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B. Everything in brand first</ui-label>
                         <p>
@@ -1296,43 +1307,32 @@
                   </ul>
                 </ui-content></ui-accordion
               ></ui-item
-            ><ui-item id="d2" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d2">D2</a>
-                  <span class="plan-title"
-                    >B: every new element in packages/brand/components as &lt;ui-brand-*&gt; first (<a href="#q2">Q2</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>Asked: where do the generic elements live?</p>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>
-                      <code>&lt;ui-brand-panel&gt;</code>, <code>&lt;ui-brand-field&gt;</code>,
-                      <code>&lt;ui-brand-color&gt;</code>, <code>-color-set</code>, <code>-color-picker</code>,
-                      <code>-color-range</code>, and the page-art elements, all in
-                      <a href="../../../brand/components/" target="src-packages-brand-components"
-                        ><code>packages/brand/components/</code></a
-                      >
-                    </li>
-                    <li>a later epic moves the good ones into Spell UI and drops the <code>brand-</code></li>
-                    <li>accepted cost: caveat <a href="#c1">C1</a></li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q2">Q2</a>: Where do the generic elements live: packages/ui, or packages/brand
-                    first?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q3" data-status="done"
+            ><ui-item data-state="old" data-answered id="q3" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q3">Q3</a>
-                  <span class="plan-title">Extend &lt;ui-field&gt;, or add a new field element?</span>
-                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                  <span class="plan-title">Extend &lt;ui-field&gt;, or add a new field element?</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d3">
+                    <div class="plan-answer-title">
+                      <b>D3</b> · B: a new &lt;ui-brand-field&gt; element; &lt;ui-field&gt; stays Fomantic's
+                    </div>
+                    <p>Asked: extend <code>&lt;ui-field&gt;</code>, or add a new field element?</p>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>
+                        <code>&lt;ui-brand-field&gt;</code>: attributes <code>label</code>, <code>value</code>,
+                        <code>info</code>, <code>help</code>, <code>error</code>; slots <code>label</code>,
+                        <code>actions</code>, <code>value</code>, <code>help</code>
+                      </li>
+                      <li>
+                        it also answers to <code>&lt;ui-form&gt;</code> the way <code>&lt;ui-field&gt;</code> does
+                        (<code>:state(field)</code>, <code>showErrors()</code>), so validation errors show in it
+                      </li>
+                      <li><code>&lt;ui-field&gt;</code> is unchanged</li>
+                    </ul>
+                  </div>
+                  <p>
                     The analysis is in <a href="#o5">1.5</a>. In short: everything the brand's inspector field needs (a
                     label, a value readout, action buttons, an info tooltip, help text, error text) can be ADDED to
                     today's <code>&lt;ui-field&gt;</code> without breaking a field written the old way.
@@ -1352,7 +1352,7 @@
                           gets help text and actions.
                         </p></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B. A new element</ui-label>
                         <p>
@@ -1373,44 +1373,34 @@
                   </ul>
                 </ui-content></ui-accordion
               ></ui-item
-            ><ui-item id="d3" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d3">D3</a>
-                  <span class="plan-title"
-                    >B: a new &lt;ui-brand-field&gt; element; &lt;ui-field&gt; stays Fomantic's (<a href="#q3">Q3</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>Asked: extend <code>&lt;ui-field&gt;</code>, or add a new field element?</p>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>
-                      <code>&lt;ui-brand-field&gt;</code>: attributes <code>label</code>, <code>value</code>,
-                      <code>info</code>, <code>help</code>, <code>error</code>; slots <code>label</code>,
-                      <code>actions</code>, <code>value</code>, <code>help</code>
-                    </li>
-                    <li>
-                      it also answers to <code>&lt;ui-form&gt;</code> the way <code>&lt;ui-field&gt;</code> does
-                      (<code>:state(field)</code>, <code>showErrors()</code>), so validation errors show in it
-                    </li>
-                    <li><code>&lt;ui-field&gt;</code> is unchanged</li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q3">Q3</a>: Extend &lt;ui-field&gt;, or add a new field element?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q4" data-status="done"
+            ><ui-item data-state="old" data-answered id="q4" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q4">Q4</a>
                   <span class="plan-title"
                     >How much of the overall goals (docs templates, Claude Design) is in this epic?</span
-                  >
-                  <a class="plan-answer" href="#d4">→ D4</a></ui-title
+                  ></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d4">
+                    <div class="plan-answer-title">
+                      <b>D4</b> · Pages, theme, elements AND docs templates here; no CDN bundle or npm publish
+                    </div>
+                    <p>
+                      Asked: how much of the overall goals is in this epic? Answered "A&amp;C", then "no CDN bundle,
+                      everything else".
+                    </p>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>
+                        a Docs Restyle phase (<a href="#p9">P9</a>) moves the docs pages and templates to the brand look
+                      </li>
+                      <li>
+                        publishing to npm and trying the widgets in Claude Design: a follow-up epic (todo
+                        <a href="#t1">T1</a>)
+                      </li>
+                    </ul>
+                  </div>
+                  <p>
                     Your prompt ends with three overall goals. This epic clearly covers the first ("start building with
                     this aesthetic"). How much of the other two goes in THIS epic?
                   </p>
@@ -1447,7 +1437,7 @@
                           want to see the elements first.
                         </p></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B. A + the CDN bundle</ui-label>
                         <p>
@@ -1473,342 +1463,362 @@
                   </ul>
                 </ui-content></ui-accordion
               ></ui-item
-            ><ui-item id="d4" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q5" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d4">D4</a>
-                  <span class="plan-title"
-                    >Pages, theme, elements AND docs templates here; no CDN bundle or npm publish (<a href="#q4">Q4</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>
-                    Asked: how much of the overall goals is in this epic? Answered "A&amp;C", then "no CDN bundle,
-                    everything else".
-                  </p>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>
-                      a Docs Restyle phase (<a href="#p9">P9</a>) moves the docs pages and templates to the brand look
-                    </li>
-                    <li>
-                      publishing to npm and trying the widgets in Claude Design: a follow-up epic (todo
-                      <a href="#t1">T1</a>)
-                    </li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q4">Q4</a>: How much of the overall goals (docs templates, Claude Design) is in
-                    this epic?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d5" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d5">D5</a>
+                  ><a class="plan-id" href="#q5">Q5</a>
                   <span class="plan-title">spell-brand.css lives in packages/ui's themes folder</span></ui-title
                 ><ui-content
-                  ><p>
-                    Even though the elements start in
-                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
-                    >, the theme goes in
-                    <a href="../../../ui/src/styles/themes/" target="src-packages-ui-src-styles-themes"
-                      ><code>packages/ui/src/styles/themes/</code></a
-                    >. Why: that folder is the theme registry (it's read by a glob), so
-                    <code>ThemeSheets.apply("spell-brand")</code> and the Spell UI site's theme switcher work with no
-                    extra code.
-                  </p>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>one new file in ui; no registry change</li>
-                    <li>the Spell UI docs site can show every component in the brand theme</li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d5">
+                    <div class="plan-answer-title">
+                      <b>D5</b> · spell-brand.css lives in packages/ui's themes folder
+                    </div>
+                    <p>
+                      Even though the elements start in
+                      <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
+                      >, the theme goes in
+                      <a href="../../../ui/src/styles/themes/" target="src-packages-ui-src-styles-themes"
+                        ><code>packages/ui/src/styles/themes/</code></a
+                      >. Why: that folder is the theme registry (it's read by a glob), so
+                      <code>ThemeSheets.apply("spell-brand")</code> and the Spell UI site's theme switcher work with no
+                      extra code.
+                    </p>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>one new file in ui; no registry change</li>
+                      <li>the Spell UI docs site can show every component in the brand theme</li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d6" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q6" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d6">D6</a>
+                  ><a class="plan-id" href="#q6">Q6</a>
                   <span class="plan-title">packages/brand becomes a workspace package, @spell-app/brand</span></ui-title
                 ><ui-content
-                  ><p>
-                    It needs a build (Solid JSX, decorators) and tests, so it becomes a real package:
-                    <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
-                    >, <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
-                    >, the <code>$/brand</code> alias.
-                  </p>
-                  <ul>
-                    <li>
-                      It imports <code>$/ui</code> (the barrel and <code>$/ui/core</code>) and
-                      <code>$/server</code> (the site header).
-                    </li>
-                    <li>Nothing imports it, except possibly <code>docs</code> in the Docs Restyle phase.</li>
-                    <li>
-                      Claude Design's files stay where they are, in
-                      <a href="../../../brand/spell-design-system/" target="src-packages-brand-spell-design-system"
-                        ><code>packages/brand/spell-design-system/</code></a
-                      >.
-                    </li>
-                  </ul>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>dependency direction: <code>brand</code> -&gt; <code>ui</code> / <code>server</code></li>
-                    <li>root <code>yarn ts</code> / <code>yarn test</code> cover it</li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d6">
+                    <div class="plan-answer-title">
+                      <b>D6</b> · packages/brand becomes a workspace package, @spell-app/brand
+                    </div>
+                    <p>
+                      It needs a build (Solid JSX, decorators) and tests, so it becomes a real package:
+                      <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                      >, <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                      >, the <code>$/brand</code> alias.
+                    </p>
+                    <ul>
+                      <li>
+                        It imports <code>$/ui</code> (the barrel and <code>$/ui/core</code>) and
+                        <code>$/server</code> (the site header).
+                      </li>
+                      <li>Nothing imports it, except possibly <code>docs</code> in the Docs Restyle phase.</li>
+                      <li>
+                        Claude Design's files stay where they are, in
+                        <a href="../../../brand/spell-design-system/" target="src-packages-brand-spell-design-system"
+                          ><code>packages/brand/spell-design-system/</code></a
+                        >.
+                      </li>
+                    </ul>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>dependency direction: <code>brand</code> -&gt; <code>ui</code> / <code>server</code></li>
+                      <li>root <code>yarn ts</code> / <code>yarn test</code> cover it</li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d7" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q7" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d7">D7</a>
+                  ><a class="plan-id" href="#q7">Q7</a>
                   <span class="plan-title">Brand pages load one script, brand-ui.js</span></ui-title
-                ><ui-content>
-                  <p>
-                    <b>Changed in P2:</b> built as an ES module with lazy chunks, not one classic script, and icons from
-                    Spell UI's own packs, not jsDelivr (judgement <a href="#j4">J4</a>). The bundle is
-                    <a href="../../../brand/_assets/ui/brand-ui.js" target="src-packages-brand-assets-ui-brand-ui-js"
-                      ><code>packages/brand/_assets/ui/brand-ui.js</code></a
-                    >, built by <code>yarn build</code> in
-                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
-                    >. The rest below is the plan as first written.
-                  </p>
-                  <p>
-                    Every <code>.spell.html</code> page loads <code>packages/brand/_assets/brand-ui.js</code>: Solid,
-                    Spell UI, the <code>&lt;ui-brand-*&gt;</code> elements, the site header and the
-                    <code>spell-brand</code> theme, in one classic script.
-                  </p>
-                  <ul>
-                    <li>
-                      Built by Vite with Spell UI's own <code>baseConfig()</code>, since the elements need Solid's JSX
-                      compiler and our decorators. The docs bundle's esbuild can't compile them.
-                    </li>
-                    <li>One copy of Solid, checked at build time, as the docs bundle does.</li>
-                    <li>
-                      Icons: Font Awesome 7 Free from jsDelivr, since a classic script can't load icon packs from disk.
-                    </li>
-                  </ul>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>
-                      <code>yarn brand:build</code>, and a committed <code>brand-ui.js</code> (like the docs'
-                      <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
-                        ><code>spell-ui.js</code></a
-                      >)
-                    </li>
-                    <li>brand pages need the internet for icons (caveat <a href="#c2">C2</a>)</li>
-                  </ul></ui-content
+                ><ui-content
+                  ><div class="plan-answer-block" id="d7">
+                    <div class="plan-answer-title"><b>D7</b> · Brand pages load one script, brand-ui.js</div>
+                    <p>
+                      <b>Changed in P2:</b> built as an ES module with lazy chunks, not one classic script, and icons
+                      from Spell UI's own packs, not jsDelivr (judgement <a href="#j4">J4</a>). The bundle is
+                      <a href="../../../brand/_assets/ui/brand-ui.js" target="src-packages-brand-assets-ui-brand-ui-js"
+                        ><code>packages/brand/_assets/ui/brand-ui.js</code></a
+                      >, built by <code>yarn build</code> in
+                      <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
+                      >. The rest below is the plan as first written.
+                    </p>
+                    <p>
+                      Every <code>.spell.html</code> page loads <code>packages/brand/_assets/brand-ui.js</code>: Solid,
+                      Spell UI, the <code>&lt;ui-brand-*&gt;</code> elements, the site header and the
+                      <code>spell-brand</code> theme, in one classic script.
+                    </p>
+                    <ul>
+                      <li>
+                        Built by Vite with Spell UI's own <code>baseConfig()</code>, since the elements need Solid's JSX
+                        compiler and our decorators. The docs bundle's esbuild can't compile them.
+                      </li>
+                      <li>One copy of Solid, checked at build time, as the docs bundle does.</li>
+                      <li>
+                        Icons: Font Awesome 7 Free from jsDelivr, since a classic script can't load icon packs from
+                        disk.
+                      </li>
+                    </ul>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>
+                        <code>yarn brand:build</code>, and a committed <code>brand-ui.js</code> (like the docs'
+                        <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                          ><code>spell-ui.js</code></a
+                        >)
+                      </li>
+                      <li>brand pages need the internet for icons (caveat <a href="#c2">C2</a>)</li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d8" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q8" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d8">D8</a>
+                  ><a class="plan-id" href="#q8">Q8</a>
                   <span class="plan-title">The original .dc.html pages stay untouched</span></ui-title
                 ><ui-content
-                  ><p>
-                    Claude Design's pages are the reference: no site header, no edits. Only the
-                    <code>.spell.html</code> copies, the index and the Compare view carry the header.
-                  </p>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>
-                      opening an original from the Brand index leaves the site (its own look, no tab bar); the browser's
-                      Back returns
-                    </li>
-                    <li>Claude Design can re-export over them without a merge</li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d8">
+                    <div class="plan-answer-title"><b>D8</b> · The original .dc.html pages stay untouched</div>
+                    <p>
+                      Claude Design's pages are the reference: no site header, no edits. Only the
+                      <code>.spell.html</code> copies, the index and the Compare view carry the header.
+                    </p>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>
+                        opening an original from the Brand index leaves the site (its own look, no tab bar); the
+                        browser's Back returns
+                      </li>
+                      <li>Claude Design can re-export over them without a merge</li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d9" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q9" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d9">D9</a>
+                  ><a class="plan-id" href="#q9">Q9</a>
                   <span class="plan-title">&lt;ui-brand-panel&gt; reuses &lt;ui-section&gt;'s folding</span></ui-title
                 ><ui-content
-                  ><p>
-                    <code>&lt;ui-section&gt;</code> already folds with animation, keeps folded content searchable
-                    (<code>hidden="until-found"</code>), and nests. <code>&lt;ui-brand-panel&gt;</code> builds on that
-                    rather than copying the brand's hand-made margin math.
-                  </p>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>
-                      the collapse looks slightly different from the original (Spell UI's animation, not the brand's
-                      slide-in); noted in the Convergence phase if it shows
-                    </li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d9">
+                    <div class="plan-answer-title">
+                      <b>D9</b> · &lt;ui-brand-panel&gt; reuses &lt;ui-section&gt;'s folding
+                    </div>
+                    <p>
+                      <code>&lt;ui-section&gt;</code> already folds with animation, keeps folded content searchable
+                      (<code>hidden="until-found"</code>), and nests. <code>&lt;ui-brand-panel&gt;</code> builds on that
+                      rather than copying the brand's hand-made margin math.
+                    </p>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>
+                        the collapse looks slightly different from the original (Spell UI's animation, not the brand's
+                        slide-in); noted in the Convergence phase if it shows
+                      </li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d10" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q10" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d10">D10</a>
+                  ><a class="plan-id" href="#q10">Q10</a>
                   <span class="plan-title">Dark mode on brand pages uses Spell UI's color-scheme</span></ui-title
                 ><ui-content
-                  ><p>
-                    The brand's CSS switches on <code>data-theme="dark"</code>; Spell UI switches on CSS
-                    <code>color-scheme</code> (the <code>ui-dark</code> class, or
-                    <code>&lt;ui-root theme="dark"&gt;</code>). The copies use Spell UI's way, so every element follows.
-                  </p>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>each page's light / dark toggle sets <code>ui-dark</code> on the page</li>
-                    <li>with no toggle, pages follow the system setting</li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d10">
+                    <div class="plan-answer-title">
+                      <b>D10</b> · Dark mode on brand pages uses Spell UI's color-scheme
+                    </div>
+                    <p>
+                      The brand's CSS switches on <code>data-theme="dark"</code>; Spell UI switches on CSS
+                      <code>color-scheme</code> (the <code>ui-dark</code> class, or
+                      <code>&lt;ui-root theme="dark"&gt;</code>). The copies use Spell UI's way, so every element
+                      follows.
+                    </p>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>each page's light / dark toggle sets <code>ui-dark</code> on the page</li>
+                      <li>with no toggle, pages follow the system setting</li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d11" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q11" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d11">D11</a>
+                  ><a class="plan-id" href="#q11">Q11</a>
                   <span class="plan-title"
                     >Each brand element gets a docs page in Spell UI's docs format</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Owen, after P3 (2026-10-04): "make a new brand page which shows off the new components, use the
-                    spell/ui doc format".
-                  </p>
-                  <ul>
-                    <li>
-                      <code>packages/brand/components/&lt;tag&gt;.html</code>, one per family: a masthead, then Examples
-                      / Usage / API / Theming tabs, as
-                      <a
-                        href="../../templates/spell-ui-docs.html"
-                        target="src-packages-docs-templates-spell-ui-docs-html"
-                        ><code>packages/docs/templates/spell-ui-docs.html</code></a
-                      >; the site header on top, no Spell UI site shell (nav, search).
-                    </li>
-                    <li>
-                      Examples are live <code>&lt;ui-docs-example&gt;</code>s: the code shown is the markup as written.
-                      API and Tokens come from the brand's own data,
-                      <a href="../../../brand/_data/components.json" target="src-packages-brand-data-components-json"
-                        ><code>packages/brand/_data/components.json</code></a
-                      >
-                      (<code>yarn site:data</code>), built by Spell UI's <code>SiteDataBuilder</code>, which now takes
-                      other folders (<code>SiteDataOptions</code>).
-                    </li>
-                    <li>
-                      Loaded with <code>_assets/ui/brand-docs.js</code>, a second entry of the brand bundle: the
-                      snapshot first, then the brand bundle, <code>UI.load()</code>, then the docs widgets.
-                    </li>
-                    <li>Listed first on the Brand index, "1. Components".</li>
-                  </ul>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>
-                      every new <code>&lt;ui-brand-*&gt;</code> family (P4's colour elements next) gets a vocabulary
-                      with topics and aka, a page, and <code>yarn site:data</code>
-                    </li>
-                    <li>
-                      the brand package reaches past <code>ui</code>'s barrel for the docs widgets (listed in
-                      <a href="../../../brand/AGENTS.md" target="src-packages-brand-agents-md"
-                        ><code>packages/brand/AGENTS.md</code></a
-                      >, "Imports")
-                    </li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d11">
+                    <div class="plan-answer-title">
+                      <b>D11</b> · Each brand element gets a docs page in Spell UI's docs format
+                    </div>
+                    <p>
+                      Owen, after P3 (2026-10-04): "make a new brand page which shows off the new components, use the
+                      spell/ui doc format".
+                    </p>
+                    <ul>
+                      <li>
+                        <code>packages/brand/components/&lt;tag&gt;.html</code>, one per family: a masthead, then
+                        Examples / Usage / API / Theming tabs, as
+                        <a
+                          href="../../templates/spell-ui-docs.html"
+                          target="src-packages-docs-templates-spell-ui-docs-html"
+                          ><code>packages/docs/templates/spell-ui-docs.html</code></a
+                        >; the site header on top, no Spell UI site shell (nav, search).
+                      </li>
+                      <li>
+                        Examples are live <code>&lt;ui-docs-example&gt;</code>s: the code shown is the markup as
+                        written. API and Tokens come from the brand's own data,
+                        <a href="../../../brand/_data/components.json" target="src-packages-brand-data-components-json"
+                          ><code>packages/brand/_data/components.json</code></a
+                        >
+                        (<code>yarn site:data</code>), built by Spell UI's <code>SiteDataBuilder</code>, which now takes
+                        other folders (<code>SiteDataOptions</code>).
+                      </li>
+                      <li>
+                        Loaded with <code>_assets/ui/brand-docs.js</code>, a second entry of the brand bundle: the
+                        snapshot first, then the brand bundle, <code>UI.load()</code>, then the docs widgets.
+                      </li>
+                      <li>Listed first on the Brand index, "1. Components".</li>
+                    </ul>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>
+                        every new <code>&lt;ui-brand-*&gt;</code> family (P4's colour elements next) gets a vocabulary
+                        with topics and aka, a page, and <code>yarn site:data</code>
+                      </li>
+                      <li>
+                        the brand package reaches past <code>ui</code>'s barrel for the docs widgets (listed in
+                        <a href="../../../brand/AGENTS.md" target="src-packages-brand-agents-md"
+                          ><code>packages/brand/AGENTS.md</code></a
+                        >, "Imports")
+                      </li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d12" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q12" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d12">D12</a>
+                  ><a class="plan-id" href="#q12">Q12</a>
                   <span class="plan-title"
                     >&lt;ui-brand-panel color&gt;: any hue, plus the brand's `accent`</span
                   ></ui-title
                 ><ui-content
-                  ><p>Owen, after P3 (2026-10-04): "`color` attribute for Panel, including `color=accent`".</p>
-                  <ul>
-                    <li>
-                      <code>color</code> (the section's own attribute) paints the whole panel from the hue's remap: the
-                      header band its background, the box and sub-head bands lighter mixes with the surface, the border
-                      and the text the hue. Sub-panels without a <code>color</code> follow their panel (handed down as
-                      <code>--_brand-panel-hue-*</code>, since the section resets <code>--ui-color*</code> at its slot).
-                    </li>
-                    <li>
-                      <code>accent</code> is a NEW hue: Polished Ivory. The brand bundle adds the name to Spell UI's
-                      <code>hues</code> (<a href="../../../brand/src/hues.ts" target="src-packages-brand-src-hues-ts"
-                        ><code>packages/brand/src/hues.ts</code></a
-                      >); <code>spell-brand</code> gives it tokens (<code>--ui-accent-*</code>) and the
-                      <code>.ui.accent</code> remap, so <code>color="accent"</code> tints ANY element while that theme
-                      is on.
-                    </li>
-                    <li>
-                      No <code>color</code>: the ivory look, unchanged; <code>accent</code> names it (judgement
-                      <a href="#j6">J6</a>).
-                    </li>
-                  </ul>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>the panel's docs page has a Colors example (accent, violet, grey, teal)</li>
-                    <li>
-                      under any other theme, <code>accent</code> is accepted but tints nothing; a Spell UI-wide
-                      <code>accent</code> hue is part of moving the elements into Spell UI (<a href="#t2">T2</a>)
-                    </li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d12">
+                    <div class="plan-answer-title">
+                      <b>D12</b> · &lt;ui-brand-panel color&gt;: any hue, plus the brand's `accent`
+                    </div>
+                    <p>Owen, after P3 (2026-10-04): "`color` attribute for Panel, including `color=accent`".</p>
+                    <ul>
+                      <li>
+                        <code>color</code> (the section's own attribute) paints the whole panel from the hue's remap:
+                        the header band its background, the box and sub-head bands lighter mixes with the surface, the
+                        border and the text the hue. Sub-panels without a <code>color</code> follow their panel (handed
+                        down as <code>--_brand-panel-hue-*</code>, since the section resets <code>--ui-color*</code> at
+                        its slot).
+                      </li>
+                      <li>
+                        <code>accent</code> is a NEW hue: Polished Ivory. The brand bundle adds the name to Spell UI's
+                        <code>hues</code> (<a href="../../../brand/src/hues.ts" target="src-packages-brand-src-hues-ts"
+                          ><code>packages/brand/src/hues.ts</code></a
+                        >); <code>spell-brand</code> gives it tokens (<code>--ui-accent-*</code>) and the
+                        <code>.ui.accent</code> remap, so <code>color="accent"</code> tints ANY element while that theme
+                        is on.
+                      </li>
+                      <li>
+                        No <code>color</code>: the ivory look, unchanged; <code>accent</code> names it (judgement
+                        <a href="#j6">J6</a>).
+                      </li>
+                    </ul>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>the panel's docs page has a Colors example (accent, violet, grey, teal)</li>
+                      <li>
+                        under any other theme, <code>accent</code> is accepted but tints nothing; a Spell UI-wide
+                        <code>accent</code> hue is part of moving the elements into Spell UI (<a href="#t2">T2</a>)
+                      </li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d13" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q13" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d13">D13</a>
+                  ><a class="plan-id" href="#q13">Q13</a>
                   <span class="plan-title">An uncoloured panel is primary; accent is the ivory, by name</span></ui-title
                 ><ui-content
-                  ><p>
-                    Owen, 2026-10-04, on judgement <a href="#j6">J6</a> (which kept the ivory as the default): "default
-                    should be <code>primary</code> color". Replaces <a href="#d12">D12</a>'s "no <code>color</code>: the
-                    ivory look".
-                  </p>
-                  <ul>
-                    <li>
-                      A top-level <code>&lt;ui-brand-panel&gt;</code> without <code>color</code> paints itself from
-                      <code>primary</code> (Spell Purple under <code>spell-brand</code>: lavender bands); a sub-panel
-                      without one still follows its panel.
-                    </li>
-                    <li>The ivory is <code>color="accent"</code>.</li>
-                  </ul>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>
-                      the brand copies whose panels are ivory (Color Set Chooser, Theme Creator) say
-                      <code>color="accent"</code>; the specimen page's Color Set panel does already
-                    </li>
-                    <li>the panel docs page's Colors example starts with "Default" (primary)</li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d13">
+                    <div class="plan-answer-title">
+                      <b>D13</b> · An uncoloured panel is primary; accent is the ivory, by name
+                    </div>
+                    <p>
+                      Owen, 2026-10-04, on judgement <a href="#j6">J6</a> (which kept the ivory as the default):
+                      "default should be <code>primary</code> color". Replaces <a href="#d12">D12</a>'s "no
+                      <code>color</code>: the ivory look".
+                    </p>
+                    <ul>
+                      <li>
+                        A top-level <code>&lt;ui-brand-panel&gt;</code> without <code>color</code> paints itself from
+                        <code>primary</code> (Spell Purple under <code>spell-brand</code>: lavender bands); a sub-panel
+                        without one still follows its panel.
+                      </li>
+                      <li>The ivory is <code>color="accent"</code>.</li>
+                    </ul>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>
+                        the brand copies whose panels are ivory (Color Set Chooser, Theme Creator) say
+                        <code>color="accent"</code>; the specimen page's Color Set panel does already
+                      </li>
+                      <li>the panel docs page's Colors example starts with "Default" (primary)</li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d14" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q14" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d14">D14</a>
+                  ><a class="plan-id" href="#q14">Q14</a>
                   <span class="plan-title"
                     >The colour picker is an HSL square, with HSL / RGB / OKLCH rows that each copy</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Owen, after P4 (2026-10-04): "change to HSL color picker, that triangle just looks weird. Have rows
-                    for HSL, RGB, OKLCH, with copy button in the row for each".
-                  </p>
-                  <ul>
-                    <li>
-                      The plane: the standard HSL square for the hue (saturation across, lightness up), drawn with CSS
-                      gradients; every point is displayable, so the out-of-gamut hatch is gone (judgements J7-J9 closed;
-                      J14, J15 the new choices).
-                    </li>
-                    <li>
-                      Rows: HSL (H°, S%, L%), RGB (the hex box, which still reads <code>142 150 181</code> and
-                      <code>hsl()</code>), OKLCH (L%, C, H); each with a copy button (<code>ui-copy</code>
-                      <code>{ value, format }</code>).
-                    </li>
-                    <li>
-                      <code>Palette</code> gained HSL: <code>rgbToHsl</code>, <code>hslToRgb</code>,
-                      <code>hexToHsl</code>, <code>hslToHex</code>, <code>format(hex, "hsl")</code>.
-                    </li>
-                  </ul>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li>the Color Set Chooser copy (P5) uses this picker, not the original's L × C plane</li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d14">
+                    <div class="plan-answer-title">
+                      <b>D14</b> · The colour picker is an HSL square, with HSL / RGB / OKLCH rows that each copy
+                    </div>
+                    <p>
+                      Owen, after P4 (2026-10-04): "change to HSL color picker, that triangle just looks weird. Have
+                      rows for HSL, RGB, OKLCH, with copy button in the row for each".
+                    </p>
+                    <ul>
+                      <li>
+                        The plane: the standard HSL square for the hue (saturation across, lightness up), drawn with CSS
+                        gradients; every point is displayable, so the out-of-gamut hatch is gone (judgements J7-J9
+                        closed; J14, J15 the new choices).
+                      </li>
+                      <li>
+                        Rows: HSL (H°, S%, L%), RGB (the hex box, which still reads <code>142 150 181</code> and
+                        <code>hsl()</code>), OKLCH (L%, C, H); each with a copy button (<code>ui-copy</code>
+                        <code>{ value, format }</code>).
+                      </li>
+                      <li>
+                        <code>Palette</code> gained HSL: <code>rgbToHsl</code>, <code>hslToRgb</code>,
+                        <code>hexToHsl</code>, <code>hslToHex</code>, <code>format(hex, "hsl")</code>.
+                      </li>
+                    </ul>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li>the Color Set Chooser copy (P5) uses this picker, not the original's L × C plane</li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -1823,9 +1833,9 @@
           dividing
           data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
         >
-          <ui-icon slot="icon" name="compass"></ui-icon>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
           <ui-list class="plan-items" data-kind="judgement" divided relaxed
-            ><ui-item id="j1" data-status="open"
+            ><ui-item data-state="attention" id="j1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j1">J1</a>
@@ -1873,7 +1883,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j2" data-status="open"
+            ><ui-item data-state="attention" id="j2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j2">J2</a>
@@ -1891,7 +1901,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j3" data-status="open"
+            ><ui-item data-state="attention" id="j3" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j3">J3</a>
@@ -1921,7 +1931,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item data-deferred="2026-10-04" id="j4" data-status="open"
+            ><ui-item data-state="attention" data-deferred="2026-10-04" id="j4" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j4">J4</a>
@@ -1958,7 +1968,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j5" data-status="open"
+            ><ui-item data-state="attention" id="j5" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j5">J5</a>
@@ -1984,11 +1994,11 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item data-reviewed="2026-10-04" id="j6" data-status="done"
+            ><ui-item data-state="old" data-reviewed="2026-10-04" id="j6" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j6">J6</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >An uncoloured panel stays ivory; `color="accent"` names that look</span
                   ></ui-title
@@ -2011,7 +2021,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j7" data-status="done"
+            ><ui-item data-state="old" id="j7" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j7">J7</a>
@@ -2047,7 +2057,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j8" data-status="done"
+            ><ui-item data-state="old" id="j8" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j8">J8</a>
@@ -2084,7 +2094,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j9" data-status="done"
+            ><ui-item data-state="old" id="j9" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j9">J9</a>
@@ -2123,7 +2133,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j10" data-status="open"
+            ><ui-item data-state="attention" id="j10" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j10">J10</a>
@@ -2157,7 +2167,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j11" data-status="open"
+            ><ui-item data-state="attention" id="j11" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j11">J11</a>
@@ -2188,7 +2198,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j12" data-status="open"
+            ><ui-item data-state="attention" id="j12" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j12">J12</a>
@@ -2226,7 +2236,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j13" data-status="open"
+            ><ui-item data-state="attention" id="j13" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j13">J13</a>
@@ -2262,7 +2272,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j14" data-status="open"
+            ><ui-item data-state="attention" id="j14" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j14">J14</a>
@@ -2303,7 +2313,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j15" data-status="open"
+            ><ui-item data-state="attention" id="j15" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j15">J15</a>
@@ -2368,7 +2378,7 @@
         <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed
-            ><ui-item id="c1" data-status="open"
+            ><ui-item data-state="open" id="c1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c1">C1</a>
@@ -2389,7 +2399,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c2" data-status="open"
+            ><ui-item data-state="open" id="c2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c2">C2</a>
@@ -2410,7 +2420,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c3" data-status="open"
+            ><ui-item data-state="open" id="c3" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c3">C3</a>
@@ -2433,7 +2443,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c4" data-status="open"
+            ><ui-item data-state="open" id="c4" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c4">C4</a>
@@ -2453,7 +2463,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c5" data-status="done"
+            ><ui-item data-state="old" id="c5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c5">C5</a>
@@ -2475,7 +2485,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c6" data-status="open"
+            ><ui-item data-state="open" id="c6" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c6">C6</a>
@@ -2493,7 +2503,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c7" data-status="open"
+            ><ui-item data-state="open" id="c7" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c7">C7</a>
@@ -2519,7 +2529,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c8" data-status="open"
+            ><ui-item data-state="open" id="c8" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c8">C8</a>
@@ -2559,7 +2569,7 @@
         >
           <ui-icon slot="icon" name="list check"></ui-icon>
           <ui-list class="plan-items" data-kind="todo" divided relaxed
-            ><ui-item id="t1" data-status="open"
+            ><ui-item data-state="open" id="t1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t1">T1</a>
@@ -2577,7 +2587,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t2" data-status="open"
+            ><ui-item data-state="open" id="t2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t2">T2</a>
@@ -2593,10 +2603,16 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t3" data-status="open"
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-changed="2026-10-04T19:21:10-04:00"
+              data-state="recent"
+              id="t3"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t3">T3</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Merging main in after vite-plus lands: move packages/brand onto Vite+</span
                   > </ui-title
@@ -2622,10 +2638,12 @@
                       <a href="../../../ui/vite.config.ts" target="src-packages-ui-vite-config-ts"
                         ><code>vite.config.ts</code></a
                       >
-                      from the root's <code>vite.lint.ts</code>; test imports <code>vitest</code> -&gt;
-                      <code>vite-plus/test</code>, <code>@vitest/browser-playwright</code> -&gt;
-                      <code>vite-plus/test/browser-playwright</code>; its <code>format</code> script
-                      <code>oxfmt</code> -&gt; <code>vp fmt</code>; drop its own <code>oxfmt</code> ^0.71. Copy how
+                      from the root's
+                      <a href="../../../../vite.lint.ts" target="src-vite-lint-ts"><code>vite.lint.ts</code></a
+                      >; test imports <code>vitest</code> -&gt; <code>vite-plus/test</code>,
+                      <code>@vitest/browser-playwright</code> -&gt; <code>vite-plus/test/browser-playwright</code>; its
+                      <code>format</code> script <code>oxfmt</code> -&gt; <code>vp fmt</code>; drop its own
+                      <code>oxfmt</code> ^0.71. Copy how
                       <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> looks on main.
                     </li>
                     <li>
@@ -2652,11 +2670,11 @@
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
-            ><ui-item data-reviewed="2026-10-04" id="i1" data-status="done"
+            ><ui-item data-state="old" data-reviewed="2026-10-04" id="i1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >A ticked checkbox shows a bare checkmark, not the brand's filled purple circle</span
                   > </ui-title
@@ -2674,11 +2692,11 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item data-reviewed="2026-10-04" id="i2" data-status="done"
+            ><ui-item data-state="old" data-reviewed="2026-10-04" id="i2" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i2">I2</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >&lt;ui-slider&gt; is tall and its fill is aubergine; the brand's range is thin and purple</span
                   > </ui-title
@@ -2707,7 +2725,7 @@
         >
           <ui-icon slot="icon" name="flask"></ui-icon>
           <ui-list class="plan-items" data-kind="test" divided relaxed
-            ><ui-item id="v1" data-status="open"
+            ><ui-item data-state="open" id="v1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v1">V1</a>
@@ -2720,7 +2738,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v2" data-status="open"
+            ><ui-item data-state="open" id="v2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v2">V2</a>
@@ -2734,7 +2752,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v3" data-status="open"
+            ><ui-item data-state="open" id="v3" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v3">V3</a>
@@ -2747,7 +2765,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v4" data-status="open"
+            ><ui-item data-state="open" id="v4" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v4">V4</a>
@@ -2767,7 +2785,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v5" data-status="open"
+            ><ui-item data-state="open" id="v5" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v5">V5</a>
@@ -2785,7 +2803,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v6" data-status="open"
+            ><ui-item data-state="open" id="v6" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v6">V6</a>
@@ -2797,7 +2815,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v7" data-status="open"
+            ><ui-item data-state="open" id="v7" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v7">V7</a>
@@ -2811,7 +2829,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v8" data-status="open"
+            ><ui-item data-state="open" id="v8" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v8">V8</a> <span class="plan-title">Try a coloured panel</span></ui-title
@@ -2824,7 +2842,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v9" data-status="open"
+            ><ui-item data-state="open" id="v9" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v9">V9</a>
@@ -3125,6 +3143,20 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T17:40-04:00">2026-10-04 17:40</time></ui-date> Picker reworked to
                   HSL (D14); ui-brand-field grows a slotted picker; 66 brand tests pass</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:21-04:00">2026-10-04 19:21</time></ui-date> T3 closed: Merging
+                  main in after vite-plus lands: move packages/brand onto Vite+</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:21-04:00">2026-10-04 19:21</time></ui-date> T3 reviewed: done:
+                  main merged in (845a4177); packages/brand on Vite+</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

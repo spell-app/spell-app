@@ -539,6 +539,13 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- `scripts/plan-rename.js`, re-run in a worktree after merging `main` (as its header says to):  it rewrites EVERY
+  `epics/<n>/<n>.html` it finds, including ones written on purpose as the old name.  `review-review.plan.html`'s
+  test "open `/packages/docs/epics/seo/seo.html` (the old name)" became `seo.plan.html (the old name)`.  Prove:  on a
+  branch with an old-name plan doc, `node scripts/plan-rename.js --dry-run` lists `review-review.plan.html` under
+  "links".  Fix:  skip a link followed by "(the old name)", or only rewrite links to the plan docs it just renamed.
+  (Found in epic `design-system`, 2026-10-04;  reverted there by hand.)
+
 - `scripts/plan-doc.js` `add-phase`:  `--goal` / `--files` / `--verify` go into the page as raw HTML, so
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
   tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
