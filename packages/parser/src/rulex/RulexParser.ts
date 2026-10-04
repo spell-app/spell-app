@@ -20,9 +20,31 @@ export class RulexParser extends Parser {
     return this.derived("tokenizer", () => new RulexTokenizer({ whitespacePolicy: P.WhitespacePolicy.LEADING_ONLY }))
   }
 
-  /** Compiling rulex syntax always yields a `Rule` -- narrows `Parser.compile()`'s `unknown` return type. */
-  compile(input: string | P.Token | P.Token[], ruleName?: string, scope?: P.Scope): P.Rule {
-    const rule = super.compile(input, ruleName, scope)
+  /**
+   * Compile rulex syntax to a `Rule` -- narrows `Parser.compile()`'s `unknown` return type.
+   * - Throws if ANY of the syntax is left unread, e.g. `(a|b` (unclosed choice) or a stray `)`:  a rule built
+   *   from part of a syntax is a wrong rule, and used to come back without a word.
+   */
+  compile(input: string | P.Token | P.Token[], ruleName = this.defaultRule, scope = this.getScope()): P.Rule {
+    const tokens = this.tokenize(input, ruleName) ?? []
+    const match = this.parse(tokens, ruleName, scope)
+    if (!match) {
+      throw new P.ParserError({
+        message: "Can't parse input",
+        context: this,
+        activity: "compile",
+        params: { input, ruleName, scope }
+      })
+    }
+    if (match.length < tokens.length) {
+      throw new P.ParserError({
+        message: `rulex couldn't read \`${P.Tokenizer.join(tokens, match.length)}\` in \`${P.Tokenizer.join(tokens)}\``,
+        context: this,
+        activity: "compile",
+        params: { input, ruleName }
+      })
+    }
+    const rule = match.compile()
     if (!(rule instanceof P.Rule)) {
       throw new P.ParserError({
         message: "rulex.compile() did not produce a Rule",
