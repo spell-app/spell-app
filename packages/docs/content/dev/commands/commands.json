@@ -2062,6 +2062,70 @@
       "intro": "Hand-authored pages in `packages/docs`:  start, index, check, show.  Root `docs:*` scripts just wrap the docs package's.",
       "rows": [
         {
+          "op": "Show the shared content links and repo",
+          "cli": {
+            "mark": "same",
+            "names": ["spell dev shared"],
+            "note": "`status [--json]`:  each checkout’s links (`ok`, `tracked`, `real` ...), the shared repo’s uncommitted files and last commit"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`packages/cli/src/dev/shared.ts` (`sharedStatus()`)",
+          "target": "built (epic `shared-content`, P4)"
+        },
+        {
+          "op": "Create the shared content repo",
+          "cli": {
+            "mark": "same",
+            "names": ["spell dev shared"],
+            "note": "`init [--import]`:  `--import` copies this checkout’s folders in (the cutover, once)"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`packages/cli/src/dev/shared.ts` (`initShared()`)",
+          "target": "built (epic `shared-content`, P4)"
+        },
+        {
+          "op": "Link a checkout to the shared content",
+          "cli": {
+            "mark": "same",
+            "names": ["spell dev shared"],
+            "note": "`link [--all]`:  the `WorktreeCreate` hook runs it in every new worktree"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`packages/cli/src/dev/shared.ts` (`linkCheckout()`)",
+          "target": "built (epic `shared-content`, P4)"
+        },
+        {
+          "op": "Commit the shared content repo",
+          "cli": {
+            "mark": "same",
+            "names": ["spell dev shared"],
+            "note": "`commit [--session <id>]`:  the `Stop` hook runs it after every turn"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`.claude/hooks/shared-commit.mjs` -> `commitShared()`",
+          "target": "built (epic `shared-content`, P4)"
+        },
+        {
           "op": "Rebuild docs' Spell UI bundle, re-index, check every page",
           "cli": {
             "mark": "could",

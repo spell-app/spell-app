@@ -64,7 +64,8 @@
  * - Later, it can still move:  `open <name>`, `handoff <name>`.
  *
  * ## Commands
- * - `init`:  write the window file of every package that lacks one;  never overwrites (themes are Owen's to change)
+ * - `init`:  write the window file of every package that lacks one;  never overwrites (themes are Owen's to change),
+ *   except to add the shared content repo as a folder when a window file lacks it (`Window.sharedFolder()`)
  * - `which`:  this session's window:  pid, workspace file, folders
  * - `add <path> [--name <name>]`:  add a folder (a worktree) to the window;  needs a window opened from its
  *   `.code-workspace` (else the change would restart its extensions, Claude panel included)
@@ -146,7 +147,8 @@ export class Window {
     return {
       folders: [
         { path: "..", name: "spell-app" },
-        { path: `../packages/${pkg}`, name: pkg }
+        { path: `../packages/${pkg}`, name: pkg },
+        ...Window.sharedFolder(join(ROOT, "workspaces"))
       ],
       settings: {
         "workbench.colorTheme": THEMES[pkg] ?? FALLBACK_THEME,
@@ -156,16 +158,51 @@ export class Window {
     }
   }
 
-  /** `init`:  write the missing window files;  returns the paths written. */
+  /**
+   * `init`:  write the missing window files, and add the shared content repo to those that lack it;  returns the
+   * paths written.
+   * - an existing file VS Code can't read as JSON (comments) is left alone
+   */
   static init() {
     const written = []
     for (const pkg of Window.packages) {
       const file = Window.file(pkg)
-      if (existsSync(file)) continue
-      writeFileSync(file, `${JSON.stringify(Window.workspace(pkg), null, 2)}\n`)
-      written.push(relative(ROOT, file))
+      if (!existsSync(file)) {
+        writeFileSync(file, `${JSON.stringify(Window.workspace(pkg), null, 2)}\n`)
+        written.push(relative(ROOT, file))
+        continue
+      }
+      const shared = Window.sharedFolder(dirname(file))
+      if (!shared.length) continue
+      try {
+        const workspace = JSON.parse(readFileSync(file, "utf8"))
+        if (workspace.folders?.some((folder) => folder.name === shared[0].name)) continue
+        workspace.folders = [...(workspace.folders ?? []), ...shared]
+        writeFileSync(file, `${JSON.stringify(workspace, null, 2)}\n`)
+        written.push(relative(ROOT, file))
+      } catch {
+        // JSONC:  VS Code reads it, we don't;  add the folder by hand
+      }
     }
     return written
+  }
+
+  /**
+   * The shared content repo (epic `shared-content`) as a window folder, `[{ path, name }]` with `path` relative to
+   * `fromDir` (where the window file is);  `[]` when it doesn't exist.
+   * - its own Source Control entry (the auto commits) and search;  permanent, so unlike a worktree it belongs in a
+   *   package window
+   * - where:  `"shared": { "dir" }` in the main checkout's `package.json`, else `../spell-app-dev`
+   */
+  static sharedFolder(fromDir) {
+    let dir = "../spell-app-dev"
+    try {
+      dir = JSON.parse(readFileSync(join(MAIN_ROOT, "package.json"), "utf8")).shared?.dir ?? dir
+    } catch {
+      // no manifest:  the default
+    }
+    const shared = resolve(MAIN_ROOT, dir)
+    return existsSync(shared) ? [{ path: relative(fromDir, shared), name: "spell-app-dev" }] : []
   }
 
   ////////////////
@@ -187,7 +224,8 @@ export class Window {
       folders: [
         { path: "../..", name: "spell-app" },
         { path: `${worktree}/packages/${pkg}`, name: `${pkg} ⎇ ${name}` },
-        { path: worktree, name: `spell-app ⎇ ${name}` }
+        { path: worktree, name: `spell-app ⎇ ${name}` },
+        ...Window.sharedFolder(join(MAIN_ROOT, "workspaces", "ongoing"))
       ],
       settings: {
         "workbench.colorTheme": Window.theme(pkg),
