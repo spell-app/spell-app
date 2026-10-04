@@ -24,9 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Precedence and Types</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Doc Review</ui-label></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -75,6 +73,13 @@
                 built-in types refuse new properties; checks: green, no slowdown; <a href="#j32">J32</a>,
                 <a href="#j33">J33</a>, <a href="#j34">J34</a>, <a href="#j35">J35</a>
               </li>
+              <li>
+                <b>P8</b> 9cdfbd4b exclusive lists, read-only `the pile of a card`, runtime ownership per family, thin
+                `to move`; checks: green, headless Solitaire 39/39, speed unchanged; <a href="#j36">J36</a>-<a
+                  href="#j41"
+                  >J41</a
+                >
+              </li>
             </ul>
           </ui-section>
           <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
@@ -99,16 +104,23 @@
                 <a href="#p7">P7</a>: found `the absolute value of` / `round` compile to spellCore helpers that don't
                 exist -- they throw when run (SUSPECTED-BUGS, spell)
               </li>
+              <li>
+                <a href="#p8">P8</a>: a `set the pile of the card` parsed BEFORE the exclusive line isn't refused and
+                throws when run (<a href="#c19">C19</a>); play Solitaire in the app (<a href="#v2">V2</a>)
+              </li>
             </ul>
           </ui-section>
         </ui-section>
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
+
           <p class="plan-summary lede">
-            Revive the paused 2026-09-30 design: give every parsed match a binding power and a datatype, so operands
-            stop where they should and signatures, calls and members become type lookups. The Solid / TSX emitter is
-            cut, and the TypeScript check moves to its own later epic; every parser change is modelled in a doc first,
-            so the parser stays simple.
+            Built P1-P8, 2026-10-04: operators bind by a <code>precedence</code> table so operands stop where they
+            should, and every match carries a datatype in spell's words -- so signatures are paren-free, calls are
+            checked by type, multi-word members resolve through their type, built-in types have member tables, and
+            <code>a pile is an exclusive list of cards</code> owns its cards. Not merged: the judgement calls and
+            <a href="#tests">To test</a> wait on Owen; the TypeScript check is its own later epic (<a href="#t1">T1</a
+            >).
           </p>
           <blockquote class="plan-prompt">
             <p>
@@ -117,7 +129,7 @@
               plan before we start anything.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 1h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 0m left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <ul>
               <li>
@@ -135,138 +147,266 @@
                 every rule guesses from shape.
               </li>
               <li>
-                The argument, in full: design doc
+                The argument, in full, and now what was built: durable doc
                 <a href="../../precedence/precedence.html" target="src-packages-docs-precedence-precedence-html"
                   >precedence/precedence.html</a
                 >
-                (already in the repo, moved over by solid-migration P8). This plan is its to-do list.
+                (the 2026-09-30 design, rewritten as built in <a href="#p9">P9</a>). This plan was its to-do list.
               </li>
             </ul>
           </ui-section>
 
-          <ui-section id="o2" header="1.2 Where it stands (2026-10-03)" sticky collapsible dividing>
+          <ui-section id="o2" header="1.2 Where it stands (2026-10-04)" sticky collapsible dividing>
             <ul>
-              <li>Nothing built. Design + two experiments only.</li>
               <li>
-                Re-ran both experiments: all 14 probes compile exactly as on 09-30; TypeScript still flags 13 errors on
-                9 lines (TS 7.0.2 and 6.0.3 alike).
+                Built: <a href="#p1">P1</a>-<a href="#p8">P8</a>, one commit per phase on branch
+                <code>precedence-and-types</code> (P1-P2 <code>21093ab9</code>, P3 <code>4dafeb88</code>, P4
+                <code>b11d7c65</code>, P5 <code>9f40e24f</code>, P6 <code>97305a78</code>, P7 <code>aaf25df8</code>, P8
+                <code>9cdfbd4b</code>). NOT merged.
               </li>
               <li>
-                Code map re-checked by symbol: everything exists, no renames, no grammar commits since. Corrections to
-                the old plan:
+                Checks at P8: parser 411, spell 912, lsp 109, core 400, cli 132 tests green; the probe ledger
+                <a
+                  href="../../../spell/src/grammar.probes.test.ts"
+                  target="src-packages-spell-src-grammar-probes-test-ts"
+                  ><code>grammar.probes.test.ts</code></a
+                >; headless Solitaire play-check 39/39. P9: <code>spell test</code> on the cards library (3 tests, 45
+                checks) and Solitaire (2 tests) green; <code>spell check</code> clean on Solitaire, both Todos, cards.
+              </li>
+              <li>
+                Speed, medians of 3 (parser rule tests / whole Solitaire project, <code>BENCH</code>):
                 <ul>
+                  <li>before (P1): 74ms / 115.3ms</li>
+                  <li>P3: 54.5ms / 55.2ms -- the double parse gone</li>
                   <li>
-                    11 rules end in a greedy <code>{expression}</code> (8 in
-                    <a href="../../../spell/src/rules/lists.ts" target="src-packages-spell-src-rules-lists-ts"
-                      ><code>lists.ts</code></a
-                    >, 3 in
-                    <a href="../../../spell/src/rules/math.ts" target="src-packages-spell-src-rules-math-ts"
-                      ><code>math.ts</code></a
-                    >), plus <code>copy_list</code>, <code>merge_lists</code>, <code>round_number</code> with only an
-                    optional tail after it, which swallow the same way (<code>a copy of the piles + 1</code> =&gt;
-                    <code>duplicateCollection(piles + 1)</code>)
+                    P4 60.1 / 60.3; P5 60.7 / 59.6; P6 69.0 raw, 60.9 like for like (<a href="#c17">C17</a>) / 59.0
                   </li>
-                  <li>
-                    <code>property_expression</code> is now
-                    <code>{property_accessor} {expression:simple_expression}</code>
-                  </li>
-                  <li><code>renderAST</code> is <code>.ts</code> (markup objects), not React</li>
-                  <li>
-                    <code>List</code> (<a
-                      href="../../../core/src/classes/List.tsx"
-                      target="src-packages-core-src-classes-list-tsx"
-                      ><code>packages/core/src/classes/List.tsx</code></a
-                    >) is still React
-                  </li>
-                  <li>
-                    solid-migration P11: compiled setters are <code>setProp('x', value)</code> + a static
-                    <code>declareProp()</code>; a DECLARED property is reactive, an undeclared one a plain field
-                  </li>
+                  <li>P7 65.6 / 57.2; P8 unchanged (57.4ms)</li>
                 </ul>
               </li>
               <li>
-                Suspected bugs confirmed by running: <code>the number of cards in the deck where …</code> leaves
-                <code>where …</code> unparsed; <code>the absolute value of x + 1</code> is
-                <code>absoluteValue(x + 1)</code>.
+                Waiting on Owen: 37 judgement calls (<a href="#judgements">4.</a>), one issue (<a href="#i6">I6</a>),
+                the hand checks in <a href="#tests">To test</a> (<a href="#v1">V1</a>-<a href="#v7">V7</a>), then the
+                merge and an extension rebuild from <code>main</code> (<a href="#c8">C8</a>).
+              </li>
+              <li>
+                Docs: the durable doc
+                <a href="../../precedence/precedence.html" target="src-packages-docs-precedence-precedence-html"
+                  >Precedence and Types</a
+                >
+                (rewritten as built);
+                <a href="../../precedence/parser-model.html" target="src-packages-docs-precedence-parser-model-html"
+                  >Parser Model</a
+                >
+                (P2's model + "Built" notes);
+                <a href="../../../spell/PARSING.md" target="src-packages-spell-parsing-md"><code>PARSING.md</code></a>
+                "Expressions", "Datatypes", "Members", "Built-in types", "Exclusive lists".
               </li>
             </ul>
+            <ui-accordion class="spell-aside" styled>
+              <ui-title>Aside: where it stood at kickoff, 2026-10-03</ui-title>
+              <ui-content>
+                <ul>
+                  <li>Nothing built. Design + two experiments only.</li>
+                  <li>
+                    Re-ran both experiments: all 14 probes compile exactly as on 09-30; TypeScript still flags 13 errors
+                    on 9 lines (TS 7.0.2 and 6.0.3 alike).
+                  </li>
+                  <li>
+                    Code map re-checked by symbol: everything exists, no renames, no grammar commits since. Corrections
+                    to the old plan:
+                    <ul>
+                      <li>
+                        11 rules end in a greedy <code>{expression}</code> (8 in
+                        <a href="../../../spell/src/rules/lists.ts" target="src-packages-spell-src-rules-lists-ts"
+                          ><code>lists.ts</code></a
+                        >, 3 in
+                        <a href="../../../spell/src/rules/math.ts" target="src-packages-spell-src-rules-math-ts"
+                          ><code>math.ts</code></a
+                        >), plus <code>copy_list</code>, <code>merge_lists</code>, <code>round_number</code> with only
+                        an optional tail after it, which swallow the same way (<code>a copy of the piles + 1</code>
+                        =&gt; <code>duplicateCollection(piles + 1)</code>)
+                      </li>
+                      <li>
+                        <code>property_expression</code> is now
+                        <code>{property_accessor} {expression:simple_expression}</code>
+                      </li>
+                      <li><code>renderAST</code> is <code>.ts</code> (markup objects), not React</li>
+                      <li>
+                        <code>List</code> (<a
+                          href="../../../core/src/classes/List.tsx"
+                          target="src-packages-core-src-classes-list-tsx"
+                          ><code>packages/core/src/classes/List.tsx</code></a
+                        >) is still React
+                      </li>
+                      <li>
+                        solid-migration P11: compiled setters are <code>setProp('x', value)</code> + a static
+                        <code>declareProp()</code>; a DECLARED property is reactive, an undeclared one a plain field
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    Suspected bugs confirmed by running: <code>the number of cards in the deck where …</code> leaves
+                    <code>where …</code> unparsed; <code>the absolute value of x + 1</code> is
+                    <code>absoluteValue(x + 1)</code>.
+                  </li>
+                </ul>
+              </ui-content>
+            </ui-accordion>
           </ui-section>
 
-          <ui-section id="o3" header="1.3 The design in brief" sticky collapsible dividing>
+          <ui-section id="o3" header="1.3 The design, as built" sticky collapsible dividing>
             <h4 id="o3-bp">Binding power</h4>
-
             <ul>
               <li>
-                <code>precedence</code> keeps ONE job: which whole match wins a <code>Choice</code>. New
-                <code>bindingPower</code>, on operator (suffix) rules only: how tightly they bind, read by the existing
-                shunting-yard.
+                Two numbers, two jobs (<a href="#d26">D26</a>): an operator's <code>precedence</code>, from the
+                <code>Precedence</code> table, on suffix rules only -- <code>*</code> 14, <code>+</code> 13, comparisons
+                11, <code>is</code> 10, <code>and</code> 6, <code>or</code> 5, <code>X if C otherwise Y</code> 4. A
+                rule's <code>priority</code> (was <code>precedence</code>) only breaks a <code>Choice</code>'s tie:
+                highest, then longest, then earliest (<a href="#d15">D15</a>).
               </li>
               <li>
-                <code>compound_expression</code> becomes THE <code>expression</code> rule: a
-                <code>single_expression</code> (today's <code>simple_expression</code>, <a href="#d22">D22</a>), then
-                suffixes, stopping at a <code>bound</code>. Parsed once per level, not twice.
+                <code>compound_expression</code> is THE <code>expression</code> rule: an <code>operand</code>, then each
+                suffix binding tighter than its <code>bound</code>. Parsed once per level, not twice. A postfix pops
+                like an infix: <code>x + y is empty</code> =&gt; <code>isEmpty(x + y)</code>.
               </li>
               <li>
-                Slots: a list prefix's last slot is <code>{list:single_expression}</code>; <code>absolute value</code> /
-                <code>round</code> take <code>{expression:arithmetic_expression}</code>; statements and slots closed by
-                a word keep <code>{expression}</code>.
+                <code>operand</code> (<a href="#d29">D29</a>): an expression with no operator at its top. A prefix's
+                last slot is <code>{list:operand}</code>, <code>there is a</code> too (<a href="#d23">D23</a>);
+                <code>absolute value</code> / <code>round</code> take <code>{x:arithmetic_expression}</code>, the sum
+                (<a href="#d3">D3</a>); statements and slots closed by a word keep <code>{expression}</code>.
               </li>
               <li>
-                Give-back in <code>Sequence</code>: a word that fails because the slot before swallowed it re-parses
-                that slot shorter. Fixes <code>remove the card of the pile</code>. ~35 lines, the only core change.
+                Give-back in <code>Sequence</code>, the one change in
+                <a href="../../../parser/" target="src-packages-parser"><code>packages/parser</code></a
+                >: a required word the slot before swallowed re-parses that slot shorter --
+                <code>remove the card of the pile</code>.
+              </li>
+              <li>
+                Calls and <code>wait for</code>: whole arguments as statements; inside an expression their LAST slot is
+                an operand (<a href="#d24">D24</a>, <a href="#d27">D27</a>, <a href="#d33">D33</a>) --
+                <code>if double x is 4</code> =&gt; <code>double_$n(x) == 4</code>. One flag,
+                <code>operandInExpressions</code>: a statement rule plus an operand twin, derived at registration (<a
+                  href="#j17"
+                  >J17</a
+                >, <a href="#j18">J18</a>).
               </li>
               <li>
                 The model:
                 <a href="../../precedence/parser-model.html" target="src-packages-docs-precedence-parser-model-html"
                   >Parser Model</a
-                >.
+                >
+                §4.5; the mechanics:
+                <a href="../../../spell/PARSING.md" target="src-packages-spell-parsing-md"><code>PARSING.md</code></a>
+                "Expressions".
               </li>
             </ul>
             <h4 id="o3-types">A datatype on every match</h4>
             <ul>
               <li>
-                <code>Rule.getDatatype(match)</code>; scope lookups stashed in <code>parse()</code>, like
-                <code>scopeVar</code>.
+                <code>match.datatype</code> = <code>rule.getDatatype(match)</code>, in spell's words
+                (<code>P.Datatype</code>: <code>text</code>, <code>choice</code>, <code>list of cards</code>,
+                <code>Card</code>; <a href="#d16">D16</a>); ONE normaliser, <code>P.typeName()</code>, for what a user
+                writes (<a href="#j13">J13</a>). Unknown fits everything.
               </li>
               <li>
-                Spell words only (<code>text</code>, <code>choice</code>, <code>list of cards</code>), never JS ones.
+                Lookups stay in <code>parse()</code>, into <code>match.data</code>; about 20 rules override
+                <code>getDatatype()</code>.
               </li>
               <li>
-                <code>TypeScope</code>: item type, <code>getMember()</code> with super-type walk (moved from the LSP),
-                real method records. Built-in types become real types with member tables.
+                <code>TypeScope</code>: <code>itemType</code>, <code>chain()</code> / <code>isA()</code> /
+                <code>getMember()</code> (moved from the LSP); methods get <code>P.ScopeMethod</code> records -- in the
+                project's own <code>methods</code> when the type is built in or imported (<a href="#j11">J11</a>).
+              </li>
+              <li>
+                Return types inferred once a body parses (<code>mutateScopeAfterBody()</code>,
+                <a href="#j20">J20</a>); a getter's type is its property's, so getters change scope (<a href="#d9">D9</a
+                >).
+              </li>
+              <li>
+                <code>is a</code> takes a KNOWN type (<a href="#d32">D32</a>), declared anywhere in the project: a line
+                pre-scan stubs them first (<a href="#j19">J19</a>).
+              </li>
+              <li>
+                Declarations gain <code>params</code> / <code>returns</code> / <code>itemType</code>, no
+                <code>SPELL_VERSION</code> bump (<a href="#d37">D37</a>, <a href="#j14">J14</a>).
               </li>
             </ul>
             <h4 id="o3-calls">Signatures, calls, members</h4>
             <ul>
-              <li>Paren-free typed parameters: <code>to add a card to a pile</code>.</li>
-              <li>Call rules reject a confident type mismatch: <code>put the chip on the pot</code> picks Chip's.</li>
-              <li>Multi-word member names, resolved through the type they're read from.</li>
+              <li>
+                Paren-free typed parameters (<a href="#d2">D2</a>): <code>to give a card to a pile</code> ~==
+                <code>to give (a card) to (a pile)</code>; <code>to create a card</code> =&gt;
+                <code>Card.create()</code>.
+              </li>
+              <li>
+                A call rejects an argument only when its type is known and UNRELATED to the parameter's (<a href="#d6"
+                  >D6</a
+                >, <a href="#j16">J16</a>): <code>put the chip on the pot</code> picks Chip's.
+              </li>
+              <li>
+                Members: <code>member_words</code>, 1..N words up to a stop word, blacklist skipped (<a href="#j25"
+                  >J25</a
+                >). <code>the X of Y</code> is ONE rule, resolved through Y's type, else one loose word (<a href="#d5"
+                  >D5</a
+                >, <a href="#j23">J23</a>), at priority 1 (<a href="#j24">J24</a>). <code>class_member</code> replaces
+                <code>EnumerationRule</code>; new <code>list_count</code> (<a href="#j26">J26</a>).
+              </li>
+              <li>
+                Auto-declare at the first <code>set the X of Y</code> (<a href="#d10">D10</a>): on types the project
+                declares only (<a href="#j28">J28</a>), at the file's top or after the type's class (<a href="#j29"
+                  >J29</a
+                >).
+              </li>
+              <li>
+                Built-in member tables, <code>SP.BUILT_IN_TYPE_TABLE</code> (<a href="#d34">D34</a>): thing, list, app,
+                text, date; a member compiles per type, <code>the length of the name</code> =&gt;
+                <code>name.length</code>, <code>of the deck</code> =&gt; <code>spellCore.itemCountOf(deck)</code> (<a
+                  href="#j35"
+                  >J35</a
+                >). The Type Explorer is built from it (<a href="#j34">J34</a>); declaring or setting a built-in member
+                is refused, with a reason (<a href="#j33">J33</a>).
+              </li>
             </ul>
             <h4 id="o3-excl">Exclusive lists</h4>
             <ul>
               <li>
-                <code>a pile is an exclusive list of cards</code>: adding a card to a pile removes it from its previous
-                pile; <code>the pile of a card</code> comes for free. Pile.spell's <code>to move</code> goes away.
+                <code>a pile is an exclusive list of cards</code> (<a href="#d7">D7</a>): a card is in at most one list
+                of the family, Pile and its sub-types; a deck is outside it.
               </li>
+              <li>
+                <code>the pile of a card</code>: a read-only member of Card, declared by Pile's line, compiled as a
+                getter patched on after Pile's class, <code>Pile.ownerOf(this)</code> (<a href="#j39">J39</a>);
+                <code>set the pile of …</code> is refused.
+              </li>
+              <li>
+                Runtime: one <code>WeakMap</code> per family, every write to a list's items through
+                <code>List.writeItems()</code>; adding a held card moves it (<a href="#j37">J37</a>); scratch results
+                (filter, copy, merge) own nothing (<a href="#d8">D8</a>, <a href="#j38">J38</a>).
+              </li>
+              <li>Pile.spell's <code>to move a card to a pile</code> is now add + pause (<a href="#d36">D36</a>).</li>
             </ul>
             <h4 id="o3-ts">TypeScript check: its own epic (<a href="#d1">D1</a>)</h4>
             <ul>
               <li>
-                Was: emit typed <code>.ts</code> of today's shapes, checked by the editor, errors mapped to spell lines.
-                Now a later epic (<a href="#t1">T1</a>); this one infers return types in the parser.
+                Not built. Was: emit typed <code>.ts</code> of today's shapes, checked by the editor, errors mapped to
+                spell lines. Now a later epic (<a href="#t1">T1</a>); this one infers return types in the parser (P5).
               </li>
             </ul>
             <h4 id="o3-simple">Simple first (<a href="#p2">P2</a>)</h4>
             <ul>
               <li>
-                Before any parser code,
                 <a href="../../precedence/parser-model.html" target="src-packages-docs-precedence-parser-model-html"
                   ><code>parser-model.html</code></a
                 >
-                models every change: concepts added and removed, spell rules whose syntax changes, one sentence traced
-                before / after, the simplest option at each fork.
+                modelled every change before code; P3 built its smaller design (<a href="#d21">D21</a>) after a
+                prototype Owen reviewed. Its "Built" notes say where P4-P8 went further.
               </li>
-              <li>The mechanisms above are the DESIGN's; P2 may simplify or replace any of them.</li>
+              <li>
+                Concepts beyond the model, each recorded as it came: the operand twin (<a href="#j17">J17</a>), the type
+                pre-scan (<a href="#j19">J19</a>), <code>mutateScopeAfterBody()</code> (<a href="#j20">J20</a>),
+                <code>SpellStatement.refuse()</code> (<a href="#j33">J33</a>).
+              </li>
             </ul>
           </ui-section>
 
@@ -296,9 +436,9 @@
                 <thead>
                   <tr>
                     <th>spell</th>
-                    <th>today</th>
-                    <th>after</th>
-                    <th>fixed by</th>
+                    <th>before</th>
+                    <th>built</th>
+                    <th>by</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -306,67 +446,85 @@
                     <td><code>the first card of the deck is face up</code></td>
                     <td><code>getItemOf(deck.is_face_up, 1)</code></td>
                     <td><code>getItemOf(deck, 1).is_face_up</code></td>
-                    <td>binding power</td>
+                    <td>operands, P3</td>
                   </tr>
                   <tr>
                     <td><code>the number of cards in the deck + 1</code></td>
                     <td><code>itemCountOf(deck + 1)</code></td>
                     <td><code>itemCountOf(deck) + 1</code></td>
-                    <td>binding power</td>
+                    <td>operands, P3</td>
                   </tr>
                   <tr>
                     <td><code>x + y is empty</code></td>
                     <td><code>x + isEmpty(y)</code></td>
                     <td><code>isEmpty(x + y)</code></td>
-                    <td>binding power</td>
+                    <td>precedence, P3</td>
                   </tr>
                   <tr>
                     <td><code>x ends with y and 1</code></td>
                     <td><code>endsWith(x, y &amp;&amp; 1)</code></td>
                     <td><code>endsWith(x, y) &amp;&amp; 1</code></td>
-                    <td>binding power</td>
+                    <td>precedence, P3</td>
                   </tr>
                   <tr>
                     <td><code>card suits includes x</code></td>
                     <td><code>Card.Suits</code>, then an error</td>
                     <td><code>includes(Card.Suits, x)</code></td>
-                    <td>the loop</td>
+                    <td>the loop, P3</td>
                   </tr>
                   <tr>
                     <td><code>remove the card of the pile</code></td>
                     <td>parse error</td>
                     <td><code>card.remove_of_$pile(pile)</code></td>
-                    <td>backtracking</td>
+                    <td>give-back, P3</td>
+                  </tr>
+                  <tr>
+                    <td><code>if double x is 4</code></td>
+                    <td><code>double_$n(x == 4)</code></td>
+                    <td><code>double_$n(x) == 4</code></td>
+                    <td>operand twin, P5</td>
                   </tr>
                   <tr>
                     <td><code>the card is a new card</code></td>
                     <td><code>isOfType(card, 'New')</code>, then an error</td>
                     <td><code>card == new Card()</code></td>
-                    <td>types</td>
+                    <td>known types, P4</td>
                   </tr>
                   <tr>
                     <td><code>put the chip on the pot</code></td>
                     <td><code>chip.put_on_$pile(pot)</code></td>
                     <td><code>chip.put_on_$pot(pot)</code></td>
-                    <td>typed calls</td>
+                    <td>typed calls, P5</td>
                   </tr>
                   <tr>
                     <td><code>add the card to the deck</code> (user's add for piles)</td>
                     <td><code>card.add_to_$pile(deck)</code></td>
                     <td><code>spellCore.append(deck, card)</code></td>
-                    <td>typed calls</td>
+                    <td>typed calls, P5</td>
                   </tr>
                   <tr>
                     <td><code>to give a card to a pile</code></td>
                     <td><code>give_a_card_to_a_pile()</code></td>
-                    <td><code>Card.give_to_$pile(pile)</code></td>
-                    <td>signatures</td>
+                    <td><code>Card.prototype.give_to_$pile = function (pile)</code></td>
+                    <td>signatures, P5</td>
                   </tr>
                   <tr>
                     <td><code>the short rank of a card is: …</code></td>
                     <td>parse error</td>
                     <td><code>get short_rank() { … }</code></td>
-                    <td>members</td>
+                    <td>members, P6</td>
+                  </tr>
+                  <tr>
+                    <td><code>the length of the title</code> / <code>of the deck</code></td>
+                    <td><code>title.length</code> / <code>deck.length</code></td>
+                    <td><code>title.length</code> / <code>itemCountOf(deck)</code></td>
+                    <td>member tables, P7</td>
+                  </tr>
+                  <tr>
+                    <td><code>a pile is an exclusive list of cards</code></td>
+                    <td><code>class Pile extends Exclusive</code>, then an error</td>
+                    <td><code>static exclusive = true</code>; <code>the pile of a card</code> reads its owner</td>
+                    <td>exclusive lists, P8</td>
                   </tr>
                 </tbody>
               </table></ui-table
@@ -376,7 +534,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="8" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="9" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -655,6 +813,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p8"
             data-phase="8"
             data-status="done"
@@ -691,8 +850,8 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Doc Review" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p9" data-phase="9" data-status="done" header="P9 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> plan doc true to what was built; durable doc rewritten as built; changelog; merge</ui-item
@@ -3269,7 +3428,7 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c4" data-status="open"
+            ><ui-item id="c4" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c4">C4</a>
@@ -3679,7 +3838,7 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t5" data-status="open"
+            ><ui-item id="t5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t5">T5</a>
@@ -3910,6 +4069,155 @@ the first card of {list:NAME}
                     cheat, a play, a second deal: every card in exactly one pile,
                     <code>the pile of the card</code> right every time).
                   </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v3">V3</a>
+                  <span class="plan-title">Todos examples in the app: add, finish and remove tasks</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Why: D2 would have made both Todos examples' <code>to create a task</code> into
+                    <code>Task.create()</code>, so P5 renamed it <code>to create a new task</code> (<a href="#j21"
+                      >J21</a
+                    >, was <a href="#t5">T5</a>).
+                  </p>
+                  <ol>
+                    <li>
+                      <code>yarn start</code> in
+                      <a href="../../../app/" target="src-packages-app"><code>packages/app</code></a
+                      >, open <code>@examples/Todos</code>.
+                    </li>
+                    <li>Add two tasks, tick one done, remove one: the list follows each click, no console errors.</li>
+                    <li>The same in <code>@examples/Todos - Form Based</code>.</li>
+                  </ol>
+                  <p>Already green headless: <code>spell check</code> on both (2026-10-04).</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v4">V4</a>
+                  <span class="plan-title"
+                    >VS Code: hover, completion and signature help on paren-free methods</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    After <code>yarn vscode</code> from this worktree (<a href="#c8">C8</a>) and Developer: Reload
+                    Window.
+                  </p>
+                  <ol>
+                    <li>
+                      Open
+                      <a
+                        href="../../../spell/projects/system/library/cards/Card.spell"
+                        target="src-packages-spell-projects-system-library-cards-card-spell"
+                        ><code>packages/spell/projects/system/library/cards/Card.spell</code></a
+                      >: in <code>to turn a card face up</code>, <code>card</code> is coloured as a parameter,
+                      <code>a</code> as a keyword (<a href="#j22">J22</a>); hover <code>card</code> =&gt;
+                      <code>card: Card · argument</code>.
+                    </li>
+                    <li>
+                      In <code>examples/Solitaire/Solitaire.spell</code>, type <code>move the card to </code> on a new
+                      line in a method: signature help shows <code>to move a card to a pile</code> with the
+                      <code>pile</code> argument active.
+                    </li>
+                    <li>
+                      Completion on <code>mov</code> offers the <code>move … to …</code> snippet, placeholders named
+                      <code>card</code> / <code>pile</code>.
+                    </li>
+                    <li>No new red squiggles in Card.spell, Deck.spell, Pile.spell, Solitaire.spell.</li>
+                  </ol></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v5">V5</a>
+                  <span class="plan-title"
+                    >VS Code: multi-word members -- hover, completion, go to definition</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Same window as <a href="#v4">V4</a>.</p>
+                  <ol>
+                    <li>
+                      <code>Card.spell</code>: hover <code>short rank</code> in
+                      <code>expect the short rank of the card to be "Q"</code> =&gt; a property of Card,
+                      <code>text</code>, shown as <code>short rank</code> (<a href="#j30">J30</a>).
+                    </li>
+                    <li>
+                      Type <code>expect the short </code>: completion offers <code>short rank</code>,
+                      <code>short suit</code>, <code>short name</code>, <code>short direction</code>.
+                    </li>
+                    <li>F12 on <code>short rank</code> lands on <code>the short rank of a card is:</code>.</li>
+                    <li>
+                      <code>Solitaire.spell</code>: hover <code>pile</code> in <code>the pile of the card</code> =&gt;
+                      <code>property pile of Card · a Pile · the Pile holding it, read-only</code> (its docstring is
+                      Pile's, <a href="#c20">C20</a>); F12 lands on <code>a pile is an exclusive list of cards</code> in
+                      <code>Pile.spell</code>.
+                    </li>
+                  </ol></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v6">V6</a>
+                  <span class="plan-title">Type Explorer shows the built-in types and their members</span> </ui-title
+                ><ui-content
+                  ><p>
+                    P7 builds the built-ins straight from <code>SP.BUILT_IN_TYPE_TABLE</code> (<a href="#j34">J34</a>).
+                  </p>
+                  <ol>
+                    <li>
+                      VS Code's Type Explorer on Solitaire, and <code>yarn spell explore @examples/Solitaire</code> in
+                      <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a
+                      >: Thing, List, App, Text and Date are listed, each with its members and their docs -- List:
+                      <code>length</code>, <code>size</code>; Text: <code>length</code>, <code>characters</code>; Date:
+                      <code>year</code>, <code>day</code>.
+                    </li>
+                    <li>Number, integer, character, choice, nothing are NOT listed (no members yet).</li>
+                    <li>
+                      Card lists <code>short rank</code> as written (not <code>short_rank</code>), and
+                      <code>pile</code>, read-only, declared by Pile's line.
+                    </li>
+                    <li>
+                      The app's <code>&lt;spell-editor&gt;</code> Type Explorer shows the same built-ins, with docs
+                      (new: it never had the pack).
+                    </li>
+                  </ol></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v7">V7</a>
+                  <span class="plan-title">After merging: rebuild the VS Code extension from main</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="#c8">C8</a>: <code>yarn vscode</code> bakes the checkout it ran in into the extension, so
+                    every window runs this worktree's parser until it's rebuilt.
+                  </p>
+                  <ol>
+                    <li>
+                      Merge into <code>main</code>, then in the MAIN checkout: <code>yarn install</code>,
+                      <code>yarn vscode</code>.
+                    </li>
+                    <li>Developer: Reload Window in each VS Code window.</li>
+                    <li>
+                      <code
+                        >grep -c worktrees/precedence-and-types
+                        ~/.vscode/extensions/spell-app.spell-language-*/out/extension.js</code
+                      >
+                      prints 0 (on 2026-10-04 it finds this worktree's path), and a <code>.spell</code> file opened in
+                      another window still hovers and completes.
+                    </li>
+                    <li>
+                      Do it BEFORE the worktree is removed: an extension pointing at a deleted folder loses spell
+                      support everywhere.
+                    </li>
+                  </ol></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -4551,6 +4859,46 @@ the first card of {list:NAME}
                   lists (family = type + subtypes), derived read-only `the pile of a card`, runtime ownership per
                   family, scratch results own nothing, thin `to move`; checks: parser 411, spell 912, lsp 109, core 400,
                   cli 132 green; headless Solitaire play-check 39/39; speed unchanged</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:36-04:00">2026-10-04 05:36</time></ui-date> P9
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:40-04:00">2026-10-04 05:40</time></ui-date> T5 closed: P5: try
+                  the Todos examples in the app</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:40-04:00">2026-10-04 05:40</time></ui-date> C4 closed:
+                  Baseline findings beyond precedence.html's tables</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:55-04:00">2026-10-04 05:55</time></ui-date> P9: doc review --
+                  summary + Overview 1.1-1.5 rewritten as built (UPDATE-marked); C4 closed (its findings fixed in P3-P5
+                  or recorded as Limits), T5 closed (now test V3); tests V3-V7 added (Todos in the app, VS Code
+                  paren-free methods + multi-word members, Type Explorer built-ins, extension rebuild from main);
+                  durable doc precedence.html rewritten as built (Why, Limits, today columns from the probe ledger,
+                  every id kept); parser-model.html status + durable-doc link; changelog entry under In worktrees;
+                  SUSPECTED-BUGS is_a marked fixed; spell test cards 3/3, Solitaire 2/2, spell check clean</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:56-04:00">2026-10-04 05:56</time></ui-date> P9
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -192,6 +192,8 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   `known_type`.  (Its worst case, `the card is a new card`, was fixed in P3:  see the top.)  Run:
   `spell parse --in @test/Solitaire "print the card is a foo"` (`packages/cli`).  Found 2026-09-30;  still so
   2026-10-04.  Epic `precedence-and-types` P4 (one type vocabulary) should fix it.
+  FIXED 2026-10-04 (epic `precedence-and-types` P4, probe T1):  `is_a` takes `{expression:known_type}`, so
+  `print the card is a crad` is a parse error;  types declared later in the project count (P5's pre-scan, probe T3).
 
 - `packages/spell/src/rules/lists.ts` `list_length` (priority 3) vs `list_filter` (2):  `the number of cards in the
   deck where ...` matches `list_length` with `the deck` and leaves `where ...` unparsed, as priority is

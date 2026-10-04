@@ -56,7 +56,10 @@
               7 epics are done and merged: docs-workspace, cli-additions, ui-component-creation, unified-server,
               solid-migration, ui-import and seo.
             </li>
-            <li>2 more live only in worktrees: vite-plus is done but unmerged; commands is in progress.</li>
+            <li>
+              3 more live only in worktrees: vite-plus is done but unmerged; commands is in progress;
+              precedence-and-types is built (P1-P8), waiting on review.
+            </li>
             <li>
               12 packages since the monorepo move: util, parser, core, spell, lsp, app, vscode, cli, ui, solid-element,
               docs and server.
@@ -74,6 +77,192 @@
             </li>
             <li>Each moves to section 3, with plan-doc links, when it merges.</li>
           </ul>
+
+          <ui-section id="precedence-and-types" header="2026-10-04 · Precedence and Types" sticky collapsible dividing>
+            <ui-list class="spell-meta">
+              <ui-item icon="map"
+                >Plan doc:
+                <a href="epics/precedence-and-types/precedence-and-types.html" target="precedence-and-types"
+                  >epics/precedence-and-types</a
+                ></ui-item
+              >
+              <ui-item icon="book open"
+                >Durable doc:
+                <a href="precedence/precedence.html" target="src-packages-docs-precedence-precedence-html"
+                  >Precedence and Types</a
+                >, beside the model it was built from,
+                <a href="precedence/parser-model.html" target="src-packages-docs-precedence-parser-model-html"
+                  >Parser Model</a
+                ></ui-item
+              >
+              <ui-item icon="code branch"
+                >Branch <code>precedence-and-types</code>, P1-P8 built 2026-10-03 → 10-04 (P4-P8 overnight); not merged:
+                judgement calls and hand checks wait on Owen</ui-item
+              >
+            </ui-list>
+            <p><b>P1 · Baseline Probes</b></p>
+            <ul>
+              <li>
+                Probe ledger
+                <a href="../spell/src/grammar.probes.test.ts" target="src-packages-spell-src-grammar-probes-test-ts"
+                  ><code>packages/spell/src/grammar.probes.test.ts</code></a
+                >: 26 phrasings as inline snapshots, compiled lines then parse errors; every later phase diffs against
+                it
+              </li>
+              <li>Baseline speed: parser rule tests 74ms, whole Solitaire project 115ms (medians of 3)</li>
+              <li>
+                Design doc
+                <a href="precedence/precedence.html" target="src-packages-docs-precedence-precedence-html"
+                  ><code>precedence/precedence.html</code></a
+                >
+                revived: Solid / TSX emitting cut, the TypeScript check split into its own epic, phases and decisions
+                current, stale paths fixed
+              </li>
+            </ul>
+            <p><b>P2 · Change Model</b></p>
+            <ul>
+              <li>
+                <a href="precedence/parser-model.html" target="src-packages-docs-precedence-parser-model-html"
+                  ><code>precedence/parser-model.html</code></a
+                >: every parser and rule change modelled before code -- concept ledger, the forks, one sentence traced
+                before / after
+              </li>
+              <li>Recommended the smaller binding-power design over the design doc's (decided, then prototyped)</li>
+            </ul>
+            <p><b>P3 · Binding Power</b></p>
+            <ul>
+              <li>
+                <code>compound_expression</code> is THE <code>expression</code> rule: an <code>operand</code>, then
+                operators binding tighter than its bound; each level parsed once, not twice
+              </li>
+              <li>
+                Operators get <code>precedence</code> (the <code>Precedence</code> table); a <code>Choice</code>'s
+                tie-break is renamed <code>priority</code>
+              </li>
+              <li>Postfix operators pop like infix: <code>x + y is empty</code> =&gt; <code>isEmpty(x + y)</code></li>
+              <li>
+                <code>Sequence</code> give-back: <code>remove the card of the pile</code> parses (the one change in
+                <a href="../parser/" target="src-packages-parser"><code>packages/parser</code></a
+                >)
+              </li>
+              <li>
+                List prefixes and <code>there is a</code> take <code>{x:operand}</code>; <code>absolute value</code> /
+                <code>round</code> take the sum; <code>simple_expression</code> renamed <code>operand</code>
+              </li>
+              <li>
+                <code>the number of cards in the deck where …</code> counts a filter; draw rules get explicit priorities
+                (<code>draw the cards of the deck</code> draws each)
+              </li>
+              <li>Live cards library and Solitaire examples lose their forced and defensive parens</li>
+              <li>Parse time halved: rule tests 67.7 → 54.5ms, Solitaire project 109.6 → 55.2ms</li>
+            </ul>
+            <p><b>P4 · Types Plumbed</b></p>
+            <ul>
+              <li>
+                A datatype on every match, in spell's words: <code>P.Datatype</code>, <code>Rule.getDatatype()</code>,
+                <code>match.datatype</code>; one normaliser, <code>P.typeName()</code>
+              </li>
+              <li>
+                <code>TypeScope</code> <code>itemType</code> / <code>chain()</code> / <code>isA()</code> /
+                <code>getMember()</code> (moved from the language server); <code>P.ScopeMethod</code> records
+              </li>
+              <li>
+                Arguments, <code>this</code> / <code>it</code>, new variables, loop and <code>where</code> items typed
+              </li>
+              <li>Built-in type names (<code>text</code>, <code>number</code> …) are types in the root scope</li>
+              <li><code>is a</code> takes a known type: <code>is a crad</code> is a parse error</li>
+              <li>
+                <code>as choice</code> / <code>as a boolean</code> declare <code>'choice'</code> (suspected bug fixed)
+              </li>
+              <li>
+                Declarations carry <code>params</code> / <code>returns</code> / <code>itemType</code>, no version bump;
+                hover says <code>card: Card</code>
+              </li>
+            </ul>
+            <p><b>P5 · Typed Calls, Signatures</b></p>
+            <ul>
+              <li>
+                Paren-free typed parameters: <code>to give a card to a pile</code>; <code>to create a card</code> =&gt;
+                <code>Card.create()</code>
+              </li>
+              <li>
+                Call rules reject an argument of an unrelated type: <code>put the chip on the pot</code> picks Chip's
+              </li>
+              <li>Return types inferred from <code>return</code>s; getters change scope</li>
+              <li>
+                Inside an expression a call's last slot is an operand (<code>if double x is 4</code>); statements keep
+                whole arguments; <code>wait for</code> too
+              </li>
+              <li><code>is a</code> sees types declared later in the project (a line pre-scan)</li>
+              <li>
+                Language server reads parameters from the method record; Todos' <code>to create a task</code> renamed
+                <code>to create a new task</code>
+              </li>
+            </ul>
+            <p><b>P6 · Multi-word Members</b></p>
+            <ul>
+              <li>
+                <code>member_words</code>: <code>the short rank of a card is:</code>,
+                <code>a card has short rank as text</code>
+              </li>
+              <li>
+                <code>the X of Y</code> resolves X through Y's type (a declared <code>last card</code> beats the
+                ordinal), else one loose word; <code>its X</code> the same
+              </li>
+              <li>
+                <code>class_member</code> replaces the generated <code>EnumerationRule</code>:
+                <code>the suits of the card</code> =&gt; <code>Card.Suits</code>; new <code>list_count</code>
+              </li>
+              <li>The first <code>set the X of Y</code> on an undeclared X declares it, reactive and typed</li>
+              <li>Live cards library and Solitaire say <code>short rank</code>; editors show members as written</li>
+            </ul>
+            <p><b>P7 · Built-in Member Tables</b></p>
+            <ul>
+              <li>
+                <code>SP.BUILT_IN_TYPE_TABLE</code> (<a
+                  href="../spell/src/builtinTypes.ts"
+                  target="src-packages-spell-src-builtintypes-ts"
+                  ><code>packages/spell/src/builtinTypes.ts</code></a
+                >): thing, list, app, text, date -- docs and members, each pinned to a real
+                <code>spellCore</code> method by a test
+              </li>
+              <li>
+                Same words per type: <code>the length of the name</code> =&gt; <code>name.length</code>,
+                <code>of the deck</code> =&gt; <code>spellCore.itemCountOf(deck)</code>
+              </li>
+              <li>
+                Type Explorer and
+                <a href="../core/src/spellCore.scopes.js" target="src-packages-core-src-spellcore-scopes-js"
+                  ><code>spellCore.scopes.js</code></a
+                >
+                generated from the table; <code>yarn scopes --builtins</code> keeps the docs
+              </li>
+              <li>Declaring or setting a built-in type's member is refused, with a reason</li>
+            </ul>
+            <p><b>P8 · Exclusive Lists</b></p>
+            <ul>
+              <li>
+                <code>a pile is an exclusive list of cards</code>: a card is in at most one pile of the family (Pile and
+                its sub-types); a deck is outside it
+              </li>
+              <li>
+                <code>the pile of a card</code>: a read-only member, declared by Pile's line, saved in declarations
+              </li>
+              <li>
+                Runtime: one ownership <code>WeakMap</code> per family, every write through
+                <code>List.writeItems()</code>, reactive owner reads; scratch results own nothing
+              </li>
+              <li>
+                Pile.spell's <code>to move a card to a pile</code> is add + pause; headless Solitaire play-check 39/39
+              </li>
+            </ul>
+            <p><b>P9 · Doc Review</b></p>
+            <ul>
+              <li>
+                Durable doc rewritten as built; plan doc pruned, its Overview true to the build; 5 hand checks added
+              </li>
+            </ul>
+          </ui-section>
 
           <ui-section id="vite-plus" header="vite-plus · done 2026-10-02" sticky collapsible dividing>
             <ui-list class="spell-meta">
@@ -1182,30 +1371,21 @@
 
         <ui-section id="4-planned" header="4. Planned, not started" sticky collapsible dividing>
           <ui-icon slot="icon" name="seedling"></ui-icon>
-          <ui-section id="precedence-and-types" header="Precedence and types" sticky collapsible dividing>
-            <ui-list class="spell-meta">
-              <ui-item icon="book open"
-                >Design:
-                <a href="precedence/precedence.html" target="src-packages-docs-precedence-precedence-html"
-                  >Precedence</a
-                ></ui-item
-              >
-            </ui-list>
-            <ul>
-              <li>Designed 2026-09-30; nothing built. 14 decisions wait on Owen.</li>
-              <li>
-                Phases planned: precedence, types plumbed through, typed methods, multi-word members, built-in member
-                tables, exclusive lists, a TypeScript backend.
-              </li>
-            </ul>
-          </ui-section>
+          <ul>
+            <li>
+              Nothing right now: precedence-and-types, planned here since 2026-09-30, was built 2026-10-04 (<a
+                href="#precedence-and-types"
+                >section 2</a
+              >).
+            </li>
+          </ul>
         </ui-section>
 
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
           <p class="meta">
             Last updated 2026-10-04 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages, stay-put
-            and epic-review.
+            and epic-review; precedence-and-types added from its worktree, 2026-10-04.
           </p>
         </footer>
       </main>
