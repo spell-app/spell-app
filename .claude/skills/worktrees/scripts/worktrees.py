@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Everything open in this repo, sorted into three groups, for `/whassup`.
+"""Every running session and where it runs, then everything open in this repo, sorted into three groups, for
+`/worktrees`.
 
 Usage:
-  whassup.py           the report, as text
-  whassup.py --json    the same, as JSON:  `{generated, groups: {active, dead, stalled}, items[]}`
+  worktrees.py              the report, as text:  the sessions table, then the groups
+  worktrees.py --json       the same, as JSON:  `{generated, main, sessions[], idle[], groups: {active, dead, stalled},
+                            items[]}`
+  worktrees.py --sessions   the sessions table alone, and the worktrees no session is in:  quick, for `/isolate`
+                            and `/wtf`
 
 Looks at:
 - worktrees (`git worktree list`), and branches with or without one
@@ -19,9 +23,12 @@ Each item ~== `{key, kind, name, group, why[], actions[], ...facts}`:
     `STALE` hours (`RECENT` outside any worktree), window files with no worktree
   - `stalled` -- hung or parked:  `/park`ed, waiting, a busy session gone silent, a question nobody answered, work
     nobody has touched in `RECENT` hours, a plan with phases left and nothing working on it
-- `actions`:  what `/whassup` offers for it, each `{id, label, commands[]}`.  `commands` are plain shell lines to run
+- `actions`:  what `/worktrees` offers for it, each `{id, label, commands[]}`.  `commands` are plain shell lines to run
   one by one from the MAIN checkout;  `[]` means the action is a step Claude takes (open a session, `/wtf`, ask).
 - Read-only:  this script changes nothing.
+
+`sessions[]`:  every running session on the machine, in this repo or not (`live_sessions()`), with the checkout it's
+in.  `idle[]`:  this repo's worktrees with no session in them.
 """
 
 import json
@@ -49,11 +56,15 @@ UNANSWERED = 30
 
 
 def main():
-    report = gather()
-    if sys.argv[1:] == ["--json"]:
-        return print(json.dumps(report, indent=2))
-    if sys.argv[1:]:
+    args = sys.argv[1:]
+    if args == ["--sessions"]:
+        sessions = live_sessions()
+        return print_sessions(sessions, idle_worktrees(sessions))
+    if args not in ([], ["--json"]):
         sys.exit(__doc__)
+    report = gather()
+    if args == ["--json"]:
+        return print(json.dumps(report, indent=2))
     print_report(report)
 
 
@@ -66,6 +77,10 @@ def gather():
     """The whole report:  every item, grouped."""
     sessions = live_sessions()
     items, claimed = [], set()
+    # every plan doc in one `yarn` run, not one each
+    plans = sorted(f.name for f in (MAIN / "packages" / "docs" / "epics").glob("*") if f.is_dir())
+    every = plans + [name for name, _, _ in worktree_names()]
+    park.plan_summaries([f for f in (park.plan_file(n, WORKTREES / n) for n in every) if f])
 
     for name, worktree, branch in worktree_names():
         items.append(checkout_item(name, worktree, branch, sessions, claimed))
@@ -86,7 +101,8 @@ def gather():
 
     items += stash_items() + window_items({i["name"] for i in items if i.get("worktree")})
     groups = {g: [i["key"] for i in items if i["group"] == g] for g in ("active", "stalled", "dead")}
-    return {"generated": now_iso(), "main": str(MAIN), "groups": groups, "items": items}
+    return {"generated": now_iso(), "main": str(MAIN), "sessions": sessions, "idle": idle_worktrees(sessions),
+            "groups": groups, "items": items}
 
 
 def checkout_item(name, worktree, branch, sessions, claimed):
@@ -344,9 +360,13 @@ def describe_sessions(item):
 
 
 def live_sessions():
-    """Every running session on the machine:  `{id, name, pid, cwd, inRepo, state, lastActive, silentMin,
-    question, questionMin, this}`.  `state` is the registry's `busy` / `idle` / `waiting`, or `hung` for `busy`
-    with no transcript write for `SILENT` minutes.  `this`:  the session running this script."""
+    """Every running session on the machine:  `{id, name, agent, pid, cwd, inRepo, where, checkout, branch, folder,
+    state, waitingFor, lastActive, silentMin, question, questionMin, this, used}`.
+    - `name`:  its title;  `agent`:  what `ListAgents` and `SendMessage` call it
+    - `checkout`:  `main checkout`, `worktree <name>` or `(not in git)`;  `folder`:  `cwd` inside it
+    - `state`:  the registry's `busy` / `idle` / `waiting`, or `hung` for `busy` with no transcript write for
+      `SILENT` minutes
+    - `this`:  the session running this script"""
     mine, found = park.ancestors(), []
     for file in sorted(CLAUDE.glob("sessions/*.json")):
         try:
@@ -361,15 +381,21 @@ def live_sessions():
         silent = int((time.time() - mtime) / 60)
         state = record.get("status", "?")
         asked = pending_question(transcript)
+        checkout, branch, folder = checkout_of(cwd)
         found.append({
             "id": record["sessionId"],
             "name": park.title(record["sessionId"]) or record.get("name") or record["sessionId"][:8],
+            "agent": record.get("name"),
             "pid": record["pid"],
             "cwd": cwd,
             "inRepo": in_folder(cwd, str(MAIN)),
             "where": {"claude-vscode": "VS Code", "claude-desktop": "Desktop", "cli": "terminal"}.get(
                 record.get("entrypoint"), record.get("entrypoint")),
+            "checkout": checkout,
+            "branch": branch,
+            "folder": folder,
             "state": "hung" if state == "busy" and silent >= SILENT else state,
+            "waitingFor": record.get("waitingFor"),
             "lastActive": iso(mtime),
             "silentMin": silent,
             "question": asked[0] if asked else None,
@@ -378,6 +404,24 @@ def live_sessions():
             "used": bool(transcript),
         })
     return found
+
+
+def checkout_of(cwd):
+    """`(checkout, branch, folder inside it)` for `cwd`:  `main checkout` / `worktree <name>` / `(not in git)`."""
+    root = run(["git", "-C", cwd, "rev-parse", "--show-toplevel"]) if cwd and Path(cwd).is_dir() else None
+    if not root:
+        return "(not in git)", "", cwd
+    common = run(["git", "-C", cwd, "rev-parse", "--path-format=absolute", "--git-common-dir"]) or ""
+    checkout = "main checkout" if Path(root) == Path(common).parent else f"worktree {Path(root).name}"
+    branch = run(["git", "-C", cwd, "branch", "--show-current"]) or "(detached)"
+    folder = os.path.relpath(cwd, root)
+    return checkout, branch, "" if folder == "." else folder
+
+
+def idle_worktrees(sessions):
+    """`{path, branch}` of each worktree under `.claude/worktrees/` with no running session in it."""
+    return [{"path": path, "branch": branch} for _, path, branch in worktree_names()
+            if not any(in_folder(s["cwd"], path) for s in sessions)]
 
 
 def transcript_of(session_id):
@@ -535,7 +579,31 @@ def age(text):
 TITLES = {"active": "In process", "stalled": "Hung or parked", "dead": "Dead, still hanging on"}
 
 
+def print_sessions(sessions, idle):
+    """The sessions table, then the worktrees no session is in."""
+    head = ["session", "agent", "id", "status", "where", "worktree", "branch", "folder"]
+    rows = [[
+        s["name"] + ("  <- this" if s["this"] else ""),
+        s["agent"] or "",
+        s["id"][:8],
+        s["state"] + (f" ({s['waitingFor']})" if s["waitingFor"] else ""),
+        s["where"] or "?",
+        s["checkout"],
+        s["branch"],
+        s["folder"],
+    ] for s in sessions]
+    widths = [max(len(r[i]) for r in rows + [head]) for i in range(len(head))]
+    for r in [head, ["-" * w for w in widths]] + rows:
+        print("  ".join(c.ljust(w) for c, w in zip(r, widths)).rstrip())
+    if idle:
+        print("\nNo session in:")
+        for worktree in idle:
+            print(f"  {worktree['path']}  [{worktree['branch']}]")
+    print()
+
+
 def print_report(report):
+    print_sessions(report["sessions"], report["idle"])
     items = {i["key"]: i for i in report["items"]}
     for group in ("active", "stalled", "dead"):
         keys = report["groups"][group]

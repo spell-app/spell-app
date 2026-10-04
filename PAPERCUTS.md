@@ -1137,6 +1137,14 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   check crashed on `ui-import/examples/part.html`, an include fragment `findPages()` took for a page. ·
   `doc-links.py --check` accepts a missing target git ignores;  `findPages()` skips `examples/`;  the two real
   links fixed. · docs
+- 2026-10-03 · `check-spell.js` failed a fresh plan doc ("ui-section #todos not stuck at the top", earlier
+  `#phases`):  it scrolls to the MIDDLE top-level section, and an empty one is no taller than its title, so nothing
+  sticks.  Looked like a runtime regression;  the old bundle failed the same way. · `scrollToMiddleSection()` skips
+  sections 200px tall or less. · docs
+- 2026-10-03 · A new page server route module's `POST /api/details/answer` answered 404 "API routine not defined on
+  server":  `packages/app/src/server/appRoutes.ts` mounts the app's `/api` router, whose last route is a catch-all
+  404, so route modules listed AFTER it in the root `package.json` never see `/api/...`. · List the module before
+  `appRoutes.ts`;  goals' is before it too. · docs
 - 2026-10-03 · `yarn review` in `packages/docs` (oxfmt) rewrote 50 GENERATED emoji chunks (`_assets/emoji/**`,
   every key unquoted) and collapsed the plan template's two spaces after a period (`templates/epics/plan.html`):
   `.oxfmtrc.json` ignores `docs/_assets/spell-ui.js` and `lazy/`, not `emoji/`. · Reverted with `git checkout`
@@ -1150,6 +1158,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   the package. · docs
 - 2026-10-03 · The worktree guard refuses a Bash command whose TEXT mentions `git` (e.g. a python heredoc editing
   PAPERCUTS.md) as "cannot be shown to stay inside the worktree". · Use the Edit tool for such edits. · claude-code
+
+- 2026-10-03 · `/whassup` listed 9 finished epics as "plan doc with phases left":  `yarn plan-doc summary` threw
+  "no .plan-items[data-kind="judgement"] in the doc:  is it a plan doc?" on every doc made before the judgement
+  section (added that day), and `/park`'s `plan_status()` read the failure as "not done". · `summary` reads through
+  `findList()` (adds nothing, never throws);  `migrate` still adds the section.  Plan docs are read by PATH now
+  (`plan-doc summaries`), in one run. · docs
 
 ## claude-code
 
@@ -1235,6 +1249,26 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   verify":  a `for` loop calling `$P <args>` (command name in a variable), and `cat > file <<EOF` heredocs chained
   with `&&` / `;` and a `yarn` run.  Nothing in them touched git. · One plain command per Bash call, no command name
   in a variable;  write files with the Write / Edit tools, not heredocs. · claude-code
+- 2026-10-03 · In a worktree-isolated session, a `python3 - <<'PY'` heredoc that edits a page was refused ("feeds
+  python text naming git"):  the guard scans the heredoc's text, and prose like "git-ignored" counts. · Write the
+  script to the scratchpad and run `python3 <file>`.  (Also:  `yarn -s` isn't a Yarn 4 option.) · claude-code
+- 2026-10-03 · A `vscode://spell-app.spell-language/doc-preview?url=...` link in a Claude panel reply did nothing
+  when clicked;  the same URI via `open` from a terminal showed the page in the side bar.  The panel only follows
+  http(s) and file links. · Don't hand Owen `vscode://` links;  show the page yourself (`window.mjs show`). ·
+  claude-code
+- 2026-10-03 · `/epic`'s plan doc opened in the OLD window's Spell Docs side bar, not the new window's:  its
+  skill ran `yarn plan-doc open` BEFORE `window.mjs handoff`, and `Window.show()` defers to the new window only
+  while a move is pending (handoff logs:  no "showed ..." line). · `/epic` "2. Session" now hands off first, then
+  opens the doc, and checks it printed "shows in ... once this session moves there". · claude-code
+- 2026-10-03 · In a worktree session, Bash refused `a && b && git ...` chains and even a multi-line `sed -i`
+  ("too complex to verify that it stays inside the worktree"), and Edit refused the main checkout's git-ignored
+  `workspaces/ongoing/<name>.code-workspace`. · One plain command per Bash call;  for a multi-line edit, a node
+  script in the scratchpad.  Files outside the worktree:  ask Owen to edit them. · claude-code
+- 2026-10-03 · `git merge --ff-only stay-put` on `main` refused:  "local changes ... would be overwritten" for all
+  13 `workspaces/<pkg>.code-workspace`, though `git status` was clean -- they're `skip-worktree`, and git won't
+  update a flagged file even when it's unchanged.  `git checkout -- <file>` alone doesn't help while flagged. ·
+  Back them up, `git update-index --no-skip-worktree` (paths from the REPO ROOT), `git checkout -- workspaces`,
+  merge, write the local edits back on top, `git update-index --skip-worktree` again. · claude-code
 
 ## vscode
 

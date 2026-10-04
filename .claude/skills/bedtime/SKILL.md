@@ -22,7 +22,23 @@ MORNING PLAN:  what was done, every judgement call, every problem.  `/wakeup` en
 - No phases:  say so in one line and stop.
 - In plan mode:  ask Owen to leave it (shift+tab) first, as in `.claude/skills/isolate/SKILL.md`, "Start", step 0.
 
-## 2. Pick phases (modal)
+## 2. Pick phases (modal, or one page with step 3)
+
+More than fits ONE modal call (the phase pick plus step 3's questions, over 4 questions, or over 4 options in
+one):  steps 2 and 3 go on ONE details page instead (Owen, 2026-10-03), so he answers everything in one sitting:
+- the spec:  `where`:  the epic and what it's for, just now "about to run P<a>-P<b> overnight", decides "what I do
+  while you sleep:  anything left open becomes a judgement call"
+- questions:  `phases` (`multiple`, "All" `recommended`, then each to-do phase), "Isolate first?" when step 3 says
+  so, then every real question of step 3, each with its options, one `recommended`
+- in an epic:  `--epic <name>`, slug `bedtime-<date>`, so the page stays with the plan doc
+- `yarn details new <slug> --from <spec.json>` (the spec in the scratchpad;  its shape:  `DetailsSpec` in
+  `packages/docs/scripts/details.js`), then `yarn details show <slug> --wait` with Bash `run_in_background: true`,
+  and END THE TURN with the page's link pair (`yarn docs:link <page>`).  Owen's Send wakes the session with the
+  answers as text (`.claude/skills/details/SKILL.md`;  write it as "Writing for Owen" there says)
+- woken:  record the answers (step 3's "Record the answers"), then step 3's "Then" and on into the night.  The
+  session must run unattended from here:  say so in the reply before ending the turn (auto mode or allow-rules)
+
+Else, the modals:
 
 - AskUserQuestion, `multiSelect`, "Which phases tonight?":
   - first option "All", then the to-do phases in order, labelled `P<n> · <Name>`

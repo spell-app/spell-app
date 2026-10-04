@@ -47,17 +47,26 @@ export class StaticHandler {
   handle: Handler = async (request, reply, next) => {
     if (request.method !== "GET" && request.method !== "HEAD") return next()
     const path = request.path
-    const mount = this.mounts.find((each) => path.startsWith(each.prefix) || `${path}/` === each.prefix)
-    if (!mount) return next()
-    // a mount's own folder without its slash (`/ui`):  redirect like any folder, so its pages' relative links resolve
-    if (path.length < mount.prefix.length) return void reply.redirect(`${request.baseUrl}${path}/`, 301)
-    const resolved = SRV.resolveInside(mount.dir, path.slice(mount.prefix.length - 1), mount)
+    const resolved = this.resolve(path)
+    if (!resolved) return next()
     if ("redirect" in resolved) return void reply.redirect(`${request.baseUrl}${path}/`, 301)
     if ("status" in resolved) {
       if (resolved.status === 404) return next()
       throw new SRV.HttpError(resolved.status, resolved.message)
     }
     await this.serve(request, reply, resolved.file, resolved.stat)
+  }
+
+  /**
+   * Where URL path `path` leads through the mounts, exactly as `handle()` would serve it;  `undefined`:  no mount.
+   * - for routes that act on a page by its URL, e.g. `docs`' details answers (`/worktrees/<w>/...` included)
+   */
+  resolve(path: string): SRV.Resolved | undefined {
+    const mount = this.mounts.find((each) => path.startsWith(each.prefix) || `${path}/` === each.prefix)
+    if (!mount) return undefined
+    // a mount's own folder without its slash (`/ui`):  redirect like any folder, so its pages' relative links resolve
+    if (path.length < mount.prefix.length) return { redirect: `${path}/` }
+    return SRV.resolveInside(mount.dir, path.slice(mount.prefix.length - 1), mount)
   }
 
   /** answer with `file`, through the hooks */

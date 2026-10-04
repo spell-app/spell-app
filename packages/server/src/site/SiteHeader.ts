@@ -1,5 +1,5 @@
 import type { ServerConfig, ServerInfo } from "$/server"
-import { EDIT_KEY, PROPERTIES, THEME_KEY, type SiteProperty } from "$/server/site"
+import { EDIT_KEY, LOGO_MARK, PROPERTIES, THEME_KEY, type SiteProperty } from "$/server/site"
 
 /****************
  * ### `<spell-site-header>`
@@ -7,9 +7,10 @@ import { EDIT_KEY, PROPERTIES, THEME_KEY, type SiteProperty } from "$/server/sit
  * switches between them.
  * - In each page and template, right after `<body>`, with `root` = the path from the page to the repo root:
  *   `<spell-site-header root="../.."></spell-site-header>`.  From `file://` its links stay relative;  served by
- *   the page server they're absolute, and server-only properties (Spell UI, Editor) turn on.
+ *   the page server they're absolute, and server-only properties (Spell UI, App) turn on.
+ * - Brand:  the hat mark (`LOGO_MARK`), a link to the docs index.
  * - Also shows:
- *   - the page's place:  `Epics › Unified Server` (the property, then `document.title`)
+ *   - the page's place:  `Docs › Unified Server` (the property, then `document.title`)
  *   - the checkout serving it:  `⎇ <worktree or branch>` (served pages only)
  *   - "open in VS Code":  a `vscode://file/...` link to the page's source
  *   - edit mode (pages the page server serves):  hover a section, edit its source in place -- `<spell-section-editor>`
@@ -74,8 +75,12 @@ export class SiteHeader extends HTMLElement {
     const tabs = PROPERTIES.map((property) => {
       const href = this.href(property)
       const current = property === active ? ` aria-current="page"` : ""
+      // its own tab:  `target` in a browser;  `data-spell-open` tells the side bar's frame (`liveClient.ts`)
+      const own = property.ownTab
+        ? ` target="spell-${escape(property.name.toLowerCase())}" data-spell-open="browser"`
+        : ""
       return href
-        ? `<a class="tab" href="${escape(href)}"${current}>${escape(property.name)}</a>`
+        ? `<a class="tab" href="${escape(href)}"${current}${own}>${escape(property.name)}</a>`
         : `<span class="tab off" title="only when served:  yarn server ensure">${escape(property.name)}</span>`
     }).join("")
     const title = document.title.trim()
@@ -104,7 +109,7 @@ export class SiteHeader extends HTMLElement {
           : "Following the OS (click:  light)"
     shadow.innerHTML = `<style>${STYLE}</style>
 <header part="bar">
-  <a class="brand" href="${escape(this.href(PROPERTIES[0]!) ?? "#")}">spell</a>
+  <a class="brand" href="${escape(this.href(PROPERTIES[0]!) ?? "#")}" title="Spell docs" aria-label="Spell docs">${LOGO_MARK}</a>
   <nav aria-label="Site">${tabs}</nav>
   <div class="crumbs">${crumbs}</div>
   ${badge}${edit}${vscode}
@@ -236,7 +241,8 @@ header {
   border-bottom: 1px solid light-dark(#e3e0d8, #34343b);
 }
 a { color: inherit; text-decoration: none; }
-.brand { font-weight: 700; letter-spacing: 0.02em; color: light-dark(#5b3fd0, #b3a2ff); }
+.brand { flex: none; display: inline-flex; align-items: center; color: light-dark(#5b3fd0, #b3a2ff); }
+.brand svg { display: block; height: 26px; width: auto; }
 nav { display: flex; gap: 2px; }
 .tab { padding: 7px 10px; border-radius: 999px; color: light-dark(#55555f, #a9a9b6); white-space: nowrap; }
 .tab:hover { background: light-dark(#f0eef8, #2c2a38); color: inherit; }
