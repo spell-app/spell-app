@@ -150,8 +150,7 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
     folded.
 - Counts (`countItems()`):  a top-level section with `[data-status]` items shows "open/all" on its title:  its
   `badge` (`<ui-section>`), or a `ui-label.spell-count` at its h2's right.  Nested sections get no count of their own.
-  Not open:  `done`, and `decided` (a plan's decision in force:  "Questions & Decisions" counts the questions
-  waiting).
+  Not open:  `done`, and `decided` (an answered question:  "Questions" counts the ones still waiting).
 - Anchors (`wireAnchors()`):  any same-page link to an id in `main` -- a section, a heading or a plan item -- is the
   runtime's:  it unfolds every folded section around the target (`collapsed = false`:  not saved), opens the
   target's panel (a plan item's `ui-accordion`), and scrolls by the site header plus the target's
