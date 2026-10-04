@@ -118,9 +118,10 @@
     color: inherit;
     text-decoration: none;
   }
-  /* the menu button opens the nav flyout, and the brand shows:  only where the nav column is hidden */
+  /* the menu and search buttons open the nav flyout, and the brand shows:  only where the nav column is hidden */
   @media (width >= 992px) {
     .site-menu-button,
+    .site-search-button,
     .site-topbar-brand {
       display: none;
     }

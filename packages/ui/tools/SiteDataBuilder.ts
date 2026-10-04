@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { FamilyTokens } from "./FamilyTokens.ts"
 import { FoundationTokens } from "./FoundationTokens.ts"
+import { SiteSearchBuilder } from "./SiteSearchBuilder.ts"
 import { ThemeFamilies } from "./ThemeFamilies.ts"
 import { ValueSets } from "../src/vocabulary/ValueSets.ts"
 import {
@@ -31,6 +32,8 @@ import type { AttributeSpec, ComponentVocabulary, ValueSetName } from "../src/vo
  * - Also the FOUNDATION tokens, grouped (`foundation`, `tools/FoundationTokens.ts`), for the theming page's tables.
  * - And the theme sheets (`themes`, `tools/ThemeFamilies.ts`):  title and the families each touches, for
  *   `<ui-docs-themes>`;  titles are pages.json's `themes`, seeded once per new sheet.
+ * - And the search file, `site/_data/search.json` (`searchText()`, `tools/SiteSearchBuilder.ts`):  every page's
+ *   sections, read from the pages' markup.
  * - Deterministic:  sorted, no dates, so a rebuild with nothing changed writes the same bytes.
  */
 export class SiteDataBuilder {
@@ -59,6 +62,16 @@ export class SiteDataBuilder {
   /** `site/_data/icons.json`. */
   get iconsFile(): string {
     return join(this.dataFolder, "icons.json")
+  }
+
+  /** `site/_data/search.json`. */
+  get searchFile(): string {
+    return join(this.dataFolder, "search.json")
+  }
+
+  /** The text of `search.json` (`SiteSearchFile`):  every page's sections, for `<ui-docs-search>`. */
+  searchText(): string {
+    return new SiteSearchBuilder(join(this.root, "site")).text()
   }
 
   /**

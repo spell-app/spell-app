@@ -51,6 +51,12 @@ const theme = ThemePreference.restore().catch((error: unknown) => console.warn("
 
 defineSite()
 
+// the narrow top bar's search button:  the flyout's nav opens and focuses its search field (`/` and Cmd / Ctrl+K do too)
+document.addEventListener("click", (event) => {
+  if (!(event.target as Element | null)?.closest?.(".site-search-button")) return
+  document.querySelector<HTMLElement & { focusSearch?(): void }>("#site-nav-flyout ui-docs-nav")?.focusSearch?.()
+})
+
 void SiteShell.mount(SITE_ROOT).then(async (content) => {
   const router = content && new SiteRouter(SITE_ROOT, content)
   router?.followPage()

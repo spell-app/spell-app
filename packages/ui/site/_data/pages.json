@@ -88,6 +88,11 @@
       "summary": "A docs nav lists the site's pages and every component, A-Z or by topic, with search and favourites;  the current page is highlighted and scrolled into view.",
       "status": "done"
     },
+    "ui-docs-search": {
+      "title": "Docs search",
+      "summary": "A docs search is a field that finds sections of the page shown, components, attributes and every page's sections as you type, and jumps to the one you pick;  `/` or Cmd / Ctrl+K focuses it from anywhere.",
+      "status": "done"
+    },
     "ui-docs-themes": {
       "title": "Docs themes",
       "summary": "Theme controls pick the page's theme and its light, dark or system colour scheme, and remember both for the next page.",

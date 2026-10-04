@@ -119,9 +119,11 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       NEVER edit
     - `_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS (`site.css`);
       config `vite.site.config.ts`
-    - `_data/` -- `components.json` and `icons.json` (the icon browser's search terms), GENERATED, committed
-      (`yarn site:data`;  shapes `SiteDataFile` / `SiteIconsFile` in `src/docs-components/docs-components.types.ts`),
-      and `pages.json`, hand-kept per-family facts it reads (title, summary, status, token-table overrides)
+    - `_data/` -- `components.json`, `icons.json` (the icon browser's search terms) and `search.json` (every page's
+      sections, for `<ui-docs-search>`, read from the page files), GENERATED, committed (`yarn site:data`;  shapes
+      `SiteDataFile` / `SiteIconsFile` / `SiteSearchFile` in `src/docs-components/docs-components.types.ts`;  rerun
+      after renaming or moving a section too), and `pages.json`, hand-kept per-family facts it reads (title, summary,
+      status, token-table overrides)
     - `_parts/` -- shared header / footer, pulled in with `<ui-include>`
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`

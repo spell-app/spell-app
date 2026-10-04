@@ -3,6 +3,7 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { Cell, HostAttribute, proto, SlotContent, UIElement, type UIHost, UIT } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
+import type { DocsSearchHost } from "$/ui/docs-components/ui-docs-search/DocsSearchHost"
 
 import { docsNavVocabulary } from "./ui-docs-nav.vocabulary.en"
 import { DocsNavFallback } from "./ui-docs-nav.fallback"
@@ -17,9 +18,7 @@ import {
   INDEX_PAGE,
   MOTION_QUERY,
   REVEAL_FRACTION,
-  SEARCH_KEY,
   TOP_PAGES,
-  TYPING_SELECTOR,
   type DocsNavController,
   type DocsNavText,
   type DocsNavVocabulary,
@@ -37,8 +36,8 @@ import navCSS from "./ui-docs-nav.css?inline"
  * The docs site's left sidebar:  a docked PANEL in the Spell brand's look (the design system's "Color Set Chooser"
  * panel, its `.sp-nav` rows), with OUR organization (the Astro site's component browser):
  * - Shadow:  `<div class="ui [size] nav" part="nav">` (the panel) holding
- *   - `<div class="masthead" part="header">`:  the `header` slot (a logo), then the search `<ui-input>` beside the
- *     A-Z / Topics `<ui-buttons>`, and a visually hidden live status
+ *   - `<div class="masthead" part="header">`:  the `header` slot (a logo), then the site search `<ui-docs-search>`
+ *     beside the A-Z / Topics `<ui-buttons>`, and a visually hidden live status
  *   - `<nav part="menu">` (the landmark, the panel's scroll box) of GROUPS, each a heading band (`<h2><button
  *     aria-expanded>`) over a fold:  Get started (the intro pages), Favourites, Components (A-Z rows, or a lighter
  *     `<h3>` band per TOPIC, each folding its rows), Foundation;  then the `footer` slot
@@ -49,15 +48,17 @@ import navCSS from "./ui-docs-nav.css?inline"
  *   under `prefers-reduced-motion: no-preference`;  a topic opened after `:state(settled)` eases open too.
  * - Data:  `SiteData` (`components.json`), fetched once;  `NavIndex` makes the rows and topics.  Docs-only tags
  *   are never listed.  Links are `base` + the data's `href`.
- * - Search (`ui-input`, every keystroke):  hides what doesn't match;  Favourites, Components and every topic with a
- *   match open (a band closes one for this query);  clearing restores the viewer's folds.  The Components band's count
- *   shows the matches;  a polite live region says them.
+ * - Search:  the field is `<ui-docs-search>`, the SITE's search (its results card jumps anywhere:  sections,
+ *   components, attributes, pages);  its text also FILTERS this list (its `ui-input`, every keystroke):  hides what
+ *   doesn't match;  Favourites, Components and every topic with a match open (a band closes one for this query);
+ *   clearing restores the viewer's folds.  The Components band's count shows the matches;  a polite live region says
+ *   them.  The card covers the list while it shows;  Enter jumps through the card, never the list.
  * - Remembered per viewer (`NavPreferences`, wrapped `localStorage`):  favourites, the view, the open topics, the
  *   folded groups.  On load, Topics opens the current page's first topic if no open topic holds it (not remembered).
  * - The current page (`current`, default the page's file name) is `aria-current="page"` and scrolled into view
  *   inside the panel once the list has rendered (`revealCurrent()`).
- * - Events:  `ui-navigate` (a plain click on a link, cancelable), `ui-change` (`{ view }`), `ui-favorite`.  `/`
- *   focuses the search box while the nav is visible.
+ * - Events:  `ui-navigate` (a plain click on a link, cancelable;  the search field fires its own), `ui-change`
+ *   (`{ view }`), `ui-favorite`.  `/` and Cmd / Ctrl+K focus the search field:  `<ui-docs-search>`'s shortcuts.
  * - A doc-only element (`src/docs-components/`):  its shadow composes other families' widgets, which its barrel
  *   imports.
  ****************/
@@ -119,8 +120,8 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
   /** The panel, while rendered. */
   private box: HTMLElement | undefined
 
-  /** The search box, while rendered. */
-  private search: UIHost | undefined
+  /** The search field, while rendered. */
+  private search: DocsSearchHost | undefined
 
   ////////////////
   // ## Derived state
@@ -182,16 +183,6 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
         if (done) queueMicrotask(() => void this.afterListed())
       }
     )
-    // SIDE EFFECT:  `/` focuses the search box, while connected
-    createEffect(
-      () => this.connected.get(),
-      (connected) => {
-        if (!connected) return
-        const onKeyDown = (event: KeyboardEvent) => this.onKeyDown(event)
-        document.addEventListener("keydown", onKeyDown)
-        return () => document.removeEventListener("keydown", onKeyDown)
-      }
-    )
   }
 
   protected override hostStates() {
@@ -244,17 +235,10 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
           </div>
         </Show>
         <div class="tools">
-          <ui-input
-            ref={(element: HTMLElement) => (this.search = element as UIHost)}
+          <ui-docs-search
+            ref={(element: HTMLElement) => (this.search = element as DocsSearchHost)}
             part={this.part("search")}
-            type="search"
-            icon={ICONS.search}
-            icon-position="left"
-            size="small"
-            fluid=""
-            placeholder={this.text("searchPlaceholder")}
-            aria-label={this.text("search")}
-            autocomplete="off"
+            base={this.attrs.base}
           />
           <ui-buttons part={this.part("views")} size="small" basic="" icon="" aria-label={this.text("views")}>
             {this.viewButton("az")}
@@ -670,23 +654,13 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
     if (!this.emit("ui-navigate", { href: link.href, page, originalEvent: event })) event.preventDefault()
   }
 
-  /** `/` focuses the search box, unless the viewer is typing in a field or the nav isn't on screen. */
-  private onKeyDown(event: KeyboardEvent) {
-    if (event.key !== SEARCH_KEY || event.ctrlKey || event.metaKey || event.altKey || event.defaultPrevented) return
-    const origin = event.composedPath()[0]
-    if (origin instanceof HTMLElement && (origin.isContentEditable || origin.matches(TYPING_SELECTOR))) return
-    if (!this.search || !this.host.checkVisibility()) return
-    event.preventDefault()
-    this.focusSearch()
-  }
-
   ////////////////
   // ## Script API (`DocsNavHost`)
   ////////////////
 
-  /** Focus the search box. */
+  /** Show the search field (opening the drawer the nav is in, if it's hidden there) and focus it. */
   focusSearch() {
-    this.search?.focus()
+    void this.search?.summon()
   }
 
   /**

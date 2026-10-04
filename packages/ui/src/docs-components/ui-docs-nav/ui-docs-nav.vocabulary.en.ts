@@ -87,7 +87,7 @@ export const docsNavVocabulary = {
     { name: "nav", description: "The panel:  a card holding the header band and the scrolling list." },
     { name: "header", description: "The header band:  the `header` slot, then the search box and the view switch." },
     { name: "menu", description: "The `<nav>` landmark:  the folding groups, scrolling inside the panel." },
-    { name: "search", description: "The search `<ui-input>`." },
+    { name: "search", description: "The site search, a `<ui-docs-search>`:  its text also filters the list." },
     { name: "views", description: "The A-Z / Topics `<ui-buttons>`." },
     { name: "count", description: "The `<ui-label>` on the Components band:  how many components show." }
   ],
@@ -114,8 +114,6 @@ export const docsNavVocabulary = {
     { key: "icons", text: "Icons", description: "Link to `icons.html`." },
     { key: "kitchenSink", text: "Kitchen sink", description: "Link to `kitchen-sink.html`." },
     { key: "favorites", text: "Favourites", description: "Band of the starred components." },
-    { key: "search", text: "Search components", description: "Accessible name of the search box." },
-    { key: "searchPlaceholder", text: "Search", description: "The search box's hint." },
     { key: "views", text: "List components", description: "Accessible name of the A-Z / Topics switch." },
     { key: "az", text: "A-Z", description: "The A-Z button's name." },
     { key: "topics", text: "By topic", description: "The Topics button's name." },

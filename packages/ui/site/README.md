@@ -34,7 +34,7 @@ site/
                         hash), site.css (layout glue only)
   _assets/              GENERATED, committed:  the bundle (`site.js`, `site.css`, a lazy chunk per family);
                         `icon-packs` is a SYMLINK to `../../src/icons/icon-packs`.  NEVER edit
-  _data/                components.json, icons.json (GENERATED, committed);  pages.json (hand-kept per-family facts)
+  _data/                components.json, icons.json, search.json (GENERATED, committed);  pages.json (hand-kept)
   examples/             files the pages' examples load (`<ui-include source>`, `<ui-markdown source>`, an icon pack)
   images/               Fomantic's docs images, same paths as fomantic-ui.com's `/images/...`
 ```
@@ -95,7 +95,8 @@ From `packages/ui`:
 - `yarn site:build` -- after changing a vocabulary, a family sheet, an example or any source the site shows;  commit
   the output.  It runs:
   - `yarn site:data` -- `_data/components.json` + `icons.json` from the vocabularies and sheets (seeds `pages.json`
-    for a new family)
+    for a new family), and `search.json` (every page's sections, for the site search) from the pages:  rerun after
+    renaming or moving a section
   - `yarn site:index` -- `components/index.html`'s cards
   - `yarn site:kitchen` -- `kitchen-sink.html`'s examples, from every family's `examples/elements/types.html`
   - `yarn site:bundle` -- `_assets/`, from `_src/site.ts` (`vite.site.config.ts`), sizes printed

@@ -79,7 +79,7 @@
               icon which shows the current state, clicking it switches it.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 5h-7h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 3h-4h left</p>
           <ui-section id="o1" header="1.1 Today" sticky collapsible dividing>
             <p>Where the site stands, so the rest reads against it.</p>
             <ui-table celled compact striped unstackable>
@@ -438,7 +438,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="6" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="7" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -578,6 +578,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p6"
             data-phase="6"
             data-status="done"
@@ -616,15 +617,19 @@
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p8" data-phase="8" data-status="todo" header="P8 · Search" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p8" data-phase="8" data-status="done" header="P8 · Search" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> ui-search in house style: On this page / Components (every tag) / Attributes / Pages; /
                 and Cmd-K</ui-item
               ><ui-item icon="folder"><b>Files:</b> src/docs-components/ui-docs-search/, site:data page index</ui-item
               ><ui-item icon="flask"><b>Verify:</b> index unit tests; ui-or finds Button; keyboard only</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j38">J38</a> <a href="#j39">J39</a> <a href="#j40">J40</a>
+                <a href="#j41">J41</a> <a href="#j42">J42</a> <a href="#j43">J43</a> <a href="#j44">J44</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Doc Review" sticky collapsible dividing>
@@ -1754,6 +1759,128 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j38" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j38">J38</a>
+                  <span class="plan-title">P8 search: own ARIA combobox listbox, not ui-search</span></ui-title
+                ><ui-content
+                  ><p>
+                    Chose a doc-only <code>&lt;ui-docs-search&gt;</code> with its own combobox + listbox (role=combobox,
+                    aria-activedescendant, role=listbox / group / option) over building on
+                    <code>&lt;ui-search&gt;</code>. Why: ui-search is a form-associated Fomantic port (its own matcher
+                    and look, title / description / price rows, it puts the title in the input), and every part of this
+                    ask fights it: ranking ACROSS categories, groups ordered by their best hit, marked matches, a pill +
+                    floating card in the brand look, results that are real links the router takes, staged Escape.
+                    Options: (a) own listbox (done); (b) ui-search with a source property, heavy ::part restyling and a
+                    matcher hook (a library change).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j39" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j39">J39</a>
+                  <span class="plan-title"
+                    >P8 search: ranking puts the page shown first, attributes last, groups by best hit</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Score = how the query matches (whole query vs title: exact 1000, start 800, word start 600, inside
+                    400; vs a term such as tag, aka, topic, page: 700 / 500 / 350 / 200; every word at a word start
+                    somewhere: 300 + 100 per word in the title) times a kind weight (On this page 1.25, Components and
+                    Pages 1, other pages' Sections 0.9, Attributes 0.8) plus boosts (main tag +20, the page shown's own
+                    attributes +40) minus 0.5 per title character. Inside-a-word matches need 3 characters (or finds Or,
+                    never every color). Groups show their best 4-6 and are ordered by their best hit. So vertical on
+                    Divider: On this page first, then Sections, then Attributes; or: Components first. Options: a fixed
+                    group order; more or fewer per group.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j40" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j40">J40</a>
+                  <span class="plan-title">P8 search: Escape is staged; a pick empties the field</span></ui-title
+                ><ui-content
+                  ><p>
+                    Escape: the 1st closes the card (text kept, Down reopens it), the 2nd clears the text (the nav
+                    unfilters), the 3rd returns focus to where a shortcut summoned the field from (else does nothing, so
+                    a flyout's own Escape closes the flyout). After a pick (Enter or a click) the card closes and the
+                    field EMPTIES, so the nav list isn't left filtered on the new page. Options: one Escape that closes
+                    AND clears; keep the text after a pick (Fomantic puts the result's title in the field).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j41" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j41">J41</a>
+                  <span class="plan-title"
+                    >P8 search: every page's sections generated into _data/search.json, checked for staleness</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    yarn site:data now also writes site/_data/search.json (66 pages, about 2000 sections, 167 KB, about
+                    25 KB gzipped; one section per line), read from the page FILES by tools/SiteSearchBuilder.ts with
+                    the same rules the element reads the page shown with (PageOutline). Fetched on the first focus or
+                    keystroke, never on load. SiteDataBuilder.test.ts fails while it's stale, like the other data files:
+                    so ANY section rename or move (yarn site:sections included) now needs yarn site:data before review
+                    passes. Options: (a) checked (done, same as components.json); (b) unchecked, rebuilt by site:build
+                    only; (c) built at bundle time.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j42" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j42">J42</a>
+                  <span class="plan-title">P8 search: attribute results land on their tag's API header</span></ui-title
+                ><ui-content
+                  ><p>
+                    ui-docs-api gives ids only to its tag headers (#ui-or), not to attribute rows, so ui-button ›
+                    circular links to components/ui-button.html#ui-button: the API tab, scrolled to Button's tables (the
+                    router's landing resolves tag hashes). A row anchor (#ui-button-circular) needs ids on ui-docs-api's
+                    rows AND SiteSections.resolve() finding them in its shadow root.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j43" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j43">J43</a>
+                  <span class="plan-title"
+                    >P8 search: the nav field IS the site search, and still filters the list</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The old nav filter field is replaced by <code>&lt;ui-docs-search&gt;</code>: ONE field. Its card (a
+                    top-layer popover anchored under the pill, 28em wide) covers the nav list while it shows; every
+                    keystroke still fires ui-input, so the list underneath filters as before and shows filtered once the
+                    card closes (Escape / Tab). Enter always goes through the card (the best match is pre-highlighted),
+                    never the list. The slash shortcut moved from the nav into the field (plus Cmd / Ctrl+K); the nav
+                    focusSearch() now summons it. Options: (a) one field, both behaviours (done); (b) separate filter
+                    and search fields; (c) drop the list filter.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j44" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j44">J44</a>
+                  <span class="plan-title"
+                    >P8 search: the A-Z / Topics switch moved under the search pill</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Beside the switch the pill was about 115px wide: its placeholder cut to Se, no room for the shortcut
+                    hint. The tools row of the header band now wraps: the pill takes the whole width (brand look, Cmd K
+                    hint), the A-Z / Topics switch sits right-aligned on the row under it. Options: (a) wrap (done, CSS
+                    only); (b) move the switch onto the Components band (a nav restructure in the P3 lane, probably
+                    nicest); (c) beside the lockup (collides with the close button of the flyout on phones).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2028,6 +2155,23 @@
                       ><code>packages/docs/_assets/spell-ui.js</code></a
                     >
                     (node scripts/bundle-spell-ui.js) to check the docs side. Commit it, or rebuild it at commit time.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t5" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t5">T5</a>
+                  <span class="plan-title"
+                    >P8 search: a search button in the narrow top bar (lead, layout)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Below 992px the field lives in the nav flyout; Cmd / Ctrl+K and slash already open the flyout and
+                    focus it. For touch: add a ui-button (class site-search-button, icon magnifying glass, basic
+                    circular, aria-label Search) beside the menu button in _parts/layout.html, shown only where
+                    .site-menu-button shows (site.css), and in site.ts one click listener calling focusSearch() on the
+                    ui-docs-nav inside #site-nav-flyout (it opens the flyout, then focuses the field).
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2372,6 +2516,29 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T03:58-04:00">2026-10-04 03:58</time></ui-date> T4 closed: P5
                   follow-up: update every page's inlined HEAD_SCRIPT and rebuild the docs bundle</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:08-04:00">2026-10-04 04:08</time></ui-date> T5 closed: P8
+                  search: a search button in the narrow top bar (lead, layout)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:08-04:00">2026-10-04 04:08</time></ui-date> P8
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:08-04:00">2026-10-04 04:08</time></ui-date> P8 done:
+                  ui-docs-search in the nav panel header (on this page, components, pages, sections, attributes), slash
+                  and Cmd-K, search.json from site:data, top bar search button on phones; checks: ui review passed (4549
+                  browser), site:check ui-divider index OK</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
