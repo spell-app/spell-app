@@ -1,15 +1,21 @@
 ---
-name: whassup
-description: Take stock of everything open in this repo -- worktrees, branches, running Claude sessions, `/park`ed and `/bedtime` work, plan docs with phases left -- sorted into what's in process, what's hung or parked, and what's dead but still hanging on;  then let Owen pick which groups to deal with, do the picked actions (remove, merge, end, open, unpark ...) and take stock again.  Use for `/whassup`, or when Owen asks "what's open?", "what's still hanging around?", "clean up the worktrees", "what did I leave running?".
+name: worktrees
+description: Take stock of every running Claude session (which worktree, branch and folder each is in) and everything open in this repo -- worktrees, branches, `/park`ed and `/bedtime` work, plan docs with phases left -- sorted into what's in process, what's hung or parked, and what's dead but still hanging on;  then let Owen pick which groups to deal with, do the picked actions (remove, merge, end, open, unpark ...) and take stock again.  Use for `/worktrees`, `/worktrees sessions` (the table alone), or when Owen asks "what's open?", "what worktree is X in", "which sessions are running where", "what did I leave running?", "clean up the worktrees", or can't find a session.  Epics alone:  `/epics`.
+argument-hint: "[sessions]"
 ---
 
-# /whassup
+# /worktrees
 
 Owen has lots going at once:  show it all in one screen, sort it, and clean up what he picks.  Nothing changes
-before he picks it in a modal.
+before he picks it in a modal.  (Was `/whassup` plus the old global `/worktrees`, merged 2026-10-03.)
 
-- `whassup.py`:  `python3 .claude/skills/whassup/scripts/whassup.py [--json]`, from the repo root or any worktree.
-  Read-only.  Its docstring says what it looks at and how it groups.
+- `worktrees.py`:  `python3 .claude/skills/worktrees/scripts/worktrees.py [--json | --sessions]`, from the repo root
+  or any worktree.  Read-only.  Its docstring says what it looks at and how it groups.
+- The sessions (`sessions[]`):  every LIVE session on the machine (`~/.claude/sessions/<pid>.json`, dead pids
+  skipped), in this repo or not:  title, agent name (what `ListAgents` and `SendMessage` call it), id (`/session`
+  and `claude --resume` take its first 8), status, where it runs (VS Code / terminal / Desktop), worktree, branch,
+  folder.  The folder is the session's LATEST `cwd` (from its transcript), not where it started.  `idle[]`:  this
+  repo's worktrees with no session in them.
 - The three groups (the script's names in brackets):
   - **In process** (`active`):  a session working in it, or touched in the last 6 hours
   - **Hung or parked** (`stalled`):  `/park`ed, a `/bedtime` report not gone through, a busy session gone silent
@@ -21,11 +27,17 @@ before he picks it in a modal.
 
 ## 1. Take stock
 
-1. Run `whassup.py --json`.
-2. Reply with the three groups, in the order above, as numbered lists (Owen refers to items by number:  1, 2 ... in
-   the first group, carrying on in the next).  Per item:  its kind and name in bold (`worktree seo`, `session SVG
-   from image`), then its `why` in plain words.  An empty group:  one line, "nothing".
-3. Everything empty apart from this session:  "all clear" and stop.
+1. Run `worktrees.py --json`.  `/worktrees sessions`:  `worktrees.py --sessions` instead, reply with step 2's
+   table and its "worth acting on" lines, and stop.
+2. The sessions, as a markdown table (drop empty columns;  mark this session "(this one)"), then one line per thing
+   worth acting on:  a session `waiting` for input, two sessions in the SAME worktree (their edits collide), a
+   session whose branch isn't the one its worktree is named for.  Then the worktrees no session is in, one line.
+3. The three groups, in the order above, as numbered lists (Owen refers to items by number:  1, 2 ... in the first
+   group, carrying on in the next).  Per item:  its kind and name in bold (`worktree seo`, `session SVG from
+   image`), then its `why` in plain words.  An empty group:  one line, "nothing".
+4. Everything empty apart from this session:  "all clear" and stop.
+5. A session Owen asks about isn't listed:  it isn't running.  Find its transcript (`ls
+   ~/.claude/projects/*/<id>*.jsonl`) and offer `/session <id>`, or `cd <its cwd> && claude --resume <id>`.
 
 ## 2. What's next?
 
@@ -49,7 +61,7 @@ In the order Owen will want to see them:  quick looks (`wtf`, `open`, `answer`) 
 
 - Commands:  each line its own Bash call, from the MAIN checkout's root (the report's `main`).  In a worktree
   session the harness refuses git commands aimed outside the worktree:  collect each refused line and give Owen the
-  list at the end to paste, or to run `/whassup` again from a session in the main checkout.
+  list at the end to paste, or to run `/worktrees` again from a session in the main checkout.
 - A command fails (a dirty worktree for `git worktree remove`, unmerged work for `git branch -d`):  NEVER retry with
   `--force` / `-D`.  Say why, and leave it for the next round.
 - Per action id:
@@ -76,7 +88,7 @@ In the order Owen will want to see them:  quick looks (`wtf`, `open`, `answer`) 
 
 ## 5. Where we stand
 
-1. Run `whassup.py --json` again.
+1. Run `worktrees.py --json` again.
 2. One line per item whose group changed or that went away ("**worktree ui-import**:  dead -> gone"), then the three
    groups again, as in step 1.  Commands refused in step 4:  listed last, ready to paste.
 3. Stop there:  no second "What's next?" unless Owen asks.

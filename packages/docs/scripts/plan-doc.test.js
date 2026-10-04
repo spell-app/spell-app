@@ -525,6 +525,15 @@ describe("PlanDoc summary, check, output", () => {
     expect(summary.open.issue).toEqual([])
   })
 
+  it("reads a doc that predates a kind's section, without adding it", () => {
+    const plan = oldPlan()
+    const before = plan.toString()
+    const summary = plan.summary()
+    expect(summary.open.judgement).toEqual([])
+    expect(summary.open.test).toEqual([])
+    expect(plan.toString()).toBe(before)
+  })
+
   it("check finds broken links and duplicate ids", () => {
     const plan = freshPlan()
     plan.require("#o1").insertAdjacentHTML("afterend", '<p id="o1">see <a href="#i7">I7</a></p>')

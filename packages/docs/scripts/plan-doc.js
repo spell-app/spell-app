@@ -11,7 +11,7 @@
  */
 import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { dirname, join, relative } from "node:path"
+import { dirname, join, relative, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
@@ -443,10 +443,13 @@ ${list}`
     return item
   }
 
-  /** Items of `kind`, in order:  `{ id, title, status }`. */
-  items(kind) {
+  /**
+   * Items of `kind`, in order:  `{ id, title, status }`.
+   * - `list`:  where to look;  default `listOf(kind)`, which adds or requires it.  `null`:  none.
+   */
+  items(kind, list = this.listOf(kind)) {
     const pattern = new RegExp(`^${KINDS[kind].prefix}\\d+$`)
-    return Array.from(this.listOf(kind).children)
+    return Array.from(list?.children ?? [])
       .filter((item) => pattern.test(item.id))
       .map((item) => ({
         id: item.id,
@@ -460,11 +463,21 @@ ${list}`
    * - `test` in a doc from before "To test" (2026-10-03):  the section is added first (`addTestsSection()`)
    */
   listOf(kind) {
-    const spec = KINDS[kind]
-    const own = this.document.querySelector(`.plan-items[data-kind="${kind}"]`)
-    if (own) return own
+    const found = this.findList(kind)
+    if (found) return found
     if (kind === "test") return this.addTestsSection()
-    return this.require(`.plan-items[data-kind="${spec.list}"]`)
+    return this.require(`.plan-items[data-kind="${KINDS[kind].list}"]`)
+  }
+
+  /**
+   * `listOf()` for READING:  the list `kind`'s items live in, or `null`;  never adds a section, never throws.
+   * - a doc older than a kind's section (`#judgements`, `#tests`:  2026-10-03) has none of that kind open
+   */
+  findList(kind) {
+    return (
+      this.document.querySelector(`.plan-items[data-kind="${kind}"]`) ??
+      this.document.querySelector(`.plan-items[data-kind="${KINDS[kind].list}"]`)
+    )
   }
 
   /**
@@ -547,7 +560,8 @@ ${list}`
   summary() {
     const phases = this.phases
     const open = Object.fromEntries(
-      OPEN_KINDS.map((kind) => [kind, this.items(kind).filter((item) => item.status === "open")])
+      // `findList()`:  a doc not yet migrated still reads, as `/epics` reads every plan doc
+      OPEN_KINDS.map((kind) => [kind, this.items(kind, this.findList(kind)).filter((item) => item.status === "open")])
     )
     return {
       title: this.document.querySelector("h1")?.textContent.trim() ?? "",
@@ -1160,6 +1174,8 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   log <name> "text"                                timestamped line in the log
   prompt <name> "text" | --file path               set the prompt that started the plan ("" removes it)
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
+  summaries <file.html> ...                        \`summary --json\` of each doc, by path (worktrees' too):
+                                                   JSON \`{ <file>: summary | { error } }\`;  for \`/epics\`
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
   open <name>                                      show in VS Code, beside the editor (reloads its tab)
   migrate <name>                                   bring an older doc (any layout) into the current one`
@@ -1179,6 +1195,7 @@ function main(argv) {
   const { positional, flags } = parseArgs(argv)
   const [command, name, ...rest] = positional
   if (!command || !name) return usage()
+  if (command === "summaries") return printSummaries(positional.slice(1))
   const file = docPath(name)
   switch (command) {
     case "new":
@@ -1378,6 +1395,24 @@ function printSummary(summary, json) {
     for (const item of open) lines.push(`  - ${item.id.toUpperCase()}  ${item.title}`)
   }
   console.log(lines.join("\n"))
+}
+
+/**
+ * `summaries`:  `summary` of each doc at `files`, as one JSON object keyed by file.
+ * - by PATH, so it reads a worktree's copy too, with no `node_modules/` there;  one run for every epic
+ * - a doc that won't read gets `{ error }`, and the rest still print
+ */
+function printSummaries(files) {
+  const found = {}
+  for (const file of files) {
+    try {
+      found[file] = read(resolve(file)).summary()
+    } catch (error) {
+      if (!(error instanceof PlanDocError)) throw error
+      found[file] = { error: error.message }
+    }
+  }
+  console.log(JSON.stringify(found, null, 2))
 }
 
 /** `check`:  structural problems, then the browser check;  exits 1 on any. */
