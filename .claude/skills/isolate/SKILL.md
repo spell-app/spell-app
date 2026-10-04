@@ -1,13 +1,14 @@
 ---
 name: isolate
-description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and open it in a new, tinted VS Code window;  `/isolate done` offers to merge it into `main`, then leaves it.  Use for `/isolate <name>`, `/isolate done`, or when Owen says "isolate as <name>" / "isolate this" about the current session.
+description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and either open it in a new, tinted VS Code window or stay in this one (Owen picks, `stay-check` recommends);  `/isolate done` offers to merge it into `main`, then leaves it.  Use for `/isolate <name>`, `/isolate done`, or when Owen says "isolate as <name>" / "isolate this" about the current session.
 argument-hint: <name> | done
 ---
 
 # /isolate
 
 Work in worktree `.claude/worktrees/<name>`, so this session's edits never collide with another session's.  The
-worktree, its branch and the session share one name.  `/epic` runs these steps too.
+worktree, its branch and the session share one name.  `/epic` runs these steps too.  The session either moves to a
+NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (step 2b).
 
 ## Start:  `/isolate <name>`
 
@@ -34,6 +35,15 @@ worktree, its branch and the session share one name.  `/epic` runs these steps t
    Then rename (step 0's `session.py name`), since the hook only renames a name it was given.
 2. Collisions (from the repo root):  a worktree at `.claude/worktrees/<name>` (`git worktree list`), a branch `<name>`
    or `worktree-<name>`.  Any hit:  AskUserQuestion, options "Reuse `<name>`" and "Different name" (typed in "Other").
+2b. Where:  `node scripts/window.mjs stay-check` (`--epic` from `/epic`) prints `recommend stay|window` and why.
+   AskUserQuestion "Where should `<name>` run?", its reasons in the question, the recommended option first with
+   "(Recommended)":
+   - "New window `<pkg> ⎇ <name>`":  tinted, Explorer and Source Control on the worktree;  this window keeps its
+     other sessions.  Steps 3-6.
+   - "Stay in this window":  no move, same tab;  its changes show in Source Control (each worktree is its own repo
+     there, `git.detectWorktrees`), not in Explorer;  no tint.  Step 3, then "Stay" below.
+   - Why ask:  staying is quicker and touches nothing else when this is the window's only session.  With others,
+     they share its doc preview and Source Control (`scripts/window.mjs`, "Staying put").
 3. `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.  The repo's
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
@@ -58,11 +68,19 @@ worktree, its branch and the session share one name.  `/epic` runs these steps t
    questions).  One line:  "isolated in worktree `<name>` (branch `<name>`);  moving to `<pkg> ⎇ <name>`:  press
    enter on `continue` there".  Why:  the move waits for the turn to end, and Owen waits for the move.
 
+## Stay:  in this window
+
+After step 3, when Owen picked "Stay in this window":  no `open`, no `handoff`, no turn end.
+1. "Continue" below, steps 2-4, at once, in this turn.
+2. One line:  "isolated in worktree `<name>` (branch `<name>`), staying in this window;  its changes are in Source
+   Control under `<name>`".
+- Later, to move after all:  steps 4-6 (`open <name>`, `handoff <name> --prompt continue`, end the turn), any time.
+
 ## Continue:  the first turn in the new window
 
 The turn after step 6, whatever Owen sends (`continue`, typed in by the move, or anything else):
 1. Old tab still open in the old window (its title didn't match):  say so in one line, close it by hand;  the log
-   is `~/.spell/windows/handoffs/<session id>.log`.
+   is `~/.spell/windows/handoffs/<session id>.log`.  (Only after a move:  "Stay" skips this.)
 2. No `node_modules/` at the worktree's root:  `yarn install` (a few seconds).
 3. Check the session's name ("Session name" below).
 4. Carry on:  the saved prompt `~/.spell/prompts/<name>.md` if any (then delete it), the work under way
@@ -123,8 +141,8 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
      options "Exit, unmerged" and "Stay isolated"
 4. Move the session back, from the worktree's root:  `node scripts/window.mjs handoff <name> --back`.  When this
    turn ends, the package's window opens the session in an editor tab, and the worktree's window closes (its
-   `.code-workspace` deleted).  A session that never moved there (it still ran in the package window):  it closes
-   the worktree's window at once instead.  An older session that `add`ed the worktree to its own window:
+   `.code-workspace` deleted).  A session that never moved there (it stayed, or the move failed):  it says the
+   session "stays put" and closes the worktree's window, if one is open;  nothing moves.  An older session that `add`ed the worktree to its own window:
    `node scripts/window.mjs remove packages/<pkg>`.
 5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
    Never `remove` unasked (and on a hook-made worktree `remove` refuses without `discard_changes`).

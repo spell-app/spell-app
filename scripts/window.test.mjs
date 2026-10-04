@@ -1,5 +1,6 @@
 /**
- * `node --test scripts/window.test.mjs`:  how `Window.current()` finds a session's window, and `Window.request()`.
+ * `node --test scripts/window.test.mjs`:  how `Window.current()` finds a session's window, `Window.request()`,
+ * the worktree windows' moves, and `stay-check`'s advice.
  * - Registry entries go in a temp folder (`SPELL_WINDOWS_DIR`), never `~/.spell/windows`.
  * - The "window" is a stand-in:  our own parent pid (an ancestor, like a session's extension host), a `sleep`
  *   child (alive, but not an ancestor), or a pid that has exited.
@@ -12,7 +13,16 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { after, beforeEach, test } from "node:test"
 
-import { Window, mainRoot, tint } from "./window.mjs"
+import {
+  Window,
+  claudeSessions,
+  mainRoot,
+  parseLsof,
+  processTable,
+  stayAdvice,
+  tint,
+  worktreeOf
+} from "./window.mjs"
 
 /** The temp registry folder. */
 const dir = mkdtempSync(join(tmpdir(), "spell-windows-"))
@@ -248,6 +258,68 @@ test("show():  while a move is pending, the doc waits for the target window;  th
   }
   // nothing pending, and no window:  `request()`'s error
   await assert.rejects(Window.show("/a.html", { sessionId: SESSION }), /no window/)
+})
+
+test("processTable() + claudeSessions():  a window's sessions are its extension host's `claude` children", () => {
+  const ps = [
+    "  100     1 /Applications/Visual Studio Code.app/Contents/MacOS/Code",
+    "  200   100 /Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)",
+    "  301   200 /Users/o/.vscode/extensions/anthropic.claude-code-2.1.288-darwin-arm64/resources/native-binary/claude",
+    "  302   200 /Users/o/.vscode/extensions/anthropic.claude-code-2.1.288-darwin-arm64/resources/native-binary/claude",
+    "  303   200 node",
+    "  400   999 /Users/o/.local/bin/claude"
+  ].join("\n")
+  const processes = processTable(ps)
+  assert.deepEqual(processes.get(200), {
+    ppid: 100,
+    command:
+      "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)"
+  })
+  assert.deepEqual(claudeSessions(processes, 200), [301, 302])
+  assert.deepEqual(claudeSessions(processes, 999), [400])
+})
+
+test("parseLsof() + worktreeOf():  each session's folder, and the worktree it's in", () => {
+  const cwds = parseLsof("p301\nfcwd\nn/repo/.claude/worktrees/seo/packages/ui\np302\nfcwd\nn/repo\n")
+  assert.deepEqual([...cwds], [
+    [301, "/repo/.claude/worktrees/seo/packages/ui"],
+    [302, "/repo"]
+  ])
+  assert.equal(worktreeOf(cwds.get(301)), "seo")
+  assert.equal(worktreeOf(cwds.get(302)), null)
+  assert.equal(worktreeOf(null), null)
+})
+
+test("stayAdvice():  stay when it's the window's only session;  else a window of its own, saying why", () => {
+  const window = { pid: 200 }
+  const alone = stayAdvice({ window })
+  assert.equal(alone.recommend, "stay")
+  assert.equal(alone.reasons.length, 1)
+  assert.match(stayAdvice({ window, epic: true }).reasons.join(), /side bar/)
+
+  const shared = stayAdvice({
+    window,
+    others: [
+      { pid: 301, cwd: "/repo/.claude/worktrees/seo" },
+      { pid: 302, cwd: "/repo" }
+    ]
+  })
+  assert.equal(shared.recommend, "window")
+  assert.deepEqual(shared.others, [
+    { pid: 301, worktree: "seo" },
+    { pid: 302, worktree: null }
+  ])
+  assert.match(shared.reasons[0], /2 other sessions share this window \(worktree `seo`, the main checkout\)/)
+  assert.match(shared.reasons.join(), /Source Control/)
+
+  const main = stayAdvice({ window, others: [{ pid: 302, cwd: "/repo" }], epic: true })
+  assert.equal(main.recommend, "window")
+  assert.match(main.reasons[0], /^another session shares this window \(the main checkout\)/)
+  assert.doesNotMatch(main.reasons.join(), /Source Control/)
+  assert.match(main.reasons.join(), /plan doc/)
+
+  // no bridge:  a new window can't open, so staying is all there is
+  assert.equal(stayAdvice({ window: null, others: [{ pid: 302, cwd: "/repo" }] }).recommend, "stay")
 })
 
 /** Write a registry entry for `pid` with `folders`. */

@@ -70,7 +70,14 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Enter a worktree with `/isolate <name>` (`/epic` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
-- Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
+- New window, or stay?  `node scripts/window.mjs stay-check` recommends one, with reasons, and Owen picks in a
+  modal (`.claude/skills/isolate/SKILL.md`, "Start", step 2b).  Staying is fine when the session is its window's
+  only one.
+  - A session that stays:  same tab, only its folder changes;  its changes show in Source Control, since every
+    package window has `git.detectWorktrees` on (each worktree its own repo there).
+  - NEVER add a worktree's folders to a package window (`window.mjs add`):  VS Code writes them into the
+    COMMITTED `workspaces/<pkg>.code-workspace`, which leaves uncommitted changes on `main`.
+- A new window:  open it at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
   `... close <name>` on leaving.  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
   moves to that window, in an editor tab (never the sidebar), `continue` typed into it, and its old tab closes
   (the `Stop` hook, `.claude/hooks/handoff.mjs`).
@@ -93,7 +100,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
   worktree, plus a `PARKED-<name>.md` note), `/unpark` to pick it back up, or `/wait-for <other>` to wait for
   that session to finish, then merge `main` in and carry on by itself.
-- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>").
+- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>", or
+  "..., staying in this window").
 
 ## Changelog
 

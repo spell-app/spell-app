@@ -10,6 +10,11 @@
  * - The root folder hides `packages/` and `.claude/worktrees/`:  the package folder is the window's focus.
  * - A saved workspace can gain and lose folders (a worktree, while a session works in it) without restarting
  *   extensions;  a one-folder window can't, and its Claude panel restarts.
+ *   - NEVER add one any more:  VS Code writes the folder into the COMMITTED window file, so `main` has changes
+ *     nobody made on purpose, and `/isolate done` won't merge onto it.
+ * - `git.detectWorktrees` on:  Source Control lists every worktree as its own repo, changes and diffs included,
+ *   so a session that STAYS in its window when it isolates (below) is still reviewable there.
+ *   - every package window lists every worktree;  takes a window reload
  *
  * ## The window a session runs in
  * - The spell extension (`packages/vscode/src/WindowBridge.ts`) runs a small server in EVERY window and writes
@@ -49,6 +54,15 @@
  * - The package window's theme, title bar tinted in a colour of the worktree's own (from its name):  told apart at a
  *   glance from the package window, and from other worktrees.
  *
+ * ## Staying put
+ * - Instead of moving, a session may STAY in its window:  same tab, only its folder is the worktree.  Owen picks,
+ *   each time, in `/isolate`'s, `/epic`'s or `/unpark`'s modal;  `stay-check` recommends one and says why.
+ * - Its changes show in Source Control (`git.detectWorktrees`), not in Explorer, and the title bar isn't tinted.
+ * - Fine when it's the window's ONLY session.  Else the others share its doc preview (one doc at a time) and its
+ *   Source Control, and a second worktree there is easy to mix up with the first.
+ * - Later, it can still move:  `open <name>`, `handoff <name>`.  On leaving, `handoff <name> --back` says it
+ *   stays put, since it's not in the worktree's window.
+ *
  * ## Commands
  * - `init`:  write the window file of every package that lacks one;  never overwrites (themes are Owen's to change)
  * - `which`:  this session's window:  pid, workspace file, folders
@@ -64,6 +78,8 @@
  *   Needs `$CLAUDE_CODE_SESSION_ID` (Claude sets it in a session's commands).
  * - `resume <record> [--title <title>]...`:  the move itself, run by the `Stop` hook:  `<record>` the handoff's
  *   file (deleted once read), each `<title>` a label the session's tab may show, tried in order
+ * - `stay-check [--epic] [--json]`:  should this session stay in its window when it isolates, or move?  Prints
+ *   `recommend stay|window`, then a `- <reason>` line each
  * - No window (the extension isn't installed, or the window wasn't reloaded since):  exits 1, saying so.
  */
 import { spawnSync } from "node:child_process"
@@ -133,6 +149,7 @@ export class Window {
       ],
       settings: {
         "workbench.colorTheme": THEMES[pkg] ?? FALLBACK_THEME,
+        "git.detectWorktrees": true,
         "files.exclude": { packages: true, ".claude/worktrees": true }
       }
     }
@@ -351,6 +368,24 @@ export class Window {
   }
 
   ////////////////
+  // ## Staying put
+  ////////////////
+
+  /**
+   * `stay-check`:  the live facts for `stayAdvice()`, and its answer.
+   * - `epic`:  for `/epic`, whose plan doc takes the window's doc preview
+   */
+  static stayCheck({ epic = false } = {}) {
+    const window = Window.current()
+    const processes = window ? processTable() : new Map()
+    const sessions = window ? claudeSessions(processes, window.pid) : []
+    const self = sessions.find((pid) => isAncestor(pid, process.pid, processes)) ?? null
+    const others = sessions.filter((pid) => pid !== self)
+    const cwds = cwdsOf(others)
+    return stayAdvice({ window, others: others.map((pid) => ({ pid, cwd: cwds.get(pid) ?? null })), epic })
+  }
+
+  ////////////////
   // ## The window a session runs in
   ////////////////
 
@@ -440,9 +475,15 @@ export class Window {
       console.log(written.length ? `wrote ${written.join(", ")}` : "every package has its window file")
       return 0
     }
-    if (!COMMANDS.includes(command) || (command !== "which" && !target)) {
+    if (!COMMANDS.includes(command) || (!["which", "stay-check"].includes(command) && !target)) {
       console.error(USAGE)
       return 1
+    }
+    if (command === "stay-check") {
+      const advice = Window.stayCheck({ epic: Boolean(flags.epic) })
+      if (flags.json) console.log(JSON.stringify(advice, null, 2))
+      else console.log([`recommend ${advice.recommend}`, ...advice.reasons.map((reason) => `- ${reason}`)].join("\n"))
+      return 0
     }
     if (["open", "close", "handoff", "resume"].includes(command)) return Window.worktreeCommand(command, target, flags)
     const window = Window.current()
@@ -526,7 +567,7 @@ export class Window {
 }
 
 /** Every command. */
-const COMMANDS = ["init", "which", "add", "remove", "show", "open", "close", "handoff", "resume"]
+const COMMANDS = ["init", "which", "add", "remove", "show", "open", "close", "handoff", "resume", "stay-check"]
 
 /** Usage, printed for a bad command. */
 const USAGE = `usage:  yarn window <command>
@@ -543,7 +584,8 @@ const USAGE = `usage:  yarn window <command>
                                (--back:  from it to its package's window, then close it;
                                --prompt:  typed into the new tab)
   resume <record> [--title <title>]...
-                               the move itself (the Stop hook runs it)`
+                               the move itself (the Stop hook runs it)
+  stay-check [--epic] [--json] stay in this window when isolating, or move?  recommend stay|window, and why`
 
 /** The package worktree window file `file` focuses on:  its second folder, `<name>/packages/<pkg>`. */
 function worktreePackage(file) {
@@ -603,14 +645,111 @@ function hslHex(hue, saturation, lightness) {
 
 /** Every process's parent pid, by pid:  ONE `ps` call (empty if `ps` fails). */
 function parentPids() {
-  const parents = new Map()
-  const run = spawnSync("ps", ["-axo", "pid=,ppid="], { encoding: "utf8" })
-  if (run.status !== 0) return parents
-  for (const line of run.stdout.split("\n")) {
-    const [pid, ppid] = line.trim().split(/\s+/).map(Number)
-    if (pid) parents.set(pid, ppid)
+  return new Map([...processTable()].map(([pid, { ppid }]) => [pid, ppid]))
+}
+
+/**
+ * Every process, by pid:  `{ ppid, command }`, from ONE `ps` call, or from `text` (its output, for tests);  empty
+ * if `ps` fails.
+ * - `command`:  the executable's path, spaces and all
+ */
+export function processTable(text) {
+  const processes = new Map()
+  if (text === undefined) {
+    const run = spawnSync("ps", ["-axo", "pid=,ppid=,comm="], { encoding: "utf8" })
+    if (run.status !== 0) return processes
+    text = run.stdout
   }
-  return parents
+  for (const line of text.split("\n")) {
+    const match = /^\s*(\d+)\s+(\d+)\s+(.*)$/.exec(line)
+    if (match) processes.set(Number(match[1]), { ppid: Number(match[2]), command: match[3].trim() })
+  }
+  return processes
+}
+
+/**
+ * The pids of the Claude Code sessions in the window whose extension host is `hostPid`:  its `claude` children.
+ * - one per session, in a tab or the side bar.  NOT a `claude` in the window's terminal:  that's a child of the
+ *   pty host.
+ */
+export function claudeSessions(processes, hostPid) {
+  return [...processes]
+    .filter(([, { ppid, command }]) => ppid === hostPid && /(^|\/)claude$/.test(command))
+    .map(([pid]) => pid)
+}
+
+/** Whether `ancestor` is `pid` or one of its ancestors in `processes`. */
+function isAncestor(ancestor, pid, processes) {
+  const seen = new Set()
+  for (; pid > 1 && !seen.has(pid); pid = processes.get(pid)?.ppid ?? 0) {
+    if (pid === ancestor) return true
+    seen.add(pid)
+  }
+  return false
+}
+
+/** Each of `pids`' working folder, by pid:  ONE `lsof` call;  missing when `lsof` can't tell. */
+function cwdsOf(pids) {
+  if (!pids.length) return new Map()
+  const run = spawnSync("lsof", ["-a", "-d", "cwd", "-p", pids.join(","), "-Fpn"], { encoding: "utf8" })
+  return parseLsof(run.stdout ?? "")
+}
+
+/**
+ * `lsof -Fpn` output -> each pid's file, by pid:  `p<pid>` starts a process, `n<path>` is its file.
+ * - other lines (`fcwd` ...) skipped
+ */
+export function parseLsof(text) {
+  const cwds = new Map()
+  let pid = 0
+  for (const line of text.split("\n")) {
+    if (line.startsWith("p")) pid = Number(line.slice(1))
+    else if (line.startsWith("n") && pid) cwds.set(pid, line.slice(1))
+  }
+  return cwds
+}
+
+/** The worktree `cwd` is in (`.../.claude/worktrees/<name>/...`), else `null`. */
+export function worktreeOf(cwd) {
+  const marker = `${sep}.claude${sep}worktrees${sep}`
+  const at = (cwd ?? "").indexOf(marker)
+  return at < 0 ? null : cwd.slice(at + marker.length).split(sep)[0] || null
+}
+
+/**
+ * Should a session isolating itself STAY in its window, or move to a worktree's window of its own?
+ * - `window`:  its registry entry (`null`:  no bridge here)
+ * - `others`:  the window's OTHER sessions, `{ pid, cwd }` each (`cwd` `null` when unknown)
+ * - `epic`:  for `/epic`:  its plan doc takes the window's doc preview
+ * - returns `{ recommend, others, reasons }`:  `recommend` `"stay"` or `"window"`;  `others` `{ pid, worktree }`
+ *   each (`worktree` `null`:  in the main checkout);  `reasons` sentences for the modal
+ */
+export function stayAdvice({ window, others = [], epic = false }) {
+  const listed = others.map(({ pid, cwd }) => ({ pid, worktree: worktreeOf(cwd) }))
+  if (!window) {
+    const reasons = ["no window bridge in this session's window:  a new window can't be opened from here anyway"]
+    return { recommend: "stay", others: listed, reasons }
+  }
+  if (!listed.length) {
+    const reasons = ["this session is the window's only one:  staying touches nothing else"]
+    if (epic) reasons.push("the plan doc shows in this window's side bar")
+    return { recommend: "stay", others: listed, reasons }
+  }
+  const where = listed.map(({ worktree }) => (worktree ? `worktree \`${worktree}\`` : "the main checkout"))
+  const reasons = [
+    `${listed.length > 1 ? `${listed.length} other sessions share` : "another session shares"} this window ` +
+      `(${where.join(", ")})`
+  ]
+  const worktrees = listed.filter(({ worktree }) => worktree)
+  if (worktrees.length) {
+    reasons.push("another worktree's changes are already in this window's Source Control:  easy to mix the two up")
+  }
+  reasons.push(
+    epic
+      ? "the side bar's doc preview shows one doc:  the plan doc and the other sessions' docs would replace each other"
+      : "they share its doc preview (one doc at a time)"
+  )
+  return { recommend: "window", others: listed, reasons }
 }
 
 /** `path` with symlinks resolved (`/tmp` -> `/private/tmp`), as `process.cwd()` reports it;  as is if missing. */
