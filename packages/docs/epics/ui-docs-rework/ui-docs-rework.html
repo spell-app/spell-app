@@ -2383,7 +2383,7 @@
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
-            ><ui-item id="i1" data-status="open"
+            ><ui-item id="i1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
@@ -2935,6 +2935,21 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T04:59-04:00">2026-10-04 04:59</time></ui-date> Bedtime done: 9 of
                   9 phases done, 0 WIP, 0 skipped; not merged</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T07:27-04:00">2026-10-04 07:27</time></ui-date> I1 closed: Docs
+                  bundle spell-ui.js carries the P052 fonts as ~540 KB of base64</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T07:27-04:00">2026-10-04 07:27</time></ui-date> I1 fixed: docs
+                  bundle writes the P052 fonts to _assets/fonts/ and points the theme at them; spell-ui.js 3.11 MB to
+                  2.53 MB; docs:update passed</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
