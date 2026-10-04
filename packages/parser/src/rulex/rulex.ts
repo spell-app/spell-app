@@ -97,6 +97,9 @@ const { matchGroup, repeatFlag } = rulex.rules as Record<"matchGroup" | "repeatF
  * A single symbol, or `\<symbol>` so we can escape special symbols like `?` and `*`.
  * - NEVER matches an unescaped `|` or `)` -- those end a `choices` item, so `choices`
  *   can be a plain `Sequence`.  Write `\|` / `\)` for the literal symbol.
+ * - NEVER matches an unescaped `[`, `{` or `(` either:  they only open a list / subrule / choice, so one that
+ *   doesn't parse as that is an error, not a quiet literal (`[{sub}]` used to compile to literal brackets).
+ *   Write `\[` / `\{` / `\(`.
  * - Compiles to a `P.Symbol`, adorned by `repeatFlag` via `applyFlags()`.
  */
 class symbolRule extends P.Sequence<"isEscaped?|literal|repeatFlag?"> {
@@ -118,8 +121,8 @@ rulex.addRule(symbolRule, {
           new P.Symbol({ literal: "\\", matchGroup: "isEscaped" }),
           new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal" })
         ]),
-        // unescaped:  anything but the `|` / `)` which `choices` needs to see
-        new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal", blacklist: ["|", ")"] })
+        // unescaped:  anything but the `|` / `)` which `choices` needs to see, and the openers `[` `{` `(`
+        new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal", blacklist: ["|", ")", "[", "{", "("] })
       ]
     }),
     repeatFlag
@@ -135,9 +138,7 @@ rulex.addRule(symbolRule, {
 
         [":", new P.Symbol({ literal: ":" })],
 
-        // matches special chars by themselves if not escaped
-        ["(", new P.Symbol({ literal: "(" })],
-        ["[", new P.Symbol({ literal: "[" })],
+        // matches flag chars by themselves if not escaped
         ["?", new P.Symbol({ literal: "?" })],
         ["*", new P.Symbol({ literal: "*" })],
         ["+", new P.Symbol({ literal: "+" })],
@@ -156,6 +157,12 @@ rulex.addRule(symbolRule, {
         [")", undefined],
         ["\\|", new P.Symbol({ literal: "|", isEscaped: true })],
         ["\\)", new P.Symbol({ literal: ")", isEscaped: true })],
+
+        // the openers `(` `[` `{` only when escaped -- bare, they open a choice / list / subrule
+        ["(", undefined],
+        ["[", undefined],
+        ["{", undefined],
+        ["\\{", new P.Symbol({ literal: "{", isEscaped: true })],
 
         // repeat
         [">?", new P.Symbol({ literal: ">", optional: true })],
@@ -265,7 +272,7 @@ rulex.addRule(subrule, {
       compileAs: "rule",
       tests: [
         ["", undefined],
-        ["{}", new P.Symbol("{")],
+        ["{}", undefined],
 
         ["{sub}", new P.Subrule({ rule: "sub" })],
 
@@ -315,8 +322,9 @@ rulex.addRule(list, {
       compileAs: "rule",
       tests: [
         ["", undefined],
-        ["[]", new P.Symbol("[")], // TODO: error for this?
-        ["[{sub}]", new P.Symbol("[")], // TODO: error for this?
+        // a bare `[` is never a literal:  no match, so a whole syntax throws
+        ["[]", undefined],
+        ["[{sub}]", undefined],
 
         ["[{sub},]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Symbol(",") })],
         ["[{sub}or]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Keyword("or") })],

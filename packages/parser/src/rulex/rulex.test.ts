@@ -8,9 +8,16 @@ describe("testing language rulex", () => {
 
   describe("compile()", () => {
     it("throws when part of the syntax is left unread, naming it", () => {
-      expect(() => rulex.compile("(a|b")).toThrow("rulex couldn't read `|b` in `(a|b`")
+      expect(() => rulex.compile("x (a|b")).toThrow("rulex couldn't read `(a|b` in `x (a|b`")
       expect(() => rulex.compile("a {b} )")).toThrow("rulex couldn't read `)`")
       expect(() => P.Rule.compileSyntax("give {thing} |")).toThrow("rulex couldn't read `|`")
+    })
+
+    it("throws on an unescaped [ { ( that doesn't open a list / subrule / choice", () => {
+      expect(() => rulex.compile("[{sub}]")).toThrow("rulex couldn't read `[{sub}]` in `[{sub}]`")
+      expect(() => rulex.compile("a {b")).toThrow("rulex couldn't read `{b`")
+      expect(() => rulex.compile("[{a},")).toThrow("rulex couldn't read `[{a},`")
+      expect(rulex.compile("\\[ {a} \\]")).toBeInstanceOf(P.Sequence)
     })
 
     it("still compiles a syntax it reads whole", () => {
