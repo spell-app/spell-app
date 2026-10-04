@@ -12,7 +12,7 @@ suggestion -- and write every answer down as it happens.
 ## The tool
 
 - Every command below is `G <command>`, where `G` is `scripts/goals.sh` in THIS skill's base directory (shown
-  above when the skill loads), e.g. `~/.claude/skills/goals/scripts/goals.sh summary spell/motivation`.
+  above when the skill loads), e.g. `.claude/skills/goals/scripts/goals.sh summary spell/motivation`.
   It finds the nearest goals folder and runs its `_tools/goals.js`.
   - exit 3 lists several goals folders:  ask Owen which (AskUserQuestion), then prefix `GOALS_DIR=<folder>`
 - `G help` lists every command.  Rules for pages, ids and markup:  the goals folder's `AGENTS.md`.  Read it the

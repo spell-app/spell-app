@@ -12,99 +12,88 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="_assets/site.css" />
     <script type="module" src="_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Theming">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/theming.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=Theming%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Theming
+            <ui-header
+              >Tokens, layers, the app stylesheet and Fomantic's themes: restyle everything from CSS.</ui-header
+            >
+          </ui-header>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
+      <ui-container class="site-body">
+        <article class="site-article">
+          <!--
+            THEMING:  the old `theming.mdx` (tokens, layers, remaps, the app stylesheet, themes) in Fomantic's
+            `usage/theming.html.eco` order (Preface, Using Themes, Composing a Component, Cascading Inheritance), plus a live
+            theme gallery (`<ui-docs-themes>` over sample components), the foundation's token tables (`<ui-docs-tokens global>`)
+            and the porting recipe from `packages/ui/docs/theming.md`.
+          -->
+          <ui-section id="preface" header="Preface" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                Spell UI styles everything from CSS custom properties, the **tokens**. They inherit into every component's shadow
+                root, so theming is mostly a matter of setting a few of them: say how your look DIFFERS from the default, never
+                re-describe the whole thing. Fomantic calls this "progressive truthfulness"; its LESS variables become our tokens,
+                and its packaged themes become token sheets you switch at runtime.
 
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/theming.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=Theming%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Theming
-                <ui-header
-                  >Tokens, layers, the app stylesheet and Fomantic's themes: restyle everything from CSS.</ui-header
-                >
-              </ui-header>
-            </ui-container>
-          </ui-segment>
+                - The default look is neutral: the platform's own UI font, a 16px base and an OKLCH palette that works in light
+                  AND dark mode.
+                - **Classic** restores Fomantic's original look (Lato, 14px, Fomantic's palette), and every Fomantic theme is a
+                  delta on top of it.
+                - Everything lives in `src/styles/`; the design notes are in `packages/ui/docs/theming.md`.
+              </script>
+            </ui-markdown>
+          </ui-section>
 
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc header="Theming"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
+          <ui-section id="theme-gallery" header="Theme gallery" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                Pick a theme and a colour scheme: the whole page follows, these samples included, and the choice is remembered on
+                every page of this site (the header's picker is the same control). Each sample is a component some theme
+                restyles; the table below says which.
+              </script>
+            </ui-markdown>
+            <ui-segment secondary>
+              <ui-docs-themes></ui-docs-themes>
+            </ui-segment>
+            <ui-message size="small" class="site-not-ported"
+              >Not ported: Fomantic's "Lead By Example" (a separate GitHub look-alike project with its own
+              <code>theme.config</code>) -- its theme is <code>github</code> here: pick it above.</ui-message
+            >
 
-            <article class="site-article">
-              <!--
-                THEMING:  the old `theming.mdx` (tokens, layers, remaps, the app stylesheet, themes) in Fomantic's
-                `usage/theming.html.eco` order (Preface, Using Themes, Composing a Component, Cascading Inheritance), plus a live
-                theme gallery (`<ui-docs-themes>` over sample components), the foundation's token tables (`<ui-docs-tokens global>`)
-                and the porting recipe from `packages/ui/docs/theming.md`.
-              -->
-              <ui-header level="2" dividing id="preface">Preface</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Spell UI styles everything from CSS custom properties, the **tokens**. They inherit into every component's shadow
-                  root, so theming is mostly a matter of setting a few of them: say how your look DIFFERS from the default, never
-                  re-describe the whole thing. Fomantic calls this "progressive truthfulness"; its LESS variables become our tokens,
-                  and its packaged themes become token sheets you switch at runtime.
-
-                  - The default look is neutral: the platform's own UI font, a 16px base and an OKLCH palette that works in light
-                    AND dark mode.
-                  - **Classic** restores Fomantic's original look (Lato, 14px, Fomantic's palette), and every Fomantic theme is a
-                    delta on top of it.
-                  - Everything lives in `src/styles/`; the design notes are in `packages/ui/docs/theming.md`.
-                </script>
-              </ui-markdown>
-
-              <ui-header level="2" dividing id="theme-gallery">Theme gallery</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Pick a theme and a colour scheme: the whole page follows, these samples included, and the choice is remembered on
-                  every page of this site (the header's picker is the same control). Each sample is a component some theme
-                  restyles; the table below says which.
-                </script>
-              </ui-markdown>
-              <ui-segment secondary>
-                <ui-docs-themes></ui-docs-themes>
-              </ui-segment>
-              <ui-message size="small" class="site-not-ported"
-                >Not ported: Fomantic's "Lead By Example" (a separate GitHub look-alike project with its own
-                <code>theme.config</code>) -- its theme is <code>github</code> here: pick it above.</ui-message
-              >
-
+            <ui-section id="theme-gallery-buttons" header="Buttons" sticky collapsible dividing>
               <ui-docs-example
-                header="Buttons"
                 description="Amazon, Basic, Bootstrap 3, Chubby, Fomantic classic, GitHub, Material, Raised, Round and Twitter restyle buttons."
               >
                 <ui-button primary>Primary</ui-button>
@@ -133,19 +122,19 @@
                 <ui-button color="grey">Grey</ui-button>
                 <ui-button color="black">Black</ui-button>
               </ui-docs-example>
+            </ui-section>
 
-              <ui-docs-example
-                header="Headers"
-                description="Every theme with a site font restyles headers;  Bookish is headers only."
-              >
+            <ui-section id="theme-gallery-headers" header="Headers" sticky collapsible dividing>
+              <ui-docs-example description="Every theme with a site font restyles headers;  Bookish is headers only.">
                 <ui-header level="2">
                   Account Settings
                   <ui-header>Manage your preferences</ui-header>
                 </ui-header>
               </ui-docs-example>
+            </ui-section>
 
+            <ui-section id="theme-gallery-form-controls" header="Form controls" sticky collapsible dividing>
               <ui-docs-example
-                header="Form controls"
                 description="Chubby, Flat and GitHub restyle inputs, dropdowns and forms;  Colored restyles checkboxes."
               >
                 <ui-form>
@@ -179,8 +168,10 @@
                   </form>
                 </ui-form>
               </ui-docs-example>
+            </ui-section>
 
-              <ui-docs-example header="Menus" description="Chubby, GitHub and Material restyle menus.">
+            <ui-section id="theme-gallery-menus" header="Menus" sticky collapsible dividing>
+              <ui-docs-example description="Chubby, GitHub and Material restyle menus.">
                 <ui-menu aria-label="Gallery menu">
                   <ui-item href="#theme-gallery" selected>Editorials</ui-item>
                   <ui-item href="#theme-gallery">Reviews</ui-item>
@@ -192,9 +183,16 @@
                   <ui-item href="#theme-gallery">Friends</ui-item>
                 </ui-menu>
               </ui-docs-example>
+            </ui-section>
 
+            <ui-section
+              id="theme-gallery-labels-breadcrumbs-and-messages"
+              header="Labels, breadcrumbs and messages"
+              sticky
+              collapsible
+              dividing
+            >
               <ui-docs-example
-                header="Labels, breadcrumbs and messages"
                 description="GitHub restyles labels and breadcrumbs;  Gmail and GitHub restyle messages."
               >
                 <ui-breadcrumb aria-label="Gallery breadcrumb">
@@ -211,9 +209,10 @@
                   <p>We just updated our privacy policy here to better service our customers.</p>
                 </ui-message>
               </ui-docs-example>
+            </ui-section>
 
+            <ui-section id="theme-gallery-cards-and-comments" header="Cards and comments" sticky collapsible dividing>
               <ui-docs-example
-                header="Cards and comments"
                 description="Basic, Fomantic classic and Instagram restyle cards;  Chubby restyles comments."
               >
                 <ui-card>
@@ -234,9 +233,16 @@
                   </ui-comment>
                 </ui-comments>
               </ui-docs-example>
+            </ui-section>
 
+            <ui-section
+              id="theme-gallery-progress-steps-and-loaders"
+              header="Progress, steps and loaders"
+              sticky
+              collapsible
+              dividing
+            >
               <ui-docs-example
-                header="Progress, steps and loaders"
                 description="Basic, Fomantic classic and Striped restyle progress bars;  Basic and GitHub steps;  Duo and Pulsar loaders."
               >
                 <ui-progress value="62" bar-text="percent" color="primary" active aria-label="Upload"></ui-progress>
@@ -259,9 +265,10 @@
                   <ui-loader active inline centered></ui-loader>
                 </ui-segment>
               </ui-docs-example>
+            </ui-section>
 
+            <ui-section id="theme-gallery-tables-and-segments" header="Tables and segments" sticky collapsible dividing>
               <ui-docs-example
-                header="Tables and segments"
                 description="Basic, Fomantic classic and GitHub restyle tables;  GitHub restyles segments."
               >
                 <ui-table celled striped>
@@ -289,11 +296,16 @@
                 </ui-table>
                 <ui-segment raised>A raised segment.</ui-segment>
               </ui-docs-example>
+            </ui-section>
 
-              <ui-docs-example
-                header="Accordion, feed and flags"
-                description="Chubby restyles the accordion, Timeline the feed and Famfamfam the flags."
-              >
+            <ui-section
+              id="theme-gallery-accordion-feed-and-flags"
+              header="Accordion, feed and flags"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-docs-example description="Chubby restyles the accordion, Timeline the feed and Famfamfam the flags.">
                 <ui-accordion styled>
                   <ui-title>What is a dog?</ui-title>
                   <ui-content><p>A dog is a type of domesticated animal.</p></ui-content>
@@ -317,11 +329,10 @@
                 <ui-flag country="br"></ui-flag>
                 <ui-flag country="gb"></ui-flag>
               </ui-docs-example>
+            </ui-section>
 
-              <ui-docs-example
-                header="Popup and modal"
-                description="GitHub restyles popups;  Material and Fixed width restyle modals."
-              >
+            <ui-section id="theme-gallery-popup-and-modal" header="Popup and modal" sticky collapsible dividing>
+              <ui-docs-example description="GitHub restyles popups;  Material and Fixed width restyle modals.">
                 <ui-button icon="plus" aria-label="Add users"></ui-button>
                 <ui-popup content="Add users to your feed"></ui-popup>
                 <ui-button commandfor="theming-gallery-modal" command="--show">Show modal</ui-button>
@@ -335,8 +346,9 @@
                   </ui-actions>
                 </ui-modal>
               </ui-docs-example>
+            </ui-section>
 
-              <ui-header level="3" id="every-theme">Every theme</ui-header>
+            <ui-section id="theme-gallery-every-theme" header="Every theme" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Each Fomantic theme is a port of Fomantic's `src/themes/<name>/`, one sheet in `src/styles/themes/`. **Page-wide**
@@ -354,6 +366,15 @@
                     </tr>
                   </thead>
                   <tbody>
+                    <tr>
+                      <td><code>spell</code></td>
+                      <td>
+                        Our own look, from the Spell brand: Palatino-family serif headings with italic ledes, system sans
+                        body, Spell Purple, pill buttons, 16px cards, soft layered shadows, an aubergine dark mode. On top of
+                        classic. This site's default. Page-wide.
+                      </td>
+                      <td>everything, through the global tokens</td>
+                    </tr>
                     <tr>
                       <td><code>classic</code></td>
                       <td>
@@ -589,10 +610,12 @@
                   </tbody>
                 </table>
               </ui-table>
+            </ui-section>
+          </ui-section>
 
-              <ui-header level="2" dividing id="using-themes">Using themes</ui-header>
-
-              <ui-docs-example header="Sitewide defaults">
+          <ui-section id="using-themes" header="Using themes" sticky collapsible dividing>
+            <ui-section id="using-themes-sitewide-defaults" header="Sitewide defaults" sticky collapsible dividing>
+              <ui-docs-example>
                 <p slot="description">
                   Every colour derives from a few base tokens: re-point <code>--ui-primary</code> or a hue's per-scheme
                   base, and its hover, focus, down and active states, its text, border and background roles follow. Edit
@@ -615,22 +638,24 @@
                   <ui-button color="blue">Blue</ui-button>
                 </ui-docs-tokens>
               </ui-docs-example>
-              <ui-code language="css">
-                <script type="text/plain">
-                  @layer ui.app {
-                    :root {
-                      --ui-primary: var(--ui-pink);
-                      --ui-primary-inverted: var(--ui-pink-inverted);
-                      --ui-secondary: var(--ui-grey);
-                      --ui-red-on-light: oklch(0.58 0.22 20);
-                      --ui-red-on-dark: oklch(0.72 0.17 20);
-                    }
+            </ui-section>
+            <ui-code language="css">
+              <script type="text/plain">
+                @layer ui.app {
+                  :root {
+                    --ui-primary: var(--ui-pink);
+                    --ui-primary-inverted: var(--ui-pink-inverted);
+                    --ui-secondary: var(--ui-grey);
+                    --ui-red-on-light: oklch(0.58 0.22 20);
+                    --ui-red-on-dark: oklch(0.72 0.17 20);
                   }
-                </script>
-              </ui-code>
+                }
+              </script>
+            </ui-code>
 
-              <!-- GAP I57:  no public token for the chosen box's background / border, so Fomantic's branded checkbox can't come from tokens alone. -->
-              <ui-docs-example header="Component defaults">
+            <!-- GAP I57:  no public token for the chosen box's background / border, so Fomantic's branded checkbox can't come from tokens alone. -->
+            <ui-section id="using-themes-component-defaults" header="Component defaults" sticky collapsible dividing>
+              <ui-docs-example>
                 <p slot="description">
                   Components inherit the global tokens and redefine what's theirs in public
                   <code>--ui-&lt;tag&gt;-*</code> tokens, e.g. checkboxes in your brand colour instead of grey. Each
@@ -648,8 +673,9 @@
                   <ui-checkbox type="toggle" selected>Toggle</ui-checkbox>
                 </ui-docs-tokens>
               </ui-docs-example>
+            </ui-section>
 
-              <ui-header level="3" id="applying-a-theme">Applying a theme</ui-header>
+            <ui-section id="using-themes-applying-a-theme" header="Applying a theme" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A theme is a sheet of token overrides plus class-grammar rules in `@layer ui.theme`. `ThemeSheets` loads it and
@@ -661,6 +687,8 @@
                   import { ThemeSheets } from "@spell-app/ui/styles"
 
                   ThemeSheets.names // ["amazon", "basic", "bookish" ...]:  the Fomantic themes, A-Z
+                  ThemeSheets.OWN // ["spell"]:  our own themes, also on top of classic
+                  await ThemeSheets.apply("spell") // classic + spell:  the Spell brand look
                   await ThemeSheets.apply("github") // classic + github, on the page and in every shadow root
                   await ThemeSheets.apply("classic") // classic alone
                   await ThemeSheets.apply(undefined) // our own look
@@ -673,7 +701,7 @@
                     every shadow root, after the utilities and before the app stylesheet.
                   - A page without the runtime can still `<link>` `ui.css` + `themes/classic.css` + `themes/<name>.css`, but then
                     only the TOKEN half reaches components: the class-grammar overrides need the runtime's shadow adoption.
-                  - `<ui-docs-themes>` is this site's picker: a theme dropdown (Default, Classic, then Fomantic's themes) and a
+                  - `<ui-docs-themes>` is this site's picker: a theme dropdown (Spell, the default;  Plain;  Classic;  then Fomantic's themes) and a
                     light / dark / system switch, both remembered per viewer. Each component page has one listing only the themes
                     that restyle that component, as Fomantic's pages do.
                 </script>
@@ -683,8 +711,9 @@
                 component) -- one theme applies to the whole page; mix looks by setting component tokens, or by copying
                 a theme's rules for one component into your app stylesheet.</ui-message
               >
+            </ui-section>
 
-              <ui-header level="3" id="dark-mode">Dark mode</ui-header>
+            <ui-section id="using-themes-dark-mode" header="Dark mode" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Dark mode follows the OS by default (`color-scheme: light dark` on `:root`, in `ui.tokens`, so a page's own
@@ -696,20 +725,22 @@
                   - `<ui-root theme="dark">` does the same for everything inside a root, on top of any theme.
                 </script>
               </ui-markdown>
-              <ui-docs-example
-                header="A dark region"
-                description="`ui-dark` forces the dark scheme on a subtree:  every token below it flips."
-              >
-                <ui-segment class="ui-dark">
-                  <ui-header level="4">Dark, whatever the page scheme</ui-header>
-                  <ui-button primary>Primary</ui-button>
-                  <ui-label color="blue">Blue text re-resolves too</ui-label>
-                </ui-segment>
-              </ui-docs-example>
+              <ui-section id="using-themes-dark-mode-a-dark-region" header="A dark region" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`ui-dark` forces the dark scheme on a subtree:  every token below it flips."
+                >
+                  <ui-segment class="ui-dark">
+                    <ui-header level="4">Dark, whatever the page scheme</ui-header>
+                    <ui-button primary>Primary</ui-button>
+                    <ui-label color="blue">Blue text re-resolves too</ui-label>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-section>
 
-              <ui-header level="2" dividing id="composing">Composing a component</ui-header>
-
-              <ui-header level="3" id="pieces">The pieces</ui-header>
+          <ui-section id="composing-a-component" header="Composing a component" sticky collapsible dividing>
+            <ui-section id="composing-a-component-the-pieces" header="The pieces" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Fomantic composes a component from a definition (`.less`) plus a theme's `.variables` and `.overrides`. Ours is a
@@ -803,8 +834,9 @@
                   and `pageCSS` (foundation + typography + native, for the document only).
                 </script>
               </ui-markdown>
+            </ui-section>
 
-              <ui-header level="3" id="layers">Layers</ui-header>
+            <ui-section id="composing-a-component-layers" header="Layers" sticky collapsible dividing>
               <ui-code language="css">
                 <script type="text/plain">
                   @layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;
@@ -819,8 +851,9 @@
                   - A theme sits in `ui.theme`, above every component layer; your own overrides go in `ui.app`, above the theme.
                 </script>
               </ui-markdown>
+            </ui-section>
 
-              <ui-header level="3" id="units">Units</ui-header>
+            <ui-section id="composing-a-component-units" header="Units" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - NEVER `rem`: the host page can redefine it. The ONE absolute length is `--ui-font-size` (px, default `16px`);
@@ -829,19 +862,25 @@
                   - Scale a whole region by overriding `--ui-font-size` on a wrapper; components inside follow.
                 </script>
               </ui-markdown>
-              <ui-docs-example
+              <ui-section
+                id="composing-a-component-units-scaling-a-region"
                 header="Scaling a region"
-                description="Change `--ui-font-size` on a wrapper and everything inside follows."
+                sticky
+                collapsible
+                dividing
               >
-                <ui-docs-tokens global playground tokens="--ui-font-size">
-                  <ui-header level="4">A header</ui-header>
-                  <ui-button primary>A button</ui-button>
-                  <ui-label>A label</ui-label>
-                  <ui-input placeholder="An input" aria-label="An input"></ui-input>
-                </ui-docs-tokens>
-              </ui-docs-example>
+                <ui-docs-example description="Change `--ui-font-size` on a wrapper and everything inside follows.">
+                  <ui-docs-tokens global playground tokens="--ui-font-size">
+                    <ui-header level="4">A header</ui-header>
+                    <ui-button primary>A button</ui-button>
+                    <ui-label>A label</ui-label>
+                    <ui-input placeholder="An input" aria-label="An input"></ui-input>
+                  </ui-docs-tokens>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-              <ui-header level="3" id="remaps">Remaps</ui-header>
+            <ui-section id="composing-a-component-remaps" header="Remaps" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Component CSS never names a hue. A colour class re-points the GENERIC tokens (`--ui-color`, `--ui-color-text` ...)
@@ -873,25 +912,40 @@
                     recolours the element it hangs off.
                 </script>
               </ui-markdown>
-              <ui-docs-example header="A remapped region">
-                <p slot="description">
-                  <code>ui-violet</code> on a wrapper re-points <code>--ui-color</code>: the uncoloured components
-                  inside turn violet.
-                </p>
-                <ui-message slot="description" state="info" size="small"
-                  >A plain element is the wrapper here: a coloured container component (<code
-                    >&lt;ui-segment color&gt;</code
-                  >, a card, a message) resets the generic tokens for its content on purpose, so its own colour never
-                  leaks into what it holds.</ui-message
-                >
-                <div class="ui-violet">
-                  <ui-button>Button</ui-button>
-                  <ui-label>Label</ui-label>
-                  <ui-progress value="60" aria-label="Progress"></ui-progress>
-                </div>
-              </ui-docs-example>
+              <ui-section
+                id="composing-a-component-remaps-a-remapped-region"
+                header="A remapped region"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    <code>ui-violet</code> on a wrapper re-points <code>--ui-color</code>: the uncoloured components
+                    inside turn violet.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >A plain element is the wrapper here: a coloured container component (<code
+                      >&lt;ui-segment color&gt;</code
+                    >, a card, a message) resets the generic tokens for its content on purpose, so its own colour never
+                    leaks into what it holds.</ui-message
+                  >
+                  <div class="ui-violet">
+                    <ui-button>Button</ui-button>
+                    <ui-label>Label</ui-label>
+                    <ui-progress value="60" aria-label="Progress"></ui-progress>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-              <ui-header level="3" id="component-tokens">Component tokens</ui-header>
+            <ui-section
+              id="composing-a-component-component-tokens"
+              header="Component tokens"
+              sticky
+              collapsible
+              dividing
+            >
               <ui-markdown>
                 <script type="text/markdown">
                   Every component has public tokens of its own, `--ui-<component>-*` (`--ui-button-radius`, `--ui-card-width`), one
@@ -959,8 +1013,15 @@
                   - Never set the `--_ui-*` names: they are the components' private plumbing.
                 </script>
               </ui-markdown>
+            </ui-section>
 
-              <ui-header level="3" id="app-stylesheet">The app stylesheet</ui-header>
+            <ui-section
+              id="composing-a-component-the-app-stylesheet"
+              header="The app stylesheet"
+              sticky
+              collapsible
+              dividing
+            >
               <ui-markdown>
                 <script type="text/markdown">
                   Fomantic's `.overrides` files have one home here: the page's ONE `<link>` or `<style>` with
@@ -988,8 +1049,15 @@
                   component by accident.
                 </script>
               </ui-markdown>
+            </ui-section>
 
-              <ui-header level="3" id="overriding-colours">Overriding colours</ui-header>
+            <ui-section
+              id="composing-a-component-overriding-colours"
+              header="Overriding colours"
+              sticky
+              collapsible
+              dividing
+            >
               <ui-markdown>
                 <script type="text/markdown">
                   - Globally: one base token re-colours a hue everywhere, derived states and roles included (see Sitewide defaults).
@@ -1014,25 +1082,33 @@
                   </script>
                 </ui-markdown>
               </ui-message>
+            </ui-section>
+          </ui-section>
 
-              <ui-header level="2" dividing id="inheritance">Cascading inheritance</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Fomantic resolves a variable through three levels: its defaults, a packaged theme, then your site theme. Ours is
-                  the same idea in CSS layers and custom properties, so each later level only says what it changes:
-                </script>
-              </ui-markdown>
-              <ui-steps vertical ordered>
-                <ui-step icon="lock" header="Foundation" description="tokens.css, colors.css:  ui.tokens"></ui-step>
-                <ui-step
-                  icon="download"
-                  header="Packaged theme"
-                  description="classic + a Fomantic theme:  ui.theme"
-                ></ui-step>
-                <ui-step icon="user" header="Your site" description="tokens and the app stylesheet:  ui.app"></ui-step>
-              </ui-steps>
+          <ui-section id="cascading-inheritance" header="Cascading inheritance" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                Fomantic resolves a variable through three levels: its defaults, a packaged theme, then your site theme. Ours is
+                the same idea in CSS layers and custom properties, so each later level only says what it changes:
+              </script>
+            </ui-markdown>
+            <ui-steps vertical ordered>
+              <ui-step icon="lock" header="Foundation" description="tokens.css, colors.css:  ui.tokens"></ui-step>
+              <ui-step
+                icon="download"
+                header="Packaged theme"
+                description="classic + a Fomantic theme:  ui.theme"
+              ></ui-step>
+              <ui-step icon="user" header="Your site" description="tokens and the app stylesheet:  ui.app"></ui-step>
+            </ui-steps>
 
-              <ui-header level="3" id="foundation-tokens">Foundation tokens</ui-header>
+            <ui-section
+              id="cascading-inheritance-foundation-tokens"
+              header="Foundation tokens"
+              sticky
+              collapsible
+              dividing
+            >
               <ui-markdown>
                 <script type="text/markdown">
                   The defaults every theme starts from: declared on `:root`, plus a `:host` copy guarded by a style query, so a
@@ -1042,8 +1118,9 @@
                 </script>
               </ui-markdown>
               <ui-docs-tokens global></ui-docs-tokens>
+            </ui-section>
 
-              <ui-header level="3" id="colour-tokens">Colour tokens</ui-header>
+            <ui-section id="cascading-inheritance-colour-tokens" header="Colour tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   For every hue (`red orange yellow olive green teal blue violet purple pink brown grey black`), the aliases
@@ -1088,59 +1165,67 @@
                   </tbody>
                 </table>
               </ui-table>
+            </ui-section>
+          </ui-section>
 
-              <ui-header level="2" dividing id="porting">Porting a Fomantic theme</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Fomantic's themes are DELTAS on its default look, and ours of that look is `classic.css`, so a ported theme is
-                  applied ON TOP of `classic`: both sheets, `classic` first, both in `@layer ui.theme`. A theme sheet never repeats
-                  classic's tokens and has two halves:
+          <ui-section id="porting-a-fomantic-theme" header="Porting a Fomantic theme" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                Fomantic's themes are DELTAS on its default look, and ours of that look is `classic.css`, so a ported theme is
+                applied ON TOP of `classic`: both sheets, `classic` first, both in `@layer ui.theme`. A theme sheet never repeats
+                classic's tokens and has two halves:
 
-                  1. TOKENS on `:root`: Fomantic's `.variables` as `--ui-*` globals and `--ui-<tag>-*` component tokens. They
-                     inherit into shadow roots.
-                  2. OVERRIDES: Fomantic's `.overrides`, and any variable with no token, as CLASS-GRAMMAR rules (`.ui.button`,
-                     `.ui.menu .item`) for the markup our components render INSIDE their shadow roots.
+                1. TOKENS on `:root`: Fomantic's `.variables` as `--ui-*` globals and `--ui-<tag>-*` component tokens. They
+                   inherit into shadow roots.
+                2. OVERRIDES: Fomantic's `.overrides`, and any variable with no token, as CLASS-GRAMMAR rules (`.ui.button`,
+                   `.ui.menu .item`) for the markup our components render INSIDE their shadow roots.
 
-                  References: `github.css` (16 components, tokens + overrides), `material.css` (fonts, palette, `-on` re-checks),
-                  `fomantic-classic.css` (small, mostly overrides).
-                </script>
-              </ui-markdown>
-              <ui-steps vertical ordered>
-                <ui-step
-                  header="Read the theme"
-                  description="reference/Fomantic-UI/src/themes/<name>/**:  globals/site.variables first, then each component's .variables and .overrides.  Only what's there is the theme."
-                ></ui-step>
-                <ui-step
-                  header="Create the sheet"
-                  description="themes/<name>.css with a header comment like github.css's (what, touches, font, dark scheme, NOT ported), all inside @layer ui.theme.  No registry edit:  ThemeSheets globs the folder."
-                ></ui-step>
-                <ui-step
-                  header="Tokens first"
-                  description="On :root, from each component's token block or its docs table;  the mapping table below."
-                ></ui-step>
-                <ui-step
-                  header="Overrides second"
-                  description="Fomantic's .overrides, and any variable with no token, as class-grammar rules with the selectors the component's own sheet uses."
-                ></ui-step>
-                <ui-step
-                  header="Skip what can't be ported"
-                  description="List it in the header's NOT ported, and record a caveat."
-                ></ui-step>
-                <ui-step
-                  header="Assets"
-                  description="Images or a font the theme really needs go in themes/<name>/, referenced relatively."
-                ></ui-step>
-                <ui-step
-                  header="Test"
-                  description='A describe("<name>") in themes/themes.test.ts:  at least one computed style per touched component, inside its shadow root.'
-                ></ui-step>
-                <ui-step
-                  header="Look"
-                  description="Screenshot the touched components with the theme applied, next to fomantic-ui.com's, light and dark."
-                ></ui-step>
-              </ui-steps>
+                References: `github.css` (16 components, tokens + overrides), `material.css` (fonts, palette, `-on` re-checks),
+                `fomantic-classic.css` (small, mostly overrides).
+              </script>
+            </ui-markdown>
+            <ui-steps vertical ordered>
+              <ui-step
+                header="Read the theme"
+                description="reference/Fomantic-UI/src/themes/<name>/**:  globals/site.variables first, then each component's .variables and .overrides.  Only what's there is the theme."
+              ></ui-step>
+              <ui-step
+                header="Create the sheet"
+                description="themes/<name>.css with a header comment like github.css's (what, touches, font, dark scheme, NOT ported), all inside @layer ui.theme.  No registry edit:  ThemeSheets globs the folder."
+              ></ui-step>
+              <ui-step
+                header="Tokens first"
+                description="On :root, from each component's token block or its docs table;  the mapping table below."
+              ></ui-step>
+              <ui-step
+                header="Overrides second"
+                description="Fomantic's .overrides, and any variable with no token, as class-grammar rules with the selectors the component's own sheet uses."
+              ></ui-step>
+              <ui-step
+                header="Skip what can't be ported"
+                description="List it in the header's NOT ported, and record a caveat."
+              ></ui-step>
+              <ui-step
+                header="Assets"
+                description="Images or a font the theme really needs go in themes/<name>/, referenced relatively."
+              ></ui-step>
+              <ui-step
+                header="Test"
+                description='A describe("<name>") in themes/themes.test.ts:  at least one computed style per touched component, inside its shadow root.'
+              ></ui-step>
+              <ui-step
+                header="Look"
+                description="Screenshot the touched components with the theme applied, next to fomantic-ui.com's, light and dark."
+              ></ui-step>
+            </ui-steps>
 
-              <ui-header level="3" id="porting-tokens">Variables to tokens</ui-header>
+            <ui-section
+              id="porting-a-fomantic-theme-variables-to-tokens"
+              header="Variables to tokens"
+              sticky
+              collapsible
+              dividing
+            >
               <ui-table celled compact striped>
                 <table>
                   <thead>
@@ -1273,8 +1358,9 @@
                     `var(--ui-ink-on-light)`.
                 </script>
               </ui-markdown>
+            </ui-section>
 
-              <ui-header level="3" id="porting-overrides">Overrides</ui-header>
+            <ui-section id="porting-a-fomantic-theme-overrides" header="Overrides" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - Use the selectors the COMPONENT'S sheet uses for that box (its header's "Shadow markup contract"). An item box
@@ -1289,8 +1375,15 @@
                   - `!important` in Fomantic: usually unnecessary here (the layer already wins); drop it.
                 </script>
               </ui-markdown>
+            </ui-section>
 
-              <ui-header level="3" id="porting-skip">What can't be ported</ui-header>
+            <ui-section
+              id="porting-a-fomantic-theme-what-can-t-be-ported"
+              header="What can't be ported"
+              sticky
+              collapsible
+              dividing
+            >
               <ui-markdown>
                 <script type="text/markdown">
                   - Icon FONTS: icons are SVG packs; build a pack instead (see [Icons](icons.html)).
@@ -1301,22 +1394,21 @@
                     state, e.g. `:focus-within`).
                 </script>
               </ui-markdown>
+            </ui-section>
+          </ui-section>
 
-              <ui-header level="2" dividing id="build-notes">Build notes</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  - `@custom-media` and the `@import`s in the sheets need Lightning CSS (Vite's `css.transformer: "lightningcss"`
-                    with `drafts.customMedia`); raw, those rules are dropped.
-                  - `css.lightningcss.targets` MUST be modern browsers. With Vite's default targets Lightning CSS lowers
-                    `light-dark()` into variables substituted at `:root`, which breaks `ui-dark` subtrees.
-                </script>
-              </ui-markdown>
-            </article>
-          </ui-container>
-
-          <ui-include class="site-footer" source="_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+          <ui-section id="build-notes" header="Build notes" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                - `@custom-media` and the `@import`s in the sheets need Lightning CSS (Vite's `css.transformer: "lightningcss"`
+                  with `drafts.customMedia`); raw, those rules are dropped.
+                - `css.lightningcss.targets` MUST be modern browsers. With Vite's default targets Lightning CSS lowers
+                  `light-dark()` into variables substituted at `:root`, which breaks `ui-dark` subtrees.
+              </script>
+            </ui-markdown>
+          </ui-section>
+        </article>
+      </ui-container>
+    </main>
   </body>
 </html>

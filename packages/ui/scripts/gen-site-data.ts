@@ -1,8 +1,10 @@
 /**
- * `yarn site:data`:  write the Spell UI site's data, `site/_data/components.json` and `icons.json` (the icon
- * browser's search terms), and keep `site/_data/pages.json` complete (see `tools/SiteDataBuilder.ts`).
- * - All COMMITTED:  the docs pages fetch `components.json` as is, with no build step.  Rerun after changing a
- *   vocabulary, a family's sheet (its tokens), or `pages.json`;  `tools/SiteDataBuilder.test.ts` fails while stale.
+ * `yarn site:data`:  write the Spell UI site's data, `site/_data/components.json`, `icons.json` (the icon
+ * browser's search terms) and `search.json` (every page's sections, for `<ui-docs-search>`), and keep
+ * `site/_data/pages.json` complete (see `tools/SiteDataBuilder.ts`).
+ * - All COMMITTED:  the docs pages fetch them as they are, with no build step.  Rerun after changing a vocabulary, a
+ *   family's sheet (its tokens), `pages.json` or a page's sections;  `tools/SiteDataBuilder.test.ts` fails while
+ *   stale.
  * - `--check`:  write nothing;  exit 1 (saying which) if any file would change.
  * - Formatting:  `JSON.stringify(..., 2)`;  oxfmt skips `site/_data/` (`.oxfmtrc.json`), so the bytes stay ours.
  */
@@ -17,7 +19,8 @@ const { data, pages } = await builder.build()
 const outputs: [file: string, text: string][] = [
   [builder.dataFile, SiteDataBuilder.stringify(data)],
   [builder.pagesFile, SiteDataBuilder.stringify(pages)],
-  [builder.iconsFile, builder.iconsText()]
+  [builder.iconsFile, builder.iconsText()],
+  [builder.searchFile, builder.searchText()]
 ]
 
 const stale = outputs.filter(([file, text]) => !existsSync(file) || readFileSync(file, "utf8") !== text)

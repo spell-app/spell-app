@@ -89,6 +89,24 @@ describe("<ui-include>", () => {
     expect(host.contentRoot).toBe(host)
   })
 
+  it("`ui-insert` hands over the markup before it goes in, and may change it", async () => {
+    const seen: string[] = []
+    const listener = (event: Event) => {
+      const { fragment } = (event as CustomEvent<{ fragment: DocumentFragment }>).detail
+      seen.push(fragment.querySelector("p.part")?.textContent ?? "")
+      expect(fragment.querySelector("p.part")!.isConnected).toBe(false)
+      fragment.querySelector("p.part")!.classList.add("seen")
+    }
+    document.addEventListener("ui-insert", listener)
+    try {
+      const host = await include(`<ui-include source="${DIR}/part.html" page-styles></ui-include>`)
+      expect(seen).toEqual(["A part, with a label."])
+      expect(host.querySelector("p.part.seen")).not.toBeNull()
+    } finally {
+      document.removeEventListener("ui-insert", listener)
+    }
+  })
+
   it("points relative URLs where they pointed in the included page", async () => {
     const host = await include(`<ui-include source="${DIR}/sub/rel.html"></ui-include>`)
     const [link, top, absolute] = box(host).querySelectorAll("a")

@@ -9,72 +9,60 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Text">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-text.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-text%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/elements/text.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Text
+            <ui-header>A text is used to style some inline text with a simple color.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-text" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-text.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-text%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/elements/text.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Text
-                <ui-header>A text is used to style some inline text with a simple color.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-text" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Text"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's text page, in its order (Types, Variations), plus our extras (all colours, Disabled,
-                  Inverted).  Fomantic's Text example is a code preview;  here it is live.
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <ui-docs-example header="Text">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's text page, in its order (Types, Variations), plus our extras (all colours, Disabled,
+              Inverted).  Fomantic's Text example is a code preview;  here it is live.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-text" header="Text" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A text is always used inline and uses one color from the palette.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Fomantic limits <code>ui text</code> to <code>&lt;span&gt;</code> tags so it can't clash with other
@@ -104,9 +92,10 @@
                     <ui-text state="error">error</ui-text> inline text
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-colored" header="Colored" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Colored"
                   description="A text can take any colour of the palette, plus `primary` and `secondary`."
                 >
                   <ui-segment>
@@ -127,20 +116,23 @@
                     <ui-text color="black">Black</ui-text>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
-                <ui-docs-example header="Disabled" description="A text can show that it is disabled.">
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="A text can show that it is disabled.">
                   <ui-segment>
                     This is <ui-text disabled>disabled inline text</ui-text> and
                     <ui-text color="red" disabled>disabled red inline text</ui-text>.
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Size"
                   description="Text can vary in the same sizes as icons, relative to the text around it."
                 >
                   <ui-segment>
@@ -154,8 +146,10 @@
                     <p>to finally become <ui-text size="massive" color="red">massive</ui-text> text</p>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Inverted" description="A text can be formatted to appear on dark backgrounds.">
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A text can be formatted to appear on dark backgrounds.">
                   <ui-segment inverted>
                     <ui-text inverted color="red">Red</ui-text>
                     <ui-text inverted color="orange">Orange</ui-text>
@@ -166,100 +160,103 @@
                     <ui-text inverted>Uncoloured</ui-text>
                   </ui-segment>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `<ui-text>` is an inline span that flows with the text around it: wrap the words, then add `color`, `state`,
-                    `size`, `inverted` or `disabled`.
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-text>` is an inline span that flows with the text around it: wrap the words, then add `color`, `state`,
+                  `size`, `inverted` or `disabled`.
 
-                    - `color` takes a palette hue (`red` ... `black`) or `primary` / `secondary`; text without one inherits its colour.
-                    - `state` (`info`, `success`, `warning`, `error`) is the colour of a status message.
-                    - `size` is relative to the surrounding text: `mini` is 0.4em, `medium` 1em, `massive` 8em.
-                    - It ignores the colour and size of a component it sits in: red text inside a large blue button is red, at the
-                      button's text size, never scaled twice.
-                    - Text has no events.
-                  </script>
-                </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <p>Your plan renews on <ui-text color="blue">1 March</ui-text>; payment <ui-text state="error">failed</ui-text>.</p>
-                  </script>
-                </ui-code>
+                  - `color` takes a palette hue (`red` ... `black`) or `primary` / `secondary`; text without one inherits its colour.
+                  - `state` (`info`, `success`, `warning`, `error`) is the colour of a status message.
+                  - `size` is relative to the surrounding text: `mini` is 0.4em, `medium` 1em, `massive` 8em.
+                  - It ignores the colour and size of a component it sits in: red text inside a large blue button is red, at the
+                    button's text size, never scaled twice.
+                  - Text has no events.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <p>Your plan renews on <ui-text color="blue">1 March</ui-text>; payment <ui-text state="error">failed</ui-text>.</p>
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Nothing to do: a text is not focusable and takes no keys.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Nothing to do: a text is not focusable and takes no keys.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - Colour is never the only signal: `state="error"` is only a colour, so the words must say it is an error too.
-                      Use `role="alert"` or a live region when it has to be announced.
-                    - Coloured text uses each hue's text shade, tuned to reach 4.5:1 contrast on the page background in both light
-                      and dark schemes. `inverted` switches to the shade meant for dark surfaces.
-                    - `disabled` only fades the text; it does not hide it from screen readers.
-                    - Without JavaScript the native fallback renders the same `<span>` with the same class words, so nothing is lost.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - Colour is never the only signal: `state="error"` is only a colour, so the words must say it is an error too.
+                    Use `role="alert"` or a live region when it has to be announced.
+                  - Coloured text uses each hue's text shade, tuned to reach 4.5:1 contrast on the page background in both light
+                    and dark schemes. `inverted` switches to the shade meant for dark surfaces.
+                  - `disabled` only fades the text; it does not hide it from screen readers.
+                  - Without JavaScript the native fallback renders the same `<span>` with the same class words, so nothing is lost.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-text"></ui-docs-api>
-              </ui-tab>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-text"></ui-docs-api>
+          </ui-tab>
 
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-text-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on the
-                    inner box through `::part(text)`. They inherit into the shadow root, where the sheet reads each through a private
-                    alias, so nothing inside blocks them.
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-text-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on the
+                  inner box through `::part(text)`. They inherit into the shadow root, where the sheet reads each through a private
+                  alias, so nothing inside blocks them.
 
-                    - The hues themselves are global colour tokens (`--ui-red` and friends): change those to recolour every component
-                      at once.
-                    - The component's tokens share the `--ui-text-` prefix with the GLOBAL text colours (`--ui-text-color`,
-                      `--ui-text-muted` ...); the table below lists only the component's own.
-                    - Never set the `--_ui-text-*` names: they're the sheet's private plumbing.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    /* every text on the page */
-                    :root {
-                      --ui-text-disabled-opacity: 0.6;
-                    }
-                    /* one region */
-                    .headline {
-                      --ui-text-line-height: 1.2;
-                    }
-                  </script>
-                </ui-code>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-text" playground></ui-docs-tokens>
+                  - The hues themselves are global colour tokens (`--ui-red` and friends): change those to recolour every component
+                    at once.
+                  - The component's tokens share the `--ui-text-` prefix with the GLOBAL text colours (`--ui-text-color`,
+                    `--ui-text-muted` ...); the table below lists only the component's own.
+                  - Never set the `--_ui-text-*` names: they're the sheet's private plumbing.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  /* every text on the page */
+                  :root {
+                    --ui-text-disabled-opacity: 0.6;
+                  }
+                  /* one region */
+                  .headline {
+                    --ui-text-line-height: 1.2;
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-text" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    No Fomantic theme restyles text, so the theme picker above has nothing to switch; the one in the header still
-                    applies a theme to the whole site.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles text, so the theme picker above has nothing to switch; the one in the header still
+                  applies a theme to the whole site.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

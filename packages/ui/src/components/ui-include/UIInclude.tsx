@@ -16,6 +16,7 @@ import {
   ORIGINAL_PREFIX,
   URL_ATTRIBUTES,
   URL_SELECTOR,
+  type IncludeInsertDetail,
   type Vocabulary
 } from "./ui-include.types"
 
@@ -31,6 +32,7 @@ import includeCSS from "./ui-include.css?inline"
  *   (fonts, colours, `--ui-*` tokens) come in.  `page-styles` puts it in the LIGHT DOM instead, where the page's CSS
  *   (and `<ui-root>`) see it.
  * - Scripts in the included markup do NOT run (parsed by `DOMParser`).
+ * - `ui-insert` fires just before the markup goes in, with the fragment:  a listener may read or change it.
  * - `ui-*` tags inside are loaded on demand, as `<ui-root>` loads them (`RootLoader`):  a shadow root is out of a
  *   root's sight.
  * - Relative `href` / `src` / `action` / `poster` / `source` are rewritten against `source`, so links, images and
@@ -122,6 +124,7 @@ export class UIInclude extends SourceElement<Vocabulary> {
 
   /**
    * Put `text`'s markup in place:  parsed, `select`ed, URLs rewritten;  then load the `ui-*` families it uses.
+   * - SIDE EFFECT:  `ui-insert` first, with the fragment, while it's still out of the page.
    * - A selector that's invalid or matches nothing is a `render` failure.
    */
   private insert(text: string, select: string | undefined, light: boolean) {
@@ -133,6 +136,7 @@ export class UIInclude extends SourceElement<Vocabulary> {
       return
     }
     if (this.root && this.root !== target) this.root.replaceChildren()
+    this.emit("ui-insert", { fragment: markup, source: this.sourceAttribute() } satisfies IncludeInsertDetail)
     target.replaceChildren(markup)
     this.root = target
     this.selected = select ? (target.firstElementChild ?? undefined) : undefined

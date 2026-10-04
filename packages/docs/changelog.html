@@ -57,8 +57,8 @@
               solid-migration, ui-import and seo.
             </li>
             <li>
-              3 more live only in worktrees: vite-plus is done but unmerged; commands is in progress;
-              precedence-and-types is built (P1-P8), waiting on review.
+              2 more live only in worktrees: vite-plus is done but unmerged; precedence-and-types is built (P1-P8),
+              waiting on review.
             </li>
             <li>
               12 packages since the monorepo move: util, parser, core, spell, lsp, app, vscode, cli, ui, solid-element,
@@ -282,29 +282,157 @@
               </li>
             </ul>
           </ui-section>
-
-          <ui-section id="commands" header="commands · in progress" sticky collapsible dividing>
-            <ui-list class="spell-meta">
-              <ui-item icon="code branch">Branch <code>commands</code>; P1 active, 7-12 h estimated</ui-item>
-            </ui-list>
-            <ul>
-              <li>
-                A command-reference template drawn from JSON, and a page mapping every operation to CLI / skill / yarn
-                script.
-              </li>
-              <li>
-                Decided: repo commands go under <code>spell dev &lt;noun&gt; &lt;verb&gt;</code>; a drift check and an
-                AGENTS rule follow.
-              </li>
-              <li>Inventory so far: 20 CLI commands, 170 yarn scripts, 21 skills.</li>
-            </ul>
-          </ui-section>
         </ui-section>
 
         <ui-section id="3-merged" header="3. Merged into main" sticky collapsible dividing>
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section
+              id="commands"
+              header="2026-10-02 → 10-04 · Commands:  CLI, skills, yarn"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc: <a href="epics/commands/commands.html" target="commands">epics/commands</a></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc:
+                  <a href="dev/commands/commands.html" target="src-packages-docs-dev-commands-commands-html"
+                    >Commands</a
+                  >
+                  (and its agent rules,
+                  <a href="dev/commands/commands.md" target="src-packages-docs-dev-commands-commands-md"
+                    ><code>dev/commands/commands.md</code></a
+                  >)</ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>commands</code>, two <code>/bedtime</code> runs, merged 2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: a docs template for command references (<a
+                    href="templates/commands.html"
+                    target="src-packages-docs-templates-commands-html"
+                    ><code>templates/commands.html</code></a
+                  >
+                  + <code>.json</code>):
+                  <a href="_assets/commands.js" target="src-packages-docs-assets-commands-js"
+                    ><code>_assets/commands.js</code></a
+                  >
+                  draws the tables from the page's JSON, fetched from the page server;
+                  <code>yarn docs:new commands</code>;
+                  <a href="scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                    ><code>check-spell.js</code></a
+                  >
+                  loads <code>data-spell-needs-server</code> pages from the server.
+                </li>
+                <li>
+                  P2: the Commands page: every operation of the <code>spell</code> CLI, the skills and the yarn scripts
+                  (227 at first), CLI / skill / yarn marks, the tool that runs it.
+                </li>
+                <li>
+                  P3: the target: repo tools under <code>spell dev &lt;noun&gt; &lt;verb&gt;</code>, noun-then-verb
+                  names everywhere, a roadmap R1-R10, a target on every row.
+                </li>
+                <li>
+                  P4: <code>spell dev commands [list|check]</code> (<code>yarn commands:check</code>): every command
+                  against the page; <code>CLI.findCheckout()</code>.
+                </li>
+                <li>
+                  P5: root
+                  <a href="AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> "Commands": before
+                  a new skill, <code>spell</code> command or yarn script, read
+                  <a href="dev/commands/commands.md" target="src-packages-docs-dev-commands-commands-md"
+                    ><code>commands.md</code></a
+                  >
+                  and suggest where it belongs; keep the page true.
+                </li>
+                <li>P6: the page's Why and Limits.</li>
+                <li>
+                  P7: <code>spell dev session list|find|open|title|window|transcript</code>, ported from
+                  <code>session.py</code> and <code>transcript.py</code>.
+                </li>
+                <li>
+                  P8: <code>spell dev worktree list|status</code>, <code>spell dev park list|candidates|wait</code>,
+                  ported from <code>status.py</code> and <code>worktrees.py</code>.
+                </li>
+                <li>
+                  P9: <code>spell dev stock</code>, ported from <code>whassup.py</code> (then <code>/worktrees</code>'
+                  report, at the merge).
+                </li>
+                <li>
+                  P10: <code>doc-links.py</code> became plain-Node
+                  <a href="scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                    ><code>doc-links.js</code></a
+                  >: the same page edits.
+                </li>
+                <li>
+                  P11: the skills call <code>spell dev</code>; <code>/session</code> moved into the repo; every python
+                  tool deleted: tools are TypeScript, never python.
+                </li>
+                <li>P12: the page and plan doc true to the port.</li>
+                <li>
+                  Merge: main's <code>/worktrees</code>, batched plan status, git-ignored link targets and
+                  <code>session.py</code>'s new <code>title</code> ported too; 219 commands on the page.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="ui-docs-rework" header="2026-10-04 · Spell UI docs rework" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/ui-docs-rework/ui-docs-rework.html" target="ui-docs-rework"
+                    >epics/ui-docs-rework</a
+                  ></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc:
+                  <a href="spell-ui-site.html" target="src-packages-docs-spell-ui-site-html"
+                    >Spell UI Docs Site</a
+                  ></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>ui-docs-rework</code>, built overnight (<code>/bedtime</code>), merged
+                  2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: <code>spell</code> theme from the brand (tokens, installed-Palatino serif headings, no font files,
+                  pills, aubergine dark), the default on every doc site; Spell favicon on every site.
+                </li>
+                <li>
+                  P2: one layout (<a
+                    href="../ui/site/_parts/layout.html"
+                    target="src-packages-ui-site-parts-layout-html"
+                    ><code>site/_parts/layout.html</code></a
+                  >); pages are a bare <code>main</code>; <code>SiteShell</code> + <code>SiteRouter</code> swap pages
+                  through <code>&lt;ui-include&gt;</code> (new <code>ui-insert</code> event); no flash on load.
+                </li>
+                <li>P3: <code>&lt;ui-docs-nav&gt;</code> as the brand panel: lockup, folding group bands, nav rows.</li>
+                <li>
+                  P4: no top bar on wide screens; right column with <code>&lt;spell-site-header docked&gt;</code>, look
+                  controls and "On this page"; slim top bar below 1200px.
+                </li>
+                <li>P5: look controls as a sun / moon flip + palette overlay; one scheme key for every site.</li>
+                <li>
+                  P6: 1,749 nested <code>&lt;ui-section&gt;</code>s with nested ids (<code>yarn site:sections</code>),
+                  sticky tabs and titles, deep-link landing, old hashes forwarded.
+                </li>
+                <li>P7: own pages for <code>ui-radio</code>, <code>ui-textarea</code> and the Parts tags.</li>
+                <li>
+                  P8: <code>&lt;ui-docs-search&gt;</code>: this page, components, pages, sections, attributes;
+                  <kbd>/</kbd> and <kbd>⌘K</kbd>.
+                </li>
+              </ul>
+            </ui-section>
+
             <ui-section id="epic-review" header="2026-10-03 → 10-04 · /epic review" sticky collapsible dividing>
               <ui-list class="spell-meta">
                 <ui-item icon="map"
@@ -1384,8 +1512,8 @@
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
           <p class="meta">
-            Last updated 2026-10-04 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages, stay-put
-            and epic-review; precedence-and-types added from its worktree, 2026-10-04.
+            Last updated 2026-10-04 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages, stay-put,
+            epic-review and commands; precedence-and-types added from its worktree, 2026-10-04.
           </p>
         </footer>
       </main>

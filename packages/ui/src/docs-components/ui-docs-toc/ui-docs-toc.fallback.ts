@@ -23,7 +23,8 @@ export class DocsTocFallback extends NativeFallback<typeof docsTocVocabulary> {
     const links: Node[] = []
     for (const section of root ? TocIndex.scan(root) : []) {
       links.push(this.link(section.id, section.text, "section"))
-      for (const entry of section.entries) links.push(this.link(entry.id, entry.text, "entry"))
+      // nested sections' entries too, in page order
+      for (const entry of TocIndex.flatten(section.entries)) links.push(this.link(entry.id, entry.text, "entry"))
     }
     const label = docsTocVocabulary.texts[0].text
     const children: Node[] = []

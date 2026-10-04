@@ -9,6 +9,7 @@
 export * as CLI from "."
 export * from "./cli.types"
 
+export * from "./findCheckout"
 export * from "./resolveTarget"
 export * from "./CliSession"
 export * from "./scopeTree"
@@ -20,4 +21,5 @@ export * from "./serve"
 export * from "./iconSearch"
 export * from "./runInBrowser"
 export * from "./ui"
+export * from "./dev"
 export * from "./commands"

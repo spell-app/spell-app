@@ -2,7 +2,9 @@ import {
   EXAMPLE_TAG,
   HEADING_SELECTOR,
   READING_LINE,
+  SECTION_HEADER_SELECTOR,
   SECTION_SELECTOR,
+  SECTION_TAG,
   TABS_TAG,
   type TocEntry,
   type TocSection
@@ -12,8 +14,10 @@ import {
  * ### `TocIndex`
  * The page side of `<ui-docs-toc>`:  which content it follows, the sections and entries in it, the one in view.
  * - Plain DOM, no Solid:  the element and its native fallback both use it.
- * - SIDE EFFECT:  `scan()` gives every listed heading / example without an `id` one (a slug of its text, made unique
- *   in the document), so the links have targets and other pages can link to them.
+ * - Entries form a tree:  level 2 headings and top-level `<ui-section>`s, then what's under each (examples, level 3
+ *   headings, nested sections), as deep as the sections nest.
+ * - SIDE EFFECT:  `scan()` gives every listed heading / section / example without an `id` one (a slug of its text,
+ *   made unique in the document), so the links have targets and other pages can link to them.
  ****************/
 export class TocIndex {
   /**
@@ -45,36 +49,59 @@ export class TocIndex {
   }
 
   /**
-   * The sections of `root`, in page order:  each level 2 heading with the examples / level 3 headings after it.
+   * The sections of `root`, in page order:  each level 2 heading with the examples / level 3 headings after it,
+   * and each `<ui-section>` with what's nested in it (sections, examples, headings), at any depth.
+   * - A level 2 heading inside a `<ui-section>` is an entry of that section, like the rest.
    * - Headings before the first section become sections with no entries.
-   * - Skipped:  headings inside an example's live markup (a header page's demos), inside templates.
+   * - Skipped:  headings and sections inside an example's live markup (a header page's demos), inside templates;
+   *   sections without a title.
    * - `reserved`:  ids a new id must not take (the tab values, which the URL hash also names).
    */
   static scan(root: Element, reserved: ReadonlySet<string> = new Set()): TocSection[] {
-    const sections: { id: string; text: string; target: Element; entries: TocEntry[] }[] = []
+    const sections: TocEntry[] = []
+    const ofSection = new Map<Element, TocEntry>()
     for (const heading of root.querySelectorAll(HEADING_SELECTOR)) {
       if (TocIndex.insideExample(heading, root)) continue
       const text = TocIndex.text(heading)
       if (!text) continue
-      const entry = { id: TocIndex.idOf(heading, text, reserved), text, target: heading }
+      const entry: TocEntry = { id: TocIndex.idOf(heading, text, reserved), text, target: heading, entries: [] }
+      if (heading.localName === SECTION_TAG) ofSection.set(heading, entry)
+      const parent = TocIndex.enclosing(heading, root, ofSection)
       const last = sections.at(-1)
-      if (heading.matches(SECTION_SELECTOR) || !last) sections.push({ ...entry, entries: [] })
-      else last.entries.push(entry)
+      if (parent) (parent.entries as TocEntry[]).push(entry)
+      else if (heading.matches(SECTION_SELECTOR) || !last) sections.push(entry)
+      else (last.entries as TocEntry[]).push(entry)
     }
     return sections
+  }
+
+  /** `entries` and everything under them, depth first:  page order. */
+  static flatten(entries: readonly TocEntry[]): TocEntry[] {
+    return entries.flatMap((entry) => [entry, ...TocIndex.flatten(entry.entries)])
+  }
+
+  /** Ids from the top-level section down to the entry `id` (its own last);  `[]` when it isn't listed. */
+  static pathTo(entries: readonly TocEntry[], id: string | undefined): string[] {
+    if (!id) return []
+    for (const entry of entries) {
+      if (entry.id === id) return [id]
+      const below = TocIndex.pathTo(entry.entries, id)
+      if (below.length) return [entry.id, ...below]
+    }
+    return []
   }
 
   /**
    * The id of the entry in view:  the last one whose top has passed the reading line (the document's scroll padding
    * plus a fifth of the viewport);  the last one at the page's end;  the first one above everything.
-   * - Entries without a box (a hidden pane) are skipped.
+   * - Entries without a box (a hidden pane) or inside a folded `<ui-section>` are skipped.
    */
   static current(sections: readonly TocSection[], document: Document): string | undefined {
     const view = document.defaultView
     if (!view) return undefined
-    const all = sections
-      .flatMap((section) => [section, ...section.entries])
-      .filter((entry) => entry.target.getClientRects().length)
+    const all = TocIndex.flatten(sections).filter(
+      (entry) => entry.target.getClientRects().length && !TocIndex.folded(entry.target)
+    )
     if (!all.length) return undefined
     const scroller = document.scrollingElement ?? document.documentElement
     if (scroller.scrollTop > 0 && scroller.scrollTop + view.innerHeight >= scroller.scrollHeight - 2)
@@ -89,10 +116,10 @@ export class TocIndex {
     return current.id
   }
 
-  /** The section holding the entry `id` (or being it). */
+  /** The top-level section holding the entry `id`, at any depth (or being it). */
   static sectionOf(sections: readonly TocSection[], id: string | undefined): TocSection | undefined {
-    if (!id) return undefined
-    return sections.find((section) => section.id === id || section.entries.some((entry) => entry.id === id))
+    const top = TocIndex.pathTo(sections, id)[0]
+    return top === undefined ? undefined : sections.find((section) => section.id === top)
   }
 
   /** A URL hash (without `#`) as the id it names. */
@@ -143,13 +170,15 @@ export class TocIndex {
    *   left out, so the link says `Title`, not `Title sub`.
    */
   private static text(heading: Element): string {
-    const text =
-      heading.localName === EXAMPLE_TAG
-        ? heading.getAttribute("header")
-        : [...heading.childNodes]
-            .filter((node) => !(node instanceof Element && node.localName === heading.localName))
-            .map((node) => node.textContent)
-            .join("")
+    let text: string | null | undefined
+    if (heading.localName === EXAMPLE_TAG) text = heading.getAttribute("header")
+    else if (heading.localName === SECTION_TAG)
+      text = heading.getAttribute("header") || heading.querySelector(SECTION_HEADER_SELECTOR)?.textContent
+    else
+      text = [...heading.childNodes]
+        .filter((node) => !(node instanceof Element && node.localName === heading.localName))
+        .map((node) => node.textContent)
+        .join("")
     return (text ?? "").replace(/\s+/g, " ").trim()
   }
 
@@ -157,6 +186,26 @@ export class TocIndex {
   private static insideExample(heading: Element, root: Element): boolean {
     const example = heading.parentElement?.closest(`${EXAMPLE_TAG}, template`)
     return !!example && root.contains(example)
+  }
+
+  /** The listed `<ui-section>` (`ofSection`) nearest around `element`, below `root`;  `undefined` at the top. */
+  private static enclosing(element: Element, root: Element, ofSection: Map<Element, TocEntry>): TocEntry | undefined {
+    for (let section = element.parentElement?.closest(SECTION_TAG); section;) {
+      if (!root.contains(section) || section === root) return undefined
+      const entry = ofSection.get(section)
+      if (entry) return entry
+      section = section.parentElement?.closest(SECTION_TAG)
+    }
+    return undefined
+  }
+
+  /** `element` is hidden inside a folded `<ui-section>` (not counting itself). */
+  private static folded(element: Element): boolean {
+    for (let section = element.parentElement?.closest(SECTION_TAG); section;) {
+      if (section.hasAttribute("collapsible") && section.hasAttribute("collapsed")) return true
+      section = section.parentElement?.closest(SECTION_TAG)
+    }
+    return false
   }
 
   /** The `<ui-tab>` children of `tabs` (any child with a `value` or the pane state). */

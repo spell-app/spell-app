@@ -22,10 +22,10 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
 
 - The story so far:
   - this session:  the conversation itself
-  - `<name>`:  `python3 .claude/skills/wtf/scripts/transcript.py --find <name>` (from the repo root) lists its
-    sessions, newest first;  `transcript.py <id>` digests one:  Owen's prompts, its last reply, a question still
+  - `<name>`:  `spell dev session find <name>` lists its
+    sessions, newest first;  `spell dev session transcript <id>` digests one:  Owen's prompts, its last reply, a question still
     waiting for an answer.  Several sessions:  digest the newest, mention the others.  Running or not:
-    `python3 .claude/skills/worktrees/scripts/worktrees.py --sessions`.
+    `spell dev worktree list`.
   - either way:  Owen's LAST stated intent (his words, not the plan's), what's been done, what was asked and not
     yet answered.
 - Where:  in the session's checkout (`git -C .claude/worktrees/<name>` for `<name>`):  `git branch --show-current`,

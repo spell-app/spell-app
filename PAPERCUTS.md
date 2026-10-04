@@ -954,6 +954,10 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   (`parity.md`, `static-parity.md`, Playwright's `output/` is emptied first), so a report or diff image read a minute
   later belonged to another agent's run, or was gone. · Copy the report to the scratchpad right after each run, and
   read diff images before starting the next run. · ui
+- 2026-10-04 · `yarn site:check` failed a page with `HTTP 404 ... /ui/_assets/site.js` (and then every in-page check
+  on it):  another agent ran `yarn site:bundle` in the same worktree meanwhile, and the build empties `_assets/`
+  before writing it again. · Rerun the page once the other build is done;  agents sharing a worktree:  say before
+  rebuilding the bundle, and don't run `site:check --all` across someone's rebuild. · ui
 
 ## app
 
@@ -1138,6 +1142,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   history) resolves, so `doc-links.py` links it to a second path for the same file;  unlinking it by hand gets
   re-linked on the next run. · Wrote the old name as plain text;  `doc-links.py` should resolve paths
   case-sensitively (compare against the real directory listing). · docs
+- 2026-10-03 · `git ls-files 'packages/docs/**/*.html'` left out the top-level pages (`index.html`, `cli.html` ...):
+  a quoted `**/` pathspec didn't match zero folders here, so a "every page" comparison silently skipped five.  And
+  `git checkout -- <pages>` to reset between runs reverted another agent's live plan-doc edit in the same worktree.
+  · Use `pages.js` `findPages()` for "every page";  compare on COPIES (same folder, other name), never reset shared
+  pages. · docs
 - 2026-10-03 · `yarn docs:update` failed its link check on every run, so its page checks never ran:  links to
   gitignored runtime files (`.spell-server.json`, `goals/.server.json`) and local clones (`packages/ui/reference/`)
   count as "missing" in any checkout without them, plus one renamed skill and one deleted file.  Past those, the
@@ -1171,6 +1180,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   section (added that day), and `/park`'s `plan_status()` read the failure as "not done". · `summary` reads through
   `findList()` (adds nothing, never throws);  `migrate` still adds the section.  Plan docs are read by PATH now
   (`plan-doc summaries`), in one run. · docs
+- 2026-10-04 · `yarn docs:update` failed at "check links" before any page check ran:  the finished epic
+  `epics/ui-component-creation/ui-component-creation.html` still linked to Astro files that P7 of `spell-ui-pages`
+  deleted (`site/src/layouts/Docs.astro`, `ui-root.mdx`, `RootDemo.astro`), broken on `main` too. · Unlinked the
+  four (kept their `<code>` names, the history).  A page-deleting change wants `doc-links.py --check` on EVERY page,
+  epics included. · ui-docs-rework
 
 ## claude-code
 
@@ -1238,6 +1252,14 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `time ( ... )` subshell, and a `grep ... .gitignore` chained after `ls` ("names git in a form too complex").  The
   check is on the command TEXT, so even a file name with `git` in it trips it. · One plain command per Bash call;
   loops and git calls over other branches go in a Python script (`/whassup`'s `whassup.py`). · tooling
+- 2026-10-03 · Same check, two more trips:  `rsync --exclude /.git` (the text names git), and `sort -u $P` (an
+  unquoted variable "where an option may stand").  Also any `git ls-files ... > file && ...` chain. · Write the
+  steps to a `.sh` / `.mjs` in the scratchpad and run that file;  run `git` alone in its own Bash call. · tooling
+- 2026-10-02 · After `/epic`'s handoff, the session kept answering in its OLD window:  the move opened it in the
+  worktree's window, but the old tab stayed, so Owen typed there.  `window.mjs` finds the old tab by the session's
+  title, and an untitled session (`/rename` not yet run) matches nothing:  the log says "no tabs titled ''". · Close
+  the old tab by hand;  the session is already open in the new window (`~/.spell/windows/handoffs/<id>.log`).
+  Better:  handoff finds the tab another way, or warns before the move when the session has no title. · claude-code
 - 2026-10-03 · More worktree-session refusals:  `sed -n "$(grep -n ... | cut -d: -f1),+30p"` (a computed value where
   an option may stand) and `python3 -c "...open('$HOME/...')"` (a program computed from a variable). · Read with
   `Read` and its `offset`;  spell paths out, or put the script in a scratchpad file. · tooling
@@ -1276,6 +1298,22 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   update a flagged file even when it's unchanged.  `git checkout -- <file>` alone doesn't help while flagged. ·
   Back them up, `git update-index --no-skip-worktree` (paths from the REPO ROOT), `git checkout -- workspaces`,
   merge, write the local edits back on top, `git update-index --skip-worktree` again. · claude-code
+- 2026-10-04 · In a worktree-isolated session, a Bash call running `python3 - <<'EOF' ... EOF` (a multi-line edit
+  script) was refused:  "too complex to verify that it stays inside the worktree".  Same for a long `grep -rn` with
+  several `--include` flags.  Also zsh:  an unquoted `--include=*.ts` fails with "no matches found". · Write the
+  script to the scratchpad with the Write tool and run `python3 <file>`;  quote globs (`--include='*.ts'`), and
+  keep each command short and plain. · claude-code
+- 2026-10-04 · In a worktree-isolated session, `yarn plan-doc add ... --details "<p>...</p>"` was refused ("runs yarn
+  with the text <p>... cannot be shown not to be git") whenever the details held an apostrophe (`nav's`,
+  `flyout's`);  the same call without one ran.  Several such calls in one turn:  the refused ones just drop out. ·
+  Write the details without apostrophes (or `&#39;`), one `plan-doc add` per Bash call, and check each printed an
+  id. · claude-code
+- 2026-10-04 · `git worktree remove --force .claude/worktrees/commands` (after `/isolate done`) failed "Directory not
+  empty":  the worktree's page server, vite and an old astro were still running from it and rewrote
+  `.spell-server.editor.json` into the deleted folder;  `yarn server stop --root <it>` said "not running", since
+  the removal had deleted the pid file. · Stop a worktree's servers BEFORE removing it (`yarn server stop` in it);
+  after the fact, `ps -eo pid,command | grep worktrees/<name>`, kill those, `rm -rf` the folder.  `/isolate done`
+  should do the stop. · claude-code
 
 ## vscode
 

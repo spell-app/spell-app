@@ -69,6 +69,21 @@
     opacity: var(--_ui-docs-example-toggle-opacity);
     transition: opacity 0.3s ease-out;
   }
+  /*
+   * No header, but a description (Fomantic's `.another.example`, or an example under a `<ui-section>`'s title):  the
+   * code button sits at the top right BESIDE the description, not on a row of its own.  Without a description it
+   * keeps its row:  it would cover the example.
+   */
+  .heading:not(:has(> [part~="header"])):has(+ .description) {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    z-index: 1;
+    margin: 0;
+  }
+  .heading:not(:has(> [part~="header"])) + .description {
+    padding-inline-end: 3em;
+  }
   .ui.example:hover .heading > [part~="toggle"],
   .heading > [part~="toggle"]:focus-within {
     opacity: 0.85;

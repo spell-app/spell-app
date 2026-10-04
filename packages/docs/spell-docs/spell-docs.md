@@ -30,12 +30,12 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
 
 | File | What |
 |---|---|
-| `scripts/update.js` (`yarn docs:update`) | bundle, `docs:index`, `doc-links.py --check`, `check-spell.js` on every page |
+| `scripts/update.js` (`yarn docs:update`) | bundle, `docs:index`, `doc-links.js --check`, `check-spell.js` on every page |
 | `scripts/bundle-spell-ui.js` | builds UI (fork + `yarn build`), then bundles `_assets/spell-ui.entry.js` -> `_assets/spell-ui.js` |
 | `scripts/index.js` (`yarn docs:index`) | rewrites the lists in `index.html` from every page's title and description |
 | `scripts/pages.js` | where the docs are, `findPages()`, `tidy()` (link targets + oxfmt) -- shared by the scripts |
 | `scripts/check-spell.js` | Playwright checks + four screenshots of one page |
-| `scripts/doc-links.py` | links `<code>path</code>` references;  `--check` verifies every link |
+| `scripts/doc-links.js` | links `<code>path</code>` references;  `--check` verifies every link |
 | `scripts/to-ui-section.js` | converts old `section.s2|s3` pages to `<ui-section>`;  `plan-doc.js` `migrate` runs its `convertSections()` |
 | `_assets/spell-ui.entry.js` | the bundle's entry:  icons first, then UI, then the runtime |
 | `_assets/spell-doc-runtime.js` | page behaviour (below) |

@@ -7,6 +7,9 @@ when working with code in this repository.
 reactivity, `@spell-app/ui` elements, or any React-to-Solid step:  READ `packages/docs/solid/solid-2.md` IN FULL
 FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produces wrong code.
 
+**If asked for a new skill or `spell` command, or about to add, rename or remove a yarn script:  READ
+`packages/docs/dev/commands/commands.md` FIRST,** and suggest where it belongs before building it (see "Commands").
+
 ## Overview
 
 - Spell:  the parser, the spell language and its tools, and `@spell-app/ui` -- one yarn workspace per folder in
@@ -125,6 +128,21 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary
 - Then finish the page as `packages/docs/AGENTS.md` says ("Finishing a page"), and bump its footer's date and
   commit.
+
+## Commands
+
+- Three ways to make the repo do something:  the `spell` CLI, Claude skills, yarn scripts.  Their map, one row
+  per operation:  `packages/docs/dev/commands/commands.html` (data:  `commands.json` beside it;  shown by the page
+  server:  `yarn docs:open dev/commands/commands.html`).
+- Target:  the CLI drives everything.  Repo tools are `spell dev <noun> <verb>`;  skills keep judgement and dialog
+  and call it;  yarn keeps each package's own scripts and aliases the rest.
+- Owen asks for a new skill or `spell` command, or you add a yarn script to solve a problem:  READ
+  `packages/docs/dev/commands/commands.md`, then SUGGEST, before building:  where it belongs, its name, what it
+  replaces, which roadmap move it advances.
+- MUST keep the page true in the same change:  `commands.json`, then `yarn commands:check`.
+- Tools are TypeScript (or node JS in `packages/docs/scripts`), never python:  one language.  Skills reach them as
+  `spell dev ...`:  `spell` is `yarn cli:install`'s link, made once per machine;  without it,
+  `node packages/cli/bin/spell.mjs dev ...` from a checkout's root.
 
 ## Solid 2
 

@@ -12,69 +12,57 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Markdown">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-markdown.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-markdown%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Markdown
+            <ui-header
+              >Markdown renders GitHub-flavoured markdown -- tables, task lists, code blocks -- from the element's
+              own text or a file on this site.</ui-header
+            >
+          </ui-header>
+          <ui-docs-themes for="ui-markdown" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-markdown.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-markdown%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Markdown
-                <ui-header
-                  >Markdown renders GitHub-flavoured markdown -- tables, task lists, code blocks -- from the element's
-                  own text or a file on this site.</ui-header
-                >
-              </ui-header>
-              <ui-docs-themes for="ui-markdown" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Markdown"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples (Types, Variations), restyled, plus the
-                  vocabulary's `breaks` and `trusted`.  File shown:  `site/examples/readme.md`.
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <ui-docs-example header="Markdown">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples (Types, Variations), restyled, plus the
+              vocabulary's `breaks` and `trusted`.  File shown:  `site/examples/readme.md`.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-markdown" header="Markdown" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     Markdown renders <code>source</code> as GitHub does: tables, task lists, strikethrough, autolinks,
                     and code blocks as <code>&lt;ui-code&gt;</code>. <code>heading-offset</code> puts its headings under
@@ -82,9 +70,10 @@
                   </p>
                   <ui-markdown source="../examples/readme.md" heading-offset="3"></ui-markdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-inline-text" header="Inline text" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Inline text"
                   description='Without `source`, markdown renders its own text:  a `<script type="text/markdown">` child keeps it exact, then dedented.'
                 >
                   <ui-markdown>
@@ -96,16 +85,19 @@
                     </script>
                   </ui-markdown>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example header="Size" description="Markdown can be smaller or larger, as text is.">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="Markdown can be smaller or larger, as text is.">
                   <ui-markdown size="small">Smaller text, the *same* look.</ui-markdown>
                   <ui-markdown size="large">Larger text, the *same* look.</ui-markdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-line-breaks" header="Line breaks" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Line breaks"
                   description="`breaks` makes a single newline a line break, as in GitHub comments;  by default it isn't, as in GitHub files."
                 >
                   <ui-markdown breaks>
@@ -122,9 +114,10 @@
                     </script>
                   </ui-markdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-trusted" header="Trusted" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Trusted"
                   description="Raw HTML is sanitized:  `trusted` keeps it as written, `<ui-*>` elements included.  ONLY for text you wrote."
                 >
                   <ui-markdown trusted>
@@ -139,128 +132,133 @@
                     </script>
                   </ui-markdown>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  from the old Astro page's Behaviour, plus the vocabulary's events and the shadow markup's a11y. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Write markdown inside `<ui-markdown>`, or point `source` at a file of this site. The text comes from, first match
-                    wins:
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  from the old Astro page's Behaviour, plus the vocabulary's events and the shadow markup's a11y. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write markdown inside `<ui-markdown>`, or point `source` at a file of this site. The text comes from, first match
+                  wins:
 
-                    - `source`: a file of this site (same origin only), fetched when `load` says (`eager`, `visible` or `idle`). Its
-                      relative links and images resolve beside it, so a README's links work where it's shown.
-                    - A `<script type="text/markdown">` child: its text exactly, so `<tags>` in code stay text.
-                    - The element's own text, dedented.
+                  - `source`: a file of this site (same origin only), fetched when `load` says (`eager`, `visible` or `idle`). Its
+                    relative links and images resolve beside it, so a README's links work where it's shown.
+                  - A `<script type="text/markdown">` child: its text exactly, so `<tags>` in code stay text.
+                  - The element's own text, dedented.
 
-                    The `content` property replaces either until `source` changes. Rendering (marked) and sanitizing (DOMPurify) load
-                    lazily, with the first markdown shown.
-                  </script>
-                </ui-markdown>
+                  The `content` property replaces either until `source` changes. Rendering (marked) and sanitizing (DOMPurify) load
+                  lazily, with the first markdown shown.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="rendering">Rendering</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - GitHub-flavoured: tables, task lists, strikethrough, autolinks.
-                    - Fenced code blocks become `<ui-code language="x" copy>`: one highlighter and one palette for the whole page.
-                    - Raw HTML is sanitized unless `trusted`.
-                    - Headings get GitHub's ids, so `#anchor` links work, inside the element too (the page's own fragment
-                      navigation can't see into its shadow root). `heading-offset` shifts their levels to sit under the page's
-                      heading (property `headingLevelOffset`: `headingOffset` is WebKit's native `headingoffset`).
-                    - `headings` lists the headings (`{ level, text, id }`), e.g. for a table of contents; `ui-render` fires with
-                      them after each render.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-rendering" header="Rendering" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - GitHub-flavoured: tables, task lists, strikethrough, autolinks.
+                  - Fenced code blocks become `<ui-code language="x" copy>`: one highlighter and one palette for the whole page.
+                  - Raw HTML is sanitized unless `trusted`.
+                  - Headings get GitHub's ids, so `#anchor` links work, inside the element too (the page's own fragment
+                    navigation can't see into its shadow root). `heading-offset` shifts their levels to sit under the page's
+                    heading (property `headingLevelOffset`: `headingOffset` is WebKit's native `headingoffset`).
+                  - `headings` lists the headings (`{ level, text, id }`), e.g. for a table of contents; `ui-render` fires with
+                    them after each render.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - `ui-render` -- rendered: `{ headings }`.
-                    - `ui-load` -- the text arrived, from `source` or the element's own content: `{ source, content }`.
-                    - `ui-error` (cancelable) -- loading or rendering failed: `{ kind, source, error }`. Cancel it to skip the error
-                      message.
-                    - `ui-change`, `ui-save`, `ui-saved` -- editing and saving, shared with `<ui-code>` and `<ui-include>` (see
-                      Include's Usage tab).
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const readme = document.querySelector("ui-markdown")
-                    readme.addEventListener("ui-render", (event) => {
-                      for (const { level, text, id } of event.detail.headings) console.log(level, text, `#${id}`)
-                    })
-                  </script>
-                </ui-code>
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-render` -- rendered: `{ headings }`.
+                  - `ui-load` -- the text arrived, from `source` or the element's own content: `{ source, content }`.
+                  - `ui-error` (cancelable) -- loading or rendering failed: `{ kind, source, error }`. Cancel it to skip the error
+                    message.
+                  - `ui-change`, `ui-save`, `ui-saved` -- editing and saving, shared with `<ui-code>` and `<ui-include>` (see
+                    Include's Usage tab).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const readme = document.querySelector("ui-markdown")
+                  readme.addEventListener("ui-render", (event) => {
+                    for (const { level, text, id } of event.detail.headings) console.log(level, text, `#${id}`)
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Nothing of its own: links, task-list checkboxes and code blocks inside are ordinary tab stops.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Nothing of its own: links, task-list checkboxes and code blocks inside are ordinary tab stops.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - The markdown renders into a real `<article>` with real headings, lists and tables, so it reads like the page
-                      around it. Use `heading-offset` to keep the page outline in order.
-                    - Task-list checkboxes are named by their item's text (marked leaves them unlabelled).
-                    - Code blocks are `<ui-code>`, each named by its language.
-                    - While `source` loads, a `<ui-loader>` (`role="status"`) says so; a failed load shows a `<ui-message>` saying
-                      why.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The markdown renders into a real `<article>` with real headings, lists and tables, so it reads like the page
+                    around it. Use `heading-offset` to keep the page outline in order.
+                  - Task-list checkboxes are named by their item's text (marked leaves them unlabelled).
+                  - Code blocks are `<ui-code>`, each named by its language.
+                  - While `source` loads, a `<ui-loader>` (`role="status"`) says so; a failed load shows a `<ui-message>` saying
+                    why.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-markdown"></ui-docs-api>
-              </ui-tab>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-markdown"></ui-docs-api>
+          </ui-tab>
 
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-markdown-*` tokens: set one on the element, on any ancestor (`:root` for all
-                    markdown), or on the rendered `<article>` through `::part(body)`. They inherit into the shadow root, where the
-                    sheet reads each through a private alias. Never set the `--_ui-markdown-*` names: they're the sheet's private
-                    plumbing.
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-markdown-*` tokens: set one on the element, on any ancestor (`:root` for all
+                  markdown), or on the rendered `<article>` through `::part(body)`. They inherit into the shadow root, where the
+                  sheet reads each through a private alias. Never set the `--_ui-markdown-*` names: they're the sheet's private
+                  plumbing.
 
-                    Code blocks are `<ui-code>` elements, so the `--ui-code-*` tokens colour them (see Code's Theming tab).
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    /* every block of markdown on the page */
-                    :root {
-                      --ui-markdown-link-color: var(--ui-teal);
-                      --ui-markdown-line-height: 1.6;
-                    }
-                    /* a quieter README */
-                    ui-markdown.readme {
-                      --ui-markdown-heading-color: var(--ui-grey);
-                    }
-                  </script>
-                </ui-code>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-markdown" playground></ui-docs-tokens>
+                  Code blocks are `<ui-code>` elements, so the `--ui-code-*` tokens colour them (see Code's Theming tab).
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  /* every block of markdown on the page */
+                  :root {
+                    --ui-markdown-link-color: var(--ui-teal);
+                    --ui-markdown-line-height: 1.6;
+                  }
+                  /* a quieter README */
+                  ui-markdown.readme {
+                    --ui-markdown-heading-color: var(--ui-grey);
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-markdown" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Markdown is ours, not Fomantic's, so no Fomantic theme restyles it: the theme picker in the header changes only
-                    the page around it. Its colours follow the light or dark scheme.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Markdown is ours, not Fomantic's, so no Fomantic theme restyles it: the theme picker in the header changes only
+                  the page around it. Its colours follow the light or dark scheme.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>
