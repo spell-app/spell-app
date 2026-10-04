@@ -407,8 +407,9 @@ every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks an
 | shadows `xs` ... `lg` | `--ui-shadow-subtle` / `-raised` / `-floating` / `-floating-hover` | grey-blue / near-black + lilac glow, one list each |
 | lavender | `--ui-highlight`, `--ui-info-*`, active menu items | `violet-150` / `violet-800` |
 
-- Fonts (decision D7):  `'Spell Serif'` exactly as the brand's `tokens/fonts.css`:  an installed Palatino first,
-  the brand's P052 `.otf` files (`themes/spell/`, URW base35) only where none is.  Serif headers (`h1` / `h2`
+- Fonts:  `'Spell Serif'` is the INSTALLED Palatino family only (macOS / iOS `Palatino`, Windows `Palatino Linotype`
+  / `Book Antiqua`, Linux `P052` / `TeX Gyre Pagella`);  none installed (some Linux, Android):  the generic `serif`.
+  No font files ship (Owen, 2026-10-04).  Serif headers (`h1` / `h2`
   bold, the rest regular), the italic serif lede (a header's sub header), the mono eyebrow (`sub` headers, statistic
   labels);  body in the system sans, code in the system mono.
 - Shape:  pill buttons, labels and progress bars;  12px inputs;  16px cards, segments, messages, toasts;  22px

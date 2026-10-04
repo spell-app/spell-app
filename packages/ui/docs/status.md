@@ -111,7 +111,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | element core (`core`, `forms` entries) | ✅ | 16.2 kB + 7.5 kB |
 | `UI` runtime (lazy) | ✅ | 30.9 kB (with `UI.icons`), budget < 50 kB;  [`docs/runtime.md`](runtime.md) |
 | icons | ✅ | SVG packs + `UI.icons` (2026-09-30):  default pack index 14.2 kB, loaded on first icon;  `yarn icons:pack`;  [`docs/icons.md`](icons.md) |
-| styles, tokens, utilities, themes | ✅ | OKLCH, `light-dark()`, contrast-picked foregrounds;  Fomantic themes in `styles/themes/` applied by `ThemeSheets.apply()` (page + every shadow root, `UI.styles` `shadow: true`);  our own `spell` theme (the Spell brand, `ThemeSheets.OWN`, Palatino / P052 headers), the default on every doc site |
+| styles, tokens, utilities, themes | ✅ | OKLCH, `light-dark()`, contrast-picked foregrounds;  Fomantic themes in `styles/themes/` applied by `ThemeSheets.apply()` (page + every shadow root, `UI.styles` `shadow: true`);  our own `spell` theme (the Spell brand, `ThemeSheets.OWN`, installed-Palatino serif headers, no font files), the default on every doc site |
 | native fallbacks | ✅ | every family;  [`docs/fallback.md`](fallback.md) |
 | hot reload | ✅ | `yarn test:hmr` |
 | framework hosts (vanilla, React, Vue, Solid 2) | ✅ | `yarn smoke`, 8 pages |

@@ -18,12 +18,9 @@
  * - Exports become `window.SpellUI` (`UI`), for the page runtime's checks and for poking in DevTools.
  * - The look:  UI's `spell` theme (the Spell brand), on every page, applied as soon as the bundle runs.  Its sheet
  *   is inlined like every other `import()`, so it registers a few microtasks after the bundle runs, not a
- *   network round trip later.  Its P052 fonts (only used where no Palatino is installed) are FILES beside the
- *   bundle, `_assets/fonts/`:  `spell-ui:fonts`, imported first, records where (the bundler rewrites the theme's
- *   `url()`s to it;  `spellThemeModule()`).
+ *   network round trip later.  It ships no font files:  its serif is an installed Palatino, else `serif`.
  */
 
-import "spell-ui:fonts"
 import "spell-ui:icons"
 import "spell-ui:emoji"
 import { ThemeSheets } from "@spell-app/ui"

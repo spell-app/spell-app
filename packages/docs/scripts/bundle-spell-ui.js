@@ -41,17 +41,6 @@ const UI_DIR = resolve(process.env.SPELL_UI_DIR ?? join(DOCS, "../ui"))
 const ASSETS = join(DOCS, "_assets")
 const ENTRY = join(ASSETS, "spell-ui.entry.js")
 const OUTFILE = join(ASSETS, "spell-ui.js")
-
-/**
- * The `spell` theme's fonts, written beside the bundle (`_assets/fonts/P052-*.otf`) instead of riding in it as
- * ~540 KB of base64:  only a machine without Palatino ever loads one.
- * - `SPELL_THEME_CHUNK`:  UI's lazy theme chunk, `dist/spell-<hash>.js`, whose CSS string holds the data URIs
- * - `FONTS_MODULE`:  `spell-ui:fonts`, imported FIRST by the entry:  the bundle's own URL, read while it runs
- *   (`document.currentScript`), so the rewritten `url()`s find the files from a page at any depth
- */
-const FONTS_OUT = join(ASSETS, "fonts")
-const SPELL_THEME_CHUNK = /[\\/]dist[\\/]spell-[\w-]+\.js$/
-const FONTS_MODULE = `globalThis.__SPELL_UI_FONTS__ = document.currentScript ? new URL("fonts/", document.currentScript.src).href : "fonts/"`
 /** Page behaviour, the RUNTIME's file;  bundled as an empty module while it doesn't exist yet. */
 const PAGE_RUNTIME = join(ASSETS, "spell-doc-runtime.js")
 
@@ -266,30 +255,6 @@ async function bundle() {
 }
 
 /**
- * UI's `spell` theme chunk at `path`, with each `url(data:font/otf;base64,...)` written out as
- * `FONTS_OUT/<face>.otf` (named by the `local(P052-...)` before it) and pointed at through `__SPELL_UI_FONTS__`.
- * - The chunk keeps its CSS in a double-quoted string (`var e = "@font-face{...}"`):  the URL is spliced in as
- *   `"+globalThis.__SPELL_UI_FONTS__+"`.  A chunk shaped otherwise fails the build rather than ship broken CSS.
- * - SIDE EFFECT:  (re)writes `FONTS_OUT`.
- */
-function spellThemeModule(path) {
-  const code = readFileSync(path, "utf8")
-  const fonts = /url\(data:font\/otf;base64,([A-Za-z0-9+/=]+)\)/g
-  if (!/var \w+ = "@font-face/.test(code)) fail(`${relative(DOCS, path)}:  not the CSS string the fonts rewrite expects`)
-  rmSync(FONTS_OUT, { recursive: true, force: true })
-  mkdirSync(FONTS_OUT, { recursive: true })
-  let count = 0
-  const rewritten = code.replace(fonts, (match, base64, offset) => {
-    const face = [...code.slice(0, offset).matchAll(/local\((P052-[A-Za-z]+)\)/g)].at(-1)?.[1] ?? `font-${count}`
-    writeFileSync(join(FONTS_OUT, `${face}.otf`), Buffer.from(base64, "base64"))
-    count++
-    return `url("+globalThis.__SPELL_UI_FONTS__+"${face}.otf)`
-  })
-  if (!count) fail(`${relative(DOCS, path)}:  no font data URIs to write out`)
-  return rewritten
-}
-
-/**
  * esbuild plugin wiring the entry to UI:
  * - `@spell-app/ui` ~== `dist/index.js`, `@spell-app/ui/<entry>` ~== `dist/<entry>.js` (mirrors UI's `package.json`
  *   `exports`)
@@ -304,9 +269,6 @@ function spellUiResolver() {
       pluginBuild.onResolve({ filter: /^spell-ui:icons$/ }, () => ({ path: "icons", namespace: "spell-ui" }))
       pluginBuild.onResolve({ filter: /^spell-ui:emoji$/ }, () => ({ path: "emoji", namespace: "spell-ui" }))
       pluginBuild.onResolve({ filter: /^spell-ui:lazy$/ }, () => ({ path: "lazy", namespace: "spell-ui" }))
-      pluginBuild.onResolve({ filter: /^spell-ui:fonts$/ }, () => ({ path: "fonts", namespace: "spell-ui" }))
-      // UI's `spell` theme chunk:  its fonts as files beside the bundle, not data URIs (`spellThemeModule()`)
-      pluginBuild.onLoad({ filter: SPELL_THEME_CHUNK }, ({ path }) => ({ contents: spellThemeModule(path), loader: "js" }))
       // the engines' `dist/` chunks:  never inlined (`spell-ui:lazy` loads them as scripts);  an empty stand-in
       for (const { chunk } of LAZY) {
         pluginBuild.onResolve({ filter: chunk }, () => ({ path: "lazy-chunk", namespace: "spell-ui" }))
@@ -319,7 +281,6 @@ function spellUiResolver() {
         if (loaded.path === "emoji-chunk") return { contents: "export default {}", loader: "js" }
         if (loaded.path === "lazy") return { contents: lazyModule(), resolveDir: ASSETS, loader: "js" }
         if (loaded.path === "lazy-chunk") return { contents: "export {}", loader: "js" }
-        if (loaded.path === "fonts") return { contents: FONTS_MODULE, loader: "js" }
         return { contents: "", loader: "js" }
       })
       pluginBuild.onResolve({ filter: /^@spell-app\/ui(\/.*)?$/ }, ({ path }) => ({ path: uiDistPath(path) }))

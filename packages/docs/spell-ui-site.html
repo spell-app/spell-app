@@ -87,9 +87,9 @@
               brown hue, lavender info.
             </li>
             <li>
-              Fonts exactly as the brand declares them: <code>'Spell Serif'</code> takes an installed Palatino first,
-              the brand's P052 <code>.otf</code> as fallback (no <code>.woff2</code>: Owen's call). Body: the system
-              sans.
+              Fonts: <code>'Spell Serif'</code> is the INSTALLED Palatino family only (macOS / iOS, Windows, most
+              Linux);  elsewhere the generic <code>serif</code>.  No font files ship:  Owen's call (the brand's P052
+              fallback was ~540 KB, and AGPL). Body: the system sans.
             </li>
             <li>
               Shape: pill buttons and labels, 12px inputs, 16px cards, 22px modals, layered soft shadows, round
@@ -360,11 +360,9 @@
               <code>main</code> re-run on every visit.
             </li>
             <li>
-              The docs bundle (<a href="_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
-                ><code>packages/docs/_assets/spell-ui.js</code></a
-              >) carries the P052 fonts as ~540 KB of base64.
+              Where no Palatino-family face is installed (some Linux, Android), headings fall back to the generic
+              <code>serif</code>.
             </li>
-            <li>The P052 licence is AGPL with a font exception: check it before anything public.</li>
             <li>On phones the stuck stack (top bar, tabs, two titles) takes about a fifth of the screen.</li>
           </ul>
         </ui-section>

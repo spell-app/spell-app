@@ -15,13 +15,13 @@
  *     `400` dark;  `--ui-<hue>-on` re-checked (ink where white fails 4.5:1)
  * - Primitives:  the palette steps used more than once, as `--spell-<ladder>-<step>` on `:root`.  Components only
  *   ever read the semantic `--ui-*` tokens below.
- * - Fonts (Owen's decision D7):  `'Spell Serif'` exactly as the brand's `tokens/fonts.css` declares it -- the
- *   installed Palatino first (macOS `Palatino`, Windows `Palatino Linotype` / `Book Antiqua`, Linux `P052`,
- *   `TeX Gyre Pagella`), the brand's own P052 `.otf` files (`spell/`, URW base35, `spell/LICENSE-urw-base35.txt`)
- *   only where none is installed.  Body:  the system sans;  code:  the system mono.
+ * - Fonts:  `'Spell Serif'` is the INSTALLED Palatino family only (macOS / iOS `Palatino`, Windows
+ *   `Palatino Linotype` / `Book Antiqua`, Linux `P052` / `TeX Gyre Pagella`), as the brand's `tokens/fonts.css` lists
+ *   them;  nowhere installed (some Linux, Android):  the stack's generic `serif`.  NO font files ship with the theme
+ *   (Owen, 2026-10-04:  the brand's P052 `.otf` fallback was ~540 KB, and AGPL).  Body:  the system sans;  code:
+ *   the system mono.
  *   - The `@font-face` rules sit OUTSIDE the layer (they can't be layered) and work from the PAGE copy;  shadow
- *     roots use the page's fonts.  Vite rewrites the relative `url()`s:  a site bundle emits the files, the library
- *     build (and so `packages/docs`' `spell-ui.js`) inlines them as data URIs
+ *     roots use the page's fonts
  *   - headings:  serif, bold `h1` / `h2`, regular `h3` and content headers, sans semibold `h4`-`h6`;  a header's
  *     sub header is the brand's italic serif LEDE;  a `sub` header the brand's mono EYEBROW
  * - Shape:  pill buttons, labels and progress bars, 12px inputs and menus, 16px cards / segments / messages /
@@ -56,8 +56,7 @@
     local("Book Antiqua"),
     local("P052 Roman"),
     local("P052-Roman"),
-    local("TeX Gyre Pagella"),
-    url("./spell/P052-Roman.otf") format("opentype");
+    local("TeX Gyre Pagella");
 }
 @font-face {
   font-family: "Spell Serif";
@@ -72,8 +71,7 @@
     local("Book Antiqua Bold"),
     local("P052 Bold"),
     local("P052-Bold"),
-    local("TeX Gyre Pagella Bold"),
-    url("./spell/P052-Bold.otf") format("opentype");
+    local("TeX Gyre Pagella Bold");
 }
 @font-face {
   font-family: "Spell Serif";
@@ -88,8 +86,7 @@
     local("Book Antiqua Italic"),
     local("P052 Italic"),
     local("P052-Italic"),
-    local("TeX Gyre Pagella Italic"),
-    url("./spell/P052-Italic.otf") format("opentype");
+    local("TeX Gyre Pagella Italic");
 }
 @font-face {
   font-family: "Spell Serif";
@@ -104,8 +101,7 @@
     local("Book Antiqua Bold Italic"),
     local("P052 Bold Italic"),
     local("P052-BoldItalic"),
-    local("TeX Gyre Pagella Bold Italic"),
-    url("./spell/P052-BoldItalic.otf") format("opentype");
+    local("TeX Gyre Pagella Bold Italic");
 }
 
 @layer ui.theme {
