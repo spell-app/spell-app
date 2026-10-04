@@ -759,9 +759,9 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
                 print back unchanged.
               </li>
               <li>
-                Of spell's 472 registered syntaxes, 452 print back exactly. The other 20 (5 syntaxes) read back as the
-                same rule, but lose what a rule doesn't keep: redundant parens (<code>(of {x}?)</code>) and a space
-                inside a subrule (<code>{value: expression}</code>). Checked by
+                All 472 of spell's registered syntaxes print back exactly. What a rule doesn't keep can't print back:
+                redundant parens (<code>(of {x}?)</code>) and a space inside a subrule (<code>{value: expression}</code
+                >) come back without them, the same rule (spell's 5 such syntaxes were tidied). Checked by
                 <a href="experiments/round-trip.mts" target="src-packages-docs-rulex-experiments-round-trip-mts"
                   ><code>experiments/round-trip.mts</code></a
                 >.
