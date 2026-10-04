@@ -73,4 +73,4 @@ _None yet._
 ## Pointers
 
 - `packages/app/AGENTS.md` -- the elements, the runner, `build:element`
-- `CODE-DEBT.md` (`## spell`) -- popups escaping the shadow root, runtimes never freed
+- `agents/CODE-DEBT.md` (`## spell`) -- popups escaping the shadow root, runtimes never freed

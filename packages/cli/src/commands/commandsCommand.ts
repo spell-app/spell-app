@@ -6,11 +6,11 @@ import { join } from "path"
 import { CLI } from "$/cli"
 
 /** The commands page's data, relative to a checkout's root. */
-export const COMMANDS_JSON = join("packages", "docs", "dev", "commands", "commands.json")
+export const COMMANDS_JSON = join("packages", "docs", "content", "dev", "commands", "commands.json")
 
 /**
  * `spell dev commands [list|check]`:  every command the repo has -- yarn scripts, `spell` commands, skills -- against
- * the commands page's `commands.json` (`packages/docs/dev/commands/`), which maps each to the operations it does.
+ * the commands page's `commands.json` (`packages/docs/content/dev/commands/`), which maps each to the operations it does.
  * - `list` (default):  every command, with whether the page names it (`✓` / `✗`)
  * - `check`:  just the problems:  commands the page never names, and names on the page no command has;  exits 1
  *   if there are any.  Run it after adding, renaming or removing a command (root `yarn commands:check`).
@@ -61,8 +61,8 @@ export async function commandsCommand(
  * - CLI:  `spell <command>` / `spell dev <command>`, read from `packages/cli/src/main.ts`'s
  *   `program.command(...)` / `dev.command(...)` calls.  NOTE: the SOURCE, not this process's commander program:
  *   the checkout checked may not be the one `spell` runs from.
- * - skills:  `/<name>` for each `SKILL.md` in `.claude/skills/*` and `goals/_skills/*`, plus `sources.userSkills`
- *   found in `~/.claude/skills`;  minus `sources.ignore`
+ * - skills:  `/<name>` for each `SKILL.md` in `.claude/skills/*` and `packages/docs/tools/goals/skills/*`, plus
+ *   `sources.userSkills` found in `~/.claude/skills`;  minus `sources.ignore`
  */
 export function commandSources(root: string, sources: CommandsData["sources"] = {}, home = homedir()): CommandSource[] {
   const found: CommandSource[] = []
@@ -82,7 +82,7 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
       found.push({ surface: "cli", name: owner === "dev" ? `spell dev ${name}` : `spell ${name}` })
     }
   }
-  const skillFolders = [join(root, ".claude", "skills"), join(root, "goals", "_skills")]
+  const skillFolders = [join(root, ".claude", "skills"), join(root, "packages", "docs", "tools", "goals", "skills")]
   for (const folder of skillFolders) {
     if (!existsSync(folder)) continue
     for (const name of readdirSync(folder)) {
@@ -111,7 +111,7 @@ export function pageNames(data: CommandsData): Set<string> {
 }
 
 /**
- * The parts of `commands.json` this reads;  its full shape:  `packages/docs/_assets/commands.js`'s header.
+ * The parts of `commands.json` this reads;  its full shape:  `packages/docs/tools/_assets/commands.js`'s header.
  * - `sources.userSkills`:  skills in `~/.claude/skills` that count, e.g. `session`
  * - `sources.ignore`:  commands that need no row, e.g. `/solid-2` (reference only, runs nothing)
  */

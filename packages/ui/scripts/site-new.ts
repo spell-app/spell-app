@@ -1,6 +1,6 @@
 /**
  * `yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]`:  write a Spell UI docs page from the
- * template, `packages/docs/templates/spell-ui-docs.html`.
+ * template, `packages/docs/content/templates/spell-ui-docs.html`.
  * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `site/components/<main tag>.html`, the
  *   component layout:  masthead with the family's theme picker, Examples / Usage / API / Theming tabs.  Title, summary
  *   and status come from `site/_data/pages.json` (`--title` / `--summary` override them).
@@ -11,8 +11,8 @@
  *   Title Case) and `--summary`.
  * - Fills the template's `{{...}}` placeholders, keeps the `site:component` OR `site:page` blocks (and drops the
  *   status label for a `done` family, the Fomantic link when Fomantic has no such page), and rewrites the
- *   template's `../../ui/site/` paths for the page's depth.  The page is its `<head>` and `main` alone:  the chrome
- *   is `site/_parts/layout.html`.
+ *   template's `../../../ui/site/` paths for the page's depth.  The page is its `<head>` and `main` alone:  the
+ *   chrome is `site/_parts/layout.html`.
  * - Refuses to overwrite an existing page without `--force`.  Prints the path and the page server URL hint.
  * - The Fomantic link:  `reference/Fomantic-UI-Docs/server/documents/<group>/<name>.html.eco` (git-ignored clone,
  *   plan doc P1), by the family name, or `FOMANTIC_PAGES` for the families whose page has another name.
@@ -26,10 +26,10 @@ import { SiteSections } from "./site-sections.ts"
 const UI = path.resolve(import.meta.dirname, "..")
 
 /** The template, in the docs package. */
-const TEMPLATE = path.resolve(UI, "../docs/templates/spell-ui-docs.html")
+const TEMPLATE = path.resolve(UI, "../docs/content/templates/spell-ui-docs.html")
 
-/** The template's own path prefix to the site (it lives in `packages/docs/templates/`). */
-const TEMPLATE_SITE = "../../ui/site/"
+/** The template's own path prefix to the site (it lives in `packages/docs/content/templates/`). */
+const TEMPLATE_SITE = "../../../ui/site/"
 
 /** Fomantic's docs pages, by group folder. */
 const FOMANTIC_DOCS = path.join(UI, "reference/Fomantic-UI-Docs/server/documents")

@@ -3,7 +3,7 @@ import { describe, test, expect, vi, afterEach } from "vitest"
 import { Observable, cellsContext, derived, flushCells, observe, prop, schemaOf, thing, type PropInfo } from "$/util"
 
 /**
- * Spell cells, pinned:  the measured design of `packages/docs/solid/experiments/spell-cells.ts` and `decorators.ts`,
+ * Spell cells, pinned:  the measured design of `packages/docs/content/solid/experiments/spell-cells.ts` and `decorators.ts`,
  * on the REAL `Observable`.  Solid's half (the bridge, staged DOM writes) is `packages/app`'s
  * `src/solid/cellsBridge.browser.test.tsx`:  it needs Solid's client build.
  * - `observe()` stands in for a Solid computation here:  both are a `Reaction`.

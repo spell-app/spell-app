@@ -42,7 +42,7 @@ export function worktreesOf(root: string): { path: string; branch: string }[] {
 /**
  * Where session / worktree / plan `name` stands, for `/park`, `/unpark`, `/wait-for` (was `status.py <name>`).
  * - `name` resolves as `/wtf <name>` does:  worktree `.claude/worktrees/<name>`, branch `<name>`, plan doc
- *   `packages/docs/epics/<name>/`, and the sessions titled `<name>` or that worked in that worktree
+ *   `packages/docs/content/epics/<name>/`, and the sessions titled `<name>` or that worked in that worktree
  * - `ids`:  its session ids when already known:  finding them reads every transcript, so `park wait` finds them once
  * - git runs in the MAIN checkout:  branches are shared, so every worktree gets the same answer
  */
@@ -94,17 +94,28 @@ export function planStatus(
  * Plan doc `name`'s live copy:  the worktree's when it has one, else the main checkout's;  or `null`.
  * - in each:  `<name>.plan.html`, else an old `<name>.html` that is a plan doc (`<body class="... plan-doc">`):
  *   plan docs were renamed on 2026-10-04, and worktrees cut before keep the old name until they merge `main`
- *   (`packages/docs/scripts/pages.js` `planDocIn()` is the same)
+ *   (`packages/docs/tools/pages.js` `planDocIn()` is the same)
+ * - which folder:  `epicsDir()`, old layout included
  */
 export function planFile(name: string, worktree: string, main = CLI.mainRoot()): string | null {
   for (const root of [worktree, main]) {
-    const folder = join(root, "packages", "docs", "epics", name)
+    const folder = join(epicsDir(root), name)
     const file = join(folder, `${name}.plan.html`)
     if (existsSync(file)) return file
     const old = join(folder, `${name}.html`)
     if (existsSync(old) && /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(readFileSync(old, "utf8"))) return old
   }
   return null
+}
+
+/**
+ * The folder checkout `root` keeps its plan docs in:  `packages/docs/content/epics`, else (a worktree cut before
+ * 2026-10-04, until it merges `main`) the old `packages/docs/epics` when only that is there.
+ */
+export function epicsDir(root: string): string {
+  const epics = join(root, "packages", "docs", "content", "epics")
+  const old = join(root, "packages", "docs", "epics")
+  return !existsSync(epics) && existsSync(old) ? old : epics
 }
 
 /**
@@ -122,7 +133,7 @@ export function planSummaries(files: string[], main = CLI.mainRoot()): Map<strin
     const loader = pathToFileURL(join(root, "node_modules", "tsx", "dist", "loader.mjs")).href
     const run = spawnSync(
       process.execPath,
-      ["--import", loader, join(root, "packages", "docs", "scripts", "plan-doc.js"), "summaries", ...todo],
+      ["--import", loader, join(root, "packages", "docs", "tools", "plan-doc.js"), "summaries", ...todo],
       {
         cwd: root,
         encoding: "utf8",

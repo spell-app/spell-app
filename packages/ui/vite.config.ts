@@ -115,7 +115,7 @@ export const SOLID_EXTERNAL = /^solid-js(\/|$)|^@solidjs\/|^@spell-app\/solid-el
 
 /**
  * Packages that MUST resolve to one copy:  the linked fork (`packages/solid-element`) resolves its imports from its
- * OWN `node_modules` otherwise, and two Solids can't share owners (`PAPERCUTS.md`).
+ * OWN `node_modules` otherwise, and two Solids can't share owners (`agents/PAPERCUTS.md`).
  */
 export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
 
@@ -205,7 +205,7 @@ export default defineConfig(() => {
 /**
  * Chunk file names:  an emoji data chunk (`src/components/ui-emoji/data/<set>/<letter>.json`) goes to
  * `emoji/<set>/<letter>-[hash].js`, so the two name sets' chunks are told apart -- by a reader of `dist/`, and by the
- * docs' single-file bundler, which loads them lazily instead of inlining them (`packages/docs/scripts/bundle-spell-ui.js`).
+ * docs' single-file bundler, which loads them lazily instead of inlining them (`packages/docs/tools/bundle-spell-ui.js`).
  */
 function emojiChunkNames(chunk: { facadeModuleId: string | null; moduleIds: readonly string[] }): string {
   const data = EMOJI_DATA.exec(chunk.facadeModuleId ?? chunk.moduleIds[0] ?? "")

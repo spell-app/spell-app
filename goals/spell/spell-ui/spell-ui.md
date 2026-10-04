@@ -82,5 +82,5 @@ _None yet._
 ## Pointers
 
 - `packages/ui/AGENTS.md`, `packages/ui/README.md`, `packages/ui/docs/`
-- `packages/docs/solid/solid-2.md` -- Solid 2 rules:  read before touching ui
+- `packages/docs/content/solid/solid-2.md` -- Solid 2 rules:  read before touching ui
 - `/Users/owen/www/spell-app/outstanding/ui-component-build.md`

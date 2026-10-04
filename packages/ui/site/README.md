@@ -3,7 +3,7 @@
 Plain, hand-authored `.html` pages in [fomantic-ui.com](https://fomantic-ui.com)'s docs style, built ONLY from
 `<ui-*>` widgets:  a left nav of every component, a masthead, Examples / Usage / API / Theming tabs, every example
 live with its source a click away, and an "On this page" rail.  Where a widget can't do what a page needs, that's a
-gap in the library, recorded in the plan doc of epic `spell-ui-pages` (`packages/docs/epics/spell-ui-pages/`).
+gap in the library, recorded in the plan doc of epic `spell-ui-pages` (`packages/docs/content/epics/spell-ui-pages/`).
 
 - No build step to VIEW a page:  pages are static files loading ONE committed bundle.
 - Served at `/ui/` by the repo's page server (`packages/server`, `UI_SITE`), live-reloading.
@@ -76,13 +76,13 @@ yarn site:new ui-card                                         # => site/componen
 yarn site:new getting-started --title "Getting started" --summary "One line."   # => site/getting-started.html
 ```
 
-- From the template, `packages/docs/templates/spell-ui-docs.html`;  title / summary / status from
+- From the template, `packages/docs/content/templates/spell-ui-docs.html`;  title / summary / status from
   `_data/pages.json` (fix a summary THERE, then `yarn site:data`).  It refuses to overwrite (`--force`).
 - A sub-tag gets a page of its own once its family's entry in `_data/pages.json` lists it under `pages` (title,
   summary, status), then `yarn site:data` and `yarn site:new <tag>`:  `components/<tag>.html` with ONE tag's API
   (`<ui-docs-api tag>`, where `#<tag>` lands) and a Theming tab only when a family token names it.  Its family page
   keeps the whole family's API and a one-line link to it;  the nav, search, card index and kitchen sink follow.
-- How to write one (sources, examples, usage, theming, gaps):  `packages/docs/epics/spell-ui-pages/PAGES.md`.  The
+- How to write one (sources, examples, usage, theming, gaps):  `packages/docs/content/epics/spell-ui-pages/PAGES.md`.  The
   model page:  `components/ui-button.html`.
 - Content is nested `<ui-section id header sticky collapsible dividing>`s:  a section per topic, a section per
   example inside it.  Their titles stick below the tabs' bar (which sticks too), they fold (folds remembered per

@@ -20,7 +20,7 @@ import { afterAll, beforeAll, describe, test, expect } from "vitest"
  * - Monaco only in `<spell-editor>`'s lazy chunks:  the parser compiles, and apps run, before it loads.
  * - Icon packs beside the chunk holding `BuiltInPacks`, where it looks -- complete enough for every Fomantic name.
  * - Every bundle MUST parse:  a build can succeed and still write javascript no browser runs -- e.g. vite's
- *   module preloading once moved an `await` into a non-`async` arrow.  See `PAPERCUTS.md`.
+ *   module preloading once moved an `await` into a non-`async` arrow.  See `agents/PAPERCUTS.md`.
  * - What a chunk holds comes from its sourcemap's `sources` (every build here writes maps), not from guessing at
  *   minified text;  `spellCore` is the exception, by `resetRuntime` -- `spell-editor.js` holds a few of `core`'s
  *   runtime-light modules.

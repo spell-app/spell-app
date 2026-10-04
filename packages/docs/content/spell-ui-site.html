@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spell UI Docs Site</title>
+    <meta
+      name="description"
+      content="How the Spell UI docs site works:  the Spell theme, one layout with pages swapped in, no flash on load, nested sections with deep links, the nav panel, search and the look controls."
+    />
+    <link rel="stylesheet" href="../tools/_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Spell UI Docs Site</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <h1>Spell UI Docs Site</h1>
+        <p class="lede">
+          How the Spell UI docs (<a href="../../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a
+          >, served at <code>/ui/</code>) are put together since the <code>ui-docs-rework</code> epic, and why.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="epics/ui-docs-rework/ui-docs-rework.plan.html" target="ui-docs-rework"
+              >epic ui-docs-rework</a
+            ></ui-item
+          >
+          <ui-item icon="user">Written for: anyone changing the site's chrome, a page, or the Spell theme</ui-item>
+          <ui-item icon="flag"
+            >Status: <ui-label size="mini" color="green">built</ui-label> on branch <code>ui-docs-rework</code></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="1" label="layout file"></ui-statistic>
+            <ui-statistic value="~0" label="layout shift on load"></ui-statistic>
+            <ui-statistic value="1,749" label="nested sections"></ui-statistic>
+          </ui-statistics>
+          <ul>
+            <li>
+              A <code>spell</code> theme from the brand, the default on every doc site (Spell UI docs, docs, plan docs,
+              goals); the Spell hat is every site's favicon.
+            </li>
+            <li>
+              The chrome is written ONCE (<a
+                href="../../ui/site/_parts/layout.html"
+                target="src-packages-ui-site-parts-layout-html"
+                ><code>site/_parts/layout.html</code></a
+              >); a page's file is its <code>&lt;head&gt;</code> and one <code>&lt;main&gt;</code>. Clicks swap only the
+              <code>main</code>.
+            </li>
+            <li>
+              The page shows only once the layout, the theme and every element are ready: no flash, no jump (CLS 0.0002
+              measured locally, shown at ~250ms).
+            </li>
+            <li>
+              Content is nested <code>&lt;ui-section&gt;</code>s with nested ids
+              (<code>#examples-types-emphasis</code>): foldable, sticky titles under sticky tabs, deep links land
+              unfolded.
+            </li>
+            <li>
+              Left: the brand nav panel with the logo and the site search. Right: the repo's site header, docked, the
+              look controls, "On this page". No top bar on wide screens.
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="2-theme" header="2. The Spell theme" sticky collapsible dividing>
+          <ui-icon slot="icon" name="palette"></ui-icon>
+          <ul>
+            <li>
+              <a href="../../ui/src/styles/themes/spell.css" target="src-packages-ui-src-styles-themes-spell-css"
+                ><code>packages/ui/src/styles/themes/spell.css</code></a
+              >, listed in <code>ThemeSheets.OWN</code>, applied on top of <code>classic</code> like every theme; tokens
+              from
+              <a href="../../brand/spell-design-system/tokens/" target="src-packages-brand-spell-design-system-tokens"
+                ><code>packages/brand/spell-design-system/tokens/</code></a
+              >.
+            </li>
+            <li>
+              Spell Purple primary (violet-600 light, lilac dark), an aubergine dark mode (not black), ivory as the
+              brown hue, lavender info.
+            </li>
+            <li>
+              Fonts: <code>'Spell Serif'</code> is the INSTALLED Palatino family only (macOS / iOS, Windows, most
+              Linux); elsewhere the generic <code>serif</code>. No font files ship: Owen's call (the brand's P052
+              fallback was ~540 KB, and AGPL). Body: the system sans.
+            </li>
+            <li>
+              Shape: pill buttons and labels, 12px inputs, 16px cards, 22px modals, layered soft shadows, round
+              checkboxes.
+            </li>
+            <li>
+              From the interfaces.dev cheat sheet: 3px focus ring, buttons press to 0.97, no transitions while the
+              scheme switches, tabular numbers, balanced headings, font smoothing, image outlines,
+              <code>scroll-margin-top</code>.
+            </li>
+            <li>
+              Default on the Spell UI docs (<code>ThemePreference</code>) and in the docs bundle (<a
+                href="../tools/_assets/spell-ui.entry.js"
+                target="src-packages-docs-assets-spell-ui-entry-js"
+                ><code>spell-ui.entry.js</code></a
+              >); the theme menu lists Spell, Plain, Classic, then Fomantic's.
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="3-layout" header="3. One layout, pages swapped in" sticky collapsible dividing>
+          <ui-icon slot="icon" name="window maximize"></ui-icon>
+          <ui-section id="3-1-first-load" header="First load" sticky collapsible dividing>
+            <ui-steps class="spell-steps" ordered>
+              <ui-step
+                header="Head script"
+                description="The stored scheme on <html> before first paint (spell-site:scheme)."
+              ></ui-step>
+              <ui-step
+                header="site.css hides the bare main"
+                description="Only with scripting on;  shown anyway after 4s."
+              ></ui-step>
+              <ui-step
+                header="SiteShell mounts the layout"
+                description="Fetches _parts/layout.html, makes its URLs absolute, wraps the page's main in it."
+              ></ui-step>
+              <ui-step
+                header="The theme's sheet loads"
+                description="ThemePreference.restore():  Spell unless the viewer picked another."
+              ></ui-step>
+              <ui-step
+                header="<ui-root display=when-ready> is defined"
+                description="Only now:  it keeps everything hidden until every element is ready, then shows it all at once."
+              ></ui-step>
+              <ui-step
+                header="SiteRouter starts"
+                description="Links to other pages of the site swap only the main from here on."
+              ></ui-step>
+            </ui-steps>
+          </ui-section>
+          <ui-section id="3-2-swaps" header="Page swaps" sticky collapsible dividing>
+            <ul>
+              <li>
+                A plain left click on a link to a page of the site (or the nav's cancelable <code>ui-navigate</code>):
+                the router fetches the page (<code>UI.sources</code>, cached), loads the families it uses, then points a
+                <code>&lt;ui-include select="main#main" page-styles&gt;</code> at it, inside a View Transition.
+              </li>
+              <li>
+                <code>pushState</code> keeps the page's real URL: reload, deep links, back / forward and live reload all
+                work as with plain pages.
+              </li>
+              <li>
+                After a swap: the title, the nav's current row, "On this page", the docked site header
+                (<code>spell-site:page</code>), live reload's file, the page's inline scripts re-run, the flyout closes,
+                focus moves to <code>main</code>, the hash lands.
+              </li>
+              <li>
+                <code>&lt;ui-include&gt;</code>'s new <code>ui-insert</code> event hands over the fragment before it
+                goes in: the router keeps each example's authored markup (<code>ExampleSource.keep()</code>) and makes
+                every relative URL absolute.
+              </li>
+              <li>Anything that fails falls back to a full load.</li>
+            </ul>
+          </ui-section>
+          <ui-section id="3-3-writing-pages" header="Writing a page" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>yarn site:new &lt;tag|page&gt;</code> in
+                <a href="../../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                >; rules in
+                <a href="epics/spell-ui-pages/PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+                  ><code>epics/spell-ui-pages/PAGES.md</code></a
+                >.
+              </li>
+              <li>The body is ONE <code>&lt;main id="main" class="site-main" data-toc-header="..."&gt;</code>.</li>
+              <li>
+                Styles go in <code>main</code> or
+                <a href="../../ui/site/_src/site.css" target="src-packages-ui-site-src-site-css"
+                  ><code>site/_src/site.css</code></a
+                >, never <code>&lt;head&gt;</code>: a swap drops the head.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="4-chrome" header="4. The chrome" sticky collapsible dividing>
+          <ui-icon slot="icon" name="table columns"></ui-icon>
+          <ui-table celled compact striped unstackable>
+            <table>
+              <thead>
+                <tr>
+                  <th>Width</th>
+                  <th>Left</th>
+                  <th>Top</th>
+                  <th>Right</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1200px+</td>
+                  <td>nav panel: lockup, search, folding groups</td>
+                  <td>nothing</td>
+                  <td>docked site header, look controls, "On this page"</td>
+                </tr>
+                <tr>
+                  <td>992-1199px</td>
+                  <td>nav panel</td>
+                  <td>slim bar: docked site header, look controls</td>
+                  <td>hidden</td>
+                </tr>
+                <tr>
+                  <td>below 992px</td>
+                  <td>panel in the flyout</td>
+                  <td>slim bar: menu, search, brand, look controls (site header below 768px: in the flyout)</td>
+                  <td>hidden</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+          <ul>
+            <li>
+              <code>&lt;ui-docs-nav&gt;</code>: the brand panel (the Color Set Chooser's look): ivory card, header band
+              with the Spell lockup and the search field, folding group bands, nav rows with a lavender current row.
+              Folds remembered.
+            </li>
+            <li>
+              <code>&lt;spell-site-header docked&gt;</code>: the repo-wide bar as a compact row (no fixed bar, no
+              crumbs, no scheme button).
+            </li>
+            <li>The right column stays on every tab (the API tab too): the page width never jumps.</li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="5-sections" header="5. Sections, ids, sticky tabs" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ul>
+            <li>
+              Every tab's content is nested <code>&lt;ui-section sticky collapsible dividing&gt;</code>s, an example
+              inside its own section.
+            </li>
+            <li>
+              Ids nest: <code>&lt;tab&gt;-&lt;section&gt;-&lt;example&gt;</code>, written INTO the markup by
+              <code>yarn site:sections</code> (idempotent; <code>site:new</code>, <code>site:index</code>,
+              <code>site:kitchen</code> run it). <code>site:check</code> fails on an id that doesn't follow its nesting.
+            </li>
+            <li>
+              A hash picks its tab, unfolds the sections around the target, and lands below the stuck titles (<a
+                href="../../ui/site/_src/SiteSections.ts"
+                target="src-packages-ui-site-src-sitesections-ts"
+                ><code>site/_src/SiteSections.ts</code></a
+              >). Old hashes (<code>#types</code>) still land, and the URL is rewritten.
+            </li>
+            <li>
+              The tabs bar sticks; top-level titles stick below it, nested ones below their parents. Folds start open
+              and are remembered per page.
+            </li>
+            <li>"On this page" lists the nested sections.</li>
+          </ul>
+          <ui-accordion class="spell-code" styled open="0">
+            <ui-title>Divider, Examples tab · 6 lines</ui-title>
+            <ui-content>
+              <pre><code class="language-html">&lt;ui-section id="examples-types" header="Types" sticky collapsible dividing&gt;
+  &lt;ui-section id="examples-types-vertical-divider" header="Vertical Divider" sticky collapsible dividing&gt;
+    &lt;ui-docs-example description="A divider can segment content vertically."&gt;...&lt;/ui-docs-example&gt;
+  &lt;/ui-section&gt;
+&lt;/ui-section&gt;</code></pre>
+            </ui-content>
+          </ui-accordion>
+
+          <ui-section id="which-tags-get-a-page" header="Which tags get a page" sticky collapsible dividing>
+            <ui-icon slot="icon" name="copy"></ui-icon>
+            <ul>
+              <li>
+                One page per family (a folder: one chunk, one barrel) holds its tags together: Button covers
+                <code>&lt;ui-button&gt;</code>, <code>&lt;ui-buttons&gt;</code>, <code>&lt;ui-or&gt;</code>.
+              </li>
+              <li>
+                Tags that stand alone get their OWN page: <code>ui-radio</code>, <code>ui-textarea</code>, and the 12
+                Parts tags other than <code>ui-header</code> (80 pages in all).
+                <a href="../../ui/site/_data/pages.json" target="src-packages-ui-site-data-pages-json"
+                  ><code>site/_data/pages.json</code></a
+                >'s <code>pages</code> map names them; the nav, search, index and kitchen sink follow its hrefs.
+              </li>
+              <li>Downloads don't change: families still load as one chunk each.</li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="6-search" header="6. Search" sticky collapsible dividing>
+          <ui-icon slot="icon" name="search"></ui-icon>
+          <ul>
+            <li>
+              <code>&lt;ui-docs-search&gt;</code>, in the nav panel's header: one field that jumps anywhere and still
+              filters the nav list.
+            </li>
+            <li>
+              Groups: On this page (read live), Components (every tag, by name, aka, topic), Pages, Sections (every
+              page's, from <code>_data/search.json</code>, built by <code>yarn site:data</code>), Attributes.
+            </li>
+            <li>
+              <kbd>/</kbd> or <kbd>⌘K</kbd> focuses it from anywhere (on phones it opens the flyout); arrows, Enter,
+              staged Escape. Results are plain links: the router swaps the page.
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="7-look" header="7. Look controls" sticky collapsible dividing>
+          <ui-icon slot="icon" name="sun"></ui-icon>
+          <ul>
+            <li>
+              <code>&lt;ui-docs-themes&gt;</code>: a sun / moon button showing the scheme in use (a click flips it,
+              animated), and a palette button opening a small overlay: the theme list and "Match system".
+            </li>
+            <li>
+              ONE scheme for every site: <code>localStorage["spell-site:scheme"]</code> (<code>light</code>,
+              <code>dark</code>, absent = the OS), applied as <code>ui-light</code> / <code>ui-dark</code> AND
+              <code>color-scheme</code> on <code>&lt;html&gt;</code>; the docs' site header flips the same way.
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="8-favicon" header="8. Favicon" sticky collapsible dividing>
+          <ui-icon slot="icon" name="hat wizard"></ui-icon>
+          <ul>
+            <li>
+              The brand's app icon: white hat on aubergine, 22.5% corners; <code>yarn favicon</code> in
+              <a href="../../server/" target="src-packages-server"><code>packages/server</code></a> generates it.
+            </li>
+            <li>
+              The page server injects it into every page it serves; <code>&lt;spell-site-header&gt;</code> adds it on
+              <code>file://</code>; the app links its own copy.
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="9-why" header="9. Why" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <ul>
+            <li>
+              Real URLs with the layout injected, over a shell page with a route: every link, reload and live reload
+              keeps working (Q1).
+            </li>
+            <li>
+              <code>&lt;ui-root display="when-ready"&gt;</code> over <code>&lt;ui-root hidden&gt;</code>, skeletons or a
+              cloak: already built, and a failed script never leaves a blank page (Q2).
+            </li>
+            <li>Family pages, with own pages for tags that stand alone (Q3, see the plan doc's P7).</li>
+            <li>The site header docked in the right column, not a top bar (Q4).</li>
+            <li>Ids in the markup, not derived at runtime: stable, grep-able, linkable.</li>
+            <li>Every choice made without Owen is a judgement call in the plan doc (J1-J44).</li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="10-limits" header="10. Limits" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ul>
+            <li>A page opened from disk, or with scripts off, shows its <code>main</code> alone (no chrome).</li>
+            <li>
+              A page's <code>&lt;head&gt;</code> styles and scripts don't follow a swap; inline scripts in
+              <code>main</code> re-run on every visit.
+            </li>
+            <li>
+              Where no Palatino-family face is installed (some Linux, Android), headings fall back to the generic
+              <code>serif</code>.
+            </li>
+            <li>On phones the stuck stack (top bar, tabs, two titles) takes about a fifth of the screen.</li>
+          </ul>
+        </ui-section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">Last checked 2026-10-04 against branch <code>ui-docs-rework</code>.</p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

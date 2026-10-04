@@ -207,7 +207,7 @@ type ShownThing = Pick<ConsoleValueProps, "type" | "display" | "observable">
 /**
  * How to show logged `thing`, asking `inspector` first about objects it might know.
  * - NOTE: as React did, `true` / `false` / `undefined` show as NOTHING:  JSX draws no text for them.
- *   See `SUSPECTED-BUGS.md`, "app".
+ *   See `agents/SUSPECTED-BUGS.md`, "app".
  */
 function showThing(thing: unknown, inspector: ConsoleInspector): ShownThing {
   if (thing === null) return { type: "null", display: "null" }

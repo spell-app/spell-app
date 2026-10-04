@@ -74,10 +74,10 @@ can change files.
 
 - [`AGENTS.md`](AGENTS.md):  the conventions every package follows, for people and coding agents alike.
   Each package's own `AGENTS.md` adds what's local to it.
-- [`PAPERCUTS.md`](PAPERCUTS.md):  what slowed development down, and the fix.  Check it first when tooling fails
+- [`agents/PAPERCUTS.md`](agents/PAPERCUTS.md):  what slowed development down, and the fix.  Check it first when tooling fails
   mysteriously.
-- [`SUSPECTED-BUGS.md`](SUSPECTED-BUGS.md):  things that look wrong but aren't confirmed yet.
-- [`CODE-DEBT.md`](CODE-DEBT.md):  structural problems we've chosen not to fix yet, and why.
+- [`agents/SUSPECTED-BUGS.md`](agents/SUSPECTED-BUGS.md):  things that look wrong but aren't confirmed yet.
+- [`agents/CODE-DEBT.md`](agents/CODE-DEBT.md):  structural problems we've chosen not to fix yet, and why.
 
 ## History
 
