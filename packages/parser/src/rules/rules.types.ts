@@ -28,6 +28,16 @@ export type DefinitionFor<RuleType extends { readonly Props: P.RuleProps }> = Pr
   Partial<RuleType["Props"]> & RuleDefinitionProps
 >
 
+// ## Rulex
+
+/** Symbols rulex reads as its own syntax:  a literal one is written escaped, `\(`. */
+export const RULEX_SPECIALS = ["?", "*", "+", "(", ")", "[", "]", "{", "}", "|", ":", "\\"]
+
+/** `literal` as rulex syntax:  escaped when it's one of `RULEX_SPECIALS` (`(` => `\(`). */
+export function escapeRulex(literal: string) {
+  return RULEX_SPECIALS.includes(literal) ? `\\${literal}` : literal
+}
+
 // ## Spacing
 
 /**

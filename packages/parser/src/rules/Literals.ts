@@ -101,6 +101,8 @@ export abstract class Literals<
 
     const literalStrings = this.literals
       .map(({ literal, optional }) => {
+        // rulex's own specials (`\[`, `\*` ...) escaped, so the syntax reads back the same
+        literal = typeof literal === "string" ? P.escapeRulex(literal) : literal.map(P.escapeRulex)
         // Parens around alternatives, else `(else|otherwise) if` would read as `else|otherwise if`.
         if (typeof literal !== "string" && literal.length > 1) return `(${literal.join("|")})${optional ? "?" : ""}`
         const matchString = typeof literal === "string" ? literal : literal.join("|")
