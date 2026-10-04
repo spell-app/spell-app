@@ -93,3 +93,6 @@ export const POPSTATE = "popstate"
 
 /** A value no pane has. */
 export const NONE = "\u0000"
+
+/** Prefix of the id a server render gives a pane, for its tab's `aria-controls`. */
+export const PANE_ID = "ui-tab"

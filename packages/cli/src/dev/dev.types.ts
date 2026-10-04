@@ -82,23 +82,6 @@ export type PendingQuestion = {
 ////////////////
 
 /**
- * Where a live session works -- `spell dev worktree list`.
- * - `worktree`:  `main checkout`, `worktree <name>`, or `(not in git)`
- * - `folder`:  inside its checkout (`""` at the root);  the full path outside a checkout
- * - `this`:  the session that ran the command
- */
-export type SessionPlace = {
-  name: string
-  id: string
-  status: string
-  where: string
-  worktree: string
-  branch: string
-  folder: string
-  this: boolean
-}
-
-/**
  * Where session / worktree / plan `name` stands -- `nameStatus()`.
  * - `ahead`:  commits on branch `name` not in `main`
  * - `merged`:  the branch had commits of its own (its reflog moved past "Created") and all are in `main` now
@@ -116,6 +99,16 @@ export type NameStatus = {
   sessions: { id: string; title: string | null; running: boolean; pid: number | null }[]
   finished: boolean
   why: string | null
+}
+
+/**
+ * A plan doc's summary, from the plan-doc tool's `summaries` (`summary --json` per file);  `error` when it couldn't
+ * read the doc.  Only the fields read here.
+ */
+export type PlanSummary = {
+  title?: string
+  phases?: { n?: number; name?: string; status?: string; estimate?: string }[]
+  error?: string
 }
 
 /** Something `/wait-for ?` offers:  a worktree, an epic, or a running session. */
@@ -139,9 +132,16 @@ export type ParkedNote = { name: string; file: string; state: string; stopped: s
 export type StockReport = {
   generated: string
   main: string
+  /** every running session on the machine, in this repo or not */
+  sessions: LiveSession[]
+  /** this repo's worktrees with no session in them */
+  idle: IdleWorktree[]
   groups: Record<StockGroup, string[]>
   items: StockItem[]
 }
+
+/** A worktree under `.claude/worktrees/` with no running session in it. */
+export type IdleWorktree = { path: string; branch: string }
 
 /**
  * - `active` -- in process:  a session working in it, or touched in the last `RECENT_HOURS`
@@ -155,7 +155,7 @@ export type StockGroup = "active" | "stalled" | "dead"
 /**
  * One thing open:  a worktree, branch, plan, session, stash or window file.
  * - `key`:  `<kind>:<name>`;  `why`:  the reasons for its group, in words
- * - `actions`:  what `/whassup` offers;  each action's `commands` are shell lines to run one by one from the MAIN
+ * - `actions`:  what `/worktrees` offers;  each action's `commands` are shell lines to run one by one from the MAIN
  *   checkout, `[]` for a step Claude takes (open a session, `/wtf`, ask)
  * - the other fields depend on `kind`:
  *   - worktree / branch:  `worktree` ... `morning`;  `unique`:  commits whose patch isn't in `main` yet (not
@@ -187,11 +187,13 @@ export type StockItem = {
   file?: string
 }
 
-/** Something `/whassup` can do about an item. */
+/** Something `/worktrees` can do about an item. */
 export type StockAction = { id: string; label: string; commands: string[] }
 
 /**
- * A running session, as `/whassup` sees it.
+ * A running session, as `/worktrees` sees it.
+ * - `name`:  its title;  `agent`:  what `ListAgents` and `SendMessage` call it (the registry's name)
+ * - `checkout`:  `main checkout`, `worktree <name>` or `(not in git)`;  `folder`:  `cwd` inside it (`""` at its root)
  * - `state`:  the registry's `busy` / `idle` / `waiting`, or `hung` for `busy` with no transcript write for
  *   `SILENT_MINUTES`
  * - `question`:  an `AskUserQuestion` with no answer after it, `questionMin` minutes ago
@@ -200,11 +202,16 @@ export type StockAction = { id: string; label: string; commands: string[] }
 export type LiveSession = {
   id: string
   name: string
+  agent: string | null
   pid: number
   cwd: string
   inRepo: boolean
   where: string | null
+  checkout: string
+  branch: string
+  folder: string
   state: string
+  waitingFor: string | null
   lastActive: string
   silentMin: number
   question: string | null

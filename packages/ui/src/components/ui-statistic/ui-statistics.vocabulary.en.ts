@@ -13,6 +13,7 @@
  *   a `<ui-label>` before a `<ui-value>` is Fomantic's top label.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -34,21 +35,45 @@ export const statisticsVocabulary = {
     {
       name: "stackable",
       kind: "keyOnly",
-      description: "Below 768px of the GROUP's width (a container query), one statistic per row, full width."
+      description:
+        "Below 768px of the group's width (or the screen's:  `stack-with`), one statistic per row, full width."
+    },
+    {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        "What `stackable` measures:  `container` (the default) -- the group's own width;  `page` -- the " +
+        "screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root " +
+        "stack-with>`)."
+    },
+    {
+      name: "equal",
+      kind: "keyOnly",
+      description:
+        "Every statistic the same width, from the statistics themselves (no count):  one row, an equal share of " +
+        "it each (the group spans its row).  Not with `horizontal` (a column)."
     },
     {
       name: "widths",
       kind: "width",
       widthClass: "",
       values: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-      description: 'Divides each row evenly between N statistics:  `widths="3"` => `three statistics`.'
+      description:
+        'Older, count-based alias of `equal`:  divides each row evenly between N statistics (`widths="3"` => ' +
+        "`three statistics`), wrapping after N."
     }
   ],
   events: [],
   slots: [{ name: "", description: "`<ui-statistic>`s." }],
   parts: [{ name: "group", description: "The group box." }],
   states: [
-    { name: "statistics", description: "ALWAYS set:  the group's host is a block and the `ui-statistics` container." }
+    { name: "statistics", description: "ALWAYS set:  the group's host is a block and the `ui-statistics` container." },
+    {
+      name: "spaced",
+      description:
+        "Set unless `horizontal` or `widths`:  the group keeps Fomantic's 1em top margin, which the HOST carries (so it collapses with the content above)."
+    }
   ],
   texts: []
 } as const satisfies ComponentVocabulary

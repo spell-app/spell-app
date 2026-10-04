@@ -3,6 +3,12 @@
  * - Runtime-light:  `import type` only, plus the small `CliError` class and `EXIT` codes.
  */
 import type { SP } from "$/spell"
+import type {
+  StaticCoverage,
+  StaticDocumentOptions,
+  StaticDocumentResult,
+  StaticStylesheetResult
+} from "$/ui/tools/tools.types"
 
 ////////////////
 // ## Targets
@@ -227,6 +233,20 @@ export type StockOptions = GlobalOptions & {
 }
 
 /**
+ * `spell static` flags.
+ * - `output`:  `-o`:  the page to write, for one input;  a FOLDER to write into, for several
+ * - `inline`:  the stylesheet in a `<style>` in the page, rather than a file beside it
+ * - `css`:  ONE stylesheet for every page, written here, rather than one per page
+ * - `minify`:  `false` (`--no-minify`) leaves the stylesheet readable
+ */
+export type StaticOptions = GlobalOptions & {
+  output?: string
+  inlineCss?: boolean
+  css?: string
+  minify?: boolean
+}
+
+/**
  * `spell new` flags.
  * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
  */
@@ -266,6 +286,38 @@ export type RunSpec = {
 export type RunReport = {
   skipped: string[]
 }
+
+/**
+ * One shared stylesheet of a `spell static` job:  where it goes, the pages that link it (indices in the job), and
+ * what the sheet already there covered (its first line), for the build to keep.
+ */
+export type StaticSheetJob = {
+  path: string
+  pages: number[]
+  coverage?: StaticCoverage
+}
+
+/**
+ * What `spell static` and its child process, `runner/renderStatic.ts`, say to each other over IPC, in order:
+ * - `ready`:  child to parent, once its Vite server is up
+ * - `job`:  parent to child, once:  each page's HTML and stylesheet options, and the shared stylesheets (`sheets`)
+ *   to build afterwards, `minify`d or not
+ * - `page`:  child to parent, one per page in `job` order (`index`):  its `result`, or the `error` that stopped it
+ * - `stylesheet`:  child to parent, after the pages, one per `sheets` entry (`path`)
+ * - `done`, or `failed` with the error that stopped the whole job
+ */
+export type StaticMessage =
+  | { kind: "ready" }
+  | {
+      kind: "job"
+      pages: { html: string; options: StaticDocumentOptions }[]
+      sheets: StaticSheetJob[]
+      minify: boolean
+    }
+  | { kind: "page"; index: number; result?: StaticDocumentResult; error?: string }
+  | { kind: "stylesheet"; path: string; result: StaticStylesheetResult }
+  | { kind: "done" }
+  | { kind: "failed"; error: string }
 
 ////////////////
 // ## Places

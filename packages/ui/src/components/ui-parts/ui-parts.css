@@ -281,23 +281,23 @@
     color: var(--ui-color-hover, var(--ui-link-hover));
   }
 
-  /* Page headers:  sized by level unless a size is given. */
-  h1.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive) {
+  /* Page headers:  sized by level unless a size is given, or `sub` (Fomantic's `h2.ui.sub.header` is a sub header). */
+  h1.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive, .sub) {
     --_header-base: calc(var(--ui-font-size) * var(--_ui-header-h1));
   }
-  h2.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive) {
+  h2.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive, .sub) {
     --_header-base: calc(var(--ui-font-size) * var(--_ui-header-h2));
   }
-  h3.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive) {
+  h3.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive, .sub) {
     --_header-base: calc(var(--ui-font-size) * var(--_ui-header-h3));
   }
-  h4.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive) {
+  h4.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive, .sub) {
     --_header-base: calc(var(--ui-font-size) * var(--_ui-header-h4));
   }
-  h5.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive) {
+  h5.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive, .sub) {
     --_header-base: calc(var(--ui-font-size) * var(--_ui-header-h5));
   }
-  h6.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive) {
+  h6.ui.header:not(.mini, .tiny, .small, .medium, .large, .big, .huge, .massive, .sub) {
     --_header-base: calc(var(--ui-font-size) * var(--_ui-header-h6));
   }
 
@@ -331,6 +331,12 @@
     display: inline-block;
     margin-top: var(--_ui-header-margin-top);
     text-align: center;
+  }
+  /* An icon header's picture (Fomantic's `img.ui.icon.image`):  a block centred above the text, like its icon. */
+  .ui.icon.header > img,
+  .ui.icon.header ::slotted(img) {
+    display: block;
+    margin: 0 auto var(--_ui-header-icon-header-margin);
   }
   .ui.icon.header:first-child {
     margin-top: 0;
@@ -634,6 +640,15 @@
     margin-inline-end: 0;
     font-weight: var(--ui-font-weight-bold);
     vertical-align: baseline;
+  }
+  /* A linked author (Fomantic's `a.user`) is the link colour, never the browser's default blue. */
+  :host(:state(in-feed)) > a.author,
+  a.in-feed.author {
+    color: var(--ui-feed-author-color, var(--ui-link));
+  }
+  :host(:state(in-feed)) > a.author:hover,
+  a.in-feed.author:hover {
+    color: var(--ui-link-hover);
   }
   :host(:state(in-feed)) > .extra,
   .in-feed.extra {

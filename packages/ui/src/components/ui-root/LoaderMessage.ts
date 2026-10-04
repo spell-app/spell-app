@@ -4,7 +4,6 @@ import type { JSX } from "@solidjs/web"
 import type { AttributeName } from "$/ui/core"
 
 import { loaderVocabulary } from "../ui-loader/ui-loader.vocabulary.en"
-import "../ui-loader/index"
 
 /** The loader's switches for a centred spinner with its text below:  `<ui-loader active inline centered text>`. */
 const LOADER_SWITCHES: readonly AttributeName<typeof loaderVocabulary>[] = ["active", "inline", "centered", "text"]
@@ -13,8 +12,9 @@ const LOADER_SWITCHES: readonly AttributeName<typeof loaderVocabulary>[] = ["act
  * ### `LoaderMessage`
  * What `<ui-root loading="...">` shows while its components load:  a `<ui-loader>` with the message.
  * `UIRoot.Loading`, so an app swaps the look with one assignment or a subclass (`UIRoot.Loading = MyLoading`).
- * - Imports the `ui-loader` family STATICALLY:  one of the two families a root never loads on demand (the other is
- *   `ui-placeholder`, for skeletons).
+ * - The `ui-loader` family is imported STATICALLY, by the root's barrel (`index.ts`):  one of the two families a root
+ *   never loads on demand (the other is `ui-placeholder`, for skeletons).  Not here:  this file is also loaded by the
+ *   static server render (`$/ui/server`), where defining an element throws.
  * - Built with the DOM, not JSX:  Solid's JSX has no types for our tags.
  ****************/
 export class LoaderMessage {

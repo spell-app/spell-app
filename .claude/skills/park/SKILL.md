@@ -28,16 +28,21 @@ name to park this session under.
 1. `<name>`:
    - in a worktree (the session's folder is under `.claude/worktrees/`):  that worktree's name
    - else `$ARGUMENTS`, lower-kebab-cased;  none:  propose one from the work so far in AskUserQuestion
+   - then rename the session `<name>` at once, before step 2:
+     `spell dev session title <name>`.  (Not done by the prompt hook:  `/park
+     <name>` may name ANOTHER session.)
 2. In the MAIN checkout:  move the work into worktree `<name>`, following `.claude/skills/isolate/SKILL.md`
    "Start", with these changes:
    - step 0, "Carry them over" WITHOUT asking, but ONLY this session's files:  the main checkout may hold other
      sessions' edits too.  `git status --short`;  any file this session didn't touch:  AskUserQuestion,
      multiSelect, "Which of these are this session's?" (preselect none).  Then `git stash push -u -m
-     "park:<name>" -- <paths>`, and `git stash pop` in the worktree after step 4.
-   - steps 1-4 and 7 as written
-   - steps 5-6 (own window, move the session there):  only for a plain `/park`.  From `/wait-for`, SKIP them:  the
-     move restarts the session in the new window, which would kill the background wait.  `/unpark`'s window
-     check offers the move later.
+     "park:<name>" -- <paths>`, its sha from `git stash list --format='%H %gs'`, and `git stash apply <sha>` in
+     the worktree after step 3 (then drop that entry).
+   - steps 1-3 as written, then NOT steps 4-6 yet:  the commit and note (steps 3-4 below) come first, since
+     isolate's step 6 ends the turn.  No `yarn install`:  parked work doesn't run.
+   - then, only for a plain `/park`:  isolate's steps 4-6 (own window, move, end the turn), after step 5 below.
+     From `/wait-for`, SKIP them:  the move restarts the session in the new window, which would kill the
+     background wait.  `/unpark`'s window check offers the move later.
 3. Commit, in the worktree:  `git add -A`, then `git commit -m "WIP (parked): <name> -- <where it stopped, one
    line>"`.  Nothing to commit:  skip, and say so.  BEFORE step 4, so the note can't be swept into the commit.
 4. Write `PARKED-<name>.md` at the worktree root:
@@ -85,7 +90,8 @@ name to park this session under.
 
 Used by `/unpark` (after its window check) and by `/wait-for` when the wait ends.  In the worktree:
 
-1. Read `PARKED-<name>.md`:  goal, where it stopped, next steps.
+1. Read `PARKED-<name>.md`:  goal, where it stopped, next steps.  Check the session's name
+   (`.claude/skills/isolate/SKILL.md`, "Session name").
 2. Bring in the new `main`, the same way as `.claude/skills/isolate/SKILL.md` "Finish" steps 2-3:
    - `git log --oneline HEAD..main` empty:  nothing new, go on to step 4
    - `git merge-tree --write-tree --name-only main HEAD`:  exit 0, `git merge main`;  exit 1, conflicts:

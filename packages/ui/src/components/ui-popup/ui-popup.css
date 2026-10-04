@@ -179,8 +179,9 @@
 *******************************/
 
 @layer ui.components.popup.content {
-  /* Header (the shorthand, or static `.header`) */
+  /* Header (the shorthand, or static `.header`);  a block even as a server render's `<span>` (`UIPopup`). */
   .ui.popup > .header {
+    display: block;
     padding: 0;
     font-family: var(--ui-font-family-heading);
     font-size: var(--_ui-popup-header-font-size);
@@ -189,6 +190,10 @@
   }
   .ui.popup > .header + .content {
     padding-top: var(--_ui-popup-header-distance);
+  }
+  /* The `content` shorthand:  a block, for the same reason. */
+  .ui.popup > .content {
+    display: block;
   }
 
   /* Coupling:  a grid right inside a popup sits flush with its padding. */
@@ -346,6 +351,14 @@
   .ui.flowing.popup {
     max-width: none;
   }
+  /*
+   * A slotted grid is a size container (`ui-grid.css`), so its inline size ignores its content and a popup sized
+   * BY its content collapses to a sliver.  Drop the containment here:  this outer tree's `::slotted()` beats the
+   * grid's own `:host` rule.  Its stackable / device ranges then follow the nearest container above.
+   */
+  .ui.flowing.popup > ::slotted(ui-grid) {
+    container-type: normal;
+  }
 
   /* ## Inverted:  the opposite scheme's ink;  a coloured one takes the hue's light variant. */
   .ui.inverted.popup {
@@ -370,6 +383,14 @@
   /* Shown (static markup;  the element's host is the popover). */
   .ui.visible.popup {
     display: block;
+  }
+
+  /*
+   * Static markup whose box IS the popover (a server render's, `$/ui/server`):  hidden until open, as the host is.
+   * Never matches inside the element's shadow root, where the HOST carries `popover`.
+   */
+  .ui.popup[popover]:not(:popover-open) {
+    display: none;
   }
 
   /* Loading:  faded content under a spinner;  not interactive. */

@@ -223,6 +223,11 @@ export type StyleRegisterOptions = {
    * (`table`, `scroll-lock`) aren't in `ui.css` and always go on.
    */
   linked?: boolean
+  /**
+   * also adopt into EVERY component shadow root (after utilities, before the app stylesheet), now and as roots
+   * appear:  themes, whose class-grammar overrides (`.ui.button`) must reach the markup inside components
+   */
+  shadow?: boolean
 }
 
 /** `id` of the ONE app stylesheet components adopt -- see `docs/runtime.md`. */

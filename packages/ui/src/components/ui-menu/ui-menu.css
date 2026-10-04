@@ -43,7 +43,7 @@
  * | `--ui-menu-item-radius`             | item corners                          | secondary                            |
  * | `--ui-menu-item-border-width` / `-color` | item border (underline, tab edges) | secondary pointing, tabular          |
  * | `--ui-menu-item-align`              | item `align-self`                     | secondary, pointing, text            |
- * | `--ui-menu-item-flex` / `-width` / `-min-width` / `-justify` / `-text-align` / `-direction` | item sizing | centered, equal width, N item, pagination, labeled icon, stackable |
+ * | `--ui-menu-item-flex` / `-width` / `-min-width` / `-justify` / `-text-align` / `-direction` | item sizing | centered, equal width, N item, pagination, labeled icon, stackable, `fluid aligned`, `equal`, segmented |
  * | `--ui-menu-item-font-size`          | sub-menu item size                    | sub-menus of a vertical menu         |
  * | `--_ui-menu-first-radius` / `-last-` / `-only-` (switch) | corners of the first / last / only item | vertical, pagination, compact, |
  * |                                     |                                       | attached, fixed, sub-menus           |
@@ -54,7 +54,8 @@
  * | `--ui-menu-pressed-background` / `-color` | pressed item                    | same                                 |
  * | `--ui-menu-active-background` / `-color` / `-weight` / `-border-color` / `-border-width` / `-margin` / `-radius` | active item | every type |
  * | `--ui-menu-active-hover-background` / `-color` | active item hovered        | same                                 |
- * | `--ui-menu-active-accent`           | active colour ignoring `--ui-color`   | inverted (white text)                |
+ * | `--ui-menu-active-accent`           | active colour ignoring `--ui-color`   | inverted (white text), segmented     |
+ * | `--ui-menu-active-focus-color`      | focus ring on the active item         | segmented (its on-colour)            |
  * | `--ui-menu-arrow`                   | pointing arrow `display`              | pointing (not secondary / text)      |
  * | `--ui-menu-arrow-color`             | arrow fill                            | inverted, coloured                   |
  * | `--ui-menu-header-*`                | header item colour / size / case / margin | text, secondary pointing, inverted |
@@ -173,6 +174,7 @@
     --_ui-menu-active-hover-background: var(--ui-menu-active-hover-background, var(--_ui-menu-active-background));
     --_ui-menu-active-hover-color: var(--ui-menu-active-hover-color, var(--_ui-menu-active-color));
     --_ui-menu-active-accent: var(--ui-menu-active-accent, initial);
+    --_ui-menu-active-focus-color: var(--ui-menu-active-focus-color, var(--ui-focus-color));
     --_ui-menu-arrow: var(--ui-menu-arrow, none);
     --_ui-menu-arrow-color: var(--ui-menu-arrow-color, color-mix(in oklab, var(--ui-ink) 5%, var(--ui-surface)));
     --_ui-menu-header-color: var(--ui-menu-header-color, inherit);
@@ -224,6 +226,13 @@
   }
   .ui.menu:last-child {
     --_menu-margin-bottom: 0;
+  }
+  /* Shadow DOM:  a top-level root is always an only child, so the HOST's position decides (as `ui-segment.css`). */
+  :host(:not(:first-child)) > .ui.menu {
+    --_menu-margin-top: initial;
+  }
+  :host(:not(:last-child)) > .ui.menu {
+    --_menu-margin-bottom: initial;
   }
   /* Items' components aren't scaled twice. */
   .ui.menu slot {
@@ -796,6 +805,105 @@
     --_ui-menu-item-width: 6.25%;
   }
 
+  /*
+   * ## Segmented (`appearance="segmented"`):  a bordered group of joined items -- a segmented control.  The selected
+   * item is filled with the menu's colour (`color`, else the primary colour) and takes its on-colour text;  the group
+   * hugs its items (`alignment` moves it, `fluid` spreads it).
+   */
+  .ui.segmented.menu {
+    --_ui-menu-background: var(--ui-surface);
+    --_ui-menu-border: var(--ui-border-width) solid var(--ui-border-color-strong);
+    --_ui-menu-item-padding: 0.78571em 1.14286em;
+    --_ui-menu-item-justify: center;
+    --_ui-menu-item-text-align: center;
+    /* inside the border:  the fill meets the group's rounded corners */
+    --_ui-menu-first-radius: calc(var(--_ui-menu-radius) - var(--ui-border-width)) 0 0
+      calc(var(--_ui-menu-radius) - var(--ui-border-width));
+    --_ui-menu-last-radius: 0 calc(var(--_ui-menu-radius) - var(--ui-border-width))
+      calc(var(--_ui-menu-radius) - var(--ui-border-width)) 0;
+    --_ui-menu-only-radius: calc(var(--_ui-menu-radius) - var(--ui-border-width));
+    --_ui-menu-divider: var(--ui-border-color-strong);
+    --_ui-menu-divider-last-display: none;
+    --_ui-menu-arrow: none;
+    --_ui-menu-active-background: var(--ui-color, var(--ui-primary));
+    --_ui-menu-active-hover-background: var(--ui-color-hover, var(--ui-primary-hover));
+    --_ui-menu-active-accent: var(--ui-color-on, var(--ui-primary-on));
+    --_ui-menu-active-focus-color: var(--ui-color-on, var(--ui-primary-on));
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 0;
+    box-shadow: none;
+  }
+  .ui.segmented.vertical.menu {
+    --_ui-menu-first-radius: calc(var(--_ui-menu-radius) - var(--ui-border-width))
+      calc(var(--_ui-menu-radius) - var(--ui-border-width)) 0 0;
+    --_ui-menu-last-radius: 0 0 calc(var(--_ui-menu-radius) - var(--ui-border-width))
+      calc(var(--_ui-menu-radius) - var(--ui-border-width));
+    --_ui-menu-divider-last-display: block;
+    display: block;
+  }
+
+  /*
+   * ## Alignment (`alignment`):  where the items sit along a horizontal bar -- packed at one end, or filling it.  A
+   * segmented group (and an `equal` packed one, below) IS its items, so it moves as a whole instead.
+   */
+  .ui[class*="left aligned"].menu {
+    justify-content: flex-start;
+  }
+  .ui[class*="center aligned"].menu {
+    justify-content: center;
+  }
+  .ui[class*="right aligned"].menu {
+    justify-content: flex-end;
+  }
+  .ui[class*="fluid aligned"].menu:not(.vertical) {
+    --_ui-menu-item-flex: 1 1 auto;
+    --_ui-menu-item-justify: center;
+    --_ui-menu-item-text-align: center;
+    --_ui-menu-divider-last-display: none;
+  }
+  .ui.segmented[class*="center aligned"].menu:not(.vertical) {
+    margin-inline: auto;
+  }
+  .ui.segmented[class*="right aligned"].menu:not(.vertical) {
+    margin-inline: auto 0;
+  }
+  .ui.segmented[class*="fluid aligned"].menu:not(.vertical) {
+    width: auto;
+  }
+
+  /*
+   * ## Equal (`equal`):  every item the same width, from the items themselves (no count;  `items="equal"`, Fomantic's
+   * `equal width`, is the older fill-only spelling, so `.width` is left out).
+   * - packed:  a grid of equal columns, each as wide as the widest item;  the bar hugs them and `alignment` moves it
+   * - `fluid aligned`:  an equal share of the bar each (`flex: 1 1 0`)
+   * - NOTE: a packed `tabular` bar hugs its tabs too, so its rule ends at the last tab
+   */
+  .ui.equal.menu:not(.width, .vertical, [class*="fluid aligned"]) {
+    --_ui-menu-item-justify: center;
+    --_ui-menu-item-text-align: center;
+    --_ui-menu-divider-last-display: none;
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    width: fit-content;
+    max-width: 100%;
+  }
+  /* the clearfix would be a grid item:  an empty last column */
+  .ui.equal.menu:not(.width, .vertical, [class*="fluid aligned"])::after {
+    display: none;
+  }
+  .ui.equal[class*="center aligned"].menu:not(.width, .vertical) {
+    margin-inline: auto;
+  }
+  .ui.equal[class*="right aligned"].menu:not(.width, .vertical) {
+    margin-inline: auto 0;
+  }
+  .ui.equal[class*="fluid aligned"].menu:not(.width, .vertical) {
+    --_ui-menu-item-flex: 1 1 0%;
+  }
+
   /* ## Fitted:  no item padding (on the menu, or one item). */
   .ui.fitted.menu {
     --_ui-menu-item-padding: 0;
@@ -934,6 +1042,10 @@
     .ui.stackable.menu :is(.left, .right, .center).menu {
       flex-direction: column;
     }
+    .ui.stackable.equal.menu:not(.width, .vertical) {
+      grid-auto-flow: row;
+      width: 100%;
+    }
     @container style(--_ui-menu-stackable: 1) {
       :host(:state(in-menu)) > .item::before,
       .ui.menu .item::before {
@@ -1015,6 +1127,15 @@
   .ui.inverted.pointing.menu {
     --_ui-menu-arrow-color: var(--_ui-menu-active-background);
   }
+  /* Inverted segmented:  the dark surface, hairlines on it;  the selected item keeps its fill. */
+  .ui.segmented.inverted.menu {
+    --_ui-menu-background: var(--ui-surface);
+    --_ui-menu-border: var(--ui-border-width) solid oklch(from var(--ui-ink-on-dark) l c h / 0.2);
+    --_ui-menu-divider: oklch(from var(--ui-ink-on-dark) l c h / 0.2);
+    --_ui-menu-active-background: var(--ui-color, var(--ui-primary));
+    --_ui-menu-active-hover-background: var(--ui-color-hover, var(--ui-primary-hover));
+    --_ui-menu-active-accent: var(--ui-color-on, var(--ui-primary-on));
+  }
 }
 
 /*******************************
@@ -1065,6 +1186,11 @@
   .ui.tabular.menu .active.item:hover,
   :host(:state(in-menu)) > .active.item:is(.header):hover {
     cursor: default;
+  }
+  /* The focus ring on an active item:  the focus colour, else (a `segmented` fill) the fill's on-colour. */
+  :host(:state(in-menu)) > .active.item:focus-visible,
+  .ui.menu .active.item:focus-visible {
+    outline-color: var(--_ui-menu-active-focus-color);
   }
   /* An active item shows the pointing arrow, filled like the item. */
   :host(:state(in-menu)) > .active.item::after,

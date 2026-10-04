@@ -1,0 +1,161 @@
+/*
+ * Twitter theme:  port of Fomantic's `themes/twitter` (twitter.com circa 2015:  pale gradient buttons with a
+ *   grey-blue hairline, a sky-blue primary), `@layer ui.theme`.
+ * - A DELTA on `classic.css`:  the loader (`ThemeSheets`) registers `classic` + this sheet, on the page and in every
+ *   component shadow root (`shadow: true`), so the class-grammar half reaches the button's inner box.
+ * - Touches:  button.
+ * - Two halves:  `:root` tokens (`--ui-button-*`), then class-grammar overrides for what has no token (gradients,
+ *   rings, the button-only primary, the labeled icon's edge).
+ * - Twitter's blue is BUTTON-scoped in Fomantic (`button.variables`), so it re-points the colour remap on the
+ *   button's (or group's) box, never the global palette.  Text on it keeps Fomantic's white, as `classic.css`
+ *   keeps Fomantic's contrast failures.
+ * - The gradient and ring are theme-private tokens (`--_twitter-*`), declared on `:root` so they INHERIT:  a
+ *   variation that owns its look (basic, inverted, tertiary) or a colour resets them on the button OR its group.
+ *   The ring rules still read the button's own `--_button-edge*` first, so `attached` keeps its edge.
+ * - Dark scheme:  Fomantic had none.  Colours are `light-dark()` pairs whose dark half is the default recipe;  the
+ *   plain button's white gradient turns into a faint shade.
+ * - NOT ported:
+ *   - `emoji.variables` / `emoji.overrides`:  Twemoji's per-emoji SVG sprites from a CDN.  `<ui-emoji>` draws the
+ *     platform's emoji font on purpose (`ui-emoji.css`:  no request, no 3,800 rules);  an SVG set would be an
+ *     opt-in emoji registry, not a theme sheet
+ *   - `@color: #66757f`:  overridden by `@textColor: #333` in the same file, so Fomantic never shows it either
+ */
+
+@layer ui.theme {
+  /*******************************
+              Tokens
+  *******************************/
+
+  :root {
+    --ui-button-font-weight: var(--ui-font-weight-bold);
+    --ui-button-color: light-dark(oklch(0.321 0 0), var(--ui-text-color));
+    --ui-button-color-hover: light-dark(oklch(0.301 0.011 237), var(--ui-text-hovered));
+    --ui-button-color-down: light-dark(oklch(0.301 0.011 237), var(--ui-text-pressed));
+    --ui-button-padding-block: 0.8571em;
+    --ui-button-padding-inline: 1.284em;
+    --ui-button-background: light-dark(oklch(0.977 0.004 236.5), oklch(from var(--ui-ink) l c h / 0.08));
+    --ui-button-background-hover: light-dark(oklch(0.927 0.01 238.5), oklch(from var(--ui-ink) l c h / 0.13));
+    --ui-button-background-down: light-dark(oklch(0.927 0.01 238.5), oklch(from var(--ui-ink) l c h / 0.18));
+    --ui-button-background-active: light-dark(oklch(0 0 0 / 0.1), oklch(from var(--ui-ink) l c h / 0.16));
+    --ui-button-labeled-icon-background: oklch(0.719 0.128 243.9 / 0.05);
+
+    /* Theme-private:  the plain look */
+    --_twitter-image: linear-gradient(
+      light-dark(oklch(1 0 0), oklch(1 0 0 / 0.04)),
+      light-dark(oklch(0.977 0.004 236.5), oklch(1 0 0 / 0))
+    );
+    --_twitter-image-hover: linear-gradient(
+      light-dark(oklch(1 0 0), oklch(1 0 0 / 0.06)),
+      light-dark(oklch(0.927 0.01 238.5), oklch(1 0 0 / 0))
+    );
+    --_twitter-ring: 0 0 0 1px light-dark(oklch(0.927 0.01 238.5), oklch(from var(--ui-ink) l c h / 0.2)) inset;
+    --_twitter-pressed: 0 1px 4px oklch(0 0 0 / 0.2) inset;
+  }
+
+  /*******************************
+             Overrides
+  *******************************/
+
+  .ui.button,
+  .ui.buttons,
+  .or {
+    --ui-font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  /* Primary:  Twitter's blue, a darker hairline and a top highlight. */
+  .ui.primary:is(.button, .buttons) {
+    --ui-color: light-dark(oklch(0.719 0.128 243.9), var(--ui-blue-on-dark));
+    --ui-color-on: light-dark(oklch(1 0 0), var(--ui-ink-on-light));
+    --ui-color-text: light-dark(oklch(0.5 0.128 243.9), var(--ui-blue-text));
+    --ui-color-border: light-dark(oklch(0.605 0.117 244.8), var(--ui-blue-border));
+    --_twitter-ring:
+      0 0 0 1px light-dark(oklch(0.605 0.117 244.8), var(--ui-blue-border)) inset, 0 2px 0 oklch(1 0 0 / 0.15) inset;
+  }
+
+  /* Coloured:  the subtle gradient over the fill;  no hairline (primary keeps its own, above). */
+  .ui:is(
+      .secondary,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black,
+      .positive,
+      .negative,
+      .info,
+      .warning,
+      .success,
+      .error
+    ):is(.button, .buttons) {
+    --_twitter-ring: 0 0 #0000;
+  }
+  .ui:is(
+      .primary,
+      .secondary,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black,
+      .positive,
+      .negative,
+      .info,
+      .warning,
+      .success,
+      .error
+    ):is(.button, .buttons) {
+    --_twitter-image: linear-gradient(transparent, oklch(0 0 0 / 0.05));
+    --_twitter-image-hover: var(--_twitter-image);
+  }
+  /* Variations with a look of their own:  none of it. */
+  .ui:is(.basic, .inverted, .tertiary):is(.button, .buttons) {
+    --_twitter-image: none;
+    --_twitter-image-hover: none;
+    --_twitter-ring: 0 0 #0000;
+    --_twitter-pressed: 0 0 #0000;
+  }
+
+  .ui.button:not(.labeled:not(.icon), :disabled, .disabled) {
+    background-image: var(--_twitter-image);
+    box-shadow: var(--_button-edge, var(--_twitter-ring)), var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  .ui.button:not(.labeled:not(.icon), :disabled, .disabled):is(:hover, :focus-visible) {
+    background-image: var(--_twitter-image-hover);
+    box-shadow:
+      var(--_button-edge-hover, var(--_button-edge, var(--_twitter-ring))), var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  /* Down:  flat, pressed in. */
+  .ui.button:not(.labeled:not(.icon), :disabled, .disabled):active {
+    background-image: none;
+    box-shadow:
+      var(--_button-edge-down, var(--_button-edge-hover, var(--_button-edge, var(--_twitter-pressed)))),
+      var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  .ui.active.button:not(.labeled:not(.icon), :disabled, .disabled) {
+    background-image: none;
+  }
+
+  /* Labeled icon:  a hairline between the icon block and the text. */
+  .ui.labeled.icon.button > .icon {
+    box-shadow: -1px 0 0 0 oklch(0 0 0 / 0.1) inset;
+  }
+  .ui[class*="right labeled"].icon.button > .icon {
+    box-shadow: 1px 0 0 0 oklch(0 0 0 / 0.1) inset;
+  }
+}

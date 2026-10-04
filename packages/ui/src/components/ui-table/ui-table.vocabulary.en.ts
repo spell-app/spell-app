@@ -96,7 +96,8 @@ export const tableVocabulary = {
       description:
         "What `stackable` measures:  the `viewport` (Fomantic's way, the default) or the table's own width " +
         "(`container`:  a table in a narrow column of a wide screen).  Also a token for a whole region:  " +
-        "`--ui-table-stack-by: container`;  the attribute wins."
+        "`--ui-table-stack-by: container`;  the attribute wins.  Neither:  the page-wide `--ui-stack-with` " +
+        "(`<ui-root stack-with>`;  `page` ~== `viewport`)."
     },
     {
       name: "scrolling",
@@ -184,7 +185,14 @@ export const tableVocabulary = {
         "Box around the slotted table;  scrolls (a focusable, named region) with `scrolling` / `overflowing`."
     }
   ],
-  states: [],
+  states: [
+    { name: "attached", description: "Set while `attached` (any edge):  the host drops the outer margin it carries." },
+    { name: "attached-top", description: "Set while `attached` is `top`:  the host keeps only its top margin." },
+    {
+      name: "attached-bottom",
+      description: "Set while `attached` is `bottom`:  the host keeps only its bottom margin."
+    }
+  ],
   texts: [
     {
       key: "label",

@@ -1,5 +1,5 @@
 import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
-import { itemVocabulary } from "$/ui/components/ui-item"
+import { itemVocabulary } from "$/ui/components/ui-item/ui-item.vocabulary.en"
 
 import { selectVocabulary } from "./ui-select.vocabulary.en"
 import { PARTS, SelectFlags } from "./ui-select.types"

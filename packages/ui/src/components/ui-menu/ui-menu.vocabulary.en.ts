@@ -8,8 +8,13 @@
  *   A `<ui-menu>` inside a menu is a SUB-MENU (Fomantic's `<div class="right menu">`), so `menu` is owned too;
  *   a `<ui-header>` inside an item is a vertical menu's sub header.
  * - `tabular` is Fomantic's classic word;  2.9 renamed it `tabbed` (`@variationMenuTabbedLegacyTabular`).
+ * - The look is ONE word, `appearance` (`UIT.MENU_APPEARANCES`), shared with `<ui-tabs>`;  the older booleans
+ *   (`tabular`, `pointing`, `secondary`, `text`) stay as aliases and emit the same class words.
+ * - Item layout:  `alignment` (`UIT.ITEM_ALIGNMENTS`) places the items, `equal` sizes them alike from the items
+ *   themselves;  `items="3"` / `items="equal"` stay as the older count-based aliases.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -29,22 +34,44 @@ export const menuVocabulary = {
     {
       name: "color",
       kind: "color",
-      description: "Hue of the active item;  with `inverted`, the menu's fill."
+      description: "Hue of the active item;  with `inverted`, the menu's fill;  `segmented`, the selected item's fill."
+    },
+    {
+      name: "appearance",
+      kind: "valueOnly",
+      values: UIT.MENU_APPEARANCES,
+      description:
+        "The look:  `tabular` (tabs on a rule), `pointing` (the active item points at the content), `secondary` " +
+        "(no box, rounded items), `text` (plain words), `segmented` (a bordered group of joined items, the selected " +
+        "one filled with `color`, else the primary colour).  The booleans `tabular`, `pointing`, `secondary`, " +
+        '`text` are aliases:  `appearance="pointing" secondary` ~== `secondary pointing`.'
     },
     {
       name: "position",
       kind: "valueOnly",
       values: ["left", "right", "center"],
-      description: "Sub-menu only:  pushes it to the `right` / `left` end, or the `center`."
+      description:
+        "Sub-menu:  pushes it to the `right` / `left` end, or the `center`.  A `vertical tabular` menu:  `right` " +
+        "opens its tabs to the left, for a menu on the content's right (`ui right vertical tabular menu`)."
     },
-    { name: "secondary", kind: "keyOnly", description: "De-emphasized:  no box, rounded items." },
+    {
+      name: "secondary",
+      kind: "keyOnly",
+      description: 'De-emphasized:  no box, rounded items.  Alias of `appearance="secondary"`.'
+    },
     {
       name: "pointing",
       kind: "keyOnly",
-      description: "The active item points at the content below (an arrow;  an underline with `secondary`)."
+      description:
+        "The active item points at the content below (an arrow;  an underline with `secondary`).  Alias of " +
+        '`appearance="pointing"`.'
     },
-    { name: "tabular", kind: "keyOnly", description: "Looks like tabs (Fomantic 2.9's `tabbed`)." },
-    { name: "text", kind: "keyOnly", description: "Plain text items, no box." },
+    {
+      name: "tabular",
+      kind: "keyOnly",
+      description: 'Looks like tabs (Fomantic 2.9\'s `tabbed`).  Alias of `appearance="tabular"`.'
+    },
+    { name: "text", kind: "keyOnly", description: 'Plain text items, no box.  Alias of `appearance="text"`.' },
     { name: "vertical", kind: "keyOnly", description: "Items stacked top to bottom." },
     { name: "pagination", kind: "keyOnly", description: "Page links:  compact, centred items." },
     { name: "icon", kind: "keyOnly", description: "Icon-only items." },
@@ -92,11 +119,29 @@ export const menuVocabulary = {
       description: "Fixed to an edge of the viewport."
     },
     {
+      name: "alignment",
+      kind: "valueAndKey",
+      key: "aligned",
+      values: UIT.ITEM_ALIGNMENTS,
+      description:
+        "Where the items sit:  `fluid` -- they fill the bar;  `left` / `center` / `right` -- packed at that end of " +
+        'a full-width bar (a `segmented` menu moves as a whole).  `alignment="center"` => `center aligned`.'
+    },
+    {
+      name: "equal",
+      kind: "keyOnly",
+      description:
+        'Every item the same width, from the items themselves (no count):  with `alignment="fluid"` each takes an ' +
+        "equal share of the bar;  otherwise each is as wide as the widest, packed."
+    },
+    {
       name: "items",
       kind: "width",
       widthClass: "item",
       canEqual: true,
-      description: 'Divides the width evenly between N items (`items="3"` => `three item`), or `equal` widths.'
+      description:
+        'Older, count-based alias of `equal`:  divides the width evenly between N items (`items="3"` => ' +
+        '`three item`);  `items="equal"` => `equal width` (Fomantic\'s, ~== `equal alignment="fluid"`).'
     },
     {
       name: "interactive",

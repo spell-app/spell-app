@@ -1,5 +1,5 @@
 import { Show, createEffect, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
@@ -157,19 +157,20 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
       <dialog
         ref={(element) => (this.dialog = element)}
         class={this.classes()}
-        part={this.part(this.rootPart as PartName<V>)}
+        part={this.dialogPart(this.rootPart)}
+        aria-labelledby={isServer ? this.serverLabelledBy() : undefined}
         onCancel={this.onCancel}
         onClose={this.onClose}
         onPointerDown={this.onPointerDown}
         onClick={this.onDialogClick}
       >
         <Show when={this.dialogAttrs.header}>
-          <div id={this.headerId} class={UIT.HEADER} part={this.part(UIT.HEADER as PartName<V>)}>
+          <div id={this.headerId} class={UIT.HEADER} part={this.dialogPart(UIT.HEADER)}>
             {this.dialogAttrs.header}
           </div>
         </Show>
         <Show when={this.dialogAttrs.content}>
-          <div class={UIT.CONTENT} part={this.part(UIT.CONTENT as PartName<V>)}>
+          <div class={UIT.CONTENT} part={this.dialogPart(UIT.CONTENT)}>
             {this.dialogAttrs.content}
           </div>
         </Show>
@@ -178,8 +179,8 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
           <button
             type="button"
             class={UIT.CLOSE_CLASS}
-            part={this.part(UIT.CLOSE as PartName<V>)}
-            aria-label={this.text(UIT.CLOSE as TextKey<V>)}
+            part={this.dialogPart(UIT.CLOSE)}
+            aria-label={this.closeText()}
             onClick={this.onCloseIcon}
           >
             {this.closeGlyph.svg()}
@@ -187,6 +188,34 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
         </Show>
       </dialog>
     )
+  }
+
+  /**
+   * `part` value of one of the parts every dialog vocabulary names (see the class docs).
+   * - A method, not a cast in the JSX:  Solid's SSR compile (`hoistProps`) hoists a `<Show>`'s children into a
+   *   module-level constructor and passes it every free identifier they use -- the type parameter `V` of a
+   *   `PartName<V>` cast too, as a VALUE ("V is not defined").
+   */
+  private dialogPart(name: string): string {
+    return this.part(name as PartName<V>)
+  }
+
+  /**
+   * The dialog's `aria-labelledby` in a server render (`$/ui/server`), where no effect applies and no element
+   * reflects:  the `header` shorthand's id, else the slotted heading's, unless the host has an `aria-label` (which
+   * the static output moves onto the dialog).
+   * - SIDE EFFECT:  gives the slotted heading (the render's parsed copy) an id if it has none.
+   */
+  private serverLabelledBy(): string | undefined {
+    if (this.ariaLabel.get()) return undefined
+    if (this.dialogAttrs.header) return this.headerId
+    const heading = this.heading.get()
+    return heading ? UI.ids.ensure(heading, `ui-${this.definition.vocabulary.noun}-heading`) : undefined
+  }
+
+  /** Label of the close icon (`text("close")`);  a method for the reason `dialogPart()` is. */
+  private closeText(): string {
+    return this.text(UIT.CLOSE as TextKey<V>)
   }
 
   ////////////////

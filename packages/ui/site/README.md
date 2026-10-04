@@ -1,136 +1,98 @@
 # `@spell-app/ui` docs site
 
-Astro 7 + MDX, static output, modelled on [fomantic-ui.com](https://fomantic-ui.com):  left sidebar, a page per
-component with Types / Content / States / Variations sections, every example LIVE with a "Show code" pane, a
-sticky "On this page" index, and a header with the colour scheme, Classic theme and version menus.
+Plain, hand-authored `.html` pages in [fomantic-ui.com](https://fomantic-ui.com)'s docs style, built ONLY from
+`<ui-*>` widgets:  a left nav of every component, a masthead, Examples / Usage / API / Theming tabs, every example
+live with its source a click away, and an "On this page" rail.  Where a widget can't do what a page needs, that's a
+gap in the library, recorded in the plan doc of epic `spell-ui-pages` (`packages/docs/epics/spell-ui-pages/`).
 
-## Running
+- No build step to VIEW a page:  pages are static files loading ONE committed bundle.
+- Served at `/ui/` by the repo's page server (`packages/server`, `UI_SITE`), live-reloading.
 
-A workspace of the monorepo (`packages/ui/site`, so it shares ONE Solid with `ui`):  run `yarn install` at the repo root, then:
+## Viewing
+
+From the repo root:
 
 ```sh
-cd site
-yarn dev       # http://localhost:4321;  Astro 7 runs it detached -- `yarn astro dev stop` to stop
-yarn build     # -> site/dist/
-yarn preview   # serve site/dist/
-yarn check     # astro check (TypeScript 6:  astro check doesn't support TS 7 yet)
+yarn serve                                   # starts the page server (and the editor);  prints its URL
+yarn server url "$PWD/packages/ui/site/index.html"   # the URL of one page (starts the server if needed)
 ```
 
-The library is consumed from SOURCE, never from `dist/`:  `astro.config.mjs` aliases `$` -> `../src`,
-`$/ui/test` -> `../test`, `@spell-app/ui` -> `../src/index.ts`, and reuses the repo's decorator plugin
-(`../vite.decorators.ts`) and Lightning CSS targets (`CSS_TARGETS` from `../vite.config.ts`).  
+Pages are `<base>/ui/`, `<base>/ui/components/ui-button.html` ...  The page server reloads an open page when it, its
+parts, its data or the bundle changes.  `yarn server stop` stops it.
 
 ## Layout
 
 ```
 site/
-  astro.config.mjs           aliases, decorators, Lightning CSS, MDX + the paragraph-unwrap plugin
-  src/
-    content.config.ts        the `components` collection schema
-    content/components/      ONE .mdx PER COMPONENT  <- component agents write here
-    layouts/Docs.astro       header, sidebar, masthead, prose column, "On this page"
-    components/
-      Section.astro          h2 + anchor:  Types / Content / States / Variations / Usage ...
-      Example.astro          one live example + "Show code" (the heart of the site)
-      Variation.astro        h3 + one Example, for a "Variations" section
-      TokenTable.astro       CSS custom properties table, with live colour swatches
-      TokenPlayground.astro  inputs bound to tokens on :root (Theming page)
-      ApiTable.astro         API tables from ../custom-elements.json ("coming soon" until it exists)
-      ComponentBrowser.astro the sidebar's Components section:  every tag, A-Z / by topic, search, favorites
-    pages/                   index, getting-started, grammar, theming, utilities, icons, components/
-    lib/                     nav, ComponentIndex (tags + links, from ComponentDefinitions), SearchText,
-                             HtmlFormatter (Show code), shiki themes, slug, the MDX plugin
-    scripts/                 layout behaviour, the component browser, storage, copy buttons, the auto-loader
-    styles/site.css          site chrome = THE app stylesheet (`#ui-app-stylesheet`)
+  index.html, getting-started.html, grammar.html, theming.html, utilities.html, icons.html, kitchen-sink.html
+  components/
+    index.html          the component index (cards between markers, written by `yarn site:index`)
+    ui-<name>.html      one page per component family, named for its main tag
+  _parts/               header.html, footer.html:  shared chrome, pulled in with `<ui-include page-styles>`
+  _src/                 site.ts (the bundle's entry:  what's in it and why), snapshot.ts, site.css (layout glue only)
+  _assets/              GENERATED, committed:  the bundle (`site.js`, `site.css`, a lazy chunk per family);
+                        `icon-packs` is a SYMLINK to `../../src/icons/icon-packs`.  NEVER edit
+  _data/                components.json, icons.json (GENERATED, committed);  pages.json (hand-kept per-family facts)
+  examples/             files the pages' examples load (`<ui-include source>`, `<ui-markdown source>`, an icon pack)
+  images/               Fomantic's docs images, same paths as fomantic-ui.com's `/images/...`
 ```
 
-## Writing a component page
+Every page loads (`../` from `components/`):
 
-Create `src/content/components/ui-<name>.mdx`.  It appears at `/components/ui-<name>/` automatically;  the API table
-is appended for you.  The sidebar and the `/components/` index list TAGS, not pages:  each tag's vocabulary
-`topics` / `aka` file it (`ComponentDefinitions`), and a tag other than the folder's main one links to its
-`VocabularyTable` heading (`#ui-<tag>`).
-
-```mdx
----
-title: Button
-tag: ui-button
-status: in-progress # planned | in-progress | done;  anything but done shows a badge
-summary: A button indicates a possible user action.
----
-
-import Example from "../../components/Example.astro"
-import Section from "../../components/Section.astro"
-import Variation from "../../components/Variation.astro"
-// Notes for other authors go here, as `//` comments attached to the imports (see "Gotchas").
-
-<Section title="Types">
-  <Example title="Emphasis" description="A button can be formatted to show different levels of emphasis." class="ui-cluster">
-    <ui-button color="primary">Save</ui-button>
-    <ui-button>Cancel</ui-button>
-  </Example>
-</Section>
-
-<Section title="Variations">
-  <Variation title="Size" description="A button can have different sizes." class="ui-cluster">
-    <ui-button size="small">Small</ui-button>
-    <ui-button size="large">Large</ui-button>
-  </Variation>
-</Section>
+```html
+<link rel="stylesheet" href="_assets/site.css" />
+<script type="module" src="_assets/site.js"></script>
 ```
 
-- Section order, as Fomantic:  Types, Content, States, Variations, then Usage (behaviour, events, slots, parts),
-  Theming (`<TokenTable>`) and Accessibility.  Each `<Section>` `h2` becomes an "On this page" entry.
-- `<Example>` props:  `title`, `description`, `class` (on the live box, e.g. `ui-cluster` to lay out siblings),
-  `level` (`3` / `4`), `open` (code pane open), `code` (override the shown source).
-- Write the markup ONCE:  `Example` renders its slot live AND shows the same markup, re-indented and highlighted.
-  It captures the source with `Astro.slots.render("default")` (rendered HTML;  MDX has already dropped your
-  whitespace), then `lib/HtmlFormatter.ts` pretty-prints it and strips Astro's `data-astro-*` annotations.
-  Bare boolean attributes (`basic`) come out of MDX as `basic="true"`;  the formatter shows them bare again.
+`site.js` defines `<ui-root>`, which lazy-loads every other family, the doc-only `<ui-docs-*>` elements included
+(`src/docs-components/`), on first use.  The doc-only elements read `_data/components.json` (`SiteData`), never the
+vocabularies.
 
-### Making examples live
+Every page's root is `<ui-root class="site" stack-with="page" ...>`:  stacking examples (`stackable`, `doubling`,
+steps, form rows, items, token tables) stack by the SCREEN, as on fomantic-ui.com, not by the narrower docs column
+(`docs/theming.md` "Stacking").
 
-- Nothing to import:  every page is wrapped in `<ui-root display="immediately">` (`layouts/Docs.astro`), which
-  imports the family of every undefined `ui-*` tag on the page:  `src/components/ui-<family>/index.ts`.  Write
-  `<ui-button>` and `$/ui/components/ui-button/index.ts` loads, on the pages that use it only.
-- A family defines several tags (`ui-dropdown` + `ui-item`);  `<ui-root>`'s generated catalog
-  (`src/components/ui-root/ui-root.catalog.ts`, `yarn gen:root`) maps each to its family.
-- Anything else client-side (setting a rich `options` property, listening for `ui-change`) goes in a small
-  `.astro` component with a `<script>`, used from the MDX page, e.g. `src/components/DropdownDemo.astro`:
+## Making a page
 
-  ```astro
-  <ui-dropdown data-demo="options"></ui-dropdown>
-  <script>
-    import "$/ui/components/ui-dropdown"
-    import type { UIDropdown } from "$/ui/components/ui-dropdown"
-    const dropdown = document.querySelector<UIDropdown>("[data-demo=options]")!
-    dropdown.options = [{ value: "1", text: "One" }]
-  </script>
-  ```
+From `packages/ui`:
 
-### Gotchas
+```sh
+yarn site:new ui-card                                         # => site/components/ui-card.html
+yarn site:new getting-started --title "Getting started" --summary "One line."   # => site/getting-started.html
+```
 
-- MDX does NOT bundle `<script>`:  it's JSX there, rendered as-is, and its `import`s fail.  Use an `.astro`
-  component (above).
-- NEVER a multi-line `{/* ... */}` comment in MDX:  the repo's `oxfmt` formats `.mdx` as markdown and turns
-  it into `{/_ ... _/}`, which breaks the build.  Use `//` comments attached to the import block (no blank line
-  before them, or they become a paragraph), or a single-line `{/* ... */}`.
-- Text on its own line inside an HTML element (`<p>⏎text⏎</p>`) would become a nested `<p>` in MDX;
-  `lib/unwrapHtmlParagraphs.ts` unwraps it.  Inside components (`<Section>`) paragraphs are kept.
-- `style` in MDX is a string (`style="--min-column-size: 8em"`) or an object (`style={{ ... }}`).
+- From the template, `packages/docs/templates/spell-ui-docs.html`;  title / summary / status from
+  `_data/pages.json` (fix a summary THERE, then `yarn site:data`).  It refuses to overwrite (`--force`).
+- How to write one (sources, examples, usage, theming, gaps):  `packages/docs/epics/spell-ui-pages/PAGES.md`.  The
+  model page:  `components/ui-button.html`.
+- An example is a `<ui-docs-example header description>` around live markup:  it shows the markup's own source,
+  re-indented, so write the markup once.
+- `<ui-*>` for everything visible;  `_src/site.css` is layout glue only (grid areas, widths, sticky offsets).
 
-## Styling the site
+## Building
 
-- `$/ui/styles/ui.css` is the page foundation (imported by the layout, bundled into a `<link>`).
-- `src/styles/site.css` is linked as `<link id="ui-app-stylesheet">`:  the library's app-stylesheet convention,
-  so the runtime also adopts it into every component's shadow root.  Keep EVERY site rule on a `.site-*` class,
-  in `@layer ui.app`.  Rules meant for component internals would use Fomantic's class grammar there.
-- Prefer `ui-*` utilities in markup and `--ui-*` tokens in CSS;  never `rem`.  `ui-native` on `<body>` styles
-  plain controls, tables and code.
+From `packages/ui`:
 
-## TODO
+- `yarn site:build` -- after changing a vocabulary, a family sheet, an example or any source the site shows;  commit
+  the output.  It runs:
+  - `yarn site:data` -- `_data/components.json` + `icons.json` from the vocabularies and sheets (seeds `pages.json`
+    for a new family)
+  - `yarn site:index` -- `components/index.html`'s cards
+  - `yarn site:kitchen` -- `kitchen-sink.html`'s examples, from every family's `examples/elements/types.html`
+  - `yarn site:bundle` -- `_assets/`, from `_src/site.ts` (`vite.site.config.ts`), sizes printed
+- `yarn site:dev` -- while working on the library or `_src/`:  `yarn site:bundle`, then the page server (started if
+  needed) serves `/ui/` while a Vite watch build rebuilds `_assets/` on every source edit, and the open pages reload.
+  Not watched:  data, index, kitchen sink.  A watch rebuild leaves old hashed chunks behind:  `yarn site:build`
+  before committing.  `Ctrl-C` stops the watch, not the page server.
 
-- Manifest-driven API tables:  `ApiTable.astro` reads `../custom-elements.json` (`yarn manifest` in the root);
-  check its shape against the analyzer's real output once components land.
-- Editable playground and framework smoke pages (`site/playground`), per `docs/plan.md` "Tooling".
-- The version menu lists only the current version.
+## Checking
+
+From `packages/ui`:  `yarn site:check <page...>` or `yarn site:check --all` (`tools/SiteCheck.ts`) loads pages from
+the page server in Playwright, at desktop, phone and dark, and fails on console errors, 404s, undefined or
+unrendered `ui-*` tags, missing tabs, an empty "On this page", phone-width overflow, a nav flyout that won't open.
+Screenshots go to `tools/results/site-check/`:  LOOK at them.
+
+## Deploying
+
+Not deployed yet.  A static host serves this folder as it is, except `_assets/icon-packs`:  copy through the link
+(`cp -RL`).  Every bundle URL is relative (`base: "./"`), so the site works under any path.

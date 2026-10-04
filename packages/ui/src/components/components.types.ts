@@ -191,16 +191,90 @@ export const PART_OWNER_TOKENS = {
  */
 export const PART_STATIC_CLASS_PREFIX = "in-"
 
+/**
+ * Marks the NATIVE control in a static server render (`$/ui/server`), for the flattener:  the host's `id` and ARIA
+ * names belong there, so a `<label for>` the host's id labels the control.
+ * - Elements NEVER set it in a browser;  `StaticFlattener` moves the host's `id` / `aria-label*` /
+ *   `aria-describedby` there, then drops the mark (seo plan, T5).
+ */
+export const STATIC_CONTROL = "data-ui-control"
+
 ////////////////
 // ## Grid
 ////////////////
 
 /**
  * Size container a top-level `<ui-grid>` HOST establishes (`container: ui-grid / inline-size`), see `ui-grid.css`.
- * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport.
+ * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport (unless
+ *   `stack-with="page"`, see "Stacking").
  * - Page CSS may query it too, e.g. `@container ui-grid (width < 768px) { ... }` inside a column.
  */
 export const GRID_CONTAINER_NAME = "ui-grid"
+
+////////////////
+// ## Stacking
+////////////////
+
+/**
+ * `stack-with`'s values:  what a stacking layout's breakpoints (`stackable`, `doubling` ...) compare with.
+ * - `container`:  the element's OWN width (container queries), the default
+ * - `page`:  the screen's width (`@media`), as Fomantic
+ * - On `<ui-grid>`, `<ui-cards>`, `<ui-steps>`, `<ui-form>`, `<ui-items>`, `<ui-statistics>`, and on `<ui-root>`,
+ *   which sets `STACK_WITH_TOKEN` for everything inside
+ */
+export const STACK_WITH_VALUES = ["container", "page"] as const
+
+/** One of `STACK_WITH_VALUES`. */
+export type StackWith = (typeof STACK_WITH_VALUES)[number]
+
+/**
+ * Page-wide token the stacking sheets read when an element has no `stack-with` of its own:
+ * `--ui-stack-with: page` on any ancestor (`<ui-root stack-with="page">` sets it).
+ * - Inherited, global:  NOT a component token, declared nowhere by default (unset ~== `container`)
+ */
+export const STACK_WITH_TOKEN = "--ui-stack-with"
+
+/**
+ * Prefix of the private class an element's `stack-with` adds after the noun:  `ui stackable grid stack-with-page`.
+ * - A class, not a host state:  `:state()` rules left WebKit with stale viewport media queries (`ui-table.css`'s
+ *   `stack-by`, the same mechanism)
+ * - From the CANONICAL value, so a translated attribute still works
+ */
+export const STACK_WITH_CLASS = "stack-with-"
+
+/****************
+ * ### `StackClasses`
+ * The class `stack-with` adds, shared by every element that has the attribute.
+ ****************/
+export class StackClasses {
+  /** `stack-with-page` / `stack-with-container` for `value`;  `undefined` when unset (the token decides). */
+  static of(value: StackWith | undefined): string | undefined {
+    return value ? `${STACK_WITH_CLASS}${value}` : undefined
+  }
+}
+
+////////////////
+// ## Menu appearance
+////////////////
+
+/**
+ * `appearance` of `<ui-menu>` and `<ui-tabs>` (whose tab list IS a menu):  the menu's LOOK, one word.
+ * - Each value emits itself as the class word (`kind: "valueOnly"`), so `appearance="tabular"` ~== the older
+ *   boolean `tabular`, which stays as an alias;  `appearance="pointing" secondary` ~== `secondary pointing`.
+ * - `segmented` is ours:  a bordered group of joined items, the selected one filled with the menu's colour (the
+ *   primary colour by default) -- a segmented control.  It hugs its items;  `alignment` places it.
+ * - NOTE: not `vertical` (an orientation every look combines with) or `basic` (`<ui-tabs basic>` is the panes')
+ */
+export const MENU_APPEARANCES = ["tabular", "pointing", "secondary", "text", "segmented"] as const
+
+/**
+ * `alignment` of `<ui-menu>` and `<ui-tabs>`:  where the items sit along the bar, emitted as `<value> aligned`.
+ * - `fluid`:  the items fill the bar (each grows from its own width;  with `equal`, every item the same share)
+ * - `left` / `center` / `right`:  the items pack at that end;  the bar itself spans the row, except a `segmented`
+ *   one, which IS its items and moves as a whole
+ * - Unset:  as before (packed left, the bar as its look makes it)
+ */
+export const ITEM_ALIGNMENTS = ["fluid", "left", "center", "right"] as const
 
 ////////////////
 // ## Message
@@ -916,10 +990,14 @@ export type CalendarOpenDetail = {
 }
 
 /**
- * Invoker commands a `<ui-shape>` answers, `<button commandfor="id" command="--next">`:  turn to the next / previous
- * side, the `direction` attribute's way.
+ * Invoker commands a `<ui-shape>` answers, `<button commandfor="id" command="--next">`.
+ * - `next` / `previous`:  turn to the next / previous side, the `direction` attribute's way
+ * - `flip` + a `ShapeFlip`:  turn to the next side THAT way (`--flip-up` ...), Fomantic's `flip up` behaviour
  */
-export const SHAPE_COMMANDS = { next: "--next", previous: "--previous" } as const
+export const SHAPE_COMMANDS = { next: "--next", previous: "--previous", flip: "--flip-" } as const
+
+/** Every `ShapeFlip`, for the `--flip-<direction>` commands. */
+export const SHAPE_FLIPS: readonly ShapeFlip[] = ["up", "down", "left", "right", "over", "back"]
 
 ////////////////
 // ## Shared words

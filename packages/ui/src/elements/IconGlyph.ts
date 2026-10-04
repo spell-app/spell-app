@@ -1,4 +1,5 @@
 import { createEffect, createMemo, untrack, type Accessor } from "solid-js"
+import { isServer, ssr } from "@solidjs/web"
 
 import { RUNTIME_KEY, UI, type IconPacks, type RuntimeGlobal } from "$/ui/runtime"
 
@@ -21,6 +22,8 @@ export type IconGlyphOwner = {
  * - A later request wins over an earlier, slower load.
  * - `svg()` is a fresh `aria-hidden` clone per change;  the box around it is the caller's.
  * - MUST be created under the element's owner:  it creates a signal, a memo and an effect.
+ * - Server render (`$/ui/server`):  `svg()` is the SVG as markup, read synchronously through `serverMarkup`;
+ *   `data` stays empty.
  */
 export class IconGlyph {
   /**
@@ -35,10 +38,22 @@ export class IconGlyph {
   /** Request counter, so a slower earlier load can't win. */
   private request = 0
 
+  /**
+   * Server hook, set by `$/ui/server` (`ServerRuntime`):  an icon name => its SVG markup, from `packs`.
+   * - Why a hook:  the server reads SVG files from disk (`node:fs`), which browser code must never import.
+   */
+  static serverMarkup?: (packs: IconPacks, name: string) => string | undefined
+
   constructor(
     private readonly owner: IconGlyphOwner,
     name: Accessor<string | undefined>
   ) {
+    if (isServer) {
+      // no DOM to clone into, and the render is synchronous:  the SVG as markup, read now
+      this.data = new Cell<SVGSVGElement | undefined>(undefined)
+      this.svg = () => IconGlyph.serverSvg(owner.host, name())
+      return
+    }
     this.data = new Cell(untrack(() => IconGlyph.peek(owner.host, name())))
     this.svg = createMemo(() => {
       const template = this.data.get()
@@ -78,6 +93,19 @@ export class IconGlyph {
     return svg
   }
 
+  /**
+   * Server render:  `name`'s SVG as `element` sees it (`serverMarkup`), as a node Solid's server build emits
+   * verbatim (`ssr()`), `aria-hidden` like `draw()`'s;  `undefined` without a hook, a name or an icon.
+   * - Typed as the `<svg>` the browser branch returns:  only ever inserted into JSX.
+   */
+  private static serverSvg(element: Element, name: string | undefined): SVGSVGElement | undefined {
+    const page = (globalThis as RuntimeGlobal)[RUNTIME_KEY]?.icons
+    if (!name || !page || !IconGlyph.serverMarkup) return undefined
+    const markup = IconGlyph.serverMarkup(IconGlyph.packsFor(element, page), name)
+    if (!markup) return undefined
+    return ssr([markup.replace(SVG_OPEN, `<svg ${ARIA_HIDDEN}="${TRUE}"`)]) as unknown as SVGSVGElement
+  }
+
   /** Cached template for `name` as `element` sees it, or `undefined` -- also before the runtime loads (or on a server). */
   private static peek(element: Element, name: string | undefined): SVGSVGElement | undefined {
     const page = (globalThis as RuntimeGlobal)[RUNTIME_KEY]?.icons
@@ -90,3 +118,6 @@ const ARIA_HIDDEN = "aria-hidden"
 
 /** ARIA boolean. */
 const TRUE = "true"
+
+/** An SVG file's opening tag. */
+const SVG_OPEN = /<svg\b/

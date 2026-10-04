@@ -1,0 +1,3333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Table | Spell UI</title>
+    <meta name="description" content="A table displays a collection of data grouped into rows." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-table.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-table%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/collections/table.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Table
+                <ui-header>A table displays a collection of data grouped into rows.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-table" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Table"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's table page, section by section, in its order (Types, States, Variations), plus our own
+                  extras (Content, Attached, Table alignment, Overflowing).  `<ui-table>` wraps a NATIVE `<table>`:  rows and cells
+                  keep Fomantic's class words (`positive`, `right aligned`, `collapsing`);  only the table's own words are attributes.
+                -->
+
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Table">
+                  <p slot="description">
+                    A standard table: <code>&lt;ui-table&gt;</code> around a native <code>&lt;table&gt;</code>. Rows,
+                    cells and their class words (<code>positive</code>, <code>right aligned</code>,
+                    <code>collapsing</code> ...) stay plain HTML.
+                  </p>
+                  <ui-message slot="description" state="positive" size="small"
+                    >Tables will automatically stack their layouts for mobile devices. To disable this behavior, use
+                    <code>unstackable</code>, or <code>stackable="tablet"</code> to allow responsive adjustments for
+                    tablet.</ui-message
+                  >
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Age</th>
+                          <th>Job</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td data-label="Name">James</td>
+                          <td data-label="Age">24</td>
+                          <td data-label="Job">Engineer</td>
+                        </tr>
+                        <tr>
+                          <td data-label="Name">Jill</td>
+                          <td data-label="Age">26</td>
+                          <td data-label="Job">Engineer</td>
+                        </tr>
+                        <tr>
+                          <td data-label="Name">Elyse</td>
+                          <td data-label="Age">24</td>
+                          <td data-label="Job">Designer</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-table celled padded>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th class="single line">Evidence Rating</th>
+                          <th>Effect</th>
+                          <th>Efficacy</th>
+                          <th>Consensus</th>
+                          <th>Comments</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <ui-header level="2" text-align="center">A</ui-header>
+                          </td>
+                          <td class="single line">Power Output</td>
+                          <td>
+                            <ui-rating
+                              color="yellow"
+                              value="3"
+                              max-rating="3"
+                              readonly
+                              aria-label="Efficacy"
+                            ></ui-rating>
+                          </td>
+                          <td class="right aligned">
+                            80% <br />
+                            <a href="#">18 studies</a>
+                          </td>
+                          <td>
+                            Creatine supplementation is the reference compound for increasing muscular creatine levels;
+                            there is variability in this increase, however, with some nonresponders.
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <ui-header level="2" text-align="center">A</ui-header>
+                          </td>
+                          <td class="single line">Weight</td>
+                          <td>
+                            <ui-rating
+                              color="yellow"
+                              value="3"
+                              max-rating="3"
+                              readonly
+                              aria-label="Efficacy"
+                            ></ui-rating>
+                          </td>
+                          <td class="right aligned">
+                            100% <br />
+                            <a href="#">65 studies</a>
+                          </td>
+                          <td>
+                            Creatine is the reference compound for power improvement, with numbers from one
+                            meta-analysis to assess potency
+                          </td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th colspan="5">
+                            <ui-menu floated="right" pagination aria-label="Pages">
+                              <ui-item href="#previous" icon="chevron left" aria-label="Previous page"></ui-item>
+                              <ui-item href="#page-1">1</ui-item>
+                              <ui-item href="#page-2">2</ui-item>
+                              <ui-item href="#page-3">3</ui-item>
+                              <ui-item href="#page-4">4</ui-item>
+                              <ui-item href="#next" icon="chevron right" aria-label="Next page"></ui-item>
+                            </ui-menu>
+                          </th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <!-- GAP I104:  the `<ui-image>` stacks above the name instead of sitting beside it. -->
+                <ui-docs-example>
+                  <ui-table basic="very" collapsing celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Employee</th>
+                          <th>Correct Guesses</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <ui-header level="4">
+                              <ui-image src="../images/avatar2/small/lena.png" size="mini" rounded alt=""></ui-image>
+                              <ui-content>
+                                Lena
+                                <ui-header sub>Human Resources</ui-header>
+                              </ui-content>
+                            </ui-header>
+                          </td>
+                          <td>22</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <ui-header level="4">
+                              <ui-image src="../images/avatar2/small/matthew.png" size="mini" rounded alt=""></ui-image>
+                              <ui-content>
+                                Matthew
+                                <ui-header sub>Fabric Design</ui-header>
+                              </ui-content>
+                            </ui-header>
+                          </td>
+                          <td>15</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <ui-header level="4">
+                              <ui-image src="../images/avatar2/small/lindsay.png" size="mini" rounded alt=""></ui-image>
+                              <ui-content>
+                                Lindsay
+                                <ui-header sub>Entertainment</ui-header>
+                              </ui-content>
+                            </ui-header>
+                          </td>
+                          <td>12</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <ui-header level="4">
+                              <ui-image src="../images/avatar2/small/mark.png" size="mini" rounded alt=""></ui-image>
+                              <ui-content>
+                                Mark
+                                <ui-header sub>Executive</ui-header>
+                              </ui-content>
+                            </ui-header>
+                          </td>
+                          <td>11</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-table celled striped>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th colspan="3">Git Repository</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="collapsing"><ui-icon name="folder"></ui-icon> node_modules</td>
+                          <td>Initial commit</td>
+                          <td class="right aligned collapsing">10 hours ago</td>
+                        </tr>
+                        <tr>
+                          <td><ui-icon name="folder"></ui-icon> test</td>
+                          <td>Initial commit</td>
+                          <td class="right aligned">10 hours ago</td>
+                        </tr>
+                        <tr>
+                          <td><ui-icon name="folder"></ui-icon> build</td>
+                          <td>Initial commit</td>
+                          <td class="right aligned">10 hours ago</td>
+                        </tr>
+                        <tr>
+                          <td><ui-icon name="file outline"></ui-icon> package.json</td>
+                          <td>Initial commit</td>
+                          <td class="right aligned">10 hours ago</td>
+                        </tr>
+                        <tr>
+                          <td><ui-icon name="file outline"></ui-icon> Gruntfile.js</td>
+                          <td>Initial commit</td>
+                          <td class="right aligned">10 hours ago</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Definition">
+                  <p slot="description">
+                    A table may be formatted to emphasize a first column that defines a rows content.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Definition tables are designed to display on a single background color. You can adjust this with
+                    the <code>--ui-table-definition-page-background</code> token, or by giving the first cell a
+                    background.</ui-message
+                  >
+                  <ui-table definition>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Arguments</th>
+                          <th>Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>reset rating</td>
+                          <td>None</td>
+                          <td>Resets rating to default value</td>
+                        </tr>
+                        <tr>
+                          <td>set rating</td>
+                          <td>rating (integer)</td>
+                          <td>Sets the current star rating to specified value</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-table compact celled definition>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Name</th>
+                          <th>Registration Date</th>
+                          <th>E-mail address</th>
+                          <th>Premium Plan</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="collapsing">
+                            <ui-checkbox type="slider" fitted aria-label="Premium for John Lilki"></ui-checkbox>
+                          </td>
+                          <td>John Lilki</td>
+                          <td>September 14, 2013</td>
+                          <td>jhlilk22@yahoo.com</td>
+                          <td>No</td>
+                        </tr>
+                        <tr>
+                          <td class="collapsing">
+                            <ui-checkbox type="slider" fitted aria-label="Premium for Jamie Harington"></ui-checkbox>
+                          </td>
+                          <td>Jamie Harington</td>
+                          <td>January 11, 2014</td>
+                          <td>jamieharingonton@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                        <tr>
+                          <td class="collapsing">
+                            <ui-checkbox type="slider" fitted aria-label="Premium for Jill Lewis"></ui-checkbox>
+                          </td>
+                          <td>Jill Lewis</td>
+                          <td>May 11, 2014</td>
+                          <td>jilsewris22@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                      </tbody>
+                      <tfoot class="full-width">
+                        <tr>
+                          <th></th>
+                          <th colspan="4">
+                            <ui-button floated="right" size="small" primary labeled icon="user">Add User</ui-button>
+                            <ui-button size="small">Approve</ui-button>
+                            <ui-button size="small" disabled>Approve All</ui-button>
+                          </th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-table definition>
+                    <table>
+                      <tr>
+                        <td rowspan="2">Category rowspanned</td>
+                        <td>Row one</td>
+                      </tr>
+                      <tr>
+                        <td class="rowspanned"></td>
+                        <td>Row two</td>
+                      </tr>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Structured">
+                  <p slot="description">A table can be formatted to display complex structured data</p>
+                  <ui-message slot="description" state="info" size="small"
+                    ><p>
+                      Tables use <code>border-collapse: separate</code> to allow for tables to receive styles that
+                      cannot usually be applied to tables like <code>border-radius</code>. However this can cause some
+                      cell borders to appear missing with complex layouts that use <code>rowspan</code> or
+                      <code>colspan</code> and rows with varying column count.
+                    </p>
+                    <p>
+                      A <code>structured</code> table does not support some style features, but can correctly display
+                      all valid HTML table content.
+                    </p></ui-message
+                  >
+                  <ui-table celled structured>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th rowspan="2">Name</th>
+                          <th rowspan="2">Type</th>
+                          <th rowspan="2">Files</th>
+                          <th colspan="3">Languages</th>
+                        </tr>
+                        <tr>
+                          <th>Ruby</th>
+                          <th>JavaScript</th>
+                          <th>Python</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Alpha Team</td>
+                          <td>Project 1</td>
+                          <td class="right aligned">2</td>
+                          <td class="center aligned">
+                            <ui-icon name="checkmark" size="large" color="green"></ui-icon>
+                          </td>
+                          <td></td>
+                          <td></td>
+                        </tr>
+                        <tr>
+                          <td rowspan="3">Beta Team</td>
+                          <td>Project 1</td>
+                          <td class="right aligned">52</td>
+                          <td class="center aligned">
+                            <ui-icon name="checkmark" size="large" color="green"></ui-icon>
+                          </td>
+                          <td></td>
+                          <td></td>
+                        </tr>
+                        <tr>
+                          <td>Project 2</td>
+                          <td class="right aligned">12</td>
+                          <td></td>
+                          <td class="center aligned">
+                            <ui-icon name="checkmark" size="large" color="green"></ui-icon>
+                          </td>
+                          <td></td>
+                        </tr>
+                        <tr>
+                          <td>Project 3</td>
+                          <td class="right aligned">21</td>
+                          <td class="center aligned">
+                            <ui-icon name="checkmark" size="large" color="green"></ui-icon>
+                          </td>
+                          <td></td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="content">Content</ui-header>
+
+                <ui-docs-example
+                  header="Caption and row headers"
+                  description='A table keeps every native part:  a `<caption>`, row headers (`th scope="row"`), and the `full-width` class on `thead` / `tfoot`.'
+                >
+                  <ui-table definition compact celled>
+                    <table>
+                      <caption>
+                        Team members
+                      </caption>
+                      <thead class="full-width">
+                        <tr>
+                          <th scope="col">Name</th>
+                          <th scope="col">Registration Date</th>
+                          <th scope="col">E-mail address</th>
+                          <th scope="col" class="collapsing">Premium</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="row">John Lilki</th>
+                          <td class="single line">September 14, 2013</td>
+                          <td>jhlilk22@yahoo.com</td>
+                          <td class="collapsing">No</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">Jamie Harington</th>
+                          <td class="single line">January 11, 2014</td>
+                          <td>jamieharingonton@yahoo.com</td>
+                          <td class="collapsing">Yes</td>
+                        </tr>
+                      </tbody>
+                      <tfoot class="full-width">
+                        <tr>
+                          <th colspan="4">2 members</th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Row spanned"
+                  description="A `rowspanned` cell is a hidden stand-in for a cell spanning down from the row above, so every row keeps a full set of cells (and stacks right on phones)."
+                >
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td rowspan="2">John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td class="rowspanned">John</td>
+                          <td>Approved</td>
+                          <td>Second visit</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example
+                  header="Positive / Negative"
+                  description="A cell or row may let a user know whether a value is good or bad."
+                >
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>No Name Specified</td>
+                          <td>Unknown</td>
+                          <td class="negative">None</td>
+                        </tr>
+                        <tr class="positive">
+                          <td>Jimmy</td>
+                          <td><ui-icon name="checkmark"></ui-icon> Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Unknown</td>
+                          <td class="positive"><ui-icon name="close"></ui-icon> Requires call</td>
+                        </tr>
+                        <tr class="negative">
+                          <td>Jill</td>
+                          <td>Unknown</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Error"
+                  description="A cell or row may call attention to an error or a negative value."
+                >
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>No Name Specified</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr class="error">
+                          <td>Jimmy</td>
+                          <td>Cannot pull data</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td class="error"><ui-icon name="attention"></ui-icon> Classified</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Warning" description="A cell or row may warn a user.">
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>No Name Specified</td>
+                          <td>Unknown</td>
+                          <td>None</td>
+                        </tr>
+                        <tr class="warning">
+                          <td>Jimmy</td>
+                          <td><ui-icon name="attention"></ui-icon> Requires Action</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Unknown</td>
+                          <td class="warning"><ui-icon name="attention"></ui-icon> Hostile</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Unknown</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Active" description="A cell or row can be active or selected by a user.">
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr class="active">
+                          <td>John</td>
+                          <td>Selected</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td class="active">Jill</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Disabled" description="A cell can be disabled.">
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="disabled">
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>John</td>
+                          <td>Selected</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td class="disabled">Jill</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Colored Cells"
+                  description="A cell can be styled by the central color palette colors."
+                >
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="orange">No Name Specified</td>
+                          <td>Unknown</td>
+                          <td>None</td>
+                        </tr>
+                        <tr class="blue">
+                          <td>Jimmy</td>
+                          <td><ui-icon name="microphone"></ui-icon> Recording session</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Unknown</td>
+                          <td class="pink"><ui-icon name="child"></ui-icon> Baby Party</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Unknown</td>
+                          <td class="green">Vacation</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Marked">
+                  <p slot="description">A cell or row can be marked by a colored left or right border.</p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >Follow the class order: first the color name, then <code>marked</code>. This is to support
+                    <a href="#colored-and-marked">colored and marked</a> cells.</ui-message
+                  >
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="right blue marked">No Name Specified</td>
+                          <td class="left red marked">Unknown</td>
+                          <td>None</td>
+                        </tr>
+                        <tr class="left green marked">
+                          <td>Jimmy</td>
+                          <td><ui-icon name="microphone"></ui-icon> Recording session</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td class="right orange marked">Unknown</td>
+                          <td><ui-icon name="child"></ui-icon> Baby Party</td>
+                        </tr>
+                        <tr class="right purple marked">
+                          <td>Jill</td>
+                          <td>Unknown</td>
+                          <td>Vacation</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Colored and Marked">
+                  <p slot="description">
+                    If you need colored cells which are also marked at the same time in a different color, you have to
+                    follow a specific class order and add the <code>colored</code> class to the cell color.<br />For
+                    example <code>red colored right blue marked</code> .
+                  </p>
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="red colored right blue marked">No Name Specified</td>
+                          <td class="green colored left red marked">Unknown</td>
+                          <td class="yellow colored right purple marked">None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Single Line"
+                  description="A table can specify that its cell contents should remain on a single line, and not wrap."
+                >
+                  <ui-table single-line>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Registration Date</th>
+                          <th>E-mail address</th>
+                          <th>Premium Plan</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John Lilki</td>
+                          <td>September 14, 2013</td>
+                          <td>jhlilk22@yahoo.com</td>
+                          <td>No</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie Harington</td>
+                          <td>January 11, 2014</td>
+                          <td>jamieharingonton@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                        <tr>
+                          <td>Jill Lewis</td>
+                          <td>May 11, 2014</td>
+                          <td>jilsewris22@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Fixed">
+                  <p slot="description">
+                    A table can use
+                    <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/table-layout"
+                      ><code>table-layout: fixed</code></a
+                    >, a special faster form of table rendering that does not resize table cells based on content.
+                  </p>
+                  <ui-table fixed>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>
+                            John is an interesting boy but sometimes you don't really have enough room to describe
+                            everything you'd like
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>
+                            Jamie is a kind girl but sometimes you don't really have enough room to describe everything
+                            you'd like
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>
+                            Jill is an alright girl but sometimes you don't really have enough room to describe
+                            everything you'd like
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-message slot="description" state="info" size="small"
+                    >Fixed <code>single-line</code> tables will automatically ensure content that does not fit in a
+                    single line will receive "..." ellipsis</ui-message
+                  >
+                  <ui-table single-line fixed celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td title="This is much too long to fit I'm sorry about that">
+                            This is much too long to fit I'm sorry about that
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Shorter description</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>Shorter description</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Stacking"
+                  description="A table can specify how it stacks table content responsively."
+                >
+                  <ui-table unstackable>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th class="right aligned">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td class="right aligned">None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td class="right aligned">Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td class="right aligned">None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table stackable="tablet">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th class="right aligned">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td class="right aligned">None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td class="right aligned">Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td class="right aligned">None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Selectable Row" description="A table can have its rows appear selectable.">
+                  <ui-table selectable celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>No Action</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>None</td>
+                        </tr>
+                        <tr class="warning">
+                          <td>John</td>
+                          <td>No Action</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td class="positive">Approved</td>
+                          <td class="warning">Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td class="negative">Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-table selectable inverted>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th class="right aligned">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td class="right aligned">None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td class="right aligned">Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td class="right aligned">None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Selectable Cell">
+                  <p slot="description">A table cell can be selectable.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Using an <code>a</code> link inside a selectable cell will automatically make the hit box the
+                    entire cell area. By default links will inherit their cell color.</ui-message
+                  >
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Edit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>No Action</td>
+                          <td class="selectable">
+                            <a href="#">Edit</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td class="selectable">
+                            <a href="#">Edit</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td class="selectable">
+                            <a href="#">Edit</a>
+                          </td>
+                        </tr>
+                        <tr class="warning">
+                          <td>John</td>
+                          <td>No Action</td>
+                          <td class="selectable warning">
+                            <a href="#">Requires change</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td class="positive">Approved</td>
+                          <td class="selectable positive">
+                            <a href="#">Approve</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td class="negative">Denied</td>
+                          <td class="selectable negative">
+                            <a href="#">Remove</a>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Vertical Alignment"
+                  description="A table header, row, or cell can adjust its vertical alignment."
+                >
+                  <ui-table striped>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="top aligned">
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td class="top aligned">
+                            Notes<br />
+                            1<br />
+                            2<br />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td class="bottom aligned">Approved</td>
+                          <td>
+                            Notes<br />
+                            1<br />
+                            2<br />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Text Alignment"
+                  description="A table header, row, or cell can adjust its text alignment."
+                >
+                  <ui-table striped>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th class="right aligned">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="center aligned">
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td class="right aligned">None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td class="right aligned">Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td class="right aligned">None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Striped"
+                  description="A table can stripe alternate rows of content with a darker color to increase contrast."
+                >
+                  <ui-table striped>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Date Joined</th>
+                          <th>E-mail</th>
+                          <th>Called</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John Lilki</td>
+                          <td>September 14, 2013</td>
+                          <td>jhlilk22@yahoo.com</td>
+                          <td>No</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie Harington</td>
+                          <td>January 11, 2014</td>
+                          <td>jamieharingonton@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                        <tr>
+                          <td>Jill Lewis</td>
+                          <td>May 11, 2014</td>
+                          <td>jilsewris22@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                        <tr>
+                          <td>John Lilki</td>
+                          <td>September 14, 2013</td>
+                          <td>jhlilk22@yahoo.com</td>
+                          <td>No</td>
+                        </tr>
+                        <tr>
+                          <td>John Lilki</td>
+                          <td>September 14, 2013</td>
+                          <td>jhlilk22@yahoo.com</td>
+                          <td>No</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie Harington</td>
+                          <td>January 11, 2014</td>
+                          <td>jamieharingonton@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                        <tr>
+                          <td>Jill Lewis</td>
+                          <td>May 11, 2014</td>
+                          <td>jilsewris22@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                        <tr>
+                          <td>John Lilki</td>
+                          <td>September 14, 2013</td>
+                          <td>jhlilk22@yahoo.com</td>
+                          <td>No</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Celled" description="A table may be divided each row into separate cells.">
+                  <ui-table celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th>3 People</th>
+                          <th>2 Approved</th>
+                          <th></th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Basic"
+                  description="A table can reduce its complexity to increase readability."
+                >
+                  <ui-table basic>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-message slot="description" state="info" size="small"
+                    ><code>very basic</code> tables have loose padding unless they are also
+                    <a href="#sortable"><code>sortable</code></a> or <a href="#striped"><code>striped</code></a
+                    >.</ui-message
+                  >
+                  <ui-table basic="very">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Collapsing Cell">
+                  <p slot="description">A cell can be collapsing so that it only uses as much space as required.</p>
+                  <ui-message slot="description" state="warning" size="small" icon="warning"
+                    >To ensure icons don't wrap to a separate line you must either specify <code>collapsing</code> on
+                    the widest row in the collapsing column, or on all rows.</ui-message
+                  >
+                  <ui-table>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td class="collapsing"><ui-icon name="folder"></ui-icon> node_modules</td>
+                          <td>Initial commit</td>
+                          <td>10 hours ago</td>
+                        </tr>
+                        <tr>
+                          <td><ui-icon name="folder"></ui-icon> test</td>
+                          <td>Initial commit</td>
+                          <td>10 hours ago</td>
+                        </tr>
+                        <tr>
+                          <td><ui-icon name="folder"></ui-icon> build</td>
+                          <td>Initial commit</td>
+                          <td>10 hours ago</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Column Count"
+                  description='A table can specify its column count to divide its content evenly:  `columns="5"`.'
+                >
+                  <ui-table columns="5">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Age</th>
+                          <th>Gender</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>22</td>
+                          <td>Male</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>32</td>
+                          <td>Male</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>22</td>
+                          <td>Female</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th>3 People</th>
+                          <th>2 Approved</th>
+                          <th></th>
+                          <th></th>
+                          <th></th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Column Width">
+                  <p slot="description">A table can specify the width of individual columns independently.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Tables use a 16 column grid similar to <a href="ui-grid.html">the grid</a>:
+                    <code>class="ten wide"</code> on a header cell.</ui-message
+                  >
+                  <ui-table>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th class="ten wide">Name</th>
+                          <th class="six wide">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th>3 People</th>
+                          <th>2 Approved</th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Collapsing"
+                  description="A table can be collapsing, taking up only as much space as its rows."
+                >
+                  <ui-table collapsing>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th>3 People</th>
+                          <th>2 Approved</th>
+                          <th></th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Colored"
+                  description="A table can be given a color to distinguish it from other tables."
+                >
+                  <ui-table color="red">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Tomatoes</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="orange">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="yellow">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="olive">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="green">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="teal">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="blue">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="violet">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="purple">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="pink">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="grey">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table color="black">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Inverted" description="A table's colors can be inverted.">
+                  <ui-table inverted>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th>3 People</th>
+                          <th>2 Approved</th>
+                          <th></th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-table inverted color="red">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="orange">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="yellow">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="olive">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="green">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="teal">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="blue">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="violet">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="purple">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="pink">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="brown">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table inverted color="grey">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Food</th>
+                          <th>Calories</th>
+                          <th>Protein</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Apples</td>
+                          <td>200</td>
+                          <td>0g</td>
+                        </tr>
+                        <tr>
+                          <td>Orange</td>
+                          <td>310</td>
+                          <td>0g</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Sortable">
+                  <p slot="description">A table may allow a user to sort contents by clicking on a table header.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >No plugin needed: a header click (or Enter / Space) fires <code>ui-sort</code> and marks the column
+                    (<code>sort-column</code>, <code>sort-direction</code>, <code>aria-sort</code>);
+                    <code>client-sort</code> also reorders the rows. Click a header to try it.</ui-message
+                  >
+                  <ui-table sortable celled client-sort>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>No Action</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td class="positive">Approved</td>
+                          <td class="warning">Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td class="negative">Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th>3 People</th>
+                          <th>2 Approved</th>
+                          <th></th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Full-Width Header / Footer"
+                  description="A definition table can have a full width header or footer, filling in the gap left by the first column."
+                >
+                  <ui-table compact celled definition>
+                    <table>
+                      <thead class="full-width">
+                        <tr>
+                          <th></th>
+                          <th>Name</th>
+                          <th>Registration Date</th>
+                          <th>E-mail address</th>
+                          <th>Premium Plan</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="collapsing">
+                            <ui-checkbox type="slider" fitted aria-label="Premium for John Lilki"></ui-checkbox>
+                          </td>
+                          <td>John Lilki</td>
+                          <td>September 14, 2013</td>
+                          <td>jhlilk22@yahoo.com</td>
+                          <td>No</td>
+                        </tr>
+                        <tr>
+                          <td class="collapsing">
+                            <ui-checkbox type="slider" fitted aria-label="Premium for Jamie Harington"></ui-checkbox>
+                          </td>
+                          <td>Jamie Harington</td>
+                          <td>January 11, 2014</td>
+                          <td>jamieharingonton@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                        <tr>
+                          <td class="collapsing">
+                            <ui-checkbox type="slider" fitted aria-label="Premium for Jill Lewis"></ui-checkbox>
+                          </td>
+                          <td>Jill Lewis</td>
+                          <td>May 11, 2014</td>
+                          <td>jilsewris22@yahoo.com</td>
+                          <td>Yes</td>
+                        </tr>
+                      </tbody>
+                      <tfoot class="full-width">
+                        <tr>
+                          <th></th>
+                          <th colspan="4">
+                            <ui-button floated="right" size="small" primary labeled icon="user">Add User</ui-button>
+                            <ui-button size="small">Approve</ui-button>
+                            <ui-button size="small" disabled>Approve All</ui-button>
+                          </th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Padded"
+                  description="A table may sometimes need to be more padded for legibility."
+                >
+                  <ui-table padded>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>
+                            He is a very nice guy and I enjoyed talking to him on the telephone. I hope we get to talk
+                            again.
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Jamie was not interested in purchasing our product.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-table padded="very">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>
+                            He is a very nice guy and I enjoyed talking to him on the telephone. I hope we get to talk
+                            again.
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Jamie was not interested in purchasing our product.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Compact"
+                  description="A table may sometimes need to be more compact to make more rows visible at a time."
+                >
+                  <ui-table compact>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-table compact="very">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Another Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Attached"
+                  description='A table can be attached to other content on a page:  `attached="top"`, `attached` (the middle) or `attached="bottom"`.'
+                >
+                  <ui-table attached="top">
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table attached>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                  <ui-table attached="bottom">
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Table alignment"
+                  description="A table's cells can all share one text alignment (`text-align`);  `vertical-align` does the same vertically."
+                >
+                  <ui-table text-align="center" celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+
+                <ui-docs-example header="Size" description="A table can also be small or large.">
+                  <ui-table size="small">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th>3 People</th>
+                          <th>2 Approved</th>
+                          <th></th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-table size="large">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>Approved</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Jamie</td>
+                          <td>Approved</td>
+                          <td>Requires call</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>Denied</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th>3 People</th>
+                          <th>2 Approved</th>
+                          <th></th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example header="Scrolling">
+                  <p slot="description">
+                    A table body can scroll vertically: <code>scrolling</code>, with the head and foot stuck.
+                  </p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >Some table variants like <a href="#column-width">column width</a> or
+                    <a href="#single-line">single line</a> do not work with a scrolling table. If you need such
+                    combinations use a <a href="#stuck">stuck table</a> instead.</ui-message
+                  >
+                  <ui-message slot="description" state="info" size="small"
+                    >Add <code>resizable</code> and a native resize drag handler will appear to the bottom right of the
+                    table body.</ui-message
+                  >
+                  <ui-table unstackable celled scrolling aria-label="People">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Age</th>
+                          <th>Job</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>James</td>
+                          <td>24</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>26</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Elyse</td>
+                          <td>24</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Daphne</td>
+                          <td>24</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Zoe</td>
+                          <td>26</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Kirk</td>
+                          <td>24</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Doug</td>
+                          <td>24</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Francis</td>
+                          <td>26</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Claire</td>
+                          <td>24</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Thomas</td>
+                          <td>27</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Clint</td>
+                          <td>31</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Alison</td>
+                          <td>21</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Rachel</td>
+                          <td>19</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Dave</td>
+                          <td>23</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Oliver</td>
+                          <td>29</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Sue</td>
+                          <td>23</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Jennifer</td>
+                          <td>22</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Zak</td>
+                          <td>27</td>
+                          <td>Designer</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td>18 Entries</td>
+                          <td>Average age: 25</td>
+                          <td>2 Job-Types</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <p slot="description">
+                    A scrolling table optionally supports predefined heights: <code>scrolling="long"</code>,
+                    <code>"very long"</code>, <code>"short"</code> and <code>"very short"</code>.
+                  </p>
+                  <ui-table scrolling="long" unstackable celled aria-label="People, long">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Age</th>
+                          <th>Job</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>James</td>
+                          <td>24</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Jill</td>
+                          <td>26</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Elyse</td>
+                          <td>24</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Daphne</td>
+                          <td>24</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Zoe</td>
+                          <td>26</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Kirk</td>
+                          <td>24</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Doug</td>
+                          <td>24</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Francis</td>
+                          <td>26</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Claire</td>
+                          <td>24</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Thomas</td>
+                          <td>27</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Clint</td>
+                          <td>31</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Alison</td>
+                          <td>21</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Rachel</td>
+                          <td>19</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Dave</td>
+                          <td>23</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Oliver</td>
+                          <td>29</td>
+                          <td>Designer</td>
+                        </tr>
+                        <tr>
+                          <td>Sue</td>
+                          <td>23</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Jennifer</td>
+                          <td>22</td>
+                          <td>Engineer</td>
+                        </tr>
+                        <tr>
+                          <td>Zak</td>
+                          <td>27</td>
+                          <td>Designer</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td>18 Entries</td>
+                          <td>Average age: 25</td>
+                          <td>2 Job-Types</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Overflowing"
+                  description="A table can scroll both ways when its content is too wide or too tall, with nothing stuck.  It takes the same height steps as `scrolling`."
+                >
+                  <ui-table overflowing="short" celled aria-label="Overflowing cells">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Column 1</th>
+                          <th>Column 2</th>
+                          <th>Column 3</th>
+                          <th>Column 4</th>
+                          <th>Column 5</th>
+                          <th>Column 6</th>
+                          <th>Column 7</th>
+                          <th>Column 8</th>
+                          <th>Column 9</th>
+                          <th>Column 10</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Cell 1.1</td>
+                          <td>Cell 1.2</td>
+                          <td>Cell 1.3</td>
+                          <td>Cell 1.4</td>
+                          <td>Cell 1.5</td>
+                          <td>Cell 1.6</td>
+                          <td>Cell 1.7</td>
+                          <td>Cell 1.8</td>
+                          <td>Cell 1.9</td>
+                          <td>Cell 1.10</td>
+                        </tr>
+                        <tr>
+                          <td>Cell 2.1</td>
+                          <td>Cell 2.2</td>
+                          <td>Cell 2.3</td>
+                          <td>Cell 2.4</td>
+                          <td>Cell 2.5</td>
+                          <td>Cell 2.6</td>
+                          <td>Cell 2.7</td>
+                          <td>Cell 2.8</td>
+                          <td>Cell 2.9</td>
+                          <td>Cell 2.10</td>
+                        </tr>
+                        <tr>
+                          <td>Cell 3.1</td>
+                          <td>Cell 3.2</td>
+                          <td>Cell 3.3</td>
+                          <td>Cell 3.4</td>
+                          <td>Cell 3.5</td>
+                          <td>Cell 3.6</td>
+                          <td>Cell 3.7</td>
+                          <td>Cell 3.8</td>
+                          <td>Cell 3.9</td>
+                          <td>Cell 3.10</td>
+                        </tr>
+                        <tr>
+                          <td>Cell 4.1</td>
+                          <td>Cell 4.2</td>
+                          <td>Cell 4.3</td>
+                          <td>Cell 4.4</td>
+                          <td>Cell 4.5</td>
+                          <td>Cell 4.6</td>
+                          <td>Cell 4.7</td>
+                          <td>Cell 4.8</td>
+                          <td>Cell 4.9</td>
+                          <td>Cell 4.10</td>
+                        </tr>
+                        <tr>
+                          <td>Cell 5.1</td>
+                          <td>Cell 5.2</td>
+                          <td>Cell 5.3</td>
+                          <td>Cell 5.4</td>
+                          <td>Cell 5.5</td>
+                          <td>Cell 5.6</td>
+                          <td>Cell 5.7</td>
+                          <td>Cell 5.8</td>
+                          <td>Cell 5.9</td>
+                          <td>Cell 5.10</td>
+                        </tr>
+                        <tr>
+                          <td>Cell 6.1</td>
+                          <td>Cell 6.2</td>
+                          <td>Cell 6.3</td>
+                          <td>Cell 6.4</td>
+                          <td>Cell 6.5</td>
+                          <td>Cell 6.6</td>
+                          <td>Cell 6.7</td>
+                          <td>Cell 6.8</td>
+                          <td>Cell 6.9</td>
+                          <td>Cell 6.10</td>
+                        </tr>
+                        <tr>
+                          <td>Cell 7.1</td>
+                          <td>Cell 7.2</td>
+                          <td>Cell 7.3</td>
+                          <td>Cell 7.4</td>
+                          <td>Cell 7.5</td>
+                          <td>Cell 7.6</td>
+                          <td>Cell 7.7</td>
+                          <td>Cell 7.8</td>
+                          <td>Cell 7.9</td>
+                          <td>Cell 7.10</td>
+                        </tr>
+                        <tr>
+                          <td>Cell 8.1</td>
+                          <td>Cell 8.2</td>
+                          <td>Cell 8.3</td>
+                          <td>Cell 8.4</td>
+                          <td>Cell 8.5</td>
+                          <td>Cell 8.6</td>
+                          <td>Cell 8.7</td>
+                          <td>Cell 8.8</td>
+                          <td>Cell 8.9</td>
+                          <td>Cell 8.10</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+
+                <ui-docs-example header="Stuck">
+                  <p slot="description">
+                    A table can scroll horizontally having its <code>head</code>, <code>foot</code>,
+                    <code>first</code> or <code>last</code> column keep staying stuck.
+                  </p>
+                  <p slot="description">
+                    You can freely stick any combination like <code>stuck="head first"</code>,
+                    <code>"foot first last"</code>, <code>"head foot first"</code>, <code>"first last"</code>, etc.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >A stuck table possibly needs to be wrapped into an overflowing container like a
+                    <a href="ui-container.html">scrolling container</a> or
+                    <a href="ui-segment.html">scrolling segment</a>. If you don't want an extra wrapper, use
+                    <code>overflowing</code> on the table; this only works if the table's columns exceed the available
+                    width.</ui-message
+                  >
+                  <ui-container scrolling="short">
+                    <ui-table stuck="head foot first last" unstackable celled aria-label="Jobs">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Job</th>
+                            <th>Job</th>
+                            <th>Job</th>
+                            <th>Job</th>
+                            <th>Job</th>
+                            <th>Job</th>
+                            <th>Job</th>
+                            <th>Job</th>
+                            <th>Job</th>
+                            <th>Job</th>
+                            <th>Summary</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>James</td>
+                            <td>24</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Accepted</td>
+                          </tr>
+                          <tr>
+                            <td>Jill</td>
+                            <td>26</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Accepted</td>
+                          </tr>
+                          <tr>
+                            <td>Elyse</td>
+                            <td>24</td>
+                            <td>Designer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Pending</td>
+                          </tr>
+                          <tr>
+                            <td>Daphne</td>
+                            <td>24</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Accepted</td>
+                          </tr>
+                          <tr>
+                            <td>Zoe</td>
+                            <td>26</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Accepted</td>
+                          </tr>
+                          <tr>
+                            <td>Kirk</td>
+                            <td>24</td>
+                            <td>Designer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Engineer</td>
+                            <td>Pending</td>
+                          </tr>
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td>Names:6</td>
+                            <td>av.25</td>
+                            <td>Jobs : 2</td>
+                            <td>Jobs : 2</td>
+                            <td>Jobs : 2</td>
+                            <td>Jobs : 2</td>
+                            <td>Jobs : 2</td>
+                            <td>Jobs : 2</td>
+                            <td>Jobs : 2</td>
+                            <td>Jobs : 2</td>
+                            <td>Jobs : 2</td>
+                            <td>Jobs : 2</td>
+                            <td>2 Pending</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </ui-table>
+                  </ui-container>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  the native table, stacking, sorting, data mode, keyboard, accessibility, frameworks. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `<ui-table>` holds ONE native `<table>`, and the table stays in the page (the light DOM): its semantics,
+                    find-in-page, copy and your own CSS all work as on any table. The element only adds the look, sorting and a
+                    scroller.
+
+                    - It copies its class words onto the table (`<ui-table celled striped>` gives
+                      `<table class="ui celled striped table">`), adding and removing only its own words, so your classes
+                      stay. A server can write that class string itself, and the table paints before any script runs.
+                    - Rows and cells keep Fomantic's classes on the native `tr`, `td` and `th`: `positive`, `left red marked`,
+                      `collapsing`, `four wide`, `right aligned`. No script, no extra elements.
+                    - `columns="4"` is Fomantic's equal-width column count; the data mode's column list is the separate `columnDefs`
+                      property.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="stacking">Stacking</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `stackable` answers to the VIEWPORT, as in Fomantic: below 768px every table stacks unless it is `unstackable`;
+                    `stackable="tablet"` also stacks below 992px.
+
+                    A table in a narrow sidebar of a wide screen can follow its OWN width instead with `stack-by="container"`, or a
+                    whole region with the token `--ui-table-stack-by: container` (on an ancestor or the page); the attribute wins
+                    over the token.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="sorting">Sorting</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    With `sortable`, every header in the `thead` sorts, unless it has `data-sortable="false"` (or Fomantic's
+                    `class="disabled"`).
+
+                    - A click, or Enter / Space on a focused header, first dispatches the cancelable `ui-sort`
+                      (`{ column, key, direction }`, where `key` is the header's `data-key`).
+                    - Then `sort-column`, `sort-direction` and the header's `aria-sort` update. The same header again flips the
+                      direction; a new one starts `ascending`.
+                    - The element does not move your rows unless you ask: `client-sort` reorders a simple table's `tbody` rows by the
+                      sorted column's text (numbers in number order); otherwise sort the rows yourself.
+                  </script>
+                </ui-markdown>
+                <ui-docs-example
+                  header="Client sort"
+                  description="`client-sort` reorders the rows by cell text on each `ui-sort`.  Click a header."
+                >
+                  <ui-table sortable client-sort celled>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th data-key="name"><button type="button">Name</button></th>
+                          <th data-key="calories" class="right aligned"><button type="button">Calories</button></th>
+                          <th data-sortable="false">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Bread</td>
+                          <td class="right aligned">150</td>
+                          <td>Wholemeal</td>
+                        </tr>
+                        <tr>
+                          <td>Apples</td>
+                          <td class="right aligned">95</td>
+                          <td>None</td>
+                        </tr>
+                        <tr>
+                          <td>Cheese</td>
+                          <td class="right aligned">1200</td>
+                          <td>Per kilo</td>
+                        </tr>
+                        <tr>
+                          <td>Oranges</td>
+                          <td class="right aligned">62</td>
+                          <td>None</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </ui-table>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `ui-sort` is the only event: `detail` is `{ column, key, direction, originalEvent }`. `preventDefault()` keeps
+                    the current sort (and skips data mode / `client-sort` reordering).
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    // the app sorts its own rows;  `event.preventDefault()` would keep the current sort instead
+                    const table = document.querySelector("ui-table")
+                    table.addEventListener("ui-sort", async (event) => {
+                      const { key, direction } = event.detail
+                      renderRows(await fetchRows({ sort: key, direction }))
+                    })
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="data-mode">Data mode</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    With NO slotted `<table>`, set the `rows` property (and optionally `columnDefs`: `key`, `header`, `textAlign`,
+                    `sortable`, `width`) and the element renders the table itself, into the light DOM as plain text.
+
+                    - `th scope="col"` headers, with sort buttons when `sortable`, and the rows in the current sort order.
+                    - Without `columnDefs`, the columns are the first row's keys.
+                    - A slotted table always wins and is never overwritten.
+                    - Every row renders (there is no virtual scrolling yet), and first paint never needs the property: a server can
+                      write the same `<table>` markup itself.
+                  </script>
+                </ui-markdown>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <ui-table celled striped sortable aria-label="Planets"></ui-table>
+                  </script>
+                </ui-code>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const table = document.querySelector("ui-table")
+                    table.columnDefs = [
+                      { key: "name", header: "Planet" },
+                      { key: "moons", header: "Moons", textAlign: "right" },
+                      { key: "day", header: "Day (hours)", textAlign: "right" }
+                    ]
+                    table.rows = [
+                      { name: "Mercury", moons: 0, day: 4222.6 },
+                      { name: "Venus", moons: 0, day: 2802 },
+                      { name: "Earth", moons: 1, day: 24 },
+                      { name: "Mars", moons: 2, day: 24.7 },
+                      { name: "Jupiter", moons: 95, day: 9.9 }
+                    ]
+                    table.addEventListener("ui-sort", (event) => console.log(event.detail))
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - **Tab** moves to each sort button (or focusable header), and to a scrolling region.
+                    - **Enter** / **Space** sorts by the focused header; again flips the direction.
+                    - **Arrow keys**, **Page Up** / **Page Down** scroll a focused scrolling region.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - The table is a real `<table>` in the document, so screen readers read its rows, columns and headers natively.
+                      Mark headers with `th` and `scope` (`col`, `row`, `colgroup`), and name the table with a `<caption>`.
+                    - Row and cell states (`positive`, `error`, `warning`, colours, `marked`) are visual only: say the same thing in
+                      the cell's text too.
+                    - Sortable headers: put a `<button>` in each, as the WAI-ARIA sortable table pattern does. A header without one
+                      is made focusable and answers Enter and Space. The sorted header gets `aria-sort`.
+                    - `scrolling` and `overflowing` make the scroller a focusable `role="region"`, so keyboard users can scroll it.
+                      It is named by the host's `aria-label`, else the table's `<caption>`, else the translated `label` ("Table").
+                    - If the element fails to render, its native fallback still copies the class words onto the table and keeps the
+                      scroller (a named region while scrolling), so the table looks the same. It drops sorting (`ui-sort`,
+                      `aria-sort`, focusable headers, `client-sort`), data mode (nothing renders without a slotted `<table>`), the
+                      translated `label` and later attribute changes.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Render the `<table>` inside `<ui-table>` as usual. For data mode, set `rows` / `columnDefs` as properties, not
+                    attributes, and listen for `ui-sort`.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-table celled sortable rows={rows} columnDefs={columns} onui-sort={(event) => setSort(event.detail)} />
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                    <ui-table celled sortable :rows="rows" :columnDefs="columns" @ui-sort="(event) => (sort = event.detail)" />
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    // no `on:` namespace:  listen through a ref
+                    <ui-table
+                      celled
+                      sortable
+                      prop:rows={rows()}
+                      prop:columnDefs={columns}
+                      ref={(el) => el.addEventListener("ui-sort", (event) => setSort(event.detail))}
+                    />
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-table"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-table-*` tokens: set one on the element, on any ancestor (`:root` included), on the
+                    table itself (it's in your page) or through `::part(scroller)`. The sheet reads each through a private alias, so
+                    nothing blocks them. The shadow root's only piece is the `scroller` part.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    ui-table {
+                      --ui-table-header-background: var(--ui-surface);
+                      --ui-table-striped-background: oklch(from var(--ui-primary) l c h / 0.06);
+                    }
+                    ui-table::part(scroller) {
+                      scrollbar-gutter: stable;
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      `inverted` swaps in its own `--ui-table-inverted-*` colours, and `padded` / `compact` replace the cell padding
+                      with their own steps (`--ui-table-padded`, `--ui-table-compact-padding-*`). `--ui-table-stack-by: container`
+                      makes every table in a region stack by its own width. Never set the `--_ui-*` names: they're the sheet's private
+                      plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-table" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site.
+
+                    Themes that restyle tables: Basic, Fomantic classic and GitHub.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

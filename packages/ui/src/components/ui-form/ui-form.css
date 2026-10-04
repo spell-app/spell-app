@@ -57,6 +57,9 @@
 
 @layer ui.components.form.types, ui.components.form.content, ui.components.form.variations, ui.components.form.states;
 
+/* Breakpoints (`@custom-media`), inlined at build time:  `stack-with="page"`. */
+@import "../../styles/media.css";
+
 /* Loader spin, shared by `loading` forms. */
 @keyframes ui-form-spin {
   to {
@@ -113,6 +116,8 @@
     --_ui-form-label-color: var(--ui-form-label-color, var(--ui-text-color));
     --_ui-form-equal-width: 0;
     --_ui-form-unstackable: 0;
+    /* `stack-with`:  the element's class (below), else the page-wide token, else `container` */
+    --_ui-form-stack-with: var(--ui-stack-with, container);
 
     position: relative;
     box-sizing: border-box;
@@ -431,9 +436,32 @@
     --_ui-form-unstackable: 1;
   }
 
-  /* Narrow forms stack their rows.  UNNAMED:  WebKit can't see a container name from another shadow tree. */
+  /* Stack with:  the form's own width (the default) or the screen's, read by its rows. */
+  .ui.stack-with-page.form {
+    --_ui-form-stack-with: page;
+  }
+  .ui.stack-with-container.form {
+    --_ui-form-stack-with: container;
+  }
+
+  /*
+   * Narrow forms stack their rows:  below 768px of the FORM (`stack-with="container"`, the default;  UNNAMED:  WebKit
+   * can't see a container name from another shadow tree) ...
+   */
   @container (width < 768px) {
-    @container style(not (--_ui-form-unstackable: 1)) {
+    @container style(not (--_ui-form-unstackable: 1)) and style(not (--_ui-form-stack-with: page)) {
+      .fields:not(.unstackable) {
+        --_ui-fields-child-width: 100%;
+        --_ui-fields-stacked: 1;
+        --_ui-fields-field-margin: 0 0 var(--_ui-form-row-distance, var(--ui-form-row-distance, 1em));
+        flex-wrap: wrap;
+        margin-block-end: 0;
+      }
+    }
+  }
+  /* ... or of the screen (`stack-with="page"`). */
+  @media (--ui-mobile) {
+    @container style(not (--_ui-form-unstackable: 1)) and style(--_ui-form-stack-with: page) {
       .fields:not(.unstackable) {
         --_ui-fields-child-width: 100%;
         --_ui-fields-stacked: 1;

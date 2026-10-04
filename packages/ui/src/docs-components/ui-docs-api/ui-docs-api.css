@@ -1,0 +1,104 @@
+/*
+ * `<ui-docs-api>`:  a tag's API tables, built from `<ui-*>` widgets (`<ui-header>`, `<ui-table>`, `<ui-labels>`,
+ * `<ui-message>`):  this sheet only LAYS THEM OUT, plus the look of inline `<code>` (no widget draws one:  plan-doc
+ * gap;  the foundation's `code` look is `ui-typography`'s, a PAGE sheet that never reaches a shadow root).
+ * - Shadow markup contract:  `<section class="ui api" part="api">` holding an optional `<ui-message part="message">`,
+ *   then per tag either the tables directly, or (`family`) a `<section class="tag" part="tag">` with its
+ *   `<ui-header part="header">` (an `<a>` to itself inside), `<p class="description" part="description">` and the
+ *   tables.  A table is `<ui-header part="title">`, an optional `<p class="note" part="note">`, and
+ *   `<ui-table part="table">` around a native `<table>` whose row headers (`th[scope=row]`) hold the name and
+ *   `<small class="ui-caption">` notes.
+ * - Public tokens (`--ui-docs-api-*`) are never declared:  each is read through a private alias
+ *   (`docs/theming.md` "Component tokens").
+ */
+
+@layer ui.components.docs-api.types, ui.components.docs-api.content, ui.components.docs-api.variations, ui.components.docs-api.states;
+
+@layer ui.components.docs-api.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  .ui.api {
+    /* Space between one tag's block and the next, with `family`. */
+    --_ui-docs-api-tag-gap: var(--ui-docs-api-tag-gap, 3em);
+    /* Space above a table's title. */
+    --_ui-docs-api-table-gap: var(--ui-docs-api-table-gap, 1.5em);
+    /* Room kept above a tag header scrolled to by `#<tag>`, e.g. for a sticky page header. */
+    --_ui-docs-api-scroll-margin: var(--ui-docs-api-scroll-margin, var(--ui-space-l));
+    /* Background of inline code. */
+    --_ui-docs-api-code-background: var(--ui-docs-api-code-background, var(--ui-surface-strong));
+    display: block;
+  }
+}
+
+@layer ui.components.docs-api.content {
+  .tag {
+    display: block;
+    scroll-margin-block-start: var(--_ui-docs-api-scroll-margin);
+  }
+  .tag + .tag {
+    margin-block-start: var(--_ui-docs-api-tag-gap);
+  }
+
+  [part~="title"] {
+    display: block;
+    margin-block-start: var(--_ui-docs-api-table-gap);
+    --ui-header-margin-bottom: 0.5em;
+  }
+  :is(.ui.api, .tag) > [part~="title"]:first-child,
+  [part~="description"] + [part~="title"],
+  [part~="header"] + [part~="title"] {
+    margin-block-start: 0;
+  }
+
+  [part~="description"],
+  [part~="note"] {
+    margin-block: 0 0.75em;
+  }
+  [part~="description"] {
+    margin-block-end: var(--_ui-docs-api-table-gap);
+  }
+
+  [part~="message"] {
+    display: block;
+  }
+
+  /* A tag header's self-link keeps the header's colour (plan-doc gap:  `<ui-header href>` isn't a heading). */
+  [part~="header"] > a {
+    color: inherit;
+    text-decoration-line: none;
+  }
+  [part~="header"] > a:hover {
+    text-decoration-line: underline;
+  }
+
+  /* Notes under a name (`alias`, `cancelable` ...) and under values (`set sizes`):  one per line. */
+  th small,
+  td small {
+    display: block;
+    margin-block-start: 0.25em;
+  }
+  th code {
+    white-space: nowrap;
+  }
+  td > ui-labels + small {
+    margin-block-start: 0;
+  }
+
+  /* Inline code:  `ui-typography`'s look (plan-doc gap:  no widget, and that sheet is page-only). */
+  code {
+    padding: 0.125em 0.375em;
+    border-radius: var(--ui-radius-s);
+    background-color: var(--_ui-docs-api-code-background);
+    font-family: var(--ui-font-family-mono);
+    font-size: 0.875em;
+    overflow-wrap: break-word;
+  }
+  small code {
+    padding: 0 0.25em;
+  }
+}

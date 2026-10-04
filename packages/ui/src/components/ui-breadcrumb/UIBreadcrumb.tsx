@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
-import { HostAttribute, IconGlyph, proto, UIElement, UIT } from "$/ui/core"
+import { HostAttribute, IconGlyph, proto, UI, UIElement, UIT } from "$/ui/core"
 
 import { breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
 import { BreadcrumbDivider } from "./BreadcrumbDivider"
@@ -39,13 +39,28 @@ export class UIBreadcrumb extends UIElement<typeof breadcrumbVocabulary> {
   /** Inline divider tokens for the root;  `undefined` values are removed. */
   readonly tokens = createMemo(() => {
     const divider = this.attrs.divider
-    const data = this.attrs.dividerIcon ? this.glyph.data.get() : undefined
+    const icon = this.attrs.dividerIcon ? this.dividerIcon() : undefined
     return {
       [UIT.BREADCRUMB_DIVIDER_TOKENS.text]: divider != null ? BreadcrumbDivider.cssString(divider) : undefined,
-      [UIT.BREADCRUMB_DIVIDER_TOKENS.icon]: data ? BreadcrumbDivider.svgUrl(data) : undefined,
-      [UIT.BREADCRUMB_DIVIDER_TOKENS.layout]: data ? ICON_LAYOUT : undefined
+      [UIT.BREADCRUMB_DIVIDER_TOKENS.icon]: icon,
+      [UIT.BREADCRUMB_DIVIDER_TOKENS.layout]: icon ? ICON_LAYOUT : undefined
     }
   })
+
+  /**
+   * `divider-icon`'s glyph as a CSS `url()`, once loaded;  tracked.
+   * - A server render (`$/ui/server`) has no `<svg>` template (`glyph.data` stays empty):  the url comes from the
+   *   icon's markup, read at once.
+   */
+  private dividerIcon(): string | undefined {
+    if (isServer) {
+      const name = this.attrs.dividerIcon
+      const markup = name && IconGlyph.serverMarkup?.(IconGlyph.packsFor(this.host, UI.icons), name)
+      return markup ? BreadcrumbDivider.markupUrl(markup) : undefined
+    }
+    const data = this.glyph.data.get()
+    return data ? BreadcrumbDivider.svgUrl(data) : undefined
+  }
 
   render(): JSX.Element {
     return (

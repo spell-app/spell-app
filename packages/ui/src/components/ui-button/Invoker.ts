@@ -15,8 +15,9 @@ export class Invoker {
    */
   static resolve(host: Element, id: string | undefined): Element | null {
     if (!id) return null
-    const root = host.getRootNode()
-    return root instanceof Document || root instanceof ShadowRoot ? root.getElementById(id) : null
+    // duck-typed, not `instanceof Document / ShadowRoot`:  the static render resolves ids in node (`$/ui/server`)
+    const root = host.getRootNode() as Partial<Document>
+    return typeof root.getElementById === "function" ? root.getElementById(id) : null
   }
 
   /** Run `command` on `target`, as the browser's invoker activation would. */

@@ -1,0 +1,1855 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spell UI Pages</title>
+    <meta
+      name="description"
+      content="How the Spell UI docs site is built: plain HTML pages in Fomantic's docs style, made only of ui-* widgets, plus six ui-docs-* elements and 24 ported themes."
+    />
+    <link rel="stylesheet" href="_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Spell UI Pages</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <h1>Spell UI Pages</h1>
+        <p class="lede">
+          How Spell UI's docs site is built and kept: plain HTML pages in Fomantic's docs style, made only of
+          <code>&lt;ui-*&gt;</code> widgets, so every page doubles as a test of the library.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="user"
+            >Written for: whoever maintains the site next -- adding a page, a docs element or a theme, or rebuilding the
+            bundle</ui-item
+          >
+          <ui-item icon="flag"
+            >Status: <ui-label size="mini" color="green">built</ui-label> (epic <code>spell-ui-pages</code>, P1-P11,
+            2026-10-02 / 03)</ui-item
+          >
+          <ui-item icon="flask"
+            >Checked on: branch <code>spell-ui-pages</code>, 2026-10-03, against the files themselves and the plan doc
+            (see <a href="#9-record">The record</a>)</ui-item
+          >
+        </ui-list>
+
+        <ui-section id="1-what-it-is" header="1. What the site is" sticky collapsible dividing>
+          <ui-icon slot="icon" name="globe"></ui-icon>
+          <ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="66" label="pages"></ui-statistic>
+            <ui-statistic value="1608" label="live examples"></ui-statistic>
+            <ui-statistic value="24" label="Fomantic themes"></ui-statistic>
+            <ui-statistic value="100" label="open widget gaps"></ui-statistic>
+          </ui-statistics>
+          <ul>
+            <li>
+              Spell UI's docs: hand-written <code>.html</code> pages laid out like
+              <a href="https://fomantic-ui.com/" target="ext-fomantic-ui-com">fomantic-ui.com</a>'s, with Fomantic's
+              text, examples and images (MIT, credited in every footer).
+              <ul>
+                <li>
+                  66 pages: 58 component pages (one per family), the component index, and 7 foundation pages (home,
+                  getting started, grammar, theming, utilities, icons, kitchen sink).
+                </li>
+                <li>1608 live examples, each showing its own source.</li>
+              </ul>
+            </li>
+            <li>
+              Everything visible is a <code>&lt;ui-*&gt;</code> widget, plus six doc-only
+              <code>&lt;ui-docs-*&gt;</code> elements (<a href="#4-docs-elements">section 4</a>). The site's own CSS is
+              layout glue only.
+            </li>
+            <li>
+              Why: a page that can only use the library shows where the library falls short. Every Fomantic example a
+              widget couldn't render became a
+              <dfn class="spell-term" tabindex="0">gap</dfn>
+              <ui-popup
+                header="gap"
+                content="A Fomantic example or bit of page chrome no ui-* widget can render right:  a missing attribute or value, a wrong look, or one that needs hand CSS.  Logged as an issue in the plan doc."
+              ></ui-popup>
+              in the plan doc. 100 are open (<a href="#8-limits">section 8</a>); 31 more were fixed, 27 in passing and 4
+              by the two widget phases that followed (stacking and the tab bar, <a href="#frame-widgets">section 3</a>).
+            </li>
+            <li>
+              Where: <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a
+              >. How it's served: as static files at <code>/ui/</code> by the checkout's page server (<code
+                >UI_SITE</code
+              >
+              in
+              <a href="../server/src/page/page.types.ts" target="src-packages-server-src-page-page-types-ts"
+                ><code>packages/server/src/page/page.types.ts</code></a
+              >), with live reload.
+              <ul>
+                <li>No build step to VIEW a page: pages load one committed bundle, <code>_assets/site.js</code>.</li>
+                <li><code>/ui</code> without the slash redirects to <code>/ui/</code>, so relative links work.</li>
+                <li>
+                  Not deployed yet. Any static host can serve the folder as is, but copy
+                  <code>_assets/icon-packs</code> through its symlink (<code>cp -RL</code>); every bundle URL is
+                  relative.
+                </li>
+              </ul>
+            </li>
+            <li>It replaced the old Astro + MDX site, deleted in P7, along with 330 lockfile packages.</li>
+          </ul>
+          <ui-message state="info" header="Start here">
+            <ul>
+              <li>
+                <a href="../ui/site/README.md" target="src-packages-ui-site-readme-md"
+                  ><code>packages/ui/site/README.md</code></a
+                >: the site's own how-to. This page adds the anatomy, the reasons and the limits.
+              </li>
+              <li>
+                To see a page: <code>yarn serve</code> from the repo root, then <code>&lt;base&gt;/ui/</code>, or
+                <code>yarn server url "$PWD/packages/ui/site/index.html"</code>.
+              </li>
+            </ul>
+          </ui-message>
+        </ui-section>
+
+        <ui-section id="2-layout" header="2. Layout of the site folder" sticky collapsible dividing>
+          <ui-icon slot="icon" name="folder"></ui-icon>
+          <p>
+            Everything lives in <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a
+            >, except the page template (<a
+              href="templates/spell-ui-docs.html"
+              target="src-packages-docs-templates-spell-ui-docs-html"
+              ><code>packages/docs/templates/spell-ui-docs.html</code></a
+            >) and the docs elements (<a href="../ui/src/docs-components/" target="src-packages-ui-src-docs-components"
+              ><code>packages/ui/src/docs-components/</code></a
+            >).
+          </p>
+          <ui-table celled compact striped unstackable>
+            <table>
+              <thead>
+                <tr>
+                  <th>
+                    path in <a href="../ui/site/" target="src-packages-ui-site"><code>site/</code></a>
+                  </th>
+                  <th>what</th>
+                  <th>kind</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>*.html</code></td>
+                  <td>home and foundation pages: index, getting-started, grammar, theming, utilities, icons</td>
+                  <td class="yes positive">hand-written</td>
+                </tr>
+                <tr>
+                  <td><code>kitchen-sink.html</code></td>
+                  <td>every family's <code>examples/elements/types.html</code>, stitched together</td>
+                  <td class="meh warning">generated (<code>site:kitchen</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>components/ui-&lt;name&gt;.html</code></td>
+                  <td>one page per component family, named for its main tag</td>
+                  <td class="yes positive">hand-written</td>
+                </tr>
+                <tr>
+                  <td><code>components/index.html</code></td>
+                  <td>the card index; cards between markers</td>
+                  <td class="meh warning">generated (<code>site:index</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>_parts/</code></td>
+                  <td>
+                    <code>header.html</code>, <code>footer.html</code>: shared chrome, pulled in by
+                    <code>&lt;ui-include page-styles&gt;</code>
+                  </td>
+                  <td class="yes positive">hand-written</td>
+                </tr>
+                <tr>
+                  <td><code>_src/</code></td>
+                  <td>
+                    <code>site.ts</code> (the bundle entry: what's in it and why), <code>snapshot.ts</code>,
+                    <code>site.css</code> (layout glue only)
+                  </td>
+                  <td class="yes positive">hand-written</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="_assets/" target="src-packages-docs-assets"><code>_assets/</code></a>
+                  </td>
+                  <td>
+                    the bundle: <code>site.js</code>, <code>site.css</code>, a lazy chunk per family;
+                    <code>icon-packs</code> is a symlink to
+                    <a href="../ui/src/icons/icon-packs/" target="src-packages-ui-src-icons-icon-packs"
+                      ><code>src/icons/icon-packs</code></a
+                    >. NEVER edit
+                  </td>
+                  <td class="no negative">generated, committed (<code>site:bundle</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>_data/components.json</code>, <code>icons.json</code></td>
+                  <td>every tag, family, token, topic and theme; the icon browser's search terms</td>
+                  <td class="no negative">generated, committed (<code>site:data</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>_data/pages.json</code></td>
+                  <td>
+                    per-family title, summary, status, token-table overrides, theme titles: the durable home of those
+                    facts
+                  </td>
+                  <td class="yes positive">hand-kept (seeded once per new family)</td>
+                </tr>
+                <tr>
+                  <td><code>examples/</code></td>
+                  <td>
+                    files examples load (<code>&lt;ui-include source&gt;</code>,
+                    <code>&lt;ui-markdown source&gt;</code>, a one-icon pack)
+                  </td>
+                  <td class="yes positive">hand-written</td>
+                </tr>
+                <tr>
+                  <td><code>images/</code></td>
+                  <td>Fomantic's docs images (87, 3.3 MB), same paths as fomantic-ui.com's <code>/images/</code></td>
+                  <td class="yes positive">copied</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+          <ul>
+            <li>
+              Outside <a href="../ui/site/" target="src-packages-ui-site"><code>site/</code></a
+              >:
+              <ul>
+                <li>
+                  <a href="../ui/scripts/" target="src-packages-ui-scripts"><code>packages/ui/scripts/</code></a
+                  >: <code>gen-site-data.ts</code>, <code>site-new.ts</code>, <code>site-components-index.ts</code>,
+                  <code>site-kitchen-sink.ts</code>, <code>site-bundle.ts</code>, <code>site-dev.ts</code>
+                </li>
+                <li>
+                  <a href="../ui/tools/" target="src-packages-ui-tools"><code>packages/ui/tools/</code></a
+                  >: <code>SiteDataBuilder.ts</code>, <code>FamilyTokens.ts</code>, <code>FoundationTokens.ts</code>,
+                  <code>ThemeFamilies.ts</code> (build the data), <code>SiteCheck.ts</code> (checks pages)
+                </li>
+                <li>
+                  <a href="../ui/vite.site.config.ts" target="src-packages-ui-vite-site-config-ts"
+                    ><code>packages/ui/vite.site.config.ts</code></a
+                  >: the bundle's Vite config
+                </li>
+                <li>
+                  <a href="../ui/reference/" target="src-packages-ui-reference"><code>packages/ui/reference/</code></a>
+                  (git-ignored): the Fomantic-UI 2.9.4 and Fomantic-UI-Docs clones, the source of text, examples and
+                  themes
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="3-anatomy" header="3. Anatomy of a page" sticky collapsible dividing>
+          <ui-icon slot="icon" name="map"></ui-icon>
+          <p>
+            Every page comes from one template and has the same frame; only the contents of three tabs (or, on a
+            foundation page, one article) are written by hand.
+          </p>
+
+          <ui-section id="template" header="Template" sticky collapsible dividing>
+            <ul>
+              <li>
+                <a href="templates/spell-ui-docs.html" target="src-packages-docs-templates-spell-ui-docs-html"
+                  ><code>packages/docs/templates/spell-ui-docs.html</code></a
+                >, filled by <code>yarn site:new</code>. It opens as is from the page server, placeholders showing, so a
+                layout change can be tried there first.
+              </li>
+              <li>
+                Two variants, kept or dropped by comment markers: <code>site:component</code> (masthead theme picker +
+                four tabs) and <code>site:page</code> (one <code>&lt;article&gt;</code>, no tabs).
+              </li>
+              <li>
+                <code>&lt;head&gt;</code>: a tiny inline script that applies the stored light / dark scheme before first
+                paint, then <code>site.css</code> and <code>site.js</code>.
+              </li>
+              <li><code>&lt;body class="ui-typography"&gt;</code>: Fomantic's page look, dark mode included.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="the-frame" header="The frame, top to bottom" sticky collapsible dividing>
+            <ol>
+              <li>
+                <b>Site header</b>: <code>&lt;spell-site-header&gt;</code>, the bar every page-server page shares, then
+                <code
+                  >&lt;ui-root class="site" stack-with="page" icons="fa7-brands, fomantic"
+                  display="immediately"&gt;</code
+                >
+                around the rest: it loads each family on first use, and makes every example stack by the screen (<a
+                  href="#frame-widgets"
+                  >below</a
+                >).
+              </li>
+              <li>
+                <b>Top menu</b>: <code>_parts/header.html</code> through <code>&lt;ui-include page-styles&gt;</code>: an
+                inverted <code>&lt;ui-menu&gt;</code> with the site links and
+                <code>&lt;ui-docs-themes inverted&gt;</code>, plus a <code>&lt;ui-flyout&gt;</code> nav for narrow
+                screens. A same-size placeholder menu shows until it loads.
+              </li>
+              <li>
+                <b>Left nav</b>: <code>&lt;ui-docs-nav&gt;</code> in a sticky 250px column: every component together,
+                A-Z or by topic, with search and favourites. Under 992px it hides, and the menu button opens the flyout.
+              </li>
+              <li>
+                <b>Masthead</b>: <code>&lt;ui-segment vertical&gt;</code>: title and summary as a nested
+                <code>&lt;ui-header&gt;</code>, a yellow status label unless done, source / bug / Fomantic links, and
+                the family's own <code>&lt;ui-docs-themes for show="theme"&gt;</code>.
+              </li>
+              <li>
+                <b>Tabs</b>:
+                <code>&lt;ui-tabs id="site-tabs" history basic appearance="segmented" alignment="fluid" equal&gt;</code
+                >: Examples / Usage / API / Theming, one segmented control across the column. The shown tab is in the
+                URL hash (<code>#api</code>), so links, reloads and Back land on it.
+              </li>
+              <li>
+                <b>On this page</b>: <code>&lt;ui-docs-toc for="site-tabs"&gt;</code> in a
+                <code>&lt;ui-rail position="right"&gt;</code> + <code>&lt;ui-sticky offset="64"&gt;</code>, following
+                the scroll and the shown tab. Hidden under 1200px, and when empty (the API tab).
+              </li>
+              <li>
+                <b>Footer</b>: <code>_parts/footer.html</code> through <code>&lt;ui-include load="visible"&gt;</code>,
+                with Fomantic's MIT attribution.
+              </li>
+            </ol>
+          </ui-section>
+
+          <ui-section id="frame-widgets" header="Stacking and the tab bar" sticky collapsible dividing>
+            <p>
+              Two widget features the frame leans on, added for these pages (P10, P11) but usable anywhere, not only on
+              the site.
+            </p>
+            <h4 id="stack-with">Stacking: <code>stack-with</code></h4>
+            <ul>
+              <li>
+                Fomantic's responsive words (<code>stackable</code>, <code>doubling</code>, per-device widths,
+                <code>reversed</code>) measure the SCREEN. Ours measure the element's own width by default: right for a
+                component in a 300px sidebar, wrong in the ~755px docs column, where examples stacked on a desktop.
+              </li>
+              <li>
+                <code>stack-with</code> picks which:
+                <ul>
+                  <li>
+                    on the element: <code>stack-with="container"</code> (default) or <code>"page"</code>, e.g.
+                    <code>&lt;ui-grid stackable columns="3" stack-with="page"&gt;</code>
+                  </li>
+                  <li>
+                    for a subtree: the inherited token <code>--ui-stack-with: page | container</code>, which
+                    <code>&lt;ui-root stack-with="page"&gt;</code> sets
+                  </li>
+                </ul>
+              </li>
+              <li>
+                On <code>&lt;ui-grid&gt;</code> (its rows and columns follow), <code>&lt;ui-cards&gt;</code>,
+                <code>&lt;ui-steps&gt;</code>, <code>&lt;ui-form&gt;</code> (its <code>&lt;ui-fields&gt;</code> follow),
+                <code>&lt;ui-items&gt;</code>, <code>&lt;ui-statistics&gt;</code>. The attribute beats the token;
+                neither: <code>container</code>.
+              </li>
+              <li>
+                <code>&lt;ui-table&gt;</code> keeps its own <code>stack-by</code> (viewport by default); without one it
+                follows the token.
+              </li>
+              <li>
+                None on menus, button groups, horizontal segments: they already stack by the screen (<a
+                  href="epics/spell-ui-pages/spell-ui-pages.html#j13"
+                  target="spell-ui-pages"
+                  >J13</a
+                >).
+              </li>
+              <li>
+                The site: every page's root says <code>stack-with="page"</code>, so examples lay out as on
+                fomantic-ui.com. So keep Fomantic's markup: no <code>unstackable</code> to stop a desktop stack, and no
+                <code>stack-with</code> on an example unless it is ABOUT <code>stack-with</code>.
+              </li>
+              <li>
+                The design:
+                <a href="../ui/docs/theming.md" target="src-packages-ui-docs-theming-md"
+                  ><code>packages/ui/docs/theming.md</code></a
+                >
+                "Stacking".
+              </li>
+            </ul>
+            <h4 id="tab-look">The tab bar: <code>appearance</code>, <code>alignment</code>, <code>equal</code></h4>
+            <ul>
+              <li>
+                <code>appearance</code> on <code>&lt;ui-menu&gt;</code> and <code>&lt;ui-tabs&gt;</code>: the look, one
+                word.
+                <ul>
+                  <li>
+                    <code>tabular</code>, <code>pointing</code>, <code>secondary</code>, <code>text</code> (Fomantic's),
+                    and <code>segmented</code> (ours): a bordered group of joined items, the selected one filled with
+                    <code>color</code>, else the primary colour.
+                  </li>
+                  <li>
+                    The old booleans (<code>tabular</code>, <code>pointing</code> ...) stay as aliases and combine.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <code>alignment="fluid | left | center | right"</code> on the same two: where the items sit along a
+                horizontal bar, packed at one end or filling it (<code>fluid</code>).
+                <ul>
+                  <li>A segmented menu moves as a whole; ignored when <code>vertical</code>.</li>
+                </ul>
+              </li>
+              <li>
+                <code>equal</code> on menus, tabs, <code>&lt;ui-buttons&gt;</code>, <code>&lt;ui-statistics&gt;</code>,
+                <code>&lt;ui-steps&gt;</code>, <code>&lt;ui-fields&gt;</code>: every child the same width, worked out
+                from the children, no count.
+                <ul>
+                  <li>packed: each as wide as the widest, the group hugging them</li>
+                  <li><code>fluid</code>: an equal share of the bar; statistics and fields always share their row</li>
+                  <li>
+                    the old counts (<code>items="3"</code>, <code>width</code>, <code>widths</code>) stay as aliases
+                  </li>
+                </ul>
+              </li>
+              <li>
+                The site's top tabs: <code>appearance="segmented" alignment="fluid" equal</code>, four equal tabs across
+                the column; the icons page's pack switcher is <code>&lt;ui-buttons equal&gt;</code>.
+              </li>
+              <li>
+                The grammar:
+                <a href="../ui/docs/grammar.md" target="src-packages-ui-docs-grammar-md"
+                  ><code>packages/ui/docs/grammar.md</code></a
+                >
+                "Menus".
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="the-tabs" header="The four tabs" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>tab</th>
+                    <th>holds</th>
+                    <th>written by</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Examples</td>
+                    <td>
+                      Fomantic's sections in Fomantic's order (Types, Content, States, Variations, Groups ...), each a
+                      <code>&lt;ui-header level="2" dividing id&gt;</code> followed by
+                      <code>&lt;ui-docs-example&gt;</code>s; then our extras
+                    </td>
+                    <td>hand</td>
+                  </tr>
+                  <tr>
+                    <td>Usage</td>
+                    <td>
+                      Using it, Events, family-specific behaviour, Keyboard, Accessibility, Framework usage: prose in
+                      <code>&lt;ui-markdown&gt;</code>, code in <code>&lt;ui-code&gt;</code>
+                    </td>
+                    <td>hand</td>
+                  </tr>
+                  <tr>
+                    <td>API</td>
+                    <td>
+                      <code>&lt;ui-docs-api family&gt;</code>: attributes, properties, events, slots, parts, states,
+                      texts
+                    </td>
+                    <td class="yes positive">generated, from the vocabularies</td>
+                  </tr>
+                  <tr>
+                    <td>Theming</td>
+                    <td>
+                      <code>&lt;ui-docs-tokens family playground&gt;</code>, plus how to set tokens and which themes
+                      touch the family
+                    </td>
+                    <td>hand around a generated table</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="an-excerpt" header="A real page" sticky collapsible dividing>
+            <p>
+              From
+              <a href="../ui/site/components/ui-button.html" target="src-packages-ui-site-components-ui-button-html"
+                ><code>packages/ui/site/components/ui-button.html</code></a
+              >, the model page: the masthead, then the start of the Examples tab. The markup inside each
+              <code>&lt;ui-docs-example&gt;</code> IS the code the page shows.
+            </p>
+            <ui-tabs class="spell-tabs" pointing secondary basic aria-label="Excerpts from ui-button.html">
+              <ui-tab label="Masthead">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>ui-button.html, lines 32-60 · 29 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-html">&lt;ui-segment vertical class="site-masthead"&gt;
+  &lt;ui-container&gt;
+    &lt;ui-menu icon floated="right" class="site-page-links" aria-label="About this page"&gt;
+      &lt;ui-item
+        href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-button.html"
+        icon="pen to square"
+        aria-label="This page's source on GitHub"
+        title="This page's source on GitHub"
+      &gt;&lt;/ui-item&gt;
+      &lt;ui-item
+        href="https://github.com/spell-app/spell-app/issues/new?title=ui-button%3A%20%20"
+        icon="bug"
+        aria-label="Report a bug"
+        title="Report a bug"
+      &gt;&lt;/ui-item&gt;
+      &lt;ui-item
+        href="https://fomantic-ui.com/elements/button.html"
+        icon="up right from square"
+        aria-label="Fomantic UI's original page"
+        title="Fomantic UI's original page"
+      &gt;&lt;/ui-item&gt;
+    &lt;/ui-menu&gt;
+    &lt;ui-header level="1" class="site-title"&gt;
+      Button
+      &lt;ui-header&gt;A button indicates a possible user action.&lt;/ui-header&gt;
+    &lt;/ui-header&gt;
+    &lt;ui-docs-themes for="ui-button" show="theme" class="site-themes"&gt;&lt;/ui-docs-themes&gt;
+  &lt;/ui-container&gt;
+&lt;/ui-segment&gt;</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+              <ui-tab label="Examples">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>ui-button.html, lines 79-103 · 25 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-html">&lt;ui-header level="2" dividing id="types"&gt;Types&lt;/ui-header&gt;
+
+&lt;ui-docs-example header="Button" description="A standard button."&gt;
+  &lt;ui-button&gt;Follow&lt;/ui-button&gt;
+&lt;/ui-docs-example&gt;
+&lt;ui-message size="small" class="site-not-ported"
+  &gt;Not ported: Fomantic's focusable &lt;code&gt;&amp;lt;div class="ui button" tabindex="0"&amp;gt;&lt;/code&gt; -- every
+  &lt;code&gt;&amp;lt;ui-button&amp;gt;&lt;/code&gt; renders a real &lt;code&gt;&amp;lt;button&amp;gt;&lt;/code&gt; (or &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt;),
+  so it is always keyboard focusable.&lt;/ui-message
+&gt;
+
+&lt;ui-docs-example header="Emphasis"&gt;
+  &lt;p slot="description"&gt;A button can be formatted to show different levels of emphasis.&lt;/p&gt;
+  &lt;ui-message slot="description" state="info" size="small"
+    &gt;Set your brand colours in the &lt;code&gt;--ui-primary&lt;/code&gt; and &lt;code&gt;--ui-secondary&lt;/code&gt; tokens (see
+    the Theming tab), and every element's &lt;code&gt;primary&lt;/code&gt; /
+    &lt;code&gt;secondary&lt;/code&gt; follows.&lt;/ui-message
+  &gt;
+  &lt;ui-button primary&gt;Save&lt;/ui-button&gt;
+  &lt;ui-button&gt;Discard&lt;/ui-button&gt;
+&lt;/ui-docs-example&gt;
+&lt;ui-docs-example&gt;
+  &lt;ui-button secondary&gt;Okay&lt;/ui-button&gt;
+  &lt;ui-button&gt;Cancel&lt;/ui-button&gt;
+&lt;/ui-docs-example&gt;</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+            </ui-tabs>
+            <ul>
+              <li>
+                A header-less <code>&lt;ui-docs-example&gt;</code> continues the one above (Fomantic's
+                <code>.another.example</code>).
+              </li>
+              <li>
+                <code>slot="description"</code> children give a richer description, and stay out of the code shown.
+              </li>
+              <li>
+                A <code>&lt;ui-message class="site-not-ported"&gt;</code> marks a Fomantic feature we chose not to have.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="4-docs-elements" header="4. The doc-only elements" sticky collapsible dividing>
+          <ui-icon slot="icon" name="puzzle piece"></ui-icon>
+          <p>
+            Six <code>&lt;ui-docs-*&gt;</code> families in
+            <a href="../ui/src/docs-components/" target="src-packages-ui-src-docs-components"
+              ><code>packages/ui/src/docs-components/</code></a
+            >
+            do what no component should: show an example's source, draw API and token tables, list the site, pick a
+            theme, build a table of contents. Each is written EXACTLY like a component family (controller, vocabulary,
+            fallback, css, tests, examples), but is NOT a component.
+          </p>
+
+          <ui-section id="the-six" header="The six" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>element</th>
+                    <th>does</th>
+                    <th>key attributes</th>
+                    <th>data from</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>&lt;ui-docs-example&gt;</code></td>
+                    <td>
+                      a live example plus its source in <code>&lt;ui-code&gt;</code>, behind a code button (Fomantic's
+                      <code>.example</code>)
+                    </td>
+                    <td>
+                      <code>header</code>, <code>description</code>, <code>level</code> (4), <code>code</code> (open),
+                      <code>language</code> (html), <code>bare</code>, <code>variation</code>
+                    </td>
+                    <td>its own children (below)</td>
+                  </tr>
+                  <tr>
+                    <td><code>&lt;ui-docs-api&gt;</code></td>
+                    <td>a tag's or family's API tables; scrolls to <code>#ui-or</code> once drawn</td>
+                    <td>
+                      <code>tag</code>, <code>family</code>, <code>level</code>; emits <code>ui-render {tags}</code>
+                    </td>
+                    <td><code>components.json</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>&lt;ui-docs-tokens&gt;</code></td>
+                    <td>
+                      a family's public <code>--ui-&lt;tag&gt;-*</code> tokens with live swatches; or, with
+                      <code>global</code>, ~390 foundation tokens in groups; an optional playground column
+                    </td>
+                    <td>
+                      <code>family</code> / <code>tag</code>, <code>global</code>, <code>groups</code>,
+                      <code>tokens</code> (a pick, globs allowed), <code>playground</code>, <code>target="page"</code>,
+                      <code>caption</code>, <code>level</code>
+                    </td>
+                    <td><code>components.json</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>&lt;ui-docs-nav&gt;</code></td>
+                    <td>
+                      the left nav: one inverted vertical <code>&lt;ui-menu&gt;</code>, A-Z or Topics, search (<code
+                        >/</code
+                      >
+                      focuses it), favourites
+                    </td>
+                    <td>
+                      <code>current</code>, <code>base</code>, <code>view</code>, <code>size</code>; host API
+                      <code>focusSearch()</code>, <code>revealCurrent()</code>
+                    </td>
+                    <td><code>components.json</code> + per-viewer <code>localStorage</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>&lt;ui-docs-themes&gt;</code></td>
+                    <td>
+                      the theme dropdown (Default, Classic, then Fomantic's themes) and light / dark / system buttons
+                    </td>
+                    <td>
+                      <code>for</code> (a tag: only its themes), <code>show</code> (both | theme | scheme),
+                      <code>size</code>, <code>inverted</code>
+                    </td>
+                    <td><code>components.json</code> <code>themes</code> + <code>ThemePreference</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>&lt;ui-docs-toc&gt;</code></td>
+                    <td>
+                      "On this page": level-2 headings as sections, examples and level-3 headings as entries, following
+                      the scroll
+                    </td>
+                    <td>
+                      <code>for</code> (an element; a <code>&lt;ui-tabs&gt;</code> means its shown pane),
+                      <code>header</code>, <code>size</code>, <code>expanded</code>
+                    </td>
+                    <td>the page itself</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="example-source" header="Where an example's code comes from" sticky collapsible dividing>
+            <p>
+              Families load lazily, so by the time <code>&lt;ui-docs-example&gt;</code> runs its children may already
+              have rewritten themselves. <code>ExampleSource.of()</code> takes the first of:
+            </p>
+            <ol>
+              <li>a <code>&lt;template&gt;</code> child: shown exactly, stamped out live</li>
+              <li>
+                the snapshot
+                <a href="../ui/site/_src/snapshot.ts" target="src-packages-ui-site-src-snapshot-ts"
+                  ><code>packages/ui/site/_src/snapshot.ts</code></a
+                >
+                takes of every example as the bundle's FIRST module, before any family loads
+              </li>
+              <li>the live <code>innerHTML</code>, minus runtime attributes</li>
+            </ol>
+            <p>Then description-slot children are dropped and <code>HtmlFormatter</code> re-indents it.</p>
+          </ui-section>
+
+          <ui-section id="site-data" header="The site data" sticky collapsible dividing>
+            <ul>
+              <li>
+                The docs elements read <code>_data/components.json</code> through <code>SiteData</code> (<a
+                  href="../ui/src/docs-components/SiteData.ts"
+                  target="src-packages-ui-src-docs-components-sitedata-ts"
+                  ><code>packages/ui/src/docs-components/SiteData.ts</code></a
+                >), NEVER the vocabularies. Shape: <code>SiteDataFile</code> in
+                <a
+                  href="../ui/src/docs-components/docs-components.types.ts"
+                  target="src-packages-ui-src-docs-components-docs-components-types-ts"
+                  ><code>packages/ui/src/docs-components/docs-components.types.ts</code></a
+                >.
+              </li>
+              <li>
+                <code>yarn site:data</code> writes it from the vocabularies and the generated sheets:
+                <ul>
+                  <li>
+                    topics; every tag (names, folder, main tag, href, topics, aka, attributes with values, slots,
+                    events, parts, states, texts)
+                  </li>
+                  <li>families (title, summary, status, tags, tokens with a guessed type)</li>
+                  <li>
+                    <code>foundation</code>: token groups (typography, sizes, spacing, palette ...) from the generated
+                    sheets' <code>:root</code> blocks
+                  </li>
+                  <li>
+                    <code>themes</code>: <code>{ name, title, families, global }</code>, worked out from each theme
+                    sheet's selectors and tokens (<a
+                      href="../ui/tools/ThemeFamilies.ts"
+                      target="src-packages-ui-tools-themefamilies-ts"
+                      ><code>packages/ui/tools/ThemeFamilies.ts</code></a
+                    >)
+                  </li>
+                </ul>
+              </li>
+              <li>~573 KB raw, 80 KB gzipped, fetched once per page. 2-space JSON, skipped by oxfmt.</li>
+              <li>
+                <a href="../ui/tools/SiteDataBuilder.test.ts" target="src-packages-ui-tools-sitedatabuilder-test-ts"
+                  ><code>packages/ui/tools/SiteDataBuilder.test.ts</code></a
+                >
+                fails while it's stale.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="root-knows-them" header="How &lt;ui-root&gt; knows them" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>yarn gen:root</code> scans
+                <a href="../ui/src/docs-components/" target="src-packages-ui-src-docs-components"
+                  ><code>src/docs-components/</code></a
+                >
+                as well as
+                <a href="../ui/src/components/" target="src-packages-ui-src-components"><code>src/components/</code></a
+                >, so their tags are in <code>&lt;ui-root&gt;</code>'s catalog.
+              </li>
+              <li>
+                <a
+                  href="../ui/src/components/ui-root/RootLoader.ts"
+                  target="src-packages-ui-src-components-ui-root-rootloader-ts"
+                  ><code>packages/ui/src/components/ui-root/RootLoader.ts</code></a
+                >
+                has a SECOND literal <code>import.meta.glob("../../docs-components/*/index.ts")</code>, tried after the
+                components'.
+              </li>
+              <li>
+                <code>ComponentDefinitions.docs</code> lists them; <code>ComponentDefinitions.all</code>, the component
+                list, <code>byTag()</code> and the library build's entries leave them out. Every one is filed under the
+                <code>documentation</code> topic.
+              </li>
+              <li>
+                <a href="../ui/package.json" target="src-packages-ui-package-json"
+                  ><code>packages/ui/package.json</code></a
+                >
+                <code>sideEffects</code> lists each docs barrel: without it the bundler silently drops
+                <code>define()</code> (chunk loads, tag stays undefined, no error).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="add-one" header="Adding one" sticky collapsible dividing>
+            <ol>
+              <li>
+                <b>Copy a family</b>: make <code>src/docs-components/ui-docs-&lt;name&gt;/</code> from
+                <code>ui-docs-example/</code>: same files, a vocabulary with
+                <code>topics</code> (<code>documentation</code>) and <code>aka</code>.
+              </li>
+              <li>
+                <b>Register it</b>: add its barrel to
+                <a href="package.json" target="src-packages-docs-package-json"><code>package.json</code></a>
+                <code>sideEffects</code>, then <code>yarn gen:root</code> and <code>yarn site:data</code>.
+              </li>
+              <li>
+                <b>Its inner widgets</b>: add the <code>ui-*</code> tags its JSX renders to <code>DocsJSXTags</code>,
+                and import their families in its barrel: a root only loads what's in the light DOM.
+              </li>
+              <li><b>Build</b>: <code>yarn site:build</code>, and commit the bundle.</li>
+            </ol>
+            <p class="meta">
+              Source: the header of
+              <a href="../ui/src/docs-components/index.ts" target="src-packages-ui-src-docs-components-index-ts"
+                ><code>packages/ui/src/docs-components/index.ts</code></a
+              >.
+            </p>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="5-workflows" header="5. Workflows" sticky collapsible dividing>
+          <ui-icon slot="icon" name="route"></ui-icon>
+          <p>
+            Every command runs from <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
+            >. The full authoring guide is
+            <a href="epics/spell-ui-pages/PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+              ><code>packages/docs/epics/spell-ui-pages/PAGES.md</code></a
+            >; the model page is <code>components/ui-button.html</code>.
+          </p>
+
+          <ui-section id="make-a-page" header="Make a page" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <td><code>yarn site:new ui-card</code></td>
+                    <td>
+                      <a href="../ui/site/components/ui-card.html" target="src-packages-ui-site-components-ui-card-html"
+                        ><code>site/components/ui-card.html</code></a
+                      >: any tag of the family works
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn site:new getting-started --title "..." --summary "..."</code></td>
+                    <td><code>site/&lt;page&gt;.html</code>, a foundation page without tabs</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                Title, summary and status come from <code>_data/pages.json</code>. A wrong summary is fixed THERE, then
+                <code>yarn site:data</code>; never only in the page.
+              </li>
+              <li>It refuses to overwrite; <code>--force</code> regenerates and loses the page's content.</li>
+              <li>The frame (head, nav, masthead, rail, tab panes, API tab) is the template's: leave it alone.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="write-examples" header="Write examples" sticky collapsible dividing>
+            <p>
+              The rules from
+              <a href="epics/spell-ui-pages/PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+                ><code>PAGES.md</code></a
+              >
+              that matter most:
+            </p>
+            <ul>
+              <li>
+                Sources: Fomantic's page in
+                <code>reference/Fomantic-UI-Docs/server/documents/&lt;group&gt;/&lt;name&gt;.html.eco</code>; EVERY
+                section and example, in Fomantic's order, with its text. Our names: the tag's
+                <code>*.vocabulary.en.ts</code>, the ONLY attributes that exist. The old MDX:
+                <code>git show df8ca0bf:packages/ui/site/src/content/components/ui-&lt;name&gt;.mdx</code>.
+              </li>
+              <li>
+                Section ids: lowercase-kebab, unique, NEVER <code>examples</code> / <code>usage</code> /
+                <code>api</code> / <code>theming</code> (those are tab hashes).
+              </li>
+              <li>
+                Markup: clean <code>&lt;ui-*&gt;</code>, 2-space indent, no <code>style=</code>, no
+                <code>&lt;div class&gt;</code>; a wrapper only if the example needs one, and then a
+                <code>&lt;ui-*&gt;</code>.
+              </li>
+              <li>
+                NO comments inside an example: they show in its code. Gap notes go BEFORE it:
+                <code>&lt;!-- GAP I23: one line. --&gt;</code>.
+              </li>
+              <li>
+                Icon names in canonical word order (<code>arrow right</code>): Fomantic's <code>right arrow</code> draws
+                nothing and warns nothing.
+              </li>
+              <li>
+                Stacking: keep Fomantic's <code>stackable</code> / <code>doubling</code> as they are. The root's
+                <code>stack-with="page"</code> already stacks them by the screen; no <code>unstackable</code> to stop a
+                desktop stack, no <code>stack-with</code> unless the example is about it (<a href="#frame-widgets"
+                  >section 3</a
+                >).
+              </li>
+              <li>
+                Menus and tabs: Fomantic's <code>tabular</code> / <code>pointing</code> / <code>secondary</code> /
+                <code>text</code> words work as they are; our own look, alignment and equal widths are
+                <code>appearance</code>, <code>alignment</code> and <code>equal</code>.
+              </li>
+              <li>
+                Text holding <code>&lt;tags&gt;</code>: wrap <code>&lt;ui-markdown&gt;</code> content in
+                <code>&lt;script type="text/markdown"&gt;</code> and <code>&lt;ui-code&gt;</code> content in
+                <code>&lt;script type="text/plain"&gt;</code>, or the tags parse as real elements.
+              </li>
+              <li>
+                A Fomantic feature we deliberately lack:
+                <code>&lt;ui-message size="small" class="site-not-ported"&gt;Not ported: ...&lt;/ui-message&gt;</code>
+                in its place.
+              </li>
+              <li>
+                A new gap: search the plan doc first, else
+                <code>yarn plan-doc add spell-ui-pages issue "Gap: ..."</code> from the worktree root. Fix it in the
+                widget only if under ~15 min and local, with a test.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="build" header="Build" sticky collapsible dividing>
+            <p>
+              <code>yarn site:build</code>, after changing a vocabulary, a family sheet, an example, or any source the
+              site shows. It runs, in order:
+            </p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>step</th>
+                    <th>writes</th>
+                    <th>from</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>site:data</code></td>
+                    <td>
+                      <code>_data/components.json</code>, <code>icons.json</code>; seeds <code>pages.json</code> for a
+                      new family
+                    </td>
+                    <td>vocabularies and sheets, imported in node</td>
+                  </tr>
+                  <tr>
+                    <td><code>site:index</code></td>
+                    <td><code>components/index.html</code>'s cards</td>
+                    <td>the site data</td>
+                  </tr>
+                  <tr>
+                    <td><code>site:kitchen</code></td>
+                    <td><code>kitchen-sink.html</code>'s examples</td>
+                    <td>every family's <code>examples/elements/types.html</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>site:bundle</code></td>
+                    <td>
+                      <a href="_assets/" target="src-packages-docs-assets"><code>_assets/</code></a> (clean), sizes
+                      printed
+                    </td>
+                    <td>
+                      <code>_src/site.ts</code> through
+                      <a href="../ui/vite.site.config.ts" target="src-packages-ui-vite-site-config-ts"
+                        ><code>vite.site.config.ts</code></a
+                      >
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                The bundle is an app build, <code>base: "./"</code>, minified, no sourcemaps. Stable names for
+                <code>site.js</code>, <code>&lt;family&gt;.js</code> and emoji chunks; other shared chunks are hashed.
+              </li>
+              <li>
+                Today: 183 files, 3.6 MB without the icon packs; <code>site.js</code> 51 KB, <code>site.css</code> 125
+                KB.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="dev" header="Dev" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>yarn site:dev</code>: a fresh <code>site:bundle</code>, the page server (started if needed), the
+                <code>/ui/</code> URL printed, then a Vite WATCH build. Every
+                <a href="../ui/src/" target="src-packages-ui-src"><code>src/</code></a> or
+                <a href="../ui/site/_src/" target="src-packages-ui-site-src"><code>site/_src/</code></a> edit rebuilds
+                <a href="_assets/" target="src-packages-docs-assets"><code>_assets/</code></a
+                >, and live reload reloads open pages.
+              </li>
+              <li>Not watched: <code>site:data</code>, <code>site:index</code>, <code>site:kitchen</code>.</li>
+              <li><code>Ctrl-C</code> stops the watch, not the page server.</li>
+              <li>A watch rebuild leaves old hashed chunks behind: <code>yarn site:build</code> before committing.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="check" header="Check" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>yarn site:check &lt;page...&gt;</code> or <code>--all</code> (<a
+                  href="../ui/tools/SiteCheck.ts"
+                  target="src-packages-ui-tools-sitecheck-ts"
+                  ><code>packages/ui/tools/SiteCheck.ts</code></a
+                >): loads pages from the page server in Playwright, at desktop, phone and dark.
+              </li>
+              <li>
+                Fails on console errors, 404s, undefined or unrendered <code>ui-*</code>, a missing tab, an empty "On
+                this page" on Examples, phone-width overflow, a nav flyout that won't open.
+              </li>
+              <li>
+                Screenshots in
+                <a href="../ui/tools/results/site-check/" target="src-packages-ui-tools-results-site-check"
+                  ><code>tools/results/site-check/</code></a
+                >: LOOK at them; the checks can't see a wrong icon or an overlap.
+              </li>
+              <li>
+                <code>yarn docs:update</code> in
+                <a href="./" target="src-packages-docs"><code>packages/docs</code></a> skips the site pages: they load
+                <code>site.js</code>, not
+                <a href="_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"><code>spell-ui.js</code></a
+                >.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="commit" header="Commit rules" sticky collapsible dividing>
+            <ui-message state="warning" header="The bundle churns">
+              <ul>
+                <li>
+                  Commit <a href="_assets/" target="src-packages-docs-assets"><code>_assets/</code></a> and
+                  <code>_data/</code> with every change to
+                  <a href="../ui/src/" target="src-packages-ui-src"><code>packages/ui/src</code></a> that the site
+                  shows. A library change renames a few hashed chunks: expected.
+                </li>
+                <li>
+                  Always from <code>yarn site:build</code>, never from a <code>site:dev</code> watch build (stale
+                  chunks).
+                </li>
+              </ul>
+            </ui-message>
+            <ul>
+              <li>
+                oxfmt skips <code>ui/site/**/*.html</code>,
+                <a href="_assets/" target="src-packages-docs-assets"><code>_assets/</code></a> and
+                <code>_data/</code> (<a href="../../.oxfmtrc.json" target="src-oxfmtrc-json"
+                  ><code>.oxfmtrc.json</code></a
+                >): it once reflowed markdown inside pages. So the kitchen sink's unwrapped lines are canonical.
+              </li>
+              <li>
+                Tests that fail while generated files are stale: <code>SiteDataBuilder.test.ts</code> (site data),
+                <a href="../ui/test/root-catalog.test.ts" target="src-packages-ui-test-root-catalog-test-ts"
+                  ><code>test/root-catalog.test.ts</code></a
+                >
+                (<code>gen:root</code>); <code>site:index --check</code>, <code>site:kitchen --check</code>.
+              </li>
+              <li>
+                A change that alters rendering also needs <code>yarn test:visual</code> and its baselines, as any
+                <code>ui</code> change.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="6-themes" header="6. Themes" sticky collapsible dividing>
+          <ui-icon slot="icon" name="palette"></ui-icon>
+          <p>
+            24 of Fomantic's 25 themes are ported as token sheets in
+            <a href="../ui/src/styles/themes/" target="src-packages-ui-src-styles-themes"
+              ><code>packages/ui/src/styles/themes/</code></a
+            >, one <code>&lt;name&gt;.css</code> each (assets in <code>themes/&lt;name&gt;/</code>). Only joypixels is
+            missing.
+          </p>
+          <ui-labels class="spell-legend" size="mini">
+            <ui-label>amazon</ui-label>
+            <ui-label>basic</ui-label>
+            <ui-label>bookish</ui-label>
+            <ui-label>bootstrap3</ui-label>
+            <ui-label>chubby</ui-label>
+            <ui-label>colored</ui-label>
+            <ui-label>duo</ui-label>
+            <ui-label>famfamfam</ui-label>
+            <ui-label>fixed-width</ui-label>
+            <ui-label>flat</ui-label>
+            <ui-label>fomantic-classic</ui-label>
+            <ui-label>github</ui-label>
+            <ui-label>gmail</ui-label>
+            <ui-label>instagram</ui-label>
+            <ui-label>material</ui-label>
+            <ui-label>pulsar</ui-label>
+            <ui-label>raised</ui-label>
+            <ui-label>resetcss</ui-label>
+            <ui-label>round</ui-label>
+            <ui-label>rtl</ui-label>
+            <ui-label>striped</ui-label>
+            <ui-label>systemfont</ui-label>
+            <ui-label>timeline</ui-label>
+            <ui-label>twitter</ui-label>
+          </ui-labels>
+
+          <ui-section id="theme-sheets" header="ThemeSheets.apply" sticky collapsible dividing>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>packages/ui/docs/theming.md, "Applying a theme" · 6 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">import { ThemeSheets } from "@spell-app/ui/styles" // `$/ui/styles` in the package
+
+ThemeSheets.names // ["fomantic-classic", "github", "material" ...]:  the Fomantic themes, A-Z
+await ThemeSheets.apply("github") // classic + github, on the page and in every shadow root
+await ThemeSheets.apply("classic") // classic alone
+await ThemeSheets.apply(undefined) // our own look</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                Fomantic's themes are DELTAS on its default look, which is our
+                <a href="../ui/src/styles/themes/classic.css" target="src-packages-ui-src-styles-themes-classic-css"
+                  ><code>classic.css</code></a
+                >. So a theme applies on top of <code>classic</code>; both in <code>@layer ui.theme</code>.
+              </li>
+              <li>
+                <code>dark</code> is a colour scheme, not a theme: not in <code>names</code>, and
+                <code>apply("dark")</code> throws. Pickers offer Default, Classic, then <code>names</code>, plus a
+                separate light / dark / system switch.
+              </li>
+              <li>
+                <a href="../ui/src/styles/themes/themes.ts" target="src-packages-ui-src-styles-themes-themes-ts"
+                  ><code>packages/ui/src/styles/themes/themes.ts</code></a
+                >
+                globs <code>./*.css</code>, so a new sheet is a theme with no registry edit, and each is its own lazy
+                chunk.
+              </li>
+              <li>
+                On the site, <code>ThemePreference</code> remembers the viewer's choice
+                (<code>spell-ui-site:theme</code>, <code>spell-ui-site:scheme</code>) and <code>site.ts</code> restores
+                it on every page.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="shadow-true" header="shadow: true" sticky collapsible dividing>
+            <ul>
+              <li>
+                A theme sheet has two halves: TOKENS on <code>:root</code> (inherit into shadow roots by themselves) and
+                OVERRIDES in class grammar (<code>.ui.menu .item</code>), which target the markup INSIDE each
+                component's shadow root.
+              </li>
+              <li>
+                A page sheet can't reach in there, so <code>apply()</code> registers two <code>UI.styles</code> slots,
+                <code>classic</code> and <code>theme</code>, both <code>{ page: true, shadow: true }</code>: adopted on
+                the page AND into every shadow root, present and future.
+              </li>
+              <li>Order inside a root: foundation, component, utilities, <code>shadow</code> sheets, app sheet.</li>
+              <li><code>register(name, "")</code> unregisters.</li>
+              <li>Without the runtime (a plain <code>&lt;link&gt;</code>), only the token half reaches components.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="fonts" header="Fonts" sticky collapsible dividing>
+            <ul>
+              <li>Rule: bundle EXACTLY what Fomantic's theme <code>@import</code>ed, nothing more.</li>
+              <li>
+                Bundled as woff2 + the font's <code>OFL.txt</code> in <code>themes/&lt;name&gt;/</code>, declared by
+                <code>@font-face</code> outside the layer, URLs relative: bookish (Karma), instagram (Montserrat),
+                material (Roboto), chubby (Source Sans 3, under Fomantic's name Source Sans Pro).
+              </li>
+              <li>
+                Named but not loaded, as in Fomantic: flat (Open Sans), fomantic-classic (Open Sans headers), rtl (Noto
+                Kufi Arabic), and <code>classic</code> itself (Lato).
+              </li>
+              <li>
+                Why bundle: a constructed sheet ignores <code>@import</code>, and a Google Fonts link would be a
+                third-party request.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="porting" header="Porting a theme" sticky collapsible dividing>
+            <ul>
+              <li>
+                The recipe:
+                <a href="../ui/docs/theming.md" target="src-packages-ui-docs-theming-md"
+                  ><code>packages/ui/docs/theming.md</code></a
+                >, "Porting a Fomantic theme". Models:
+                <a href="../ui/src/styles/themes/github.css" target="src-packages-ui-src-styles-themes-github-css"
+                  ><code>github.css</code></a
+                >
+                (big),
+                <a href="../ui/src/styles/themes/material.css" target="src-packages-ui-src-styles-themes-material-css"
+                  ><code>material.css</code></a
+                >
+                (fonts, palette),
+                <a
+                  href="../ui/src/styles/themes/fomantic-classic.css"
+                  target="src-packages-ui-src-styles-themes-fomantic-classic-css"
+                  ><code>fomantic-classic.css</code></a
+                >
+                (small).
+              </li>
+              <li>
+                In short: tokens first on <code>:root</code>, overrides second as class grammar scoped to what Fomantic
+                meant, re-check each changed hue's <code>--ui-&lt;hue&gt;-on</code> for 4.5:1 contrast, list what can't
+                port in the sheet's header ("NOT ported"), and append a <code>describe</code> to
+                <a
+                  href="../ui/src/styles/themes/themes.test.ts"
+                  target="src-packages-ui-src-styles-themes-themes-test-ts"
+                  ><code>themes.test.ts</code></a
+                >
+                with one computed style per touched component.
+              </li>
+              <li>Then <code>yarn site:data</code>: the theme shows up in every picker for the families it touches.</li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="7-why" header="7. Why it is this way" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p>
+            The decisions from the plan doc that still shape the site, grouped, one line each. Dropped as history only:
+            D3, D9, D10, D11 (how the epic ran); D30 is a duplicate of D31.
+          </p>
+
+          <ui-section id="why-shape" header="The site's shape" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d1" target="spell-ui-pages">D1</a></td>
+                    <td>
+                      Plain HTML, no Astro / MDX: islands are <code>&lt;ui-include&gt;</code>, prose
+                      <code>&lt;ui-markdown&gt;</code>, code <code>&lt;ui-code&gt;</code>
+                    </td>
+                    <td>the pages exercise the library instead of a framework hiding it</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d7" target="spell-ui-pages">D7</a></td>
+                    <td>Served at <code>/ui/</code>, loading a COMMITTED bundle</td>
+                    <td>
+                      like docs'
+                      <a href="_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                        ><code>spell-ui.js</code></a
+                      >: no build step to view a page
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d8" target="spell-ui-pages">D8</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d32" target="spell-ui-pages">D32</a>
+                    </td>
+                    <td>
+                      Header and footer are <code>&lt;ui-include&gt;</code>s; layout is Fomantic's docs grid in widgets,
+                      glue in <code>_src/site.css</code>
+                    </td>
+                    <td>one file changes every page's chrome, and it exercises <code>&lt;ui-include&gt;</code></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d4" target="spell-ui-pages">D4</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d33" target="spell-ui-pages">D33</a>
+                    </td>
+                    <td>Top tabs are <code>&lt;ui-tabs history&gt;</code>, the hash naming the pane</td>
+                    <td>Owen liked the old site's switcher; the hash makes links, reloads and Back land on the tab</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d40" target="spell-ui-pages">D40</a></td>
+                    <td>
+                      <code>stack-with="container|page"</code>, per element AND page-wide; the site says
+                      <code>page</code>
+                    </td>
+                    <td>
+                      container-relative is right for components, wrong for Fomantic's page-level
+                      <code>stackable</code>: the ~755px column stacked every example on a desktop
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d41" target="spell-ui-pages">D41</a>-<a
+                        href="epics/spell-ui-pages/spell-ui-pages.html#d43"
+                        target="spell-ui-pages"
+                        >D43</a
+                      >
+                    </td>
+                    <td>
+                      <code>appearance</code> and <code>alignment</code> on menus and tabs; <code>equal</code> on every
+                      row widget, the old counts kept as aliases
+                    </td>
+                    <td>
+                      the site's tab bar needed equal, filled tabs (I24); one word for the look, and a width taken from
+                      the children rather than counted
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d6" target="spell-ui-pages">D6</a></td>
+                    <td>Gaps are logged as issues; fix only tiny local ones</td>
+                    <td>the point is to SEE the gaps; a fix only if under ~15 min and inside one widget</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d12" target="spell-ui-pages">D12</a></td>
+                    <td>Fomantic's text and images copied, credited in the footer</td>
+                    <td>Fomantic-UI and its docs are MIT</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d36" target="spell-ui-pages">D36</a></td>
+                    <td>oxfmt skips the site pages</td>
+                    <td>
+                      it broke markdown inside <code>&lt;script type="text/markdown"&gt;</code>: lines split inside code
+                      spans, bullets merged
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="why-build" header="Data, bundle, serving" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d21" target="spell-ui-pages">D21</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d39" target="spell-ui-pages">D39</a>
+                    </td>
+                    <td>
+                      <code>components.json</code> generated; <code>pages.json</code> hand-kept, seeded from a new
+                      family's vocabulary
+                    </td>
+                    <td>facts a vocabulary doesn't hold (summary, status) need a durable home now the MDX is gone</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d22" target="spell-ui-pages">D22</a></td>
+                    <td>One code-split bundle; <code>icon-packs</code> symlinked, not copied</td>
+                    <td>the packs are 8.7 MB in 2,170 files: a copy would double them in git</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d23" target="spell-ui-pages">D23</a></td>
+                    <td><code>/ui/</code> is a static mount; <code>AstroProxy</code> deleted</td>
+                    <td>no dev server to proxy; pages get live reload and the section editor like docs</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d35" target="spell-ui-pages">D35</a></td>
+                    <td><code>site:new</code> fills the template; <code>site:check</code> replaces the Astro check</td>
+                    <td>pages are never copied by hand, so the frame stays the same everywhere</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d37" target="spell-ui-pages">D37</a></td>
+                    <td><code>site:dev</code> is a watch build of the real bundle, not a Vite dev server</td>
+                    <td>
+                      pages load the committed bundle, so watching that same build shows exactly what gets committed
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d38" target="spell-ui-pages">D38</a></td>
+                    <td>Vocabularies stay pure data (<code>$/ui/core</code> for types only)</td>
+                    <td>
+                      <code>site:data</code> and <code>gen:root</code> import every vocabulary in node, where the
+                      element layer can't load
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="why-elements" header="The docs elements" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d2" target="spell-ui-pages">D2</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d20" target="spell-ui-pages">D20</a>
+                    </td>
+                    <td>
+                      Own folder,
+                      <a href="../ui/src/docs-components/" target="src-packages-ui-src-docs-components"
+                        ><code>src/docs-components/</code></a
+                      >; <code>&lt;ui-root&gt;</code> finds them by folder name
+                    </td>
+                    <td>
+                      not components, so out of the component list; the <code>ui-docs-</code> prefix can't collide
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d24" target="spell-ui-pages">D24</a></td>
+                    <td>Example source: template, then snapshot, then live markup</td>
+                    <td>lazy families may have rewritten the light DOM before the example reads it</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d26" target="spell-ui-pages">D26</a></td>
+                    <td><code>&lt;ui-docs-api&gt;</code> scrolls to <code>#ui-or</code> by script</td>
+                    <td>ids inside a shadow root aren't fragment targets</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d27" target="spell-ui-pages">D27</a></td>
+                    <td>Foundation tokens join the data; the playground is an input column in the table</td>
+                    <td>one element serves both the family Theming tabs and the theming page</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d28" target="spell-ui-pages">D28</a></td>
+                    <td>Theme picker is a floating button dropdown on <code>ThemePreference</code></td>
+                    <td>Fomantic's picker is one; every picker on a page stays in step</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d29" target="spell-ui-pages">D29</a></td>
+                    <td>Which themes touch which family: worked out at build time</td>
+                    <td>reading the sheets in the browser would load every theme chunk to fill one menu</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d31" target="spell-ui-pages">D31</a></td>
+                    <td><code>&lt;ui-docs-nav&gt;</code> keeps the Astro site's <code>localStorage</code> keys</td>
+                    <td>viewers keep their favourites, view and open topics</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d34" target="spell-ui-pages">D34</a></td>
+                    <td><code>&lt;ui-docs-toc&gt;</code>, a new element</td>
+                    <td>no widget builds a table of contents from a page</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="why-themes" header="Themes" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d5" target="spell-ui-pages">D5</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d13" target="spell-ui-pages">D13</a>
+                    </td>
+                    <td>Port all 25; joypixels left out</td>
+                    <td>
+                      joypixels is ~3,800 rules loading third-party images per emoji, with licence strings attached: an
+                      opt-in emoji image set is the right shape
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d14" target="spell-ui-pages">D14</a></td>
+                    <td>
+                      <code>resetcss</code> sits in <code>@layer ui.reset</code>, every selector from <code>:root</code>
+                    </td>
+                    <td>in <code>ui.theme</code> it would beat typography; in shadow roots it must match nothing</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d15" target="spell-ui-pages">D15</a></td>
+                    <td>
+                      <code>classic</code> is the base, <code>dark</code> a scheme; two <code>UI.styles</code> slots
+                    </td>
+                    <td>Fomantic themes are deltas on its default look; dark mode is orthogonal to the look</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d16" target="spell-ui-pages">D16</a></td>
+                    <td>Themes re-check <code>--ui-&lt;hue&gt;-on</code> for WCAG AA</td>
+                    <td>
+                      GitHub's and Material's mid-tones fail 4.5:1 with white, so they take ink text, unlike
+                      fomantic-ui.com
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d17" target="spell-ui-pages">D17</a>,
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d25" target="spell-ui-pages">D25</a>
+                    </td>
+                    <td>Fonts a theme imported are bundled as woff2</td>
+                    <td>a constructed sheet can't <code>@import</code></td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d18" target="spell-ui-pages">D18</a></td>
+                    <td><code>duo</code> draws what its variables describe</td>
+                    <td>in Fomantic 2.9.4 it's a no-op (a loader rule out-specifies it); we port intent</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d19" target="spell-ui-pages">D19</a></td>
+                    <td>Theme sheets may write a component's private variation tokens</td>
+                    <td>
+                      a variation (secondary menu, basic button) has no public token to set; pages still use public
+                      tokens only
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="8-limits" header="8. Limits" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <p>
+            Two kinds: gaps in the widgets the pages exposed, and caveats about the site and themes themselves. The full
+            lists: the plan doc's
+            <a href="epics/spell-ui-pages/spell-ui-pages.html#o5" target="spell-ui-pages">1.5 Gap report</a> and
+            <a href="epics/spell-ui-pages/spell-ui-pages.html#caveats" target="spell-ui-pages">5. Caveats</a>.
+          </p>
+
+          <ui-section id="gap-report" header="Widget gaps" sticky collapsible dividing>
+            <p>100 open gaps, grouped by what would fix them (plus 1 ungrouped):</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>group</th>
+                    <th class="num right aligned">open</th>
+                    <th>what</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Element variations missing</td>
+                    <td class="num right aligned">45</td>
+                    <td>Fomantic class words with no attribute or look</td>
+                  </tr>
+                  <tr>
+                    <td>Module settings not ported</td>
+                    <td class="num right aligned">21</td>
+                    <td>Fomantic JS settings with no attribute (calendar, slider, search, dropdown, toast ...)</td>
+                  </tr>
+                  <tr>
+                    <td>Styling across shadow roots</td>
+                    <td class="num right aligned">11</td>
+                    <td>
+                      what a page or owner can't reach in another element's shadow root: a table's sheet, inline code,
+                      link colours, slotted parts
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Platform, icons, emoji, a11y</td>
+                    <td class="num right aligned">10</td>
+                    <td>RTL, image emoji, icon word order, page reset, markdown, colour input, accessibility</td>
+                  </tr>
+                  <tr>
+                    <td>Loader styles on host widgets</td>
+                    <td class="num right aligned">8</td>
+                    <td>no double / elastic / slow / coloured loader wherever a widget shows <code>loading</code></td>
+                  </tr>
+                  <tr>
+                    <td>Layout in the docs column</td>
+                    <td class="num right aligned">4</td>
+                    <td>
+                      what <code>stack-with</code> left: horizontal cards one per row, a vertical divider in a stacked
+                      grid, wide demos, steps text that doesn't shrink
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Other</td>
+                    <td class="num right aligned">1</td>
+                    <td>circular steps' content alignment</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ui-message state="positive" header="Done since the report">
+              <ul>
+                <li>
+                  <b>Stacking</b> (P10): <code>stack-with</code>, closing
+                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i49" target="spell-ui-pages">I49</a>,
+                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i58" target="spell-ui-pages">I58</a>,
+                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i82" target="spell-ui-pages">I82</a>; one new,
+                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i131" target="spell-ui-pages">I131</a>.
+                </li>
+                <li>
+                  <b>The tab look</b> (P11): <code>appearance</code> / <code>alignment</code> / <code>equal</code>,
+                  closing <a href="epics/spell-ui-pages/spell-ui-pages.html#i24" target="spell-ui-pages">I24</a>.
+                </li>
+              </ul>
+            </ui-message>
+            <ui-message state="info" header="Recommended next">
+              <ol>
+                <li><b>One loader option</b> for every <code>loading</code> widget: closes 8 gaps at once.</li>
+                <li>
+                  <b>Fix <a href="epics/spell-ui-pages/spell-ui-pages.html#i7" target="spell-ui-pages">I7</a></b
+                  >: <code>&lt;ui-table&gt;</code> is unstyled inside another shadow root, and every docs element works
+                  around it.
+                </li>
+                <li>
+                  <b>Icon word order</b> (<a href="epics/spell-ui-pages/spell-ui-pages.html#i23" target="spell-ui-pages"
+                    >I23</a
+                  >): Fomantic's <code>right arrow</code> draws nothing, silently; accept both orders, or warn.
+                </li>
+                <li>
+                  <b>A single-choice button group</b> (<a
+                    href="epics/spell-ui-pages/spell-ui-pages.html#i12"
+                    target="spell-ui-pages"
+                    >I12</a
+                  >, <a href="epics/spell-ui-pages/spell-ui-pages.html#i17" target="spell-ui-pages">I17</a>): the site's
+                  light / dark / system switch and the icon-pack switcher are one choice of several, but a screen reader
+                  can't tell which is chosen. Radio semantics on <code>&lt;ui-buttons&gt;</code> closes both.
+                </li>
+              </ol>
+            </ui-message>
+          </ui-section>
+
+          <ui-section id="site-caveats" header="Site caveats" sticky collapsible dividing>
+            <ul>
+              <li>
+                <b>The API tab has no "On this page"</b> (C17): <code>&lt;ui-docs-api&gt;</code> draws its headers in
+                its shadow root, where the toc can't see them; a link to <code>#ui-or</code> from another tab doesn't
+                switch tabs.
+              </li>
+              <li>
+                <b>Example ids come at runtime</b> (C18): the toc gives them as it scans, so a deep link works once it
+                has run, and renaming an example's header renames its id. <code>offset="64"</code> assumes the 44px site
+                header.
+              </li>
+              <li>
+                <b>The Items page's first note is stale</b> (T12): it still says the examples stack, but since
+                <code>stack-with="page"</code> they show the desktop layout (C19, closed).
+              </li>
+              <li>
+                <b>Most family tokens have no description</b> (C15): sheets comment groups, not tokens
+                (<code>ui-button</code>: 0 of 43). The fix is a comment pass per family.
+              </li>
+              <li>
+                <b>A stored theme may flash</b> (C16): the scheme applies before paint, a theme is a lazy chunk; page
+                text may show the default look for a frame.
+              </li>
+              <li>
+                <b>One page script</b> (C20): <code>components/ui-root.html</code>'s Replay demo uses an inline module
+                script, since the bundle exports nothing.
+              </li>
+              <li>
+                <b>Docs' bundle grew</b> (C13):
+                <a href="_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                  ><code>packages/docs/_assets/spell-ui.js</code></a
+                >
+                inlines the docs families too; stub them out if it matters.
+              </li>
+              <li>
+                <b>Astro mentions kept on purpose</b> (C22): dated log entries, the epic's briefs, provenance comments;
+                <a href="../server/src/proxy.ts" target="src-packages-server-src-proxy-ts"
+                  ><code>packages/server/src/proxy.ts</code></a
+                >
+                stays as unused library code.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="theme-caveats" header="Theme caveats" sticky collapsible dividing>
+            <p>Every theme's sheet header lists what's "NOT ported"; the usual reasons:</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>can't port</th>
+                    <th>themes</th>
+                    <th>why</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>icon fonts, emoji sprites</td>
+                    <td>basic (C9), github (C5), material (C6), twitter (C10)</td>
+                    <td>icons are SVG packs, emoji the platform font: each would be a pack, not a sheet</td>
+                  </tr>
+                  <tr>
+                    <td>breakpoints, page min-width, page grid widths</td>
+                    <td>amazon (C11), github (C5), fixed-width (C3)</td>
+                    <td>breakpoints are build-time <code>@custom-media</code>; our grid has no page grid</td>
+                  </tr>
+                  <tr>
+                    <td>per-size ladders, host properties</td>
+                    <td>github (C5), raised (C12), chubby (C8)</td>
+                    <td>sizes are ratios of one font size; a theme can't single out a host</td>
+                  </tr>
+                  <tr>
+                    <td>the RTL build</td>
+                    <td>rtl (C2)</td>
+                    <td>
+                      Fomantic's is a separate flipped build; ours sets <code>direction</code>, and sheets use physical
+                      properties (gap I3)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>sprite sizes, unknown flag</td>
+                    <td>famfamfam (C1)</td>
+                    <td>a fixed 16 x 11 cell, as in Fomantic</td>
+                  </tr>
+                  <tr>
+                    <td>odd bits</td>
+                    <td>fomantic-classic (C7)</td>
+                    <td>Fomantic's own source is a no-op or invalid there</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ui-message state="warning" header="Fragile">
+              <ul>
+                <li>
+                  Some theme sheets write a component's PRIVATE switches (C4: fixed-width, instagram, colored, bookish,
+                  flat). Renaming one in the component breaks the theme silently;
+                  <a
+                    href="../ui/src/styles/themes/themes.test.ts"
+                    target="src-packages-ui-src-styles-themes-themes-test-ts"
+                    ><code>themes.test.ts</code></a
+                  >
+                  covers one computed style per theme.
+                </li>
+              </ul>
+            </ui-message>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="9-record" header="9. The record" sticky collapsible dividing>
+          <ui-icon slot="icon" name="link"></ui-icon>
+          <p>
+            The plan doc,
+            <a href="epics/spell-ui-pages/spell-ui-pages.html" target="spell-ui-pages"
+              >epics/spell-ui-pages/spell-ui-pages.html</a
+            >, is the full record: every decision with its reasoning, every gap with Fomantic's example and the
+            workaround, the log.
+          </p>
+          <ui-items class="spell-sources" divided>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#overview" target="spell-ui-pages"
+                    >Overview</a
+                  ></ui-header
+                >
+                <ui-meta>plan doc · 1.1-1.5</ui-meta>
+                <ui-description
+                  >Structure, a page, the Fomantic page map (which Fomantic page each of ours comes from), the gap
+                  report.</ui-description
+                >
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#decisions" target="spell-ui-pages"
+                    >Questions &amp; Decisions</a
+                  ></ui-header
+                >
+                <ui-meta>plan doc · D1-D43</ui-meta>
+                <ui-description>The full text behind section 7.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#judgements" target="spell-ui-pages"
+                    >Judgement calls</a
+                  ></ui-header
+                >
+                <ui-meta>plan doc · J1-J19</ui-meta>
+                <ui-description
+                  >Choices made WITHOUT Owen (a bedtime run, an agent mid-phase): what was chosen, over what, and why.
+                  Open until he reviews them; struck = accepted. J9-J13 shaped <code>stack-with</code>, J14-J19 the menu
+                  and tab attributes.</ui-description
+                >
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#caveats" target="spell-ui-pages"
+                    >Caveats</a
+                  ></ui-header
+                >
+                <ui-meta>plan doc · C1-C22</ui-meta>
+                <ui-description>The full text behind section 8's caveats.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#issues" target="spell-ui-pages"
+                    >Issues</a
+                  ></ui-header
+                >
+                <ui-meta>plan doc · I1-I131</ui-meta>
+                <ui-description
+                  >Every gap, open and closed: what Fomantic does, what the page does instead.</ui-description
+                >
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="epics/spell-ui-pages/PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+                    ><code>packages/docs/epics/spell-ui-pages/PAGES.md</code></a
+                  ></ui-header
+                >
+                <ui-meta>authoring guide</ui-meta>
+                <ui-description
+                  >How to write a page: sources, the class-grammar mapping table, Usage and Theming panes, gaps,
+                  checks.</ui-description
+                >
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="../ui/site/README.md" target="src-packages-ui-site-readme-md"
+                    ><code>packages/ui/site/README.md</code></a
+                  ></ui-header
+                >
+                <ui-meta>site how-to</ui-meta>
+                <ui-description>Viewing, layout, making, building, checking, deploying.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="../ui/docs/theming.md" target="src-packages-ui-docs-theming-md"
+                    ><code>packages/ui/docs/theming.md</code></a
+                  ></ui-header
+                >
+                <ui-meta>theming design</ui-meta>
+                <ui-description>"Themes", <code>ThemeSheets</code>, and the porting recipe.</ui-description>
+              </ui-content>
+            </ui-item>
+          </ui-items>
+          <ui-feed class="spell-history" size="small">
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary
+                  >P11: <code>appearance</code> / <code>alignment</code> / <code>equal</code>; segmented site tabs
+                  <ui-date>2026-10-03</ui-date></ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary
+                  >P10: <code>stack-with</code>; the site stacks by the page <ui-date>2026-10-03</ui-date></ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary>P8: gap report, 4 recommendations <ui-date>2026-10-03</ui-date></ui-summary>
+              </ui-content>
+            </ui-event>
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary
+                  >P7: Astro site deleted; <code>site:dev</code> is a watch build
+                  <ui-date>2026-10-03</ui-date></ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary>P4 + P5: 66 pages, 1608 examples <ui-date>2026-10-03</ui-date></ui-summary>
+              </ui-content>
+            </ui-event>
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary
+                  >P3: template, <code>site:new</code>, <code>site:check</code>, toc, pilot button page
+                  <ui-date>2026-10-03</ui-date></ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary
+                  >P2 + P6: docs elements, site data and bundle, 24 themes <ui-date>2026-10-03</ui-date></ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="flag">
+              <ui-content>
+                <ui-summary>Epic started: Fomantic cloned for reference <ui-date>2026-10-02</ui-date></ui-summary>
+              </ui-content>
+            </ui-event>
+          </ui-feed>
+        </ui-section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Last checked 2026-10-03 against branch <code>spell-ui-pages</code> (after P11): counts from the files and
+            the plan doc's issue list.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="_assets/spell-ui.js"></script>
+  </body>
+</html>

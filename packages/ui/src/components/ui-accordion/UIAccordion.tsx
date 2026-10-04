@@ -10,14 +10,17 @@ import {
   ACTIVE_CONTENT,
   ACTIVE_TITLE,
   ARROW_UP,
+  CONTENT_PART,
   CONTROLS,
   DROPDOWN_ICON,
   END,
   GROUP,
   HOME,
+  SLOT_ATTRIBUTE,
   SUMMARY,
   TITLE,
   TITLE_NOUN,
+  TITLE_PART,
   TITLE_SELECTOR,
   UI_WORD
 } from "./ui-accordion.types"
@@ -58,10 +61,16 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
   readonly openState = this.controlled("open", undefined)
 
   /** Title + content pairs from the light children. */
-  readonly panels = new Cell<readonly UIT.AccordionPanel[]>(
-    isServer ? [] : AccordionPanels.read(this.host, UIAccordion.isTitle),
-    { equals: AccordionPanels.same }
-  )
+  readonly panels = new Cell<readonly UIT.AccordionPanel[]>(AccordionPanels.read(this.host, UIAccordion.isTitle), {
+    equals: AccordionPanels.same
+  })
+
+  /**
+   * `name` of an exclusive accordion's `<details>`.
+   * - A server render (`$/ui/server`) puts every accordion in ONE light DOM, where a `name` groups the whole page:
+   *   a page-unique name there, so two exclusive accordions don't close each other.
+   */
+  readonly group = isServer ? UI.ids.next(GROUP) : GROUP
 
   ////////////////
   // ## Derived state
@@ -122,7 +131,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
     return (
       <details
         part={this.part("panel")}
-        name={this.attrs.exclusive ? GROUP : undefined}
+        name={this.attrs.exclusive ? this.group : undefined}
         open={open()}
         onToggle={(event: Event) => this.onToggle(event)}
       >
@@ -132,13 +141,26 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
           onClick={(event: MouseEvent) => this.onTitleClick(index(), event)}
         >
           <span class={DROPDOWN_ICON} part={this.part("icon")} aria-hidden="true" />
-          <slot ref={(slot: HTMLSlotElement) => slot.assign(panel.title)} />
+          {this.panelSlot(panel.title, index, TITLE_PART)}
         </summary>
         <div class={open() ? ACTIVE_CONTENT : UIT.CONTENT} part={this.part("content")}>
-          {panel.content ? <slot ref={(slot: HTMLSlotElement) => slot.assign(panel.content!)} /> : undefined}
+          {panel.content ? this.panelSlot(panel.content, index, CONTENT_PART) : undefined}
         </div>
       </details>
     )
+  }
+
+  /**
+   * The `<slot>` showing `child` (a panel's title or content):  assigned by hand in a browser.
+   * - A server render can't assign by hand (no refs run, no shadow root):  the slot gets a NAME, and so does
+   *   `child` (its `slot` attribute), which the flattener (`$/ui/server`) matches and then drops.
+   * - SIDE EFFECT, server only:  sets `child`'s `slot` attribute (the render's own parsed copy of the page).
+   */
+  private panelSlot(child: Element, index: Accessor<number>, part: string): JSX.Element {
+    if (!isServer) return <slot ref={(slot: HTMLSlotElement) => slot.assign(child)} />
+    const name = `${part}-${untrack(index)}`
+    child.setAttribute(SLOT_ATTRIBUTE, name)
+    return <slot name={name} />
   }
 
   ////////////////

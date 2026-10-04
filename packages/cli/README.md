@@ -63,6 +63,7 @@ Every command takes one or more targets:
 | `spell plan-doc <command> <name> ...` | Edits a plan doc (`packages/docs/epics/<name>/<name>.html`) as the `/epic` skill does:  `yarn plan-doc` from anywhere, in the nearest checkout (a worktree's, when run in one).  `spell plan-doc` alone lists its commands, e.g. `summary <name>`, `phase <name> 2 done`. |
 | `spell dev commands [list\|check]` | Every yarn script, `spell` command and skill, against the commands page (`packages/docs/dev/commands/commands.json`):  `list` marks each ✓ / ✗, `check` prints only the gaps and exits 1 on any.  `--json`.  The first of the repo-tool commands, `spell dev <noun> <verb>`:  the plan for the rest is that page's Roadmap.  Root `yarn commands:check`. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword:  name, pack, other names.  `--pack <id>`, `--json`.  `--open` shows them as pictures in your browser (click one to copy its name), until `Ctrl-C`. |
+| `spell static <pages...>` | `@spell-app/ui` pages as plain HTML for crawlers and no-JS readers:  each `ui-*` element rendered to light DOM (no shadow DOM), the scripts that load the elements removed.  Writes `page.static.html` beside `page.html`, and ONE minified stylesheet per output folder, `ui.static.css`, which every page there links (the browser caches it).  `-o <file>` (one page) or `-o <folder>` (several), `--css <file>` (one stylesheet elsewhere), `--inline-css` (each page's own `<style>` instead), `--no-minify`.  A folder:  every `.html` in it. |
 | `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  `--force` recompiles the projects it imports, too.  A `.spell` file prints its javascript. |
 | `spell check <targets...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
 | `spell describe <target> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
@@ -94,6 +95,8 @@ Every command takes one or more targets:
 
 - `compile` writes `<Project>.compiled.js`, as the app does.  With no errors, also `<Project>.scopes.js`, as the
   language server does.  `--stdout` writes neither.  `watch` the same after each rebuild, unless `--check-only`.
+- `static` writes `<page>.static.html` beside each page and `ui.static.css` in each output folder, or where `-o` /
+  `--css` say.
 - `check`, `describe`, `explore`, `run` and `test` write nothing of their own.  But if a project imports one that
   has NEVER been compiled, it's compiled first, which writes that project's `.compiled.js`.  Parsing fails without it.
 - An imported project's existing `.compiled.js` is used as is, even if its sources changed since.  Compile it first.
@@ -133,6 +136,33 @@ Every command takes one or more targets:
   `packages/app`.
 - Opens only projects in the app's roots (`spell projects`):  a project in some other folder opens the chooser.
 - Their output is hidden unless `--verbose`, or one fails.
+
+### `static`
+
+- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `packages/docs/epics/seo/seo.html`)
+  in a child process, `src/runner/renderStatic.ts`, on an SSR-only Vite server (`ui/tools/StaticRenderer.ts`):  `ui`'s
+  Solid JSX must compile for the server, which `tsx` can't.  Each run starts Vite and compiles every family, so a page
+  takes about 3 seconds;  several pages share one run.
+- Renders the families in `StaticCatalog` (`ui/src/server/`);  any other `ui-*` tag (`ui-code`, `ui-markdown` ...)
+  stays as it is, and is listed on stderr.
+- Removes a `<script>` (or `<link rel="modulepreload">`) whose `src` or text names `@spell-app/ui`, `$/ui`, `ui`'s
+  `src/` / `dist/`, a family folder, or the docs' `spell-ui.js` bundle:  the elements must not load on a static page,
+  or they'd show the content twice.  Other scripts stay, import maps too.
+- Links the stylesheet FIRST in `<head>`, before the page's own CSS:  its `@layer ui-slotted, page, ui;` sets the layer
+  order before a page sheet names a `ui.*` layer.
+- Rewrites the page's own CSS for the flattened output (`ui-card` => `[data-ui="card"]`, `::part()`, `:state()`):
+  its `<style>`s, and each LOCAL linked stylesheet the rewrite changes, inlined in its place as a
+  `<style data-static-from="...">` (relative `url()`s rebased).  Remote sheets, `@import`s and sheets that don't
+  parse stay as they are:  their `ui-*` / `::part()` rules don't apply to the static page.
+- ONE stylesheet per output folder, `ui.static.css` (or `--css <file>`), linked from every page there, so the
+  browser fetches it once.  It holds the families its pages use AND whatever it held before:  its first line,
+  `/*! spell-static {...} */`, records what it covers (tags, and which sheets they adopt), and a later run builds the
+  union, so re-rendering one page never drops another page's styles.  To start a folder's sheet afresh, delete it.
+- `--inline-css`:  each page gets its own stylesheet, holding only its families, in a `<style>`;  no file.
+- Minified by Lightning CSS, which keeps `@scope`, `@layer`, `:where()` and `light-dark()` (nothing is lowered),
+  sheet by sheet:  a family sheet it can't parse (`ui-popup`'s `@container anchored()`) only has its comments and
+  blank lines stripped, with a warning.
+- Never overwrites a page:  `-o` naming the input is refused.  Outputs are overwritten without asking.
 
 ### `speed`
 

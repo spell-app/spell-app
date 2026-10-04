@@ -280,14 +280,36 @@ Disproven (2026-10-01):  the "empty strip" under an open multiple-selection drop
 the open menu floats over.  The "mini images at full width" were the static `ui avatar images` group, hit by a bare
 `.avatar img { width: 100% }` in `ui-parts.css` (fixed).  `--ui-form-equal-width` / `-unstackable` were already private.
 Parts inside a lone `<ui-event>` / `<ui-comment>` read the owner switches only in style queries, so unset is fine.
+Fixed 2026-10-02 (seo, agent E):  the shadow-root-only-child margins (segments, menu, steps, statistics, ad), the
+size-container hosts that kept a margin from collapsing (table, celled grid, fluid / circular steps, statistics), and the
+item `icon` shorthand's glyph (list 20px wide, menu 0 x 0:  `.icon > svg` never reached the slot's fallback).
+Disproven (2026-10-02):  card/content and card/types match class grammar (parity <= 0.14%);  grid/variations' remaining
+gap is consecutive grids (`.ui.grid + .grid`), left out on purpose in `ui-grid.css`.
 Swept 2026-10-01 (branch `worktree-ui-component-creation`, plan doc `packages/docs/epics/ui-component-creation/`):
 every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- `src/components/ui-step/` horizontal `<ui-steps circular>`:  a description that wraps to a third line spills out of
+  the group's box (the next example's header crowds it;  inside an `<ui-segment inverted>` the last line is clipped
+  at the segment's bottom edge).  Seen on the site page `site/components/ui-step.html`, Ordered (second block) and
+  Inverted (ordered circular), ~150px per step at a 1440px viewport.  Likely the circular step's content is
+  positioned out of flow (or the group has a fixed block size), so its height doesn't count.  Prove:  a circular
+  step with a long `description` in a narrow group, measure the group's height vs the content's.  (2026-10-03)
 - `src/components/ui-toast/ui-toast.test.tsx` "life" tests:  still set `pause-on-hover="false"` for Linux CI.  The toast now
   pauses only after a real pointer MOVE (a toast appearing under a resting pointer closes), which should be the CI
   cause, but nobody ran the Linux image.  Prove:  drop the attribute and push;  CI green => remove it.  (2026-10-01)
+- `src/components/ui-tab/` `<ui-tabs basic color="blue">`:  the BASIC panes draw a dark rule along their top edge
+  (seen at 1000px, chromium, scratch page in epic `spell-ui-pages` P3);  `basic` should drop the segment box, and a
+  segment's `color` only paints the top edge of a NON-basic segment.  Likely `ui-segment.css`'s coloured-edge rule
+  isn't scoped out by `.basic`, or the pane forwards `color`.  Prove:  `<ui-tabs basic color="blue">` vs `<ui-tabs
+  basic>` in a pane screenshot.  (2026-10-03)
+- `disabled="false"` / `disabled="no"` on a FORM-ASSOCIATED tag (`<ui-button>`, `<ui-checkbox>` ...) still disables it
+  (shadow `<button disabled>`, `ui disabled` class, host `:disabled`), though `docs/grammar.md` "Booleans" says those
+  words mean false (other keyOnly words, e.g. `basic="no"`, do follow it).  Likely the platform:  a form-associated
+  element is disabled by the attribute's PRESENCE (`formDisabledCallback` -> `formDisabled`, `isDisabled()` in
+  `UIButton`).  Either document the exception in `grammar.md` (the site's grammar page now does) or have the element
+  drop a false-word `disabled` attribute.  Prove:  `<ui-button disabled="false">` in a test.  (2026-10-03)
 - `src/components/ui-accordion/UIAccordion.tsx` ~line 82:  `this.loaded() && UI.browser.supports.interpolateSize` in a
   memo.  `loaded()` is TRUE on the server, and `UI.browser` throws before the runtime loads, so an SSR render of an
   accordion probably throws (`<ui-button>` hit exactly this, fixed with an `isServer` guard).  Prove:  add an
@@ -296,6 +318,10 @@ every entry below that date was fixed or disproven;  what's left:
   page leaves that sheet's `@media` results stale, so a transient component added later (toast, modal) renders at the
   old breakpoint.  Reproduced only through Playwright's viewport resize;  the toast / popup tests now render before
   resizing.  Possible fix:  one hidden persistent adopter per sheet.  Prove on a real device rotation.  (2026-10-01)
+  - Same family, seen again (2026-10-03, `stack-with="page"`):  a `<ui-grid>` inserted and the viewport resized
+    BEFORE its style was ever resolved kept `--_grid-range: mobile` at 1200px in WebKit, even with other grids alive;
+    a `getComputedStyle()` or one frame before the resize fixed it (`test/viewport.ts` waits a frame).  A real page
+    paints before any resize, so probably test-only.  Prove:  insert + `page.viewport()` with no frame between.
 - `src/elements/MenuOptions.test.ts` "filters 5000 cold options in under 50 ms":  failed once in a full
   `yarn test:all` in webkit, passes 3 / 3 alone.  A wall-clock budget under 3-browser load;  maybe skip budgets under
   `UI_TEST_ALL`, as CI skips the dropdown's 16 ms one.  (2026-10-01)
@@ -313,13 +339,51 @@ every entry below that date was fixed or disproven;  what's left:
   its setup reads a signal in an effect's APPLY (or `onSettled`):  that read won't re-run it.  Harmless if the value
   never changes after;  a missed update if it does.  Prove:  dev build, break on the warning, read the stack.
   (2026-10-02)
+- `src/docs-components/ui-docs-example/UIDocsExample.tsx` ~line 81:  the code button is a `<ui-button>` given
+  `aria-expanded` / `aria-controls` on its HOST, but `<ui-button>` forwards only `aria-label` to its inner `<button>`,
+  so assistive tech probably never hears the pane open / closed (and `aria-controls` can't cross the shadow root
+  anyway).  `<ui-item>` got the same forwarding for `aria-expanded` on 2026-10-03 (`<ui-docs-nav>`).  Prove:  read the
+  inner button's attributes in the docs example test;  fix by forwarding `aria-expanded` in `UIButton`.  (2026-10-03)
 
 ### 3. Styling / CSS
 
+- `src/styles/sizes.css` `ui-gap-<space>` vs `utilities.css`'s layout primitives:  `.ui-stack`, `.ui-cluster`,
+  `.ui-split`, `.ui-flank`, `.ui-grid` each set `gap: var(--ui-space-m)` at the SAME specificity, and `ui.css` imports
+  `sizes.css` BEFORE `utilities.css`, so `class="ui-cluster ui-gap-2xl"` keeps the `m` gap:  the utilities page's
+  Gap example (old Astro page and `site/utilities.html` alike) showed three identical rows.  Fix:  `:where()` the
+  primitives' selectors, or emit the gap utilities after them.  `site/utilities.html` demos the gaps on `ui-flex` until
+  then.  (2026-10-03, epic `spell-ui-pages` P5)
+- `src/styles/utilities.css` `ui-w-*` on PAGE markup:  `reset.css` is `:host`-scoped, so page elements stay
+  `box-sizing: content-box`, and `ui-w-1/2` plus `ui-p-*` overflows half (`site/utilities.html`, Widths:  a `ui-w-1/4
+  ui-p-s` box measured 213px of a 755px row, 1/4 + 2 x 0.75em).  Maybe intended (the foundation never touches page
+  boxes), but then the width utilities want `box-sizing: border-box` themselves.  (2026-10-03, epic `spell-ui-pages`
+  P5)
 - `src/components/ui-grid/ui-grid.css`, `ui-card.css`:  as `items` was (fixed 2026-10-01), a size-container group host keeps
   its root's top margin from collapsing with the heading above:  element markup shows a bigger gap than class grammar
   (grid/types +16px under the celled grid, grid/variations several sections, card/content and card/types one each).
   Fix per owner, as `ui-items.css` did (`:host(:state(items))` carries the outer margin).  (2026-10-01)
+- `src/server/` static render of `ui-step/examples/elements/variations.html`:  the static page is 1713px tall where class
+  grammar is 1810 and the elements 1809;  the whole gap is the last example, `<ui-steps circular vertical>`, whose
+  steps are cut short / overlap in the static output.  Prove:  `yarn test:visual --static --browsers chrome --grep
+  step`, `ui-step/variations` diff.  (2026-10-02)
+- `src/components/ui-list/ui-list.css` class grammar:  an item of an `.icon` box plus BARE text (`<div class="item">
+  <span class="icon">svg</span> Inline Text</div>`) drops the text BELOW the icon (the table-cell icon gets an anonymous
+  table, the text an anonymous block);  Fomantic keeps it beside (`i.icon:only-child`), and so do the elements (the
+  slot is the next cell).  So the static render does it too.  `ui-list/content` parity (7.5%) is only that.  (2026-10-02)
+- `src/components/ui-table/ui-table.css` outer margin:  the host (and a static render's scroller) use a fixed `1em`,
+  not `--ui-table-margin` (which only the light-DOM table reads, where `:first-child` / `:last-child` zero it).  So the
+  public token never moves an element table.  Prove:  set `--ui-table-margin: 3em` on a `<ui-table>`, measure.
+  (2026-10-02)
+
+- `src/components/ui-tab/UITabs.tsx` / `src/styles/colors.css`:  `<ui-tabs inverted pointing secondary>` fills its
+  inverted panes grey:  `secondary` (a MENU look word on the tabs root) also matches colors.css's `.ui.secondary` colour
+  remap, so the root sets `--ui-color: var(--ui-secondary)`, which inherits through the panes' `<slot>` into each
+  `.ui.inverted.tab.segment` (`--_segment-bg: var(--ui-color, ...)`).  Class grammar and the static render
+  (`yarn test:visual --static --grep ui-tab`, `ui-tab/variations` "Inverted") keep the plain inverted background.
+  Prove:  computed `--ui-color` on the tabs root's `<slot>` there.  (2026-10-02)
+- `src/components/ui-tab/ui-tab.css` vertical tabs:  `examples/elements/variations.html` "Vertical" says the pane
+  "will always match the tab height", but the element pane's segment is content-high:  the HOST is the stretched flex
+  item, its `.ui.tab` box isn't.  The static render (root = flex item) does stretch.  (2026-10-02)
 - `src/components/ui-items/ui-items.css`:  the outer margin now sits on the host, in the host's UNSCALED font size, so a
   sized group's `1.5em` margin uses 16px.  Unmeasured.  (2026-10-01)
 - `src/components/ui-list/ui-list.css`:  a raw slotted `<img>` followed by `<ui-content>` still puts the content below:  a
@@ -327,16 +391,6 @@ every entry below that date was fixed or disproven;  what's left:
 - `src/components/ui-label/ui-label.css`:  a plain CLASS-GRAMMAR `.ui.label` inside a coloured ancestor still takes the
   ancestor's colour (Fomantic doesn't);  `<ui-label>` elements are fixed (host reset).  (2026-10-01)
 
-- `src/components/ui-menu/ui-menu.css` / `ui-item.css`:  `<ui-item icon="lightbulb">` with no text, inside
-  `<ui-menu vertical text>` (with or without `icon`), draws its `<svg>` 0 x 0:  the `.icon` box and the svg both
-  compute `width` / `height` `0px`, though the svg's rule says `height: 1em`.  Seen in the docs rail
-  (`packages/docs/_assets/spell-doc-runtime.js` `buildRail()`, which now slots a `<ui-icon>` instead).  Prove:  that
-  markup in a menu example, measure the svg.  (2026-10-01)
-  - Wider than that (2026-10-02, solid-migration P6):  EVERY menu item's `icon` shorthand, text or not, horizontal
-    too -- `<ui-menu><ui-item link icon="pencil">Plain</ui-item></ui-menu>`:  the `.icon` span computes `display: flex`,
-    span and svg `0 x 0`.  `ui`'s own baseline shows it:  `test/visual/baselines/local-darwin/chromium/ui-menu/
-    content-light.png`, "Icons and a dropdown item":  "Inbox" (`icon="inbox"`) has no icon, "Mail" (a slotted
-    `<ui-icon>`) has one.  The app's `<Action>` slots a `<ui-icon>` too (`packages/app/src/solid/Actions.tsx`, HACK).
 - `src/components/ui-menu/ui-menu.css`:  `<ui-menu inverted color="violet">` items draw DARK text on the violet fill;
   Fomantic's inverted coloured menu has white text.  Plain `<ui-menu inverted>` is right (light on dark).  Prove:  that
   markup, `getComputedStyle()` of `::part(item)`'s `color`.  (2026-10-02, solid-migration P6)
@@ -345,6 +399,14 @@ every entry below that date was fixed or disproven;  what's left:
   short (seen in the app's chooser, `ProjectMenu`:  137 / 128 / 191px items in a 193px `fluid` menu).  Probably wants
   `width: 100%` (and `text-align: start`) on a vertical menu's button items.  The app's `ProjectDropdown.css` does it
   (HACK).  Prove:  the "Link items demo" in `examples/elements/content.html`.  (2026-10-02, solid-migration P8)
+- `src/components/ui-menu/ui-menu.css` `secondary`:  `secondary` is ALSO a colour alias, so the generic remap
+  (`colors.css`, `.ui.secondary { --ui-color: var(--ui-secondary) ... }`) runs on every `.ui.secondary.menu` root and
+  its items inherit it:  an uncoloured secondary menu's active item reads `--ui-color-text` (black's text) and a
+  secondary pointing underline `--ui-color` (black), whatever `--ui-menu-active-color` / `-border-color` say.  Hidden
+  in our default look (black ~== the selected text colour);  shows when a theme recolours them (`themes/chubby.css`
+  undoes the remap, HACK).  Same suspicion for `secondary` segments / buttons groups etc.  Prove:
+  `<ui-menu secondary pointing><ui-item active>A</ui-item></ui-menu>` with `--ui-menu-active-color: red` on `:root`:
+  the item stays black.  (2026-10-02, spell-ui-pages P6, T2)
 - `src/components/ui-dropdown/UIDropdown.tsx` `label()`:  a host `aria-label` never reaches the combobox (only
   `placeholder` / `text` / `name` do), so an icon-only dropdown (no text, an `icon` slot) has no accessible name.  The app's
   `<MoreMenu>` ("...") is one.  (2026-10-02, solid-migration P6)
@@ -353,6 +415,24 @@ every entry below that date was fixed or disproven;  what's left:
   with `ui-not-prose`.  (2026-10-01)
 - docs site `/components/ui-popup/` scrolls sideways at 375px:  a popup example and a code block are wider than the
   screen (menu closed too).  (2026-10-01)
+- `src/components/ui-calendar/ui-calendar.css` field:  every popup calendar's field shows a 1-2px tick just BELOW
+  its bottom-left corner (a stray border / outline piece outside the rounded box), at desktop width, light theme
+  (`site/components/ui-calendar.html`, any field:  `tools/results/site-check/ui-calendar-desk-full.png` crop of the
+  Size example).  Maybe the `input` part's box and the root disagree on radius or the trigger button's border.
+  Prove:  zoom a 2x screenshot of `<ui-calendar fluid>`.  (2026-10-03, epic `spell-ui-pages` P4)
+- `src/components/ui-checkbox` inline rows:  checkboxes / radios / toggles written side by side
+  (`<ui-checkbox>Red</ui-checkbox> <ui-checkbox ...>`) sit with only a word space between them, so a toggle's lane
+  touches the previous label (`site/components/ui-checkbox.html`, Colored and Size).  Fomantic's docs add the gap in
+  docs CSS, so maybe intended;  a `--ui-checkbox-*` margin or a `<ui-fields inline>` wrapper would fix the look.
+  (2026-10-03, epic `spell-ui-pages` P4)
+- `src/components/ui-modal/ui-modal.css` header NOTE:  suggests `--ui-modal-dimmer-filter: var(--ui-dimmer-blur)` for
+  Fomantic's blurring dimmer, but `--ui-dimmer-blur` looks declared nowhere global (`ui-dimmer.css` only reads it,
+  with its own fallback), so that value is invalid and the backdrop gets no filter.  The modal page's Theming tab
+  writes `blur(5px) grayscale(0.7)` instead.  Prove:  set the suggested value on a `<ui-modal>`, open it, read
+  `getComputedStyle(dialog, "::backdrop").backdropFilter`.  (2026-10-03, epic `spell-ui-pages` P4)
+- `site/` masthead `<ui-docs-themes for>`:  a family with no Fomantic theme (embed, nag, flyout) shows a
+  `0 themes` picker, and one with a single theme `1 themes` (I71);  maybe hide the picker at 0.
+  (2026-10-03, epic `spell-ui-pages` P4)
 
 ### 4. Types / API surface
 
@@ -451,6 +531,14 @@ every entry below that date was fixed or disproven;  what's left:
   `solid-migration.html` list dozens of `$/...` spans as unresolved.  Kept as-is in the python port (P10, epic
   `commands`) to stay byte-identical.  Prove:  `node scripts/doc-links.js server.html`, see `'$/server'` in the
   unresolved list.
+- `scripts/plan-doc.js` `summary` (and likely other commands) fails on a plan doc made before judgement calls became
+  their own item kind (`195ab6a4`):  "no .plan-items[data-kind="judgement"] in the doc:  is it a plan doc?".  Breaks
+  `packages/cli`'s `spell plan-doc > summarizes a plan doc` test (`unified-server`).  Prove:
+  `yarn plan-doc summary unified-server`.  Fix:  treat a missing list as empty, or have `migrate` add it.
+- Every plan doc's phase "Estimate" line has a blank icon:  `PHASE_FIELDS` in `scripts/plan-doc.js` gives it
+  `clock`, which isn't in `ICONS` in `scripts/bundle-spell-ui.js` (only `clock rotate left` is).  Prove:
+  `node scripts/check-spell.js epics/isolate-changes/isolate-changes.html` notes "5 icon(s) with no <svg> drawn",
+  all `ui-item[clock]`.  Fix:  add `solid/clock` to `ICONS`, then `yarn docs:update`.
 
 ## server
 

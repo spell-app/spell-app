@@ -21,6 +21,8 @@ import { COOKIE, DEFAULT_VALUE, DEFAULT_EXPIRES, TIMEOUT, DISMISS, SLIDE, type V
  *   `persist`s.  Storage that is blocked or missing just doesn't remember:  the nag still shows and closes.
  * - Closing:  the cancelable `ui-close` (with a `reason`) first, then the exit animation (Fomantic's `slide`), `hidden`
  *   on the HOST and `ui-hide`.  It never removes itself.  `display-time` hides it without storing anything.
+ * - Invoker commands (`TOGGLE_COMMANDS`):  a `<button commandfor command="--show">` shows it (`show()`), `--close`
+ *   closes it (`close()`, so a `key` remembers it), `--toggle` picks by `hidden`.
  * - No role:  a banner that must be announced gets `role` / `aria-live` from the page;  the close icon is a real
  *   `<button>` with a translated label.
  ****************/
@@ -56,7 +58,12 @@ export class UINag extends UIElement<Vocabulary> {
     super(...args)
     // SIDE EFFECT:  a stored dismissal hides the host before it first paints
     if (!isServer && untrack(() => this.dismissedState.get())) this.host.hidden = true
-    this.host.addReleaseCallback(() => clearTimeout(this.timer))
+    const listeners = new AbortController()
+    this.host.addEventListener("command", this.onCommand, { signal: listeners.signal })
+    this.host.addReleaseCallback(() => {
+      clearTimeout(this.timer)
+      listeners.abort()
+    })
   }
 
   /** A dismissal is stored (and not expired).  `false` without a `key`. */
@@ -165,6 +172,13 @@ export class UINag extends UIElement<Vocabulary> {
   ////////////////
   // ## Handlers
   ////////////////
+
+  /** An invoker command aimed at the host (`TOGGLE_COMMANDS`):  open means not `hidden`. */
+  private readonly onCommand = (event: Event) => {
+    const action = UIT.ToggleCommands.action(event, !this.host.hidden)
+    if (action === "show") this.show()
+    else if (action === "close") this.close(DISMISS, event)
+  }
 
   /** Close icon:  dismiss (and remember). */
   private readonly onCloseIcon = (event: MouseEvent) => {

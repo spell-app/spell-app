@@ -122,6 +122,13 @@
     vertical-align: baseline;
     backface-visibility: hidden;
   }
+  /*
+   * Shrink-wrapped, as an `inline-block` already is:  a no-op inside the host, but a static render's root
+   * (`$/ui/server`) IS the flex / grid item the host was, and would stretch.
+   */
+  .ui.checkbox:not(.invisible) {
+    inline-size: fit-content;
+  }
 
   /* The input:  invisible, over the box, so clicks and focus land on it. */
   .ui.checkbox > input {
@@ -327,9 +334,10 @@
     --_checkbox-distance: 0;
     display: block;
   }
+  /* off the START edge:  a physical `left` would widen a right-to-left page by 100,000px of scroll */
   .ui.invisible.checkbox > input {
     position: absolute;
-    left: -99999px;
+    inset-inline-start: -99999px;
   }
   .ui.invisible.checkbox > label {
     padding: 0.5em 1em;

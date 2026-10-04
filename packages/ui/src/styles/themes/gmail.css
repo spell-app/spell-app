@@ -1,0 +1,35 @@
+/*
+ * gmail theme:  Fomantic's `gmail` theme, compact grey notice bars like Gmail's, `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("gmail")` registers `classic` + this sheet).
+ * - Touches ONE component:  `<ui-message>` (`.ui.message`).
+ * - Tokens (`message.variables`;  the `.overrides` are empty):
+ *   - `@background: #f3f3f3` -> `--ui-message-background` (dark scheme:  our default)
+ *   - `@boxShadow` (a lone `1px` 10% black inset ring) -> `--ui-message-border-color`;  the drop shadow is
+ *     already none
+ *   - `@borderRadius: 4px`:  classic's already
+ *   - `@verticalPadding: 7px` / `@horizontalPadding: 15px` -> `--ui-message-padding` (`0.5em 1.07143em`, em of
+ *     classic's 14px, so a sized message scales)
+ *   - `@headerFontSize: 1em` -> `--ui-message-header-font-size`
+ *   - `@floatingBoxShadow` -> `--ui-message-floating-shadow`
+ *   - `@iconSize` / `@iconDistance` -> `--ui-message-icon-size` / `--ui-message-icon-distance`
+ *   - `@warningBackgroundColor: #f9edbe` -> a `warning` message's background.  No message token:  it re-points the
+ *     colour remap's `--ui-color-background` on `.ui.warning.message`, so other warning components (forms,
+ *     labels) keep theirs, as Fomantic's message-only variable did
+ * - Nothing left out.
+ */
+
+@layer ui.theme {
+  :root {
+    --ui-message-background: light-dark(oklch(0.964 0 0), var(--ui-surface-muted));
+    --ui-message-border-color: light-dark(oklch(0 0 0 / 0.1), oklch(from var(--ui-ink-on-dark) l c h / 0.12));
+    --ui-message-padding: 0.5em 1.07143em;
+    --ui-message-header-font-size: 1em;
+    --ui-message-floating-shadow: 0 2px 4px oklch(0 0 0 / 0.2);
+    --ui-message-icon-size: 1.5em;
+    --ui-message-icon-distance: 1em;
+  }
+
+  .ui.warning.message {
+    --ui-color-background: light-dark(oklch(0.944 0.062 95.4), var(--ui-warning-background));
+  }
+}

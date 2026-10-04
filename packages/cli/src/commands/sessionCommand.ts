@@ -15,7 +15,8 @@ const REPLY_LIMIT = 3000
  * - `find <name>`:  sessions titled `<name>` or that worked in worktree `<name>`, any project, newest first
  * - `open <id prefix | exact title>`:  opens it in the VS Code Claude panel, in the window it RUNS in, else this
  *   session's window (the extension's URI handler, routed by `windowId`)
- * - `title <title>`:  queues a title for THIS session (`CLAUDE_CODE_SESSION_ID`):  applied on its next prompt
+ * - `title [<title>]`:  THIS session (`CLAUDE_CODE_SESSION_ID`):  alone, its title (`*` named by hand) and any queued one;
+ *   with a title, queues it for the next prompt, unless it already has it
  * - `window [pid]`:  the VS Code window id a process runs in (default this session's)
  * - `transcript <id prefix>`:  another session's prompts, last reply and waiting question
  * - `--json` (`list`, `find`, `transcript`):  the data instead of lines
@@ -126,12 +127,25 @@ function openSession(session: CLI.CliSession, key: string): number {
   return CLI.EXIT.OK
 }
 
-/** `title <title>`:  queue a title for THIS session. */
+/** `title [<title>]`:  show THIS session's title, or queue a new one unless it already has it. */
 function titleSession(session: CLI.CliSession, title: string): number {
   const me = process.env.CLAUDE_CODE_SESSION_ID
-  if (!title || !me) throw new CLI.CliError("title:  needs a title, and CLAUDE_CODE_SESSION_ID")
+  if (!me) throw new CLI.CliError("title:  needs CLAUDE_CODE_SESSION_ID")
+  const transcript = CLI.transcriptOf(me)
+  const summary = transcript ? CLI.summarizeSession(transcript) : undefined
+  const current = summary?.title ?? null
+  const queued = CLI.queuedTitle(me)
+  if (!title) {
+    session.out(`${summary?.named ? "*" : " "}${current ?? "?"}${queued ? `  (queued:  ${queued})` : ""}`)
+    return CLI.EXIT.OK
+  }
+  // so skills can call it on every resume / phase start:  "check, rename if needed" is one command
+  if (queued === title || (current === title && queued === null)) {
+    session.out(`${me.slice(0, 8)} is already "${title}"${queued ? " (queued)" : ""}:  nothing to do`)
+    return CLI.EXIT.OK
+  }
   CLI.queueTitle(me, title)
-  session.out(`queued "${title}" for ${me.slice(0, 8)}:  applied on the next prompt`)
+  session.out(`queued "${title}" for ${me.slice(0, 8)} (was "${current ?? "?"}"):  applied on the next prompt`)
   return CLI.EXIT.OK
 }
 

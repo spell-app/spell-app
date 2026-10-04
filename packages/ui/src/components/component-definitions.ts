@@ -4,7 +4,10 @@ import { ValueSets, type ComponentTopic, type ComponentVocabulary } from "$/ui/v
 export type ComponentDefinition = {
   /** Canonical tag, e.g. `ui-buttons`. */
   readonly tag: string
-  /** Its folder under `src/components/` (= its family, its docs page, its package entry), e.g. `ui-button`. */
+  /**
+   * Its folder under `src/components/` (= its family, its docs page, its package entry), e.g. `ui-button`;  a doc-only
+   * tag's is under `src/docs-components/`, e.g. `ui-docs-example`.
+   */
   readonly folder: string
   /** Display name from the tag:  `ui-breadcrumb-section` => `Breadcrumb section`. */
   readonly name: string
@@ -19,8 +22,17 @@ export type ComponentDefinition = {
 /** Every English vocabulary module, by path.  Above the class:  `ComponentDefinitions.all` reads it at definition. */
 const VOCABULARY_MODULES = import.meta.glob<Record<string, unknown>>("./*/*.vocabulary.en.ts", { eager: true })
 
-/** A vocabulary module's folder:  `./ui-button/ui-or.vocabulary.en.ts` => `ui-button`. */
-const FOLDER = /^\.\/([\w-]+)\//
+/** The doc-only elements' English vocabularies (`src/docs-components/ui-docs-<name>/`), by path. */
+const DOCS_VOCABULARY_MODULES = import.meta.glob<Record<string, unknown>>("../docs-components/*/*.vocabulary.en.ts", {
+  eager: true
+})
+
+/**
+ * A vocabulary module's folder:
+ * - `./ui-button/ui-or.vocabulary.en.ts` => `ui-button`
+ * - `../docs-components/ui-docs-example/ui-docs-example.vocabulary.en.ts` => `ui-docs-example`
+ */
+const FOLDER = /^(?:\.\/|\.\.\/docs-components\/)([\w-]+)\//
 
 /**
  * Every component tag's definition, rolled up from each folder's vocabularies (`<tag>.vocabulary.en.ts`):  the topics
@@ -30,10 +42,15 @@ const FOLDER = /^\.\/([\w-]+)\//
  *   as a side effect.  NOT re-exported by `core`:  for the docs site, tools and tests (and later `<ui-root>`).
  * - A new tag needs nothing here:  its vocabulary's `topics` / `aka` are picked up (`test/component-definitions.test.ts`
  *   checks every defined tag has a definition with topics).
+ * - The doc-only `<ui-docs-*>` elements (`src/docs-components/`) are `docs`, NEVER in `all`:  the component list,
+ *   `byTag()`, `byTopic()` and `byFolder()` leave them out;  `<ui-root>`'s catalog and `yarn site:data` read both.
  */
 export class ComponentDefinitions {
-  /** Every definition, sorted by name. */
-  static readonly all: readonly ComponentDefinition[] = ComponentDefinitions.collect()
+  /** Every component definition, sorted by name. */
+  static readonly all: readonly ComponentDefinition[] = ComponentDefinitions.collect(VOCABULARY_MODULES)
+
+  /** Every doc-only element's definition (`<ui-docs-example>` ...), sorted by name. */
+  static readonly docs: readonly ComponentDefinition[] = ComponentDefinitions.collect(DOCS_VOCABULARY_MODULES)
 
   /** The definition of `tag`, if it's a component tag. */
   static byTag(tag: string): ComponentDefinition | undefined {
@@ -70,10 +87,10 @@ export class ComponentDefinitions {
     return words.charAt(0).toUpperCase() + words.slice(1)
   }
 
-  /** Every vocabulary object of every `<tag>.vocabulary.en.ts`, with its folder. */
-  private static collect(): ComponentDefinition[] {
+  /** Every vocabulary object of every `<tag>.vocabulary.en.ts` in `modules`, with its folder. */
+  private static collect(modules: Record<string, Record<string, unknown>>): ComponentDefinition[] {
     const definitions: ComponentDefinition[] = []
-    for (const [path, module] of Object.entries(VOCABULARY_MODULES)) {
+    for (const [path, module] of Object.entries(modules)) {
       const folder = FOLDER.exec(path)?.[1]
       if (!folder) continue
       for (const value of Object.values(module)) {

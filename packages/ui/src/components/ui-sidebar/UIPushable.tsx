@@ -1,5 +1,5 @@
 import { createEffect, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import { Cell, proto, UIElement, type UIHost, UIT } from "$/ui/core"
 
@@ -46,18 +46,21 @@ export class UIPushable extends UIElement<PushableVocabulary> {
       () => this.layouts.get(),
       (layouts) => this.apply(layouts)
     )
-    // sidebars that rendered (and reported) before this element had a controller:  ask again
-    queueMicrotask(() => {
-      for (const child of this.host.children) {
-        const sidebar = (child as UIHost).controller as { reportLayout?: () => void } | undefined
-        sidebar?.reportLayout?.()
-      }
-    })
+    // never on a server:  nothing reports there, and a late report would write a signal after the render
+    if (!isServer) queueMicrotask(() => this.askSidebars())
     return (
       <div ref={(element) => (this.root = element)} class={PUSHABLE} part={this.part("pushable")}>
         <slot />
       </div>
     )
+  }
+
+  /** Sidebars that rendered (and reported) before this element had a controller:  ask them again. */
+  private askSidebars() {
+    for (const child of this.host.children) {
+      const sidebar = (child as UIHost).controller as { reportLayout?: () => void } | undefined
+      sidebar?.reportLayout?.()
+    }
   }
 
   /**

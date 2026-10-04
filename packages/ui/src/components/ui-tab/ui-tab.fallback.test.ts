@@ -40,6 +40,15 @@ describe("TabFallback", () => {
     await expectAccessible(host, AXE)
   })
 
+  it("puts `appearance`, `alignment` and `equal` on the tab list too", () => {
+    const host = Fixture.render<StubHost>(
+      `<ui-tabs appearance="segmented" alignment="fluid" equal basic><ui-tab label="A">A</ui-tab></ui-tabs>`
+    )
+    const root = FallbackStub.shadow(host).firstElementChild as HTMLElement
+    expect(root.className).toBe("ui segmented basic equal fluid aligned tabs")
+    expect(root.querySelector("[part~=menu]")!.className).toBe("ui segmented equal fluid aligned menu")
+  })
+
   it("selects the first `selected` / `active` pane without a `value`, else the first", () => {
     const chosen = Fixture.render<StubHost>(`<ui-tabs><ui-tab>A</ui-tab><ui-tab active>B</ui-tab></ui-tabs>`)
     const selected = (host: StubHost) =>

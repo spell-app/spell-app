@@ -1,5 +1,5 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
@@ -27,6 +27,7 @@ import {
   ADDITION,
   DEFAULT,
   FILTERED,
+  HIDDEN,
   ID_PREFIX,
   ITEM,
   LEFT,
@@ -53,6 +54,8 @@ import dropdownCSS from "./ui-dropdown.css?inline"
  * - Menu rows render only while open (`<For>` keyed by option identity);  `aria-activedescendant` points at
  *   the highlighted row.  Escape and outside clicks come from `UI.overlays`.
  * - Form-associated:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
+ * - Static server render (`$/ui/server`):  the menu closed, its rows rendered (their text is in the page), the
+ *   `<ui-item>`s dropped, and the value as hidden inputs, so a static form submits it;  choosing needs JS.
  ****************/
 export class UIDropdown extends FormElement<Vocabulary> {
   @proto static vocabulary = dropdownVocabulary
@@ -309,7 +312,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
           </Show>
         </span>
         {this.menuElement()}
-        <slot hidden />
+        {isServer ? this.staticValues() : <slot hidden />}
       </div>
     )
   }
@@ -339,7 +342,8 @@ export class UIDropdown extends FormElement<Vocabulary> {
       "aria-busy": this.attrs.loading ? "true" : undefined,
       "aria-readonly": this.attrs.readonly ? "true" : undefined,
       "aria-required": this.attrs.required ? "true" : undefined,
-      "aria-invalid": this.validation().valid ? undefined : "true"
+      "aria-invalid": this.validation().valid ? undefined : "true",
+      [UIT.STATIC_CONTROL]: isServer ? "" : undefined
     } as const
   }
 
@@ -401,7 +405,29 @@ export class UIDropdown extends FormElement<Vocabulary> {
 
   /** The icon block of a `labeled` (icon) dropdown button. */
   private labeledIcon(): JSX.Element {
-    return <span class={UIT.ICON} ref={(element) => void SVGIcon.fill(element, this.attrs.icon)} />
+    return this.iconBox(this.attrs.icon)
+  }
+
+  /** An icon box drawing `name`:  once loaded in a browser, at once on a server. */
+  private iconBox(name: string | undefined): JSX.Element {
+    if (isServer) return <span class={UIT.ICON}>{new IconGlyph(this, () => name).svg()}</span>
+    return <span class={UIT.ICON} ref={(element) => void SVGIcon.fill(element, name)} />
+  }
+
+  /**
+   * Server render only:  the value as hidden inputs (one per value), so a static form submits it without JS.
+   * - Why not the combobox:  a `<button>` submits nothing, and a search input holds the query.
+   */
+  private staticValues(): JSX.Element {
+    return (
+      <Show when={this.attrs.name}>
+        {(name) => (
+          <For each={this.values()}>
+            {(value) => <input type={HIDDEN} name={name()} value={value} disabled={this.isDisabled()} />}
+          </For>
+        )}
+      </Show>
+    )
   }
 
   /** The listbox popover. */
@@ -412,14 +438,16 @@ export class UIDropdown extends FormElement<Vocabulary> {
         id={this.ids.menu}
         class={[MENU, { [LEFT]: this.attrs.direction === "left" }]}
         role="listbox"
-        popover={this.attrs.simple ? undefined : "manual"}
+        // a server render can't show a popover:  an open menu is a plain one, shown by the root's `active`
+        popover={this.attrs.simple || (isServer && this.isOpen()) ? undefined : "manual"}
         part={this.part("menu")}
         aria-label={this.label() || undefined}
         aria-multiselectable={this.attrs.multiple ? "true" : undefined}
         onMouseDown={UIDropdown.preventDefault}
       >
         <slot name={this.slot("header")} />
-        <Show when={this.isOpen() || this.attrs.simple}>
+        {/* a server render's rows:  the text is in the page, the menu stays closed */}
+        <Show when={this.isOpen() || this.attrs.simple || isServer}>
           <For each={this.rows()}>{(row) => this.row(row)}</For>
           <Show when={!this.visible().length}>
             {/* an option (disabled) rather than a bare div:  a listbox must own options (axe `aria-required-children`) */}
@@ -467,9 +495,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   private optionContent(option: MenuOption): JSX.Element {
     return (
       <>
-        <Show when={typeof option.icon === "string"}>
-          <span class={UIT.ICON} ref={(element) => void SVGIcon.fill(element, option.icon as string)} />
-        </Show>
+        <Show when={typeof option.icon === "string"}>{this.iconBox(option.icon as string)}</Show>
         <Show when={typeof option.image === "string"}>
           <img class="ui avatar image" src={option.image as string} alt="" />
         </Show>

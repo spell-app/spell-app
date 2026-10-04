@@ -38,6 +38,7 @@
  *   member without its own size inherits the group's
  * - `--_statistics-layout: horizontal`, `--_statistics-inverted: 1` -- a horizontal / inverted group
  * - `--_statistics-min-width` / `--_statistics-member-margin` -- an evenly divided group (`three statistics`)
+ * - `--_statistics-flex` -- a member's `flex`:  an equal share of the row in an `equal` group
  * - `--_statistics-stacked: 1` -- a `stackable` group narrower than 768px (the GROUP's width:  the group root
  *   answers the size query in its own tree and hands the answer down;  container names are tree-scoped, so a
  *   member couldn't query its group's container itself)
@@ -53,6 +54,9 @@
  */
 
 @layer ui.components.statistic.types, ui.components.statistic.content, ui.components.statistic.variations, ui.components.statistic.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time:  `stack-with="page"`. */
+@import "../../styles/media.css";
 
 /*******************************
            Statistic
@@ -85,6 +89,15 @@
   :host(:state(statistics)) {
     display: block;
     container: ui-statistics / inline-size;
+  }
+  /*
+   * A group's outer top margin sits on the HOST:  a size container is its own formatting context, so a margin on
+   * the root inside it never collapses with the heading above, as class grammar's does.  `:state(spaced)`:  the
+   * group keeps Fomantic's `1em` (not `horizontal`, no `widths`, whose roots zero it).  The root's own top margin is
+   * always `0` in the shadow root (`.ui.statistics:first-child` below:  it is an only child there).
+   */
+  :host(:state(spaced):not(:first-child)) {
+    margin-block-start: 1em;
   }
   :host([hidden]) {
     display: none;
@@ -157,6 +170,21 @@
     .ui.statistic:last-child {
       margin-bottom: 0;
     }
+    /*
+     * Shadow DOM:  the root is always an only child, so the class-grammar `:first-child` / `:last-child` above
+     * always match there;  the HOST's position decides instead:  the full margin back, then the edges it loses.
+     * - `:not([data-ui])`:  a static server render's root (`$/ui/server`) is a real child, which the rules above
+     *   already space as class grammar.
+     */
+    :host(:not(:nth-child(n + 2 of :state(statistic)))) > .ui.statistic:not([data-ui]) {
+      margin: var(--_ui-statistic-margin);
+    }
+    :host(:first-child:not(:nth-child(n + 2 of :state(statistic)))) > .ui.statistic:not([data-ui]) {
+      margin-top: 0;
+    }
+    :host(:last-child:not(:nth-child(n + 2 of :state(statistic)))) > .ui.statistic:not([data-ui]) {
+      margin-bottom: 0;
+    }
   }
 
   /* A member of a group. */
@@ -164,7 +192,7 @@
     :host > .ui.statistic,
     .ui.statistics > .statistic {
       display: inline-flex;
-      flex: 0 1 auto;
+      flex: var(--_statistics-flex, 0 1 auto);
       flex-direction: column;
       min-width: var(--_statistics-min-width, 0);
       max-width: none;
@@ -280,6 +308,10 @@
   .ui.floated.statistic:last-child {
     margin-bottom: 0;
   }
+  /* Shadow DOM:  the root is always a last child (above), so the HOST's position decides. */
+  :host(:not(:last-child)) > .ui.floated.statistic:not([data-ui]) {
+    margin-bottom: var(--_ui-statistic-row-spacing);
+  }
 
   /* Evenly divided:  each member at least 1/N of the row. */
   .ui:is(.one, .two, .three, .four, .five, .six, .seven, .eight, .nine, .ten).statistics {
@@ -317,18 +349,52 @@
     --_statistics-min-width: 10%;
   }
 
+  /* Equal (`equal`, no count):  one row, an equal share of it each (the group spans its row). */
+  .ui.equal.statistics:not(.horizontal) {
+    --_statistics-flex: 1 1 0%;
+    --_statistics-member-margin: 0 0 var(--_ui-statistic-row-spacing);
+    margin: 0 0 calc(-1 * var(--_ui-statistic-row-spacing));
+  }
+
   /* Stackable:  below 768px of the group, one full-width statistic per row. */
   @container ui-statistics (width < 768px) {
-    .ui.stackable.statistics {
-      --_statistics-stacked: 1;
-      width: auto;
-      margin-inline: 0;
+    @container not style(--ui-stack-with: page) {
+      .ui.stackable.statistics:not(.stack-with-page) {
+        --_statistics-stacked: 1;
+        width: auto;
+        margin-inline: 0;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.stackable.statistics.stack-with-container {
+        --_statistics-stacked: 1;
+        width: auto;
+        margin-inline: 0;
+      }
+    }
+  }
+  @media (--ui-mobile) {
+    @container style(--ui-stack-with: page) {
+      .ui.stackable.statistics:not(.stack-with-container) {
+        --_statistics-stacked: 1;
+        width: auto;
+        margin-inline: 0;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.stackable.statistics.stack-with-page {
+        --_statistics-stacked: 1;
+        width: auto;
+        margin-inline: 0;
+      }
     }
   }
   @container style(--_statistics-stacked: 1) {
     :host > .ui.statistic,
     .ui.statistics > .statistic {
       box-sizing: border-box;
+      /* an `equal` group's share would keep them in one row */
+      flex: 0 1 auto;
       width: 100%;
       margin: 0;
       padding: calc(var(--_ui-statistic-stackable-padding) / 2);

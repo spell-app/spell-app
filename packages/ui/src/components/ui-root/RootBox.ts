@@ -1,11 +1,18 @@
-import { WINDOW } from "./ui-root.types"
+import { isServer } from "@solidjs/web"
+
+import { UIT } from "$/ui/core"
+
+import { SERVER_LENGTH, WINDOW } from "./ui-root.types"
 
 /****************
  * ### `RootBox`
- * One root's own sheet:  `:host { width; height; --ui-scale }` from its `width`, `height` and `size`.
+ * One root's own sheet:  `:host { width; height; --ui-scale; --ui-stack-with }` from its `width`, `height`, `size`
+ * and `stack-with`.
  * - A constructed sheet adopted into the root's shadow (`UI.styles.adoptInto()` keeps sheets it didn't make), not an
- *   inline `style`:  the host's `style` attribute is the author's.
- * - Lengths are checked with `CSS.supports()`, so an attribute can never inject other declarations.
+ *   inline `style`:  the host's `style` attribute is the author's.  Not a host state either:  the token is read by
+ *   style queries inside `@media`, which a `:state()` rule left stale in WebKit (`UIT.STACK_WITH_CLASS`).
+ * - Lengths are checked with `CSS.supports()`, `stack-with` against its values, so an attribute can never inject
+ *   other declarations;  a static server render (no `CSS` in node) checks lengths against `SERVER_LENGTH` instead.
  ****************/
 export class RootBox {
   /** Created on first use (never on the server). */
@@ -14,13 +21,25 @@ export class RootBox {
   constructor(private readonly root: ShadowRoot) {}
 
   /** The declarations for these values;  `""` when there's nothing to set. */
-  static css({ width, height, size }: { width?: string; height?: string; size?: string }): string {
+  static css({
+    width,
+    height,
+    size,
+    stackWith
+  }: {
+    width?: string
+    height?: string
+    size?: string
+    stackWith?: string
+  }): string {
     const declarations: string[] = []
     const w = RootBox.length("width", width, "100dvw")
     const h = RootBox.length("height", height, "100dvh")
     if (w) declarations.push(`width: ${w}`)
     if (h) declarations.push(`height: ${h}`)
     if (size && size !== "medium") declarations.push(`--ui-scale: var(--ui-size-${size})`)
+    if (UIT.STACK_WITH_VALUES.includes(stackWith as UIT.StackWith))
+      declarations.push(`${UIT.STACK_WITH_TOKEN}: ${stackWith}`)
     return declarations.join("; ")
   }
 
@@ -44,6 +63,7 @@ export class RootBox {
     const trimmed = value?.trim()
     if (!trimmed) return undefined
     if (trimmed === WINDOW) return viewport
+    if (isServer) return SERVER_LENGTH.test(trimmed) ? trimmed : undefined
     return CSS.supports(property, trimmed) ? trimmed : undefined
   }
 }

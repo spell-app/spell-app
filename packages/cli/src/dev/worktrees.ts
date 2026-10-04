@@ -1,6 +1,6 @@
 import { spawnSync } from "child_process"
 import { existsSync } from "fs"
-import { basename, join, relative, resolve } from "path"
+import { basename, dirname, join, relative, resolve } from "path"
 import { pathToFileURL } from "url"
 
 import { CLI } from "$/cli"
@@ -8,44 +8,6 @@ import { CLI } from "$/cli"
 ////////////////
 // ## Where sessions work
 ////////////////
-
-/**
- * Every live session on this machine and the checkout it works in, plus each repo's worktrees no session is in.
- * - a session's folder:  the LAST `cwd` in its transcript (it may have moved), else where it started
- * - `idle`:  `{ repo:  main checkout, worktrees:  [{ path, branch }] }` per repo a session was seen in
- */
-export function sessionPlaces(): {
-  sessions: CLI.SessionPlace[]
-  idle: { repo: string; worktrees: { path: string; branch: string }[] }[]
-} {
-  const mine = CLI.ancestorPids()
-  const sessions: CLI.SessionPlace[] = []
-  const used = new Map<string, Set<string>>()
-  for (const record of CLI.runningSessions().values()) {
-    const cwd = CLI.lastCwd(record.sessionId) ?? record.cwd ?? ""
-    const place = checkoutOf(cwd)
-    if (place.root) {
-      const repo = CLI.mainRoot(place.root)
-      if (!used.has(repo)) used.set(repo, new Set())
-      used.get(repo)!.add(place.root)
-    }
-    sessions.push({
-      name: record.name ?? "?",
-      id: record.sessionId.slice(0, 8),
-      status: `${record.status ?? "?"}${record.waitingFor ? ` (${record.waitingFor})` : ""}`,
-      where: CLI.ENTRYPOINT_PLACES[record.entrypoint ?? ""] ?? record.entrypoint ?? "?",
-      worktree: place.label,
-      branch: place.branch,
-      folder: place.root ? place.inside : cwd,
-      this: mine.has(record.pid)
-    })
-  }
-  const idle = [...used].map(([repo, roots]) => ({
-    repo,
-    worktrees: worktreesOf(repo).filter((it) => !roots.has(it.path))
-  }))
-  return { sessions, idle: idle.filter((it) => it.worktrees.length) }
-}
 
 /**
  * The checkout holding `cwd`:  `{ root, label, branch, inside }`.
@@ -114,21 +76,45 @@ export function nameStatus(name: string, ids?: string[], main = CLI.mainRoot()):
 }
 
 /**
- * Plan doc `name`:  its folder, and whether every phase is done, from the plan-doc tool's `summary --json`.
- * - read from the worktree when it has `node_modules/` (its copy of the plan is the live one), else the main checkout
+ * Plan doc `name`:  its folder, and whether every phase is done, from `planSummaries()`.
+ * - its live copy:  the worktree's when it has one, else the main checkout's (`planFile()`)
  */
 export function planStatus(
   name: string,
   worktree: string,
   main = CLI.mainRoot()
 ): { folder: string | null; done: boolean } {
+  const file = planFile(name, worktree, main)
+  if (!file) return { folder: null, done: false }
+  const phases = planSummaries([file], main).get(file)?.phases ?? []
+  return { folder: dirname(file), done: phases.length > 0 && phases.every((phase) => phase.status === "done") }
+}
+
+/** Plan doc `name`'s live copy:  the worktree's `<name>.html` when it has one, else the main checkout's;  or `null`. */
+export function planFile(name: string, worktree: string, main = CLI.mainRoot()): string | null {
   for (const root of [worktree, main]) {
-    const folder = join(root, "packages", "docs", "epics", name)
-    if (!existsSync(folder) || !existsSync(join(root, "node_modules"))) continue
-    const loader = pathToFileURL(join(CLI.REPO_ROOT, "node_modules", "tsx", "dist", "loader.mjs")).href
+    const file = join(root, "packages", "docs", "epics", name, `${name}.html`)
+    if (existsSync(file)) return file
+  }
+  return null
+}
+
+/**
+ * The summaries of the plan docs at `files` (absolute), the ones not read yet in ONE `plan-doc summaries` run;
+ * a file it can't read is left out.
+ * - runs the plan-doc tool of THIS checkout when it's installed, else the main checkout's:  a worktree's copy
+ *   needn't be installed, and the tool reads by path from any checkout
+ * - SIDE EFFECT:  cached in `PLAN_SUMMARIES` for the rest of the run;  pass every file up front to read them in
+ *   one go (the tool takes ~0.5s to start)
+ */
+export function planSummaries(files: string[], main = CLI.mainRoot()): Map<string, CLI.PlanSummary> {
+  const todo = files.filter((file) => !PLAN_SUMMARIES.has(file))
+  const root = [CLI.REPO_ROOT, main].find((it) => existsSync(join(it, "node_modules")))
+  if (todo.length && root) {
+    const loader = pathToFileURL(join(root, "node_modules", "tsx", "dist", "loader.mjs")).href
     const run = spawnSync(
       process.execPath,
-      ["--import", loader, join(root, "packages", "docs", "scripts", "plan-doc.js"), "summary", name, "--json"],
+      ["--import", loader, join(root, "packages", "docs", "scripts", "plan-doc.js"), "summaries", ...todo],
       {
         cwd: root,
         encoding: "utf8",
@@ -136,14 +122,18 @@ export function planStatus(
       }
     )
     try {
-      const phases = (JSON.parse(run.stdout) as { phases?: { status?: string }[] }).phases ?? []
-      return { folder, done: phases.length > 0 && phases.every((phase) => phase.status === "done") }
+      for (const [file, summary] of Object.entries(JSON.parse(run.stdout) as Record<string, CLI.PlanSummary>)) {
+        PLAN_SUMMARIES.set(file, summary)
+      }
     } catch {
-      return { folder, done: false }
+      // the tool failed:  every plan reads as not done
     }
   }
-  return { folder: null, done: false }
+  return new Map(files.filter((file) => PLAN_SUMMARIES.has(file)).map((file) => [file, PLAN_SUMMARIES.get(file)!]))
 }
+
+/** `planSummaries()`'s cache:  `{ file:  summary }`, for this process. */
+const PLAN_SUMMARIES = new Map<string, CLI.PlanSummary>()
 
 /** The live sessions that started in the repo at `main` (its main checkout or a worktree), by registry file. */
 export function repoSessions(main = CLI.mainRoot()): CLI.RunningSession[] {

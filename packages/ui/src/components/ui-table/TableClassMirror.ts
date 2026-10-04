@@ -68,6 +68,17 @@ export class TableClassMirror {
     if (next !== text) table.setAttribute(CLASS, next)
   }
 
+  /**
+   * `table`'s class text with `classes` mirrored in once:  its author words, then the element's phrase.
+   * - For a static server render (`UITable.decorateStatic()`):  no observer, nothing owned yet;  the same text a
+   *   first `apply()` writes.
+   */
+  static mirrored(text: string | null, classes: string): string {
+    const ours = TableClassMirror.words(classes)
+    const mine = new Set(ours)
+    return [...TableClassMirror.words(text).filter((word) => !mine.has(word)), ...ours].join(" ")
+  }
+
   /** Class words of `text`, in order. */
   private static words(text: string | null): string[] {
     return text ? text.split(WHITESPACE).filter(Boolean) : []

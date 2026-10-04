@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Spell UI | Spell UI</title>
+    <meta
+      name="description"
+      content="Fomantic UI reborn as ui-* custom elements on a modern CSS foundation, usable from any framework or plain HTML."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <!--
+            HOME:  Fomantic's home page (`server/documents/index.html.eco`, `layouts/homepage.html.eco`) in `<ui-*>`
+            widgets:  an inverted masthead with the pitch, then its stripes (concise HTML, behaviours, theming, the
+            three numbers, breadth, responsive + integrations, get started), told about Spell UI, with the old Astro
+            home page's philosophy (`index.astro`, deleted in P7) folded in.  Fomantic's twitter / GitHub buttons,
+            version label and jQuery debugging stripe are left out:  nothing here for them to say yet.
+          -->
+          <ui-segment vertical inverted padded="very" class="site-masthead">
+            <ui-container text-align="center">
+              <ui-menu icon inverted floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/index.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=Spell%20UI%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" inverted class="site-title">
+                Spell UI
+                <ui-header>Fomantic UI reborn as ui-* custom elements, for any framework or none</ui-header>
+              </ui-header>
+              <ui-divider hidden></ui-divider>
+              <ui-button size="huge" inverted href="getting-started.html">Get Started</ui-button>
+              <ui-button size="huge" inverted basic href="components/index.html">Browse Components</ui-button>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc header="Spell UI"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <article class="site-article">
+              <ui-segment vertical basic padded="very" text-align="center">
+                <ui-image src="images/devices.png" alt="" size="large" centered></ui-image>
+                <ui-header level="2" id="design" text-align="center">Design Beautiful Pages Quickly</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Fomantic UI has the best vocabulary of any widget set: `ui small primary basic icon button` reads
+                    like a sentence. Spell UI keeps that vocabulary and rebuilds everything under it: shadow DOM,
+                    cascade layers, OKLCH tokens, container and style queries, anchor positioning, `<dialog>` and
+                    popover, with accessibility built in.
+                  </script>
+                </ui-markdown>
+              </ui-segment>
+
+              <!--
+                Stackable grids stack by the SCREEN here (the root's `stack-with="page"`), as Fomantic's stripes do.
+                Fomantic's `very relaxed` gutters are left out:  they overflow the page's 1em phone margin (Fomantic's
+                grids are `container`s).
+              -->
+              <ui-segment vertical basic padded="very">
+                <ui-grid stackable vertical-align="middle">
+                  <ui-column width="7">
+                    <ui-header level="2" id="concise-html">Concise HTML</ui-header>
+                    <ui-markdown>
+                      <script type="text/markdown">
+                        Fomantic UI treats words and classes as exchangeable concepts. Spell UI makes the words
+                        attributes: `<ui-button size="small" primary basic>` renders `ui small basic primary button`
+                        on a real `<button>` inside its shadow root.
+
+                        Noun-first grammar, and the Types / Content / States / Variations taxonomy on every page. If
+                        you know Fomantic, you know this. [How attributes become classes](grammar.html).
+                      </script>
+                    </ui-markdown>
+                  </ui-column>
+                  <ui-column width="9">
+                    <ui-docs-example code>
+                      <ui-buttons width="3">
+                        <ui-button active>One</ui-button>
+                        <ui-button>Two</ui-button>
+                        <ui-button>Three</ui-button>
+                      </ui-buttons>
+                    </ui-docs-example>
+                  </ui-column>
+                </ui-grid>
+                <ui-divider></ui-divider>
+                <ui-grid stackable vertical-align="middle">
+                  <ui-column width="7">
+                    <ui-header level="2" id="any-framework">Any Framework, or None</ui-header>
+                    <ui-markdown>
+                      <script type="text/markdown">
+                        One package of custom elements: rich data as JS properties, primitives as attributes, and
+                        composed `ui-*` events. React, Vue, Svelte, Solid, Angular and plain HTML all use the same
+                        tags. [The contract](getting-started.html#the-contract).
+                      </script>
+                    </ui-markdown>
+                  </ui-column>
+                  <ui-column width="9">
+                    <ui-docs-example code>
+                      <ui-dropdown
+                        multiple
+                        selection
+                        fluid
+                        placeholder="Skills"
+                        value="meteor ember"
+                        aria-label="Skills"
+                      >
+                        <ui-item value="angular">Angular</ui-item>
+                        <ui-item value="css">CSS</ui-item>
+                        <ui-item value="ember">Ember</ui-item>
+                        <ui-item value="html">HTML</ui-item>
+                        <ui-item value="javascript">Javascript</ui-item>
+                        <ui-item value="meteor">Meteor</ui-item>
+                        <ui-item value="node">NodeJS</ui-item>
+                      </ui-dropdown>
+                    </ui-docs-example>
+                  </ui-column>
+                </ui-grid>
+                <ui-divider></ui-divider>
+                <ui-grid stackable vertical-align="middle">
+                  <ui-column width="7">
+                    <ui-header level="2" id="accessible">Accessible by Default</ui-header>
+                    <ui-markdown>
+                      <script type="text/markdown">
+                        Semantic shadow markup: a `<button>`, an `<input>`, a `<dialog>`, never a `<div>` where an
+                        element exists. Keyboard patterns from the WAI-ARIA practices, focus management, reduced
+                        motion, and form controls that join a native `<form>`.
+                      </script>
+                    </ui-markdown>
+                  </ui-column>
+                  <ui-column width="9">
+                    <ui-docs-example>
+                      <ui-checkbox label="I enjoy having fun"></ui-checkbox>
+                      <ui-divider hidden></ui-divider>
+                      <ui-checkbox type="slider" label="Receive weekly poodle newsletter"></ui-checkbox>
+                      <ui-divider hidden></ui-divider>
+                      <ui-checkbox type="toggle" label="Make my dog's profile public"></ui-checkbox>
+                    </ui-docs-example>
+                  </ui-column>
+                </ui-grid>
+              </ui-segment>
+
+              <ui-segment vertical basic padded="very">
+                <ui-grid stackable columns="2" vertical-align="middle">
+                  <ui-column text-align="center">
+                    <ui-header level="2" icon id="theming">
+                      <img src="images/icons/theming.png" alt="" />
+                      Unbelievable Theming
+                    </ui-header>
+                    <ui-markdown>
+                      <script type="text/markdown">
+                        Every look is a token: `--ui-primary`, `--ui-radius`, `--ui-button-padding-inline`. Set one
+                        on `:root`, an ancestor or the element itself. Fomantic's themes are token sheets on top.
+
+                        Pick a theme: the whole site restyles, these buttons too.
+                      </script>
+                    </ui-markdown>
+                  </ui-column>
+                  <ui-column>
+                    <ui-docs-themes size="large"></ui-docs-themes>
+                    <ui-divider></ui-divider>
+                    <ui-button>View</ui-button>
+                    <ui-button primary icon="shop">Add to Cart</ui-button>
+                    <ui-button secondary icon="save">Save for Later</ui-button>
+                    <ui-button labeled icon="star">Rate</ui-button>
+                    <ui-buttons>
+                      <ui-button active>1</ui-button>
+                      <ui-button>2</ui-button>
+                      <ui-button>3</ui-button>
+                    </ui-buttons>
+                  </ui-column>
+                </ui-grid>
+              </ui-segment>
+
+              <ui-segment vertical secondary padded="very">
+                <ui-grid stackable columns="3" divided text-align="center">
+                  <ui-column>
+                    <ui-header level="2" icon id="tokens">
+                      <img src="images/icons/paint.png" alt="" />
+                      Tokens, Not Variables
+                      <ui-header>Light and dark in OKLCH</ui-header>
+                    </ui-header>
+                    <p>The one dogma: <em>everything arbitrary is a token</em>, read live, no build step.</p>
+                    <ui-button size="large" href="theming.html">Theming Guide</ui-button>
+                  </ui-column>
+                  <ui-column>
+                    <ui-header level="2" icon id="components">
+                      <img src="images/icons/book.png" alt="" />
+                      55+ Components
+                      <ui-header>90+ tags</ui-header>
+                    </ui-header>
+                    <p>
+                      Build a whole site with one UI stack, including the functional side: calendar, slider, toast,
+                      flyout, form validation.
+                    </p>
+                    <ui-button size="large" primary href="components/index.html">Browse UI</ui-button>
+                  </ui-column>
+                  <ui-column>
+                    <ui-header level="2" icon id="tested">
+                      <img src="images/icons/lab.png" alt="" />
+                      Tested
+                      <ui-header>In a real browser</ui-header>
+                    </ui-header>
+                    <p>
+                      Every component has unit, accessibility, fallback and visual tests, run in Chromium, Firefox and
+                      WebKit.
+                    </p>
+                    <ui-button size="large" href="https://github.com/spell-app/spell-app/tree/main/packages/ui"
+                      >Visit GitHub</ui-button
+                    >
+                  </ui-column>
+                </ui-grid>
+              </ui-segment>
+
+              <ui-segment vertical basic padded="very">
+                <ui-header level="2" icon text-align="center" id="breadth">
+                  <img src="images/icons/toolbox.png" alt="" />
+                  Unbelievable Breadth
+                </ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Not just buttons on a page: elements, collections, views, modules and behaviours, Fomantic's five
+                    kinds, cover the gamut of interface design. A few of them, live:
+                  </script>
+                </ui-markdown>
+                <ui-grid stackable columns="3">
+                  <ui-column>
+                    <ui-header size="small" href="components/ui-menu.html">Menu</ui-header>
+                    <ui-menu vertical>
+                      <ui-item selected>Inbox <ui-label color="green">1</ui-label></ui-item>
+                      <ui-item>Trash <ui-label>1</ui-label></ui-item>
+                      <ui-item>
+                        <ui-input
+                          transparent
+                          icon="search"
+                          placeholder="Search mail..."
+                          aria-label="Search mail"
+                        ></ui-input>
+                      </ui-item>
+                    </ui-menu>
+                    <ui-menu secondary pointing vertical>
+                      <ui-item selected>Inbox</ui-item>
+                      <ui-item>Starred</ui-item>
+                      <ui-item>Trash</ui-item>
+                    </ui-menu>
+                    <ui-header size="small" href="components/ui-divider.html">Divider</ui-header>
+                    <ui-segment>
+                      <ui-grid columns="2" text-align="center">
+                        <ui-column><ui-button>A</ui-button></ui-column>
+                        <ui-column><ui-button color="teal">B</ui-button></ui-column>
+                      </ui-grid>
+                      <ui-divider vertical>or</ui-divider>
+                    </ui-segment>
+                  </ui-column>
+                  <ui-column>
+                    <ui-header size="small" href="components/ui-card.html">Card</ui-header>
+                    <ui-card image="images/avatar2/large/rachel.png" header="Rachel Maddow" meta="Pundit">
+                      <ui-extra>22 Friends &middot; Joined in 2014</ui-extra>
+                    </ui-card>
+                    <ui-header size="small" href="components/ui-step.html">Step</ui-header>
+                    <ui-steps vertical>
+                      <ui-step
+                        completed
+                        icon="truck"
+                        header="Shipping"
+                        description="Choose your shipping options"
+                      ></ui-step>
+                      <ui-step
+                        selected
+                        icon="credit card"
+                        header="Billing"
+                        description="Enter billing information"
+                      ></ui-step>
+                      <ui-step disabled icon="info" header="Confirm Order" description="Verify order details"></ui-step>
+                    </ui-steps>
+                    <ui-header size="small" href="components/ui-label.html">Label</ui-header>
+                    <ui-list>
+                      <ui-item><ui-label color="red" circular empty></ui-label> Bug</ui-item>
+                      <ui-item><ui-label color="blue" circular empty></ui-label> Enhancement</ui-item>
+                      <ui-item><ui-label circular empty></ui-label> Change Declined</ui-item>
+                      <ui-item><ui-label color="yellow" circular empty></ui-label> Off Topic</ui-item>
+                      <ui-item><ui-label color="pink" circular empty></ui-label> Interesting</ui-item>
+                      <ui-item><ui-label color="green" circular empty></ui-label> Discussion</ui-item>
+                    </ui-list>
+                    <ui-header size="small" href="components/ui-segment.html">Segment</ui-header>
+                    <ui-segment stacked></ui-segment>
+                    <ui-segment raised></ui-segment>
+                    <ui-segment secondary></ui-segment>
+                    <ui-segment tertiary></ui-segment>
+                    <ui-segment attached="top"></ui-segment>
+                    <ui-segment attached></ui-segment>
+                    <ui-segment attached="bottom"></ui-segment>
+                  </ui-column>
+                  <ui-column>
+                    <ui-header size="small" href="components/ui-input.html">Input</ui-header>
+                    <ui-input icon="search" icon-position="left" placeholder="Search..." aria-label="Search">
+                      <ui-button slot="action" color="teal">Search</ui-button>
+                    </ui-input>
+                    <ui-divider hidden></ui-divider>
+                    <ui-input
+                      labeled
+                      label="https://"
+                      icon="linkify"
+                      placeholder="mysite.com"
+                      aria-label="Site"
+                    ></ui-input>
+                    <ui-divider hidden></ui-divider>
+                    <ui-input labeled="right" placeholder="Enter categories" aria-label="Categories">
+                      <ui-label slot="label" tag>Add Tags</ui-label>
+                    </ui-input>
+                    <ui-header size="small" href="components/ui-message.html">Message</ui-header>
+                    <ui-message dismissible>This site uses cookies</ui-message>
+                    <ui-message state="warning" header="Looking for help?">
+                      <ul>
+                        <li>Use our help center</li>
+                        <li>Check our FAQ</li>
+                      </ul>
+                    </ui-message>
+                    <ui-header size="small" href="components/ui-checkbox.html">Checkbox</ui-header>
+                    <ui-checkbox label="I enjoy having fun"></ui-checkbox>
+                    <ui-divider hidden></ui-divider>
+                    <ui-checkbox type="slider" label="Receive weekly poodle newsletter"></ui-checkbox>
+                    <ui-divider hidden></ui-divider>
+                    <ui-checkbox type="toggle" label="Make my dog's profile public"></ui-checkbox>
+                  </ui-column>
+                </ui-grid>
+              </ui-segment>
+
+              <ui-segment vertical basic padded="very">
+                <ui-grid stackable columns="2" divided text-align="center">
+                  <ui-column>
+                    <ui-header level="2" icon id="responsive">
+                      <img src="images/icons/mobile.png" alt="" />
+                      Responsively Designed
+                    </ui-header>
+                    <p>
+                      Every size is an <code>em</code> of one token, <code>--ui-font-size</code>. Grids, cards and
+                      tables answer to their container's width, not only the viewport's.
+                    </p>
+                    <ui-button size="large" href="components/ui-grid.html">Responsive Grids</ui-button>
+                  </ui-column>
+                  <ui-column>
+                    <ui-header level="2" icon id="integrations">
+                      <img src="images/icons/heart.png" alt="" />
+                      Partners with Libraries You Love
+                    </ui-header>
+                    <p>
+                      Tested in <b>React 19, Vue 3.5, Svelte 5, Solid, Angular 20 and Preact 10</b>: the same tags,
+                      properties and events in each.
+                    </p>
+                    <ui-button size="large" href="getting-started.html#frameworks">See Integrations</ui-button>
+                  </ui-column>
+                </ui-grid>
+              </ui-segment>
+
+              <ui-segment vertical basic padded="very" text-align="center">
+                <ui-header level="2" icon id="get-started">
+                  <img src="images/icons/rocket.png" alt="" />
+                  Liberate Your Development
+                </ui-header>
+                <p>
+                  Install it and learn the framework contract, see how attributes become classes, set tokens and themes,
+                  find an icon by name, or go straight to the components.
+                </p>
+                <ui-list horizontal relaxed link>
+                  <ui-item href="getting-started.html" icon="flag">Getting started</ui-item>
+                  <ui-item href="grammar.html" icon="language">Grammar</ui-item>
+                  <ui-item href="theming.html" icon="palette">Theming</ui-item>
+                  <ui-item href="icons.html" icon="icons">Icons</ui-item>
+                  <ui-item href="components/index.html" icon="cubes">Components</ui-item>
+                </ui-list>
+                <ui-divider hidden></ui-divider>
+                <ui-button size="large" primary labeled="right" icon="chevron right" href="getting-started.html"
+                  >Get Started Now</ui-button
+                >
+              </ui-segment>
+            </article>
+          </ui-container>
+
+          <ui-include class="site-footer" source="_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

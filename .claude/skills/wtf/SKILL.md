@@ -33,9 +33,10 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
 - Plan doc, if any:  the session's `/epic <name>`, else a worktree name with `packages/docs/epics/<name>/`, else
   one the session wrote to.  A branch from before 2026-10-02 still has it under `plans/<name>/`.
   - `yarn plan-doc summary <name> --json`:  phases with status, next phase, open questions / issues / caveats / todos
-  - its URL:  `yarn server url <ABSOLUTE path>`, run in the checkout the doc is in (a relative path resolves
-    wrongly:  `SUSPECTED-BUGS.md`, "server")
-- `/bedtime` run:  `MORNING-<name>.md` in the worktree.
+  - its links:  `yarn docs:link <ABSOLUTE path> --hash <id>`, run in the checkout the doc is in:  the side bar
+    link, then `(_browser_)`
+- `/bedtime` run:  the plan doc's "Overnight" section (`yarn plan-doc summary <name> --json`, `overnight`:
+  `active` running, `done` not gone through yet);  `/epic review <name>` goes through it.
 - In flight:  `ListAgents` (agents this session started;  for `<name>`, whether its session is running),
   background shells, scheduled wakeups.
 
