@@ -30,7 +30,7 @@ describe("SiteSearchBuilder.page", () => {
       path: "components/ui-divider.html",
       title: "Divider",
       summary: "Segments content.",
-      mainTag: "ui-divider",
+      tag: "ui-divider",
       tabs: { examples: "Examples", usage: "Usage" },
       sections: [
         { id: "examples-types", title: "Types", tab: "examples" },

@@ -5,6 +5,8 @@
     placeholders from `site/_data/pages.json`, keeps the COMPONENT or the PAGE block, and rewrites the
     `../../ui/site/` paths for the page's depth.  This file opens as it is too (from the page server), with the
     placeholders showing, so a layout change can be checked here first.
+  - A family's page keeps the `site:family` API block;  a sub-tag with a page of its own (pages.json `pages`:
+    `ui-radio`) keeps `site:tag` instead, and drops `site:theming` when no family token names it (`ui-meta`).
   - How to write a page:  `packages/docs/epics/spell-ui-pages/PAGES.md`.  Check it:  `yarn site:check <page>`.
   - A page is its `<head>` and ONE `<main id="main" class="site-main" data-toc-header>`, nothing else:  the chrome (top bar, nav,
     footer, `<ui-root>`) is `site/_parts/layout.html`, written once;  the site bundle wraps the `main` in it on first
@@ -136,9 +138,15 @@
 
           <ui-tab value="api" label="API">
             <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <!-- site:family:start -->
             <ui-docs-api family="{{family}}"></ui-docs-api>
+            <!-- site:family:end -->
+            <!-- site:tag:start -->
+            <ui-docs-api tag="{{tag}}"></ui-docs-api>
+            <!-- site:tag:end -->
           </ui-tab>
 
+          <!-- site:theming:start -->
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
             <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
@@ -159,6 +167,7 @@
               </ui-markdown>
             </ui-section>
           </ui-tab>
+          <!-- site:theming:end -->
         </ui-tabs>
         <!-- site:component:end -->
 

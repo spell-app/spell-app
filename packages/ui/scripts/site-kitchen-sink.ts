@@ -12,7 +12,7 @@
  *   `stub-*` stand-ins (the tests' `StubOwner`, not real elements) are left out;  at most `MAX_SECTIONS` (3) per
  *   family, so the page stays scannable (the family's page has the rest).
  * - Each file's `<section><h4>Title</h4>...</section>` becomes a `<ui-docs-example>`:  the family's first one headed
- *   with its title and summary (+ a link to its page), the rest a header-less continuation described by their
+ *   with its title and summary (+ a link to its page, and to its sub-tags' own pages), the rest a header-less continuation described by their
  *   `<h4>`.  A section's own class (`ui-dark ui-p-m`) becomes a `<div>` around its body.  A file without sections is
  *   one example.
  * - Writes ONLY between the page's `<!-- kitchen:start -->` and `<!-- kitchen:end -->` markers;  the rest of the page
@@ -109,6 +109,7 @@ class KitchenSinkWriter {
           `${indent}  <p slot="description">`,
           `${indent}    ${KitchenSinkWriter.escape(KitchenSinkWriter.plain(family.summary))}`,
           `${indent}    <a href="${page}">${KitchenSinkWriter.escape(family.title)} page</a>`,
+          ...KitchenSinkWriter.ownPages(family).map((line) => `${indent}    ${line}`),
           `${indent}  </p>`
         )
       } else {
@@ -123,6 +124,17 @@ class KitchenSinkWriter {
       )
     })
     return lines
+  }
+
+  /**
+   * Links to `family`'s sub-tags with a page of their own (`SiteFamily.pages`), one line each after the family page's
+   * link;  none for a family without them.
+   * - The examples stay the family's:  e.g. `ui-checkbox`'s main file shows radios too.
+   */
+  private static ownPages(family: SiteFamily): string[] {
+    return Object.entries(family.pages ?? {}).map(
+      ([tag, page]) => `&middot; <a href="components/${tag}.html">${KitchenSinkWriter.escape(page.title)} page</a>`
+    )
   }
 
   /** `family`'s main example file:  `types.html`, else its first `.html`;  `undefined` without one. */

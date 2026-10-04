@@ -82,15 +82,20 @@ export class NavIndex {
     return !query || key.includes(query)
   }
 
-  /** `tag` as a row:  its link, status and search key. */
+  /**
+   * `tag` as a row:  its link, status and search key.
+   * - Status:  its own page's (`SiteFamily.pages`) for a sub-tag with one, else its family's.
+   */
   private static row(data: SiteDataFile, tag: SiteTag, titles: ReadonlyMap<string, string>): NavRow {
-    const status = Object.hasOwn(data.families, tag.folder) ? data.families[tag.folder]!.status : "done"
+    const family = Object.hasOwn(data.families, tag.folder) ? data.families[tag.folder] : undefined
+    const own = family?.pages && Object.hasOwn(family.pages, tag.tag) ? family.pages[tag.tag] : undefined
+    const status = own?.status ?? family?.status ?? "done"
     const topicTitles = tag.topics.map((topic) => titles.get(topic) ?? topic)
     return {
       tag: tag.tag,
       name: tag.name,
       href: tag.href ?? `components/${tag.folder}.html#${tag.tag}`,
-      main: tag.main,
+      page: tag.page,
       topics: tag.topics,
       ...(status === "done" ? {} : { status }),
       search: NavIndex.key([tag.name, tag.tag, ...tag.topics, ...topicTitles, ...tag.aka])

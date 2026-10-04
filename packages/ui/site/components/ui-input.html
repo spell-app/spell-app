@@ -49,6 +49,7 @@
             Input
             <ui-header>An input is a field used to elicit a response from a user.</ui-header>
           </ui-header>
+          <p class="site-own-pages"><code>&lt;ui-textarea&gt;</code> has its own page: <a href="ui-textarea.html">Textarea</a>.</p>
           <ui-docs-themes for="ui-input" show="theme" class="site-themes"></ui-docs-themes>
         </ui-container>
       </ui-segment>
@@ -58,8 +59,8 @@
           <ui-tab value="examples" label="Examples">
             <!--
               EXAMPLES:  Fomantic's input page, section by section, in its order (Types, States, Variations), plus our native
-              types, the other form states and `<ui-textarea>` (same family).  Every field is named with `aria-label`;  in a form
-              a `<label for>` does the same job.
+              types and the other form states;  `<ui-textarea>` (same family) has its own page, `ui-textarea.html`.
+              Every field is named with `aria-label`;  in a form a `<label for>` does the same job.
             -->
             <ui-section id="examples-types" header="Types" sticky collapsible dividing>
               <ui-section id="examples-types-input" header="Input" sticky collapsible dividing>
@@ -92,9 +93,11 @@
 
               <!-- GAP I95:  no invisible file input that a separate `<label for>` (a button, a placeholder segment) triggers;  left out. -->
               <ui-section id="examples-types-textarea" header="Textarea" sticky collapsible dividing>
-                <ui-docs-example
-                  description="A `<ui-textarea>` allows extended user input:  `rows` sets its height;  without it the field is Fomantic's form height."
-                >
+                <ui-docs-example>
+                  <p slot="description">
+                    A <code>&lt;ui-textarea&gt;</code> allows extended user input. Its states, variations and the rest are on
+                    the <a href="ui-textarea.html">Textarea</a> page.
+                  </p>
                   <ui-textarea fluid rows="3" placeholder="Tell us more" aria-label="Tell us more"></ui-textarea>
                 </ui-docs-example>
               </ui-section>
@@ -378,20 +381,6 @@
                   <ui-input size="massive" icon="search" placeholder="Search massive..." aria-label="Search"></ui-input>
                 </ui-docs-example>
               </ui-section>
-
-              <!-- GAP I101:  `<ui-textarea>` has no `icon` or corner label (Fomantic's six textarea inputs);  only the plain one. -->
-              <ui-section id="examples-variations-textarea-inputs" header="Textarea inputs" sticky collapsible dividing>
-                <ui-docs-example
-                  description="Fomantic gives a `textarea` some of the input's features;  `<ui-textarea>` shares the input's sizes, states, `transparent`, `fluid` and `inverted`."
-                >
-                  <ui-textarea
-                    fluid
-                    rows="2"
-                    value="I have no corner label or icon yet"
-                    aria-label="Notes"
-                  ></ui-textarea>
-                </ui-docs-example>
-              </ui-section>
             </ui-section>
           </ui-tab>
 
@@ -400,7 +389,8 @@
             <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  `<ui-input>` is a single-line field and `<ui-textarea>` a multi-line one; they share one sheet and most attributes.
+                  `<ui-input>` is a single-line field; for a multi-line one, [`<ui-textarea>`](ui-textarea.html) shares its sheet and
+                  most attributes.
 
                   - `type` passes through to the native input (`file` also gets Fomantic's file look).
                   - `icon` draws an icon inside the field, at the end (or the start, with `icon-position="left"`).
@@ -416,16 +406,16 @@
             <ui-section id="usage-forms-and-validation" header="Forms and validation" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  Both elements are real form controls: put them inside a `<form>` and their `name` / `value` is submitted with it
-                  (a `file` input submits one entry per chosen file).
+                  An input is a real form control: put it inside a `<form>` and its `name` / `value` is submitted with it (a
+                  `file` input submits one entry per chosen file).
 
                   - As with a native input, the `value` ATTRIBUTE is the starting value and the `value` PROPERTY the live one;
-                    `form.reset()` goes back to the attribute, and a disabled `<fieldset>` disables them.
+                    `form.reset()` goes back to the attribute, and a disabled `<fieldset>` disables it.
                   - `readonly` keeps the value in the submission, `disabled` leaves it out.
                   - Constraint attributes (`required`, `pattern`, `min`, `max`, `step`, `minlength`, `maxlength`) validate natively;
                     the `rules` property adds Fomantic's rules on top (`"email"`, `["notEmpty", "minLength[6]"]`).
                   - The field only shows as invalid once the user has interacted with it, as `:user-invalid` does.
-                  - **Enter** in a `<ui-input>` submits its form; in a `<ui-textarea>` it types a new line.
+                  - **Enter** submits its form.
                 </script>
               </ui-markdown>
             </ui-section>
@@ -453,11 +443,11 @@
             <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  The shadow root holds a real `<input>` (or `<textarea>`), so the browser does the keyboard work.
+                  The shadow root holds a real `<input>`, so the browser does the keyboard work.
 
                   - **Tab** / **Shift+Tab** moves focus to and from the field; the host delegates focus, so it is never a tab stop
                     of its own, and clicking the host focuses the control.
-                  - **Enter** in a `<ui-input>` submits its form (clicking the form's first submit button), as a native field does.
+                  - **Enter** submits its form (clicking the form's first submit button), as a native field does.
                   - Buttons in the `action` slot are tab stops of their own, after (or before) the field.
                 </script>
               </ui-markdown>

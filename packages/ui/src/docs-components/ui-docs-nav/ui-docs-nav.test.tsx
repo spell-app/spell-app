@@ -29,6 +29,7 @@ function tag(name: string, tagName: string, topics: string[], extra: Partial<Sit
     folder,
     mainTag: folder,
     main: folder === tagName,
+    page: folder === tagName,
     href: folder === tagName ? `components/${folder}.html` : `components/${folder}.html#${tagName}`,
     topics,
     aka: [],
@@ -217,6 +218,31 @@ describe("<ui-docs-nav> lists", () => {
     await settle(nav)
     expect(find(nav, '[data-nav-link="ui-button"]').hasAttribute("aria-current")).toBe(false)
     expect(find(nav, '[data-nav-link="ui-input"]').getAttribute("aria-current")).toBe("page")
+  })
+
+  it("links a sub-tag with its own page there, and marks it current;  a sub-tag on its family page never", async () => {
+    const radio = tag("Radio", "ui-radio", ["forms"], {
+      folder: "ui-checkbox",
+      page: true,
+      href: "components/ui-radio.html"
+    })
+    const pages = { "ui-radio": { title: "Radio", summary: "", status: "planned" as const } }
+    SiteData.reset(
+      serve({
+        ...DATA,
+        components: [...DATA.components, radio],
+        families: { ...DATA.families, "ui-checkbox": { ...family("ui-checkbox"), pages } }
+      })
+    )
+    const nav = await render(`current="ui-radio"`)
+    const row = find(nav, '[data-nav-link="ui-radio"]')
+    expect(row.getAttribute("href")).toBe("#/components/ui-radio.html")
+    expect(row.getAttribute("aria-current")).toBe("page")
+    // its own page's status, not its family's
+    expect(find(nav, '[data-nav-link="ui-radio"] .status').textContent).toBe("planned")
+    nav.setAttribute("current", "ui-buttons")
+    await settle(nav)
+    expect(find(nav, '[data-nav-link="ui-buttons"]').hasAttribute("aria-current")).toBe(false)
   })
 
   it("marks a hand-written page, and shows a load error", async () => {

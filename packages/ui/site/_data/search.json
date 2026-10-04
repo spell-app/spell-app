@@ -269,7 +269,7 @@
       "path": "components/ui-accordion.html",
       "title": "Accordion",
       "summary": "An accordion allows users to toggle the display of sections of content.",
-      "mainTag": "ui-accordion",
+      "tag": "ui-accordion",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -304,10 +304,27 @@
       ]
     },
     {
+      "path": "components/ui-actions.html",
+      "title": "Actions",
+      "summary": "Actions hold what a user can do next:  a comment's reply links, a modal's or toast's buttons.",
+      "tag": "ui-actions",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-comment","title":"Comment","parent":0},
+        {"id":"examples-owners-modal","title":"Modal","parent":0},
+        {"id":"examples-standalone","title":"Standalone","tab":"examples"},
+        {"id":"examples-standalone-no-owner","title":"No owner","parent":3},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
       "path": "components/ui-ad.html",
       "title": "Advertisement",
       "summary": "An ad displays third-party promotional content.",
-      "mainTag": "ui-ad",
+      "tag": "ui-ad",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -335,10 +352,45 @@
       ]
     },
     {
+      "path": "components/ui-author.html",
+      "title": "Author",
+      "summary": "An author names who wrote a comment or did a feed event.",
+      "tag": "ui-author",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-comment","title":"Comment","parent":0},
+        {"id":"examples-owners-feed","title":"Feed","parent":0},
+        {"id":"examples-variations","title":"Variations","tab":"examples"},
+        {"id":"examples-variations-link","title":"Link","parent":3},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
+      "path": "components/ui-avatar.html",
+      "title": "Avatar",
+      "summary": "An avatar is a small picture of a person, beside a comment, an item or a card.",
+      "tag": "ui-avatar",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-comment","title":"Comment","parent":0},
+        {"id":"examples-owners-card","title":"Card","parent":0},
+        {"id":"examples-owners-item","title":"Item","parent":0},
+        {"id":"examples-content","title":"Content","tab":"examples"},
+        {"id":"examples-content-image","title":"Image","parent":4},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
       "path": "components/ui-breadcrumb.html",
       "title": "Breadcrumb",
       "summary": "A breadcrumb is used to show hierarchy between content.",
-      "mainTag": "ui-breadcrumb",
+      "tag": "ui-breadcrumb",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -364,7 +416,7 @@
       "path": "components/ui-button.html",
       "title": "Button",
       "summary": "A button indicates a possible user action.",
-      "mainTag": "ui-button",
+      "tag": "ui-button",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -436,7 +488,7 @@
       "path": "components/ui-calendar.html",
       "title": "Calendar",
       "summary": "A calendar lets a user pick a date, a time, or both.",
-      "mainTag": "ui-calendar",
+      "tag": "ui-calendar",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -490,7 +542,7 @@
       "path": "components/ui-card.html",
       "title": "Card",
       "summary": "A card displays site content in a manner similar to a playing card.",
-      "mainTag": "ui-card",
+      "tag": "ui-card",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -541,7 +593,7 @@
       "path": "components/ui-checkbox.html",
       "title": "Checkbox",
       "summary": "A checkbox allows a user to select a value from a small set of options, often binary.",
-      "mainTag": "ui-checkbox",
+      "tag": "ui-checkbox",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -566,16 +618,15 @@
         {"id":"examples-examples-one-way-choices","title":"One-Way Choices","parent":17},
         {"id":"usage-using-it","title":"Using it","tab":"usage"},
         {"id":"usage-forms","title":"Forms","tab":"usage"},
-        {"id":"usage-radio-groups","title":"Radio groups","tab":"usage"},
         {"id":"usage-events","title":"Events","tab":"usage"},
         {"id":"usage-vetoing-a-change","title":"Vetoing a change","tab":"usage"},
         {"id":"usage-grouped-checkboxes","title":"Grouped checkboxes","tab":"usage"},
         {"id":"usage-keyboard","title":"Keyboard","tab":"usage"},
         {"id":"usage-accessibility","title":"Accessibility","tab":"usage"},
         {"id":"usage-framework-usage","title":"Framework usage","tab":"usage"},
-        {"id":"framework-react","title":"React 19","parent":28},
-        {"id":"framework-vue","title":"Vue 3.5","parent":28},
-        {"id":"framework-solid","title":"Solid 2","parent":28},
+        {"id":"framework-react","title":"React 19","parent":27},
+        {"id":"framework-vue","title":"Vue 3.5","parent":27},
+        {"id":"framework-solid","title":"Solid 2","parent":27},
         {"id":"theming-tokens","title":"Tokens","tab":"theming"},
         {"id":"theming-themes","title":"Themes","tab":"theming"}
       ]
@@ -584,7 +635,7 @@
       "path": "components/ui-code.html",
       "title": "Code",
       "summary": "Code shows a block of source code coloured by its language, from the element's own text or a file on this site.",
-      "mainTag": "ui-code",
+      "tag": "ui-code",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -609,7 +660,7 @@
       "path": "components/ui-comment.html",
       "title": "Comment",
       "summary": "A comment displays user feedback to site content.",
-      "mainTag": "ui-comment",
+      "tag": "ui-comment",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -641,7 +692,7 @@
       "path": "components/ui-container.html",
       "title": "Container",
       "summary": "A container limits content to a maximum width.",
-      "mainTag": "ui-container",
+      "tag": "ui-container",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -666,10 +717,83 @@
       ]
     },
     {
+      "path": "components/ui-content.html",
+      "title": "Content",
+      "summary": "Content is the main block of a card, item, feed event, comment, modal, message, list item or step.",
+      "tag": "ui-content",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-card","title":"Card","parent":0},
+        {"id":"examples-owners-item","title":"Item","parent":0},
+        {"id":"examples-owners-message","title":"Message","parent":0},
+        {"id":"examples-owners-list","title":"List","parent":0},
+        {"id":"examples-owners-step","title":"Step","parent":0},
+        {"id":"examples-owners-accordion","title":"Accordion","parent":0},
+        {"id":"examples-owners-modal","title":"Modal","parent":0},
+        {"id":"examples-variations","title":"Variations","tab":"examples"},
+        {"id":"examples-variations-text-alignment","title":"Text Alignment","parent":8},
+        {"id":"examples-variations-vertical-alignment","title":"Vertical Alignment","parent":8},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
+      "path": "components/ui-date.html",
+      "title": "Date",
+      "summary": "A date says when something happened, inline and small inside a feed event.",
+      "tag": "ui-date",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-feed","title":"Feed","parent":0},
+        {"id":"examples-content","title":"Content","tab":"examples"},
+        {"id":"examples-content-machine-readable-date","title":"Machine-readable date","parent":2},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
+      "path": "components/ui-description.html",
+      "title": "Description",
+      "summary": "A description is the text of a card, item, modal, list item, step or comment.",
+      "tag": "ui-description",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-card","title":"Card","parent":0},
+        {"id":"examples-owners-item","title":"Item","parent":0},
+        {"id":"examples-owners-comment","title":"Comment","parent":0},
+        {"id":"examples-owners-list","title":"List","parent":0},
+        {"id":"examples-owners-step","title":"Step","parent":0},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
+      "path": "components/ui-detail.html",
+      "title": "Detail",
+      "summary": "A detail is a label's dimmer second value, such as a count.",
+      "tag": "ui-detail",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-label","title":"Label","parent":0},
+        {"id":"examples-variations","title":"Variations","tab":"examples"},
+        {"id":"examples-variations-link","title":"Link","parent":2},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
       "path": "components/ui-dimmer.html",
       "title": "Dimmer",
       "summary": "A dimmer hides distractions to focus attention on particular content.",
-      "mainTag": "ui-dimmer",
+      "tag": "ui-dimmer",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -706,7 +830,7 @@
       "path": "components/ui-divider.html",
       "title": "Divider",
       "summary": "A divider visually segments content into groups.",
-      "mainTag": "ui-divider",
+      "tag": "ui-divider",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -733,7 +857,7 @@
       "path": "components/ui-dropdown.html",
       "title": "Dropdown",
       "summary": "A dropdown allows a user to select a value from a series of options.",
-      "mainTag": "ui-dropdown",
+      "tag": "ui-dropdown",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -816,7 +940,7 @@
       "path": "components/ui-embed.html",
       "title": "Embed",
       "summary": "An embed displays content from other websites, like YouTube videos, loaded only when asked for.",
-      "mainTag": "ui-embed",
+      "tag": "ui-embed",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -844,7 +968,7 @@
       "path": "components/ui-emoji.html",
       "title": "Emoji",
       "summary": "An emoji is a glyph used to represent something else.",
-      "mainTag": "ui-emoji",
+      "tag": "ui-emoji",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -870,10 +994,26 @@
       ]
     },
     {
+      "path": "components/ui-extra.html",
+      "title": "Extra",
+      "summary": "Extra content is set apart from the main content, such as a card's footer.",
+      "tag": "ui-extra",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-card","title":"Card","parent":0},
+        {"id":"examples-owners-item","title":"Item","parent":0},
+        {"id":"examples-owners-feed","title":"Feed","parent":0},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
       "path": "components/ui-feed.html",
       "title": "Feed",
       "summary": "A feed presents user activity chronologically.",
-      "mainTag": "ui-feed",
+      "tag": "ui-feed",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -902,7 +1042,7 @@
       "path": "components/ui-flag.html",
       "title": "Flag",
       "summary": "A flag is used to represent a political state.",
-      "mainTag": "ui-flag",
+      "tag": "ui-flag",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-definition","title":"Definition","tab":"examples"},
@@ -925,7 +1065,7 @@
       "path": "components/ui-flyout.html",
       "title": "Flyout",
       "summary": "A flyout is a modal that slides in from a side of the page.",
-      "mainTag": "ui-flyout",
+      "tag": "ui-flyout",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -959,7 +1099,7 @@
       "path": "components/ui-form.html",
       "title": "Form",
       "summary": "A form displays a set of related user input fields in a structured way.",
-      "mainTag": "ui-form",
+      "tag": "ui-form",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1021,7 +1161,7 @@
       "path": "components/ui-grid.html",
       "title": "Grid",
       "summary": "A grid is used to harmonize negative space in a layout.",
-      "mainTag": "ui-grid",
+      "tag": "ui-grid",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-introduction","title":"Introduction","tab":"examples"},
@@ -1090,7 +1230,7 @@
       "path": "components/ui-header.html",
       "title": "Content parts",
       "summary": "Headers, content, descriptions, metas and the other generic parts that cards, items, modals and messages share.",
-      "mainTag": "ui-header",
+      "tag": "ui-header",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1139,7 +1279,7 @@
       "path": "components/ui-icon.html",
       "title": "Icon",
       "summary": "An icon is a glyph used to represent something else.",
-      "mainTag": "ui-icon",
+      "tag": "ui-icon",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1178,7 +1318,7 @@
       "path": "components/ui-image.html",
       "title": "Image",
       "summary": "An image is a graphic representation of something.",
-      "mainTag": "ui-image",
+      "tag": "ui-image",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1212,7 +1352,7 @@
       "path": "components/ui-include.html",
       "title": "Include",
       "summary": "An include shows part of another page from this site in this one, loaded at once, when idle or when scrolled into view.",
-      "mainTag": "ui-include",
+      "tag": "ui-include",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1237,7 +1377,7 @@
       "path": "components/ui-input.html",
       "title": "Input",
       "summary": "An input is a field used to elicit a response from a user.",
-      "mainTag": "ui-input",
+      "tag": "ui-input",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1259,16 +1399,15 @@
         {"id":"examples-variations-inverted","title":"Inverted","parent":10},
         {"id":"examples-variations-fluid","title":"Fluid","parent":10},
         {"id":"examples-variations-size","title":"Size","parent":10},
-        {"id":"examples-variations-textarea-inputs","title":"Textarea inputs","parent":10},
         {"id":"usage-using-it","title":"Using it","tab":"usage"},
         {"id":"usage-forms-and-validation","title":"Forms and validation","tab":"usage"},
         {"id":"usage-events","title":"Events","tab":"usage"},
         {"id":"usage-keyboard","title":"Keyboard","tab":"usage"},
         {"id":"usage-accessibility","title":"Accessibility","tab":"usage"},
         {"id":"usage-framework-usage","title":"Framework usage","tab":"usage"},
-        {"id":"framework-react","title":"React 19","parent":25},
-        {"id":"framework-vue","title":"Vue 3.5","parent":25},
-        {"id":"framework-solid","title":"Solid 2","parent":25},
+        {"id":"framework-react","title":"React 19","parent":24},
+        {"id":"framework-vue","title":"Vue 3.5","parent":24},
+        {"id":"framework-solid","title":"Solid 2","parent":24},
         {"id":"theming-tokens","title":"Tokens","tab":"theming"},
         {"id":"theming-themes","title":"Themes","tab":"theming"}
       ]
@@ -1277,7 +1416,7 @@
       "path": "components/ui-item.html",
       "title": "Item",
       "summary": "One item for dropdowns, lists and menus, rendered by whatever holds it.",
-      "mainTag": "ui-item",
+      "tag": "ui-item",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1310,7 +1449,7 @@
       "path": "components/ui-items.html",
       "title": "Items",
       "summary": "A group of items presents a set of site content for display, each an image beside its text.",
-      "mainTag": "ui-items",
+      "tag": "ui-items",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1347,7 +1486,7 @@
       "path": "components/ui-label.html",
       "title": "Label",
       "summary": "A label displays content classification.",
-      "mainTag": "ui-label",
+      "tag": "ui-label",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1404,7 +1543,7 @@
       "path": "components/ui-list.html",
       "title": "List",
       "summary": "A list is used to group related content.",
-      "mainTag": "ui-list",
+      "tag": "ui-list",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1450,7 +1589,7 @@
       "path": "components/ui-loader.html",
       "title": "Loader",
       "summary": "A loader alerts a user to wait for an activity to complete.",
-      "mainTag": "ui-loader",
+      "tag": "ui-loader",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1479,7 +1618,7 @@
       "path": "components/ui-markdown.html",
       "title": "Markdown",
       "summary": "Markdown renders GitHub-flavoured markdown -- tables, task lists, code blocks -- from the element's own text or a file on this site.",
-      "mainTag": "ui-markdown",
+      "tag": "ui-markdown",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1502,7 +1641,7 @@
       "path": "components/ui-menu.html",
       "title": "Menu",
       "summary": "A menu displays grouped navigation actions.",
-      "mainTag": "ui-menu",
+      "tag": "ui-menu",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1571,7 +1710,7 @@
       "path": "components/ui-message.html",
       "title": "Message",
       "summary": "A message displays information that explains nearby content.",
-      "mainTag": "ui-message",
+      "tag": "ui-message",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1613,10 +1752,27 @@
       ]
     },
     {
+      "path": "components/ui-meta.html",
+      "title": "Meta",
+      "summary": "A meta holds metadata about the content, such as a date or a category.",
+      "tag": "ui-meta",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-card","title":"Card","parent":0},
+        {"id":"examples-owners-item","title":"Item","parent":0},
+        {"id":"examples-owners-feed","title":"Feed","parent":0},
+        {"id":"examples-owners-comment","title":"Comment","parent":0},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
       "path": "components/ui-modal.html",
       "title": "Modal",
       "summary": "A modal displays content that temporarily blocks interactions with the main view of a site.",
-      "mainTag": "ui-modal",
+      "tag": "ui-modal",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1663,7 +1819,7 @@
       "path": "components/ui-nag.html",
       "title": "Nag",
       "summary": "A nag is a persistent message that stays until dismissed, and can remember the dismissal.",
-      "mainTag": "ui-nag",
+      "tag": "ui-nag",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1696,7 +1852,7 @@
       "path": "components/ui-placeholder.html",
       "title": "Placeholder",
       "summary": "A placeholder is used to reserve space for content that soon will appear in a layout.",
-      "mainTag": "ui-placeholder",
+      "tag": "ui-placeholder",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1722,7 +1878,7 @@
       "path": "components/ui-popup.html",
       "title": "Popup",
       "summary": "A popup displays additional information on top of a page.",
-      "mainTag": "ui-popup",
+      "tag": "ui-popup",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1778,7 +1934,7 @@
       "path": "components/ui-progress.html",
       "title": "Progress",
       "summary": "A progress bar shows the progression of a task.",
-      "mainTag": "ui-progress",
+      "tag": "ui-progress",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1825,10 +1981,46 @@
       ]
     },
     {
+      "path": "components/ui-radio.html",
+      "title": "Radio",
+      "summary": "A radio button lets a user choose exactly one value of a group.",
+      "tag": "ui-radio",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
+      "sections": [
+        {"id":"examples-types","title":"Types","tab":"examples"},
+        {"id":"examples-types-radio","title":"Radio","parent":0},
+        {"id":"examples-types-slider","title":"Slider","parent":0},
+        {"id":"examples-types-toggle","title":"Toggle","parent":0},
+        {"id":"examples-types-invisible","title":"Invisible","parent":0},
+        {"id":"examples-states","title":"States","tab":"examples"},
+        {"id":"examples-states-checked","title":"Checked","parent":5},
+        {"id":"examples-states-read-only","title":"Read-only","parent":5},
+        {"id":"examples-states-disabled","title":"Disabled","parent":5},
+        {"id":"examples-variations","title":"Variations","tab":"examples"},
+        {"id":"examples-variations-fitted","title":"Fitted","parent":9},
+        {"id":"examples-variations-inverted","title":"Inverted","parent":9},
+        {"id":"examples-variations-right-aligned","title":"Right aligned","parent":9},
+        {"id":"examples-variations-colored","title":"Colored","parent":9},
+        {"id":"examples-variations-size","title":"Size","parent":9},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-radio-groups","title":"Radio groups","tab":"usage"},
+        {"id":"usage-forms","title":"Forms","tab":"usage"},
+        {"id":"usage-events","title":"Events","tab":"usage"},
+        {"id":"usage-keyboard","title":"Keyboard","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"},
+        {"id":"usage-framework-usage","title":"Framework usage","tab":"usage"},
+        {"id":"framework-react","title":"React 19","parent":21},
+        {"id":"framework-vue","title":"Vue 3.5","parent":21},
+        {"id":"framework-solid","title":"Solid 2","parent":21},
+        {"id":"theming-tokens","title":"Tokens","tab":"theming"},
+        {"id":"theming-themes","title":"Themes","tab":"theming"}
+      ]
+    },
+    {
       "path": "components/ui-rail.html",
       "title": "Rail",
       "summary": "A rail is used to show accompanying content outside the boundaries of the main view of a site.",
-      "mainTag": "ui-rail",
+      "tag": "ui-rail",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1852,7 +2044,7 @@
       "path": "components/ui-rating.html",
       "title": "Rating",
       "summary": "A rating indicates user interest in content.",
-      "mainTag": "ui-rating",
+      "tag": "ui-rating",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1887,7 +2079,7 @@
       "path": "components/ui-reveal.html",
       "title": "Reveal",
       "summary": "A reveal displays additional content in place of previous content when activated.",
-      "mainTag": "ui-reveal",
+      "tag": "ui-reveal",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1917,7 +2109,7 @@
       "path": "components/ui-root.html",
       "title": "Root",
       "summary": "A root loads the components inside it on demand, sets their theme, size, icons and emoji, and shows them once they're ready.",
-      "mainTag": "ui-root",
+      "tag": "ui-root",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1943,7 +2135,7 @@
       "path": "components/ui-search.html",
       "title": "Search",
       "summary": "A search module allows a user to query for results from a selection of data.",
-      "mainTag": "ui-search",
+      "tag": "ui-search",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -1986,7 +2178,7 @@
       "path": "components/ui-section.html",
       "title": "Section",
       "summary": "A section is a titled block of content that can fold away and keep its title in view.",
-      "mainTag": "ui-section",
+      "tag": "ui-section",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2037,7 +2229,7 @@
       "path": "components/ui-segment.html",
       "title": "Segment",
       "summary": "A segment is used to create a grouping of related content.",
-      "mainTag": "ui-segment",
+      "tag": "ui-segment",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2087,7 +2279,7 @@
       "path": "components/ui-select.html",
       "title": "Select",
       "summary": "A select lets a user choose a value from a list, with the platform's own picker.",
-      "mainTag": "ui-select",
+      "tag": "ui-select",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2125,7 +2317,7 @@
       "path": "components/ui-shape.html",
       "title": "Shape",
       "summary": "A shape is a three dimensional object displayed on a two dimensional plane.",
-      "mainTag": "ui-shape",
+      "tag": "ui-shape",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2153,7 +2345,7 @@
       "path": "components/ui-sidebar.html",
       "title": "Sidebar",
       "summary": "A sidebar hides additional content beside a page.",
-      "mainTag": "ui-sidebar",
+      "tag": "ui-sidebar",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2191,7 +2383,7 @@
       "path": "components/ui-slider.html",
       "title": "Slider",
       "summary": "A slider allows users to select values within a range.",
-      "mainTag": "ui-slider",
+      "tag": "ui-slider",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2242,7 +2434,7 @@
       "path": "components/ui-statistic.html",
       "title": "Statistic",
       "summary": "A statistic emphasizes the current value of an attribute.",
-      "mainTag": "ui-statistic",
+      "tag": "ui-statistic",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2273,7 +2465,7 @@
       "path": "components/ui-step.html",
       "title": "Step",
       "summary": "A step shows the completion status of an activity in a series of activities.",
-      "mainTag": "ui-step",
+      "tag": "ui-step",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2317,7 +2509,7 @@
       "path": "components/ui-sticky.html",
       "title": "Sticky",
       "summary": "Sticky content stays fixed to the viewport while its container is on screen.",
-      "mainTag": "ui-sticky",
+      "tag": "ui-sticky",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-introduction","title":"Introduction","tab":"examples"},
@@ -2339,10 +2531,24 @@
       ]
     },
     {
+      "path": "components/ui-summary.html",
+      "title": "Summary",
+      "summary": "A summary is a feed event's main line:  who did what, and when.",
+      "tag": "ui-summary",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-feed","title":"Feed","parent":0},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
       "path": "components/ui-tab.html",
       "title": "Tab",
       "summary": "A tab is a hidden section of content activated by a menu.",
-      "mainTag": "ui-tab",
+      "tag": "ui-tab",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2392,7 +2598,7 @@
       "path": "components/ui-table.html",
       "title": "Table",
       "summary": "A table displays a collection of data grouped into rows.",
-      "mainTag": "ui-table",
+      "tag": "ui-table",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2458,7 +2664,7 @@
       "path": "components/ui-text.html",
       "title": "Text",
       "summary": "A text is used to style some inline text with a simple color.",
-      "mainTag": "ui-text",
+      "tag": "ui-text",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2477,10 +2683,58 @@
       ]
     },
     {
+      "path": "components/ui-textarea.html",
+      "title": "Textarea",
+      "summary": "A textarea is a multi-line field used to elicit a longer response.",
+      "tag": "ui-textarea",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
+      "sections": [
+        {"id":"examples-types","title":"Types","tab":"examples"},
+        {"id":"examples-types-textarea","title":"Textarea","parent":0},
+        {"id":"examples-types-in-a-form","title":"In a Form","parent":0},
+        {"id":"examples-states","title":"States","tab":"examples"},
+        {"id":"examples-states-disabled","title":"Disabled","parent":3},
+        {"id":"examples-states-read-only","title":"Read-only","parent":3},
+        {"id":"examples-states-form-states","title":"Form States","parent":3},
+        {"id":"examples-variations","title":"Variations","tab":"examples"},
+        {"id":"examples-variations-height","title":"Height","parent":7},
+        {"id":"examples-variations-fluid","title":"Fluid","parent":7},
+        {"id":"examples-variations-transparent","title":"Transparent","parent":7},
+        {"id":"examples-variations-inverted","title":"Inverted","parent":7},
+        {"id":"examples-variations-size","title":"Size","parent":7},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-forms-and-validation","title":"Forms and validation","tab":"usage"},
+        {"id":"usage-events","title":"Events","tab":"usage"},
+        {"id":"usage-keyboard","title":"Keyboard","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"},
+        {"id":"usage-framework-usage","title":"Framework usage","tab":"usage"},
+        {"id":"framework-react","title":"React 19","parent":18},
+        {"id":"framework-vue","title":"Vue 3.5","parent":18},
+        {"id":"framework-solid","title":"Solid 2","parent":18},
+        {"id":"theming-tokens","title":"Tokens","tab":"theming"},
+        {"id":"theming-themes","title":"Themes","tab":"theming"}
+      ]
+    },
+    {
+      "path": "components/ui-title.html",
+      "title": "Title",
+      "summary": "A title heads a step, an accordion panel or a search result.",
+      "tag": "ui-title",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-step","title":"Step","parent":0},
+        {"id":"examples-owners-accordion","title":"Accordion","parent":0},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
       "path": "components/ui-toast.html",
       "title": "Toast",
       "summary": "A toast allows users to receive a short, non-blocking notification.",
-      "mainTag": "ui-toast",
+      "tag": "ui-toast",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-types","title":"Types","tab":"examples"},
@@ -2532,7 +2786,7 @@
       "path": "components/ui-transition.html",
       "title": "Transition",
       "summary": "A transition is an animation used to show or hide content, or to draw attention to it.",
-      "mainTag": "ui-transition",
+      "tag": "ui-transition",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-transitions","title":"Transitions","tab":"examples"},
@@ -2583,10 +2837,27 @@
       ]
     },
     {
+      "path": "components/ui-value.html",
+      "title": "Value",
+      "summary": "A value is what a statistic shows:  a number, a word, an icon or an image.",
+      "tag": "ui-value",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-owners","title":"Owners","tab":"examples"},
+        {"id":"examples-owners-statistic","title":"Statistic","parent":0},
+        {"id":"examples-variations","title":"Variations","tab":"examples"},
+        {"id":"examples-variations-text-value","title":"Text Value","parent":2},
+        {"id":"examples-variations-icon-and-image","title":"Icon and Image","parent":2},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-owners","title":"Owners","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
       "path": "components/ui-visibility.html",
       "title": "Visibility",
       "summary": "Visibility provides a set of callbacks for when content appears in the viewport.",
-      "mainTag": "ui-visibility",
+      "tag": "ui-visibility",
       "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
       "sections": [
         {"id":"examples-usage","title":"Usage","tab":"examples"},

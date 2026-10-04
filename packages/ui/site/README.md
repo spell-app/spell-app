@@ -27,7 +27,9 @@ site/
   index.html, getting-started.html, grammar.html, theming.html, utilities.html, icons.html, kitchen-sink.html
   components/
     index.html          the component index (cards between markers, written by `yarn site:index`)
-    ui-<name>.html      one page per component family, named for its main tag
+    ui-<name>.html      one page per component family, named for its main tag;  plus a page of their own for the
+                        sub-tags `_data/pages.json` lists under their family's `pages` (`ui-radio`, `ui-textarea`,
+                        the content parts but `ui-header`)
   _parts/               layout.html:  EVERY page's chrome (top bar, nav, `<ui-root>`), written once;  footer.html
   _src/                 site.ts (the bundle's entry:  what's in it and why), snapshot.ts, SiteShell.ts (mounts the
                         layout), SiteRouter.ts (swaps pages), SiteSections.ts (sticky offsets, folds, landing on a
@@ -76,6 +78,10 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
 
 - From the template, `packages/docs/templates/spell-ui-docs.html`;  title / summary / status from
   `_data/pages.json` (fix a summary THERE, then `yarn site:data`).  It refuses to overwrite (`--force`).
+- A sub-tag gets a page of its own once its family's entry in `_data/pages.json` lists it under `pages` (title,
+  summary, status), then `yarn site:data` and `yarn site:new <tag>`:  `components/<tag>.html` with ONE tag's API
+  (`<ui-docs-api tag>`, where `#<tag>` lands) and a Theming tab only when a family token names it.  Its family page
+  keeps the whole family's API and a one-line link to it;  the nav, search, card index and kitchen sink follow.
 - How to write one (sources, examples, usage, theming, gaps):  `packages/docs/epics/spell-ui-pages/PAGES.md`.  The
   model page:  `components/ui-button.html`.
 - Content is nested `<ui-section id header sticky collapsible dividing>`s:  a section per topic, a section per

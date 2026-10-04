@@ -21,7 +21,7 @@ describe("site data", () => {
     expect(readFileSync(builder.searchFile, "utf8") === builder.searchText(), "search.json").toBe(true)
   }, 60_000)
 
-  it("lists components and doc-only tags apart, each linked to its family page", async () => {
+  it("lists components and doc-only tags apart, each linked to its page", async () => {
     const { data } = await new SiteDataBuilder().build()
     const button = data.components.find((entry) => entry.tag === "ui-button")!
     expect(button).toMatchObject({ folder: "ui-button", mainTag: "ui-button", main: true })
@@ -32,6 +32,18 @@ describe("site data", () => {
     expect(data.docs.every((entry) => entry.href === undefined)).toBe(true)
     expect(data.families["ui-parts"]!.mainTag).toBe("ui-header")
     expect(data.topics[0]).toEqual({ id: "basic", title: "Basic" })
+  }, 60_000)
+
+  it("links a sub-tag with a page of its own (pages.json `pages`) to that page", async () => {
+    const { data } = await new SiteDataBuilder().build()
+    const radio = data.components.find((entry) => entry.tag === "ui-radio")!
+    expect(radio).toMatchObject({ folder: "ui-checkbox", main: false, page: true, href: "components/ui-radio.html" })
+    expect(data.families["ui-checkbox"]!.pages!["ui-radio"]!.title).toBe("Radio")
+    expect(data.components.find((entry) => entry.tag === "ui-or")!.page).toBe(false)
+    expect(data.components.find((entry) => entry.tag === "ui-button")!.page).toBe(true)
+    // every page the data names exists
+    for (const entry of data.components.filter((tag) => tag.page))
+      expect(() => readFileSync(new URL(`../site/${entry.href}`, import.meta.url)), entry.href).not.toThrow()
   }, 60_000)
 
   it("resolves shared value sets, and reads a family's tokens with types", async () => {

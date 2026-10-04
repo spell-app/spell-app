@@ -18,6 +18,7 @@ function serve(): string {
     name,
     folder,
     main: true,
+    page: true,
     href: `components/${folder}.html`,
     topics: [],
     aka: []

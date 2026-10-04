@@ -123,8 +123,15 @@ export type SiteTag = {
   /** `true` for the family's main tag, whose page IS the family page */
   readonly main: boolean
   /**
-   * docs page, relative to the site root:  `components/ui-button.html`, plus `#ui-or` for a sub-tag;  `undefined`
-   * for a doc-only tag (no page of its own)
+   * `true` when `href` is a page of its own:  the family's main tag, or a sub-tag split onto its own page
+   * (`SiteFamily.pages`, e.g. `ui-radio`);  `false` for a sub-tag documented on its family's page (`ui-or`) and a
+   * doc-only tag
+   */
+  readonly page: boolean
+  /**
+   * docs page, relative to the site root:  `components/<tag>.html` for a tag with its own page (`page`), else
+   * `components/<main tag>.html#<tag>` (`ui-button.html#ui-or`, its family page's API header);  `undefined` for a
+   * doc-only tag (no page of its own)
    */
   readonly href?: string
   /** topic ids */
@@ -206,8 +213,24 @@ export type SiteFamily = {
   readonly docs: boolean
   /** its tags, the main tag first, then A-Z */
   readonly tags: readonly string[]
+  /**
+   * sub-tags with a docs page of their own (`components/<tag>.html`), tag => its page's facts, A-Z;  absent when
+   * every tag is documented on the family page
+   * - e.g. `ui-checkbox`'s `ui-radio`;  the family page still documents every tag's API (`#ui-radio` lands there)
+   */
+  readonly pages?: Readonly<Record<string, SiteTagPage>>
   /** its public CSS tokens (`--ui-<tag>-*`), main sheet's first */
   readonly tokens: readonly SiteToken[]
+}
+
+/** A sub-tag's own docs page:  what its masthead, nav row and card say (`pages.json`'s `pages`). */
+export type SiteTagPage = {
+  /** page title, e.g. `Radio` */
+  readonly title: string
+  /** one-line tagline under the title */
+  readonly summary: string
+  /** how far along the page is;  anything but `done` gets a badge */
+  readonly status: SiteStatus
 }
 
 /** How far along a family's port is. */
@@ -246,7 +269,7 @@ export type SiteFoundationGroup = {
 
 /**
  * `site/_data/pages.json`:  the hand-kept per-family facts the vocabularies don't hold -- title, summary, status,
- * and how to read its tokens.  `yarn site:data` reads it and writes `components.json`.
+ * the sub-tags with a page of their own, and how to read its tokens.  `yarn site:data` reads it and writes `components.json`.
  * - Seeded ONCE per new family from its vocabulary (`SiteDataBuilder`);  from then on THIS file is the source.  Edit
  *   it by hand.  (The first seeds came from the old Astro site's MDX pages, deleted in epic `spell-ui-pages` P7.)
  */
@@ -273,6 +296,13 @@ export type SitePageSeed = {
   readonly status: SiteStatus
   /** its main tag, when no tag is named like the folder (`ui-parts` => `ui-header`) */
   readonly mainTag?: string
+  /**
+   * sub-tags documented on a page of their OWN (`components/<tag>.html`), tag => its title, summary, status;  every
+   * other tag stays on the family page (epic `ui-docs-rework`, P7)
+   * - hand-added, never seeded;  `yarn site:data` gives these tags `href:  components/<tag>.html`, and `yarn site:new
+   *   <tag>` writes their page
+   */
+  readonly pages?: Readonly<Record<string, SiteTagPage>>
   /** how to read its tokens;  absent:  every `--<folder>-*` token its sheets alias or read */
   readonly tokens?: SiteTokenSeed
 }
@@ -330,10 +360,10 @@ export type SiteSearchPage = {
   /** its `<meta name="description">` */
   readonly summary?: string
   /**
-   * a component page:  its family's main tag, e.g. `ui-divider` (the search lists the page itself as that component,
-   * not as a page)
+   * a component page:  the tag it documents, its file name, e.g. `ui-divider` (a family's main tag) or `ui-radio` (a
+   * sub-tag with its own page);  the search lists the page itself as that component, not as a page
    */
-  readonly mainTag?: string
+  readonly tag?: string
   /** its `#site-tabs` panes:  value => label, e.g. `examples` => `Examples` */
   readonly tabs?: Readonly<Record<string, string>>
   /** its sections (and headers with ids), in document order */

@@ -74,9 +74,13 @@ class ComponentIndexWriter {
     return lines.slice(1).join("\n") + "\n"
   }
 
-  /** One card:  name, `<tag>`, one-line description, status;  on one line if it fits, else one attribute per line. */
+  /**
+   * One card:  name, `<tag>`, one-line description, status (its own page's for a sub-tag with one, else its
+   * family's);  on one line if it fits, else one attribute per line.
+   */
   private card(tag: SiteTag, indent: string): string[] {
-    const status = this.data.families[tag.folder]?.status ?? "done"
+    const family = this.data.families[tag.folder]
+    const status = family?.pages?.[tag.tag]?.status ?? family?.status ?? "done"
     const attributes = [
       `href="${ComponentIndexWriter.escape(ComponentIndexWriter.href(tag))}"`,
       `header="${ComponentIndexWriter.escape(tag.name)}"`,
@@ -91,7 +95,10 @@ class ComponentIndexWriter {
     return [`${indent}<ui-card`, ...attributes.map((attribute) => `${indent}  ${attribute}`), `${indent}></ui-card>`]
   }
 
-  /** `tag`'s page, relative to `components/`:  `ui-button.html`, `ui-button.html#ui-or` for a sub-tag. */
+  /**
+   * `tag`'s page, relative to `components/`:  `ui-button.html`, `ui-radio.html` for a sub-tag with its own page,
+   * `ui-button.html#ui-or` for one on its family's page.
+   */
   private static href(tag: SiteTag): string {
     return (tag.href ?? `components/${tag.folder}.html#${tag.tag}`).replace(/^components\//, "")
   }
