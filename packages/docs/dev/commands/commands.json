@@ -2857,6 +2857,23 @@
           },
           "runs": "`tsx tools/cli.ts vendor` -> `PeerVendor` (`vendor/importmap.json`)",
           "target": "stays:  ui package tooling"
+        },
+        {
+          "op": "Regenerate Spell's favicon",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["server favicon"],
+            "note": "after the hat mark changes"
+          },
+          "runs": "`packages/server/scripts/favicon.ts` (Playwright screenshots of the SVG)",
+          "target": "stays:  tool-native package script",
+          "notes": "Writes `packages/server/src/site/favicon.ts` and the app's `static/favicon/` copies."
         }
       ]
     },
@@ -4218,8 +4235,15 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["ui site:data", "ui site:index", "ui site:kitchen", "ui site:bundle", "ui site:new"],
-            "note": "`site:build` runs data, index, kitchen, bundle;  `site:new <tag|page>` starts a page"
+            "names": [
+              "ui site:data",
+              "ui site:index",
+              "ui site:kitchen",
+              "ui site:bundle",
+              "ui site:new",
+              "ui site:sections"
+            ],
+            "note": "`site:build` runs data, index, kitchen, bundle;  `site:new <tag|page>` starts a page;  `site:sections [--check]` nests a page's sections and their ids"
           },
           "runs": "`packages/ui/scripts/gen-site-data.ts`, `site-components-index.ts`, `site-kitchen-sink.ts`, `site-bundle.ts`, `site-new.ts`",
           "target": "stays:  tool-native package scripts",
