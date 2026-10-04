@@ -57,4 +57,4 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
 
 - Visual baselines exist for macOS only (chromium, firefox, webkit);  Linux baselines wait on a working Docker.
 - Average family size is 7.3 kB gzip own code (budget 8 kB);  the lazy runtime is 31 kB.
-- Open items:  `SUSPECTED-BUGS.md` (`## ui`) and `docs/status.md` ("Deferred", "To review").
+- Open items:  `agents/SUSPECTED-BUGS.md` (`## ui`) and `docs/status.md` ("Deferred", "To review").

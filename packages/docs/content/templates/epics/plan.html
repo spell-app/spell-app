@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plan Doc Template</title>
+    <meta
+      name="description"
+      content="Plan doc template:  copied by `yarn plan-doc new <name>`, kept live by /plan-doc."
+    />
+    <link rel="stylesheet" href="../../../tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../../tools/_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="{{name}}">
+    <spell-site-header root="../../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          PLAN DOC TEMPLATE.  NEVER copy by hand:  `yarn plan-doc new <name>` fills the {{placeholders}}.
+          - Ids and classes here are what `scripts/plan-doc.js` edits:  keep them.  Rules:  `plan-doc.md` beside this.
+          - Sections are `<ui-section id header sticky collapsible dividing>`;  Overview sub-sections nest inside it
+            (`#o1` "1.1 ...");  phases are `<ui-section data-phase>` in `#phases`, written by the script.
+        -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>{{title}}</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Epic: {{title}}</h1>
+            <span class="plan-step" hidden></span></header
+        ></ui-sticky>
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch">Plan doc for <code>/epic {{name}}</code>, branch <code>{{branch}}</code></ui-item>
+          <ui-item icon="folder">Worktree: <code>{{worktree}}</code></ui-item>
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">{{date}}</time>, updated <time id="plan-updated">{{date}}</time></ui-item
+          >
+        </ui-list>
+        <ui-message class="plan-hung" state="info" size="small" header="Plan hung?">
+          <p>
+            Close its Claude tab, open a new session in this worktree's window, then run <code>/epic {{name}}</code> and
+            pick "Reuse":  it plans again from the kickoff prompt.  This note goes once the plan has its first phase.
+          </p>
+        </ui-message>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">Two sentences: what this plan does, and why.</p>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled>
+            <ui-title>Kickoff prompt</ui-title>
+            <ui-content><blockquote class="plan-prompt">{{prompt}}</blockquote></ui-content>
+          </ui-accordion>
+          <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
+            <p>What goes where: the part that becomes durable docs in the last phase.</p>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="0" total="0" bar-text="ratio" size="small" color="green" hidden
+            >phases done</ui-progress
+          >
+        </ui-section>
+
+        <ui-section id="decisions" header="3. Questions" sticky collapsible dividing data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts.">
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question.">
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="todos" header="6. Todos" sticky collapsible dividing data-tip="For later: not caveats, not issues.">
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="tests" header="8. To test" sticky collapsible dividing data-tip="What to check by hand before merging: each a step, and what should happen. Struck through once it passes.">
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="log" header="9. Log" sticky collapsible dividing data-tip="Plan changes, oldest first, local time.">
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary><ui-date>{{timestamp}}</ui-date> plan doc created</ui-summary>
+              </ui-content>
+            </ui-event>
+          </ui-feed>
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

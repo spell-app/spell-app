@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Details Page Template</title>
+    <meta
+      name="description"
+      content="Template for a details page:  a question Claude explains, answered on the page."
+    />
+    <link rel="stylesheet" href="../../tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../tools/_assets/details.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          TEMPLATE:  a DETAILS PAGE.  NEVER copy by hand:  `yarn details new <slug> --title "..."` (the skill:
+          `.claude/skills/details/SKILL.md`).
+          - The picture first (section 1), then one `ui-section.spell-question` per question, `id` q1, q2 ...
+          - An option:  `<div class="spell-option" data-option="A" data-title="Short title" [data-recommended]>`, its
+            one-line summary as plain content, anything longer (tables, code, pictures) in a
+            `<div class="spell-option-details">`, which folds.
+          - `data-multiple` on a question:  pick several (checkboxes);  else pick one (radios).
+          - `_assets/details.js` builds the cards, the "Other" boxes, the notes and Send from that, and shows the
+            answer once sent.  Keep it loaded BEFORE `spell-ui.js`.
+        -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Short Title</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <h1>Short Title</h1>
+        <p class="lede">One sentence: what's being decided, and why it matters now.</p>
+        <ui-list class="spell-meta">
+          <ui-item icon="comments">Asked by: session <code>name</code>, while doing what</ui-item>
+          <ui-item icon="calendar" data-details-asked>Asked: 2026-01-01</ui-item>
+          <ui-item icon="flag"
+            >Status:
+            <ui-label size="mini" color="orange" data-details-status>waiting for your answer</ui-label></ui-item
+          >
+        </ui-list>
+
+        <ui-message class="spell-where" state="info" header="Where we are">
+          <ul>
+            <li><b>Epic:</b> <code>name</code> -- what that work is for, in one line.</li>
+            <li><b>Just now:</b> what happened that led to this question.</li>
+            <li><b>This decides:</b> what changes for you, whichever you pick.</li>
+          </ul>
+        </ui-message>
+
+        <ui-section id="context" header="1. Context" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <ul>
+            <li>What's going on, in plain words; define every coined word.</li>
+            <li>The picture: a table, the real code, a diagram, a live example.</li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="q1" class="spell-question" header="Q1 · Short question" sticky collapsible dividing>
+          <ui-icon slot="icon" name="circle question"></ui-icon>
+          <p>The question in full, in one or two lines.</p>
+          <div class="spell-option" data-option="A" data-title="First option" data-recommended>
+            <p>One line: what changes, and why it's recommended.</p>
+            <div class="spell-option-details">
+              <p>Anything longer: a table, code, a picture.</p>
+            </div>
+          </div>
+          <div class="spell-option" data-option="B" data-title="Second option">
+            <p>One line: what changes, and its cost.</p>
+          </div>
+        </ui-section>
+        <!-- no footer:  the Send bar `details.js` adds is the page's bottom;  the date is up top ("Asked") -->
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../tools/_assets/details.js"></script>
+    <script src="../../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

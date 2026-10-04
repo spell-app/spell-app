@@ -29,7 +29,7 @@ The editor where people write and run spells, and, soon, build them by dragging 
   (`packages/app/src/editor.ts`).
 - **UI stack:**  React 18 and semantic-ui-react;  a move to Solid and @spell-app/ui is planned but paused.
 - **Explorers:**  the Type and Thing explorers exist, but only in `<spell-app>`'s debug pane and the VS Code runner.
-- **Server safety:**  fine on localhost, not beyond it (`SUSPECTED-BUGS.md`:  no file locking, stack traces sent
+- **Server safety:**  fine on localhost, not beyond it (`agents/SUSPECTED-BUGS.md`:  no file locking, stack traces sent
   to the browser).
 
 ## Decisions (settled -- don't relitigate)
@@ -51,7 +51,7 @@ _None yet._
 ### W3 · Fix the server's suspected bugs
 
 - **Status:** proposed
-- **What:** locking, error responses:  SUSPECTED-BUGS.md, spell §2
+- **What:** locking, error responses:  agents/SUSPECTED-BUGS.md, spell §2
 
 ## Open questions (ask, don't decide)
 

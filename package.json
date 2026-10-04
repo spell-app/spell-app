@@ -34,8 +34,8 @@
     "plan-doc": "yarn workspace @spell-app/docs plan-doc",
     "details": "yarn workspace @spell-app/docs details",
     "docs:link": "yarn workspace @spell-app/docs docs:link",
-    "goals": "TSX_TSCONFIG_PATH=goals/tsconfig.json node --import tsx goals/_tools/goals.js",
-    "goals:test": "TSX_TSCONFIG_PATH=goals/tsconfig.json node --import tsx --test goals/_tools/goalsRoutes.test.ts",
+    "goals": "TSX_TSCONFIG_PATH=packages/docs/tsconfig.json node --import tsx packages/docs/tools/goals/goals.js",
+    "goals:test": "TSX_TSCONFIG_PATH=packages/docs/tsconfig.json node --import tsx --test packages/docs/tools/goals/goalsRoutes.test.ts",
     "window": "node scripts/window.mjs",
     "server": "yarn workspace @spell-app/server server",
     "serve": "node scripts/serve.mjs",
@@ -43,13 +43,14 @@
   },
   "pageServer": {
     "routes": [
-      "goals/_tools/goalsRoutes.ts",
-      "packages/docs/scripts/detailsRoutes.ts",
-      "packages/docs/scripts/showRoutes.ts",
+      "packages/docs/tools/goals/goalsRoutes.ts",
+      "packages/docs/tools/detailsRoutes.ts",
+      "packages/docs/tools/showRoutes.ts",
       "packages/app/src/server/appRoutes.ts"
     ],
     "watch": [
-      "packages/docs"
+      "packages/docs/content",
+      "packages/docs/tools/_assets"
     ]
   },
   "devDependencies": {

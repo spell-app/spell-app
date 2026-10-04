@@ -12,7 +12,7 @@ import { SRV, type Handler, type Next, type RouteParams } from "$/server"
  * - layers run in the order added;  the first that answers wins, the rest are skipped
  * - a handler that throws or rejects ~== `next(error)`:  every layer after it is skipped
  * - NOTE: unlike Express 4, `:name*` holds the WHOLE rest.  Express put only the first segment in `name` and the
- *   rest in `params["0"]`, which broke nested project files (`SUSPECTED-BUGS.md`, `## app`).
+ *   rest in `params["0"]`, which broke nested project files (`agents/SUSPECTED-BUGS.md`, `## app`).
  */
 export class Router {
   /** every route and middleware, in order */

@@ -86,7 +86,7 @@ export const coreMethods = defineSpellCoreModule({
    * Create an new, "empty" instance of `thing.constructor`.
    * - What collection helpers build their results in, e.g. `map()`, `filter()`, `duplicateCollection()`.
    * - NOT registered for the Thing Explorer -- see `ThingRegistry.quietly()` -- so a copy the program keeps
-   *   doesn't show either.  See `CODE-DEBT.md`.
+   *   doesn't show either.  See `agents/CODE-DEBT.md`.
    * - TODO: number? string?  non-constructable thing???
    */
   newThingLike(thing: unknown): unknown {
