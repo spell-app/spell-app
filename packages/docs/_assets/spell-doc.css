@@ -277,8 +277,7 @@ ui-button.spell-fold {
  * - the title keeps room at its end for it:  `--spell-fold-end` (where it sits) plus its width
  * - on the title's FIRST line (`lh`:  the heading's line height), so a narrow title whose count and actions wrap
  *   to a second line (below) keeps it beside the text
- * - open:  points down (UI's glyph);  folded:  turns to point back along the title (left), not UI's right, which
- *   would point off the page
+ * - Material's convention (Owen, J5):  open, it points UP (it folds up);  folded, DOWN (it opens down)
  */
 .spell-doc-main ui-section {
   --spell-fold-end: 8px;
@@ -296,11 +295,11 @@ ui-button.spell-fold {
   margin-top: calc(var(--ui-section-fold-icon-size, 0.75em) / -2);
   color: var(--spell-muted);
 }
-.spell-doc-main ui-section:state(collapsed)::part(fold-icon) {
-  rotate: 90deg;
+.spell-doc-main ui-section::part(fold-icon) {
+  rotate: 180deg;
 }
-.spell-doc-main ui-section:dir(rtl):state(collapsed)::part(fold-icon) {
-  rotate: -90deg;
+.spell-doc-main ui-section:state(collapsed)::part(fold-icon) {
+  rotate: 0deg;
 }
 /* a narrow title wraps its actions and count under its text rather than squeezing the text to a word a line */
 @media (max-width: 560px) {
@@ -778,7 +777,7 @@ ui-accordion.spell-toc ui-accordion::part(title) {
  *   their right.  A short delay first, so crossing it on the way to the scrollbar doesn't
  * - a section needing attention (open items) gets a thick ORANGE bar at its entry's left edge;  its count shows
  *   only when the strip is widened, as an orange pill at the entry's right end (Owen, 2026-10-04)
- * - very narrow (`max-width: 400px`, VS Code's side bar):  only the bars button, floating at the top right
+ * - very narrow (`max-width: 480px`, VS Code's side bar;  Owen, J3):  only the bars button, floating at the top right
  */
 :root {
   --spell-rail-width: 32px;
@@ -815,7 +814,7 @@ ui-accordion.spell-toc ui-accordion::part(title) {
     box-shadow 0.16s;
 }
 @media (hover: hover) {
-  .spell-rail:is(:hover, :focus-within) {
+  .spell-rail:not(.spell-rail-resting):is(:hover, :focus-within) {
     width: var(--spell-rail-open);
     box-shadow: -10px 6px 28px -8px rgb(0 0 0 / 0.28);
     transition-delay: 0.12s;
@@ -908,7 +907,7 @@ ui-accordion.spell-toc ui-accordion::part(title) {
   line-height: 17px;
 }
 @media (hover: hover) {
-  .spell-rail:is(:hover, :focus-within) .spell-rail-count {
+  .spell-rail:not(.spell-rail-resting):is(:hover, :focus-within) .spell-rail-count {
     display: inline-block;
   }
 }
@@ -993,7 +992,7 @@ body.spell-toc-hidden .spell-doc-main {
  * top (a page with no page header) keep room for it too.
  * - the bars still open the drawer:  this is inside `NARROW` (`spell-doc-runtime.js`)
  */
-@media (max-width: 400px) {
+@media (max-width: 480px) {
   .spell-rail,
   body.spell-toc-hidden .spell-rail {
     bottom: auto;

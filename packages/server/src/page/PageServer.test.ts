@@ -5,7 +5,7 @@ import { join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { SRV } from "$/server"
-import { PageServer, findById, replaceById } from "$/server/page"
+import { PageServer, findById, renamedPlanDoc, replaceById } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
 /** A page whose formatting an edit must keep, byte for byte. */
@@ -109,6 +109,19 @@ describe("PageServer", () => {
     const answer = await ask(port, "GET", "/packages/docs/plans/x/x.html?a=1")
     expect(answer.status).toBe(302)
     expect(answer.headers.location).toBe("/packages/docs/epics/x/x.html?a=1")
+  })
+
+  it("redirects an old plan doc name, epics/x/x.html, to x.plan.html, but only while the old file is gone", async () => {
+    const plan = join(root, "packages/docs/epics/x")
+    mkdirSync(plan, { recursive: true })
+    writeFileSync(join(plan, "x.plan.html"), "<p>plan</p>")
+    const answer = await ask(port, "GET", "/packages/docs/epics/x/x.html?a=1")
+    expect(answer.status).toBe(302)
+    expect(answer.headers.location).toBe("/packages/docs/epics/x/x.plan.html?a=1")
+    // a worktree not yet merged:  its old name is still there, and served
+    writeFileSync(join(plan, "x.html"), "<p>old</p>")
+    expect((await ask(port, "GET", "/packages/docs/epics/x/x.html")).status).toBe(200)
+    expect(renamedPlanDoc("/worktrees/w/packages/docs/epics/x/x.html", root)).toBeUndefined()
   })
 
   it("serves Spell UI's docs, packages/ui/site/, at /ui/:  live pages, assets as is", async () => {

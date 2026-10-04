@@ -25,6 +25,12 @@
           and where React is still left.
         </p>
         <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="epics/solid-migration/solid-migration.plan.html" target="solid-migration"
+              >epic solid-migration</a
+            ></ui-item
+          >
           <ui-item icon="user"
             >Written for: anyone changing the app's UI, the runners, the web components, or spell state</ui-item
           >
@@ -32,10 +38,8 @@
             >Status: <ui-label size="mini" color="green">built</ui-label> on branch <code>solid-migration</code>,
             2026-10-02; compiled spell's own drawing still React (see <a href="#next">Next</a>)</ui-item
           >
-          <ui-item icon="map"
-            >The record: plan doc
-            <a href="epics/solid-migration/solid-migration.html" target="solid-migration">Solid Migration</a> (phases,
-            every decision, the log). Solid itself:
+          <ui-item icon="book open"
+            >Solid itself:
             <a href="solid/solid-2.html" target="src-packages-docs-solid-solid-2-html">Spell on Solid 2</a> (the why,
             measured) and
             <a href="solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"><code>solid/solid-2.md</code></a>
@@ -951,13 +955,13 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
           <ui-icon slot="icon" name="gavel"></ui-icon>
           <p>
             The decisions behind it, condensed; each links to its full entry in the
-            <a href="epics/solid-migration/solid-migration.html#decisions" target="solid-migration">plan doc</a>.
+            <a href="epics/solid-migration/solid-migration.plan.html#decisions" target="solid-migration">plan doc</a>.
           </p>
           <ui-section id="why-state" header="State" sticky collapsible dividing>
             <ul>
               <li>
                 <b>Spell state in cells, not Solid signals</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d4"
+                  href="epics/solid-migration/solid-migration.plan.html#d4"
                   target="solid-migration"
                   >D4</a
                 >): Solid 2 stages writes, and spell is imperative (<code>set</code> then <code>print</code> must be
@@ -975,7 +979,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>Full cells as their own phase, after the shell</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d13"
+                  href="epics/solid-migration/solid-migration.plan.html#d13"
                   target="solid-migration"
                   >D13</a
                 >): first a bridge over easy-state (P4), then cells replace it (P11), so the Solid UI didn't wait on the
@@ -983,14 +987,14 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>The Solid bridge is the host's; one cells context per page</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d25"
+                  href="epics/solid-migration/solid-migration.plan.html#d25"
                   target="solid-migration"
                   >D25</a
                 >): <code>util</code> / <code>core</code> stay Solid-free, every runtime copy reaches the one bridge.
               </li>
               <li>
                 <b>React bridge = <code>view()</code> on cells</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d26"
+                  href="epics/solid-migration/solid-migration.plan.html#d26"
                   target="solid-migration"
                   >D26</a
                 >): easy-state's API, so <code>Thing.Component</code>, <code>List</code> and the forms only changed
@@ -998,7 +1002,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>Compiled props declare type / default in the class schema</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d27"
+                  href="epics/solid-migration/solid-migration.plan.html#d27"
                   target="solid-migration"
                   >D27</a
                 >): <code>declareProp()</code> lands where <code>@prop</code> does; the old 3-argument
@@ -1006,14 +1010,14 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b><code>tracked()</code> kept, as a memo; <code>deferred</code> gone</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d28"
+                  href="epics/solid-migration/solid-migration.plan.html#d28"
                   target="solid-migration"
                   >D28</a
                 >, superseding D20's <code>trackedProgram()</code>): with the bridge every read is on Solid's schedule.
               </li>
               <li>
                 <b>Editor store = <code>EditorStore</code></b> (<a
-                  href="epics/solid-migration/solid-migration.html#d29"
+                  href="epics/solid-migration/solid-migration.plan.html#d29"
                   target="solid-migration"
                   >D29</a
                 >): an <code>Observable</code> with <code>@prop</code> accessors; call sites unchanged.
@@ -1025,10 +1029,10 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
                     ><code>spellDecorators.ts</code></a
                   >; <code>runsCreate()</code> guard</b
                 >
-                (<a href="epics/solid-migration/solid-migration.html#d7" target="solid-migration">D7</a>,
-                <a href="epics/solid-migration/solid-migration.html#d8" target="solid-migration">D8</a>): spell-only, so
-                not beside <code>@proto</code> (which <code>ui</code> re-exports); <code>create()</code> exactly once
-                for compiled, decorated and mixed chains, compiled output unchanged.
+                (<a href="epics/solid-migration/solid-migration.plan.html#d7" target="solid-migration">D7</a>,
+                <a href="epics/solid-migration/solid-migration.plan.html#d8" target="solid-migration">D8</a>):
+                spell-only, so not beside <code>@proto</code> (which <code>ui</code> re-exports);
+                <code>create()</code> exactly once for compiled, decorated and mixed chains, compiled output unchanged.
               </li>
             </ul>
           </ui-section>
@@ -1036,36 +1040,36 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
             <ul>
               <li>
                 <b>Compiled spell stays React</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d9"
+                  href="epics/solid-migration/solid-migration.plan.html#d9"
                   target="solid-migration"
                   >D9</a
-                >, <a href="epics/solid-migration/solid-migration.html#d30" target="solid-migration">D30</a>):
+                >, <a href="epics/solid-migration/solid-migration.plan.html#d30" target="solid-migration">D30</a>):
                 <code>core</code> rendering, JSX emit and the projects' <code>SUI.*</code> move are their own thread;
                 the app's own UI is React-free, the CLI's Ink UI kept.
               </li>
               <li>
                 <b>Design from 2026-09-30 stands</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d3"
+                  href="epics/solid-migration/solid-migration.plan.html#d3"
                   target="solid-migration"
                   >D3</a
                 >): <code>ui</code> from source, clean break in spell JSX, incremental phases.
               </li>
               <li>
-                <b>Bottom-up</b> (<a href="epics/solid-migration/solid-migration.html#d14" target="solid-migration"
+                <b>Bottom-up</b> (<a href="epics/solid-migration/solid-migration.plan.html#d14" target="solid-migration"
                   >D14</a
                 >): panes (P6), web components (P7), then the shell (P8), through a throw-away Solid-in-React island
                 adapter, gone at P8.
               </li>
               <li>
                 <b>Solid rc.13 first</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d1"
+                  href="epics/solid-migration/solid-migration.plan.html#d1"
                   target="solid-migration"
                   >D1</a
                 >): the app never moved Solid twice; <code>ui</code>'s suites caught RC changes first.
               </li>
               <li>
                 <b>Merge at the end</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d2"
+                  href="epics/solid-migration/solid-migration.plan.html#d2"
                   target="solid-migration"
                   >D2</a
                 >): <code>main</code> stays React-only until the migration lands.
@@ -1076,7 +1080,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
             <ul>
               <li>
                 <b>Solid by default, React files marked</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d11"
+                  href="epics/solid-migration/solid-migration.plan.html#d11"
                   target="solid-migration"
                   >D11</a
                 >): <code>app</code>'s <code>tsc</code> follows <code>$/ui</code> into <code>ui</code>'s 138 Solid
@@ -1085,7 +1089,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>One Solid per page across builds</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d21"
+                  href="epics/solid-migration/solid-migration.plan.html#d21"
                   target="solid-migration"
                   >D21</a
                 >): a third build makes <code>spell-solid.js</code> /
@@ -1094,7 +1098,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b><code>$/ui</code> workspace alias</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d5"
+                  href="epics/solid-migration/solid-migration.plan.html#d5"
                   target="solid-migration"
                   >D5</a
                 >): one workspace, one hoisted <code>node_modules</code>; no sibling
@@ -1102,14 +1106,14 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b><code>&lt;Errored&gt;</code>, not <code>createErrorBoundary</code></b> (<a
-                  href="epics/solid-migration/solid-migration.html#d10"
+                  href="epics/solid-migration/solid-migration.plan.html#d10"
                   target="solid-migration"
                   >D10</a
                 >): rc.13 moved it to <code>solid-js/internal</code>; never import from there.
               </li>
               <li>
                 <b>Lightning CSS <code>errorRecovery</code></b> (<a
-                  href="epics/solid-migration/solid-migration.html#d12"
+                  href="epics/solid-migration/solid-migration.plan.html#d12"
                   target="solid-migration"
                   >D12</a
                 >): Semantic UI's CSS has invalid selectors (<code>:before.ui</code>); browsers drop them too.
@@ -1120,7 +1124,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
             <ul>
               <li>
                 <b><code>$/ui</code> loaded once, Fomantic icon names</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d15"
+                  href="epics/solid-migration/solid-migration.plan.html#d15"
                   target="solid-migration"
                   >D15</a
                 >):
@@ -1130,42 +1134,42 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>Shared conventions</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d16"
+                  href="epics/solid-migration/solid-migration.plan.html#d16"
                   target="solid-migration"
                   >D16</a
                 >): menus, <code>MoreMenu</code>, <code>on()</code>, <code>ErrorBoundary</code>.
               </li>
               <li>
                 <b>Dialogs build their own <code>&lt;ui-modal&gt;</code></b> (<a
-                  href="epics/solid-migration/solid-migration.html#d18"
+                  href="epics/solid-migration/solid-migration.plan.html#d18"
                   target="solid-migration"
                   >D18</a
                 >): <code>editor.modals</code>, <code>ModalRoot</code> and friends gone.
               </li>
               <li>
                 <b>Solid Monaco editors reuse the React-free plumbing</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d19"
+                  href="epics/solid-migration/solid-migration.plan.html#d19"
                   target="solid-migration"
                   >D19</a
                 >): Monaco stays a lazy chunk (4.46 MB, reachable only through <code>import()</code>).
               </li>
               <li>
                 <b>Elements on <code>customElement()</code> + a base class</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d22"
+                  href="epics/solid-migration/solid-migration.plan.html#d22"
                   target="solid-migration"
                   >D22</a
                 >).
               </li>
               <li>
                 <b><code>@solidjs/router@next</code>, navigation handed over</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d23"
+                  href="epics/solid-migration/solid-migration.plan.html#d23"
                   target="solid-migration"
                   >D23</a
                 >).
               </li>
               <li>
                 <b>AST views draw <code>P.Markup</code>, not Solid JSX</b> (<a
-                  href="epics/solid-migration/solid-migration.html#d24"
+                  href="epics/solid-migration/solid-migration.plan.html#d24"
                   target="solid-migration"
                   >D24</a
                 >, superseding D17's React host): the parser must load in node tools; the pane's DOM is byte-identical
@@ -1179,13 +1183,13 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <p>
             Accepted for now; each is an open caveat or issue in the
-            <a href="epics/solid-migration/solid-migration.html#caveats" target="solid-migration">plan doc</a>.
+            <a href="epics/solid-migration/solid-migration.plan.html#caveats" target="solid-migration">plan doc</a>.
           </p>
           <ui-section id="limits-state" header="State and reactivity" sticky collapsible dividing>
             <ul>
               <li>
                 <b>A value changed IN PLACE notifies nobody</b> (<a
-                  href="epics/solid-migration/solid-migration.html#c17"
+                  href="epics/solid-migration/solid-migration.plan.html#c17"
                   target="solid-migration"
                   >C17</a
                 >). easy-state made nested objects reactive (<code>editor.file.someArray.push()</code> redrew); cells
@@ -1196,7 +1200,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>Effect compute errors don't reach <code>&lt;Errored&gt;</code></b> (<a
-                  href="epics/solid-migration/solid-migration.html#c10"
+                  href="epics/solid-migration/solid-migration.plan.html#c10"
                   target="solid-migration"
                   >C10</a
                 >): in rc.13 they go to the console, fallback never shown. Read a value that may throw in RENDER, or
@@ -1204,7 +1208,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>Solid dev warnings</b> (<a
-                  href="epics/solid-migration/solid-migration.html#c18"
+                  href="epics/solid-migration/solid-migration.plan.html#c18"
                   target="solid-migration"
                   >C18</a
                 >): the editor pages log <code>STRICT_READ_UNTRACKED</code>, <code>WIDE_SCOPE_DEPS</code> (a router memo
@@ -1218,18 +1222,18 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
             <ul>
               <li>
                 <b>Two renderers for spell output</b> (<a
-                  href="epics/solid-migration/solid-migration.html#c5"
+                  href="epics/solid-migration/solid-migration.plan.html#c5"
                   target="solid-migration"
                   >C5</a
                 >): React (programs) inside Solid UI on one page; CODE-DEBT.
               </li>
               <li>
                 <b>The <code>$/app/solid</code> barrel isn't runner-safe</b> (<a
-                  href="epics/solid-migration/solid-migration.html#c9"
+                  href="epics/solid-migration/solid-migration.plan.html#c9"
                   target="solid-migration"
                   >C9</a
-                >, <a href="epics/solid-migration/solid-migration.html#c15" target="solid-migration">C15</a>): it pulls
-                in <code>Actions</code>, hence <code>$/app/editor</code>. <code>RunnerConsole</code> imports
+                >, <a href="epics/solid-migration/solid-migration.plan.html#c15" target="solid-migration">C15</a>): it
+                pulls in <code>Actions</code>, hence <code>$/app/editor</code>. <code>RunnerConsole</code> imports
                 <a href="../app/src/solid/ConsoleLines.tsx" target="src-packages-app-src-solid-consolelines-tsx"
                   ><code>ConsoleLines.tsx</code></a
                 >
@@ -1239,7 +1243,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>Two <code>vite</code> copies</b> (<a
-                  href="epics/solid-migration/solid-migration.html#c8"
+                  href="epics/solid-migration/solid-migration.plan.html#c8"
                   target="solid-migration"
                   >C8</a
                 >):
@@ -1253,7 +1257,9 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
                 >). Harmless at runtime so far.
               </li>
               <li>
-                <b>Solid RC churn</b> (<a href="epics/solid-migration/solid-migration.html#c2" target="solid-migration"
+                <b>Solid RC churn</b> (<a
+                  href="epics/solid-migration/solid-migration.plan.html#c2"
+                  target="solid-migration"
                   >C2</a
                 >): re-run <code>solid/experiments/*</code> on every bump (<code>SOLID_NODE_MODULES=&lt;dir&gt;</code>
                 picks the version), diff, update
@@ -1262,7 +1268,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>Visual tests local only</b> (<a
-                  href="epics/solid-migration/solid-migration.html#c6"
+                  href="epics/solid-migration/solid-migration.plan.html#c6"
                   target="solid-migration"
                   >C6</a
                 >): <code>yarn test:visual --os local</code>, 582 passed on rc.13; the Linux (Docker) run wasn't done.
@@ -1273,10 +1279,10 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
             <ul>
               <li>
                 <b><code>ui</code> bugs</b> (<a
-                  href="epics/solid-migration/solid-migration.html#c1"
+                  href="epics/solid-migration/solid-migration.plan.html#c1"
                   target="solid-migration"
                   >C1</a
-                >, <a href="epics/solid-migration/solid-migration.html#i1" target="solid-migration">I1</a>):
+                >, <a href="epics/solid-migration/solid-migration.plan.html#i1" target="solid-migration">I1</a>):
                 <code>&lt;ui-item icon&gt;</code> in a <code>&lt;ui-menu&gt;</code> draws a 0 x 0 svg (HACK:
                 <code>&lt;Action&gt;</code> / <code>&lt;MoreMenu stub&gt;</code> slot a <code>&lt;ui-icon&gt;</code>,
                 <a href="../app/src/solid/Actions.tsx" target="src-packages-app-src-solid-actions-tsx"
@@ -1291,7 +1297,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b><code>UI.modals.prompt()</code> takes no input type</b> (<a
-                  href="epics/solid-migration/solid-migration.html#i2"
+                  href="epics/solid-migration/solid-migration.plan.html#i2"
                   target="solid-migration"
                   >I2</a
                 >): HACK <code>fitInput()</code> in
@@ -1304,7 +1310,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b>Dialogs changed from the React modals</b> (<a
-                  href="epics/solid-migration/solid-migration.html#c12"
+                  href="epics/solid-migration/solid-migration.plan.html#c12"
                   target="solid-migration"
                   >C12</a
                 >):
@@ -1330,7 +1336,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 <b><code>MatchView</code> has no collapsing</b> (<a
-                  href="epics/solid-migration/solid-migration.html#c11"
+                  href="epics/solid-migration/solid-migration.plan.html#c11"
                   target="solid-migration"
                   >C11</a
                 >): neither had React's; only the rule-names toggle.
@@ -1343,12 +1349,14 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
           <ui-icon slot="icon" name="list check"></ui-icon>
           <p>
             Open todos in the
-            <a href="epics/solid-migration/solid-migration.html#todos" target="solid-migration">plan doc</a>, biggest
-            first.
+            <a href="epics/solid-migration/solid-migration.plan.html#todos" target="solid-migration">plan doc</a>,
+            biggest first.
           </p>
           <ul>
             <li>
-              <b>Core + JSX Emit</b> (<a href="epics/solid-migration/solid-migration.html#t2" target="solid-migration"
+              <b>Core + JSX Emit</b> (<a
+                href="epics/solid-migration/solid-migration.plan.html#t2"
+                target="solid-migration"
                 >T2</a
               >, was P5): compiled spell on Solid.
               <ul>
@@ -1394,14 +1402,14 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
             </li>
             <li>
               <b>Parser <code>derive()</code> emit</b> (<a
-                href="epics/solid-migration/solid-migration.html#t6"
+                href="epics/solid-migration/solid-migration.plan.html#t6"
                 target="solid-migration"
                 >T6</a
               >): memoize pure, worth-it derived properties; today every compiled one is a plain getter.
             </li>
             <li>
               <b>Import-map <code>&lt;spell-app&gt;</code></b> (<a
-                href="epics/solid-migration/solid-migration.html#t5"
+                href="epics/solid-migration/solid-migration.plan.html#t5"
                 target="solid-migration"
                 >T5</a
               >): for host pages already running Solid /
@@ -1410,14 +1418,14 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
             </li>
             <li>
               <b>Move <code>view()</code> out of <code>$/util</code></b> (<a
-                href="epics/solid-migration/solid-migration.html#t4"
+                href="epics/solid-migration/solid-migration.plan.html#t4"
                 target="solid-migration"
                 >T4</a
               >): only <code>core</code> and the forms use it; then <code>util</code> has no React.
             </li>
             <li>
               <b>Compiled output's plain-function form</b> (<a
-                href="epics/solid-migration/solid-migration.html#t1"
+                href="epics/solid-migration/solid-migration.plan.html#t1"
                 target="solid-migration"
                 >T1</a
               >): <code>static { defineProps(...) }</code> instead of hand-written accessor pairs.
@@ -1526,7 +1534,7 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
             <ui-item>
               <ui-content>
                 <ui-header
-                  ><a href="epics/solid-migration/solid-migration.html" target="solid-migration"
+                  ><a href="epics/solid-migration/solid-migration.plan.html" target="solid-migration"
                     >Solid Migration plan doc</a
                   ></ui-header
                 >

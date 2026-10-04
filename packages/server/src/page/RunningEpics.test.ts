@@ -12,7 +12,7 @@ function planDoc(title: string, phases: [string, string][] = []): string {
     ([status, header], i) =>
       `<ui-section\n  id="p${i + 1}"\n  data-phase="${i + 1}"\n  data-status="${status}"\n  header="${header}"\n  sticky\n></ui-section>`
   )
-  return `<!doctype html><html><head><title>${title}</title></head><body>${sections.join("\n")}</body></html>\n`
+  return `<!doctype html><html><head><title>${title}</title></head><body class="spell-doc-page plan-doc">${sections.join("\n")}</body></html>\n`
 }
 
 /** Write `html` at `path` under `root`, making folders. */
@@ -35,14 +35,17 @@ describe("RunningEpics", () => {
     // the worktree's own epic, mid-way;  and one planning, in another worktree
     put(
       root,
-      ".claude/worktrees/seo/packages/docs/epics/seo/seo.html",
+      ".claude/worktrees/seo/packages/docs/epics/seo/seo.plan.html",
       planDoc("SEO &amp; co", [
         ["done", "P1 · Meta Tags"],
         ["active", "P2 · Site Map"],
         ["todo", "P3 · Doc Review"]
       ])
     )
+    // a worktree cut before the rename to `<name>.plan.html`:  its plan doc under the old name still counts;  a page
+    // of that name that isn't a plan doc doesn't
     put(root, ".claude/worktrees/vite/packages/docs/epics/vite/vite.html", planDoc("Vite"))
+    put(root, ".claude/worktrees/vite/packages/docs/epics/notes/notes.html", "<html><body>notes</body></html>\n")
     server = await new PageServer({ root }).start({ port: 0, routes: false })
     port = server.info.port
   })
@@ -57,7 +60,7 @@ describe("RunningEpics", () => {
       {
         name: "seo",
         worktree: "seo",
-        url: "/worktrees/seo/packages/docs/epics/seo/seo.html",
+        url: "/worktrees/seo/packages/docs/epics/seo/seo.plan.html",
         title: "SEO & co",
         done: 1,
         total: 3,
@@ -76,7 +79,7 @@ describe("RunningEpics", () => {
   })
 
   it("serves them under `/worktrees/`, and the list as JSON", async () => {
-    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/epics/seo/seo.html")
+    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/epics/seo/seo.plan.html")
     expect(doc.status).toBe(200)
     expect(doc.text).toContain("SEO &amp; co")
     const list = JSON.parse((await ask(port, "GET", "/_server/epics")).text) as RunningEpic[]
@@ -84,7 +87,7 @@ describe("RunningEpics", () => {
   })
 
   it("gives a worktree's page that worktree's badge", async () => {
-    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/epics/seo/seo.html")
+    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/epics/seo/seo.plan.html")
     const config = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(doc.text)![1]!) as { worktree?: string }
     expect(config.worktree).toBe("seo")
   })
@@ -97,7 +100,7 @@ describe("RunningEpics", () => {
   it("puts the running epics' cards at the marker in the Epics list, each title after its state", async () => {
     const index = (await ask(port, "GET", "/packages/docs/index.html")).text
     expect(index).not.toContain(MARKER)
-    expect(index).toContain(`href="/worktrees/seo/packages/docs/epics/seo/seo.html"`)
+    expect(index).toContain(`href="/worktrees/seo/packages/docs/epics/seo/seo.plan.html"`)
     // in progress:  [done/all], the active phase in the meta line
     expect(index).toContain(`<ui-label class="spell-epic-state" size="mini" basic>1/3</ui-label> <a`)
     expect(index).toContain("<ui-meta>P2 · Site Map · .claude/worktrees/seo</ui-meta>")
@@ -120,7 +123,7 @@ describe("RunningEpics", () => {
         planDoc("Slow", [
           ["done", "P1 · One"],
           ["todo", "P2 · Two"]
-        ]).replace("<body>", '<body>updated <time id="plan-updated">2026-01-01</time>')
+        ]).replace('plan-doc">', 'plan-doc">updated <time id="plan-updated">2026-01-01</time>')
       )
       expect(new RunningEpics(stale).list()[0]?.updated).toBe("2026-01-01")
       expect(new RunningEpics(stale).render(MARKER)).toContain(

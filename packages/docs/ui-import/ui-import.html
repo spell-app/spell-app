@@ -25,6 +25,10 @@
           and how their heavy engines stay off pages that don't need them.
         </p>
         <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="../epics/ui-import/ui-import.plan.html" target="ui-import">epic ui-import</a></ui-item
+          >
           <ui-item icon="user"
             >Written for: people using the elements in pages, and whoever builds the editor on them</ui-item
           >
@@ -35,10 +39,6 @@
           <ui-item icon="flask"
             >Checked: unit and visual tests (chromium, firefox, webkit), and a save round-trip through the page server
             (see <a href="#7-sources">Sources</a>)</ui-item
-          >
-          <ui-item icon="map"
-            >Plan and full record:
-            <a href="../epics/ui-import/ui-import.html" target="ui-import">the ui-import plan doc</a></ui-item
           >
         </ui-list>
 
@@ -216,7 +216,7 @@
               <li>
                 Same origin only: <code>new URL(source, document.baseURI).origin !== location.origin</code> -&gt; error,
                 no fetch. <code>file://</code> pages get their own message (<a
-                  href="../epics/ui-import/ui-import.html#c3"
+                  href="../epics/ui-import/ui-import.plan.html#c3"
                   target="ui-import"
                   >C3</a
                 >).
@@ -272,24 +272,25 @@
                 <a href="../_assets/spell-ui-sources.js" target="src-packages-docs-assets-spell-ui-sources-js"
                   ><code>packages/docs/_assets/spell-ui-sources.js</code></a
                 >; a saver that can't import <code>SourceError</code> throws <code>{ kind, message, status }</code> (<a
-                  href="../epics/ui-import/ui-import.html#d28"
+                  href="../epics/ui-import/ui-import.plan.html#d28"
                   target="ui-import"
                   >D28</a
                 >).
               </li>
               <li>
-                Server (<a href="../epics/ui-import/ui-import.html#d3" target="ui-import">D3</a>):
+                Server (<a href="../epics/ui-import/ui-import.plan.html#d3" target="ui-import">D3</a>):
                 <code>PageEditor</code>'s <code>PUT /_server/page</code> widened from <code>.html</code> to text files
                 (<code>.md</code>, <code>.ts</code>, <code>.tsx</code>, <code>.js</code>, <code>.css</code>,
                 <code>.spell</code>, <code>.txt</code>, <code>.yaml</code>, <code>.svg</code>; NOT <code>.json</code>,
-                <a href="../epics/ui-import/ui-import.html#d25" target="ui-import">D25</a>): same token, same-origin,
-                ETag and <code>FileLock</code> rules. <code>PATCH</code> (one element by <code>id</code>) stays
-                pages-only.
+                <a href="../epics/ui-import/ui-import.plan.html#d25" target="ui-import">D25</a>): same token,
+                same-origin, ETag and <code>FileLock</code> rules. <code>PATCH</code> (one element by <code>id</code>)
+                stays pages-only.
               </li>
               <li>
                 A script's <code>fetch()</code> (<code>Sec-Fetch-Dest: empty</code>) gets files AS IS, without the
-                injected live-reload tags (<a href="../epics/ui-import/ui-import.html#d24" target="ui-import">D24</a>):
-                what an include shows and saves is the file.
+                injected live-reload tags (<a href="../epics/ui-import/ui-import.plan.html#d24" target="ui-import"
+                  >D24</a
+                >): what an include shows and saves is the file.
               </li>
             </ul>
             <h4 id="shared-api">Shared API (all three elements)</h4>
@@ -420,7 +421,7 @@
               <li><code>&lt;ui-include source="/docs/part.html" select="main" load="visible"&gt;</code></li>
               <li>
                 Content goes in its shadow root by default (<a
-                  href="../epics/ui-import/ui-import.html#d14"
+                  href="../epics/ui-import/ui-import.plan.html#d14"
                   target="ui-import"
                   >D14</a
                 >): page CSS stays out, ui tokens (inherited custom properties) still apply.
@@ -438,8 +439,8 @@
               </li>
               <li>Relative <code>href</code> / <code>src</code> rewritten against <code>source</code>'s URL.</li>
               <li>
-                Scripts don't run (<a href="../epics/ui-import/ui-import.html#d7" target="ui-import">D7</a>). Nested
-                includes load themselves; a cycle shows an error.
+                Scripts don't run (<a href="../epics/ui-import/ui-import.plan.html#d7" target="ui-import">D7</a>).
+                Nested includes load themselves; a cycle shows an error.
               </li>
               <li>
                 <code>save()</code> with <code>select</code>: saves that fragment by its <code>id</code> (<code
@@ -514,14 +515,14 @@
               </li>
               <li>
                 highlight.js 11.12 in ONE lazy chunk, <code>CodeEngine</code> (54 kB gzipped,
-                <a href="../epics/ui-import/ui-import.html#c15" target="ui-import">C15</a>): a detect set of 9 languages
-                (ts, js, html, css, json, bash, markdown, python, yaml) to guess from, 21 more registered by name on
-                first use. One chunk: a chunk per language would split Rolldown's runtime off (<a
-                  href="../epics/ui-import/ui-import.html#d27"
+                <a href="../epics/ui-import/ui-import.plan.html#c15" target="ui-import">C15</a>): a detect set of 9
+                languages (ts, js, html, css, json, bash, markdown, python, yaml) to guess from, 21 more registered by
+                name on first use. One chunk: a chunk per language would split Rolldown's runtime off (<a
+                  href="../epics/ui-import/ui-import.plan.html#d27"
                   target="ui-import"
                   >D27</a
                 >). <code>CodeHighlighter.engineLoader</code> can load it some other way (the docs' classic script,
-                <a href="../epics/ui-import/ui-import.html#d26" target="ui-import">D26</a>).
+                <a href="../epics/ui-import/ui-import.plan.html#d26" target="ui-import">D26</a>).
               </li>
               <li>
                 Colours: <code>.hljs-*</code> classes -&gt; <code>--ui-code-*</code> tokens, light / dark; the docs'
@@ -529,7 +530,7 @@
               </li>
               <li><code>UI.code.register(name, hljsGrammar | (code) =&gt; spans)</code> adds a language.</li>
               <li>
-                <b>spell</b> (<a href="../epics/ui-import/ui-import.html#d4" target="ui-import">D4</a>), the one
+                <b>spell</b> (<a href="../epics/ui-import/ui-import.plan.html#d4" target="ui-import">D4</a>), the one
                 <code>ui</code> -&gt; spell dependency, on a PRE-COMPILED bundle only:
                 <ul>
                   <li>
@@ -537,7 +538,7 @@
                       ><code>packages/spell/src/highlight/</code></a
                     >: <code>SP.SpellHighlighter.spans(text)</code>: token colours, then a best-effort parse refining
                     them by each rule's <code>highlightAs</code> (<a
-                      href="../epics/ui-import/ui-import.html#d19"
+                      href="../epics/ui-import/ui-import.plan.html#d19"
                       target="ui-import"
                       >D19</a
                     >)
@@ -547,8 +548,8 @@
                     react-dom stubbed) into COMMITTED files,
                     <code>packages/ui/src/languages/spell.&lt;lang&gt;.bundle.js</code> and the wrapper
                     <code>SpellLanguage</code> loads, <code>spell.&lt;lang&gt;.ts</code> (138 kB gzipped,
-                    <a href="../epics/ui-import/ui-import.html#c11" target="ui-import">C11</a>) (<a
-                      href="../epics/ui-import/ui-import.html#d15"
+                    <a href="../epics/ui-import/ui-import.plan.html#c11" target="ui-import">C11</a>) (<a
+                      href="../epics/ui-import/ui-import.plan.html#d15"
                       target="ui-import"
                       >D15</a
                     >, like icon packs): <code>ui</code> builds without building spell; loaded lazily when first asked
@@ -557,19 +558,20 @@
                   <li>
                     <code>language="spell"</code> ~== <code>spell/en</code>; <code>spell/es</code> loads Spanish. No
                     translation yet: the code stays plain, with a <code>ui-error</code> naming it (<a
-                      href="../epics/ui-import/ui-import.html#c7"
+                      href="../epics/ui-import/ui-import.plan.html#c7"
                       target="ui-import"
                       >C7</a
-                    >, <a href="../epics/ui-import/ui-import.html#d17" target="ui-import">D17</a>)
+                    >, <a href="../epics/ui-import/ui-import.plan.html#d17" target="ui-import">D17</a>)
                   </li>
                   <li>
-                    not in the detect set (<a href="../epics/ui-import/ui-import.html#c5" target="ui-import">C5</a>)
+                    not in the detect set (<a href="../epics/ui-import/ui-import.plan.html#c5" target="ui-import">C5</a
+                    >)
                   </li>
                 </ul>
               </li>
               <li>
                 Not an editor: editing is a later epic (<a
-                  href="../epics/ui-import/ui-import.html#d12"
+                  href="../epics/ui-import/ui-import.plan.html#d12"
                   target="ui-import"
                   >D12</a
                 >); <code>content</code> + save are its seam.
@@ -673,19 +675,19 @@
               </li>
               <li>
                 marked 18 (~14 kB), GFM on: tables, task lists, strikethrough, autolinks; footnotes later (<a
-                  href="../epics/ui-import/ui-import.html#t1"
+                  href="../epics/ui-import/ui-import.plan.html#t1"
                   target="ui-import"
                   >T1</a
                 >).
               </li>
               <li>
                 Sanitized every render by DOMPurify 3.4, in every browser (<a
-                  href="../epics/ui-import/ui-import.html#d20"
+                  href="../epics/ui-import/ui-import.plan.html#d20"
                   target="ui-import"
                   >D20</a
                 >: <code>setHTML()</code>'s defaults drop task checkboxes, images, heading ids and code classes), with
                 <code>SANITIZE_DOM</code> off so ids survive (<a
-                  href="../epics/ui-import/ui-import.html#d21"
+                  href="../epics/ui-import/ui-import.plan.html#d21"
                   target="ui-import"
                   >D21</a
                 >). <code>trusted</code> skips it. marked + DOMPurify are one lazy chunk,
@@ -693,7 +695,7 @@
               </li>
               <li>
                 Fences -&gt; <code>&lt;ui-code language="x"&gt;</code> (<a
-                  href="../epics/ui-import/ui-import.html#d9"
+                  href="../epics/ui-import/ui-import.plan.html#d9"
                   target="ui-import"
                   >D9</a
                 >); no info string: auto-detect.
@@ -703,13 +705,13 @@
                 relative links / images resolve against <code>source</code>. Task-list checkboxes are labelled by their
                 item's text (<a href='\"#d22\"' target="src-packages-docs-epics-ui-import-quot">D22</a>);
                 <code>#id</code> links scroll inside the shadow root. The <code>heading-offset</code> PROPERTY is
-                <code>headingLevelOffset</code> (<a href="../epics/ui-import/ui-import.html#d23" target="ui-import"
+                <code>headingLevelOffset</code> (<a href="../epics/ui-import/ui-import.plan.html#d23" target="ui-import"
                   >D23</a
                 >: WebKit has a native <code>headingOffset</code>).
               </li>
               <li>
                 Engine behind <code>MarkdownRenderer</code> (<code>render(text) -&gt; DocumentFragment</code>,
-                <a href="../epics/ui-import/ui-import.html#d10" target="ui-import">D10</a>).
+                <a href="../epics/ui-import/ui-import.plan.html#d10" target="ui-import">D10</a>).
               </li>
             </ul>
             <ui-table celled compact striped unstackable>
@@ -776,109 +778,110 @@
           <p>The decisions behind the design, each linked to its entry (and what was asked) in the plan doc.</p>
           <ul>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d1" target="ui-import">D1</a> All three: highlight.js, marked,
-              DOMPurify, each in its family's lazy chunk (<a href="#q1">Q1</a>)
+              <a href="../epics/ui-import/ui-import.plan.html#d1" target="ui-import">D1</a> All three: highlight.js,
+              marked, DOMPurify, each in its family's lazy chunk (<a href="#q1">Q1</a>)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d3" target="ui-import">D3</a> Hook + server save: widen the
-              page server's PUT to text files (.md, .ts, .spell ...) (<a href="#q3">Q3</a>)
+              <a href="../epics/ui-import/ui-import.plan.html#d3" target="ui-import">D3</a> Hook + server save: widen
+              the page server's PUT to text files (.md, .ts, .spell ...) (<a href="#q3">Q3</a>)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d4" target="ui-import">D4</a> Pre-compiled spell bundle is the
-              ONE ui -&gt; spell exception; language=spell is English, spell/es Spanish (<a href="#q4">Q4</a>)
+              <a href="../epics/ui-import/ui-import.plan.html#d4" target="ui-import">D4</a> Pre-compiled spell bundle is
+              the ONE ui -&gt; spell exception; language=spell is English, spell/es Spanish (<a href="#q4">Q4</a>)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d5" target="ui-import">D5</a> UI.sources runtime service +
+              <a href="../epics/ui-import/ui-import.plan.html#d5" target="ui-import">D5</a> UI.sources runtime service +
               shared SourceElement: one same-origin / cache / save path for all three elements
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d6" target="ui-import">D6</a> All three render into shadow DOM
+              <a href="../epics/ui-import/ui-import.plan.html#d6" target="ui-import">D6</a> All three render into shadow
+              DOM
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d7" target="ui-import">D7</a> Scripts in included HTML don't
-              run (innerHTML); a scripts attribute later
+              <a href="../epics/ui-import/ui-import.plan.html#d7" target="ui-import">D7</a> Scripts in included HTML
+              don't run (innerHTML); a scripts attribute later
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d8" target="ui-import">D8</a> load="eager" default; visible /
-              idle defer the fetch (the islands part)
+              <a href="../epics/ui-import/ui-import.plan.html#d8" target="ui-import">D8</a> load="eager" default;
+              visible / idle defer the fetch (the islands part)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d9" target="ui-import">D9</a> Fences in markdown render as
+              <a href="../epics/ui-import/ui-import.plan.html#d9" target="ui-import">D9</a> Fences in markdown render as
               &lt;ui-code&gt;: one highlighter, one palette
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d10" target="ui-import">D10</a> Engines behind adapters
+              <a href="../epics/ui-import/ui-import.plan.html#d10" target="ui-import">D10</a> Engines behind adapters
               (CodeHighlighter, MarkdownRenderer): swapping engines later stays local
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d11" target="ui-import">D11</a> Language with no highlighting
-              is named text (maps to hljs plaintext)
+              <a href="../epics/ui-import/ui-import.plan.html#d11" target="ui-import">D11</a> Language with no
+              highlighting is named text (maps to hljs plaintext)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d12" target="ui-import">D12</a> Editing (code, markdown) is a
-              later epic, by Owen's own strategy: not CodeMirror / Monaco / micromark
+              <a href="../epics/ui-import/ui-import.plan.html#d12" target="ui-import">D12</a> Editing (code, markdown)
+              is a later epic, by Owen's own strategy: not CodeMirror / Monaco / micromark
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d14" target="ui-import">D14</a> &lt;ui-include&gt;: shadow DOM
-              by default; page-styles renders into LIGHT DOM instead (page CSS and &lt;ui-root&gt; apply)
+              <a href="../epics/ui-import/ui-import.plan.html#d14" target="ui-import">D14</a> &lt;ui-include&gt;: shadow
+              DOM by default; page-styles renders into LIGHT DOM instead (page CSS and &lt;ui-root&gt; apply)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d15" target="ui-import">D15</a> Spell highlighter ships as a
-              COMMITTED generated file: yarn gen:spell writes packages/ui/src/languages/spell.&lt;lang&gt;.js
+              <a href="../epics/ui-import/ui-import.plan.html#d15" target="ui-import">D15</a> Spell highlighter ships as
+              a COMMITTED generated file: yarn gen:spell writes packages/ui/src/languages/spell.&lt;lang&gt;.js
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d17" target="ui-import">D17</a> Unknown language, or a spell
-              translation with no bundle: the code stays PLAIN, with a render ui-error and no message box
+              <a href="../epics/ui-import/ui-import.plan.html#d17" target="ui-import">D17</a> Unknown language, or a
+              spell translation with no bundle: the code stays PLAIN, with a render ui-error and no message box
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d18" target="ui-import">D18</a> spell bundles load through a
-              literal import.meta.glob (one lazy chunk per spell.&lt;lang&gt;.js), not by URL: UI.code.languageBase
+              <a href="../epics/ui-import/ui-import.plan.html#d18" target="ui-import">D18</a> spell bundles load through
+              a literal import.meta.glob (one lazy chunk per spell.&lt;lang&gt;.js), not by URL: UI.code.languageBase
               dropped
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d19" target="ui-import">D19</a> Spell highlighting = token
+              <a href="../epics/ui-import/ui-import.plan.html#d19" target="ui-import">D19</a> Spell highlighting = token
               colours, then a best-effort parse as a block refining them by each rule's highlightAs
               (SP.SpellHighlighter)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d20" target="ui-import">D20</a> Markdown is sanitized by
+              <a href="../epics/ui-import/ui-import.plan.html#d20" target="ui-import">D20</a> Markdown is sanitized by
               DOMPurify in EVERY browser, not Element.setHTML() where it exists (Q1 said DOMPurify only where setHTML is
               missing)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d21" target="ui-import">D21</a> DOMPurify runs with
+              <a href="../epics/ui-import/ui-import.plan.html#d21" target="ui-import">D21</a> DOMPurify runs with
               SANITIZE_DOM off: heading ids like elements / forms survive (DOM clobbering can't reach a shadow root)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d22" target="ui-import">D22</a> Task-list checkboxes are
+              <a href="../epics/ui-import/ui-import.plan.html#d22" target="ui-import">D22</a> Task-list checkboxes are
               labelled with their item's text (marked leaves them unlabelled: axe critical)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d23" target="ui-import">D23</a> &lt;ui-markdown&gt;'s
+              <a href="../epics/ui-import/ui-import.plan.html#d23" target="ui-import">D23</a> &lt;ui-markdown&gt;'s
               heading-offset property is headingLevelOffset: WebKit's native HTMLElement.headingOffset (HTML's new
               headingoffset) can't be shadowed
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d24" target="ui-import">D24</a> The page server serves a
+              <a href="../epics/ui-import/ui-import.plan.html#d24" target="ui-import">D24</a> The page server serves a
               script's fetch() (Sec-Fetch-Dest: empty) the file AS IS: no injected live-reload tags
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d25" target="ui-import">D25</a> PUT /_server/page writes text
-              files (.md, .ts, .js, .css, .spell, .txt, .yaml, .svg ...), NOT .json; PATCH stays pages-only
+              <a href="../epics/ui-import/ui-import.plan.html#d25" target="ui-import">D25</a> PUT /_server/page writes
+              text files (.md, .ts, .js, .css, .spell, .txt, .yaml, .svg ...), NOT .json; PATCH stays pages-only
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d26" target="ui-import">D26</a> Docs pages keep the engines
-              lazy: each is its own classic script, _assets/lazy/&lt;name&gt;.js, which UI's loader hooks
+              <a href="../epics/ui-import/ui-import.plan.html#d26" target="ui-import">D26</a> Docs pages keep the
+              engines lazy: each is its own classic script, _assets/lazy/&lt;name&gt;.js, which UI's loader hooks
               (CodeHighlighter.engineLoader, MarkdownRenderer.engineLoader, SpellLanguage.bundleLoader) load on first
               use
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d27" target="ui-import">D27</a> Each lazy engine chunk imports
-              SourceError from runtime.types and uses it, anchoring it to core: no rolldown-runtime chunk (yarn
+              <a href="../epics/ui-import/ui-import.plan.html#d27" target="ui-import">D27</a> Each lazy engine chunk
+              imports SourceError from runtime.types and uses it, anchoring it to core: no rolldown-runtime chunk (yarn
               measure's runtimeChunks)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#d28" target="ui-import">D28</a> Savers may throw { kind,
+              <a href="../epics/ui-import/ui-import.plan.html#d28" target="ui-import">D28</a> Savers may throw { kind,
               message, status } (a page's classic script can't import SourceError); UI.sources turns it into a
               SourceError
             </li>
@@ -889,82 +892,84 @@
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ul>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c1" target="ui-import">C1</a> Auto-detect only knows the detect
-              set (~10 languages); others need language=
+              <a href="../epics/ui-import/ui-import.plan.html#c1" target="ui-import">C1</a> Auto-detect only knows the
+              detect set (~10 languages); others need language=
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c2" target="ui-import">C2</a> marked keeps no source offsets:
-              rendered nodes can't be mapped back to source through it
+              <a href="../epics/ui-import/ui-import.plan.html#c2" target="ui-import">C2</a> marked keeps no source
+              offsets: rendered nodes can't be mapped back to source through it
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c3" target="ui-import">C3</a> file:// pages can't load source
-              (fetch blocked): the error message says so
+              <a href="../epics/ui-import/ui-import.plan.html#c3" target="ui-import">C3</a> file:// pages can't load
+              source (fetch blocked): the error message says so
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c6" target="ui-import">C6</a> Spell highlighting parses:
+              <a href="../epics/ui-import/ui-import.plan.html#c6" target="ui-import">C6</a> Spell highlighting parses:
               accurate, but ~ms per 100 lines; big files may want tokenize-only
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c7" target="ui-import">C7</a> spell/es errors until spell has a
-              Spanish translation (none today)
+              <a href="../epics/ui-import/ui-import.plan.html#c7" target="ui-import">C7</a> spell/es errors until spell
+              has a Spanish translation (none today)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c9" target="ui-import">C9</a> ui -&gt; spell bundle is a
+              <a href="../epics/ui-import/ui-import.plan.html#c9" target="ui-import">C9</a> ui -&gt; spell bundle is a
               documented exception to "ui never imports spell" (root AGENTS.md)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c10" target="ui-import">C10</a> Vite's dev server transforms
-              fetched .ts / .css / .html (a JS module, its client script): &lt;ui-code source&gt; shows that under yarn
-              dev / tests; the page server serves files raw
+              <a href="../epics/ui-import/ui-import.plan.html#c10" target="ui-import">C10</a> Vite's dev server
+              transforms fetched .ts / .css / .html (a JS module, its client script): &lt;ui-code source&gt; shows that
+              under yarn dev / tests; the page server serves files raw
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c11" target="ui-import">C11</a> spell.en.js is 469 kB minified,
-              138 kB gzipped (parser + rules + lodash, json5, semver, easy-state); react-dom is stubbed out of it.
-              Loaded only for language=spell
+              <a href="../epics/ui-import/ui-import.plan.html#c11" target="ui-import">C11</a> spell.en.js is 469 kB
+              minified, 138 kB gzipped (parser + rules + lodash, json5, semver, easy-state); react-dom is stubbed out of
+              it. Loaded only for language=spell
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c12" target="ui-import">C12</a> The spell bundle is committed:
-              regenerate (yarn gen:spell in packages/ui) after changing spell's grammar, or ui colours with the old one
+              <a href="../epics/ui-import/ui-import.plan.html#c12" target="ui-import">C12</a> The spell bundle is
+              committed: regenerate (yarn gen:spell in packages/ui) after changing spell's grammar, or ui colours with
+              the old one
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c13" target="ui-import">C13</a> Inline &lt;script
+              <a href="../epics/ui-import/ui-import.plan.html#c13" target="ui-import">C13</a> Inline &lt;script
               type=text/markdown&gt; (or text/plain) can't contain &lt;/script&gt;: it ends the script. Use source, or
               set content
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c14" target="ui-import">C14</a> Headings inside markdown join
-              the page outline: heading-offset fits them under the page's own (axe heading-order)
+              <a href="../epics/ui-import/ui-import.plan.html#c14" target="ui-import">C14</a> Headings inside markdown
+              join the page outline: heading-offset fits them under the page's own (axe heading-order)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#c15" target="ui-import">C15</a> &lt;ui-code&gt;'s engine chunk
-              is 54 kB gzipped (highlight.js + 30 languages), loaded with the first code shown; the docs' copy 49 kB
+              <a href="../epics/ui-import/ui-import.plan.html#c15" target="ui-import">C15</a> &lt;ui-code&gt;'s engine
+              chunk is 54 kB gzipped (highlight.js + 30 languages), loaded with the first code shown; the docs' copy 49
+              kB
             </li>
           </ul>
           <p>Later work:</p>
           <ul>
             <li>
-              <a href="../epics/ui-import/ui-import.html#t1" target="ui-import">T1</a> Footnotes in &lt;ui-markdown&gt;
-              (marked-footnote)
+              <a href="../epics/ui-import/ui-import.plan.html#t1" target="ui-import">T1</a> Footnotes in
+              &lt;ui-markdown&gt; (marked-footnote)
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#t2" target="ui-import">T2</a> scripts attribute on
+              <a href="../epics/ui-import/ui-import.plan.html#t2" target="ui-import">T2</a> scripts attribute on
               &lt;ui-include&gt;
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#t3" target="ui-import">T3</a> Editing for &lt;ui-code&gt; /
-              &lt;ui-markdown&gt;: Owen's own strategy, a later epic
+              <a href="../epics/ui-import/ui-import.plan.html#t3" target="ui-import">T3</a> Editing for &lt;ui-code&gt;
+              / &lt;ui-markdown&gt;: Owen's own strategy, a later epic
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#t4" target="ui-import">T4</a> Build
+              <a href="../epics/ui-import/ui-import.plan.html#t4" target="ui-import">T4</a> Build
               spell-highlight.&lt;lang&gt;.js per translation once spell has them
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#t5" target="ui-import">T5</a> Markdown parser on $/parser
+              <a href="../epics/ui-import/ui-import.plan.html#t5" target="ui-import">T5</a> Markdown parser on $/parser
               (1.7), if spell tooling needs markdown
             </li>
             <li>
-              <a href="../epics/ui-import/ui-import.html#t6" target="ui-import">T6</a> Docs pages: render spell-code
-              blocks with &lt;ui-code&gt;, drop the CDN highlight.js
+              <a href="../epics/ui-import/ui-import.plan.html#t6" target="ui-import">T6</a> Docs pages: render
+              spell-code blocks with &lt;ui-code&gt;, drop the CDN highlight.js
             </li>
           </ul>
         </ui-section>
@@ -1022,7 +1027,7 @@
             <li>
               Verdict: worth it if markdown must live inside spell's tooling (LSP, completion, one AST, spell-aware
               editing); for rendering alone, marked is ~70x faster. A todo (<a
-                href="../epics/ui-import/ui-import.html#t5"
+                href="../epics/ui-import/ui-import.plan.html#t5"
                 target="ui-import"
                 >T5</a
               >), not a phase.

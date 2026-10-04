@@ -60,7 +60,7 @@ Every command takes one or more targets:
 |---|---|
 | `spell help [command]` | Lists the commands, or shows one's options:  `spell help compile` ~== `spell compile --help`. |
 | `spell serve [target]` | Runs everything -- the spell app's editor (vite, hot reload) and this checkout's page server (`yarn server`:  the app's `/api`, which saves files to disk, plus docs, epics, goals and Spell UI) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (the editor's;  default 3000), `--headless`. |
-| `spell plan-doc <command> <name> ...` | Edits a plan doc (`packages/docs/epics/<name>/<name>.html`) as the `/epic` skill does:  `yarn plan-doc` from anywhere, in the nearest checkout (a worktree's, when run in one).  `spell plan-doc` alone lists its commands, e.g. `summary <name>`, `phase <name> 2 done`. |
+| `spell plan-doc <command> <name> ...` | Edits a plan doc (`packages/docs/epics/<name>/<name>.plan.html`) as the `/epic` skill does:  `yarn plan-doc` from anywhere, in the nearest checkout (a worktree's, when run in one).  `spell plan-doc` alone lists its commands, e.g. `summary <name>`, `phase <name> 2 done`. |
 | `spell dev commands [list\|check]` | Every yarn script, `spell` command and skill, against the commands page (`packages/docs/dev/commands/commands.json`):  `list` marks each ✓ / ✗, `check` prints only the gaps and exits 1 on any.  `--json`.  The first of the repo-tool commands, `spell dev <noun> <verb>`:  the plan for the rest is that page's Roadmap.  Root `yarn commands:check`. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword:  name, pack, other names.  `--pack <id>`, `--json`.  `--open` shows them as pictures in your browser (click one to copy its name), until `Ctrl-C`. |
 | `spell static <pages...>` | `@spell-app/ui` pages as plain HTML for crawlers and no-JS readers:  each `ui-*` element rendered to light DOM (no shadow DOM), the scripts that load the elements removed.  Writes `page.static.html` beside `page.html`, and ONE minified stylesheet per output folder, `ui.static.css`, which every page there links (the browser caches it).  `-o <file>` (one page) or `-o <folder>` (several), `--css <file>` (one stylesheet elsewhere), `--inline-css` (each page's own `<style>` instead), `--no-minify`.  A folder:  every `.html` in it. |
@@ -139,7 +139,7 @@ Every command takes one or more targets:
 
 ### `static`
 
-- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `packages/docs/epics/seo/seo.html`)
+- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `packages/docs/epics/seo/seo.plan.html`)
   in a child process, `src/runner/renderStatic.ts`, on an SSR-only Vite server (`ui/tools/StaticRenderer.ts`):  `ui`'s
   Solid JSX must compile for the server, which `tsx` can't.  Each run starts Vite and compiles every family, so a page
   takes about 3 seconds;  several pages share one run.

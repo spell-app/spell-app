@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>UI Import</title>
+    <title>Epic: UI Import</title>
     <meta name="description" content="Plan doc:  UI Import." />
     <link rel="stylesheet" href="../../_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
-  <body class="spell-doc-page plan-doc" data-plan="ui-import">
+  <body data-recent-since="2026-10-04T12:34:30-04:00" class="spell-doc-page plan-doc" data-plan="ui-import">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -23,7 +23,7 @@
         </ui-breadcrumb>
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
-            <h1>UI Import</h1>
+            <h1>Epic: UI Import</h1>
             <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
@@ -37,7 +37,13 @@
           >
           <ui-item icon="calendar"
             >Started <time id="plan-started">2026-10-02</time>, updated
-            <time id="plan-updated">2026-10-02</time></ui-item
+            <time id="plan-updated">2026-10-04</time></ui-item
+          >
+          <ui-item icon="book"
+            ><b>Durable doc:</b>
+            <a href="../../ui-import/ui-import.html" target="src-packages-docs-ui-import-ui-import-html"
+              >UI Import: include, code, markdown</a
+            ></ui-item
           >
         </ui-list>
 
@@ -50,21 +56,26 @@
             lazily, only when used. The page server learns to save non-HTML files, so docs pages can edit what these
             elements show.
           </p>
-          <blockquote class="plan-prompt">
-            <p>
-              Time to create some new components!<br />- `&lt;ui-include&gt;` - import a `source` URL into the current
-              page. Assume page is from the current server, show an error message if not. Functions kinda like Astro
-              Islands. Build in "save" hook so we can use this in an editor soon.<br />- `&lt;ui-code&gt;` - from inline
-              contents or `source` url, render code block in specified `language` (auto-detect if not specified). We'll
-              also want a "spell" language formatter. Build in "save" hook for this as well. I'm thinking that
-              "highlight.js" is a good choice for functionality -- have a quick look if there is something better.<br />-
-              `&lt;ui-markdown&gt;` - from inline contents or `source` url, render as markdown. I'm thinking we'll use
-              the "marked.js" package for parsing (for now) -- quickly evaluate if there is something better. We will
-              eventually add inline editing to this. Use github markdown<br />- Do a quick analysis of what it would
-              take to create a markdown parser using the spell/parser. This would live as a peer to the `spell`
-              language.
-            </p>
-          </blockquote>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled
+            ><ui-title>Kickoff prompt</ui-title
+            ><ui-content
+              ><blockquote class="plan-prompt">
+                <p>
+                  Time to create some new components!<br />- `&lt;ui-include&gt;` - import a `source` URL into the
+                  current page. Assume page is from the current server, show an error message if not. Functions kinda
+                  like Astro Islands. Build in "save" hook so we can use this in an editor soon.<br />-
+                  `&lt;ui-code&gt;` - from inline contents or `source` url, render code block in specified `language`
+                  (auto-detect if not specified). We'll also want a "spell" language formatter. Build in "save" hook for
+                  this as well. I'm thinking that "highlight.js" is a good choice for functionality -- have a quick look
+                  if there is something better.<br />- `&lt;ui-markdown&gt;` - from inline contents or `source` url,
+                  render as markdown. I'm thinking we'll use the "marked.js" package for parsing (for now) -- quickly
+                  evaluate if there is something better. We will eventually add inline editing to this. Use github
+                  markdown<br />- Do a quick analysis of what it would take to create a markdown parser using the
+                  spell/parser. This would live as a peer to the `spell` language.
+                </p>
+              </blockquote></ui-content
+            ></ui-accordion
+          >
           <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 0m left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ul>
@@ -577,7 +588,7 @@
               <li>
                 Shadow DOM, GitHub-like sheet on ui tokens; heading ids are GitHub slugs, so <code>#anchor</code> works;
                 relative links / images resolve against <code>source</code>. Task-list checkboxes are labelled by their
-                item's text (<a href='\"#d22\"' target="src-packages-docs-epics-ui-import-quot">D22</a>);
+                item's text (<a href="#d22">D22</a>);
                 <code>#id</code> links scroll inside the shadow root. The <code>heading-offset</code> PROPERTY is
                 <code>headingLevelOffset</code> (<a href="#d23">D23</a>: WebKit has a native
                 <code>headingOffset</code>).
@@ -705,6 +716,7 @@
           >
 
           <ui-section
+            badge="1-1.5h"
             collapsed
             id="p1"
             data-phase="1"
@@ -719,16 +731,30 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> UI.sources (load, cache, same-origin, ETag, pluggable saver) + SourceElement / SourceHost
                 (inline text, template / script, dedent, states, save(), events)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="eddb7b3df53f1eaafe75d3ff7e80560a67e53d32">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/eddb7b3df53f1eaafe75d3ff7e80560a67e53d32"
+                      target="github"
+                      >eddb7b3</a
+                    >
+                    UI.sources + SourceElement / SourceHost
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> ui: src/runtime/Sources.ts (+ UIRuntime.ts, runtime.types.ts),
                 src/elements/SourceElement.tsx, SourceHost.ts, core.ts re-exports, components.types.ts, tests</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> Sources.test.ts, SourceElement.test.tsx (fake element); yarn review in
                 packages/ui</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-1.5h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1.5-2h"
             collapsed
             id="p2"
             data-phase="2"
@@ -743,14 +769,28 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>&lt;ui-include&gt;</code>: shadow content, page-styles, select, load (islands), link
                 rewriting, family loading, cycle guard, save</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="75e279616a040608963b2c128492f07e3dd674f2">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/75e279616a040608963b2c128492f07e3dd674f2"
+                      target="github"
+                      >75e2796</a
+                    >
+                    &lt;ui-include&gt;
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"><b>Files:</b> ui: src/components/ui-include/*, registrations (1.1)</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> ui-include.test.tsx (fetch, cross-origin error, nested, ui-* families load inside,
                 page-styles, save -&gt; saver); yarn gen:root; yarn review; yarn test:visual --grep include</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2-3h"
             collapsed
             id="p3"
             data-phase="3"
@@ -765,15 +805,29 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>&lt;ui-code&gt;</code>: lazy highlight.js, detect set, UI.code.register, line
                 numbers / wrap / copy, --ui-code-* tokens (spell is P4)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="8835e571b55e15c14cb56b41657a2f1e3f8af064">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/8835e571b55e15c14cb56b41657a2f1e3f8af064"
+                      target="github"
+                      >8835e57</a
+                    >
+                    &lt;ui-code&gt;
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> ui: src/components/ui-code/*, package.json deps, registrations</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> tests (explicit language, detect, lazy language, register, inline template, save); yarn
                 measure (core unchanged, hljs only in the ui-code chunk); yarn review; visual</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2-3h"
             collapsed
             id="p4"
             data-phase="4"
@@ -788,16 +842,30 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> SP.highlightSpans browser entry, esbuild bundle per language (en now), copied into ui's
                 dist; language=spell / spell/&lt;lang&gt; in <code>&lt;ui-code&gt;</code></ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="df05e654341e4b08a489e18a8eebe060bea8fc86">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/df05e654341e4b08a489e18a8eebe060bea8fc86"
+                      target="github"
+                      >df05e65</a
+                    >
+                    spell highlighting in &lt;ui-code&gt;
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> spell: src/highlight/*, package.json (build:highlight); ui: vite.config.ts (copy step),
                 ui-code/SpellLanguage.ts; root AGENTS.md (the exception)</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> spell unit test on a sample's spans; bundle has no node built-ins; ui-code renders a
                 spell sample, spell/xx shows the missing-translation error; bundle size recorded</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2-3h"
             collapsed
             id="p5"
             data-phase="5"
@@ -812,14 +880,28 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>&lt;ui-markdown&gt;</code>: marked GFM, sanitize (setHTML / DOMPurify), fences -&gt;
                 <code>&lt;ui-code&gt;</code>, GitHub sheet, heading ids, headings property</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="6475ade25d87dde93e8a02853b9c77423039975f">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/6475ade25d87dde93e8a02853b9c77423039975f"
+                      target="github"
+                      >6475ade</a
+                    >
+                    &lt;ui-markdown&gt;
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"><b>Files:</b> ui: src/components/ui-markdown/*, deps, registrations</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> tests (GFM sample: table, task list, strike, autolink; script / onerror stripped; fences
                 highlighted; anchors); yarn measure; yarn review; visual</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1.5-2h"
             collapsed
             id="p6"
             data-phase="6"
@@ -834,43 +916,92 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> PageEditor PUT for text files, SPELL_SERVER.saveFile, docs-runtime saver; docs bundle
                 keeps the engines lazy; a docs page shows all three, saving a .md round-trips</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="9faa575a4e8daafa5dd87ca93edc1ead615acd51">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/9faa575a4e8daafa5dd87ca93edc1ead615acd51"
+                      target="github"
+                      >9faa575</a
+                    >
+                    server save + docs
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> server: src/page/PageEditor.ts (+ test), liveClient.ts; docs:
                 _assets/spell-doc-runtime.js, scripts/bundle-spell-ui.js; ui: site .mdx x3, docs/status.md</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> PageServer.test.ts (PUT .md, 409, refused outside root / dotfiles); browser: el.save()
                 writes the file, reload shows it; yarn review in server, ui, docs</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
-          <ui-section id="p7" data-phase="7" data-status="done" header="P7 · Doc Review" sticky collapsible dividing>
+          <ui-section
+            badge="1h"
+            id="p7"
+            data-phase="7"
+            data-status="done"
+            header="P7 · Doc Review"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Prune; durable doc packages/docs/ui-import.html (Overview -&gt; body, decisions -&gt; Why,
                 caveats -&gt; Limits); docs:index; leave the worktree</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="6692762ca0f7be5491fcd1f445f0a74eed7e4e16">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/6692762ca0f7be5491fcd1f445f0a74eed7e4e16"
+                      target="github"
+                      >6692762</a
+                    >
+                    doc review
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"><b>Files:</b> packages/docs/ui-import.html, this plan doc</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check; check-spell.js on the durable page</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+              ><ui-item icon="flask"
+                ><b>Verify:</b> yarn plan-doc check; check-spell.js on the durable page</ui-item
+              ></ui-list
             >
           </ui-section></ui-section
         >
 
-        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
-          <ui-icon slot="icon" name="gavel"></ui-icon>
-          <p class="meta">
-            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
-            settled, don't re-argue without new facts. An answered question sits just above its decision.
-          </p>
+        <ui-section
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts."
+          id="decisions"
+          header="3. Questions"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
+
           <ui-list class="plan-items" data-kind="decision" divided relaxed
-            ><ui-item id="q1" data-status="done"
+            ><ui-item data-state="old" data-answered id="q1" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q1">Q1</a>
-                  <span class="plan-title">Runtime deps: highlight.js, marked, DOMPurify?</span>
-                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                  <span class="plan-title">Runtime deps: highlight.js, marked, DOMPurify?</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d1">
+                    <div class="plan-answer-title">
+                      <b>D1</b> · All three: highlight.js, marked, DOMPurify, each in its family's lazy chunk
+                    </div>
+                    <p>
+                      Asked: Q1. Research: hljs is the only highlighter with auto-detect + custom languages (Shiki is VS
+                      Code-accurate but ~56 kB and can't detect); marked is smallest / fastest with GFM built in, but
+                      does no sanitizing.
+                    </p>
+                  </div>
+                  <p>
                     <code>ui</code>'s rule: ask before any runtime dependency but <code>lodash-es</code>. All three
                     would load lazily, only on pages using the element: highlight.js ~8 kB core + ~20 kB detect set,
                     marked ~14 kB, DOMPurify ~11 kB (only where <code>Element.setHTML()</code> is missing). See
@@ -878,494 +1009,1041 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d1" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d1">D1</a>
-                  <span class="plan-title"
-                    >All three: highlight.js, marked, DOMPurify, each in its family's lazy chunk (<a href="#q1">Q1</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>
-                    Asked: Q1. Research: hljs is the only highlighter with auto-detect + custom languages (Shiki is VS
-                    Code-accurate but ~56 kB and can't detect); marked is smallest / fastest with GFM built in, but does
-                    no sanitizing.
-                  </p>
-                  <p class="meta">
-                    Answers <a href="#q1">Q1</a>: Runtime deps: highlight.js, marked, DOMPurify?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q2" data-status="done"
+            ><ui-item data-state="old" data-answered id="q2" data-status="canceled"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q2">Q2</a>
-                  <span class="plan-title">Where does &lt;ui-include&gt; put fetched HTML?</span>
-                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                  <span class="plan-title">Where does &lt;ui-include&gt; put fetched HTML?</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d2">
+                    <div class="plan-answer-title">
+                      <b>D2</b> · Shadow DOM by default; page-styles attribute adopts the page's stylesheets
+                    </div>
+                    <p>
+                      Asked: Q2. Owen: "default to shadow dom. Have <code>page-styles</code> prop to override." Read as:
+                      content stays in the shadow root; <code>page-styles</code> copies the page's sheets into it. The
+                      include loads <code>ui-*</code> families inside itself (<code>&lt;ui-root&gt;</code> can't see
+                      in). See <a href="#o4">1.4</a>.
+                    </p>
+                  </div>
+                  <p>
                     Light DOM: page CSS applies, <code>&lt;ui-root&gt;</code> auto-loads families. Shadow DOM: isolated
                     from page CSS.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d2" data-status="done"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d2">D2</a>
-                  <span class="plan-title"
-                    >Shadow DOM by default; page-styles attribute adopts the page's stylesheets (<a href="#q2">Q2</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>
-                    Asked: Q2. Owen: "default to shadow dom. Have <code>page-styles</code> prop to override." Read as:
-                    content stays in the shadow root; <code>page-styles</code> copies the page's sheets into it. The
-                    include loads <code>ui-*</code> families inside itself (<code>&lt;ui-root&gt;</code> can't see in).
-                    See <a href="#o4">1.4</a>.
-                  </p>
-                  <p class="meta">
-                    Answers <a href="#q2">Q2</a>: Where does &lt;ui-include&gt; put fetched HTML?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q3" data-status="done"
+            ><ui-item data-state="old" data-answered id="q3" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q3">Q3</a>
-                  <span class="plan-title">Save hook scope: hook only, or hook + server save?</span>
-                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                  <span class="plan-title">Save hook scope: hook only, or hook + server save?</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d3">
+                    <div class="plan-answer-title">
+                      <b>D3</b> · Hook + server save: widen the page server's PUT to text files (.md, .ts, .spell ...)
+                    </div>
+                    <p>Asked: Q3. See <a href="#o3">1.3</a>.</p>
+                  </div>
+                  <p>
                     The page server's <code>PUT /_server/page</code> writes <code>.html</code> only today.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d3" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d3">D3</a>
-                  <span class="plan-title"
-                    >Hook + server save: widen the page server's PUT to text files (.md, .ts, .spell ...) (<a href="#q3"
-                      >Q3</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>Asked: Q3. See <a href="#o3">1.3</a>.</p>
-                  <p class="meta">
-                    Answers <a href="#q3">Q3</a>: Save hook scope: hook only, or hook + server save?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q4" data-status="done"
+            ><ui-item data-state="old" data-answered id="q4" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q4">Q4</a>
                   <span class="plan-title"
                     >How does &lt;ui-code&gt; highlight spell, given ui may not import spell?</span
-                  >
-                  <a class="plan-answer" href="#d4">→ D4</a></ui-title
+                  ></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d4">
+                    <div class="plan-answer-title">
+                      <b>D4</b> · Pre-compiled spell bundle is the ONE ui -&gt; spell exception; language=spell is
+                      English, spell/es Spanish
+                    </div>
+                    <p>
+                      Asked: Q4. Owen: "the one exception to that rule. Make sure we're importing a pre-compiled
+                      parser/spell."
+                      <a href="../../../spell/" target="src-packages-spell"><code>packages/spell</code></a> builds
+                      <code>spell-highlight.&lt;lang&gt;.js</code>; <code>ui</code> ships it in
+                      <a href="../../../ui/dist/languages/" target="src-packages-ui-dist-languages"
+                        ><code>dist/languages/</code></a
+                      >
+                      and loads it by URL. See <a href="#o5">1.5</a>, <a href="#p4">P4</a>.
+                    </p>
+                  </div>
+                  <p>
                     Options were a regex grammar inside <code>ui</code>, or a register hook with the grammar in
                     <code>app</code>.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d4" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q5" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d4">D4</a>
+                  ><a class="plan-id" href="#q5">Q5</a>
                   <span class="plan-title"
-                    >Pre-compiled spell bundle is the ONE ui -&gt; spell exception; language=spell is English, spell/es
-                    Spanish (<a href="#q4">Q4</a>)</span
+                    >UI.sources runtime service + shared SourceElement: one same-origin / cache / save path for all
+                    three elements</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Asked: Q4. Owen: "the one exception to that rule. Make sure we're importing a pre-compiled
-                    parser/spell."
-                    <a href="../../../spell/" target="src-packages-spell"><code>packages/spell</code></a> builds
-                    <code>spell-highlight.&lt;lang&gt;.js</code>; <code>ui</code> ships it in
-                    <a href="../../../ui/dist/languages/" target="src-packages-ui-dist-languages"
-                      ><code>dist/languages/</code></a
-                    >
-                    and loads it by URL. See <a href="#o5">1.5</a>, <a href="#p4">P4</a>.
-                  </p>
-                  <p class="meta">
-                    Answers <a href="#q4">Q4</a>: How does &lt;ui-code&gt; highlight spell, given ui may not import
-                    spell?
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d5">
+                    <div class="plan-answer-title">
+                      <b>D5</b> · UI.sources runtime service + shared SourceElement: one same-origin / cache / save path
+                      for all three elements
+                    </div>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d5" data-status="decided"
-              ><a class="plan-id" href="#d5">D5</a>
-              <span class="plan-title"
-                >UI.sources runtime service + shared SourceElement: one same-origin / cache / save path for all three
-                elements</span
-              ></ui-item
-            ><ui-item id="d6" data-status="decided"
-              ><a class="plan-id" href="#d6">D6</a>
-              <span class="plan-title">All three render into shadow DOM</span></ui-item
-            ><ui-item id="d7" data-status="decided"
-              ><a class="plan-id" href="#d7">D7</a>
-              <span class="plan-title"
-                >Scripts in included HTML don't run (innerHTML); a scripts attribute later</span
-              ></ui-item
-            ><ui-item id="d8" data-status="decided"
-              ><a class="plan-id" href="#d8">D8</a>
-              <span class="plan-title"
-                >load="eager" default; visible / idle defer the fetch (the islands part)</span
-              ></ui-item
-            ><ui-item id="d9" data-status="decided"
-              ><a class="plan-id" href="#d9">D9</a>
-              <span class="plan-title"
-                >Fences in markdown render as &lt;ui-code&gt;: one highlighter, one palette</span
-              ></ui-item
-            ><ui-item id="d10" data-status="decided"
-              ><a class="plan-id" href="#d10">D10</a>
-              <span class="plan-title"
-                >Engines behind adapters (CodeHighlighter, MarkdownRenderer): swapping engines later stays local</span
-              ></ui-item
-            ><ui-item id="d11" data-status="decided"
-              ><a class="plan-id" href="#d11">D11</a>
-              <span class="plan-title"
-                >Language with no highlighting is named text (maps to hljs plaintext)</span
-              ></ui-item
-            ><ui-item id="d12" data-status="decided"
-              ><a class="plan-id" href="#d12">D12</a>
-              <span class="plan-title"
-                >Editing (code, markdown) is a later epic, by Owen's own strategy: not CodeMirror / Monaco /
-                micromark</span
-              ></ui-item
-            ><ui-item id="d13" data-status="decided"
-              ><a class="plan-id" href="#d13">D13</a>
-              <span class="plan-title">Agents: up to 5, per CLAUDE.md</span></ui-item
-            ><ui-item id="d14" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q6" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d14">D14</a>
+                  ><a class="plan-id" href="#q6">Q6</a>
+                  <span class="plan-title">All three render into shadow DOM</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d6">
+                    <div class="plan-answer-title"><b>D6</b> · All three render into shadow DOM</div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q7">Q7</a>
+                  <span class="plan-title"
+                    >Scripts in included HTML don't run (innerHTML); a scripts attribute later</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d7">
+                    <div class="plan-answer-title">
+                      <b>D7</b> · Scripts in included HTML don't run (innerHTML); a scripts attribute later
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q8">Q8</a>
+                  <span class="plan-title"
+                    >load="eager" default; visible / idle defer the fetch (the islands part)</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d8">
+                    <div class="plan-answer-title">
+                      <b>D8</b> · load="eager" default; visible / idle defer the fetch (the islands part)
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q9">Q9</a>
+                  <span class="plan-title"
+                    >Fences in markdown render as &lt;ui-code&gt;: one highlighter, one palette</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d9">
+                    <div class="plan-answer-title">
+                      <b>D9</b> · Fences in markdown render as &lt;ui-code&gt;: one highlighter, one palette
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q10">Q10</a>
+                  <span class="plan-title"
+                    >Engines behind adapters (CodeHighlighter, MarkdownRenderer): swapping engines later stays
+                    local</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d10">
+                    <div class="plan-answer-title">
+                      <b>D10</b> · Engines behind adapters (CodeHighlighter, MarkdownRenderer): swapping engines later
+                      stays local
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q11">Q11</a>
+                  <span class="plan-title"
+                    >Language with no highlighting is named text (maps to hljs plaintext)</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d11">
+                    <div class="plan-answer-title">
+                      <b>D11</b> · Language with no highlighting is named text (maps to hljs plaintext)
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q12">Q12</a>
+                  <span class="plan-title"
+                    >Editing (code, markdown) is a later epic, by Owen's own strategy: not CodeMirror / Monaco /
+                    micromark</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d12">
+                    <div class="plan-answer-title">
+                      <b>D12</b> · Editing (code, markdown) is a later epic, by Owen's own strategy: not CodeMirror /
+                      Monaco / micromark
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q13">Q13</a>
+                  <span class="plan-title">Agents: up to 5, per CLAUDE.md</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d13">
+                    <div class="plan-answer-title"><b>D13</b> · Agents: up to 5, per CLAUDE.md</div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q14" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q14">Q14</a>
                   <span class="plan-title"
                     >&lt;ui-include&gt;: shadow DOM by default; page-styles renders into LIGHT DOM instead (page CSS and
                     &lt;ui-root&gt; apply)</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Replaces <a href="#d2">D2</a>'s reading. Owen, asked again before the run: "Switch to light DOM". So
-                    no stylesheet copying (<a href="#c8">C8</a> gone); in shadow mode the include loads
-                    <code>ui-*</code> families itself, in light mode <code>&lt;ui-root&gt;</code> (or the include) does.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d14">
+                    <div class="plan-answer-title">
+                      <b>D14</b> · &lt;ui-include&gt;: shadow DOM by default; page-styles renders into LIGHT DOM instead
+                      (page CSS and &lt;ui-root&gt; apply)
+                    </div>
+                    <p>
+                      Replaces <a href="#d2">D2</a>'s reading. Owen, asked again before the run: "Switch to light DOM".
+                      So no stylesheet copying (<a href="#c8">C8</a> gone); in shadow mode the include loads
+                      <code>ui-*</code> families itself, in light mode <code>&lt;ui-root&gt;</code> (or the include)
+                      does.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d15" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q15" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d15">D15</a>
+                  ><a class="plan-id" href="#q15">Q15</a>
                   <span class="plan-title"
                     >Spell highlighter ships as a COMMITTED generated file: yarn gen:spell writes
                     packages/ui/src/languages/spell.&lt;lang&gt;.js</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Like icon packs and emoji data: <code>ui</code> builds and tests without building
-                    <code>spell</code>; regenerate when <code>spell</code> changes. Owen, before the run.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d15">
+                    <div class="plan-answer-title">
+                      <b>D15</b> · Spell highlighter ships as a COMMITTED generated file: yarn gen:spell writes
+                      packages/ui/src/languages/spell.&lt;lang&gt;.js
+                    </div>
+                    <p>
+                      Like icon packs and emoji data: <code>ui</code> builds and tests without building
+                      <code>spell</code>; regenerate when <code>spell</code> changes. Owen, before the run.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d16" data-status="decided"
-              ><a class="plan-id" href="#d16">D16</a>
-              <span class="plan-title"
-                >Run all phases in one go, a commit per phase; leave the branch for review (no merge)</span
-              ></ui-item
-            ><ui-item id="d17" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q16" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d17">D17</a>
+                  ><a class="plan-id" href="#q16">Q16</a>
+                  <span class="plan-title"
+                    >Run all phases in one go, a commit per phase; leave the branch for review (no merge)</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d16">
+                    <div class="plan-answer-title">
+                      <b>D16</b> · Run all phases in one go, a commit per phase; leave the branch for review (no merge)
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q17" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q17">Q17</a>
                   <span class="plan-title"
                     >Unknown language, or a spell translation with no bundle: the code stays PLAIN, with a render
                     ui-error and no message box</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    The code is still worth reading; a message box over it would be noise. An app that wants a message
-                    listens for <code>ui-error</code>. (The plan had said an error message for <code>spell/xx</code>.)
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d17">
+                    <div class="plan-answer-title">
+                      <b>D17</b> · Unknown language, or a spell translation with no bundle: the code stays PLAIN, with a
+                      render ui-error and no message box
+                    </div>
+                    <p>
+                      The code is still worth reading; a message box over it would be noise. An app that wants a message
+                      listens for <code>ui-error</code>. (The plan had said an error message for <code>spell/xx</code>.)
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d18" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q18" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d18">D18</a>
+                  ><a class="plan-id" href="#q18">Q18</a>
                   <span class="plan-title"
                     >spell bundles load through a literal import.meta.glob (one lazy chunk per spell.&lt;lang&gt;.js),
                     not by URL: UI.code.languageBase dropped</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    A glob works the same under Vite dev, the tests and the lib build (the chunk ships in
-                    <a href="../../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a
-                    >), with no URL to configure.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d18">
+                    <div class="plan-answer-title">
+                      <b>D18</b> · spell bundles load through a literal import.meta.glob (one lazy chunk per
+                      spell.&lt;lang&gt;.js), not by URL: UI.code.languageBase dropped
+                    </div>
+                    <p>
+                      A glob works the same under Vite dev, the tests and the lib build (the chunk ships in
+                      <a href="../../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a
+                      >), with no URL to configure.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d19" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q19" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d19">D19</a>
+                  ><a class="plan-id" href="#q19">Q19</a>
                   <span class="plan-title"
                     >Spell highlighting = token colours, then a best-effort parse as a block refining them by each
                     rule's highlightAs (SP.SpellHighlighter)</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Lines that don't parse (names declared in other files) keep their token colours. Lighter than the
-                    language server's <code>highlightSpans()</code>: no project, so no declaration / built-in
-                    refinements.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d19">
+                    <div class="plan-answer-title">
+                      <b>D19</b> · Spell highlighting = token colours, then a best-effort parse as a block refining them
+                      by each rule's highlightAs (SP.SpellHighlighter)
+                    </div>
+                    <p>
+                      Lines that don't parse (names declared in other files) keep their token colours. Lighter than the
+                      language server's <code>highlightSpans()</code>: no project, so no declaration / built-in
+                      refinements.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d20" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q20" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d20">D20</a>
+                  ><a class="plan-id" href="#q20">Q20</a>
                   <span class="plan-title"
                     >Markdown is sanitized by DOMPurify in EVERY browser, not Element.setHTML() where it exists (Q1 said
                     DOMPurify only where setHTML is missing)</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Measured in Chromium 153: <code>setHTML()</code>'s default sanitizer drops task-list checkboxes,
-                    images, heading ids and <code>language-*</code> classes; Safari has none. One sanitizer gives the
-                    same output everywhere; DOMPurify (~11 kB) stays in the lazy chunk.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d20">
+                    <div class="plan-answer-title">
+                      <b>D20</b> · Markdown is sanitized by DOMPurify in EVERY browser, not Element.setHTML() where it
+                      exists (Q1 said DOMPurify only where setHTML is missing)
+                    </div>
+                    <p>
+                      Measured in Chromium 153: <code>setHTML()</code>'s default sanitizer drops task-list checkboxes,
+                      images, heading ids and <code>language-*</code> classes; Safari has none. One sanitizer gives the
+                      same output everywhere; DOMPurify (~11 kB) stays in the lazy chunk.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d21" data-status="decided"
-              ><a class="plan-id" href="#d21">D21</a>
-              <span class="plan-title"
-                >DOMPurify runs with SANITIZE_DOM off: heading ids like elements / forms survive (DOM clobbering can't
-                reach a shadow root)</span
-              > </ui-item
-            ><ui-item id="d22" data-status="decided"
-              ><a class="plan-id" href="#d22">D22</a>
-              <span class="plan-title"
-                >Task-list checkboxes are labelled with their item's text (marked leaves them unlabelled: axe
-                critical)</span
-              > </ui-item
-            ><ui-item id="d23" data-status="decided"
-              ><a class="plan-id" href="#d23">D23</a>
-              <span class="plan-title"
-                >&lt;ui-markdown&gt;'s heading-offset property is headingLevelOffset: WebKit's native
-                HTMLElement.headingOffset (HTML's new headingoffset) can't be shadowed</span
-              > </ui-item
-            ><ui-item id="d24" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q21" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d24">D24</a>
+                  ><a class="plan-id" href="#q21">Q21</a>
+                  <span class="plan-title"
+                    >DOMPurify runs with SANITIZE_DOM off: heading ids like elements / forms survive (DOM clobbering
+                    can't reach a shadow root)</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d21">
+                    <div class="plan-answer-title">
+                      <b>D21</b> · DOMPurify runs with SANITIZE_DOM off: heading ids like elements / forms survive (DOM
+                      clobbering can't reach a shadow root)
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q22" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q22">Q22</a>
+                  <span class="plan-title"
+                    >Task-list checkboxes are labelled with their item's text (marked leaves them unlabelled: axe
+                    critical)</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d22">
+                    <div class="plan-answer-title">
+                      <b>D22</b> · Task-list checkboxes are labelled with their item's text (marked leaves them
+                      unlabelled: axe critical)
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q23" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q23">Q23</a>
+                  <span class="plan-title"
+                    >&lt;ui-markdown&gt;'s heading-offset property is headingLevelOffset: WebKit's native
+                    HTMLElement.headingOffset (HTML's new headingoffset) can't be shadowed</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d23">
+                    <div class="plan-answer-title">
+                      <b>D23</b> · &lt;ui-markdown&gt;'s heading-offset property is headingLevelOffset: WebKit's native
+                      HTMLElement.headingOffset (HTML's new headingoffset) can't be shadowed
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q24" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q24">Q24</a>
                   <span class="plan-title"
                     >The page server serves a script's fetch() (Sec-Fetch-Dest: empty) the file AS IS: no injected
                     live-reload tags</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Found while wiring the save: every served <code>.html</code> gets
-                    <code>window.SPELL_SERVER</code> and <code>/_server/live.js</code> injected, so an include would
-                    have shown them and a save would have written them into the file. Navigations, scripts and module
-                    imports still get the hooks.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d24">
+                    <div class="plan-answer-title">
+                      <b>D24</b> · The page server serves a script's fetch() (Sec-Fetch-Dest: empty) the file AS IS: no
+                      injected live-reload tags
+                    </div>
+                    <p>
+                      Found while wiring the save: every served <code>.html</code> gets
+                      <code>window.SPELL_SERVER</code> and <code>/_server/live.js</code> injected, so an include would
+                      have shown them and a save would have written them into the file. Navigations, scripts and module
+                      imports still get the hooks.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d25" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q25" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d25">D25</a>
+                  ><a class="plan-id" href="#q25">Q25</a>
                   <span class="plan-title"
                     >PUT /_server/page writes text files (.md, .ts, .js, .css, .spell, .txt, .yaml, .svg ...), NOT
                     .json; PATCH stays pages-only</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    <code>.json</code> is config, not content:
-                    <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a> holds the
-                    page server's own settings (the existing test refuses it, and still does).
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d25">
+                    <div class="plan-answer-title">
+                      <b>D25</b> · PUT /_server/page writes text files (.md, .ts, .js, .css, .spell, .txt, .yaml, .svg
+                      ...), NOT .json; PATCH stays pages-only
+                    </div>
+                    <p>
+                      <code>.json</code> is config, not content:
+                      <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a> holds
+                      the page server's own settings (the existing test refuses it, and still does).
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d26" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q26" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d26">D26</a>
+                  ><a class="plan-id" href="#q26">Q26</a>
                   <span class="plan-title"
                     >Docs pages keep the engines lazy: each is its own classic script, _assets/lazy/&lt;name&gt;.js,
                     which UI's loader hooks (CodeHighlighter.engineLoader, MarkdownRenderer.engineLoader,
                     SpellLanguage.bundleLoader) load on first use</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Like the emoji chunks: a classic script can't keep <code>import()</code>s, and inlining them would
-                    have put ~210 kB (gzip) into every docs page.
-                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
-                      ><code>spell-ui.js</code></a
-                    >
-                    grew ~11 kB for the three families.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d26">
+                    <div class="plan-answer-title">
+                      <b>D26</b> · Docs pages keep the engines lazy: each is its own classic script,
+                      _assets/lazy/&lt;name&gt;.js, which UI's loader hooks (CodeHighlighter.engineLoader,
+                      MarkdownRenderer.engineLoader, SpellLanguage.bundleLoader) load on first use
+                    </div>
+                    <p>
+                      Like the emoji chunks: a classic script can't keep <code>import()</code>s, and inlining them would
+                      have put ~210 kB (gzip) into every docs page.
+                      <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                        ><code>spell-ui.js</code></a
+                      >
+                      grew ~11 kB for the three families.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d27" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q27" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d27">D27</a>
+                  ><a class="plan-id" href="#q27">Q27</a>
                   <span class="plan-title"
                     >Each lazy engine chunk imports SourceError from runtime.types and uses it, anchoring it to core: no
                     rolldown-runtime chunk (yarn measure's runtimeChunks)</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    The <code>TemporalPolyfill</code> fix, for the same reason. So highlight.js's extra languages live
-                    IN the engine chunk (one chunk each would split the runtime off again), and spell's bundle loads
-                    through a generated wrapper, <code>src/languages/spell.&lt;lang&gt;.ts</code>, around
-                    <code>spell.&lt;lang&gt;.bundle.js</code>.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d27">
+                    <div class="plan-answer-title">
+                      <b>D27</b> · Each lazy engine chunk imports SourceError from runtime.types and uses it, anchoring
+                      it to core: no rolldown-runtime chunk (yarn measure's runtimeChunks)
+                    </div>
+                    <p>
+                      The <code>TemporalPolyfill</code> fix, for the same reason. So highlight.js's extra languages live
+                      IN the engine chunk (one chunk each would split the runtime off again), and spell's bundle loads
+                      through a generated wrapper, <code>src/languages/spell.&lt;lang&gt;.ts</code>, around
+                      <code>spell.&lt;lang&gt;.bundle.js</code>.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d28" data-status="decided"
-              ><a class="plan-id" href="#d28">D28</a>
-              <span class="plan-title"
-                >Savers may throw { kind, message, status } (a page's classic script can't import SourceError);
-                UI.sources turns it into a SourceError</span
-              >
-            </ui-item></ui-list
-          >
-        </ui-section>
-
-        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
-          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
-          <ui-list class="plan-items" data-kind="caveat" divided relaxed
-            ><ui-item id="c1" data-status="open"
-              ><a class="plan-id" href="#c1">C1</a>
-              <span class="plan-title"
-                >Auto-detect only knows the detect set (~10 languages); others need language=</span
-              ></ui-item
-            ><ui-item id="c2" data-status="open"
-              ><a class="plan-id" href="#c2">C2</a>
-              <span class="plan-title"
-                >marked keeps no source offsets: rendered nodes can't be mapped back to source through it</span
-              ></ui-item
-            ><ui-item id="c3" data-status="open"
-              ><a class="plan-id" href="#c3">C3</a>
-              <span class="plan-title"
-                >file:// pages can't load source (fetch blocked): the error message says so</span
-              ></ui-item
-            ><ui-item id="c4" data-status="done"
-              ><a class="plan-id" href="#c4">C4</a>
-              <span class="plan-title"
-                >Docs bundle inlines lazy import()s: P6 must keep the engine chunks lazy or spell-ui.js grows ~50
-                kB</span
-              > </ui-item
-            ><ui-item id="c5" data-status="done"
-              ><a class="plan-id" href="#c5">C5</a>
-              <span class="plan-title"
-                >Spell highlight bundle is the whole parser + spell rules (likely 100s of kB): loads only for
-                language=spell; not in auto-detect</span
-              > </ui-item
-            ><ui-item id="c6" data-status="open"
-              ><a class="plan-id" href="#c6">C6</a>
-              <span class="plan-title"
-                >Spell highlighting parses: accurate, but ~ms per 100 lines; big files may want tokenize-only</span
-              ></ui-item
-            ><ui-item id="c7" data-status="open"
-              ><a class="plan-id" href="#c7">C7</a>
-              <span class="plan-title"
-                >spell/es errors until spell has a Spanish translation (none today)</span
-              ></ui-item
-            ><ui-item id="c8" data-status="done"
-              ><a class="plan-id" href="#c8">C8</a>
-              <span class="plan-title"
-                >page-styles can't read cross-origin sheets' rules: falls back to &lt;link&gt; clones</span
-              ></ui-item
-            ><ui-item id="c9" data-status="open"
-              ><a class="plan-id" href="#c9">C9</a>
-              <span class="plan-title"
-                >ui -&gt; spell bundle is a documented exception to "ui never imports spell" (root AGENTS.md)</span
-              ></ui-item
-            ><ui-item id="c10" data-status="open"
-              ><a class="plan-id" href="#c10">C10</a>
-              <span class="plan-title"
-                >Vite's dev server transforms fetched .ts / .css / .html (a JS module, its client script): &lt;ui-code
-                source&gt; shows that under yarn dev / tests; the page server serves files raw</span
-              > </ui-item
-            ><ui-item id="c11" data-status="open"
-              ><a class="plan-id" href="#c11">C11</a>
-              <span class="plan-title"
-                >spell.en.js is 469 kB minified, 138 kB gzipped (parser + rules + lodash, json5, semver, easy-state);
-                react-dom is stubbed out of it. Loaded only for language=spell</span
-              > </ui-item
-            ><ui-item id="c12" data-status="open"
-              ><a class="plan-id" href="#c12">C12</a>
-              <span class="plan-title"
-                >The spell bundle is committed: regenerate (yarn gen:spell in packages/ui) after changing spell's
-                grammar, or ui colours with the old one</span
-              > </ui-item
-            ><ui-item id="c13" data-status="open"
-              ><a class="plan-id" href="#c13">C13</a>
-              <span class="plan-title"
-                >Inline &lt;script type=text/markdown&gt; (or text/plain) can't contain &lt;/script&gt;: it ends the
-                script. Use source, or set content</span
-              > </ui-item
-            ><ui-item id="c14" data-status="open"
-              ><a class="plan-id" href="#c14">C14</a>
-              <span class="plan-title"
-                >Headings inside markdown join the page outline: heading-offset fits them under the page's own (axe
-                heading-order)</span
-              > </ui-item
-            ><ui-item id="c15" data-status="open"
-              ><a class="plan-id" href="#c15">C15</a>
-              <span class="plan-title"
-                >&lt;ui-code&gt;'s engine chunk is 54 kB gzipped (highlight.js + 30 languages), loaded with the first
-                code shown; the docs' copy 49 kB</span
-              >
-            </ui-item></ui-list
-          >
-        </ui-section>
-
-        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
-          <ui-icon slot="icon" name="list check"></ui-icon>
-          <p class="meta">For later: not caveats, not issues.</p>
-          <ui-list class="plan-items" data-kind="todo" divided relaxed
-            ><ui-item id="t1" data-status="open"
-              ><a class="plan-id" href="#t1">T1</a>
-              <span class="plan-title">Footnotes in &lt;ui-markdown&gt; (marked-footnote)</span></ui-item
-            ><ui-item id="t2" data-status="open"
-              ><a class="plan-id" href="#t2">T2</a>
-              <span class="plan-title">scripts attribute on &lt;ui-include&gt;</span></ui-item
-            ><ui-item id="t3" data-status="open"
-              ><a class="plan-id" href="#t3">T3</a>
-              <span class="plan-title"
-                >Editing for &lt;ui-code&gt; / &lt;ui-markdown&gt;: Owen's own strategy, a later epic</span
-              ></ui-item
-            ><ui-item id="t4" data-status="open"
-              ><a class="plan-id" href="#t4">T4</a>
-              <span class="plan-title"
-                >Build spell-highlight.&lt;lang&gt;.js per translation once spell has them</span
-              ></ui-item
-            ><ui-item id="t5" data-status="open"
-              ><a class="plan-id" href="#t5">T5</a>
-              <span class="plan-title"
-                >Markdown parser on $/parser (1.7), if spell tooling needs markdown</span
-              ></ui-item
-            ><ui-item id="t6" data-status="open"
-              ><a class="plan-id" href="#t6">T6</a>
-              <span class="plan-title"
-                >Docs pages: render spell-code blocks with &lt;ui-code&gt;, drop the CDN highlight.js</span
+            ><ui-item data-state="old" data-answered id="q28" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q28">Q28</a>
+                  <span class="plan-title"
+                    >Savers may throw { kind, message, status } (a page's classic script can't import SourceError);
+                    UI.sources turns it into a SourceError</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d28">
+                    <div class="plan-answer-title">
+                      <b>D28</b> · Savers may throw { kind, message, status } (a page's classic script can't import
+                      SourceError); UI.sources turns it into a SourceError
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
               ></ui-item
             ></ui-list
           >
         </ui-section>
 
-        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+        <ui-section
+          data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
+          id="judgements"
+          header="4. Judgement calls"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item data-state="open" id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title">Auto-detect knows only a few languages</span></ui-title
+                ><ui-content
+                  ><p>
+                    A <code>&lt;ui-code&gt;</code> with no <code>language</code> guesses the language, but only from a
+                    small set. Code in any other language needs <code>language=</code>, or it's guessed wrong or left
+                    plain.
+                  </p>
+                  <ul>
+                    <li>
+                      The guess chooses from the "detect set", about 10 languages (<code>CodeEngine.DETECT_SET</code>):
+                      <ul>
+                        <li>bash, css, javascript, json, markdown</li>
+                        <li>python, typescript, xml (which covers HTML), yaml</li>
+                      </ul>
+                    </li>
+                    <li>
+                      21 more (<code>CodeEngine.MORE</code>: c, go, rust, sql ...) are in the same chunk, but only used
+                      when named.
+                    </li>
+                    <li>Spell is never guessed: its bundle is too big to load on a guess.</li>
+                  </ul>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>example · 4 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-html">&lt;!-- guessed from the detect set --&gt;
+&lt;ui-code&gt;const x = 1&lt;/ui-code&gt;
+&lt;!-- named:  rust isn't guessed --&gt;
+&lt;ui-code language="rust"&gt;let x = 1;&lt;/ui-code&gt;</code></pre>
+                    </ui-content></ui-accordion
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">Rendered markdown can't be traced back to its source</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-markdown&gt;</code> renders with <code>marked</code>, which keeps no source offsets. So
+                    a rendered paragraph or heading can't be mapped back to the lines it came from.
+                  </p>
+                  <ul>
+                    <li>
+                      That matters for editing in place, later: clicking a rendered paragraph to edit its markdown.
+                    </li>
+                    <li>
+                      A markdown parser on spell's own parser would keep positions on every match (the analysis in the
+                      Overview,
+                      <a href="#o7">1.7</a>; the todo, <a href="#t5">T5</a>).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">Pages opened from disk can't load a <code>source</code></span></ui-title
+                ><ui-content
+                  ><p>
+                    On a page opened from disk (<code>file://</code>), <code>&lt;ui-include&gt;</code>,
+                    <code>&lt;ui-code&gt;</code> and <code>&lt;ui-markdown&gt;</code> can't load a
+                    <code>source</code> file: the browser blocks the fetch. They say so, instead of failing quietly.
+                  </p>
+                  <ul>
+                    <li>
+                      The message: "Can't load {source}: this page was opened from disk. Open it from a web server to
+                      see it."
+                    </li>
+                    <li>
+                      Its error kind is <code>file-protocol</code> (the <code>ui-error</code> event's
+                      <code>kind</code>).
+                    </li>
+                    <li>Inline content still works.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" id="c4" data-status="done"
+              ><a class="plan-id" href="#c4">C4</a>
+              <span class="plan-title"
+                >Docs bundle inlines lazy import()s: P6 must keep the engine chunks lazy or spell-ui.js grows ~50
+                kB</span
+              > </ui-item
+            ><ui-item data-state="old" id="c5" data-status="done"
+              ><a class="plan-id" href="#c5">C5</a>
+              <span class="plan-title"
+                >Spell highlight bundle is the whole parser + spell rules (likely 100s of kB): loads only for
+                language=spell; not in auto-detect</span
+              > </ui-item
+            ><ui-item data-state="open" id="c6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title">Spell highlighting is accurate but slow on big files</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-code language="spell"&gt;</code> colours spell by actually parsing it, which gets
+                    keywords, types and properties right, but costs on the order of milliseconds per 100 lines.
+                  </p>
+                  <ul>
+                    <li>
+                      It colours in two passes (<code>SpellHighlighter.spans()</code>, the spell highlighting decision
+                      <a href="#d19">D19</a>):
+                      <ol>
+                        <li>tokens: comments, text, numbers and symbols</li>
+                        <li>a best-effort parse, which refines those colours by each rule</li>
+                      </ol>
+                    </li>
+                    <li>Big files may want the first pass only ("tokenize-only"): rougher colours, no parse.</li>
+                  </ul>
+                  <p>Not checked: the timing on today's parser.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title"
+                    ><code>spell/es</code> shows an error until spell has a Spanish translation</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    <code>language="spell/es"</code> asks for Spanish spell, but there's no Spanish translation of spell
+                    yet, so the code shows plain, with an error naming the missing translation.
+                  </p>
+                  <ul>
+                    <li><code>language="spell"</code> means <code>spell/en</code>, and works.</li>
+                    <li>
+                      The error is a <code>ui-error</code> of kind <code>render</code> (the unknown-language decision,
+                      <a href="#d17">D17</a>).
+                    </li>
+                    <li>When translations exist, each needs its own bundle (<a href="#t4">T4</a>).</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" id="c8" data-status="done"
+              ><a class="plan-id" href="#c8">C8</a>
+              <span class="plan-title"
+                >page-styles can't read cross-origin sheets' rules: falls back to &lt;link&gt; clones</span
+              ></ui-item
+            ><ui-item data-state="open" id="c9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title"
+                    ><code>ui</code> ships one piece of spell, as an exception to the rule</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The repo's rule is that
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                    never imports spell. The spell highlighter breaks it, on purpose, and the root
+                    <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> documents the
+                    exception.
+                  </p>
+                  <ul>
+                    <li>
+                      <code>ui</code> ships spell's highlighter PRE-COMPILED, as a committed bundle (the spell-bundle
+                      decision, <a href="#d4">D4</a>).
+                    </li>
+                    <li><code>ui</code>'s own source never imports <code>$/spell</code>.</li>
+                    <li>Keeping that bundle current: <a href="#c12">C12</a>.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c10">C10</a>
+                  <span class="plan-title"
+                    >Under Vite, a <code>source</code> file may show transformed, not as written</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Vite's dev server rewrites some files when they're fetched. So under <code>yarn dev</code>, or in
+                    the tests, a <code>&lt;ui-code source&gt;</code> can show Vite's version of a file instead of the
+                    file itself.
+                  </p>
+                  <ul>
+                    <li>
+                      What changes:
+                      <ul>
+                        <li><code>.ts</code> and <code>.css</code> files come back as JS modules</li>
+                        <li><code>.html</code> files come back with Vite's client script added</li>
+                      </ul>
+                    </li>
+                    <li>The page server serves files raw, so docs pages show the real file.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c11">C11</a>
+                  <span class="plan-title">The spell highlighting bundle is big</span></ui-title
+                ><ui-content
+                  ><p>
+                    Colouring spell needs spell's parser and rules, so its bundle is large. It loads only for
+                    <code>language="spell"</code>, never otherwise.
+                  </p>
+                  <ul>
+                    <li>
+                      Size: 469 kB minified, 138 kB gzipped (<a
+                        href="../../../ui/src/languages/spell.en.bundle.js"
+                        target="src-packages-ui-src-languages-spell-en-bundle-js"
+                        ><code>packages/ui/src/languages/spell.en.bundle.js</code></a
+                      >).
+                    </li>
+                    <li>
+                      What's in it:
+                      <ul>
+                        <li>the parser and spell's rules</li>
+                        <li>lodash, json5, semver, easy-state</li>
+                      </ul>
+                    </li>
+                    <li>react-dom is stubbed out of it.</li>
+                    <li>Checked 2026-10-04: 480,535 bytes (469 KiB), 138,555 bytes gzipped.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c12">C12</a>
+                  <span class="plan-title">Regenerate the spell bundle after changing spell's grammar</span></ui-title
+                ><ui-content
+                  ><p>
+                    The spell highlighting bundle is a generated file that's committed to the repo, so
+                    <code>ui</code> builds without building spell. The catch: change spell's grammar and forget to
+                    regenerate, and <code>ui</code> colours spell with the old grammar.
+                  </p>
+                  <ul>
+                    <li>
+                      Regenerate: <code>yarn gen:spell</code> in
+                      <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                      >.
+                    </li>
+                    <li>
+                      It writes, per language (<a
+                        href="../../../ui/scripts/gen-spell.ts"
+                        target="src-packages-ui-scripts-gen-spell-ts"
+                        ><code>scripts/gen-spell.ts</code></a
+                      >):
+                      <ul>
+                        <li><code>src/languages/spell.&lt;lang&gt;.bundle.js</code></li>
+                        <li>its type, <code>spell.&lt;lang&gt;.bundle.d.ts</code></li>
+                        <li>the wrapper, <code>spell.&lt;lang&gt;.ts</code></li>
+                      </ul>
+                    </li>
+                    <li>Why committed: the committed-bundle decision (<a href="#d15">D15</a>).</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c13">C13</a>
+                  <span class="plan-title"
+                    >Inline markdown in a <code>&lt;script&gt;</code> can't contain <code>&lt;/script&gt;</code></span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Inline markdown is best written in a <code>&lt;script type="text/markdown"&gt;</code> (or
+                    <code>text/plain</code>), but the text can't contain <code>&lt;/script&gt;</code>: the browser ends
+                    the script there.
+                  </p>
+                  <ul>
+                    <li>For text that needs it, load it from a file with <code>source</code>.</li>
+                    <li>Or set the element's <code>content</code> property from code.</li>
+                  </ul>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>example · 4 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-html">&lt;ui-markdown&gt;&lt;script type="text/markdown"&gt;
+Write `&lt;/script&gt;` to end a script.
+&lt;!-- the browser ended the script above --&gt;
+&lt;/script&gt;&lt;/ui-markdown&gt;</code></pre>
+                    </ui-content></ui-accordion
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c14">C14</a>
+                  <span class="plan-title">Headings inside markdown join the page's outline</span></ui-title
+                ><ui-content
+                  ><p>
+                    A <code>#</code> heading inside <code>&lt;ui-markdown&gt;</code> becomes a real
+                    <code>&lt;h1&gt;</code>, part of the page's heading outline, which can put it at the wrong level
+                    under the page's own headings.
+                  </p>
+                  <ul>
+                    <li>
+                      <code>heading-offset</code> shifts them to fit: <code>1</code> makes <code>#</code> an
+                      <code>&lt;h2&gt;</code>.
+                    </li>
+                    <li>Without it, axe's <code>heading-order</code> check can fail.</li>
+                    <li>
+                      The property is <code>headingLevelOffset</code>, because WebKit already has a native
+                      <code>headingOffset</code> (<a href="#d23">D23</a>).
+                    </li>
+                  </ul>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>example · 2 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-html">&lt;h1&gt;Page&lt;/h1&gt;
+&lt;ui-markdown source="readme.md" heading-offset="1"&gt;&lt;/ui-markdown&gt;</code></pre>
+                    </ui-content></ui-accordion
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c15">C15</a>
+                  <span class="plan-title"
+                    ><code>&lt;ui-code&gt;</code>'s highlighting engine is a 54 kB download</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The first <code>&lt;ui-code&gt;</code> on a page loads its highlighting engine, one chunk. A page
+                    with no code never loads it.
+                  </p>
+                  <ul>
+                    <li>Size: 54 kB gzipped.</li>
+                    <li>In it: highlight.js, with 30 languages.</li>
+                    <li>
+                      One chunk on purpose: a chunk per language would split Rolldown's runtime into a file every page
+                      loads (<a href="#d27">D27</a>).
+                    </li>
+                    <li>
+                      The docs' own copy (<a
+                        href="../../_assets/lazy/code-engine.js"
+                        target="src-packages-docs-assets-lazy-code-engine-js"
+                        ><code>packages/docs/_assets/lazy/code-engine.js</code></a
+                      >, a classic script, <a href="#d26">D26</a>) is 49 kB. Checked 2026-10-04: 50,390 bytes gzipped.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          data-tip="For later: not caveats, not issues."
+          id="todos"
+          header="6. Todos"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="list check"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item data-state="open" id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title">Footnotes in <code>&lt;ui-markdown&gt;</code></span></ui-title
+                ><ui-content
+                  ><p><code>&lt;ui-markdown&gt;</code> renders GitHub-flavoured markdown, but not footnotes yet.</p>
+                  <ul>
+                    <li>The likely way: the <code>marked-footnote</code> extension for marked.</li>
+                    <li>Already on: tables, task lists, strikethrough, autolinks.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title"
+                    >A <code>scripts</code> attribute on <code>&lt;ui-include&gt;</code></span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Scripts inside included HTML don't run today: the content goes in as <code>innerHTML</code>. A
+                    <code>scripts</code> attribute would let a page opt in.
+                  </p>
+                  <ul>
+                    <li>The decision that left it for later: <a href="#d7">D7</a>.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title">Editing code and markdown in place: a later epic</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-code&gt;</code> and <code>&lt;ui-markdown&gt;</code> only show text. Editing them is a
+                    later epic, on your own strategy: not CodeMirror, Monaco or micromark (<a href="#d12">D12</a>).
+                  </p>
+                  <ul>
+                    <li>
+                      What's ready for it: the <code>content</code> property and <code>save()</code> on all three
+                      elements, the seam an editor plugs into.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="t4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title">A spell highlighting bundle per translation</span></ui-title
+                ><ui-content
+                  ><p>
+                    Spell's highlighting bundle exists in English only. Once spell has translations, each needs its own
+                    bundle, so
+                    <code>spell/es</code> and friends colour (<a href="#c7">C7</a>).
+                  </p>
+                  <ul>
+                    <li>
+                      Named <code>spell-highlight.&lt;lang&gt;.js</code> when written. Today the generator writes
+                      <code>spell.&lt;lang&gt;.bundle.js</code> plus its wrapper, one set per language in its
+                      <code>LANGUAGES</code> list (<a
+                        href="../../../ui/scripts/gen-spell.ts"
+                        target="src-packages-ui-scripts-gen-spell-ts"
+                        ><code>packages/ui/scripts/gen-spell.ts</code></a
+                      >).
+                    </li>
+                    <li>
+                      <code>&lt;ui-code&gt;</code> already finds them by name, through a glob, one lazy chunk each.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="t5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t5">T5</a>
+                  <span class="plan-title"
+                    >A markdown parser on spell's parser, if spell's tools need markdown</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The Overview's analysis (<a href="#o7">1.7</a>) found a markdown parser on
+                    <code>$/parser</code> worth building only if markdown must live inside spell's tooling. So it's a
+                    todo, not a phase.
+                  </p>
+                  <ul>
+                    <li>
+                      Worth it for:
+                      <ul>
+                        <li>the language server, completion</li>
+                        <li>one AST for spell and its docs</li>
+                        <li>spell-aware editing</li>
+                      </ul>
+                    </li>
+                    <li>For rendering alone, marked is about 70 times faster.</li>
+                    <li>Effort: about 1.5-2 weeks for a useful subset of GitHub markdown.</li>
+                    <li>
+                      Looks done or obsolete: a separate epic, <code>markdown</code> (worktree
+                      <code>.claude/worktrees/markdown</code>), is building this; its plan doc says DONE, not yet merged
+                      into <code>main</code> (checked 2026-10-04).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="t6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t6">T6</a>
+                  <span class="plan-title"
+                    >Docs pages: colour code with <code>&lt;ui-code&gt;</code>, drop highlight.js from the CDN</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The docs pages colour their code blocks with highlight.js loaded from a CDN, not with
+                    <code>&lt;ui-code&gt;</code>. Moving them over would mean one highlighter and one palette
+                    everywhere, spell included.
+                  </p>
+                  <ul>
+                    <li>The step: render the docs' spell code blocks with <code>&lt;ui-code&gt;</code>.</li>
+                    <li>Then drop the CDN highlight.js.</li>
+                    <li>
+                      Still to do on 2026-10-04: 44 pages in
+                      <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> still load highlight.js
+                      11.9.0 from cdnjs (e.g.
+                      <a href="../../templates/cheatsheet.html" target="src-packages-docs-templates-cheatsheet-html"
+                        ><code>templates/cheatsheet.html</code></a
+                      >).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
-            ><ui-item id="i1" data-status="done"
+            ><ui-item data-state="old" id="i1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
@@ -1385,9 +2063,29 @@
           >
         </ui-section>
 
-        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+        <ui-section
+          data-tip="What to check by hand before merging: each a step, and what should happen. Struck through once it passes."
+          id="tests"
+          header="8. To test"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="flask"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section
+          data-tip="Plan changes, oldest first, local time."
+          id="log"
+          header="9. Log"
+          sticky
+          collapsible
+          dividing
+        >
           <ui-icon slot="icon" name="clock rotate left"></ui-icon>
-          <p class="meta">Plan changes, oldest first, local time.</p>
+
           <ui-feed class="plan-log" size="small">
             <ui-event icon="pen to square">
               <ui-content>
