@@ -9,74 +9,61 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Table">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-table.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-table%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/collections/table.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Table
+            <ui-header>A table displays a collection of data grouped into rows.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-table" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-table.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-table%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/collections/table.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Table
-                <ui-header>A table displays a collection of data grouped into rows.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-table" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Table"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's table page, section by section, in its order (Types, States, Variations), plus our own
-                  extras (Content, Attached, Table alignment, Overflowing).  `<ui-table>` wraps a NATIVE `<table>`:  rows and cells
-                  keep Fomantic's class words (`positive`, `right aligned`, `collapsing`);  only the table's own words are attributes.
-                -->
-
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <ui-docs-example header="Table">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's table page, section by section, in its order (Types, States, Variations), plus our own
+              extras (Content, Attached, Table alignment, Overflowing).  `<ui-table>` wraps a NATIVE `<table>`:  rows and cells
+              keep Fomantic's class words (`positive`, `right aligned`, `collapsing`);  only the table's own words are attributes.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-table" header="Table" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A standard table: <code>&lt;ui-table&gt;</code> around a native <code>&lt;table&gt;</code>. Rows,
                     cells and their class words (<code>positive</code>, <code>right aligned</code>,
@@ -294,7 +281,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Definition">
+              </ui-section>
+              <ui-section id="examples-types-definition" header="Definition" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A table may be formatted to emphasize a first column that defines a rows content.
                   </p>
@@ -395,7 +384,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Structured">
+              </ui-section>
+              <ui-section id="examples-types-structured" header="Structured" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A table can be formatted to display complex structured data</p>
                   <ui-message slot="description" state="info" size="small"
                     ><p>
@@ -467,11 +458,18 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="content">Content</ui-header>
-
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section
+                id="examples-content-caption-and-row-headers"
+                header="Caption and row headers"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Caption and row headers"
                   description='A table keeps every native part:  a `<caption>`, row headers (`th scope="row"`), and the `full-width` class on `thead` / `tfoot`.'
                 >
                   <ui-table definition compact celled>
@@ -509,9 +507,10 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-content-row-spanned" header="Row spanned" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Row spanned"
                   description="A `rowspanned` cell is a hidden stand-in for a cell spanning down from the row above, so every row keeps a full set of cells (and stacks right on phones)."
                 >
                   <ui-table celled>
@@ -538,13 +537,18 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
-                <ui-docs-example
-                  header="Positive / Negative"
-                  description="A cell or row may let a user know whether a value is good or bad."
-                >
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section
+                id="examples-states-positive-negative"
+                header="Positive / Negative"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="A cell or row may let a user know whether a value is good or bad.">
                   <ui-table celled>
                     <table>
                       <thead>
@@ -579,10 +583,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example
-                  header="Error"
-                  description="A cell or row may call attention to an error or a negative value."
-                >
+              </ui-section>
+              <ui-section id="examples-states-error" header="Error" sticky collapsible dividing>
+                <ui-docs-example description="A cell or row may call attention to an error or a negative value.">
                   <ui-table celled>
                     <table>
                       <thead>
@@ -617,7 +620,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Warning" description="A cell or row may warn a user.">
+              </ui-section>
+              <ui-section id="examples-states-warning" header="Warning" sticky collapsible dividing>
+                <ui-docs-example description="A cell or row may warn a user.">
                   <ui-table celled>
                     <table>
                       <thead>
@@ -652,7 +657,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Active" description="A cell or row can be active or selected by a user.">
+              </ui-section>
+              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+                <ui-docs-example description="A cell or row can be active or selected by a user.">
                   <ui-table celled>
                     <table>
                       <thead>
@@ -687,7 +694,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Disabled" description="A cell can be disabled.">
+              </ui-section>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="A cell can be disabled.">
                   <ui-table celled>
                     <table>
                       <thead>
@@ -722,10 +731,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example
-                  header="Colored Cells"
-                  description="A cell can be styled by the central color palette colors."
-                >
+              </ui-section>
+              <ui-section id="examples-states-colored-cells" header="Colored Cells" sticky collapsible dividing>
+                <ui-docs-example description="A cell can be styled by the central color palette colors.">
                   <ui-table celled>
                     <table>
                       <thead>
@@ -760,11 +768,13 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Marked">
+              </ui-section>
+              <ui-section id="examples-states-marked" header="Marked" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A cell or row can be marked by a colored left or right border.</p>
                   <ui-message slot="description" state="warning" size="small"
                     >Follow the class order: first the color name, then <code>marked</code>. This is to support
-                    <a href="#colored-and-marked">colored and marked</a> cells.</ui-message
+                    <a href="#examples-states-colored-and-marked">colored and marked</a> cells.</ui-message
                   >
                   <ui-table celled>
                     <table>
@@ -800,7 +810,15 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Colored and Marked">
+              </ui-section>
+              <ui-section
+                id="examples-states-colored-and-marked"
+                header="Colored and Marked"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     If you need colored cells which are also marked at the same time in a different color, you have to
                     follow a specific class order and add the <code>colored</code> class to the cell color.<br />For
@@ -825,11 +843,12 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-single-line" header="Single Line" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Single Line"
                   description="A table can specify that its cell contents should remain on a single line, and not wrap."
                 >
                   <ui-table single-line>
@@ -865,7 +884,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Fixed">
+              </ui-section>
+              <ui-section id="examples-variations-fixed" header="Fixed" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A table can use
                     <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/table-layout"
@@ -946,10 +967,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example
-                  header="Stacking"
-                  description="A table can specify how it stacks table content responsively."
-                >
+              </ui-section>
+              <ui-section id="examples-variations-stacking" header="Stacking" sticky collapsible dividing>
+                <ui-docs-example description="A table can specify how it stacks table content responsively.">
                   <ui-table unstackable>
                     <table>
                       <thead>
@@ -1007,7 +1027,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Selectable Row" description="A table can have its rows appear selectable.">
+              </ui-section>
+              <ui-section id="examples-variations-selectable-row" header="Selectable Row" sticky collapsible dividing>
+                <ui-docs-example description="A table can have its rows appear selectable.">
                   <ui-table selectable celled>
                     <table>
                       <thead>
@@ -1082,7 +1104,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Selectable Cell">
+              </ui-section>
+              <ui-section id="examples-variations-selectable-cell" header="Selectable Cell" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A table cell can be selectable.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Using an <code>a</code> link inside a selectable cell will automatically make the hit box the
@@ -1144,10 +1168,15 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example
-                  header="Vertical Alignment"
-                  description="A table header, row, or cell can adjust its vertical alignment."
-                >
+              </ui-section>
+              <ui-section
+                id="examples-variations-vertical-alignment"
+                header="Vertical Alignment"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="A table header, row, or cell can adjust its vertical alignment.">
                   <ui-table striped>
                     <table>
                       <thead>
@@ -1180,10 +1209,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example
-                  header="Text Alignment"
-                  description="A table header, row, or cell can adjust its text alignment."
-                >
+              </ui-section>
+              <ui-section id="examples-variations-text-alignment" header="Text Alignment" sticky collapsible dividing>
+                <ui-docs-example description="A table header, row, or cell can adjust its text alignment.">
                   <ui-table striped>
                     <table>
                       <thead>
@@ -1213,8 +1241,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-variations-striped" header="Striped" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Striped"
                   description="A table can stripe alternate rows of content with a darker color to increase contrast."
                 >
                   <ui-table striped>
@@ -1280,7 +1309,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Celled" description="A table may be divided each row into separate cells.">
+              </ui-section>
+              <ui-section id="examples-variations-celled" header="Celled" sticky collapsible dividing>
+                <ui-docs-example description="A table may be divided each row into separate cells.">
                   <ui-table celled>
                     <table>
                       <thead>
@@ -1317,10 +1348,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example
-                  header="Basic"
-                  description="A table can reduce its complexity to increase readability."
-                >
+              </ui-section>
+              <ui-section id="examples-variations-basic" header="Basic" sticky collapsible dividing>
+                <ui-docs-example description="A table can reduce its complexity to increase readability.">
                   <ui-table basic>
                     <table>
                       <thead>
@@ -1353,7 +1383,7 @@
                 <ui-docs-example>
                   <ui-message slot="description" state="info" size="small"
                     ><code>very basic</code> tables have loose padding unless they are also
-                    <a href="#sortable"><code>sortable</code></a> or <a href="#striped"><code>striped</code></a
+                    <a href="#examples-variations-sortable"><code>sortable</code></a> or <a href="#examples-variations-striped"><code>striped</code></a
                     >.</ui-message
                   >
                   <ui-table basic="very">
@@ -1385,7 +1415,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Collapsing Cell">
+              </ui-section>
+              <ui-section id="examples-variations-collapsing-cell" header="Collapsing Cell" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A cell can be collapsing so that it only uses as much space as required.</p>
                   <ui-message slot="description" state="warning" size="small" icon="warning"
                     >To ensure icons don't wrap to a separate line you must either specify <code>collapsing</code> on
@@ -1413,8 +1445,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-variations-column-count" header="Column Count" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Column Count"
                   description='A table can specify its column count to divide its content evenly:  `columns="5"`.'
                 >
                   <ui-table columns="5">
@@ -1463,7 +1496,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Column Width">
+              </ui-section>
+              <ui-section id="examples-variations-column-width" header="Column Width" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A table can specify the width of individual columns independently.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Tables use a 16 column grid similar to <a href="ui-grid.html">the grid</a>:
@@ -1500,10 +1535,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example
-                  header="Collapsing"
-                  description="A table can be collapsing, taking up only as much space as its rows."
-                >
+              </ui-section>
+              <ui-section id="examples-variations-collapsing" header="Collapsing" sticky collapsible dividing>
+                <ui-docs-example description="A table can be collapsing, taking up only as much space as its rows.">
                   <ui-table collapsing>
                     <table>
                       <thead>
@@ -1540,10 +1574,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example
-                  header="Colored"
-                  description="A table can be given a color to distinguish it from other tables."
-                >
+              </ui-section>
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+                <ui-docs-example description="A table can be given a color to distinguish it from other tables.">
                   <ui-table color="red">
                     <table>
                       <thead>
@@ -1821,7 +1854,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Inverted" description="A table's colors can be inverted.">
+              </ui-section>
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A table's colors can be inverted.">
                   <ui-table inverted>
                     <table>
                       <thead>
@@ -2136,7 +2171,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Sortable">
+              </ui-section>
+              <ui-section id="examples-variations-sortable" header="Sortable" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A table may allow a user to sort contents by clicking on a table header.</p>
                   <ui-message slot="description" state="info" size="small"
                     >No plugin needed: a header click (or Enter / Space) fires <code>ui-sort</code> and marks the column
@@ -2179,8 +2216,15 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+              <ui-section
+                id="examples-variations-full-width-header-footer"
+                header="Full-Width Header / Footer"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Full-Width Header / Footer"
                   description="A definition table can have a full width header or footer, filling in the gap left by the first column."
                 >
                   <ui-table compact celled definition>
@@ -2236,10 +2280,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example
-                  header="Padded"
-                  description="A table may sometimes need to be more padded for legibility."
-                >
+              </ui-section>
+              <ui-section id="examples-variations-padded" header="Padded" sticky collapsible dividing>
+                <ui-docs-example description="A table may sometimes need to be more padded for legibility.">
                   <ui-table padded>
                     <table>
                       <thead>
@@ -2295,8 +2338,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Compact"
                   description="A table may sometimes need to be more compact to make more rows visible at a time."
                 >
                   <ui-table compact>
@@ -2417,8 +2461,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-variations-attached" header="Attached" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Attached"
                   description='A table can be attached to other content on a page:  `attached="top"`, `attached` (the middle) or `attached="bottom"`.'
                 >
                   <ui-table attached="top">
@@ -2455,9 +2500,10 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-table-alignment" header="Table alignment" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Table alignment"
                   description="A table's cells can all share one text alignment (`text-align`);  `vertical-align` does the same vertically."
                 >
                   <ui-table text-align="center" celled>
@@ -2484,8 +2530,10 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Size" description="A table can also be small or large.">
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A table can also be small or large.">
                   <ui-table size="small">
                     <table>
                       <thead>
@@ -2559,14 +2607,16 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
-                <ui-docs-example header="Scrolling">
+              </ui-section>
+              <ui-section id="examples-variations-scrolling" header="Scrolling" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A table body can scroll vertically: <code>scrolling</code>, with the head and foot stuck.
                   </p>
                   <ui-message slot="description" state="warning" size="small"
-                    >Some table variants like <a href="#column-width">column width</a> or
-                    <a href="#single-line">single line</a> do not work with a scrolling table. If you need such
-                    combinations use a <a href="#stuck">stuck table</a> instead.</ui-message
+                    >Some table variants like <a href="#examples-variations-column-width">column width</a> or
+                    <a href="#examples-variations-single-line">single line</a> do not work with a scrolling table. If you need such
+                    combinations use a <a href="#examples-variations-stuck">stuck table</a> instead.</ui-message
                   >
                   <ui-message slot="description" state="info" size="small"
                     >Add <code>resizable</code> and a native resize drag handler will appear to the bottom right of the
@@ -2799,8 +2849,9 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-variations-overflowing" header="Overflowing" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Overflowing"
                   description="A table can scroll both ways when its content is too wide or too tall, with nothing stuck.  It takes the same height steps as `scrolling`."
                 >
                   <ui-table overflowing="short" celled aria-label="Overflowing cells">
@@ -2920,8 +2971,10 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Stuck">
+              <ui-section id="examples-variations-stuck" header="Stuck" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A table can scroll horizontally having its <code>head</code>, <code>foot</code>,
                     <code>first</code> or <code>last</code> column keep staying stuck.
@@ -3070,55 +3123,59 @@
                     </ui-table>
                   </ui-container>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  the native table, stacking, sorting, data mode, keyboard, accessibility, frameworks. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `<ui-table>` holds ONE native `<table>`, and the table stays in the page (the light DOM): its semantics,
-                    find-in-page, copy and your own CSS all work as on any table. The element only adds the look, sorting and a
-                    scroller.
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  the native table, stacking, sorting, data mode, keyboard, accessibility, frameworks. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-table>` holds ONE native `<table>`, and the table stays in the page (the light DOM): its semantics,
+                  find-in-page, copy and your own CSS all work as on any table. The element only adds the look, sorting and a
+                  scroller.
 
-                    - It copies its class words onto the table (`<ui-table celled striped>` gives
-                      `<table class="ui celled striped table">`), adding and removing only its own words, so your classes
-                      stay. A server can write that class string itself, and the table paints before any script runs.
-                    - Rows and cells keep Fomantic's classes on the native `tr`, `td` and `th`: `positive`, `left red marked`,
-                      `collapsing`, `four wide`, `right aligned`. No script, no extra elements.
-                    - `columns="4"` is Fomantic's equal-width column count; the data mode's column list is the separate `columnDefs`
-                      property.
-                  </script>
-                </ui-markdown>
+                  - It copies its class words onto the table (`<ui-table celled striped>` gives
+                    `<table class="ui celled striped table">`), adding and removing only its own words, so your classes
+                    stay. A server can write that class string itself, and the table paints before any script runs.
+                  - Rows and cells keep Fomantic's classes on the native `tr`, `td` and `th`: `positive`, `left red marked`,
+                    `collapsing`, `four wide`, `right aligned`. No script, no extra elements.
+                  - `columns="4"` is Fomantic's equal-width column count; the data mode's column list is the separate `columnDefs`
+                    property.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="stacking">Stacking</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `stackable` answers to the VIEWPORT, as in Fomantic: below 768px every table stacks unless it is `unstackable`;
-                    `stackable="tablet"` also stacks below 992px.
+            <ui-section id="usage-stacking" header="Stacking" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `stackable` answers to the VIEWPORT, as in Fomantic: below 768px every table stacks unless it is `unstackable`;
+                  `stackable="tablet"` also stacks below 992px.
 
-                    A table in a narrow sidebar of a wide screen can follow its OWN width instead with `stack-by="container"`, or a
-                    whole region with the token `--ui-table-stack-by: container` (on an ancestor or the page); the attribute wins
-                    over the token.
-                  </script>
-                </ui-markdown>
+                  A table in a narrow sidebar of a wide screen can follow its OWN width instead with `stack-by="container"`, or a
+                  whole region with the token `--ui-table-stack-by: container` (on an ancestor or the page); the attribute wins
+                  over the token.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="sorting">Sorting</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    With `sortable`, every header in the `thead` sorts, unless it has `data-sortable="false"` (or Fomantic's
-                    `class="disabled"`).
+            <ui-section id="usage-sorting" header="Sorting" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  With `sortable`, every header in the `thead` sorts, unless it has `data-sortable="false"` (or Fomantic's
+                  `class="disabled"`).
 
-                    - A click, or Enter / Space on a focused header, first dispatches the cancelable `ui-sort`
-                      (`{ column, key, direction }`, where `key` is the header's `data-key`).
-                    - Then `sort-column`, `sort-direction` and the header's `aria-sort` update. The same header again flips the
-                      direction; a new one starts `ascending`.
-                    - The element does not move your rows unless you ask: `client-sort` reorders a simple table's `tbody` rows by the
-                      sorted column's text (numbers in number order); otherwise sort the rows yourself.
-                  </script>
-                </ui-markdown>
+                  - A click, or Enter / Space on a focused header, first dispatches the cancelable `ui-sort`
+                    (`{ column, key, direction }`, where `key` is the header's `data-key`).
+                  - Then `sort-column`, `sort-direction` and the header's `aria-sort` update. The same header again flips the
+                    direction; a new one starts `ascending`.
+                  - The element does not move your rows unless you ask: `client-sort` reorders a simple table's `tbody` rows by the
+                    sorted column's text (numbers in number order); otherwise sort the rows yourself.
+                </script>
+              </ui-markdown>
+              <ui-section id="usage-sorting-client-sort" header="Client sort" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Client sort"
                   description="`client-sort` reorders the rows by cell text on each `ui-sort`.  Click a header."
                 >
                   <ui-table sortable client-sort celled>
@@ -3155,179 +3212,184 @@
                     </table>
                   </ui-table>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="events">Events</ui-header>
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `ui-sort` is the only event: `detail` is `{ column, key, direction, originalEvent }`. `preventDefault()` keeps
+                  the current sort (and skips data mode / `client-sort` reordering).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  // the app sorts its own rows;  `event.preventDefault()` would keep the current sort instead
+                  const table = document.querySelector("ui-table")
+                  table.addEventListener("ui-sort", async (event) => {
+                    const { key, direction } = event.detail
+                    renderRows(await fetchRows({ sort: key, direction }))
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-data-mode" header="Data mode" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  With NO slotted `<table>`, set the `rows` property (and optionally `columnDefs`: `key`, `header`, `textAlign`,
+                  `sortable`, `width`) and the element renders the table itself, into the light DOM as plain text.
+
+                  - `th scope="col"` headers, with sort buttons when `sortable`, and the rows in the current sort order.
+                  - Without `columnDefs`, the columns are the first row's keys.
+                  - A slotted table always wins and is never overwritten.
+                  - Every row renders (there is no virtual scrolling yet), and first paint never needs the property: a server can
+                    write the same `<table>` markup itself.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-table celled striped sortable aria-label="Planets"></ui-table>
+                </script>
+              </ui-code>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const table = document.querySelector("ui-table")
+                  table.columnDefs = [
+                    { key: "name", header: "Planet" },
+                    { key: "moons", header: "Moons", textAlign: "right" },
+                    { key: "day", header: "Day (hours)", textAlign: "right" }
+                  ]
+                  table.rows = [
+                    { name: "Mercury", moons: 0, day: 4222.6 },
+                    { name: "Venus", moons: 0, day: 2802 },
+                    { name: "Earth", moons: 1, day: 24 },
+                    { name: "Mars", moons: 2, day: 24.7 },
+                    { name: "Jupiter", moons: 95, day: 9.9 }
+                  ]
+                  table.addEventListener("ui-sort", (event) => console.log(event.detail))
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - **Tab** moves to each sort button (or focusable header), and to a scrolling region.
+                  - **Enter** / **Space** sorts by the focused header; again flips the direction.
+                  - **Arrow keys**, **Page Up** / **Page Down** scroll a focused scrolling region.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The table is a real `<table>` in the document, so screen readers read its rows, columns and headers natively.
+                    Mark headers with `th` and `scope` (`col`, `row`, `colgroup`), and name the table with a `<caption>`.
+                  - Row and cell states (`positive`, `error`, `warning`, colours, `marked`) are visual only: say the same thing in
+                    the cell's text too.
+                  - Sortable headers: put a `<button>` in each, as the WAI-ARIA sortable table pattern does. A header without one
+                    is made focusable and answers Enter and Space. The sorted header gets `aria-sort`.
+                  - `scrolling` and `overflowing` make the scroller a focusable `role="region"`, so keyboard users can scroll it.
+                    It is named by the host's `aria-label`, else the table's `<caption>`, else the translated `label` ("Table").
+                  - If the element fails to render, its native fallback still copies the class words onto the table and keeps the
+                    scroller (a named region while scrolling), so the table looks the same. It drops sorting (`ui-sort`,
+                    `aria-sort`, focusable headers, `client-sort`), data mode (nothing renders without a slotted `<table>`), the
+                    translated `label` and later attribute changes.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Render the `<table>` inside `<ui-table>` as usual. For data mode, set `rows` / `columnDefs` as properties, not
+                  attributes, and listen for `ui-sort`.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-table celled sortable rows={rows} columnDefs={columns} onui-sort={(event) => setSort(event.detail)} />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-table celled sortable :rows="rows" :columnDefs="columns" @ui-sort="(event) => (sort = event.detail)" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-table
+                    celled
+                    sortable
+                    prop:rows={rows()}
+                    prop:columnDefs={columns}
+                    ref={(el) => el.addEventListener("ui-sort", (event) => setSort(event.detail))}
+                  />
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-table"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-table-*` tokens: set one on the element, on any ancestor (`:root` included), on the
+                  table itself (it's in your page) or through `::part(scroller)`. The sheet reads each through a private alias, so
+                  nothing blocks them. The shadow root's only piece is the `scroller` part.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-table {
+                    --ui-table-header-background: var(--ui-surface);
+                    --ui-table-striped-background: oklch(from var(--ui-primary) l c h / 0.06);
+                  }
+                  ui-table::part(scroller) {
+                    scrollbar-gutter: stable;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
                 <ui-markdown>
                   <script type="text/markdown">
-                    `ui-sort` is the only event: `detail` is `{ column, key, direction, originalEvent }`. `preventDefault()` keeps
-                    the current sort (and skips data mode / `client-sort` reordering).
+                    `inverted` swaps in its own `--ui-table-inverted-*` colours, and `padded` / `compact` replace the cell padding
+                    with their own steps (`--ui-table-padded`, `--ui-table-compact-padding-*`). `--ui-table-stack-by: container`
+                    makes every table in a region stack by its own width. Never set the `--_ui-*` names: they're the sheet's private
+                    plumbing.
                   </script>
                 </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    // the app sorts its own rows;  `event.preventDefault()` would keep the current sort instead
-                    const table = document.querySelector("ui-table")
-                    table.addEventListener("ui-sort", async (event) => {
-                      const { key, direction } = event.detail
-                      renderRows(await fetchRows({ sort: key, direction }))
-                    })
-                  </script>
-                </ui-code>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-table" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="data-mode">Data mode</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    With NO slotted `<table>`, set the `rows` property (and optionally `columnDefs`: `key`, `header`, `textAlign`,
-                    `sortable`, `width`) and the element renders the table itself, into the light DOM as plain text.
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
 
-                    - `th scope="col"` headers, with sort buttons when `sortable`, and the rows in the current sort order.
-                    - Without `columnDefs`, the columns are the first row's keys.
-                    - A slotted table always wins and is never overwritten.
-                    - Every row renders (there is no virtual scrolling yet), and first paint never needs the property: a server can
-                      write the same `<table>` markup itself.
-                  </script>
-                </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <ui-table celled striped sortable aria-label="Planets"></ui-table>
-                  </script>
-                </ui-code>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const table = document.querySelector("ui-table")
-                    table.columnDefs = [
-                      { key: "name", header: "Planet" },
-                      { key: "moons", header: "Moons", textAlign: "right" },
-                      { key: "day", header: "Day (hours)", textAlign: "right" }
-                    ]
-                    table.rows = [
-                      { name: "Mercury", moons: 0, day: 4222.6 },
-                      { name: "Venus", moons: 0, day: 2802 },
-                      { name: "Earth", moons: 1, day: 24 },
-                      { name: "Mars", moons: 2, day: 24.7 },
-                      { name: "Jupiter", moons: 95, day: 9.9 }
-                    ]
-                    table.addEventListener("ui-sort", (event) => console.log(event.detail))
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - **Tab** moves to each sort button (or focusable header), and to a scrolling region.
-                    - **Enter** / **Space** sorts by the focused header; again flips the direction.
-                    - **Arrow keys**, **Page Up** / **Page Down** scroll a focused scrolling region.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - The table is a real `<table>` in the document, so screen readers read its rows, columns and headers natively.
-                      Mark headers with `th` and `scope` (`col`, `row`, `colgroup`), and name the table with a `<caption>`.
-                    - Row and cell states (`positive`, `error`, `warning`, colours, `marked`) are visual only: say the same thing in
-                      the cell's text too.
-                    - Sortable headers: put a `<button>` in each, as the WAI-ARIA sortable table pattern does. A header without one
-                      is made focusable and answers Enter and Space. The sorted header gets `aria-sort`.
-                    - `scrolling` and `overflowing` make the scroller a focusable `role="region"`, so keyboard users can scroll it.
-                      It is named by the host's `aria-label`, else the table's `<caption>`, else the translated `label` ("Table").
-                    - If the element fails to render, its native fallback still copies the class words onto the table and keeps the
-                      scroller (a named region while scrolling), so the table looks the same. It drops sorting (`ui-sort`,
-                      `aria-sort`, focusable headers, `client-sort`), data mode (nothing renders without a slotted `<table>`), the
-                      translated `label` and later attribute changes.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Render the `<table>` inside `<ui-table>` as usual. For data mode, set `rows` / `columnDefs` as properties, not
-                    attributes, and listen for `ui-sort`.
-                  </script>
-                </ui-markdown>
-                <ui-header level="4" id="framework-react">React 19</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    <ui-table celled sortable rows={rows} columnDefs={columns} onui-sort={(event) => setSort(event.detail)} />
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                    <ui-table celled sortable :rows="rows" :columnDefs="columns" @ui-sort="(event) => (sort = event.detail)" />
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    // no `on:` namespace:  listen through a ref
-                    <ui-table
-                      celled
-                      sortable
-                      prop:rows={rows()}
-                      prop:columnDefs={columns}
-                      ref={(el) => el.addEventListener("ui-sort", (event) => setSort(event.detail))}
-                    />
-                  </script>
-                </ui-code>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-table"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-table-*` tokens: set one on the element, on any ancestor (`:root` included), on the
-                    table itself (it's in your page) or through `::part(scroller)`. The sheet reads each through a private alias, so
-                    nothing blocks them. The shadow root's only piece is the `scroller` part.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    ui-table {
-                      --ui-table-header-background: var(--ui-surface);
-                      --ui-table-striped-background: oklch(from var(--ui-primary) l c h / 0.06);
-                    }
-                    ui-table::part(scroller) {
-                      scrollbar-gutter: stable;
-                    }
-                  </script>
-                </ui-code>
-                <ui-message state="info" size="small">
-                  <ui-markdown>
-                    <script type="text/markdown">
-                      `inverted` swaps in its own `--ui-table-inverted-*` colours, and `padded` / `compact` replace the cell padding
-                      with their own steps (`--ui-table-padded`, `--ui-table-compact-padding-*`). `--ui-table-stack-by: container`
-                      makes every table in a region stack by its own width. Never set the `--_ui-*` names: they're the sheet's private
-                      plumbing.
-                    </script>
-                  </ui-markdown>
-                </ui-message>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-table" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                    theme to the whole site.
-
-                    Themes that restyle tables: Basic, Fomantic classic and GitHub.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+                  Themes that restyle tables: Basic, Fomantic classic and GitHub.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

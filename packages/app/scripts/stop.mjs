@@ -2,8 +2,8 @@
  * `yarn stop`:  stop every server started from this repo -- `yarn start`, vite, the express server and its
  * `tsx watch` -- EXCEPT the language server (`src/lsp/server.ts`), which an editor started and would lose.
  * - Finds them by command line:  anything run from this package's or this checkout's root `node_modules` copy of
- *   `concurrently`, `vite` or `tsx` (yarn hoists them to the root), so servers from other checkouts, and test runs
- *   (`vitest`), are left alone.
+ *   `concurrently`, `vite`, `tsx` or `vite-plus` running `vp dev` (yarn hoists them to the root), so servers from
+ *   other checkouts, and test runs (`vp test`), are left alone.
  * - ...then by working folder:  only processes running IN this package, since `ui`'s and its docs site's dev servers
  *   run the same hoisted `vite`.
  * - SIGTERM, like `pkill`.
@@ -14,7 +14,7 @@ import { resolve } from "path"
 const root = process.cwd()
 const monorepo = resolve(root, "../..")
 const ours = new RegExp(
-  `(${escapeRegExp(root)}|${escapeRegExp(monorepo)})/node_modules/(concurrently/|vite/|tsx/|\\.bin/tsx)`
+  `(${escapeRegExp(root)}|${escapeRegExp(monorepo)})/node_modules/(concurrently/|vite/|tsx/|\\.bin/tsx|vite-plus/bin/vp dev\\b)`
 )
 const languageServer = "/packages/lsp/src/server.ts"
 

@@ -69,8 +69,9 @@
  * - `add <path> [--name <name>]`:  add a folder (a worktree) to the window;  needs a window opened from its
  *   `.code-workspace` (else the change would restart its extensions, Claude panel included)
  * - `remove <path>`:  remove that folder again;  never the window's first
- * - `show <file>`:  show an `.html` doc in the window's doc preview (the right side bar's "Spell Docs" view);  in the window this session
- *   is moving to, once it has, while a `handoff` is pending
+ * - `show <file> [--hash <id>] [--review]`:  show an `.html` doc in the window's doc preview (the right side bar's
+ *   "Spell Docs" tab;  `--review`:  its "Review" tab), at id `<id>`;  in the window this session is moving to, once
+ *   it has, while a `handoff` is pending
  * - `open <name> [--pkg <pkg>]`:  write worktree `<name>`'s window file and open it in a new window;  `<pkg>`
  *   defaults to this session's window's package.  `close <name>`:  close that window, delete the file.
  * - `handoff <name> [--back] [--prompt <text>]`:  move this session to worktree `<name>`'s window when its turn
@@ -271,7 +272,7 @@ export class Window {
    *   file goes.  Not in that window (an older session, or the move there failed):  `null`, nothing to move.
    * - the record ~== `{ sessionId, to, from, close, remove, show, prompt }`:  `to` the target window's file, `from`
    *   this window's pid, `close` `"tab"` or `"window"`, `remove` a file to delete after, `show` a doc to show
-   *   there, `{ file, hash }` (`Window.show()` sets it), `prompt` text typed into the new tab (or `null`)
+   *   there, `{ file, hash?, view? }` (`Window.show()` sets it), `prompt` text typed into the new tab (or `null`)
    */
   static handoff(name, sessionId, { back = false, prompt = null } = {}) {
     if (!SESSION_ID.test(sessionId ?? "")) throw new Error("no session:  $CLAUDE_CODE_SESSION_ID isn't set")
@@ -335,12 +336,14 @@ export class Window {
   /**
    * Show `file` (an `.html` doc) in this session's window's doc preview, at id `hash` if given;  resolves to
    * `{ window }` (the registry entry it showed in) or `{ later }` (the window file it will show in).
+   * - `view`:  the side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review");  sent only when
+   *   given, so an extension from before the tabs still shows the doc
    * - a `handoff` pending for `sessionId`:  NOT here, where the session's tab is about to close, but in the window
-   *   it moves to, once it has (`resume`).  The preview shows one doc, so the last asked for wins.
+   *   it moves to, once it has (`resume`).  The handoff keeps ONE doc, so the last asked for wins, whichever tab.
    * - throws as `request()` does:  no window, or it failed
    */
-  static async show(file, { hash, sessionId = process.env.CLAUDE_CODE_SESSION_ID } = {}) {
-    const show = hash ? { file, hash } : { file }
+  static async show(file, { hash, view, sessionId = process.env.CLAUDE_CODE_SESSION_ID } = {}) {
+    const show = { file, ...(hash && { hash }), ...(view && { view }) }
     const pending = SESSION_ID.test(sessionId ?? "") ? Window.handoffFile(sessionId) : null
     if (pending && existsSync(pending)) {
       const handoff = { ...JSON.parse(readFileSync(pending, "utf8")), show }
@@ -507,7 +510,8 @@ export class Window {
         const { removed } = await Window.request("remove-folder", { path }, window)
         console.log(removed ? `removed ${path} from window ${window.pid}` : `${path} isn't in window ${window.pid}`)
       } else {
-        const { later } = await Window.show(path)
+        const hash = typeof flags.hash === "string" ? flags.hash : undefined
+        const { later } = await Window.show(path, { hash, view: flags.review ? "review" : undefined })
         console.log(
           later
             ? `${path} shows in ${relative(MAIN_ROOT, later)}'s window once this session moves there`
@@ -547,7 +551,8 @@ export class Window {
         const { closed, matches, shown } = await Window.resume(handoff, flags.title)
         console.log(`${new Date().toISOString()}  opened session ${handoff.sessionId} in ${handoff.to}`)
         if (shown !== undefined) console.log(`  ${shown ? "showed" : "couldn't show"} ${handoff.show.file}`)
-        if (!closed) console.log(`  left its old ${handoff.close} open (tabs per title:  ${JSON.stringify(matches ?? {})})`)
+        if (!closed)
+          console.log(`  left its old ${handoff.close} open (tabs per title:  ${JSON.stringify(matches ?? {})})`)
         return 0
       }
       if (command === "close") {
@@ -575,7 +580,9 @@ const USAGE = `usage:  yarn window <command>
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window
   remove <path>                remove it again
-  show <file>                  show an .html doc in the window's doc preview (right side bar)
+  show <file> [--hash <id>] [--review]
+                               show an .html doc in the window's doc preview (right side bar's
+                               "Spell Docs" tab;  --review:  its "Review" tab), at id <id>
                                (moving:  in the window this session moves to)
   open <name> [--pkg <pkg>]    open worktree <name> in a new window (default package:  this window's)
   close <name>                 close that window, delete its file

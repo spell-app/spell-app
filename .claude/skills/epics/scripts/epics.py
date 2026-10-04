@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Every epic (a plan doc, `packages/docs/epics/<name>/<name>.html`) and where it stands, for `/epics`.
+"""Every epic (a plan doc, `packages/docs/epics/<name>/<name>.plan.html`, or an old `<name>.html`) and where it stands, for `/epics`.
 
 Usage:
   epics.py               the open epics, as text
@@ -28,6 +28,7 @@ worktree, branch, unique, dirty, parked, overnight, sessions[], error}`:
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -63,18 +64,34 @@ def gather():
     worktrees = {name: (path, branch) for name, path, branch in wt.worktree_names()}
     files = {}
     for folder in sorted((MAIN / EPICS).glob("*")):
-        if (folder / f"{folder.name}.html").exists():
-            files[folder.name] = folder / f"{folder.name}.html"
+        found = plan_doc_in(folder, folder.name)
+        if found:
+            files[folder.name] = found
     # a worktree's own plan doc is the live one
     for name, (path, _) in worktrees.items():
-        own = Path(path) / EPICS / name / f"{name}.html"
-        if own.exists():
+        own = plan_doc_in(Path(path) / EPICS / name, name)
+        if own:
             files[name] = own
     summaries = park.plan_summaries([str(f) for f in files.values()])
     sessions = wt.live_sessions()
     epics = [epic(name, str(file), summaries.get(str(file)), worktrees.get(name), sessions)
              for name, file in files.items()]
     return sorted(epics, key=lambda e: (not e["open"], e["name"]))
+
+
+def plan_doc_in(folder, name):
+    """Epic `name`'s plan doc in `folder`:  `<name>.plan.html`, else an old `<name>.html` that is a plan doc, else None.
+
+    - why both:  plan docs were renamed on 2026-10-04 (`review-review` P4);  worktrees cut before keep the old name
+      until they merge `main` (`packages/docs/scripts/pages.js` `planDocIn()` is the same)
+    """
+    renamed = folder / f"{name}.plan.html"
+    if renamed.exists():
+        return renamed
+    old = folder / f"{name}.html"
+    if old.exists() and re.search(r'<body\b[^>]*\bclass="[^"]*\bplan-doc\b', old.read_text()):
+        return old
+    return None
 
 
 def epic(name, file, summary, worktree, sessions):

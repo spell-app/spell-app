@@ -12,77 +12,65 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Code">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-code.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-code%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Code
+            <ui-header
+              >Code shows a block of source code coloured by its language, from the element's own text or a file on
+              this site.</ui-header
+            >
+          </ui-header>
+          <ui-docs-themes for="ui-code" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-code.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-code%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Code
-                <ui-header
-                  >Code shows a block of source code coloured by its language, from the element's own text or a file on
-                  this site.</ui-header
-                >
-              </ui-header>
-              <ui-docs-themes for="ui-code" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Code"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples (Types, Variations), restyled, plus a markup
-                  example.  Files shown:  `site/examples/` (`../examples/sample.json`).
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples (Types, Variations), restyled, plus a markup
+              example.  Files shown:  `site/examples/` (`../examples/sample.json`).
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-code" header="Code" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Code"
                   description="Code colours its own text as `language`:  any highlight.js name or alias (`ts`, `html`, `css`, `json`, `bash` ...)."
                 >
                   <ui-code language="ts">const greeting: string = "hello"</ui-code>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-markup" header="Markup" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Markup"
                   description='Code with `<` or `&` goes in a `<script type="text/plain">` child:  its text is taken exactly, then dedented.'
                 >
                   <ui-code language="html">
@@ -92,28 +80,34 @@
                     </script>
                   </ui-code>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-from-a-file" header="From a file" sticky collapsible dividing>
                 <ui-docs-example
-                  header="From a file"
                   description="`source` shows a file of this site, fetched when `load` says.  Without `language`, the language is guessed among the common ones;  `detectedLanguage` says which."
                 >
                   <ui-code source="../examples/sample.json"></ui-code>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-spell" header="Spell" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Spell"
                   description='`language="spell"` colours spell with spell&apos;s own parser, loaded the first time a page shows spell.'
                 >
                   <ui-code language="spell">a pile is a list of cards</ui-code>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example header="Line numbers" description="`line-numbers` numbers the lines, from `start`.">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-line-numbers" header="Line numbers" sticky collapsible dividing>
+                <ui-docs-example description="`line-numbers` numbers the lines, from `start`.">
                   <ui-code language="json" source="../examples/sample.json" line-numbers start="10"></ui-code>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Wrapping" description="`wrap` wraps long lines;  by default they scroll.">
+              <ui-section id="examples-variations-wrapping" header="Wrapping" sticky collapsible dividing>
+                <ui-docs-example description="`wrap` wraps long lines;  by default they scroll.">
                   <ui-code language="bash" wrap>
                     <script type="text/plain">
                       echo "a long line that wraps once the box is too narrow to hold it, instead of scrolling sideways"
@@ -128,143 +122,150 @@
                     </script>
                   </ui-code>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Copy button" description="`copy` adds a button that copies the code.">
+              <ui-section id="examples-variations-copy-button" header="Copy button" sticky collapsible dividing>
+                <ui-docs-example description="`copy` adds a button that copies the code.">
                   <ui-code language="bash" copy>yarn add @spell-app/ui</ui-code>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  from the old Astro page's Behaviour, plus the vocabulary's events and the shadow markup's a11y. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Write the code inside `<ui-code>` and say its `language`. The text comes from, first match wins:
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  from the old Astro page's Behaviour, plus the vocabulary's events and the shadow markup's a11y. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write the code inside `<ui-code>` and say its `language`. The text comes from, first match wins:
 
-                    - `source`: a file of this site (same origin only), fetched when `load` says (`eager`, `visible` or `idle`).
-                    - A `<script type="text/plain">` child: its text exactly, so `<` and `&` need no escaping.
-                    - The element's own text, dedented, so it can be indented with the markup around it.
+                  - `source`: a file of this site (same origin only), fetched when `load` says (`eager`, `visible` or `idle`).
+                  - A `<script type="text/plain">` child: its text exactly, so `<` and `&` need no escaping.
+                  - The element's own text, dedented, so it can be indented with the markup around it.
 
-                    The `content` property replaces either until `source` changes. Leave `language` out to have it guessed among the
-                    common languages (`detectedLanguage` says which), or say `text` for no colours at all.
-                  </script>
-                </ui-markdown>
+                  The `content` property replaces either until `source` changes. Leave `language` out to have it guessed among the
+                  common languages (`detectedLanguage` says which), or say `text` for no colours at all.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="languages">Languages</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    highlight.js loads lazily, with the first code shown; until it arrives, the code shows plain. `spell` (and
-                    `spell/<lang>` for a translation) colours spell with spell's own parser, loaded the first time a page shows spell.
+            <ui-section id="usage-languages" header="Languages" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  highlight.js loads lazily, with the first code shown; until it arrives, the code shows plain. `spell` (and
+                  `spell/<lang>` for a translation) colours spell with spell's own parser, loaded the first time a page shows spell.
 
-                    `UI.code.register(name, language)` adds a language: a highlight.js grammar, a highlighter of your own returning
-                    `{ start, end, kind }` spans, or a `load()` that fetches either on first use. Elements already showing that
-                    language colour again. An unknown language shows plain text and fires a `ui-error` (`kind: "render"`), with no
-                    message: the code is still there.
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    UI.code.register("ini", {
-                      load: async () => ({ grammar: (await import("highlight.js/lib/languages/ini")).default })
-                    })
-                  </script>
-                </ui-code>
+                  `UI.code.register(name, language)` adds a language: a highlight.js grammar, a highlighter of your own returning
+                  `{ start, end, kind }` spans, or a `load()` that fetches either on first use. Elements already showing that
+                  language colour again. An unknown language shows plain text and fires a `ui-error` (`kind: "render"`), with no
+                  message: the code is still there.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  UI.code.register("ini", {
+                    load: async () => ({ grammar: (await import("highlight.js/lib/languages/ini")).default })
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - `ui-highlight` -- coloured: `{ language, detected }`, `language` `undefined` for plain text, `detected` when it
-                      was guessed.
-                    - `ui-copy` -- the copy button copied `{ content }`.
-                    - `ui-load` -- the text arrived, from `source` or the element's own content: `{ source, content }`.
-                    - `ui-error` (cancelable) -- loading or colouring failed: `{ kind, source, error }`. Cancel it to skip the error
-                      message.
-                    - `ui-change`, `ui-save`, `ui-saved` -- editing and saving, shared with `<ui-markdown>` and `<ui-include>` (see
-                      Include's Usage tab).
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const code = document.querySelector("ui-code")
-                    code.addEventListener("ui-highlight", (event) => console.log(event.detail.language, event.detail.detected))
-                    code.addEventListener("ui-copy", (event) => console.log("copied", event.detail.content.length, "characters"))
-                  </script>
-                </ui-code>
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-highlight` -- coloured: `{ language, detected }`, `language` `undefined` for plain text, `detected` when it
+                    was guessed.
+                  - `ui-copy` -- the copy button copied `{ content }`.
+                  - `ui-load` -- the text arrived, from `source` or the element's own content: `{ source, content }`.
+                  - `ui-error` (cancelable) -- loading or colouring failed: `{ kind, source, error }`. Cancel it to skip the error
+                    message.
+                  - `ui-change`, `ui-save`, `ui-saved` -- editing and saving, shared with `<ui-markdown>` and `<ui-include>` (see
+                    Include's Usage tab).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const code = document.querySelector("ui-code")
+                  code.addEventListener("ui-highlight", (event) => console.log(event.detail.language, event.detail.detected))
+                  code.addEventListener("ui-copy", (event) => console.log("copied", event.detail.content.length, "characters"))
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - With `copy`, **Tab** reaches the copy button first; **Enter** or **Space** copies.
-                    - **Tab** then reaches the code itself (the `<pre>` is a tab stop), so the arrow keys can scroll a long line
-                      sideways.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - With `copy`, **Tab** reaches the copy button first; **Enter** or **Space** copies.
+                  - **Tab** then reaches the code itself (the `<pre>` is a tab stop), so the arrow keys can scroll a long line
+                    sideways.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - The code is a real `<pre><code>`, named by its language as written ("ts code", else "Code"), so a screen reader
-                      says what it is before reading it.
-                    - The copy button says "Copy", then "Copied" for a moment (both translatable).
-                    - Colours are never the only signal: the code reads the same without them.
-                    - While `source` loads, a `<ui-loader>` (`role="status"`) says so; a failed load shows a `<ui-message>` saying
-                      why.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The code is a real `<pre><code>`, named by its language as written ("ts code", else "Code"), so a screen reader
+                    says what it is before reading it.
+                  - The copy button says "Copy", then "Copied" for a moment (both translatable).
+                  - Colours are never the only signal: the code reads the same without them.
+                  - While `source` loads, a `<ui-loader>` (`role="status"`) says so; a failed load shows a `<ui-message>` saying
+                    why.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-code"></ui-docs-api>
-              </ui-tab>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-code"></ui-docs-api>
+          </ui-tab>
 
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-code-*` tokens: set one on the element, on any ancestor (`:root` for every block of
-                    code), or on the box through `::part(box)`. They inherit into the shadow root, where the sheet reads each through a
-                    private alias. Never set the `--_ui-code-*` names: they're the sheet's private plumbing.
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-code-*` tokens: set one on the element, on any ancestor (`:root` for every block of
+                  code), or on the box through `::part(box)`. They inherit into the shadow root, where the sheet reads each through a
+                  private alias. Never set the `--_ui-code-*` names: they're the sheet's private plumbing.
 
-                    The colours are one token per highlight group -- `keyword`, `string`, `number`, `comment`, `title`, `type`, `attr`,
-                    `meta`, `addition`, `deletion` -- each with a light and a dark value, so code follows the colour scheme. Style the
-                    pieces with `::part()`: `box`, `pre`, `code` and `copy`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    /* every block of code on the page */
-                    :root {
-                      --ui-code-radius: 0;
-                      --ui-code-keyword: var(--ui-purple);
-                    }
-                    /* one kind, bigger */
-                    ui-code.listing {
-                      --ui-code-font-size: 1em;
-                    }
-                    ui-code::part(copy) {
-                      font-weight: bold;
-                    }
-                  </script>
-                </ui-code>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-code" playground></ui-docs-tokens>
+                  The colours are one token per highlight group -- `keyword`, `string`, `number`, `comment`, `title`, `type`, `attr`,
+                  `meta`, `addition`, `deletion` -- each with a light and a dark value, so code follows the colour scheme. Style the
+                  pieces with `::part()`: `box`, `pre`, `code` and `copy`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  /* every block of code on the page */
+                  :root {
+                    --ui-code-radius: 0;
+                    --ui-code-keyword: var(--ui-purple);
+                  }
+                  /* one kind, bigger */
+                  ui-code.listing {
+                    --ui-code-font-size: 1em;
+                  }
+                  ui-code::part(copy) {
+                    font-weight: bold;
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-code" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Code is ours, not Fomantic's, so no Fomantic theme restyles it: the theme picker in the header changes only the
-                    page around it. Its colours follow the light or dark scheme.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Code is ours, not Fomantic's, so no Fomantic theme restyles it: the theme picker in the header changes only the
+                  page around it. Its colours follow the light or dark scheme.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

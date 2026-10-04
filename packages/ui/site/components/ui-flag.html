@@ -9,84 +9,72 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Flag">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-flag.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-flag%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/elements/flag.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Flag
+            <ui-header>A flag is used to represent a political state.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-flag" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-flag.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-flag%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/elements/flag.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Flag
-                <ui-header>A flag is used to represent a political state.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-flag" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Flag"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's flag page, in its order (Definition, Types:  the flag list, Size, Autosizing), plus our own
-                  extras (Names, Other flags).  The glyph is the reader's platform flag EMOJI, so the look depends on the OS:
-                  Windows shows two letters unless the page loads a flag font (Theming tab).  The flag list is generated from
-                  `flagAliases` / `flagEmoji` (`ui-flag.types.ts`) with English region names.
-                -->
-                <ui-header level="2" dividing id="definition">Definition</ui-header>
-
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's flag page, in its order (Definition, Types:  the flag list, Size, Autosizing), plus our own
+              extras (Names, Other flags).  The glyph is the reader's platform flag EMOJI, so the look depends on the OS:
+              Windows shows two letters unless the page loads a flag font (Theming tab).  The flag list is generated from
+              `flagAliases` / `flagEmoji` (`ui-flag.types.ts`) with English region names.
+            -->
+            <ui-section id="examples-definition" header="Definition" sticky collapsible dividing>
+              <ui-section id="examples-definition-flag" header="Flag" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Flag"
                   description="A flag can use the two digit country code, the full name, or a common alias."
                 >
                   <ui-flag country="ae"></ui-flag>
                   <ui-flag country="france"></ui-flag>
                   <ui-flag country="myanmar"></ui-flag>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-definition-names" header="Names" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Names"
                   description="Case, underscores and extra spaces don't matter:  `America`, `United_Kingdom`, `uk` all work."
                 >
                   <ui-flag country="fr"></ui-flag>
@@ -97,9 +85,10 @@
                   <ui-flag country="uk"></ui-flag>
                   <ui-flag country="south africa"></ui-flag>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-definition-other-flags" header="Other flags" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Other flags"
                   description="Flags that aren't a country:  `rainbow` (`pride`, `lgbt`), `transgender`, `pirate`, and the `england`, `scotland` and `wales` subdivision flags."
                 >
                   <ui-flag country="pride"></ui-flag>
@@ -109,20 +98,21 @@
                   <ui-flag country="scotland"></ui-flag>
                   <ui-flag country="wales"></ui-flag>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="types">Types</ui-header>
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-message state="info" size="small"
+                >Flags are the Unicode flag emoji, as in Fomantic 2.9's default theme. To return to the sprite
+                approach using the famfamfam icon set, pick the <b>Famfamfam</b> theme above: it draws the 16 x 11
+                sprite cell for every country it has.</ui-message
+              >
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Fomantic's <code>@flags</code> variable to trim the generated CSS -- there is no per-flag
+                CSS to trim.</ui-message
+              >
 
-                <ui-message state="info" size="small"
-                  >Flags are the Unicode flag emoji, as in Fomantic 2.9's default theme. To return to the sprite
-                  approach using the famfamfam icon set, pick the <b>Famfamfam</b> theme above: it draws the 16 x 11
-                  sprite cell for every country it has.</ui-message
-                >
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: Fomantic's <code>@flags</code> variable to trim the generated CSS -- there is no per-flag
-                  CSS to trim.</ui-message
-                >
-
-                <ui-header level="3" id="flag-list">Flag list</ui-header>
+              <ui-section id="examples-types-flag-list" header="Flag list" sticky collapsible dividing>
                 <ui-table selectable sortable client-sort compact celled striped definition>
                   <table>
                     <thead>
@@ -1721,10 +1711,12 @@
                     </tbody>
                   </table>
                 </ui-table>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example header="Size">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A flag can vary in size.</p>
                   <ui-message slot="description" size="small"
                     >Sizes are ratios of the surrounding text, <code>small</code> (1.5em) ...
@@ -1745,8 +1737,9 @@
                     <ui-flag country="un" size="massive"></ui-flag> Massive
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-variations-autosizing" header="Autosizing" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Autosizing"
                   description="If no specific size is given, every flag is sized by the current element's font size."
                 >
                   <ui-segment basic>
@@ -1758,92 +1751,95 @@
                     <ui-text size="small" color="orange">Within a text <ui-flag country="rainbow"></ui-flag></ui-text>
                   </ui-segment>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Write `<ui-flag country="fr">`. `country` takes:
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write `<ui-flag country="fr">`. `country` takes:
 
-                    - any two-letter country code (ISO 3166-1 alpha-2), in any case: `fr`, `US`
-                    - or the English names and aliases from Fomantic's flag list (the table on the Examples tab): `france`,
-                      `united states`, `america`, `uk`, `czech republic` ... Underscores count as spaces, so `United_States` works too
-                    - or one of the non-country flags: `rainbow` (`pride`, `lgbt`), `transgender`, `pirate`, `england`, `scotland`,
-                      `wales`
+                  - any two-letter country code (ISO 3166-1 alpha-2), in any case: `fr`, `US`
+                  - or the English names and aliases from Fomantic's flag list (the table on the Examples tab): `france`,
+                    `united states`, `america`, `uk`, `czech republic` ... Underscores count as spaces, so `United_States` works too
+                  - or one of the non-country flags: `rainbow` (`pride`, `lgbt`), `transgender`, `pirate`, `england`, `scotland`,
+                    `wales`
 
-                    The flag is the Unicode flag emoji, drawn by the platform's emoji font: no images to download and no CSS per
-                    country. An unknown `country` renders an empty box of the same size, so the line doesn't jump. Flags have no
-                    events.
-                  </script>
-                </ui-markdown>
+                  The flag is the Unicode flag emoji, drawn by the platform's emoji font: no images to download and no CSS per
+                  country. An unknown `country` renders an empty box of the same size, so the line doesn't jump. Flags have no
+                  events.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>A flag takes no focus and handles no keys.</ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>A flag takes no focus and handles no keys.</ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - A flag is an image named after its country (`role="img"`, `aria-label="France"`). The name comes from the
-                      browser's own list of region names in the page's language, so it is translated for free.
-                    - The non-country flags have their own names ("Rainbow flag", "Pirate flag", "England" ...), which a translation
-                      can change.
-                    - A flag with an unknown `country` has no role and no name, so screen readers skip it.
-                    - Without JavaScript the native fallback draws the same emoji with the same name in the page's language; only
-                      the names of the non-country flags stay in English.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A flag is an image named after its country (`role="img"`, `aria-label="France"`). The name comes from the
+                    browser's own list of region names in the page's language, so it is translated for free.
+                  - The non-country flags have their own names ("Rainbow flag", "Pirate flag", "England" ...), which a translation
+                    can change.
+                  - A flag with an unknown `country` has no role and no name, so screen readers skip it.
+                  - Without JavaScript the native fallback draws the same emoji with the same name in the page's language; only
+                    the names of the non-country flags stay in English.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="api" label="API">
-                <ui-docs-api family="ui-flag"></ui-docs-api>
-              </ui-tab>
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="ui-flag"></ui-docs-api>
+          </ui-tab>
 
-              <ui-tab value="theming" label="Theming">
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-flag-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
-                    the flag's box through `::part(flag)`. They inherit into the shadow root, where the sheet reads each through a
-                    private alias, so nothing inside blocks them.
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-flag-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
+                  the flag's box through `::part(flag)`. They inherit into the shadow root, where the sheet reads each through a
+                  private alias, so nothing inside blocks them.
 
-                    - `--ui-flag-size-small` ... `-massive` are the size ratios; `--ui-flag-distance` the space after a flag.
-                    - Windows' emoji font has no flags and shows the two letters instead. To get real flags there, load a flag font
-                      (for example the "Twemoji Country Flags" polyfill) and name it first in `--ui-flag-font-family`, once for the
-                      page.
-                    - Never set the `--_ui-*` names: they're the sheet's private plumbing.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    :root {
-                      --ui-flag-font-family: "Twemoji Country Flags", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
-                        sans-serif;
-                    }
-                  </script>
-                </ui-code>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-flag" playground></ui-docs-tokens>
+                  - `--ui-flag-size-small` ... `-massive` are the size ratios; `--ui-flag-distance` the space after a flag.
+                  - Windows' emoji font has no flags and shows the two letters instead. To get real flags there, load a flag font
+                    (for example the "Twemoji Country Flags" polyfill) and name it first in `--ui-flag-font-family`, once for the
+                    page.
+                  - Never set the `--_ui-*` names: they're the sheet's private plumbing.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  :root {
+                    --ui-flag-font-family: "Twemoji Country Flags", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
+                      sans-serif;
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-flag" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                    theme to the whole site.
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
 
-                    - **Famfamfam** draws flags from Mark James' famfamfam sprite (16 x 11 cells), as Fomantic's `famfamfam` theme
-                      does. The element puts the resolved code in its class (`ui flag fr`), which the sheet selects on.
-                    - A country the sprite lacks (`ss`, `xk`, `rainbow`, `pirate` ...) keeps its emoji, and a sized flag stays one
-                      sprite cell, as in Fomantic.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+                  - **Famfamfam** draws flags from Mark James' famfamfam sprite (16 x 11 cells), as Fomantic's `famfamfam` theme
+                    does. The element puts the resolved code in its class (`ui flag fr`), which the sheet selects on.
+                  - A country the sprite lacks (`ss`, `xk`, `rainbow`, `pirate` ...) keeps its emoji, and a sized flag stays one
+                    sprite cell, as in Fomantic.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

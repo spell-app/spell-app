@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, vi } from "vitest"
+import { describe, test, expect, beforeEach, vi } from "vite-plus/test"
 import { spellCore, assert } from "$/core"
 
 // Wrap `assert.failed` for each test

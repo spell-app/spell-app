@@ -12,7 +12,7 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/spell-app/spell-app)
 
 ## Getting Started
 
-- Install Node 22.17+ and enable Corepack (`corepack enable`), which supplies the repo's yarn
+- Install Node 24.11+ and enable Corepack (`corepack enable`), which supplies the repo's yarn
 - Clone the `spell` monorepo, and run `yarn` at its root
 - Start the app (port 3000) and the api server (port 3001):  `yarn start`, in `packages/app`
   - `yarn stop` (there too) stops them

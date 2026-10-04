@@ -20,7 +20,7 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
    - in another worktree:  the session's folder is under `.claude/worktrees/<other>`, or its window is a worktree's
      (`node scripts/window.mjs which`:  `workspace` under `workspaces/ongoing/`).  `<other>` isn't `<name>`:  stop,
      saying so in one line ("`/isolate done` first, or start from a package window").
-   - rename:  `python3 ~/.claude/skills/session/scripts/session.py name <name>`.  It lands on the next prompt, or
+   - rename:  `spell dev session title <name>`.  It lands on the next prompt, or
      when the session opens in its new window.
    - a saved prompt `~/.spell/prompts/<name>.md` (the hook saved it while blocking an earlier `/isolate <name>
      ...`):  it's the task to carry on with once isolated.  Delete it once done.
@@ -32,7 +32,7 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
      `git stash apply <sha>` in the worktree after step 3, and drop that entry.
 1. `<name>` is `$ARGUMENTS` (or the `<name>` in "isolate as <name>"), lower-kebab-cased (`Docs Index` ->
    `docs-index`).  No name:  propose one from the work so far in AskUserQuestion;  the user can type another.
-   Then rename (step 0's `session.py name`), since the hook only renames a name it was given.
+   Then rename (step 0's `spell dev session title`), since the hook only renames a name it was given.
 2. Collisions (from the repo root):  a worktree at `.claude/worktrees/<name>` (`git worktree list`), a branch `<name>`
    or `worktree-<name>`.  Any hit:  AskUserQuestion, options "Reuse `<name>`" and "Different name" (typed in "Other").
 2b. Where:  `node scripts/window.mjs stay-check` (`--epic` from `/epic`) prints `recommend stay|window` and why.
@@ -96,10 +96,10 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
   - each `/epic` phase start ("5. Each phase", step 1;  Doc Review is a phase too)
   - `.claude/skills/park/SKILL.md` "Resume" (`/unpark`, `/wait-for`)
   - Owen reopening the session to carry on ("start P3", "continue")
-- How:  `python3 ~/.claude/skills/session/scripts/session.py name <name>`.  It checks first:  already `<name>`
+- How:  `spell dev session title <name>`.  It checks first:  already `<name>`
   (or queued), it does nothing;  else it queues `<name>`, which lands on Owen's NEXT prompt.
   - renamed:  one line, "session renamed `<name>` (was "<old>");  shows on your next message"
-  - `session.py title` shows the current title, and any queued one
+  - `spell dev session title` alone shows the current title, and any queued one
 - `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the plan doc's.
 
 ## Finish:  `/isolate done`
@@ -108,7 +108,7 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    clean up:
    - candidates:  each `.claude/worktrees/<name>` that
      - no session is in:  under "No session in" from
-       `python3 .claude/skills/worktrees/scripts/worktrees.py --sessions`.
+       `spell dev worktree list`.
        Why:  a fresh worktree has nothing outside `main` either, but its session is still using it.
      - has nothing uncommitted (`git -C .claude/worktrees/<name> status --short`;  fine from the main checkout)
      - has nothing outside `main` (`git log --oneline main..<branch>` empty)
@@ -123,7 +123,7 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    and "Leave unmerged", listing the commits in the question.  On "Merge now", get the BRANCH ready to fast-forward
    `main`, all from the worktree (branches are shared, so `main` is visible here):
    - NEVER `git -C <main checkout>` or `cd` there:  a worktree session refuses both.  `main` itself moves in step 6.
-   - first, the changelog:  add or move this branch's entry in `packages/docs/changelog.html` ("Changelog" in the
+   - first, the changelog:  add or move this branch's entry in `packages/docs/content/changelog.html` ("Changelog" in the
      root's `AGENTS.md`) and commit it on the branch (the "Merge now" answer counts as the ask)
    - `git log --oneline HEAD..main` empty (`main` hasn't moved):  ready, go on to step 4
    - else `git merge-tree --write-tree --name-only main HEAD`, which merges without touching any files:
@@ -132,10 +132,10 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    - nothing unmerged:  skip this step and say "nothing to merge"
 3. Merge conflicts.  ONLY in logs and built files:  fix them WITHOUT asking (Owen, 2026-10-03), say in one line
    which files and how, commit the merge ("Merge main into `<name>`"), then step 4.
-   - logs:  `PAPERCUTS.md`, `SUSPECTED-BUGS.md`, `CODE-DEBT.md` (keep both sides' entries), the changelog
-     (`packages/docs/changelog.html`:  take `main`'s, then put this branch's entry back where it goes)
+   - logs:  `agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md` (keep both sides' entries), the changelog
+     (`packages/docs/content/changelog.html`:  take `main`'s, then put this branch's entry back where it goes)
    - built files:  regenerate with their command instead of merging by hand:  the docs index (`yarn docs:index`),
-     `yarn.lock` (`yarn install`), bundles (`packages/docs/_assets/spell-ui.js` ...:  their build)
+     `yarn.lock` (`yarn install`), bundles (`packages/docs/tools/_assets/spell-ui.js` ...:  their build)
    - any OTHER file in conflict (code, skills, docs prose):  AskUserQuestion, listing the conflicting files, options:
      - "Fix conflicts, then merge":
        - `git merge main` in the worktree;  resolve each file, keeping BOTH sides' intent

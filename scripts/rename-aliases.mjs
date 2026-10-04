@@ -38,7 +38,7 @@
  *
  * ## Skipped
  * `node_modules`, build output (`dist*`, `out`, `.cache`, `.astro`), `.yarn`, lockfiles, binary files,
- * `packages/spell/thoughts/**`, `packages/spell/graphify-out/**`, `PAPERCUTS.md` (a dated log), this script and the
+ * `packages/spell/thoughts/**`, `packages/spell/graphify-out/**`, `agents/PAPERCUTS.md` (a dated log), this script and the
  * historical Phase 4 codemod (`move-packages.mjs`, `package-moves.json`).
  */
 import { execFileSync } from "node:child_process"
@@ -52,7 +52,7 @@ const OLD_SCOPE = "@spell"
 const SKIP_SEGMENT = /(^|\/)(node_modules|dist[^/]*|out|\.cache|\.yarn|\.git|\.astro)(\/|$)/
 const SKIP_PREFIX = ["packages/spell/thoughts/", "packages/spell/graphify-out/"]
 const SKIP_FILE = new Set([
-  "PAPERCUTS.md",
+  "agents/PAPERCUTS.md",
   "yarn.lock",
   "package-lock.json",
   "scripts/rename-aliases.mjs",
@@ -583,7 +583,7 @@ const NEW_DEPENDENTS = `const DEPENDENTS = {
 }
 `
 
-/** Replacement of CODE-DEBT.md's `spell-util` bullet in "Phase 4 package split:  compromises". */
+/** Replacement of agents/CODE-DEBT.md's `spell-util` bullet in "Phase 4 package split:  compromises". */
 const NEW_CODE_DEBT_BULLET = `- **\`util/src/spell/\` is the old \`~/util\`, whole.**
   - **Cost**:  \`parser\` and \`core\` depend on lodash, \`chalk\`, \`pluralize\`, \`query-string\` and the React-era
     state libraries (\`@nx-js/observer-util\`, \`@risingstack/react-easy-state\`) for a handful of helpers each;  a
@@ -611,7 +611,7 @@ function applyStep0Before(file, text) {
   if (file === "packages/cli/README.md") sub(/^\s*spell-util\/\s+utilities\n/m, "")
   if (file === "AGENTS.md")
     sub(/^  - `packages\/spell-util\/` \(`@spell\/spell-util`, `#spell-util`\)[^\n]*\n[^\n]*\n/m, "")
-  if (file === "CODE-DEBT.md")
+  if (file === "agents/CODE-DEBT.md")
     sub(
       /- \*\*`spell-util` is the old `~\/util`, whole\.\*\*[\s\S]*?\*\*Pinned at\*\*:  `packages\/spell-util\/package\.json` `dependencies`\.\n/,
       () => NEW_CODE_DEBT_BULLET

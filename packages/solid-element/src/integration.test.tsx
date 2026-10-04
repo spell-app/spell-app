@@ -9,7 +9,7 @@
  */
 
 import { For, createEffect, createMemo, createSignal, flush } from "solid-js"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { onFormReset } from "./internals"

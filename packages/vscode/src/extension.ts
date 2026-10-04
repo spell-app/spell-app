@@ -1,7 +1,7 @@
 /**
  * VS Code extension for spell:  runs the spell parser's language server, and shows a file's compiled javascript.
- * - Also shows `packages/docs` pages rendered, in the right side bar's "Spell Docs" view (`DocView`), when opened by
- *   URI or through the bridge -- see `DocPreview`.
+ * - Also shows `packages/docs` pages rendered, in the right side bar's "Spell Docs" and "Review" tabs (`DocView`),
+ *   when opened by URI or through the bridge -- see `DocPreview`.
  * - And lets a Claude Code session reach ITS window (add a worktree folder, show a doc) -- see `WindowBridge`.
  * - Activates at startup (`onStartupFinished`), in EVERY window, for the bridge;  the language server waits for the
  *   window's first spell file, as it did when `onLanguage:spell` activated us.  A window without spell files runs
@@ -117,7 +117,7 @@ function getRepoRoot(): string {
 /**
  * The repo's `tsx` executable, or `undefined` if no `yarn install` has run.
  * - Looks in `<repoRoot>/node_modules/.bin` and every parent:  yarn hoists tools to the monorepo root.  It's
- *   `spell`'s `tsx`, pinned to 4.20.3 -- see `PAPERCUTS.md`.
+ *   `spell`'s `tsx`, pinned to 4.20.3 -- see `agents/PAPERCUTS.md`.
  */
 function findTsx(repoRoot: string): string | undefined {
   for (let folder = repoRoot; ; folder = dirname(folder)) {

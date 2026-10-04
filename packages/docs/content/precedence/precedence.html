@@ -1,0 +1,2086 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Precedence And Types</title>
+    <meta
+      name="description"
+      content="Why spell's grammar needs binding power and datatypes, what breaks today, and what to build -- for anyone about to change the parser's rules."
+    />
+    <link rel="stylesheet" href="../../tools/_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <h1>Precedence And Types</h1>
+        <p class="lede">Why spell's grammar needs binding power and datatypes, what breaks today, and what to build.</p>
+        <ul>
+          <li>Written for: Owen, and any agent about to change the parser's rules</li>
+          <li>Status: a draft to argue with. Nothing here is built.</li>
+          <li>
+            Researched on: branch <code>ts-conversion</code>, 2026-09-30. Every "today" output was produced by running
+            the parser, see <a href="#sources">Sources and experiments</a>.
+          </li>
+        </ul>
+
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
+          <ul>
+            <li>
+              The parser can't say what an expression <em>is</em> (its type) or how tightly it <em>binds</em> (its
+              precedence), so every rule guesses from shape.
+            </li>
+            <li>
+              All four language goals trace back to that one gap: paren-free signatures, <code>of</code> in method
+              names, multi-word properties, real precedence.
+            </li>
+            <li>
+              Proposal: plumb two facts through every match, <code>bindingPower</code> and <code>datatype</code>.
+              <ul>
+                <li>Expressions parse by precedence climbing with bounded operands, plus a cheap bounded backtrack.</li>
+                <li>Members, signatures and call sites become lookups over types.</li>
+              </ul>
+            </li>
+            <li>
+              Two ideas from review are folded in: <a href="#exclusive-lists">exclusive lists</a> as a property of a
+              list type, and a <a href="#typescript-backend">TypeScript backend</a> the editor compiles a second time.
+            </li>
+            <li>Types are named in spell's words everywhere, never JavaScript's.</li>
+          </ul>
+        </ui-section>
+        <ui-section id="2-the-problems" header="2. The problems" sticky collapsible dividing>
+          <p>Eight of them, each with what the parser does today.</p>
+
+          <ui-section
+            id="greedy-operands-no-backtracking"
+            header="Greedy operands, no backtracking"
+            sticky
+            collapsible
+            dividing
+          >
+            <ul>
+              <li>
+                A rule whose syntax ends in <code>{expression}</code> gives that slot the rest of the line, operators
+                included.
+              </li>
+              <li>
+                <code>Choice</code> returns exactly one candidate and <code>Sequence</code> accepts it or fails. The
+                candidate that would have worked is never built.
+              </li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>spell</th>
+                    <th>today</th>
+                    <th>should be</th>
+                  </tr>
+                  <tr>
+                    <td><code>the first card of the deck is face up</code></td>
+                    <td class="no negative"><code>getItemOf(deck.is_face_up, 1)</code></td>
+                    <td class="yes positive"><code>getItemOf(deck, 1).is_face_up</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>the number of cards in the deck is 52</code></td>
+                    <td class="no negative"><code>itemCountOf(deck == 52)</code></td>
+                    <td class="yes positive"><code>itemCountOf(deck) == 52</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>the number of cards in the deck + 1</code></td>
+                    <td class="no negative"><code>itemCountOf(deck + 1)</code></td>
+                    <td class="yes positive"><code>itemCountOf(deck) + 1</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>the suit of the first card of the deck is hearts</code></td>
+                    <td class="no negative"><code>getItemOf(deck == 'hearts', 1).suit</code></td>
+                    <td class="yes positive"><code>getItemOf(deck, 1).suit == 'hearts'</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>the first character of the name of the card as uppercase</code></td>
+                    <td class="meh warning"><code>getItemOf(upperCase(card.name), 1)</code></td>
+                    <td class="yes positive"><code>upperCase(getItemOf(card.name, 1))</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>remove the card of the pile</code>, after <code>to remove (a card) of (a pile)</code></td>
+                    <td class="no negative">parse error</td>
+                    <td class="yes positive"><code>card.remove_of_$pile(pile)</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                Where: <code>ordinal_position_expression</code> is
+                <code>the {ordinal} {arg} (in|of) {expression}</code> in
+                <a href="../../../spell/src/rules/lists.ts" target="src-packages-spell-src-rules-lists-ts"
+                  ><code>lists.ts</code></a
+                >. Fourteen more expression rules end the same way, 10 in
+                <a href="../../../spell/src/rules/lists.ts" target="src-packages-spell-src-rules-lists-ts"
+                  ><code>lists.ts</code></a
+                >
+                and 4 in
+                <a href="../../../spell/src/rules/math.ts" target="src-packages-spell-src-rules-math-ts"
+                  ><code>math.ts</code></a
+                >.
+              </li>
+              <li>
+                The last row is the <code>of</code> problem.
+                <ul>
+                  <li>
+                    <code>{thisArg:expression}</code> takes <code>the card of the pile</code> as a property read,
+                    <code>pile.card</code>.
+                  </li>
+                  <li>
+                    The literal <code>of</code> the rule needed is gone, and <code>Sequence.parse()</code> never asks
+                    for a shorter argument.
+                  </li>
+                  <li>
+                    <code>of</code> as a word <em>before</em> an argument works today:
+                    <code>take the top card of (a pile)</code>.
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="one-number-two-jobs" header="One number, two jobs" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>precedence</code> picks which whole match wins in <code>Choice.getBestMatch()</code>: highest
+                precedence, <em>then</em> longest, then earliest.
+              </li>
+              <li>
+                The same number is an operator's binding power in <code>compound_expression</code>'s shunting-yard.
+              </li>
+              <li>Compared before length, a short high-precedence atom beats a longer expression that contains it.</li>
+              <li>
+                Values in use: 0 (most rules), 1, 2, 3, 5, 6, 9, 10, 11, 12, 13, 14, 20, 100. No table says what any of
+                them mean.
+              </li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>spell</th>
+                    <th>today</th>
+                    <th>why</th>
+                  </tr>
+                  <tr>
+                    <td><code>card suits includes x</code></td>
+                    <td class="no negative"><code>Card.Suits</code>, then "Don't understand includes x"</td>
+                    <td>
+                      <code>EnumerationRule</code> at 20 (2 tokens) beats <code>compound_expression</code> at 12 (4
+                      tokens)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>draw the cards of the deck</code></td>
+                    <td class="no negative"><code>drawThing(deck.cards)</code></td>
+                    <td><code>draw_thing</code> is 100; <code>draw_items</code>' test is skipped because of it</td>
+                  </tr>
+                  <tr>
+                    <td><code>x ends with y and 1</code></td>
+                    <td class="no negative"><code>endsWith(x, y &amp;&amp; 1)</code></td>
+                    <td>
+                      <code>ends_with</code> has no precedence set, so 0. <code>starts_with</code> is 11 and parses
+                      correctly.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section id="postfix-binds-tightest" header="Postfix binds tightest" sticky collapsible dividing>
+            <ul>
+              <li>
+                The shunting-yard applies a postfix suffix to the top of its output stack at once, ignoring its
+                precedence.
+              </li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>spell</th>
+                    <th>today</th>
+                    <th>should be</th>
+                  </tr>
+                  <tr>
+                    <td><code>x + y is empty</code></td>
+                    <td class="no negative"><code>x + isEmpty(y)</code></td>
+                    <td class="yes positive"><code>isEmpty(x + y)</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section id="type-blind-call-rules" header="Type-blind call rules" sticky collapsible dividing>
+            <ul>
+              <li>
+                A method's call rule is built from its words only. <code>to put (a card) on (a pile)</code> and
+                <code>to put (a chip) on (a pot)</code> both register
+                <code>put {thisArg:expression} on {callArgs:expression}</code>.
+              </li>
+              <li>Nothing checks what the arguments are.</li>
+              <li>A project's own rules merge ahead of the built-ins, so they win ties.</li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>spell</th>
+                    <th>today</th>
+                    <th>should be</th>
+                  </tr>
+                  <tr>
+                    <td><code>put the chip on the pot</code></td>
+                    <td class="no negative"><code>chip.put_on_$pile(pot)</code>: Card's method, throws when run</td>
+                    <td class="yes positive"><code>chip.put_on_$pot(pot)</code></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>add the card to the deck</code>, after a user's <code>to add (a card) to (a pile)</code>
+                    </td>
+                    <td class="no negative">
+                      <code>card.add_to_$pile(deck)</code>: every <code>add X to Y</code> is now theirs
+                    </td>
+                    <td class="yes positive">
+                      <code>spellCore.append(deck, card)</code>: the built-in, as a deck isn't a pile
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section
+            id="only-parens-make-a-parameter"
+            header="Only parens make a parameter"
+            sticky
+            collapsible
+            dividing
+          >
+            <ul>
+              <li>
+                <code>method_signature</code> is <code>({method_keyword}|\({method_arg}\))+</code> in
+                <a href="../../../spell/src/rules/methods.ts" target="src-packages-spell-src-rules-methods-ts"
+                  ><code>methods.ts</code></a
+                >.
+              </li>
+              <li>
+                Every bare word is a keyword, <code>a</code> and type names included. <code>method_keyword</code> has no
+                blacklist.
+              </li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>spell</th>
+                    <th>today</th>
+                    <th>should be</th>
+                  </tr>
+                  <tr>
+                    <td><code>to give a card to a pile</code></td>
+                    <td class="no negative"><code>export function give_a_card_to_a_pile() {}</code></td>
+                    <td class="yes positive">
+                      <code>Card.give_to_$pile(pile)</code>, as <code>to give (a card) to (a pile)</code> makes
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>to make a mess</code></td>
+                    <td class="yes positive"><code>make_a_mess()</code></td>
+                    <td class="yes positive">unchanged: <code>mess</code> is not a type</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section id="one-token-property-names" header="One-token property names" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>property</code> is a single-token pattern, <code>/^[a-z][\w-]*$/</code>, with the identifier
+                blacklist (<a
+                  href="../../../spell/src/rules/properties.ts"
+                  target="src-packages-spell-src-rules-properties-ts"
+                  ><code>properties.ts</code></a
+                >).
+              </li>
+              <li>
+                <code>short</code> and <code>long</code> are on that blacklist (<a
+                  href="../../../spell/src/rules/identifier-blacklist.ts"
+                  target="src-packages-spell-src-rules-identifier-blacklist-ts"
+                  ><code>identifier-blacklist.ts</code></a
+                >), so even <code>the short of</code> fails.
+              </li>
+              <li>
+                That is why Card.spell says <code>short-rank</code>, and why <code>a deck has a with-jokers</code> needs
+                its article.
+              </li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>spell</th>
+                    <th>today</th>
+                    <th>should be</th>
+                  </tr>
+                  <tr>
+                    <td><code>the short rank of a card is: …</code></td>
+                    <td class="no negative">parse error</td>
+                    <td class="yes positive"><code>get short_rank() { … }</code> on <code>Card</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>the short rank of the card</code></td>
+                    <td class="no negative">parse error</td>
+                    <td class="yes positive"><code>card.short_rank</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section
+            id="type-facts-written-never-read"
+            header="Type facts written, never read"
+            sticky
+            collapsible
+            dividing
+          >
+            <ul>
+              <li>
+                A <code>datatype</code> exists on <code>ScopeVariable</code>, on a type's properties, on about 12 rules
+                and on a few AST nodes. Nothing on the parse or compile path reads any of them.
+              </li>
+              <li>
+                <code>getNestedScopeForMatch()</code> in
+                <a href="../../../spell/src/rules/methods.ts" target="src-packages-spell-src-rules-methods-ts"
+                  ><code>methods.ts</code></a
+                >
+                builds argument variables from names only, so <code>(a card)</code> and <code>(x as text)</code> lose
+                their types.
+              </li>
+              <li>Assignment, <code>get</code>, loops and <code>where</code> declare untyped variables.</li>
+              <li>A list type doesn't record its item type.</li>
+              <li>Methods exist only as parser rules. <code>TypeScope.methods</code> is never filled.</li>
+              <li>
+                Built-in types are bare names. <code>text</code> and <code>number</code> aren't types in scope at all.
+              </li>
+              <li>
+                The only member lookup that walks super-types is in the language server,
+                <code>SpellLanguageService.propertyOf()</code>.
+              </li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>spell</th>
+                    <th>today</th>
+                    <th>why</th>
+                  </tr>
+                  <tr>
+                    <td><code>the card is a new card</code>, as an expression</td>
+                    <td class="no negative"><code>isOfType(card, 'New')</code>, then "Don't understand card"</td>
+                    <td>
+                      <code>is_a</code>'s operand is <code>{expression:type}</code>, and <code>type</code> accepts any
+                      word
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section id="what-the-examples-had-to-do" header="What the examples had to do" sticky collapsible dividing>
+            <p>
+              A user can't tell these two lists apart, which is the point: the rules are unpredictable, so people
+              parenthesize everything.
+            </p>
+            <h4 id="forced">Forced</h4>
+            <ul>
+              <li>
+                <code>Deck.spell</code> 56: <code>expect (the last card of the deck) is the black joker to be yes</code>
+              </li>
+              <li><code>Card.spell</code> 46: <code>return (the first character of its rank) as uppercase</code></li>
+              <li>
+                <code>Deck.spell</code> 40-41 and 57-58: <code>get the first card of the deck</code>, then
+                <code>expect it is the ace of clubs to be yes</code>
+              </li>
+              <li>
+                <code>Card.spell</code> 36-54: <code>short-rank</code>, <code>short-suit</code>,
+                <code>short-name</code>,
+                <code>short-direction</code>
+              </li>
+              <li><code>Deck.spell</code> 6: <code>a deck has a with-jokers as yes or no</code></li>
+              <li>
+                <code>Pile.spell</code> 15: <code>to move (a card) to (a pile)</code>, and every other parenthesized
+                signature
+              </li>
+            </ul>
+            <h4 id="defensive">Defensive</h4>
+            <p>These parse the same today without their parens.</p>
+            <ul>
+              <li>Solitaire 105: <code>turn (the bottom card of the stock) face up</code></li>
+              <li>
+                Solitaire 166:
+                <code>if (test-card is a king) and (test-card is the first card of the pile) return</code>
+              </li>
+              <li>
+                Solitaire 194: <code>"red" if (its name is diamonds or its name is hearts) otherwise "black"</code>
+              </li>
+              <li>
+                Solitaire 31:
+                <code>(its name is the suit of the card) and (its value + 1 is the value of the card)</code>
+              </li>
+              <li>Solitaire 94, 123, 155: <code>(merge all-piles into a new pile)</code> and two more like it</li>
+            </ul>
+          </ui-section>
+        </ui-section>
+        <ui-section id="3-parsing-today" header="3. Parsing today" sticky collapsible dividing>
+          <ul>
+            <li>
+              <code>expression</code> is a group of 42 rules, tried in module order. Rules added while parsing go first.
+            </li>
+            <li>
+              The only "term, then operators" rule is <code>compound_expression</code>:
+              <code>{lhs:simple_expression} {rhsChain:expression_suffix}+</code>, precedence 12.
+              <ul>
+                <li>It runs a shunting-yard over the suffixes' precedences when it builds its AST.</li>
+              </ul>
+            </li>
+            <li>
+              <code>simple_expression</code> is not a narrower tier. It is "every expression rule except the
+              left-recursive ones" (<code>SpellParser.getNamesForRule()</code>), so it still holds every prefix rule
+              ending in <code>{expression}</code>.
+            </li>
+            <li>
+              <code>Choice.parse()</code> parses every alternative, then keeps one. <code>Sequence.parse()</code> takes
+              each child's single match.
+            </li>
+            <li>
+              Normal parsing has no memo. <code>compound_expression</code> re-parses the alternatives the outer
+              <code>expression</code> choice parses anyway, at every nesting level.
+            </li>
+          </ul>
+          <ui-section id="why-one-sentence-goes-wrong" header="Why one sentence goes wrong" sticky collapsible dividing>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>Code · 13 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-plaintext">expression @ [the first card of the deck is 1]
+  compound_expression (p12) passes test():  it is all subrules
+    {lhs:simple_expression} @ [the first card of the deck is 1]
+      ordinal_position_expression:  the / first / card / of / {expression}
+        expression @ [the deck is 1]
+          known_variable        -&gt; "the deck"          len 2, p0
+          compound_expression   -&gt; "the deck is 1"     len 4, p12   &lt;- wins
+      =&gt; lhs is 8 tokens long
+    {rhsChain:expression_suffix}+ @ []   -&gt; nothing left:  compound_expression FAILS
+  ordinal_position_expression (p0), as a direct alternative, repeats all of that   -&gt; len 8
+=&gt; getItemOf((deck == 1), 1)
+
+A 6-token left side, "the first card of the deck", is never tried:  the inner Choice returned one match.</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+        </ui-section>
+        <ui-section id="4-binding-power" header="4. Binding power" sticky collapsible dividing>
+          <p>Split the one number in two, and let operands stop where their owner says.</p>
+
+          <ui-section id="two-numbers-two-jobs" header="Two numbers, two jobs" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th></th>
+                    <th><code>precedence</code>, kept</th>
+                    <th><code>bindingPower</code>, new</th>
+                  </tr>
+                  <tr>
+                    <td>Answers</td>
+                    <td>Of several rules matching the same tokens, which wins?</td>
+                    <td>How tightly does this operator or prefix rule hold its operands?</td>
+                  </tr>
+                  <tr>
+                    <td>Read by</td>
+                    <td><code>Choice.getBestMatch()</code>, order unchanged</td>
+                    <td>the <code>expression</code> loop and <code>{operand}</code> slots</td>
+                  </tr>
+                  <tr>
+                    <td>Set on</td>
+                    <td>a handful of statements and atoms, from one documented table</td>
+                    <td>every suffix rule and every prefix expression rule</td>
+                  </tr>
+                  <tr>
+                    <td>Typical use</td>
+                    <td>
+                      <code>create_type</code> beats assignment; a user's <code>is red</code> beats
+                      <code>is_equal</code>
+                    </td>
+                    <td>
+                      <code>*</code> before <code>+</code> before <code>is</code> before <code>and</code> before
+                      <code>or</code>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section id="the-expression-loop" header="The expression loop" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>expression</code> becomes ONE rule: a generic <code>P.OperatorExpression</code>, registered by
+                spell over two groups.
+                <ul>
+                  <li>
+                    <code>term</code>: today's atoms. Literals, variables, <code>the X of</code>, list rules,
+                    <code>a new card</code>, calls.
+                  </li>
+                  <li><code>expression_suffix</code>: today's infix and postfix rules, same classes.</li>
+                </ul>
+              </li>
+              <li><code>compound_expression</code> and the shunting-yard are deleted.</li>
+              <li><code>InfixOperatorSuffix.compileAST()</code> keeps its API, so no suffix rule's output changes.</li>
+              <li>
+                <code>simple_expression</code> is renamed <code>term</code> and means what it says.
+                <code>isLeftRecursive</code> goes away.
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>TypeScript · 23 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">/** `expression`:  a term, then every suffix that binds tighter than `minBP`. */
+class expression extends P.OperatorExpression {
+  @proto static atoms = "term"
+  @proto static suffixes = "expression_suffix"
+
+  parse(scope: P.Scope, tokens: P.Token[], minBP = P.Operand.currentBP): P.Match | undefined {
+    let lhs = scope.getRuleOrDie(this.atoms).parse(scope, tokens)
+    if (!lhs) return undefined
+    const suffixes = scope.getRuleOrDie(this.suffixes)
+    for (;;) {
+      const rest = tokens.slice(lhs.length)
+      // only suffix rules with `bindingPower &gt; minBP` may match here
+      const suffix = P.Operand.boundedBy(minBP, () =&gt; suffixes.parse(scope, rest))
+      if (!suffix) return lhs
+      // one match;  its AST is `suffix.rule.compileAST(lhs.AST, rhs.AST)`, exactly as today
+      lhs = this.combine(lhs, suffix)
+    }
+  }
+}
+
+// an infix suffix's syntax:  `(operator:and) {expression:operand}`
+//   its rhs parses with `minBP = 6`, its own `bindingPower`, so `x and y is 1` is `x and (y is 1)`
+//   and `a and b and c` is `(a and b) and c`:  left-associative, because the test is strictly greater</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                Rulex gets <code>{x:operand}</code>: "an expression bounded by MY <code>bindingPower</code>".
+                <code>{expression}</code> still means a full one.
+              </li>
+              <li>
+                The bound is a module-level value, set and restored by <code>Sequence.parse()</code>: the same trick as
+                <code>allowRunOut</code> in
+                <a href="../../../parser/src/rules/Sequence.ts" target="src-packages-parser-src-rules-sequence-ts"
+                  ><code>Sequence.ts</code></a
+                >, two assignments on the hot path.
+              </li>
+              <li>
+                Completion keeps working: the loop records expectations as <code>Choice</code> and
+                <code>Repeat</code> do, and the memo key includes the bound.
+              </li>
+              <li>Each position is parsed once per bound, so this does less work than today's double parse.</li>
+            </ul>
+          </ui-section>
+          <ui-section id="bounded-backtracking" header="Bounded backtracking" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>Choice.parse()</code> already computes every candidate. With more than one, it keeps them on the
+                winner, best first.
+              </li>
+              <li>
+                When a later child of a <code>Sequence</code> fails, the sequence resumes from the previous child's next
+                candidate.
+              </li>
+              <li>
+                No re-parsing. At most one retry per candidate. Nothing allocated when there is one candidate, the
+                common case.
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>Code · 4 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-plaintext">remove the card of the pile            rule:  remove {thisArg:expression} of {callArgs:expression}
+  {thisArg} candidates:  "the card of the pile" (a property read, 5 tokens)   "the card" (2 tokens)
+  take the 5-token one   -&gt;  need the word `of`, see the end of the line   -&gt;  FAIL
+  retry with "the card"  -&gt;  `of` fits   -&gt;  {callArgs} = "the pile"      -&gt;  card.remove_of_$pile(pile)</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+          <ui-section id="binding-power-table" header="Binding-power table" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th class="num right aligned">bp</th>
+                    <th>rules</th>
+                    <th>note</th>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">4</td>
+                    <td><code>X if C otherwise Y</code></td>
+                    <td>lowest, below <code>or</code></td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">5</td>
+                    <td><code>or</code></td>
+                    <td>as today</td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">6</td>
+                    <td><code>and</code></td>
+                    <td>as today</td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">10</td>
+                    <td><code>is</code>, <code>is exactly</code></td>
+                    <td>as today</td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">11</td>
+                    <td>
+                      comparisons, <code>is a</code>, <code>is in</code>, <code>includes</code>,
+                      <code>starts with</code>, <code>ends with</code>, <code>is empty</code>, <code>is defined</code>,
+                      <code>exists</code>, <code>as …</code>, quoted aliases such as <code>is face up</code>
+                    </td>
+                    <td>
+                      <code>ends with</code> gets a real value. Aliases keep precedence 20 for the choice, and bind
+                      here.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">13</td>
+                    <td><code>+</code> <code>-</code></td>
+                    <td>as today</td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">14</td>
+                    <td><code>*</code> <code>/</code></td>
+                    <td>as today</td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">15</td>
+                    <td>
+                      prefix rules: <code>the first X of</code>, <code>the number of Xs in</code>,
+                      <code>a random X of</code>, <code>a copy of</code>, <code>the biggest of</code>,
+                      <code>the absolute value of</code>,
+                      <code>round</code>
+                    </td>
+                    <td>their operand stops before any operator</td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">17</td>
+                    <td><code>the X of</code>, <code>its X</code></td>
+                    <td>property access binds tightest</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ui-message state="warning" header="Two deliberate changes in meaning">
+              <ul>
+                <li><code>x + y is empty</code> becomes <code>isEmpty(x + y)</code>.</li>
+                <li>
+                  <code>the absolute value of x + 1</code> becomes <code>abs(x) + 1</code>. Lower
+                  <code>absolute_value</code>
+                  to 12 if it should take the sum.
+                </li>
+              </ul>
+            </ui-message>
+          </ui-section>
+          <ui-section id="precedence-table" header="Precedence table" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>rule</th>
+                    <th class="num right aligned">today</th>
+                    <th class="num right aligned">proposed</th>
+                    <th>why</th>
+                  </tr>
+                  <tr>
+                    <td><code>draw_thing</code></td>
+                    <td class="num right aligned">100</td>
+                    <td class="num right aligned">0</td>
+                    <td>a plain statement; un-skips <code>draw_items</code>' test</td>
+                  </tr>
+                  <tr>
+                    <td><code>ends_with</code>, <code>backwards_if</code></td>
+                    <td class="num right aligned">unset</td>
+                    <td class="num right aligned">as siblings</td>
+                    <td>0 by omission today</td>
+                  </tr>
+                  <tr>
+                    <td><code>compound_expression</code></td>
+                    <td class="num right aligned">12</td>
+                    <td class="num right aligned">gone</td>
+                    <td>the loop replaces it</td>
+                  </tr>
+                  <tr>
+                    <td>generated aliases</td>
+                    <td class="num right aligned">20</td>
+                    <td class="num right aligned">20, bp 11</td>
+                    <td>win the suffix choice over <code>is_equal</code>; bind like a comparison</td>
+                  </tr>
+                  <tr>
+                    <td>everything else</td>
+                    <td class="num right aligned">0-11</td>
+                    <td class="num right aligned">kept</td>
+                    <td>one comment block lists every non-default value, and why</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section
+            id="arguments-stay-full-expressions"
+            header="Arguments stay full expressions"
+            sticky
+            collapsible
+            dividing
+          >
+            <ul>
+              <li>Only operators and prefix rules use <code>{operand}</code>.</li>
+              <li>
+                A method call's argument slots stay <code>{expression}</code>, so <code>notify x + y</code> keeps
+                working.
+              </li>
+              <li>What stops an argument before the next word is <code>Sequence.test()</code> plus the backtrack.</li>
+            </ul>
+          </ui-section>
+          <ui-section id="the-same-sentence-after" header="The same sentence, after" sticky collapsible dividing>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>Code · 9 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-plaintext">print {expression}                          a statement:  bp 0, so a full expression
+  expression(minBP 0) @ [the first card of the deck is face up]
+    term   -&gt;  ordinal_position_expression (bp 15):  the / first / card / of / {list:operand}
+                 operand  =&gt;  expression(minBP 15) @ [the deck is face up]
+                                term   -&gt;  known_variable "the deck"
+                                suffix "is face up" binds at 11, not above 15   -&gt;  stop
+               =&gt;  "the first card of the deck"   6 tokens
+    suffix -&gt;  is_face_up (bp 11, above 0)   -&gt;  applies to the whole term
+=&gt; getItemOf(deck, 1).is_face_up</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+        </ui-section>
+        <ui-section id="5-before-and-after" header="5. Before and after" sticky collapsible dividing>
+          <ui-table celled compact striped unstackable>
+            <table>
+              <tbody>
+                <tr>
+                  <th>spell</th>
+                  <th>today</th>
+                  <th>proposed</th>
+                  <th>fixed by</th>
+                </tr>
+                <tr>
+                  <td><code>the first card of the deck is face up</code></td>
+                  <td class="no negative"><code>getItemOf(deck.is_face_up, 1)</code></td>
+                  <td class="yes positive"><code>getItemOf(deck, 1).is_face_up</code></td>
+                  <td>binding power</td>
+                </tr>
+                <tr>
+                  <td><code>the number of cards in the deck is 52</code></td>
+                  <td class="no negative"><code>itemCountOf(deck == 52)</code></td>
+                  <td class="yes positive"><code>(itemCountOf(deck) == 52)</code></td>
+                  <td>binding power</td>
+                </tr>
+                <tr>
+                  <td><code>the number of cards in the deck + 1</code></td>
+                  <td class="no negative"><code>itemCountOf(deck + 1)</code></td>
+                  <td class="yes positive"><code>(itemCountOf(deck) + 1)</code></td>
+                  <td>binding power</td>
+                </tr>
+                <tr>
+                  <td><code>expect the first card of the deck is the ace of clubs to be yes</code></td>
+                  <td class="no negative"><code>getItemOf(deck.is_the_$rank_of_$suits('ace', 'clubs'), 1)</code></td>
+                  <td class="yes positive"><code>getItemOf(deck, 1).is_the_$rank_of_$suits('ace', 'clubs')</code></td>
+                  <td>binding power</td>
+                </tr>
+                <tr>
+                  <td><code>card suits includes x</code></td>
+                  <td class="no negative"><code>Card.Suits</code>, then an error</td>
+                  <td class="yes positive"><code>includes(Card.Suits, x)</code></td>
+                  <td>the loop</td>
+                </tr>
+                <tr>
+                  <td><code>x + y is empty</code></td>
+                  <td class="no negative"><code>x + isEmpty(y)</code></td>
+                  <td class="yes positive"><code>isEmpty(x + y)</code></td>
+                  <td>binding power</td>
+                </tr>
+                <tr>
+                  <td><code>x ends with y and 1</code></td>
+                  <td class="no negative"><code>endsWith(x, y &amp;&amp; 1)</code></td>
+                  <td class="yes positive"><code>(endsWith(x, y) &amp;&amp; 1)</code></td>
+                  <td>the table</td>
+                </tr>
+                <tr>
+                  <td><code>remove the card of the pile</code></td>
+                  <td class="no negative">parse error</td>
+                  <td class="yes positive"><code>card.remove_of_$pile(pile)</code></td>
+                  <td>backtracking</td>
+                </tr>
+                <tr>
+                  <td><code>the card is a new card</code></td>
+                  <td class="no negative"><code>isOfType(card, 'New')</code>, then an error</td>
+                  <td class="yes positive"><code>(card == new Card())</code></td>
+                  <td>types: <code>is a</code> takes a known type</td>
+                </tr>
+                <tr>
+                  <td><code>put the chip on the pot</code></td>
+                  <td class="no negative"><code>chip.put_on_$pile(pot)</code></td>
+                  <td class="yes positive"><code>chip.put_on_$pot(pot)</code></td>
+                  <td>typed calls</td>
+                </tr>
+                <tr>
+                  <td><code>add the card to the deck</code>, with a user's <code>add</code> for piles</td>
+                  <td class="no negative"><code>card.add_to_$pile(deck)</code></td>
+                  <td class="yes positive"><code>spellCore.append(deck, card)</code></td>
+                  <td>typed calls</td>
+                </tr>
+                <tr>
+                  <td><code>to give a card to a pile</code></td>
+                  <td class="no negative"><code>give_a_card_to_a_pile()</code></td>
+                  <td class="yes positive"><code>Card.give_to_$pile(pile)</code></td>
+                  <td>signatures</td>
+                </tr>
+                <tr>
+                  <td><code>the short rank of a card is: …</code></td>
+                  <td class="no negative">parse error</td>
+                  <td class="yes positive"><code>get short_rank() { … }</code></td>
+                  <td>members</td>
+                </tr>
+                <tr>
+                  <td><code>turn the bottom card of the stock face up</code></td>
+                  <td class="yes positive"><code>getItemOf(stock, -1).turn_face_up()</code></td>
+                  <td class="yes positive">unchanged</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+        </ui-section>
+        <ui-section id="6-a-datatype-on-every-match" header="6. A datatype on every match" sticky collapsible dividing>
+          <p>Binding power fixes shape. The type problems need the parser to know what an expression is.</p>
+
+          <ui-section id="the-rule" header="The rule" sticky collapsible dividing>
+            <ul>
+              <li>
+                It is the rule the codebase already follows for <code>scopeVar</code>: look it up WHILE PARSING, stash
+                it on the match, never touch scope from <code>getAST()</code>.
+              </li>
+              <li>
+                <code>Rule.getDatatype(match)</code>, memoized as <code>match.datatype</code>. Default: the rule's
+                existing <code>datatype</code> static.
+              </li>
+              <li>
+                No type yet is <code>undefined</code>, and is compatible with everything. Nothing that parses today
+                stops parsing.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="sources-2" header="Sources" sticky collapsible dividing>
+            <ul>
+              <li>literals, from their rule</li>
+              <li>a known variable, from its scope record</li>
+              <li><code>a new card</code>, <code>a new list of cards</code></li>
+              <li><code>the X of Y</code> and <code>its X</code>, from the member found on Y's type</li>
+              <li>a method call, from its return type</li>
+              <li>comparisons, aliases, <code>and</code> / <code>or</code> / <code>not</code>: <code>choice</code></li>
+              <li>arithmetic: <code>number</code>, or <code>text</code> when a side is text</li>
+              <li>list rules: the item type, the list's type, or <code>number</code></li>
+            </ul>
+          </ui-section>
+          <ui-section id="sinks" header="Sinks" sticky collapsible dividing>
+            <ul>
+              <li>method arguments: <code>(a card)</code>, <code>(x as text)</code>, <code>with … as …</code></li>
+              <li><code>this</code> and <code>it</code> inside a method, from its owner</li>
+              <li>new variables from <code>set</code>, <code>get</code> and <code>X is Y</code></li>
+              <li><code>for each card in the deck</code> and <code>where</code>, from the list's item type</li>
+              <li><code>on card-click with a card</code></li>
+              <li><code>a pile is a list of cards</code> records the item type on <code>Pile</code></li>
+            </ul>
+          </ui-section>
+          <ui-section id="member-tables" header="Member tables" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>TypeScope.getMember(words)</code> walks the super-type chain. The code moves from the language
+                server, which then delegates.
+              </li>
+              <li>
+                Methods get real records, <code>P.ScopeMethod</code>: words, output name, parameters with types, return
+                type, where declared.
+              </li>
+              <li>
+                These are the facts <code>SPELL: DECLARES</code> already writes, so an imported project rebuilds them.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="built-in-types" header="Built-in types" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>thing</code>, <code>list</code>, <code>app</code>, <code>text</code>, <code>number</code>,
+                <code>choice</code>, <code>date</code> become real types in the root scope.
+              </li>
+              <li>Members come from one data table per type: words, datatype, parameters, how it compiles.</li>
+              <li>
+                So the same words mean different things on different types: <code>the length of the name</code> is
+                <code>.length</code>, <code>the length of the deck</code> goes through the list helper.
+              </li>
+              <li>
+                Adding a built-in type is one table entry plus its runtime class. The Type Explorer's pack is generated
+                from the same table.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="type-vocabulary" header="Type vocabulary" sticky collapsible dividing>
+            <ul>
+              <li>
+                Today one idea has several spellings: the AST says <code>"string"</code>, rules say <code>text</code>; a
+                list literal's rule says <code>"array"</code>; <code>choice</code> maps to <code>boolean</code> in one
+                table while <code>as yes or no</code> compiles to <code>'choice'</code>.
+              </li>
+              <li>
+                The runtime already speaks spell: <code>spellCore.typeOf()</code> turns <code>string</code> into
+                <code>text</code>, <code>boolean</code> into <code>choice</code>, <code>array</code> into
+                <code>list</code>.
+              </li>
+              <li>
+                The parser uses exactly that vocabulary wherever a type is stored: scope records, declarations, AST.
+              </li>
+              <li>JavaScript's words are accepted only where a user WRITES them.</li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>stored as</th>
+                    <th>also accepted when written</th>
+                    <th>runtime <code>typeOf()</code></th>
+                    <th>JavaScript</th>
+                  </tr>
+                  <tr>
+                    <td><code>text</code></td>
+                    <td><code>string</code></td>
+                    <td><code>text</code></td>
+                    <td>string</td>
+                  </tr>
+                  <tr>
+                    <td><code>number</code></td>
+                    <td><code>fraction</code></td>
+                    <td><code>number</code></td>
+                    <td>number</td>
+                  </tr>
+                  <tr>
+                    <td><code>integer</code></td>
+                    <td></td>
+                    <td><code>number</code>; <code>isOfType()</code> checks</td>
+                    <td>number</td>
+                  </tr>
+                  <tr>
+                    <td><code>character</code></td>
+                    <td><code>char</code></td>
+                    <td><code>text</code> of length 1</td>
+                    <td>string</td>
+                  </tr>
+                  <tr>
+                    <td><code>choice</code></td>
+                    <td><code>boolean</code>, <code>yes or no</code>, <code>true or false</code></td>
+                    <td><code>choice</code></td>
+                    <td>boolean</td>
+                  </tr>
+                  <tr>
+                    <td><code>date</code></td>
+                    <td></td>
+                    <td>new</td>
+                    <td>Date</td>
+                  </tr>
+                  <tr>
+                    <td><code>list of cards</code></td>
+                    <td><code>list</code>, <code>List</code></td>
+                    <td><code>list</code>, or the class name</td>
+                    <td>List, array</td>
+                  </tr>
+                  <tr>
+                    <td><code>card</code>, <code>thing</code>, <code>app</code></td>
+                    <td>any case, singular or plural</td>
+                    <td>the class name, lowercased</td>
+                    <td>class</td>
+                  </tr>
+                  <tr>
+                    <td><code>nothing</code></td>
+                    <td><code>undefined</code></td>
+                    <td><code>unknown</code></td>
+                    <td>undefined, null</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+        </ui-section>
+        <ui-section
+          id="7-signatures-calls-and-members"
+          header="7. Signatures, calls and members"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-section id="paren-free-signatures" header="Paren-free signatures" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>a</code> or <code>an</code> before a KNOWN type is a typed parameter:
+                <code>to add a card to a pile</code> is <code>to add (a card) to (a pile)</code>. The indefinite article
+                means "any one of these".
+              </li>
+              <li><code>to make a mess</code> stays a phrase: <code>mess</code> is no type.</li>
+              <li>
+                <code>the</code> before anything is literal words: <code>to reset the stock pile</code>. The definite
+                article means "the one we all know".
+              </li>
+              <li>Parens stay for what needs them: untyped <code>(message)</code>, defaults, <code>(with …)</code>.</li>
+              <li>
+                <code>to create a card</code> becomes <code>Card.create()</code>, not <code>create_a_card()</code>. One
+                existing test pins the old reading.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="typed-call-rules" header="Typed call rules" sticky collapsible dividing>
+            <ul>
+              <li>A generated call rule carries its parameter types and its return type.</li>
+              <li>
+                An argument whose type is KNOWN and NOT assignable to the parameter's rejects the rule. Unknown never
+                rejects.
+              </li>
+              <li><code>put the chip on the pot</code> picks Chip's rule.</li>
+              <li>
+                <code>add the card to the deck</code> falls past a user's <code>add (a card) to (a pile)</code> to the
+                built-in.
+              </li>
+              <li>
+                The language server reads parameters from the method record. Today it regexes parens out of the method's
+                name, in four places.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="multi-word-members" header="Multi-word members" sticky collapsible dividing>
+            <ul>
+              <li>
+                A <code>member_words</code> rule matches one to N words that aren't structural:
+                <code>of the a an is has have in to and or if where</code>. N is the longest member name known in scope.
+              </li>
+              <li>
+                Declarations use it for the name: <code>the short rank of a card is:</code>,
+                <code>a card has short rank as text</code>, <code>its short rank</code>.
+              </li>
+              <li>
+                Declared words bypass the identifier blacklist, so <code>short</code> is fine.
+                <code>short-rank</code> keeps working.
+              </li>
+              <li>
+                On a read, the words resolve against the type of what follows <code>of</code>.
+                <ul>
+                  <li>
+                    Resolved: a <code>known_property_expression</code>, higher precedence. A declared
+                    <code>last card</code> beats the built-in ordinal rule.
+                  </li>
+                  <li>
+                    A single unknown word stays permissive, as today: <code>Deck.spell</code> reads an undeclared
+                    <code>is-set-up</code>.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Class members such as <code>card suits</code> go through the same lookup. That replaces the per-property
+                <code>EnumerationRule</code>, and fixes <code>the suits of the card</code> and dashed type names.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="the-examples-rewritten" header="The examples, rewritten" sticky collapsible dividing>
+            <h4 id="today">Today</h4>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>Code · 11 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-plaintext">the short-rank of a card is:
+    …
+to turn (a card) face up:
+    set its direction to up
+to move (a card) to (a pile)
+    if the pile of the card is defined: remove the card from its pile
+    set the pile of the card to the pile
+    add the card to the pile
+expect (the last card of the deck) is the black joker to be yes
+get the first card of the deck
+expect it is the ace of clubs to be yes</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <h4 id="after">After</h4>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>Code · 7 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-plaintext">the short rank of a card is:
+    …
+to turn a card face up:
+    set its direction to up
+a pile is an exclusive list of cards
+expect the last card of the deck is the black joker to be yes
+expect the first card of the deck is the ace of clubs to be yes</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+        </ui-section>
+        <ui-section id="exclusive-lists" header="8. Exclusive lists" sticky collapsible dividing>
+          <p>From review: make "an item lives in one list of this kind at a time" a property of the list TYPE.</p>
+          <ui-message state="info">
+            <p>
+              <b>The note.</b> "Since we have our own List type, what if we had an exclusive list concept which says an
+              item can only be in one object of my type at once, and does the add-removes-from-previous-parent that we
+              do manually with pile? This should work for subclasses too, and deck would need to be a different
+              descendant path so a card can be part of a deck AND part of one of the piles."
+            </p>
+          </ui-message>
+
+          <ui-section id="declaration" header="Declaration" sticky collapsible dividing>
+            <ul>
+              <li>Words to bikeshed: <code>a pile is an exclusive list of cards</code>.</li>
+              <li>Records <code>exclusive</code> on <code>Pile</code>.</li>
+              <li>Every subtype inherits the FAMILY rooted at Pile: tableau, foundation, stock-pile, discard-pile.</li>
+              <li>
+                <code>a deck is a list of cards</code> is another family, or none. So a card can be in the deck and in
+                one pile.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="derived-member" header="Derived member" sticky collapsible dividing>
+            <ul>
+              <li>
+                The item type gains a read-only member named after the family root: <code>the pile of a card</code>.
+              </li>
+              <li>It is the pile holding the card, or nothing.</li>
+              <li>It is declared on <code>Card</code> by Pile's line, so go-to-definition lands there.</li>
+              <li>It is written into <code>SPELL: DECLARES</code>, so an importing project rebuilds it.</li>
+              <li>This is what the type plumbing is for: one line adds a fact to TWO types.</li>
+            </ul>
+          </ui-section>
+          <ui-section id="runtime" header="Runtime" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>List.add()</code>, <code>addAtPosition()</code>, <code>removeItem()</code> and
+                <code>clear()</code> consult the list's family.
+              </li>
+              <li>One <code>WeakMap</code> per family maps an item to its owner.</li>
+              <li>Adding removes the item from the previous owner of the same family first.</li>
+              <li>The derived member reads the map, reactively.</li>
+              <li>
+                Scratch results from <code>map()</code> and <code>filter()</code> must NOT take ownership: one more
+                reason for the debt item that makes them plain lists.
+              </li>
+              <li>
+                <code>Pile.spell</code>'s <code>to move</code> and its bookkeeping go away.
+                <code>add the card to the pile</code> does it.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="open-questions" header="Open questions" sticky collapsible dividing>
+            <ul>
+              <li>Is "in a deck and in a pile" the default, or must a shared family be said out loud?</li>
+              <li>
+                May <code>remove the card from the pile</code> leave a card ownerless? Probably yes: a card on the
+                table.
+              </li>
+              <li>What happens to <code>a copy of the pile</code>: a plain list, or a second owner?</li>
+            </ul>
+          </ui-section>
+        </ui-section>
+        <ui-section id="typescript-backend" header="9. A TypeScript backend" sticky collapsible dividing>
+          <p>
+            From review: have the compiler emit TypeScript, and compile it a second time. The second step is a service
+            the EDITOR has; a runner only ever loads the optimized JavaScript.
+          </p>
+
+          <ui-section id="the-idea" header="The idea" sticky collapsible dividing>
+            <ul>
+              <li>
+                The spell compiler writes TypeScript: types from each match's <code>datatype</code>, standard
+                decorators, JSX as JSX.
+              </li>
+              <li>A second step checks it, then lowers it to the JavaScript programs run on.</li>
+              <li>
+                That step is assumed available wherever spell is COMPILED: the app's editor,
+                <code>&lt;spell-editor&gt;</code>, the language server. It may be expensive and in memory.
+              </li>
+              <li>
+                It is never in a runner: the app's run pane, VS Code's runner and <code>&lt;spell-app&gt;</code> load
+                plain JavaScript, as today.
+              </li>
+              <li>
+                Three payoffs:
+                <ul>
+                  <li>a second opinion on every line the parser wrote</li>
+                  <li>type answers the parser doesn't have</li>
+                  <li>compiled spell written the way hand-written <code>spellCore</code> classes are</li>
+                </ul>
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="the-pipeline" header="The pipeline" sticky collapsible dividing>
+            <ui-cards class="spell-flow" stackable>
+              <ui-card>
+                <ui-content>
+                  <ui-header>parse</ui-header>
+                  <ui-description
+                    >Per keystroke, synchronous, as today. Matches carry binding power and datatypes. Spell's own
+                    diagnostics show at once.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>emit</ui-header>
+                  <ui-description
+                    >After the 2 second pause. One <code>.tsx</code> per spell file, plus which AST node wrote each
+                    range of it.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>check</ui-header>
+                  <ui-description
+                    >Editor only, in a worker. Type errors, mapped back to spell ranges and spell's
+                    words.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>lower</ui-header>
+                  <ui-description
+                    >Editor only. Types stripped, decorators lowered, JSX compiled for Solid.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>save</ui-header>
+                  <ui-description
+                    ><code>Project.compiled.js</code>, and the <code>.tsx</code> beside it for editors that import the
+                    project.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>run</ui-header>
+                  <ui-description
+                    >Any runner. Plain ES modules from a <code>blob:</code> URL, importing only
+                    <code>@spell/…</code>.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+            </ui-cards>
+          </ui-section>
+          <ui-section id="what-the-compiler-emits" header="What the compiler emits" sticky collapsible dividing>
+            <ui-accordion class="spell-code" styled>
+              <ui-title
+                >Today: plain JavaScript, from
+                <a
+                  href="../../../spell/projects/test/Solitaire/Solitaire.snapshot.js"
+                  target="src-packages-spell-projects-test-solitaire-solitaire-snapshot-js"
+                  ><code>projects/test/Solitaire/Solitaire.snapshot.js</code></a
+                ></ui-title
+              >
+              <ui-content>
+                <pre><code class="language-ts">export class Card extends Thing {
+  static Ranks = ['ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king']
+  get rank() { return this.getProp('rank') }
+  set rank(value) { this.setProp('rank', value, { oneOf: Card.Ranks }) }
+
+  // …
+
+  draw() {
+    let className = (((((("Card face-" + this.direction) + " ") + this.rank) + " ") + this.suit) + " ui button compact fluid ")
+    if (this.is_face_down) { return spellCore.element({
+      tag: "div",
+      props: {
+        onClick: (event) =&gt; {
+          return spellCore.RUNTIME.trigger('card-click', { card: this })
+        },
+        className: className
+      },
+      children: [
+        spellCore.element({ tag: "i", props: { className: "fitted bicycle icon" } })
+      ]
+    }) }
+    return spellCore.element({
+      tag: "div",
+      props: {
+        onClick: (event) =&gt; {
+          return spellCore.RUNTIME.trigger('card-click', { card: this })
+        },
+        className: (className + this.color)
+      },
+      children: [
+        (this.short_rank + " "),
+        spellCore.element({ tag: "span", props: { className: "suit" }, children: [
+          this.short_suit
+        ] })
+      ]
+    })
+  }
+
+  } */
+  async move_to_$pile(pile) {
+    if (spellCore.isDefined(this.pile)) { spellCore.remove(this.pile, this) }
+    this.pile = pile
+    spellCore.append(pile, this)
+    await spellCore.pauseFor(50, 'msec')
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>Proposed: the same members as TypeScript. Hand-written, to show the shape.</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">import { spellCore, Thing, Show, thing, prop } from "@spell/core"
+import type { Pile } from "./Pile"
+
+const RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
+
+/** a card is a thing */
+@thing
+export class Card extends Thing {
+  /** card ranks */
+  static Ranks = RANKS
+  @prop({ oneOf: RANKS }) accessor rank!: (typeof RANKS)[number]
+
+  /** card direction:  up or down */
+  @prop({ oneOf: ["up", "down"] }) accessor direction!: "up" | "down"
+
+  /** never declared in spell:  its type comes from `set the pile of the card to the pile` */
+  @prop() accessor pile: Pile | undefined
+
+  // … suit, color, is_face_down, short_suit:  as in Card.spell
+
+  /** the short rank of a card is: … */
+  get short_rank(): string {
+    if (this.rank === undefined) return "?"
+    if (typeof this.rank === "number") return "" + this.rank
+    return spellCore.upperCase(spellCore.getItemOf(this.rank, 1))
+  }
+
+  /** to move a card to a pile */
+  async move_to_$pile(pile: Pile): Promise&lt;void&gt; {
+    if (spellCore.isDefined(this.pile)) spellCore.remove(this.pile, this)
+    this.pile = pile
+    spellCore.append(pile, this)
+    await spellCore.pauseFor(50, "msec")
+  }
+
+  /** to draw a card */
+  draw() {
+    const classes = () =&gt; ["Card", "face-" + this.direction, this.rank, this.suit, "ui button compact fluid"]
+    const click = (event: Event) =&gt; spellCore.RUNTIME.trigger("card-click", { card: this })
+    const back = (
+      &lt;div class={classes()} onClick={click}&gt;
+        &lt;i class="fitted bicycle icon" /&gt;
+      &lt;/div&gt;
+    )
+    return (
+      &lt;Show when={!this.is_face_down} fallback={back}&gt;
+        &lt;div class={[...classes(), this.color]} onClick={click}&gt;
+          {this.short_rank + " "}
+          &lt;span class="suit"&gt;{this.short_suit}&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/Show&gt;
+    )
+  }
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>Parameter and return types come from the datatypes of section 6.</li>
+              <li>
+                A property is <code>@prop … accessor</code>, the spelling <code>spellCore</code>'s own classes use, not
+                a hand-lowered accessor pair.
+              </li>
+              <li>
+                <code>pile</code> was never declared in spell. The emitter declares it from its first assignment.
+                <ul>
+                  <li>It also becomes reactive, which an ad-hoc property is not today.</li>
+                </ul>
+              </li>
+              <li>JSX stays JSX. <code>className</code> is <code>class</code>.</li>
+              <li>
+                The early <code>return</code> became a <code>&lt;Show&gt;</code>: a Solid component runs once, so a
+                branch must be an expression.
+              </li>
+              <li>
+                Each class needs a private brand. TypeScript is structural, spell's types are nominal: without one, a
+                deck and a pile with the same members are the same type.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="what-the-check-catches" header="What the check catches" sticky collapsible dividing>
+            <p>Not a prediction: the lines today's grammar emits, typed as above, run through the real compiler.</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>spell</th>
+                    <th>emitted today</th>
+                    <th>TypeScript says</th>
+                  </tr>
+                  <tr>
+                    <td><code>put the chip on the pot</code></td>
+                    <td><code>chip.put_on_$pile(pot)</code></td>
+                    <td class="no negative">TS2339: Property 'put_on_$pile' does not exist on type 'Chip'.</td>
+                  </tr>
+                  <tr>
+                    <td><code>add the card to the deck</code></td>
+                    <td><code>card.add_to_$pile(deck)</code></td>
+                    <td class="no negative">
+                      TS2741: Property '$Pile' is missing in type 'Deck' but required in type 'Pile'.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>the first card of the deck is face up</code></td>
+                    <td><code>getItemOf(deck.is_face_up, 1)</code></td>
+                    <td class="no negative">TS2339: Property 'is_face_up' does not exist on type 'Deck'.</td>
+                  </tr>
+                  <tr>
+                    <td><code>the number of cards in the deck is 52</code></td>
+                    <td><code>itemCountOf(deck == 52)</code></td>
+                    <td class="no negative">
+                      TS2367: the types 'Deck' and 'number' have no overlap. TS2345: 'boolean' is not a list.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>the number of cards in the deck + 1</code></td>
+                    <td><code>itemCountOf(deck + 1)</code></td>
+                    <td class="no negative">TS2365: Operator '+' cannot be applied to types 'Deck' and 'number'.</td>
+                  </tr>
+                  <tr>
+                    <td><code>the suit of the first card of the deck is hearts</code></td>
+                    <td><code>getItemOf(deck == 'hearts', 1).suit</code></td>
+                    <td class="no negative">
+                      TS2367: the types 'Deck' and 'string' have no overlap. TS2571: Object is of type 'unknown'.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>x + y is empty</code></td>
+                    <td><code>x + isEmpty(y)</code></td>
+                    <td class="no negative">TS2365: Operator '+' cannot be applied to types 'number' and 'boolean'.</td>
+                  </tr>
+                  <tr>
+                    <td><code>x ends with y and 1</code></td>
+                    <td><code>endsWith(x, y &amp;&amp; 1)</code></td>
+                    <td class="no negative">TS2345: 'number' is not assignable to 'string | unknown[]'.</td>
+                  </tr>
+                  <tr>
+                    <td><code>the colour of the card</code></td>
+                    <td><code>card.colour</code></td>
+                    <td class="no negative">
+                      TS2551: Property 'colour' does not exist on type 'Card'. Did you mean 'color'?
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>the seven lines as section 5 parses them</td>
+                    <td><code>chip.put_on_$pot(pot)</code> …</td>
+                    <td class="yes positive">nothing</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ui-message state="positive" header="Every mis-parse in section 2 that compiles shows up as a type error">
+              <ul>
+                <li>Nine wrong lines in, nine flagged. Seven corrected lines in, no reports.</li>
+                <li>So the check would have caught today's precedence bugs even before they're fixed.</li>
+                <li>
+                  The last row of wrong lines is a plain typo no grammar rule can catch. Today it reads
+                  <code>undefined</code> when run.
+                </li>
+              </ul>
+            </ui-message>
+          </ui-section>
+          <ui-section id="how-it-guides-the-compile" header="How it guides the compile" sticky collapsible dividing>
+            <ul>
+              <li>
+                The parser never waits for TypeScript. Parsing is synchronous and per keystroke; checking is
+                asynchronous, after the pause. So its answers arrive one compile late.
+              </li>
+              <li>
+                Inferred types, fed back:
+                <ul>
+                  <li>the return type of a method or getter, and the type of an undeclared property</li>
+                  <li>
+                    recorded on the scope record after a clean check; the next parse reads them like any declared type
+                  </li>
+                  <li>this REPLACES the parser's own return-type inference: less code in the parser</li>
+                  <li>saved in <code>SPELL: DECLARES</code>, so a project imported without its sources has them too</li>
+                </ul>
+              </li>
+              <li>
+                A better candidate, offered:
+                <ul>
+                  <li>where a choice kept several candidates and the winner fails the check while another passes</li>
+                  <li>
+                    shown as a quick fix, "did you mean <code>put (a chip) on (a pot)</code>", never applied silently
+                  </li>
+                </ul>
+              </li>
+              <li>Hover and completion can ask <code>typeAt()</code> wherever spell's own datatype is unknown.</li>
+            </ul>
+            <ui-message state="warning" header="The output must not depend on who compiled it">
+              <ul>
+                <li>Fed-back types can change a later parse, through typed call rules.</li>
+                <li>
+                  So every host that compiles runs the same check, and a cold compile repeats emit and check until the
+                  types settle: twice at most.
+                </li>
+                <li>The parser's own choice is never overridden. TypeScript reports, suggests, and fills in types.</li>
+              </ul>
+            </ui-message>
+          </ui-section>
+          <ui-section
+            id="errors-back-in-spell-s-words"
+            header="Errors back in spell's words"
+            sticky
+            collapsible
+            dividing
+          >
+            <ul>
+              <li>
+                Half of the mapping exists: every AST node keeps the match it came from, file and offsets, even a member
+                hoisted into another file's class.
+              </li>
+              <li>The other half is missing: <code>compile()</code> joins strings and forgets where each came from.</li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>TypeScript · 26 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">/** Emitted text, plus which AST node wrote each range of it. */
+type Emitted = { text: string; spans: EmittedSpan[] }
+type EmittedSpan = { start: number; end: number; node: P.ASTNode }
+
+class ASTInfixExpression extends ASTExpression {
+  // today:  a string, and where it came from is lost
+  compile(): string {
+    return `${this.lhs.compile()} ${this.operator} ${this.rhs.compile()}`
+  }
+
+  // proposed:  the same one-liner;  the tag asks each node for its own `emit()`, shifts its spans
+  // by where it landed, and adds one span for `this`
+  emit(): Emitted {
+    return P.emit(this)`${this.lhs} ${this.operator} ${this.rhs}`
+  }
+}
+
+/** Innermost node whose output covers `offset`:  its `match` is a range in a spell file. */
+function nodeAt(emitted: Emitted, offset: number): P.ASTNode | undefined {
+  let found: EmittedSpan | undefined
+  for (const span of emitted.spans) {
+    if (span.start &gt; offset || span.end &lt;= offset) continue
+    if (!found || span.end - span.start &lt;= found.end - found.start) found = span
+  }
+  return found?.node
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                The helpers in
+                <a href="../../../parser/src/ast/stringifyAST.ts" target="src-packages-parser-src-ast-stringifyast-ts"
+                  ><code>stringifyAST.ts</code></a
+                >
+                that re-indent shift spans as they go. The project header's length is added once.
+              </li>
+              <li>The same spans are a source map: stack traces and breakpoints on spell lines, for free.</li>
+              <li>
+                <a href="../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                  ><code>renderAST.ts</code></a
+                >
+                is a React twin of the stringifier, so every emit change is made twice today. Drawing the AST viewer
+                from the spans leaves one emitter.
+              </li>
+              <li>
+                TypeScript talks about <code>put_on_$pile</code>. A handful of codes get translated through the scope's
+                method records: "a chip can't <code>put … on (a pile)</code>".
+                <ul>
+                  <li>2339, 2551, 2345, 2367, 2365, 2741, 2554</li>
+                  <li>anything else is shown as it is, tagged as the compiler's</li>
+                </ul>
+              </li>
+              <li>
+                Type problems are warnings. The program is still lowered and run, as <code>checkProp()</code> warns and
+                never rejects.
+              </li>
+              <li>They get their own marker owner, so parse markers and type markers don't wipe each other.</li>
+              <li>A result that arrives after another edit is dropped. A project with parse errors isn't checked.</li>
+              <li>
+                Until spans exist, each <code>SPELL: DECLARES</code> comment's <code>defined:</code> offsets map an
+                error to its declaring statement.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="solid-jsx-and-decorators" header="Solid JSX and decorators" sticky collapsible dividing>
+            <ul>
+              <li>
+                <a href="../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html">The Solid 2 plan</a>
+                says compiled spell can't use decorators, "<code>blob:</code>
+                URL, no transpile", so hand-written and compiled classes are two spellings that MUST build the same
+                runtime shape.
+              </li>
+              <li>
+                It plans JSX as <code>spellCore.element()</code> calls on hyperscript, the parser wrapping every dynamic
+                value in a thunk.
+              </li>
+              <li>A lowering step removes the reason for both: one spelling, lowered by a tool.</li>
+            </ul>
+            <h4 id="what-jsx-as-jsx-buys">What JSX as JSX buys</h4>
+            <ul>
+              <li>
+                Each <code>{expression}</code> is its own tracking scope by compilation, not by the parser wrapping
+                thunks.
+              </li>
+              <li>
+                Tags and props are type-checked.
+                <ul>
+                  <li>
+                    <code>className</code> on a <code>&lt;div&gt;</code> is an error: the React spellings left in spell
+                    sources become a to-do list.
+                  </li>
+                  <li><code>&lt;ui-*&gt;</code> props are typed through the JSX types augmentation.</li>
+                  <li>
+                    The hyphenated-event trap, <code>onUiChange</code> against <code>ui-change</code>, becomes a type
+                    error.
+                  </li>
+                </ul>
+              </li>
+              <li>No hyperscript arity trap.</li>
+            </ul>
+            <h4 id="what-must-stay-true">What must stay true</h4>
+            <ul>
+              <li>
+                Compiled spell imports ONLY <code>@spell/…</code>. Point the JSX compiler's helper module at
+                <code>@spell/core</code>, which re-exports the helpers from the one shared Solid.
+                <ul>
+                  <li>
+                    <code>linkModule()</code> already rewrites <code>@spell/</code> specifiers, so no runner changes.
+                  </li>
+                  <li>One Solid per page holds.</li>
+                </ul>
+              </li>
+              <li>
+                A throwing expression must not halt the page. <code>element()</code> was to wrap each thunk in
+                <code>try</code> / <code>catch</code>; the compiled equivalent is a guarded effect wrapper exported by
+                <code>@spell/core</code>.
+              </li>
+              <li>Spell state stays cells, not signals. Nothing here touches that.</li>
+            </ul>
+            <h4 id="what-it-doesn-t-solve">What it doesn't solve</h4>
+            <ul>
+              <li>
+                A Solid component runs once. Card's <code>to draw</code> has a local and an early return, which would
+                freeze. The emitter must lower statement-level control flow to <code>&lt;Show&gt;</code> and
+                expressions, with or without TypeScript.
+              </li>
+              <li>
+                The Solid 2 research measured a decorated class constructing about 6x slower than hand-lowered
+                accessors. A deck makes 52 cards.
+                <ul>
+                  <li>
+                    Either our lowering turns <code>@prop</code> into the accessor pair itself, or compiled classes keep
+                    emitting pairs, typed.
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <ui-message state="warning" header="The runtime is React today">
+              <ul>
+                <li>Emitting Solid JSX waits for the Solid migration's runtime phases.</li>
+                <li>
+                  The CHECK half doesn't. Typed output with today's <code>spellCore.element()</code> calls and accessor
+                  pairs can be checked now, and lowered by stripping types.
+                </li>
+              </ul>
+            </ui-message>
+          </ui-section>
+          <ui-section id="the-service" header="The service" sticky collapsible dividing>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>TypeScript · 31 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">/** What the editor needs from a TypeScript service.  Assumed available;  NEVER loaded by a runner. */
+type TypeScriptService = {
+  /** Replace the files it knows:  the emitted `.tsx`, `@spell/core`'s types, imported projects' types. */
+  setFiles(files: Record&lt;string, string&gt;): void
+  /** Type errors, as offsets into the emitted files. */
+  semanticDiagnostics(): Promise&lt;TypeScriptDiagnostic[]&gt;
+  /** Type of the expression at `offset`, in TypeScript's words, e.g. `"Card | undefined"`. */
+  typeAt(file: string, offset: number): Promise&lt;string | undefined&gt;
+  /** Plain JS:  types stripped, decorators lowered, JSX compiled for Solid, helpers imported from `moduleName`. */
+  lower(files: Record&lt;string, string&gt;, options: { moduleName: string }): Promise&lt;Record&lt;string, string&gt;&gt;
+}
+
+/** Editor only:  runs after the spell compile, before anything is saved or run. */
+async function checkAndLower(project: SP.SpellProject, service: TypeScriptService): Promise&lt;CheckedOutput&gt; {
+  const emitted = project.emitTypeScript() // one `.tsx` per spell file, each with its node =&gt; output-range spans
+  service.setFiles({
+    ...emitted.files,
+    "/spell-core.d.ts": SPELL_CORE_TYPES, // generated from `src/spellCore/` when the editor is built
+    ...project.importedTypes() // an imported project's `&lt;Project&gt;.compiled.tsx`, saved beside its `.js`
+  })
+
+  const problems: SpellProblem[] = []
+  for (const diagnostic of await service.semanticDiagnostics()) {
+    const node = emitted.nodeAt(diagnostic.file, diagnostic.start) // innermost AST node that wrote that range
+    if (node) problems.push({ match: node.match, message: inSpellWords(diagnostic, node) }) // a SPELL range
+  }
+
+  // what every runner loads:  plain ES modules which import only `@spell/...`
+  const javascript = await service.lower(emitted.files, { moduleName: "@spell/core" })
+  return { problems, javascript }
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>host</th>
+                    <th>check</th>
+                    <th>lower</th>
+                  </tr>
+                  <tr>
+                    <td>the app's editor, <code>&lt;spell-editor&gt;</code></td>
+                    <td>
+                      Monaco's TypeScript worker. It ships in <code>monaco-editor</code> 0.57 with TypeScript 5.9.3, and
+                      is not bundled today.
+                    </td>
+                    <td>
+                      The same worker for types and decorators. Solid's compiler for JSX, which has a browser WASM
+                      build. A second web worker, loading with Monaco, which is already lazy.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>the language server</td>
+                    <td>
+                      The repo's <code>typescript</code> is 7.0.2, the native port: diagnostics through an unstable API,
+                      no emit. Or pin a JavaScript <code>typescript@5</code>.
+                    </td>
+                    <td>
+                      <code>esbuild</code>, which
+                      <a href="../../../../vite.decorators.ts" target="src-vite-decorators-ts"
+                        ><code>vite.decorators.ts</code></a
+                      >
+                      already uses, plus Solid's compiler.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn scopes</code>, tests</td>
+                    <td>as the language server</td>
+                    <td>as the language server</td>
+                  </tr>
+                  <tr>
+                    <td>runners: the run pane, VS Code's runner, <code>&lt;spell-app&gt;</code></td>
+                    <td class="yes positive">none</td>
+                    <td class="yes positive">none</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                <code>@spell/core</code>'s types are generated when the editor is built. No <code>.d.ts</code> exists
+                for it today.
+              </li>
+              <li>An imported project's types are its saved <code>.tsx</code>.</li>
+            </ul>
+          </ui-section>
+          <ui-section id="cost-and-timing" header="Cost and timing" sticky collapsible dividing>
+            <ul>
+              <li>Per keystroke: parse only, as today.</li>
+              <li>
+                After the pause: emit, check, lower, save, run. A language service re-checks only the files that
+                changed.
+              </li>
+              <li>
+                To measure before committing, as experiments beside this doc:
+                <ul>
+                  <li>check and lower time for Solitaire, cold and warm</li>
+                  <li>the worker's size, and what it adds to the editor's first load</li>
+                  <li>whether Solid's compiler honours a helper module and an effect wrapper</li>
+                </ul>
+              </li>
+              <li>Nothing is added to <code>spell-runtime.js</code> but the re-exported JSX helpers.</li>
+            </ul>
+          </ui-section>
+          <ui-section id="what-it-changes-elsewhere" header="What it changes elsewhere" sticky collapsible dividing>
+            <ul>
+              <li>
+                The Solid 2 rules: "compiled spell can't use decorators" and "<code>element()</code> thunks" get
+                revisited there.
+              </li>
+              <li>
+                This plan: the parser's own return-type inference is dropped. Section 6's datatypes become the source of
+                annotations.
+              </li>
+              <li>
+                File names: a <code>.compiled.tsx</code> beside each <code>.compiled.js</code>. Fixture snapshots hold
+                the <code>.tsx</code>, the readable form.
+              </li>
+              <li>
+                <code>SpellDeclarations.read()</code> and <code>ScopesSource</code> read the
+                <code>SPELL:</code> comments out of compiled TEXT. They read the <code>.tsx</code>, or the lowering
+                keeps <code>/*!</code> comments.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="what-it-does-not-do" header="What it does not do" sticky collapsible dividing>
+            <ul>
+              <li>
+                It doesn't fix precedence. A mis-parse that happens to type-check is silent:
+                <code>the absolute value of x + 1</code> is a number either way.
+              </li>
+              <li>
+                It doesn't replace spell's own datatypes. Member lookup, typed calls and completion need answers while
+                parsing.
+              </li>
+              <li>It never runs in a runner.</li>
+            </ul>
+          </ui-section>
+        </ui-section>
+        <ui-section id="10-phases" header="10. Phases" sticky collapsible dividing>
+          <ul>
+            <li>
+              Each ends with: types, lint and tests green; fixtures re-blessed and the diff read; the parser speed test
+              on HEAD and on the change;
+              <a href="../../../spell/PARSING.md" target="src-packages-spell-parsing-md"><code>PARSING.md</code></a>
+              updated; the extension rebuilt; a stop for review.
+            </li>
+            <li>
+              Live examples may be rewritten. Fixtures under
+              <a href="../../../spell/projects/test/" target="src-packages-spell-projects-test"
+                ><code>projects/test/</code></a
+              >
+              are never edited by hand.
+            </li>
+          </ul>
+          <ui-table celled compact striped unstackable>
+            <table>
+              <tbody>
+                <tr>
+                  <th class="num right aligned">#</th>
+                  <th>phase</th>
+                  <th>touches</th>
+                  <th>proves</th>
+                </tr>
+                <tr>
+                  <td class="num right aligned">0</td>
+                  <td>Baseline</td>
+                  <td>a probe test snapshotting every example here; speed numbers</td>
+                  <td>every later phase shows exactly what it changed</td>
+                </tr>
+                <tr>
+                  <td class="num right aligned">1</td>
+                  <td>Binding power</td>
+                  <td>
+                    <code>Rule</code>, <code>Choice</code>, <code>Sequence</code>, a new
+                    <code>OperatorExpression</code>, rulex; the expression, list, math and property rules
+                  </td>
+                  <td>greedy operands, the two jobs, postfix; the library loses its forced parens</td>
+                </tr>
+                <tr>
+                  <td class="num right aligned">2</td>
+                  <td>Types plumbed, no output change</td>
+                  <td>
+                    scope classes, each rule's <code>parse()</code> that looks something up, declarations, built-in type
+                    names
+                  </td>
+                  <td>fixtures byte-identical; hover shows types</td>
+                </tr>
+                <tr>
+                  <td class="num right aligned">3</td>
+                  <td>Typed calls, paren-free signatures</td>
+                  <td>
+                    <a href="../../../spell/src/rules/methods.ts" target="src-packages-spell-src-rules-methods-ts"
+                      ><code>methods.ts</code></a
+                    >, the language server
+                  </td>
+                  <td>the chip goes on the pot</td>
+                </tr>
+                <tr>
+                  <td class="num right aligned">4</td>
+                  <td>Multi-word members</td>
+                  <td>
+                    <a href="../../../spell/src/rules/properties.ts" target="src-packages-spell-src-rules-properties-ts"
+                      ><code>properties.ts</code></a
+                    >,
+                    <a href="../../../spell/src/rules/classes.ts" target="src-packages-spell-src-rules-classes-ts"
+                      ><code>classes.ts</code></a
+                    >
+                  </td>
+                  <td><code>short rank</code>; the enumeration debt</td>
+                </tr>
+                <tr>
+                  <td class="num right aligned">5</td>
+                  <td>Built-in member tables</td>
+                  <td>one table per built-in type; the Type Explorer's pack</td>
+                  <td>the large built-in set has somewhere to live</td>
+                </tr>
+                <tr>
+                  <td class="num right aligned">6</td>
+                  <td>Exclusive lists</td>
+                  <td>
+                    <a href="../../../spell/src/rules/classes.ts" target="src-packages-spell-src-rules-classes-ts"
+                      ><code>classes.ts</code></a
+                    >, declarations,
+                    <a href="../../../core/src/classes/List.tsx" target="src-packages-spell-core-src-classes-list-tsx"
+                      ><code>List.tsx</code></a
+                    >
+                  </td>
+                  <td><code>Pile.spell</code>'s <code>to move</code> goes away. Can follow phase 2.</td>
+                </tr>
+                <tr>
+                  <td class="num right aligned">7</td>
+                  <td>TypeScript check</td>
+                  <td>span-recording emit, typed output, the service, diagnostics in both editors</td>
+                  <td>section 9's table, live in the editor. Needs phase 2. JavaScript output unchanged.</td>
+                </tr>
+                <tr>
+                  <td class="num right aligned">8</td>
+                  <td>Decorators and Solid JSX</td>
+                  <td>the emitter's class and JSX nodes; the lowering step</td>
+                  <td>one spelling for classes. Lands with the Solid migration's runtime phases.</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+        </ui-section>
+        <ui-section id="11-decisions-to-confirm" header="11. Decisions to confirm" sticky collapsible dividing>
+          <ol>
+            <li>
+              <code>a</code> / <code>an</code> plus a known type in a signature is a parameter; <code>the</code> plus
+              anything is literal.
+            </li>
+            <li>Postfix suffixes stop binding tightest: <code>x + y is empty</code> is <code>isEmpty(x + y)</code>.</li>
+            <li>
+              <code>Choice</code> keeps "precedence, then length, then earliest". Values are normalized; the order isn't
+              changed.
+            </li>
+            <li>A single-word property read stays permissive; a multi-word read must resolve.</li>
+            <li>A typed call is rejected only on a confident mismatch: both sides known, not assignable.</li>
+            <li>The declarations format gets a major version bump in phase 2.</li>
+            <li>
+              "Hard to use <code>of</code> in method names" is read as an argument followed by <code>of</code>, plus
+              multi-word getters.
+            </li>
+            <li>
+              Property getters become scope-changing, as later lines now read members. Editing one re-parses what
+              follows.
+            </li>
+            <li>A datatype is stored as a string in spell's words: <code>list of cards</code>, <code>choice</code>.</li>
+            <li>Exclusive lists: the wording, and whether a shared family must be said out loud.</li>
+            <li>TypeScript reports, suggests and fills in types. It never overrides what the parser chose.</li>
+            <li>The check lands before the Solid half, on today's JavaScript shapes.</li>
+            <li>Compiled classes: <code>@prop … accessor</code> lowered by us, or typed accessor pairs.</li>
+            <li>Fixture snapshots hold the <code>.tsx</code>.</li>
+          </ol>
+        </ui-section>
+        <ui-section id="12-found-on-the-way" header="12. Found on the way" sticky collapsible dividing>
+          <ui-section id="suspected-bugs" header="Suspected bugs" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>is_a</code> accepts any word as a type: <code>the card is a new card</code> compiles to
+                <code>isOfType(card, 'New')</code>.
+              </li>
+              <li>
+                <code>list_length</code> at precedence 3 against <code>list_filter</code> at 2:
+                <code>the number of cards in the deck where …</code> likely leaves <code>where …</code> unparsed. Not
+                run.
+              </li>
+              <li>
+                An ad-hoc property is not reactive: <code>set the pile of the card to the pile</code> compiles to a
+                plain field.
+              </li>
+              <li>
+                Spell sources and output carry React attribute names, <code>className</code> and <code>colSpan</code>.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="coverage" header="Coverage" sticky collapsible dividing>
+            <ul>
+              <li>
+                The frozen Solitaire fixture predates jokers, so <code>is the (color) joker</code> has no fixture
+                coverage.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="papercut" header="Papercut" sticky collapsible dividing>
+            <ul>
+              <li>
+                A <code>tsx</code> script outside the repo, or a <code>.ts</code> one outside
+                <a href="../../../spell/src/" target="src-packages-spell-src"><code>src/</code></a
+                >, is compiled as CommonJS and trips the parser's circular-import trap. Name it <code>.mts</code>.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="debt-this-retires" header="Debt this retires" sticky collapsible dividing>
+            <ul>
+              <li>"Expression rules ending in <code>{expression}</code> swallow the operator after them": phase 1.</li>
+              <li>"Enumerated properties are reachable under inconsistent names": phase 4.</li>
+              <li>"<code>yarn scopes --builtins</code> overwrites the built-in types' hand-written docs": phase 5.</li>
+            </ul>
+          </ui-section>
+        </ui-section>
+        <ui-section id="sources" header="13. Sources and experiments" sticky collapsible dividing>
+          <ul>
+            <li>
+              <a
+                href="experiments/grammar-today.mts"
+                target="src-packages-docs-precedence-experiments-grammar-today-mts"
+                ><code>grammar-today.mts</code></a
+              >: what today's grammar does with every phrasing in sections 2 and 5. Parses in memory, writes nothing.
+            </li>
+            <li>
+              <a
+                href="experiments/typescript-check.ts"
+                target="src-packages-docs-precedence-experiments-typescript-check-ts"
+                ><code>typescript-check.ts</code></a
+              >: what the real TypeScript compiler says about those emitted lines. Section 9's table is its output.
+            </li>
+            <li>Each script's header comment says how to run it.</li>
+            <li>
+              <a href="../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html">Solid 2 for spell</a>: the
+              rules section 9 has to reconcile with.
+            </li>
+            <li>
+              <a href="../../../spell/PARSING.md" target="src-packages-spell-parsing-md"><code>PARSING.md</code></a
+              >: the parse pipeline as it is today.
+            </li>
+            <li>
+              <a href="../../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a>
+              and
+              <a href="../../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                ><code>agents/SUSPECTED-BUGS.md</code></a
+              >: where the precedence problems were first pinned.
+            </li>
+          </ul>
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

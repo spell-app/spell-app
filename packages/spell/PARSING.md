@@ -47,7 +47,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     (`itemSpacing`) and before its delimiter
   - rulex sets it from how the syntax is spaced:  parts written touching must touch (`isn't`, `\[{x}\]`),
     spaced ones may space;  `{space}` / `{spaces}` set the next part's;  a symbol touching its flag repeats as
-    a run (`#+`).  See `packages/docs/rulex/rulex.html`.
+    a run (`#+`).  See `packages/docs/content/rulex/rulex.html`.
 - Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-09-27):
   Card.spell (121 lines) ~14ms, Solitaire.spell (259 lines) ~77ms, whole Solitaire project ~100ms.
   Compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.

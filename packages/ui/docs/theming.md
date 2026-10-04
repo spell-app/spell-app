@@ -386,6 +386,41 @@ Tokens inherit into shadow roots, so components follow without adopting anything
 Dark mode by default follows the OS (`color-scheme: light dark` on `:root`, in `ui.tokens` so a page's own
 `color-scheme` wins).  A light-only page sets `:root { color-scheme: light }` or `class="ui-light"`.
 
+### Our own theme:  `spell`
+
+`themes/spell.css` is the Spell brand (`packages/brand/spell-design-system/`) as a theme, and the DEFAULT look of
+every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks another) and `packages/docs` pages
+(`spell-ui.entry.js`).
+
+- Listed in `ThemeSheets.OWN`, not `names`:  it's no Fomantic port.  Applied exactly like one, on top of `classic`,
+  so it restates every classic token the brand replaces (type, the size ladder, radii, ink, borders, shadows, the
+  palette, message colours, links, focus).
+- Maps the brand's semantic meanings, light and dark (dark is AUBERGINE, `violet-950`, never black), onto `--ui-*`:
+
+| Brand | Token(s) | Light / dark |
+|---|---|---|
+| Spell Purple | `--ui-primary` (= `--ui-violet`), `-hover` / `-down` step the ladder | `violet-600` / lilac `violet-300` |
+| House of Owen grey-blue | `--ui-secondary` (= `--ui-grey`), borders, text roles | `brand-700` / `brand-400` |
+| Polished Ivory | `--ui-brown` (`-background`, `-text`) | `accent-600` / `accent-400` |
+| canvas, cards | `--ui-background`, `--ui-surface` | `brand-25`, white / `violet-950`, `violet-925` |
+| text, headers | `--ui-text-color`, `--ui-text-dark`, `--ui-text-muted` | `brand-900`, aubergine, `brand-700` / `brand-100`, `violet-25`, `brand-300` |
+| shadows `xs` ... `lg` | `--ui-shadow-subtle` / `-raised` / `-floating` / `-floating-hover` | grey-blue / near-black + lilac glow, one list each |
+| lavender | `--ui-highlight`, `--ui-info-*`, active menu items | `violet-150` / `violet-800` |
+
+- Fonts:  `'Spell Serif'` is the INSTALLED Palatino family only (macOS / iOS `Palatino`, Windows `Palatino Linotype`
+  / `Book Antiqua`, Linux `P052` / `TeX Gyre Pagella`);  none installed (some Linux, Android):  the generic `serif`.
+  No font files ship (Owen, 2026-10-04).  Serif headers (`h1` / `h2`
+  bold, the rest regular), the italic serif lede (a header's sub header), the mono eyebrow (`sub` headers, statistic
+  labels);  body in the system sans, code in the system mono.
+- Shape:  pill buttons, labels and progress bars;  12px inputs;  16px cards, segments, messages, toasts;  22px
+  modals;  round checkboxes.
+- Beyond tokens:  a 3px focus ring, buttons that press to `scale: 0.97` (reduced motion:  none), balanced
+  headings, tabular numbers in tables and statistics, link underlines from the font, an 8% outline on images,
+  font smoothing, `scroll-margin-top` under the site header, and no transitions during a scheme switch
+  (`html.ui-scheme-switching`, set for one frame by `ThemePreference.applyScheme()`).  A transition that must
+  run in that very frame (`<ui-docs-themes>`' sun / moon swap) declares itself `!important` in its component layer:
+  an earlier layer's `!important` wins.
+
 ### Fomantic themes
 
 Every other sheet in `themes/` is a port of one of Fomantic's themes (`src/themes/<name>/` in Fomantic):
@@ -408,7 +443,9 @@ Every other sheet in `themes/` is a port of one of Fomantic's themes (`src/theme
 import { ThemeSheets } from "@spell-app/ui/styles" // `$/ui/styles` in the package
 
 ThemeSheets.names // ["fomantic-classic", "github", "material" ...]:  the Fomantic themes, A-Z
+ThemeSheets.OWN // ["spell"]:  our own themes
 await ThemeSheets.apply("github") // classic + github, on the page and in every shadow root
+await ThemeSheets.apply("spell") // classic + spell, the same way
 await ThemeSheets.apply("classic") // classic alone
 await ThemeSheets.apply(undefined) // our own look
 ```
@@ -417,12 +454,13 @@ await ThemeSheets.apply(undefined) // our own look
   is a theme with no registry edit.  Each sheet is its own LAZY chunk, loaded on first `apply()`:  `$/ui/styles`
   doesn't grow with every theme (only `classic` / `dark` are also exported as text, statically).
 - `ThemeSheets.sheets`:  every sheet, `classic` and `dark` included;  `ThemeSheets.names`:  the Fomantic themes,
-  i.e. without `NOT_THEMES`:
+  i.e. without `NOT_THEMES` and `OWN` (`spell`, above):
   - `classic`:  the base, applied with every Fomantic theme, or alone with `apply("classic")`
   - `dark`:  a colour SCHEME, not a look:  switch it with `color-scheme`, `ui-dark` or `<ui-root theme="dark">`,
-    on top of any theme.  `apply("dark")` throws.  A theme picker offers "default" (`undefined`), `classic`,
-    then `names`;  a separate light / dark / system switch.  The docs site's is `<ui-docs-themes>`
-    (`src/docs-components/`), remembering both per viewer through `ThemePreference`;  `for="ui-button"` lists the
+    on top of any theme.  `apply("dark")` throws.  A theme picker offers `OWN` (`spell`), "plain" (`undefined`),
+    `classic`, then `names`;  a separate light / dark switch.  The docs site's is `<ui-docs-themes>`
+    (`src/docs-components/`:  a sun / moon flip and a palette overlay with the list and "Match system"),
+    remembering both per viewer through `ThemePreference`, the scheme under the one key every doc site shares;  `for="ui-button"` lists the
     themes touching one family, from the site data's `themes` (`tools/ThemeFamilies.ts` reads each sheet's class
     grammar and tokens at build time).
 - `apply()` loads the runtime if needed (dynamic import) and registers two `UI.styles` names:  `classic` (the

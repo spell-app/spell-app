@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it } from "vite-plus/test"
 
 import { UI, type VisibilityCalculations } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/a11y"

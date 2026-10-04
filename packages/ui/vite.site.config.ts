@@ -18,7 +18,7 @@ export const SITE_ENTRY = `${ROOT}site/_src/site.ts`
  * - `baseConfig()`:  the library's own plugins (decorators BEFORE Solid), Solid dedupe, Lightning CSS targets.
  * - An APP build of one JS entry (not lib mode):  code-split, with Vite's preload helper for the lazy chunks.
  * - `base: "./"`:  chunk URLs relative to the chunk that imports them, so `_assets/` works under `/ui/` at any page
- *   depth.  The default `/` asks the server ROOT for `/<chunk>.js` (`PAPERCUTS.md`, app, 2026-10-02).
+ *   depth.  The default `/` asks the server ROOT for `/<chunk>.js` (`agents/PAPERCUTS.md`, app, 2026-10-02).
  * - Stable names where the tree is stable, so a rebuild's diff is small:  `site.js`, `site.css`, one
  *   `<family>.js` per family barrel (`ui-button.js`, `ui-docs-example.js`), emoji data under `emoji/<set>/`;  every
  *   other chunk (shared code, the runtime, engines) `<name>-<hash>.js`.

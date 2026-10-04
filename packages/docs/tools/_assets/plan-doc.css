@@ -1,0 +1,1063 @@
+/*
+ * Plan docs only (`epics/<name>/<name>.plan.html`), on top of `spell-doc.css`.  Markup and ids:
+ * `templates/epics/plan-doc.md`.  `scripts/plan-doc.js` writes most of what's styled here.
+ * - Phase status colors come from `<ui-icon color>` / `<ui-label color>` (UI's own tokens), not from here:  grey
+ *   not done, orange in progress, green done.
+ * - Item state colors (red, blue, orange, green, grey) are here, from UI's tokens:  "Item states".
+ * - Folding, the section counts and the rail are every page's (`spell-doc.css`, `spell-doc-runtime.js`).
+ */
+
+@layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;
+
+/*******************************
+          Page header
+*******************************/
+
+/* the step label at the header's right:  `.plan-step` holding one `<ui-label>` (the script writes it) */
+.plan-step {
+  flex: none;
+}
+/*
+ * The review line under the header:  `button.plan-review-cmd`, "To review this doc, type `/epic review <name>`",
+ * built by the runtime (`buildReviewLine()`).  Reads as a quiet line of text;  a click copies the command and
+ * flashes it yellow (`.flash`, as long as the runtime's `FLASH_MS`).
+ */
+button.plan-review-cmd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* full width INSIDE the margins a plan doc's inset gives it */
+  box-sizing: border-box;
+  width: -webkit-fill-available;
+  width: stretch;
+  margin-block: 6px 2px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--spell-muted);
+  font: 0.9rem/1.4 var(--spell-sans);
+  text-align: start;
+  cursor: copy;
+}
+button.plan-review-cmd:hover {
+  background: var(--spell-accent-soft);
+  color: var(--spell-ink);
+}
+button.plan-review-cmd:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+button.plan-review-cmd > ui-icon {
+  flex: none;
+}
+.plan-review-cmd-done {
+  margin-inline-start: auto;
+  color: var(--spell-ink);
+  font-weight: 600;
+}
+button.plan-review-cmd.flash {
+  animation: plan-review-cmd-flash 0.9s ease-out;
+}
+@keyframes plan-review-cmd-flash {
+  from {
+    background: var(--ui-yellow-background, light-dark(#fff3c4, #4a3c10));
+    box-shadow: inset 0 0 0 1px var(--ui-yellow, #e0b000);
+  }
+  to {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button.plan-review-cmd.flash {
+    animation: none;
+    background: var(--ui-yellow-background, light-dark(#fff3c4, #4a3c10));
+  }
+}
+
+/*******************************
+           Overview
+*******************************/
+
+/*
+ * The prompt that started the plan:  `blockquote.plan-prompt`, one `<p>` per paragraph, folded away in an aside
+ * titled "Kickoff prompt" (`ui-accordion.plan-prompt-panel.spell-aside`;  bare under the summary before
+ * 2026-10-04)
+ */
+/* a blank line between the aside's title and the prompt (Owen, J4) */
+ui-accordion.plan-prompt-panel ui-content > blockquote.plan-prompt {
+  margin: 1em 0 4px;
+}
+blockquote.plan-prompt {
+  margin: 12px 0 16px;
+  padding: 8px 14px;
+  border-left: 4px solid var(--spell-accent);
+  border-radius: 0 6px 6px 0;
+  background: var(--spell-accent-soft);
+  font-size: 0.92rem;
+}
+blockquote.plan-prompt > p {
+  margin: 4px 0;
+}
+
+/*******************************
+            Phases
+*******************************/
+
+/*
+ * `#phases`:  `ui-progress.plan-progress` (done of all phases), then a `ui-section[data-phase][data-status]` per
+ * phase (`section.s3` before 2026-10-02), its body a `ui-list.plan-phase-body` of `<ui-item icon>` (goal, files,
+ * verify).
+ * - docs made before 2026-10-01 had the phase list under `#plan`:  `ui-steps.plan-phases`, or
+ *   `<ul class="plan-phases">` of `<li data-phase data-status>`;  `yarn plan-doc migrate` drops it
+ */
+/*
+ * The bar's text ("1 of 10") sits just past the fill's end, in ink, never inside it:  inside, a narrow fill
+ * clipped it (issue I1 of `review-review`).  The host keeps room at its right for it after a full bar.
+ */
+ui-progress.plan-progress {
+  max-width: 480px;
+  margin: 12px 0;
+  padding-inline-end: 5em;
+}
+ui-progress.plan-progress::part(bar) {
+  overflow: visible;
+}
+ui-progress.plan-progress::part(bar-text) {
+  inset: 50% auto auto calc(100% + 0.5em);
+  color: var(--spell-ink);
+}
+ui-steps.plan-phases {
+  display: block;
+  margin: 12px 0;
+}
+.plan-phases {
+  list-style: none;
+  padding-left: 0;
+}
+.plan-phases > li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.plan-phases > li[data-status="done"] > a {
+  color: var(--spell-muted);
+}
+.plan-phases > li[data-status="active"] > a {
+  font-weight: 600;
+}
+/* a phase heading's status icon sits a little apart from its label */
+.spell-doc-main :is(h3, .plan-phases li) > ui-icon {
+  margin-right: 4px;
+}
+/* a phase's lines wrap anywhere:  a long path with no break, e.g. `cli/src/commands/{watch,run}Command.ts`, would
+   widen the page at phone width */
+ui-list.plan-phase-body {
+  display: block;
+  overflow-wrap: anywhere;
+}
+/* a done phase's heading reads as finished */
+section[data-phase][data-status="done"] > ui-sticky > h3 {
+  color: var(--spell-muted);
+}
+/* `<ui-section>` pages:  a phase is `<ui-section data-phase data-status>`, its status a slotted `<ui-icon>` */
+ui-section[data-phase][data-status="done"] {
+  --ui-section-title-color: var(--spell-muted);
+}
+
+/*******************************
+     Questions, decisions ...
+*******************************/
+
+/*
+ * `<ui-list class="plan-items" divided relaxed>` of `<ui-item id="c3" data-status="open|done">`:  an id chip and a
+ * title -- or, with details, a `ui-accordion.plan-item` whose title IS that line.  Done items stay, struck
+ * through:  the list is a history, not a queue.
+ * - docs made before 2026-10-01:  `<ol class="plan-items">` of `<li>`s, details under a "details" panel
+ */
+ol.plan-items {
+  list-style: none;
+  padding-left: 0;
+}
+ol.plan-items > li {
+  margin: 6px 0;
+}
+ui-list.plan-items {
+  display: block;
+  margin: 8px 0;
+}
+/*
+ * ## Item states:  where each item stands, as its id chip's color (plan doc `review-review`, 1.4 "Item status
+ * colors").  The runtime marks every item's state as `data-spell-state` (`markItemStates()`:  `plan-doc.js`'s
+ * `data-state`, else one from its status), and each "To review" link with its item's.
+ * - red:  needs Owen;  blue:  open, not urgent;  orange:  in progress;  green:  decided / reviewed recently --
+ *   solid UI hues, their own `-on` text color in light and dark
+ * - grey:  decided / reviewed earlier -- a quiet tint, as most of a long doc is history
+ * - set as two custom properties on the item (or link), which its chip reads
+ */
+/* red keeps its light-mode hue in dark mode too:  dark's lighter red reads as the orange beside it */
+[data-spell-state="attention"] {
+  --plan-state-background: light-dark(var(--ui-red), var(--ui-red-on-light));
+  --plan-state-color: light-dark(var(--ui-red-on), var(--ui-ink-on-dark));
+}
+[data-spell-state="open"] {
+  --plan-state-background: var(--ui-blue);
+  --plan-state-color: var(--ui-blue-on);
+}
+[data-spell-state="progress"] {
+  --plan-state-background: var(--ui-orange);
+  --plan-state-color: var(--ui-orange-on);
+}
+[data-spell-state="recent"] {
+  --plan-state-background: var(--ui-green);
+  --plan-state-color: var(--ui-green-on);
+}
+[data-spell-state="old"] {
+  --plan-state-background: var(--ui-grey-background);
+  --plan-state-color: var(--ui-grey-text);
+}
+.plan-id {
+  display: inline-block;
+  flex: none;
+  min-width: 2.6em;
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--plan-state-background, var(--spell-accent-soft));
+  font: 600 0.8rem/1.6 var(--spell-mono);
+  text-align: center;
+  text-decoration: none;
+}
+.spell-doc-main a.plan-id {
+  color: var(--plan-state-color, var(--spell-accent));
+}
+/* the title of an item decided or reviewed earlier reads quieter;  no strike-through:  the chip's grey says it */
+.plan-items > [data-spell-state="old"] .plan-title {
+  color: var(--spell-muted);
+}
+/*
+ * the ONE struck-through status:  `canceled`, an item another decision made moot (J16 of `review-review`,
+ * `yarn plan-doc cancel`);  `done` items stay unstruck
+ */
+.plan-items > [data-status="canceled"] .plan-title {
+  text-decoration: line-through;
+}
+/* an answered question's link on to its decision, "-> D7" (docs before P3:  questions and decisions apart) */
+.spell-doc-main a.plan-answer {
+  font: 600 0.8rem var(--spell-mono);
+  text-decoration: none;
+}
+/* a decision's link back to its question, `(Q8)`:  no underline in the title */
+.spell-doc-main .plan-title > a {
+  text-decoration: none;
+}
+/*
+ * An item with details:  a plain accordion whose title is the item's line, its arrow in front;  an item without
+ * starts as far in, so every id chip lines up (UI's arrow:  1.25em + 0.25em margin).
+ */
+ui-accordion.plan-item {
+  --ui-accordion-title-padding: 0;
+  --ui-accordion-content-padding: 6px 0 4px;
+  --ui-accordion-content-indent: 1.5em;
+  display: block;
+  margin: 0;
+}
+ui-accordion.plan-item::part(title) {
+  align-items: baseline;
+  font-weight: 400;
+  line-height: inherit;
+}
+.plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  padding-inline-start: 1.5em;
+}
+/*
+ * ## Item lines in columns:  arrow, id chip, title (wrapping in its own column), then the extras at the right --
+ * review and UPDATE labels, "-> D7", the git icon -- so a narrow side bar never wraps the title under them.
+ * - the line is a flex row:  the `::part(title)` of the accordion's `<ui-title>` (the arrow is beside it, in the
+ *   `<summary>`), or a bare item's `::part(item)`:  either way the slot's children are its flex items
+ * - `plan-doc.js` writes a review label right after the chip:  `order` moves every extra after the title
+ * - too narrow for the title's 8em and the extras:  the extras wrap onto a row of their own, at the right
+ */
+ui-accordion.plan-item > ui-title {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+ui-accordion.plan-item > ui-title::part(title),
+.plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 2px 4px;
+  min-width: 0;
+}
+:is(ui-accordion.plan-item > ui-title, .plan-items > ui-item:not(:has(> ui-accordion))) > * {
+  flex: none;
+  order: 2;
+}
+:is(ui-accordion.plan-item > ui-title, .plan-items > ui-item:not(:has(> ui-accordion))) > .plan-id {
+  order: 0;
+  margin-right: 2px;
+}
+:is(ui-accordion.plan-item > ui-title, .plan-items > ui-item:not(:has(> ui-accordion))) > .plan-title {
+  flex: 1 1 8em;
+  order: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+/* a `<ui-label>` host is `display: contents`:  its `::part(label)` is the flex item */
+:is(ui-accordion.plan-item > ui-title, .plan-items > ui-item:not(:has(> ui-accordion))) > ui-label::part(label) {
+  flex: none;
+  order: 2;
+  align-self: center;
+  margin: 0;
+}
+/* the git icon:  this item's details hold commits (`spell-doc-runtime.js` `wireCommits()`);  a click shows them */
+button.plan-git-hint {
+  display: inline-grid;
+  place-items: center;
+  align-self: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--spell-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+button.plan-git-hint:hover {
+  background: var(--spell-accent-soft);
+  color: var(--spell-accent);
+}
+.plan-items > [data-show-commits] button.plan-git-hint {
+  color: var(--spell-accent);
+}
+button.plan-git-hint:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+ol.plan-items > li > ui-accordion.spell-aside {
+  margin: 4px 0 0 calc(2.6em + 18px);
+}
+/* empty lists say so, until the script adds the first item */
+ol.plan-items:empty::before {
+  content: "none yet";
+  color: var(--spell-muted);
+  font-style: italic;
+}
+/* a `ui-list` host has no box for `::before`:  the section says it instead, after the list */
+:is(section, ui-section):has(> ui-list.plan-items:empty)::after {
+  content: "none yet";
+  color: var(--spell-muted);
+  font-style: italic;
+}
+/* a `<ui-section>`'s `::after` follows its shadow box:  as its content, under the title */
+ui-section:has(> ui-list.plan-items:empty)::after {
+  display: block;
+  padding-top: 6px;
+}
+/* folded:  nothing under the title (`ui-section` twice:  this must outweigh the `:has()` rules above) */
+.spell-doc-main :is(section.spell-folded, ui-section:state(collapsed)):is(section, ui-section)::after {
+  content: none;
+}
+
+/*******************************
+           Markers
+*******************************/
+
+/* `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="2">` */
+.spell-doc-main ui-message.plan-update {
+  margin: 8px 0;
+}
+
+/*******************************
+             Log
+*******************************/
+
+/*
+ * `#log`:  one-liners stamped with local date and time, oldest first:  `<ui-feed class="plan-log">` of
+ * `<ui-event>`s, each `<ui-summary><ui-date><time></ui-date> text</ui-summary>` (a `<ul>` before 2026-10-01)
+ */
+.plan-log {
+  font-size: 0.9rem;
+}
+.plan-log time {
+  margin-right: 8px;
+  font-family: var(--spell-mono);
+  color: var(--spell-muted);
+}
+
+/* the item filter (`spell-doc.css`):  the first item still shown (none shown above it) drops its divider line, as a list's first item does */
+.spell-doc-main .plan-items > :not([data-spell-hidden]):not(:not([data-spell-hidden]) ~ *) {
+  --_ui-list-item-border-width: 0;
+  --ui-list-item-border-width: 0;
+}
+
+/*******************************
+     To review, answers, commits
+*******************************/
+
+/*
+ * A phase's "To review" line (`ui-item.plan-to-review`, last in its body):  links to the items it raised that Owen
+ * hasn't reviewed, as small chips in their items' colors (`data-spell-state`, set by the runtime).
+ */
+.plan-to-review a[href^="#"] {
+  display: inline-block;
+  min-width: 2.4em;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--plan-state-background, var(--spell-accent-soft));
+  color: var(--plan-state-color, var(--spell-accent));
+  font: 600 0.75rem/1.6 var(--spell-mono);
+  text-align: center;
+  text-decoration: none;
+}
+/*
+ * An answered question's answer, first in its details:  an IVORY card (the brand's warm accent, as the rail),
+ * titled by the answer, its reasons inside (Owen, 2026-10-04):  `div.plan-answer-block > div.plan-answer-title`
+ * ("Answer · ..." , or "D1 · ..." for a decision migrated from an old doc) + the details
+ */
+.plan-answer-block {
+  margin: 2px 0 8px;
+  padding: 0 10px 6px;
+  overflow: hidden;
+  border: 1px solid var(--spell-rail-rule);
+  border-radius: 6px;
+  background: var(--spell-rail-fill);
+  color: var(--spell-ink);
+}
+.plan-answer-title {
+  margin: 0 -10px 6px;
+  padding: 4px 10px;
+  background: var(--spell-rail-selected);
+  color: var(--spell-rail-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.plan-answer-block > :last-child {
+  margin-bottom: 0;
+}
+
+/*******************************
+     Inside items
+*******************************/
+
+/*
+ * An item's details:  smaller type and tighter spacing than the page's prose (Owen, 2026-10-04);  its title line on
+ * a light band, so items read as rows
+ */
+ui-accordion.plan-item > ui-content {
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+ui-accordion.plan-item > ui-content :is(p, ul, ol) {
+  margin-block: 0.35em;
+}
+ui-accordion.plan-item::part(title),
+.plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  padding-block: 3px;
+  padding-inline-end: 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--spell-ink) 4%, transparent);
+}
+
+/*
+ * A plan item's option cards (A / B / C) fold to their labels;  a click on a label opens one
+ * (`spell-doc-runtime.js` `wireOptions()`:  `data-open`).  The chosen card (`data-chosen`, `decide --option`)
+ * shows open and framed green, unless the reader shut it (`data-shut`).  Tighter than the page's cards.
+ */
+.plan-items ui-grid.spell-pros-cons {
+  --spell-card-pad: 8px;
+  --ui-grid-gutter: 8px;
+  margin-block: 6px;
+}
+.plan-items ui-grid.spell-pros-cons ui-label[attached] {
+  cursor: pointer;
+}
+.plan-items ui-grid.spell-pros-cons ui-label[attached]::part(label)::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  transition: rotate 0.12s;
+}
+.plan-items
+  ui-grid.spell-pros-cons
+  > ui-column:is([data-open], [data-chosen]:not([data-shut]))
+  ui-label[attached]::part(label)::before {
+  rotate: 90deg;
+}
+.plan-items
+  ui-grid.spell-pros-cons
+  > ui-column:not([data-open]):not([data-chosen]:not([data-shut]))
+  ui-segment
+  > :not(ui-label) {
+  display: none;
+}
+/* folded cards keep their label's height, not the open neighbour's */
+.plan-items ui-grid.spell-pros-cons > ui-column:not([data-open]):not([data-chosen]:not([data-shut])) ui-segment {
+  height: auto;
+}
+.plan-items
+  ui-grid.spell-pros-cons
+  > ui-column:not([data-open]):not([data-chosen]:not([data-shut]))
+  ui-label[attached]::part(label) {
+  margin-bottom: calc(-1 * var(--spell-card-pad) - 1px);
+}
+.plan-items ui-grid.spell-pros-cons > ui-column[data-chosen] ui-segment {
+  outline: 2px solid var(--ui-green, #21ba45);
+  outline-offset: -1px;
+  border-radius: 6px;
+}
+.plan-items ui-grid.spell-pros-cons > ui-column[data-chosen] ui-label[attached] {
+  --ui-label-background: var(--ui-green-background, #daffe0);
+}
+/*
+ * Commits (`.plan-commits`):  a phase body's `ui-item`, or a `div` ending an item's details;  a list of short
+ * hashes (GitHub links) and a sentence each.  Hidden until the page header's git button shows them all
+ * (`data-show-commits` on `main`), or an item's git icon its own (on the item):  `spell-doc-runtime.js`
+ * `wireCommits()`.
+ */
+.spell-doc-main:not([data-show-commits]) .plan-commits:not([data-show-commits] *) {
+  display: none;
+}
+div.plan-commits {
+  margin: 10px 0 2px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--spell-rule);
+}
+ul.plan-commit-list {
+  margin: 4px 0 0;
+  padding-left: 1.2em;
+}
+ul.plan-commit-list > li {
+  margin: 2px 0;
+}
+.spell-doc-main a.plan-commit {
+  font: 600 0.8rem var(--spell-mono);
+  text-decoration: none;
+}
+/*
+ * The page header's git button (`span.plan-git-toggle` > `button.plan-git-button`), left of the step label:  icon
+ * only, round, as tall as the label (`--plan-head-control`);  the accent while the commits show
+ */
+.spell-page-head {
+  --plan-head-control: 28px;
+}
+.plan-git-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+button.plan-git-button {
+  display: inline-grid;
+  place-items: center;
+  width: var(--plan-head-control);
+  height: var(--plan-head-control);
+  padding: 0;
+  border: 1px solid var(--spell-rule);
+  border-radius: 50%;
+  background: none;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+button.plan-git-button:hover {
+  color: var(--spell-accent);
+}
+button.plan-git-button[aria-pressed="true"] {
+  border-color: var(--spell-accent);
+  background: var(--spell-accent-soft);
+  color: var(--spell-accent);
+}
+button.plan-git-button:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+/* the step label:  `<icon> P4` (its tooltip the phase's name), as tall as the git button */
+.plan-step > ui-label::part(label) {
+  height: var(--plan-head-control);
+  box-sizing: border-box;
+  align-items: center;
+}
+
+/*
+ * The phases' Files and Verify lines:  hidden until their toggle on the Phases title is pressed (`data-show-files`
+ * / `data-show-verify` on `#phases`, `spell-doc-runtime.js` `wirePhaseToggles()`).  The toggles:  bare icons,
+ * muted, the accent while pressed.
+ */
+#phases:not([data-show-files]) .plan-phase-body > ui-item[icon="folder"],
+#phases:not([data-show-verify]) .plan-phase-body > ui-item[icon="flask"] {
+  display: none;
+}
+.plan-phase-toggles {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+button.plan-phase-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+button.plan-phase-toggle:hover {
+  background: var(--spell-accent-soft);
+}
+button.plan-phase-toggle[aria-pressed="true"] {
+  color: var(--spell-accent);
+}
+button.plan-phase-toggle:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+
+/*******************************
+     Bands (plan docs)
+*******************************/
+
+/*
+ * Section titles on a band instead of a rule under them (Owen, 2026-10-04):  top-level sections on purple-50,
+ * sub-sections (phases, Overview parts) and item rows on purple-25;  dark mode:  the lilac wash, lighter for rows.
+ * - the page runs edge to edge:  no outer padding, so the bands reach across;  everything inside a section is
+ *   inset 16px (`--plan-inset`), except a sub-section's own band, which reaches across again
+ * - a band is opaque (laid over the page's background), as a stuck title covers what scrolls under it
+ */
+body.plan-doc {
+  --plan-band-section: light-dark(var(--spell-violet-50, #f7f7ff), rgb(184 180 255 / 0.1));
+  --plan-band-row: light-dark(var(--spell-violet-25, #fcfcff), rgb(184 180 255 / 0.05));
+  --plan-inset: 16px;
+}
+body.plan-doc .spell-doc-main {
+  padding-inline: 0;
+}
+@media (max-width: 1100px) {
+  body.plan-doc .spell-doc-main {
+    padding-inline-end: var(--spell-rail-width);
+  }
+}
+@media (max-width: 480px) {
+  body.plan-doc .spell-doc-main {
+    padding-inline-end: 0;
+  }
+}
+/* what isn't a section (crumbs, meta lines, the review line, notices) keeps the inset */
+body.plan-doc .spell-doc-main > :not(ui-section, ui-sticky) {
+  margin-inline: var(--plan-inset);
+}
+/* a `ui-list` host is `display: contents`:  its list box takes the inset */
+body.plan-doc .spell-doc-main > ui-list::part(list) {
+  margin-inline: var(--plan-inset);
+}
+body.plan-doc .spell-doc-main .spell-page-head {
+  margin-inline: 0;
+  padding-inline: var(--plan-inset);
+}
+body.plan-doc .spell-doc-main ui-section {
+  --ui-section-dividing-border: none;
+  --ui-section-content-padding: 10px var(--plan-inset) 0;
+  --spell-fold-end: var(--plan-inset);
+}
+body.plan-doc .spell-doc-main ui-section::part(title) {
+  margin-inline: 0;
+  padding-inline-start: var(--plan-inset);
+  background: linear-gradient(var(--plan-band-section), var(--plan-band-section)) var(--spell-bg);
+}
+body.plan-doc .spell-doc-main ui-section ui-section {
+  --ui-section-content-padding: 6px var(--plan-inset) 0;
+  margin-inline: calc(-1 * var(--plan-inset));
+}
+body.plan-doc .spell-doc-main ui-section ui-section::part(title) {
+  background: linear-gradient(var(--plan-band-row), var(--plan-band-row)) var(--spell-bg);
+}
+
+/* item rows:  the row band, the id chip centred on the line, a smaller title, bold while it still wants a look */
+body.plan-doc ui-accordion.plan-item::part(title),
+body.plan-doc .plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  align-items: center;
+  background: var(--plan-band-row);
+}
+body.plan-doc ui-accordion.plan-item > ui-title::part(title),
+body.plan-doc .plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  align-items: center;
+}
+body.plan-doc .plan-items .plan-title {
+  font-size: 0.92rem;
+}
+body.plan-doc
+  .plan-items
+  > :is([data-spell-state="attention"], [data-spell-state="open"], [data-spell-state="progress"])
+  .plan-title {
+  font-weight: 600;
+}
+
+/* a phase's fields:  their bullets close under the label */
+ui-list.plan-phase-body :is(ul, ol) {
+  margin: 2px 0 4px;
+  padding-left: 1.2em;
+}
+
+/*******************************
+     Review actions
+*******************************/
+
+/*
+ * Reviewing on the page (plan doc `review-review`, P5;  `spell-doc-runtime.js` `wireReview()`), only while the page
+ * server serves the doc (`body.plan-reviewing`):
+ * - every item's line ends in a round grey ellipsis (`span.plan-act`):  absolutely placed at the line's far right,
+ *   in room the line keeps free, so a long title never wraps under it, at any width
+ * - a mark colors it, filled while unsent, outlined once sent:  `data-color` (UI's tokens)
+ * - its menu (`div.plan-act-menu`) is a popover, fixed in the window:  it opens in place, nothing scrolls
+ */
+body.plan-reviewing {
+  --plan-act-size: 22px;
+}
+/* the room at the line's end:  the button, and the spinner beside it while busy */
+body.plan-reviewing ui-accordion.plan-item > ui-title::part(title),
+body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  padding-inline-end: calc(var(--plan-act-size) + 6px);
+}
+body.plan-reviewing ui-accordion.plan-item > ui-title:has(> .plan-act[data-busy])::part(title),
+body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion)):has(> .plan-act[data-busy])::part(item) {
+  padding-inline-end: calc(2 * var(--plan-act-size) + 10px);
+}
+/* what the button is placed in:  the title (accordion items), or the item's row */
+body.plan-reviewing ui-accordion.plan-item > ui-title,
+body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  position: relative;
+}
+.plan-act {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  block-size: 100%;
+}
+/* a bare item's row also holds its Revisit box:  the button sits on the first line, not mid-box */
+.plan-items > ui-item:not(:has(> ui-accordion)) > .plan-act {
+  inset-inline-end: 6px;
+  block-size: calc(1lh + 6px);
+}
+button.plan-act-button {
+  --_act: var(--ui-grey, #767676);
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--plan-act-size);
+  height: var(--plan-act-size);
+  padding: 0;
+  border: 1.5px solid transparent;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--spell-ink) 9%, transparent);
+  color: var(--spell-muted);
+  font: 700 0.72rem/1 var(--spell-mono);
+  cursor: pointer;
+}
+button.plan-act-button:hover {
+  background: color-mix(in srgb, var(--spell-ink) 16%, transparent);
+  color: var(--spell-ink);
+}
+button.plan-act-button:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+button.plan-act-button > * {
+  grid-area: 1 / 1;
+}
+.plan-act-letter:empty {
+  display: none;
+}
+/* marked:  filled in the action's color;  sent:  outlined in it */
+button.plan-act-button[data-color] {
+  border-color: var(--_act);
+  background: var(--_act);
+  color: var(--ui-surface, Canvas);
+}
+button.plan-act-button[data-color][data-sent] {
+  background: color-mix(in srgb, var(--_act) 12%, transparent);
+  color: var(--_act);
+}
+:is(button.plan-act-button, .plan-act-menu > button)[data-color="green"] {
+  --_act: var(--ui-green, #21ba45);
+}
+:is(button.plan-act-button, .plan-act-menu > button)[data-color="violet"] {
+  --_act: var(--ui-violet, #6435c9);
+}
+:is(button.plan-act-button, .plan-act-menu > button)[data-color="blue"] {
+  --_act: var(--ui-blue, #2185d0);
+}
+:is(button.plan-act-button, .plan-act-menu > button)[data-color="orange"] {
+  --_act: var(--ui-orange, #f2711c);
+}
+.plan-act-menu > button[data-color="grey"] {
+  --_act: var(--ui-grey, #767676);
+}
+/*
+ * Claude at work on the item (or the request on its way):  a turning ring;  queued with nobody listening:  still,
+ * dashed
+ */
+.plan-act-spin {
+  box-sizing: border-box;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid color-mix(in srgb, var(--ui-blue, #2185d0) 25%, transparent);
+  border-top-color: var(--ui-blue, #2185d0);
+  border-radius: 50%;
+  animation: plan-act-spin 0.8s linear infinite;
+}
+.plan-act-spin[hidden] {
+  display: none;
+}
+.plan-act-spin[data-waiting] {
+  border: 2px dashed var(--spell-muted);
+  animation: none;
+}
+@keyframes plan-act-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plan-act-spin {
+    animation-duration: 2.4s;
+  }
+}
+
+/* the menu:  rows of a round icon in the action's color and its name;  the item's current mark is bold */
+.plan-act-menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  min-width: 170px;
+  padding: 4px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 8px;
+  background: var(--spell-bg);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+  color: var(--spell-ink);
+  font: 0.9rem/1.3 var(--spell-sans);
+}
+.plan-act-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px 5px 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.plan-act-menu > button:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--_act) 14%, transparent);
+  outline: none;
+}
+.plan-act-menu > button[aria-checked="true"] {
+  font-weight: 700;
+}
+.plan-act-menu > button.plan-act-clear {
+  margin-top: 3px;
+  border-top: 1px solid var(--spell-rule);
+  border-radius: 0 0 6px 6px;
+  color: var(--spell-muted);
+}
+.plan-act-dot {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--_act);
+  color: var(--ui-surface, Canvas);
+  font-size: 0.7rem;
+}
+
+/* the Revisit box under an item's line:  the note, and a grey check over a blue send at its right */
+.plan-revisit {
+  display: flex;
+  flex-basis: 100%;
+  order: 10;
+  gap: 6px;
+  margin: 6px 0 4px 1.5em;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, var(--ui-orange, #f2711c) 45%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 6%, var(--spell-bg));
+}
+.plan-revisit-note {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 3.6em;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 6px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: 0.9rem/1.4 var(--spell-sans);
+  resize: vertical;
+}
+.plan-revisit-note:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 0;
+}
+.plan-revisit-buttons {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 6px;
+}
+.plan-revisit-buttons > button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+button.plan-revisit-soon {
+  background: color-mix(in srgb, var(--spell-ink) 12%, transparent);
+  color: var(--spell-ink);
+}
+button.plan-revisit-now {
+  background: var(--ui-blue, #2185d0);
+  color: var(--ui-blue-on, #fff);
+}
+.plan-revisit-buttons > button:hover {
+  filter: brightness(1.1);
+}
+.plan-revisit-buttons > button:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+
+/* an open item's option card label:  a "Choose" pill at its right;  the picked card framed orange until applied */
+.plan-items ui-grid.spell-pros-cons ui-label[attached]:has(> .plan-choose)::part(label) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+button.plan-choose {
+  flex: none;
+  margin-inline-start: auto;
+  padding: 0 8px;
+  border: 1px solid var(--ui-orange, #f2711c);
+  border-radius: 999px;
+  background: var(--spell-bg);
+  color: var(--ui-orange-text, var(--ui-orange, #f2711c));
+  font: 600 0.72rem/1.6 var(--spell-sans);
+  cursor: pointer;
+}
+button.plan-choose:hover {
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 12%, var(--spell-bg));
+}
+button.plan-choose[aria-pressed="true"] {
+  background: var(--ui-orange, #f2711c);
+  color: var(--ui-orange-on, #fff);
+}
+button.plan-choose:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+.plan-items ui-grid.spell-pros-cons > ui-column[data-picked] ui-segment {
+  outline: 2px solid var(--ui-orange, #f2711c);
+  outline-offset: -1px;
+  border-radius: 6px;
+}
+
+/* the page header's "Send to Claude":  round, grey;  blue with unsent marks;  outlined blue once sent */
+button.plan-send {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--plan-head-control);
+  height: var(--plan-head-control);
+  padding: 0;
+  border: 1px solid var(--spell-rule);
+  border-radius: 50%;
+  background: none;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+button.plan-send:hover {
+  color: var(--spell-accent);
+}
+button.plan-send[data-state="unsent"] {
+  border-color: var(--ui-blue, #2185d0);
+  background: var(--ui-blue, #2185d0);
+  color: var(--ui-blue-on, #fff);
+}
+button.plan-send[data-state="sent"] {
+  border: 2px solid var(--ui-blue, #2185d0);
+  color: var(--ui-blue, #2185d0);
+}
+button.plan-send:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+
+/* what can't be said on an item (nobody listening, a failed save):  a line at the bottom of the window */
+.plan-review-notice {
+  position: fixed;
+  z-index: 1000;
+  inset-inline: 12px;
+  inset-block-end: 12px;
+  max-width: 520px;
+  margin-inline: auto;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--spell-ink);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
+  color: var(--spell-bg);
+  font: 0.85rem/1.4 var(--spell-sans);
+}
+.plan-review-notice[hidden] {
+  display: none;
+}
+
+/*
+ * Claude's reply to a revisit note (`div.plan-reply > div.plan-reply-title` + the answer), appended to an item's
+ * details by `yarn plan-doc details --append` during `/epic review`:  a violet card, the brand's action color, apart
+ * from the ivory answer card
+ */
+.plan-reply {
+  margin: 8px 0;
+  padding: 0 10px 6px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ui-violet, #6550ca) 30%, transparent);
+  border-radius: 6px;
+  background: var(--ui-violet-background, light-dark(#eaeaff, rgb(184 180 255 / 0.16)));
+}
+.plan-reply-title {
+  margin: 0 -10px 6px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--ui-violet, #6550ca) 14%, transparent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.plan-reply > :last-child {
+  margin-bottom: 0;
+}

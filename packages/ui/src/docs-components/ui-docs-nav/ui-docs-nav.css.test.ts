@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
@@ -31,23 +31,62 @@ describe("ui-docs-nav.css source", () => {
 })
 
 describe("ui-docs-nav.css layout", () => {
-  /** The contract's scroll box around a tall menu stand-in. */
-  const MARKUP = `<div class="ui nav" part="nav"><div part="menu" style="height: 2000px">menu</div></div>`
+  /** The contract's panel:  a header band over a list of one group and a tall rows stand-in. */
+  const MARKUP = `
+    <div class="ui nav" part="nav">
+      <div class="masthead" part="header" style="height: 100px">header</div>
+      <nav part="menu">
+        <section class="group">
+          <h2 class="heading"><button type="button" class="band" aria-expanded="true">Group</button></h2>
+          <div class="fold open"><div class="folded"><ul class="rows" style="height: 2000px">
+            <li class="row"><a class="item" href="#" aria-current="page">Row</a></li>
+          </ul></div></div>
+        </section>
+      </nav>
+    </div>`
 
-  it("scrolls the menu inside the box, on the dark fill, at the height asked for", () => {
+  /** The stand-in host's shadow element matching `selector`. */
+  function find(host: Element, selector: string): HTMLElement {
+    return host.shadowRoot!.querySelector<HTMLElement>(selector)!
+  }
+
+  it("scrolls the list inside the panel, under the header band, at the height asked for", () => {
     const host = Sheets.host(MARKUP, [...foundationCSS, navCSS])
     host.style.setProperty("--ui-docs-nav-height", "300px")
-    const box = host.shadowRoot!.querySelector<HTMLElement>("[part~=nav]")!
-    const style = getComputedStyle(box)
-    expect(style.overflowY).toBe("auto")
-    expect(style.colorScheme).toBe("dark")
-    expect(box.getBoundingClientRect().height).toBe(300)
-    expect(box.scrollHeight).toBeGreaterThan(box.clientHeight)
+    const panel = find(host, "[part~=nav]")
+    const list = find(host, "[part~=menu]")
+    expect(panel.getBoundingClientRect().height).toBe(300)
+    expect(getComputedStyle(list).overflowY).toBe("auto")
+    expect(list.getBoundingClientRect().top).toBe(find(host, "[part~=header]").getBoundingClientRect().bottom)
+    expect(list.getBoundingClientRect().bottom).toBeLessThanOrEqual(panel.getBoundingClientRect().bottom)
+    expect(list.scrollHeight).toBeGreaterThan(list.clientHeight)
   })
 
-  it("grows with its menu when nothing sizes it", () => {
+  it("grows with its list when nothing sizes it", () => {
     const host = Sheets.host(MARKUP, [...foundationCSS, navCSS])
-    const box = host.shadowRoot!.querySelector<HTMLElement>("[part~=nav]")!
-    expect(box.getBoundingClientRect().height).toBe(2000)
+    expect(find(host, "[part~=nav]").getBoundingClientRect().height).toBeGreaterThan(2100)
+  })
+
+  it("draws a card:  a border, a radius;  bands full width;  the current row filled", () => {
+    const host = Sheets.host(MARKUP, [...foundationCSS, navCSS])
+    const panel = getComputedStyle(find(host, "[part~=nav]"))
+    expect(panel.borderTopWidth).toBe("1px")
+    expect(parseFloat(panel.borderTopLeftRadius)).toBeGreaterThan(0)
+    const band = find(host, ".band")
+    expect(band.getBoundingClientRect().width).toBe(find(host, "[part~=menu]").clientWidth)
+    expect(getComputedStyle(band).textTransform).toBe("uppercase")
+    expect(getComputedStyle(find(host, ".item")).backgroundColor).not.toBe("rgba(0, 0, 0, 0)")
+  })
+
+  it("folds a shut group to nothing, hidden", () => {
+    const host = Sheets.host(MARKUP, [...foundationCSS, navCSS])
+    const fold = find(host, ".fold")
+    fold.classList.remove("open")
+    fold.getAnimations().forEach((animation) => animation.finish())
+    find(host, ".folded")
+      .getAnimations()
+      .forEach((animation) => animation.finish())
+    expect(fold.getBoundingClientRect().height).toBe(0)
+    expect(getComputedStyle(find(host, ".folded")).visibility).toBe("hidden")
   })
 })

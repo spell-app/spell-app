@@ -348,7 +348,7 @@ type CSSMatchData = {
   /**
    * Name of file the CSS came from, first argument to `spellCore.installStyles()`.
    * - Meant to be set by whoever parsed the file, i.e. `SpellCSSFile.parse()`.
-   * - TODO: nobody sets it, so we always output `undefined` -- see SUSPECTED-BUGS.md.
+   * - TODO: nobody sets it, so we always output `undefined` -- see agents/SUSPECTED-BUGS.md.
    */
   file?: string
 }

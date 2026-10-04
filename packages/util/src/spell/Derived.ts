@@ -16,7 +16,7 @@ import {
  * - Both a source (its readers link to it) and a reader (it links to what `fn` reads).
  * - Lazy:  computed on read, never ahead.  A write only marks it, see `mark()`.
  * - Only for pure, worth-it getters (loops, list aggregates):  memoizing a cheap getter is ~2x SLOWER
- *   (`packages/docs/solid/solid-2.md`).
+ *   (`packages/docs/content/solid/solid-2.md`).
  */
 export class Derived<T = unknown> implements CellSource, CellReader {
   /** Readers that read it since they last re-ran. */
