@@ -8,10 +8,16 @@
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { Parser } from "$/parser/Parser"
+import { RulexTokenizer } from "./RulexTokenizer"
 
 export class RulexParser extends Parser {
   static {
     Object.defineProperty(this.prototype, "defaultRule", { value: "sequence", writable: true })
+  }
+
+  /** Rulex reads syntax with its own plain tokenizer:  see `RulexTokenizer`. */
+  get tokenizer(): P.Tokenizer {
+    return this.derived("tokenizer", () => new RulexTokenizer({ whitespacePolicy: P.WhitespacePolicy.LEADING_ONLY }))
   }
 
   /** Compiling rulex syntax always yields a `Rule` -- narrows `Parser.compile()`'s `unknown` return type. */

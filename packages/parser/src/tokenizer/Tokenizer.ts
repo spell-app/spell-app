@@ -25,13 +25,19 @@ export class Tokenizer {
   logger = new Logger({ prefix: "tokenizer", level: Logger.ERROR })
 
   /**
+   * Read `¬` as `\n` and `∆` as `\t` in `tokenize()`:  stand-ins that keep test fixtures compact.
+   * - `false` where they are real characters, e.g. `RulexTokenizer`.
+   */
+  rewriteFixtureChars = true
+
+  /**
    * Tokenize `text` between `start` and `end` into an array of `Token`s.
-   * - NOTE: `¬` and `∆` are treated as stand-ins for `\n` and `\t` -- handy for compact test fixtures.
+   * - NOTE: `¬` and `∆` are treated as stand-ins for `\n` and `\t` -- see `rewriteFixtureChars`.
    */
   tokenize = (text: string, start = 0, end?: number) => {
     // Replace `¬` with `\n` and `∆` with `\t`.
     // We use these to see tabs and returns in debugging output more easily.
-    text = text.replace(/¬/g, "\n").replace(/∆/g, "\t")
+    if (this.rewriteFixtureChars) text = text.replace(/¬/g, "\n").replace(/∆/g, "\t")
 
     // Make sure `end` is a number within the text length.
     if (typeof end !== "number" || end > text.length) end = text.length

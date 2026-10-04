@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Markdown on the parser</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2"
-                >next: P2 · Rulex &amp; Tokenizer</ui-label
+              ><ui-label basic color="orange" icon="circle half stroke" href="#p2"
+                >P2 · Rulex &amp; Tokenizer</ui-label
               ></span
             >
           </header></ui-sticky
@@ -41,7 +41,7 @@
           >
           <ui-item icon="calendar"
             >Started <time id="plan-started">2026-10-03</time>, updated
-            <time id="plan-updated">2026-10-03</time></ui-item
+            <time id="plan-updated">2026-10-04</time></ui-item
           >
         </ui-list>
 
@@ -246,7 +246,9 @@
             header="P1 · Rulex Deep Dive"
             sticky
             collapsible
-            dividing collapsed>
+            dividing
+            collapsed
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -285,12 +287,14 @@
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="todo"
+            data-status="active"
             header="P2 · Rulex & Tokenizer"
             sticky
             collapsible
-            dividing collapsed>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
 
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -353,7 +357,9 @@
             header="P3 · Block Structure"
             sticky
             collapsible
-            dividing collapsed>
+            dividing
+            collapsed
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -366,7 +372,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Inline Rules" sticky collapsible dividing collapsed>
+          <ui-section
+            id="p4"
+            data-phase="4"
+            data-status="todo"
+            header="P4 · Inline Rules"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -381,7 +396,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · ui Output" sticky collapsible dividing collapsed>
+          <ui-section
+            id="p5"
+            data-phase="5"
+            data-status="todo"
+            header="P5 · ui Output"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -403,7 +427,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Docstrings" sticky collapsible dividing collapsed>
+          <ui-section
+            id="p6"
+            data-phase="6"
+            data-status="todo"
+            header="P6 · Docstrings"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -430,7 +463,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p7" data-phase="7" data-status="todo" header="P7 · ui Bundle" sticky collapsible dividing collapsed>
+          <ui-section
+            id="p7"
+            data-phase="7"
+            data-status="todo"
+            header="P7 · ui Bundle"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -464,7 +506,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 2-4h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p8" data-phase="8" data-status="todo" header="P8 · Live Preview" sticky collapsible dividing collapsed>
+          <ui-section
+            id="p8"
+            data-phase="8"
+            data-status="todo"
+            header="P8 · Live Preview"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -487,7 +538,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Doc Review" sticky collapsible dividing collapsed>
+          <ui-section
+            id="p9"
+            data-phase="9"
+            data-status="todo"
+            header="P9 · Doc Review"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -1223,6 +1283,41 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d21" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d21">D21</a>
+                  <span class="plan-title"
+                    >P2.1 diff: RulexTokenizer (plain, digits-only) + Tokenizer.rewriteFixtureChars</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>Review gate (<a href="#d7">D7</a>) for <a href="#d19">D19</a> + <a href="#d20">D20</a>.</p>
+                  <ul>
+                    <li>
+                      NEW
+                      <a
+                        href="../../../parser/src/rulex/RulexTokenizer.ts"
+                        target="src-packages-parser-src-rulex-rulextokenizer-ts"
+                        ><code>packages/parser/src/rulex/RulexTokenizer.ts</code></a
+                      >: <code>matchTopTokens()</code> = whitespace | word | number | newline | symbol (no JSX, text,
+                      comment); <code>NUMBER_START</code> <code>/[0-9]/</code>, <code>NUMBER</code>
+                      <code>/^[0-9]+/</code>; <code>rewriteFixtureChars = false</code>.
+                    </li>
+                    <li>
+                      <code>RulexParser.tokenizer</code>: a <code>RulexTokenizer</code> (LEADING_ONLY, as before).
+                    </li>
+                    <li>
+                      <code>Tokenizer</code>: new field <code>rewriteFixtureChars = true</code> guarding the
+                      <code>¬</code>/<code>∆</code> rewrite. Spell's tokenizer unchanged.
+                    </li>
+                    <li>
+                      Spell impact expected: none (no spell syntax has <code>#</code>, <code>--</code>, <code>//</code>,
+                      quotes, tags, decimals). Proof: parser + spell suites, speedTest.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1266,13 +1361,14 @@
                 >Full ui-* output: ui-header ids / outline, ui-list nesting and copy-paste checked in P5's diff
                 report</span
               ></ui-item
-            ><ui-item id="c6" data-status="open"
+            ><ui-item id="c6" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c6">C6</a>
                   <span class="plan-title"
                     >In rulex syntax, a line-start #, --, // and quotes belong to the tokenizer</span
-                  > </ui-title
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
                 ><ui-content
                   ><p>
                     Rulex reads its syntax with spell's tokenizer, so: <code>#</code> at the start becomes a heading
@@ -1414,11 +1510,12 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i4" data-status="open"
+            ><ui-item id="i4" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i4">I4</a>
-                  <span class="plan-title">Rulex: 1.1.1 in a syntax crashes the compile (TypeError)</span></ui-title
+                  <span class="plan-title">Rulex: 1.1.1 in a syntax crashes the compile (TypeError)</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
                 ><ui-content
                   ><p>
                     <code>1.1.1</code> tokenizes as <code>Number(1.1) Number(0.1)</code>; compiling throws
@@ -1618,6 +1715,35 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T23:15-04:00">2026-10-03 23:15</time></ui-date> P1
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:23-04:00">2026-10-04 01:23</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:25-04:00">2026-10-04 01:25</time></ui-date> P2.1 staged for
+                  review: RulexTokenizer; parser 417 + spell 788 tests green; speed 69 -&gt; 68 ms avg (HEAD vs
+                  diff)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:35-04:00">2026-10-04 01:35</time></ui-date> I4 closed: Rulex:
+                  1.1.1 in a syntax crashes the compile (TypeError)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:35-04:00">2026-10-04 01:35</time></ui-date> C6 closed: In
+                  rulex syntax, a line-start #, --, // and quotes belong to the tokenizer</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
