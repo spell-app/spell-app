@@ -480,9 +480,10 @@ function outermost(item, section) {
 }
 
 /**
- * An "Open | All" button group on every top-level `<ui-section>` with plan items (`.plan-items > [data-status]`):
- * Open hides its struck items (`data-status="done"`), All shows them again.
- * - in the title's `actions` slot;  `plan-doc.css` moves it left of the count badge
+ * An "Open | All" button group on every top-level `<ui-section>` with a filterable list:  a plan doc's items
+ * (`.plan-items`), the index's epics (`.spell-epics`), each holding `[data-status]` children.  Open hides the done
+ * ones (`data-status="done"`), All shows them again.
+ * - in the title's `actions` slot;  `spell-doc.css` moves it left of the count badge
  * - Open also shows "3 hidden · show all" under the list (`.spell-hidden-note`):  a click there is All's
  * - the choice:  `data-show="open"` on the section (CSS hides);  remembered per page (`localStorage`,
  *   `{ [section id]: "open" | "all" }`);  Open by default, set before the page first draws
@@ -492,7 +493,7 @@ function wireItemFilters(main) {
   const key = `${ITEM_FILTER_KEY_PREFIX}${location.pathname}`
   const saved = readJSON(key)
   for (const section of main.querySelectorAll(":scope > ui-section[id]")) {
-    const list = section.querySelector(".plan-items")
+    const list = section.querySelector(".plan-items, .spell-epics")
     if (!list?.querySelector(":scope > [data-status]")) continue
     const group = document.createElement("ui-buttons")
     group.className = "spell-item-filter"

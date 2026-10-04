@@ -453,7 +453,8 @@
                   ><code>RunningEpics.ts</code></a
                 >
                 -- running epics' plan docs on the main checkout's server: <code>/worktrees/&lt;w&gt;/</code>,
-                <code>/_server/epics</code>, and the docs index's "Running epics" section (<a href="#running-epics-flow"
+                <code>/_server/epics</code>, and their cards in the docs index's Epics section (<a
+                  href="#running-epics-flow"
                   >Running epics</a
                 >)
               </li>
@@ -754,9 +755,12 @@
                 any epic the main checkout lacks. Copies of epics merged before the worktree was cut are skipped.
               </li>
               <li>
-                The docs index's <code>&lt;!-- running-epics --&gt;</code> marker becomes a "Running epics" section on
-                each request: one card per epic, its badge the active phase, "planning", a count, or "done". None
-                running, or opened from disk: nothing.
+                The docs index's <code>&lt;!-- running-epics --&gt;</code> marker, first in its Epics card list (<code
+                  >yarn docs:index</code
+                >
+                puts it there), becomes the running epics' cards on each request: running and merged epics in one list,
+                each title after its state (planning, <code>3/6</code>, done, stalled), and a merged epic's card dropped
+                when it runs in a worktree too. None running, or opened from disk: nothing.
               </li>
               <li>
                 A worktree's plan doc changing reloads its page and the index (one recursive watch on

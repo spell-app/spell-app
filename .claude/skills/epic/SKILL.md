@@ -168,8 +168,8 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
     `packages/docs/<name>/<name>.html`
   - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
   - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`, which also adds the plan
-    doc's own card:  `yarn plan-doc` doesn't touch the index in a worktree (until now the main server listed it
-    under "Running epics")
+    doc's own card:  `yarn plan-doc` doesn't touch the index in a worktree (until now the main server added its
+    card to the index's Epics section)
 - The plan doc stays in `epics/` as the record:  every phase done.
 - Changelog:  add the epic's entry to `packages/docs/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
   the plan doc and the durable doc;  under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
