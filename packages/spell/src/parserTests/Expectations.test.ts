@@ -34,7 +34,8 @@ describe("expectedAfter()", () => {
     parser.addRule(animal, { alias: "pet" })
     parser.addRule(noisy_animal, { alias: "pet" })
     class nouns extends P.Sequence {
-      @proto static syntax = "[{noun},]"
+      // spaced before the comma:  the input below spaces it (`cat , dog ,`)
+      @proto static syntax = "[{noun} ,]"
     }
     parser.addRule(nouns)
     const expected = (text: string, ruleName: string) =>

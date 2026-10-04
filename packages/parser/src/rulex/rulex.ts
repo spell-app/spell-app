@@ -107,7 +107,10 @@ class symbolRule extends P.Sequence<"isEscaped?|literal|repeatFlag?"> {
     const { literal, isEscaped } = match.groups
     const rule = new P.Symbol(literal.value)
     if (isEscaped) rule.isEscaped = true
-    return rulex.applyFlags(rule, match)
+    const flagged = rulex.applyFlags(rule, match)
+    // a repeated symbol written touching its flag is a RUN, like `**`:  its copies touch too (`\*+` vs `\* +`)
+    if (flagged instanceof P.Repeat && !literal.tokens.at(-1)?.whitespace) flagged.itemSpacing = "none"
+    return flagged
   }
 }
 rulex.addRule(symbolRule, {
@@ -166,8 +169,10 @@ rulex.addRule(symbolRule, {
 
         // repeat
         [">?", new P.Symbol({ literal: ">", optional: true })],
-        [">+", new P.Repeat(new P.Symbol({ literal: ">" }))],
-        [">*", new P.Repeat({ optional: true, rule: new P.Symbol({ literal: ">" }) })]
+        // a symbol touching its flag is a run:  its copies touch
+        [">+", new P.Repeat({ rule: new P.Symbol({ literal: ">" }), itemSpacing: "none" })],
+        [">*", new P.Repeat({ optional: true, rule: new P.Symbol({ literal: ">" }), itemSpacing: "none" })],
+        ["> +", new P.Repeat(new P.Symbol({ literal: ">" }))]
       ]
     }
   ]
@@ -299,9 +304,12 @@ rulex.addRule(subrule, {
 class list extends P.Sequence<"matchGroup?|ruleName|delimiter|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
     const { ruleName, delimiter } = match.groups
+    const delimiterRule = RulexParser.compileMatchOrDie(delimiter)
+    // spacing as written:  `[{item},]` wants the comma touching the item, `[{item} ,]` lets it space
+    if (RulexParser.touching(ruleName)) delimiterRule.spacing = "none"
     const rule = new P.Repeat({
       rule: RulexParser.compileMatchOrDie(ruleName),
-      delimiter: RulexParser.compileMatchOrDie(delimiter)
+      delimiter: delimiterRule
     })
     return rulex.applyFlags(rule, match)
   }
@@ -326,12 +334,28 @@ rulex.addRule(list, {
         ["[]", undefined],
         ["[{sub}]", undefined],
 
-        ["[{sub},]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Symbol(",") })],
-        ["[{sub}or]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Keyword("or") })],
+        // a delimiter written touching the item must touch it
+        ["[{sub},]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Symbol({ literal: ",", spacing: "none" }) })],
+        ["[{sub} ,]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Symbol(",") })],
+        ["[{sub}or]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Keyword({ literal: "or", spacing: "none" }) })],
 
-        ["[arg:{sub},]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Symbol(","), matchGroup: "arg" })],
+        [
+          "[arg:{sub},]",
+          new P.Repeat({
+            rule: new P.Subrule("sub"),
+            delimiter: new P.Symbol({ literal: ",", spacing: "none" }),
+            matchGroup: "arg"
+          })
+        ],
 
-        ["[{sub},]?", new P.Repeat({ optional: true, rule: new P.Subrule("sub"), delimiter: new P.Symbol(",") })]
+        [
+          "[{sub},]?",
+          new P.Repeat({
+            optional: true,
+            rule: new P.Subrule("sub"),
+            delimiter: new P.Symbol({ literal: ",", spacing: "none" })
+          })
+        ]
       ]
     }
   ]
@@ -463,11 +487,13 @@ rulex.addRule(choices, {
  *   `P.Keywords`, not nested sequences.
  * - If we're left with exactly one rule after consolidation, returns that rule directly rather than
  *   wrapping it in a `P.Sequence`.
- * - TODO: `consume all tokens`...
+ * - Spacing as written:  a part with no space before it in the syntax gets `spacing: "none"`, and `{space}` /
+ *   `{spaces}` set the next part's -- see `RulexParser.compileSpacedParts()`.
+ * - `RulexParser.compile()` throws if any of the syntax is left unread.
  */
 class sequence extends P.Repeat {
   compile(match: P.MatchFor<this>) {
-    let matched: P.Rule[] = match.items.map((item) => RulexParser.compileMatchOrDie(item))
+    let matched = rulex.compileSpacedParts(match.items)
 
     // Consolidate keywords and symbols
     matched = rulex.consolidateLiterals(matched, P.Keyword, "literal", P.Keywords)
@@ -475,8 +501,9 @@ class sequence extends P.Repeat {
 
     const rules: P.Rule[] = []
     for (let start = 0, rule: P.Rule | undefined; (rule = matched[start]); start++) {
-      // Consolidate sequences
+      // Consolidate sequences -- the nested one's spacing moves to its first part, which had none
       if (rule instanceof P.Sequence && !rule.isAdorned && !rule.optional) {
+        if (rule.spacing && rule.rules[0]) rule.rules[0].spacing = rule.spacing
         rules.push(...rule.rules)
       } else {
         rules.push(rule)
@@ -519,8 +546,10 @@ rulex.addRule(sequence, {
       title: "consolidate multiple keywords and symbols",
       showAll: true,
       tests: [
-        [">=", new P.Symbols([">", "="])],
-        [">(=)?", new P.Symbols([">", { optional: true, literal: "=" }])],
+        // written touching => must touch;  written spaced => may space
+        [">=", new P.Symbols([">", { literal: "=", spacing: "none" }])],
+        ["> =", new P.Symbols([">", "="])],
+        [">(=)?", new P.Symbols([">", { optional: true, literal: "=", spacing: "none" }])],
         ["(>|<) (=)?", new P.Symbols([[">", "<"], { optional: true, literal: "=" }])],
 
         ["a b c", new P.Keywords(["a", "b", "c"])],
@@ -545,17 +574,77 @@ rulex.addRule(sequence, {
       showAll: true,
       tests: [
         ["# {text}", new P.Sequence(new P.Symbol("#"), new P.Subrule("text"))],
-        ["a -- b", new P.Sequence(new P.Keyword("a"), new P.Symbols(["-", "-"]), new P.Keyword("b"))],
-        ["---", new P.Symbols(["-", "-", "-"])],
-        ["a // b", new P.Sequence(new P.Keyword("a"), new P.Symbols(["/", "/"]), new P.Keyword("b"))],
-        ["'{x}'", new P.Sequence(new P.Symbol("'"), new P.Subrule("x"), new P.Symbol("'"))],
+        [
+          "a -- b",
+          new P.Sequence(
+            new P.Keyword("a"),
+            new P.Symbols(["-", { literal: "-", spacing: "none" }]),
+            new P.Keyword("b")
+          )
+        ],
+        ["---", new P.Symbols(["-", { literal: "-", spacing: "none" }, { literal: "-", spacing: "none" }])],
+        [
+          "a // b",
+          new P.Sequence(
+            new P.Keyword("a"),
+            new P.Symbols(["/", { literal: "/", spacing: "none" }]),
+            new P.Keyword("b")
+          )
+        ],
+        [
+          "'{x}'",
+          new P.Sequence(
+            new P.Symbol("'"),
+            new P.Subrule({ rule: "x", spacing: "none" }),
+            new P.Symbol({ literal: "'", spacing: "none" })
+          )
+        ],
         [
           "<b> {x}",
-          new P.Sequence(new P.Symbol("<"), new P.Keyword("b"), new P.Symbol(">"), new P.Subrule("x"))
+          new P.Sequence(
+            new P.Symbol("<"),
+            new P.Keyword({ literal: "b", spacing: "none" }),
+            new P.Symbol({ literal: ">", spacing: "none" }),
+            new P.Subrule("x")
+          )
         ],
-        ["1.1", new P.Sequence(new P.Keyword({ literal: 1 as unknown as string }), new P.Symbol("."), new P.Keyword({ literal: 1 as unknown as string }))],
-        ["-1", new P.Sequence(new P.Symbol("-"), new P.Keyword({ literal: 1 as unknown as string }))],
+        [
+          "1.1",
+          new P.Sequence(
+            new P.Keyword({ literal: 1 as unknown as string }),
+            new P.Symbol({ literal: ".", spacing: "none" }),
+            new P.Keyword({ literal: 1 as unknown as string, spacing: "none" })
+          )
+        ],
+        [
+          "-1",
+          new P.Sequence(new P.Symbol("-"), new P.Keyword({ literal: 1 as unknown as string, spacing: "none" }))
+        ],
         ["¬", new P.Symbol("¬")]
+      ]
+    },
+    {
+      // spacing as written:  touching parts must touch, spaced ones may space;  `{space}` / `{spaces}` say how much
+      title: "spacing",
+      showAll: true,
+      tests: [
+        ["{a} {b}", new P.Sequence(new P.Subrule("a"), new P.Subrule("b"))],
+        ["{a}{b}", new P.Sequence(new P.Subrule("a"), new P.Subrule({ rule: "b", spacing: "none" }))],
+        ["{a}{space}{b}", new P.Sequence(new P.Subrule("a"), new P.Subrule({ rule: "b", spacing: "one" }))],
+        // `{spaces}` owns its boundary, however the syntax spaces around it
+        ["{a} {spaces} {b}", new P.Sequence(new P.Subrule("a"), new P.Subrule({ rule: "b", spacing: "some" }))],
+        [
+          "-{spaces}{text}",
+          new P.Sequence(new P.Symbol("-"), new P.Subrule({ rule: "text", spacing: "some" }))
+        ],
+        [
+          "!\\[{alt}\\]",
+          new P.Sequence(
+            new P.Symbols(["!", { literal: "[", spacing: "none" }]),
+            new P.Subrule({ rule: "alt", spacing: "none" }),
+            new P.Symbol({ literal: "]", spacing: "none", isEscaped: true })
+          )
+        ]
       ]
     }
   ]

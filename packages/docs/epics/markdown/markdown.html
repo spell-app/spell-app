@@ -305,8 +305,8 @@
                   <li>rulex reads syntax with its own plain tokenizer (<a href="#d19">D19</a>)</li>
                   <li>rulex throws on leftover tokens (<a href="#d12">D12</a>)</li>
                   <li>
-                    spacing as written + <code>\s</code> (<a href="#d17">D17</a>); space added to the 4 list commas and
-                    the method-signature parens
+                    spacing as written + <code>{space}</code> / <code>{spaces}</code> (<a href="#d17">D17</a>,
+                    <a href="#d24">D24</a>); space added to the 4 list commas and the method-signature parens
                   </li>
                   <li>intervals <code>{n}</code> <code>{n,m}</code> <code>{n,}</code> (<a href="#d18">D18</a>)</li>
                   <li><code>/i</code> on keywords and choices (<a href="#d16">D16</a>)</li>
@@ -1353,6 +1353,144 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="q9" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q9">Q9</a>
+                  <span class="plan-title">Spacing as written: how do a repeat's copies space?</span>
+                  <a class="plan-answer" href="#d24">→ D24</a>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Found designing P2.3. The rulex doc said a repeat's copies follow the spacing written after the
+                    repeated part (<code>-{3,}</code> = only <code>---</code>). Applied to everything, that breaks 2
+                    spell syntaxes whose repeats are written touching:
+                    <code>{rhsChain:expression_suffix}+</code> (expressions.ts:432) and
+                    <code>({method_keyword}|\({method_arg}\))+</code> (methods.ts:842:
+                    <code>to move (a card) to (a pile)</code>).
+                  </p>
+                  <p>
+                    Markdown needs both: <code>#{1,6}</code> and <code>`{3,}</code> touching, <code>- - -</code> spaced.
+                  </p>
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>option</th>
+                          <th>rule</th>
+                          <th>spell</th>
+                          <th>markdown</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>A. Symbols run (recommended)</td>
+                          <td>
+                            A repeated SYMBOL is a run, like <code>**</code>: copies touch, unless a space before the
+                            flag (<code>- {3,}</code>). Any other repeat (subrule, group, keyword) spaces freely, as
+                            today
+                          </td>
+                          <td>unchanged</td>
+                          <td><code>#{1,6}\s{text}</code>, <code>`{3,}</code>, <code>(- {3,}|\* {3,}|_ {3,})</code></td>
+                        </tr>
+                        <tr>
+                          <td>B. As written, everywhere</td>
+                          <td>Copies touch unless a space before the flag, whatever is repeated</td>
+                          <td>2 syntaxes get a space: <code>{rhsChain:expression_suffix} +</code></td>
+                          <td>same as A</td>
+                        </tr>
+                        <tr>
+                          <td>C. Repeats always free</td>
+                          <td>Spacing as written applies between parts only</td>
+                          <td>unchanged</td>
+                          <td><code># #</code> would read as level 2; touching runs need a custom rule</td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d24" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d24">D24</a>
+                  <span class="plan-title"
+                    >A: a repeated SYMBOL's copies touch unless a space before the flag; other repeats space freely.
+                    {space} / {spaces} replace \s (<a href="#q9">Q9</a>)</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Owen: "A, but have <code>{space}</code> rule which means single space character, and
+                    <code>{spaces}</code> which means any amount of spaces rather than <code>\s</code>".
+                  </p>
+                  <ul>
+                    <li><code>{space}</code>: exactly one space between the tokens either side</li>
+                    <li>
+                      <code>{spaces}</code>: one or more spaces / tabs (read "any amount" as at least one:
+                      <code>{spaces}?</code> = allowed, which a written space already says)
+                    </li>
+                    <li>both own their boundary: the syntax's spacing around them doesn't apply</li>
+                    <li>
+                      examples: <code>#{1,6}{spaces}{text}</code>, <code>(-|\*|\+){spaces}{text}</code>,
+                      <code>\[{space}\]</code> (unchecked task box)
+                    </li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q9">Q9</a>: Spacing as written: how do a repeat's copies space?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d25" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d25">D25</a>
+                  <span class="plan-title"
+                    >P2.3 diff: Rule.spacing (none / one / some), set by rulex from the syntax; {space} / {spaces}</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Review gate (<a href="#d7">D7</a>) for <a href="#d17">D17</a> + <a href="#d24">D24</a>. Smallest
+                    shape found: ONE new prop, checked against the previous token's
+                    <code>whitespace</code> (LEADING_ONLY already keeps it there).
+                  </p>
+                  <ul>
+                    <li>
+                      <code>Rule.spacing?: "none" | "one" | "some"</code>: what may sit between the previous token and
+                      this rule's first. Unset = free, as today. Helper
+                      <code>P.spacingAllows(previous, spacing)</code> in
+                      <a
+                        href="../../../parser/src/rules/rules.types.ts"
+                        target="src-packages-parser-src-rules-rules-types-ts"
+                        ><code>rules.types.ts</code></a
+                      >.
+                    </li>
+                    <li>
+                      <code>Sequence.parse()</code>: a part whose <code>spacing</code> fails is "no match" (an optional
+                      one is skipped).
+                    </li>
+                    <li>
+                      <code>LiteralMatcher.spacing</code>: same inside a <code>Symbols</code> /
+                      <code>Keywords</code> run.
+                    </li>
+                    <li>
+                      <code>Repeat</code>: <code>itemSpacing</code> between copies (set only for a repeated symbol
+                      written touching its flag); the delimiter's own <code>spacing</code> checked before it.
+                    </li>
+                    <li>
+                      Rulex sets them: each sequence part after the first gets <code>spacing: "none"</code> when the
+                      syntax has no space before it; <code>{space}</code> / <code>{spaces}</code> are dropped and set
+                      the NEXT part's <code>spacing</code> to <code>one</code> / <code>some</code> (one at the end of a
+                      sequence throws).
+                    </li>
+                    <li>
+                      Spell: 4 list syntaxes and the method-signature parens get a space so they match as today;
+                      contractions get stricter.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1427,6 +1565,13 @@
               <span class="plan-title"
                 >LSP checks in docstrings: broken #heading links, unknown `identifiers`</span
               ></ui-item
+            ><ui-item id="t2" data-status="open"
+              ><a class="plan-id" href="#t2">T2</a>
+              <span class="plan-title"
+                >End of P2: yarn gen:spell in packages/ui (the highlighter bundle carries the parser + spell grammar,
+                both changed)</span
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1484,11 +1629,12 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i2" data-status="open"
+            ><ui-item id="i2" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i2">I2</a>
-                  <span class="plan-title">Whitespace is invisible to literal rules: ** matches * *</span> </ui-title
+                  <span class="plan-title">Whitespace is invisible to literal rules: ** matches * *</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
                 ><ui-content
                   ><p>
                     Confirms the suspected bug (<a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
@@ -1834,6 +1980,29 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:08-04:00">2026-10-04 02:08</time></ui-date> I5 closed: Rulex:
                   an unclosed [ { ( quietly becomes a literal symbol</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:14-04:00">2026-10-04 02:14</time></ui-date> Q9 answered: D24
+                  A: a repeated SYMBOL's copies touch unless a space before the flag; other repeats space freely.
+                  {space} / {spaces} replace \s</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:21-04:00">2026-10-04 02:21</time></ui-date> P2.3 staged for
+                  review: spacing as written + {space}/{spaces}; parser 431+ / spell 788 / lsp 96 green; speed 70 -&gt;
+                  69 ms</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:28-04:00">2026-10-04 02:28</time></ui-date> I2 closed:
+                  Whitespace is invisible to literal rules: ** matches * *</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -511,6 +511,11 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- [V] `scripts/plan-doc.js` `summary`:  throws "no .plan-items[data-kind="judgement"] in the doc" on a plan doc from
+  before the Judgement calls section (`epics/unified-server`), so `packages/cli/src/cli.test.ts` "summarizes a plan
+  doc" fails -- on `main` too (checked 2026-10-04, `markdown` epic).  Fix:  `summary` treats a missing list as
+  empty, or `migrate` the doc.
+
 - `scripts/plan-doc.js` `add-phase`:  `--goal` / `--files` / `--verify` go into the page as raw HTML, so
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
   tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
