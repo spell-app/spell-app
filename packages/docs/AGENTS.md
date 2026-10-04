@@ -15,6 +15,9 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - `<topic>/<topic>.md` -- a distilled version for agents, when agents need the doc's rules (see "Agent rules").
 - `templates/` -- starting points, one per kind of doc (see "Templates").
 - `epics/<name>/<name>.html` -- plan docs, one per `/epic` session (see "Plan docs").
+- `details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page (`/details`, see
+  "Details pages").  Scratch:  ignored by version control, swept after 14 days.  An epic's go in
+  `epics/<name>/details/`, committed.
 - `_assets/` -- shared page assets:
   - `spell-doc.css` -- page layout, and what UI doesn't cover;  reaches into widgets via UI tokens and `::part()`
   - `spell-doc-runtime.js` -- page behaviour (contents sidebar, sticky headers, scroll-follow, code colors)
@@ -23,6 +26,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - `emoji/<set>/<letter>.js` -- UI's emoji name chunks as classic scripts, loaded lazily by the bundle on first use
     of a name (both sets:  `cldr`, `fomantic`).  GENERATED with `spell-ui.js`;  never edit.
   - `plan-doc.css` -- plan docs, on top of `spell-doc.css`
+  - `details.css`, `details.js` -- details pages:  the option cards, Other, notes and Send `details.js` builds from
+    the page's `.spell-option` markup, and the answer once sent
   - `goals.css`, `goals-live.js` -- goals pages (the repo root's `goals/`, and `templates/goals/`):  their look, and
     their live buttons (thoughts, Claude sessions) when the page server serves them (goals' route module)
 - `scripts/` -- the tooling (see "Scripts").
@@ -63,10 +68,14 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
     every top-level section an icon:  without one, the rail shows its number
   - sticky titles:  each top-level section's title sticks below the page header, nested ones stack below their
     parents' (the runtime sets the top-level `offset`s)
-  - folding:  folds are remembered per page;  a link's unfold isn't
+  - folding:  folds are remembered per page;  a link's unfold isn't.  A plan doc (`body.plan-doc`) starts EVERY
+    section folded that the reader hasn't opened or closed:  Owen opens what he wants (2026-10-03)
   - counts:  a top-level section holding `[data-status]` items shows `open/all` on its title (its `badge`) and the
     open count as a badge in the contents and the rail (open:  any status but `done` or `decided`);  nested
     sections get no count of their own
+  - item filter:  a top-level section with plan items (`.plan-items`) gets an "Open | All" button group left of
+    its count;  Open (the default) hides struck items, with "N hidden · show all" under the list;  remembered
+    per page
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
   - code colors (highlight.js from cdnjs)
 - Headings:
@@ -125,6 +134,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 - `templates/cheatsheet.html` -- an API reference:  a grid of cards, filtered by text and by badge
   (`ui-select[data-spell-filter-badge]`);  a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link).
 - `templates/epics/plan.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
+- `templates/details.html` -- a details page.  NEVER copy by hand:  `yarn details new <slug>`.
 - `templates/goals/` -- goals pages, laid out as a goals folder is, so their links work in place:
   `index.html` (the home page:  every goal set), `set/index.html` (a set's contents page), `set/topic/topic.html`
   and `topic.md` (a topic's page and its agent notes).  NEVER copy by hand:  `yarn goals new-set` / `yarn goals new`
@@ -143,6 +153,15 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 - How to write one, its sections, ids and markers:  `templates/epics/plan-doc.md`.
 - Edit through `yarn plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
+
+## Details pages
+
+- `/details` (`.claude/skills/details/`):  how and when Claude writes one.
+- `yarn details new | show [--wait] | wait | answer | list | sweep` (`scripts/details.js`).
+- Owen's answer:  the page posts it to the page server's route module `scripts/detailsRoutes.ts`, which writes
+  `<slug>.answer.json` beside the page;  `yarn details wait`, run in the background, exits with it and so wakes the
+  session.
+- `findPages()` skips every `details/` folder:  not in the index, not checked by `docs:update`.
 
 ## Experiments
 
@@ -181,9 +200,13 @@ In this order, from `packages/docs`:
 - `yarn docs:new` (`scripts/new-page.js`) -- a page from a template, at any depth.
 - `yarn docs:open [page] [--vs]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome, reusing its
   tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" view (`/spell-docs`).
-- `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `tidy()` (link targets + oxfmt),
-  `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview through the spell extension's
-  `DocPreview`).
+- `yarn details` (`scripts/details.js`) -- details pages (see "Details pages");  `scripts/detailsRoutes.ts`, the
+  page server's route module for their answers.
+- `yarn docs:link <page> [--hash <id>] [--text "..."] [--show]` (`scripts/link.ts`) -- the markdown links Claude
+  gives for a page:  side bar, then `(_browser_)`, both through `scripts/showRoutes.ts` (`GET /api/docs/show`).
+- `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `atDepth()` (a template at a page's depth),
+  `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
+  through the spell extension's `DocPreview`).
 - `scripts/check-spell.js <page> [outDir]` -- Playwright:  fails on console errors, undefined / unrendered
   `ui-*`, contents vs sections, phone-width overflow, top-level titles that don't stick, a section that won't fold /
   unfold or forgets its fold on reload, a drawer that won't open;  writes screenshots.

@@ -85,18 +85,40 @@ def status(name, ids=None):
 
 
 def plan_status(name, worktree):
-    """`(plan doc folder or None, every phase done)`, read with `yarn plan-doc summary`:  from the worktree when it
-    has `node_modules/`, as its copy of the plan is the live one."""
+    """`(plan doc folder or None, every phase done)`, read with `plan_summaries()`."""
+    file = plan_file(name, worktree)
+    if not file:
+        return None, False
+    phases = plan_summaries([file]).get(file, {}).get("phases") or []
+    return str(Path(file).parent), bool(phases) and all(p.get("status") == "done" for p in phases)
+
+
+def plan_file(name, worktree):
+    """Plan doc `<name>`'s live copy, as a string:  the worktree's when it has one, else `main`'s;  `None`:  none."""
     for root in (worktree, MAIN):
-        folder = root / "packages" / "docs" / "epics" / name
-        if folder.exists() and (root / "node_modules").exists():
-            out = run(["yarn", "plan-doc", "summary", name, "--json"], cwd=root)
+        file = root / "packages" / "docs" / "epics" / name / f"{name}.html"
+        if file.exists():
+            return str(file)
+    return None
+
+
+def plan_summaries(files):
+    """`{file: summary | {error}}` of the plan docs at `files` (absolute), the ones not yet read in ONE
+    `yarn plan-doc summaries` run;  a file it can't read is left out.
+    - runs in THIS script's checkout when it has `node_modules/`, else the main checkout:  a worktree's copy needn't
+      be installed, and reads by path from any checkout
+    - `summary`:  `{title, phases[{n, name, status, estimate}], active, next, estimate, open{<kind>: [...]}}`
+    - SIDE EFFECT:  cached in `SUMMARIES` for the rest of the run;  pass every file up front to read them in one go
+      (`yarn` takes ~1s to start)"""
+    todo = [file for file in files if file not in SUMMARIES]
+    for root in (HERE, MAIN) if todo else ():
+        if (root / "node_modules").exists():
             try:
-                phases = json.loads(out or "").get("phases") or []
+                SUMMARIES.update(json.loads(run(["yarn", "plan-doc", "summaries", *todo], cwd=root) or ""))
             except ValueError:
-                return str(folder), False
-            return str(folder), bool(phases) and all(p.get("status") == "done" for p in phases)
-    return None, False
+                pass
+            break
+    return {file: SUMMARIES[file] for file in files if file in SUMMARIES}
 
 
 ################
@@ -276,6 +298,10 @@ def main_checkout():
 
 
 MAIN = main_checkout()
+# the checkout this script is in:  the main one, or a worktree
+HERE = Path(__file__).resolve().parents[4]
+# `plan_summaries()`'s cache:  `{file: summary | {error}}`
+SUMMARIES = {}
 
 if __name__ == "__main__":
     main()

@@ -23,5 +23,5 @@ argument-hint: "[page]"
 2. `no page <page>`:  `ls packages/docs` (and the folder it named), offer the closest in AskUserQuestion, run again.
 3. Nothing shows up (it fell back to the `vscode://` link, or the window has no bridge):  `yarn vscode`, reload
    the window, try again.  Meanwhile `yarn docs:open [page]` shows it in Chrome.
-4. Reply in one line, the page linked on the page server (`yarn server url <ABSOLUTE path>`), then the servers'
+4. Reply in one line, the page's link pair (`yarn docs:link <ABSOLUTE path>`), then the servers'
    ports from step 0 (page server, editor, Spell UI) on one more line.
