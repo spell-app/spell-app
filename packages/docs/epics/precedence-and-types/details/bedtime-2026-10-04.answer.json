@@ -1,0 +1,45 @@
+{
+  "page": "/worktrees/precedence-and-types/packages/docs/epics/precedence-and-types/details/bedtime-2026-10-04.html",
+  "answered": "2026-10-04T06:46:28.837Z",
+  "changes": 0,
+  "answers": {
+    "q1": {
+      "picked": [
+        "A"
+      ]
+    },
+    "q2": {
+      "picked": [
+        "A"
+      ]
+    },
+    "q3": {
+      "picked": [
+        "A"
+      ]
+    },
+    "q4": {
+      "picked": [
+        "B"
+      ]
+    },
+    "q5": {
+      "picked": [
+        "A"
+      ]
+    },
+    "q6": {
+      "picked": [
+        "A"
+      ]
+    },
+    "q7": {
+      "picked": [],
+      "other": "no bump needed, it's all still just me"
+    },
+    "q8": {
+      "picked": []
+    }
+  },
+  "notes": ""
+}
