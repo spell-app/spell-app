@@ -24,6 +24,18 @@ describe("testing language rulex", () => {
       expect(rulex.compile("give {thing:expression} (to {recipient})?")).toBeInstanceOf(P.Sequence)
     })
 
+    it("throws on a count that matches nothing, or a flag AND a count", () => {
+      expect(() => rulex.compile("x{3,2}")).toThrow("matches nothing")
+      expect(() => rulex.compile("x{0}")).toThrow("matches nothing")
+      expect(() => rulex.compile("x?{2}")).toThrow("a flag AND a count")
+    })
+
+    it("prints a count back", () => {
+      expect(rulex.compile("x{7}").toRulexSyntax()).toBe("x{7}")
+      expect(rulex.compile("x{1,6}").toRulexSyntax()).toBe("x{1,6}")
+      expect(rulex.compile("x{3,}").toRulexSyntax()).toBe("x{3,}")
+    })
+
     it("throws on a {space} / {spaces} that doesn't sit between two parts", () => {
       expect(() => rulex.compile("{spaces} a")).toThrow("must sit between two parts")
       expect(() => rulex.compile("a {space}")).toThrow("must sit between two parts")
@@ -52,6 +64,9 @@ describe("testing language rulex", () => {
       box: "\\[{space}\\]",
       heading: "\\#+{spaces}{word}",
       rule: "- +",
+      atx: "#{1,6}{spaces}{word}",
+      thematic: "- {3,}",
+      pair: "x{2}",
       list: "[{word},]",
       spacedList: "[{word} ,]"
     })) {
@@ -92,6 +107,17 @@ describe("testing language rulex", () => {
       expect(matched("heading", "# # hello")).toBe(0)
       expect(matched("rule", "- - -")).toBe(3)
       expect(matched("rule", "---")).toBe(3)
+    })
+
+    it("counts:  as many as the count, then the rest is for what follows", () => {
+      expect(matched("atx", "###### hello")).toBe(7)
+      expect(matched("atx", "# hello")).toBe(2)
+      // 7 `#`s:  the run stops at 6, and the 7th touches it where `{spaces}` wants a space
+      expect(matched("atx", "####### hello")).toBe(0)
+      expect(matched("thematic", "- - -")).toBe(3)
+      expect(matched("thematic", "- -")).toBe(0)
+      expect(matched("pair", "x x x")).toBe(2)
+      expect(matched("pair", "x")).toBe(0)
     })
 
     it("a list's delimiter spaces as written", () => {
