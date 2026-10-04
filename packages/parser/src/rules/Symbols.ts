@@ -7,7 +7,7 @@ import { Literals } from "./Literals"
  * Rule to match one or more sequential literal symbols, with no space in-between.
  *
  * - After matching, `match.value` will be the literal string matched.
- * - Symbols output WITHOUT spaces in-between.
+ * - Printed as rulex spaced as written:  `--` touching, `- -` spaced (`P.rulexSpacing()`).
  */
 export class Symbols<
   Groups extends string | P.AnyGroups = P.AnyGroups,
@@ -15,12 +15,4 @@ export class Symbols<
 > extends Literals<Groups, MatchData> {
   /** Editors colour us as an operator -- unless a generated method rule holds us, see `SpellLanguageService`. */
   @proto static highlightAs?: P.HighlightKind = "operator"
-
-  static {
-    /** Join symbols with no space in-between. */
-    Object.defineProperty(this.prototype, "literalSeparator", {
-      value: "",
-      writable: true
-    })
-  }
 }
