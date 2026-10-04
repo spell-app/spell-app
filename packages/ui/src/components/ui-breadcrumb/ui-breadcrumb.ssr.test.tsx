@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { beforeAll, describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { ServerRuntime, StaticRender } from "$/ui/server"
 import { UIBreadcrumb } from "$/ui/components/ui-breadcrumb/UIBreadcrumb"

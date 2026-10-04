@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test"
 
 import { UI, type SourceSaver } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/a11y"

@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
-import { afterAll, describe, test, expect } from "vitest"
+import { afterAll, describe, test, expect } from "vite-plus/test"
 
 import { CLI } from "$/cli"
 

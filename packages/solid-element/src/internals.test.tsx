@@ -6,7 +6,7 @@
 /** FIX 5:  `element.internals` and the form hooks. */
 
 import { createSignal, flush } from "solid-js"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { onFormAssociated, onFormDisabled, onFormReset, onFormStateRestore } from "./internals"

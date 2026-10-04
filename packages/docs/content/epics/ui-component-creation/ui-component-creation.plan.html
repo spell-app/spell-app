@@ -54,10 +54,10 @@
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
             Built 2026-10-01 on branch <code>worktree-ui-component-creation</code>:
-            <a href="../../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> green in the monorepo, the bug
-            sweep, Owen's design calls (P1-P12); component folders named by tag, topics in every vocabulary, the docs
-            sidebar's component browser (P13-P15); <code>&lt;ui-root&gt;</code>, designed then built: on-demand loading,
-            per-root icons and emoji, skeletons, and the docs site running on it (P16-P20); table
+            <a href="../../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> green in the monorepo, the
+            bug sweep, Owen's design calls (P1-P12); component folders named by tag, topics in every vocabulary, the
+            docs sidebar's component browser (P13-P15); <code>&lt;ui-root&gt;</code>, designed then built: on-demand
+            loading, per-root icons and emoji, skeletons, and the docs site running on it (P16-P20); table
             <code>stack-by</code> and the WebKit fixes, so every test passes in chromium, firefox and webkit (P21).
             Left: Linux baselines (<a href="#c1">C1</a>) and the open caveats and todos below. Durable summary:
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
@@ -145,8 +145,9 @@
               </li>
               <li>Cap 5 agents counting sub-agents (<a href="#d4">D4</a>).</li>
               <li>
-                Brief template: read <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> +
-                docs; a template family to copy; Fomantic source in
+                Brief template: read
+                <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> + docs; a template
+                family to copy; Fomantic source in
                 <a href="../../../../ui/reference/Fomantic-UI/" target="src-packages-ui-reference-fomantic-ui"
                   ><code>packages/ui/reference/Fomantic-UI/</code></a
                 >; exact file set; do NOT spawn sub-agents, stage or commit; report what, tests, every deviation, shared
@@ -221,7 +222,9 @@
           <ui-section id="o4" header="1.4 Open bugs by area" sticky collapsible dividing>
             <p>
               What's still open:
-              <a href="../../../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>agents/SUSPECTED-BUGS.md</code></a>
+              <a href="../../../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                ><code>agents/SUSPECTED-BUGS.md</code></a
+              >
               (<code>## ui</code>, swept in <a href="#p3">P3</a>; what's left was found since) plus this doc's open
               caveats, issues and todos.
             </p>
@@ -456,7 +459,9 @@
                       target="src-packages-ui-scripts-gen-root-catalog-ts"
                       ><code>scripts/gen-root-catalog.ts</code></a
                     >) writes it from every <code>&lt;tag&gt;.vocabulary.en.ts</code>;
-                    <a href="../../../../ui/test/root-catalog.test.ts" target="src-packages-ui-test-root-catalog-test-ts"
+                    <a
+                      href="../../../../ui/test/root-catalog.test.ts"
+                      target="src-packages-ui-test-root-catalog-test-ts"
                       ><code>test/root-catalog.test.ts</code></a
                     >
                     fails while it's stale.
@@ -601,7 +606,9 @@ export class RootLoader {
                 stays page-wide for now: no <code>lang</code> attribute.
               </li>
               <li>
-                <a href="../../../../ui/src/elements/RootSettings.ts" target="src-packages-ui-src-elements-rootsettings-ts"
+                <a
+                  href="../../../../ui/src/elements/RootSettings.ts"
+                  target="src-packages-ui-src-elements-rootsettings-ts"
                   ><code>RootSettings</code></a
                 >
                 (core, <a href="#d66">D66</a>): root element =&gt; <code>{ icons, emoji }</code>.
@@ -909,7 +916,9 @@ export class RootLoader {
                     described, and overlays say <code>null</code>
                   </li>
                   <li>
-                    <a href="../../../../ui/test/vocabularies.test.ts" target="src-packages-ui-test-vocabularies-test-ts"
+                    <a
+                      href="../../../../ui/test/vocabularies.test.ts"
+                      target="src-packages-ui-test-vocabularies-test-ts"
                       ><code>test/vocabularies.test.ts</code></a
                     >
                     requires the field, so a new tag must decide
@@ -1162,11 +1171,15 @@ export class RootLoader {
                   <tr>
                     <td>icons per root</td>
                     <td>
-                      <a href="../../../../ui/src/runtime/IconPacks.ts" target="src-packages-ui-src-runtime-iconpacks-ts"
+                      <a
+                        href="../../../../ui/src/runtime/IconPacks.ts"
+                        target="src-packages-ui-src-runtime-iconpacks-ts"
                         ><code>src/runtime/IconPacks.ts</code></a
                       >
                       (<code>scope()</code>),
-                      <a href="../../../../ui/src/elements/IconGlyph.ts" target="src-packages-ui-src-elements-iconglyph-ts"
+                      <a
+                        href="../../../../ui/src/elements/IconGlyph.ts"
+                        target="src-packages-ui-src-elements-iconglyph-ts"
                         ><code>src/elements/IconGlyph.ts</code></a
                       >
                       (<code>packsFor()</code>)
@@ -1202,10 +1215,14 @@ export class RootLoader {
                         target="src-packages-ui-src-components-ui-root-ui-root-test-tsx"
                         ><code>ui-root.test.tsx</code></a
                       >,
-                      <a href="../../../../ui/test/root-catalog.test.ts" target="src-packages-ui-test-root-catalog-test-ts"
+                      <a
+                        href="../../../../ui/test/root-catalog.test.ts"
+                        target="src-packages-ui-test-root-catalog-test-ts"
                         ><code>test/root-catalog.test.ts</code></a
                       >,
-                      <a href="../../../../ui/test/vocabularies.test.ts" target="src-packages-ui-test-vocabularies-test-ts"
+                      <a
+                        href="../../../../ui/test/vocabularies.test.ts"
+                        target="src-packages-ui-test-vocabularies-test-ts"
                         ><code>test/vocabularies.test.ts</code></a
                       >
                     </td>
@@ -1418,8 +1435,8 @@ export class RootLoader {
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
-                <b>Goal:</b> prune plan doc; durable page packages/docs/content/ui-component-creation.html; status.md final;
-                update or retire the handoff </ui-item
+                <b>Goal:</b> prune plan doc; durable page packages/docs/content/ui-component-creation.html; status.md
+                final; update or retire the handoff </ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/docs/; packages/ui/docs/status.md; outstanding/ui-component-build.md</ui-item
               ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check; yarn docs:index</ui-item></ui-list
@@ -1440,7 +1457,8 @@ export class RootLoader {
               ><ui-item icon="bullseye">
                 <b>Goal:</b> main's docs-template commit merged in; this plan doc in the new format (ui-steps phases,
                 ui-feed log, breadcrumb, h2 icons) </ui-item
-              ><ui-item icon="folder"><b>Files:</b> packages/docs/tools/_assets/spell-ui.js (regenerated); this doc</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/docs/tools/_assets/spell-ui.js (regenerated); this doc</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> yarn plan-doc check; the script edits the new markup (this phase was added by
                 it)</ui-item
@@ -2427,7 +2445,9 @@ import "@spell-app/ui/core"
                         ><ui-label attached="top" color="green">A. Its own entry (recommended)</ui-label>
                         <p>
                           <code>@spell-app/ui/ui-root</code>,
-                          <a href="../../../../ui/src/components/ui-root/" target="src-packages-ui-src-components-ui-root"
+                          <a
+                            href="../../../../ui/src/components/ui-root/"
+                            target="src-packages-ui-src-components-ui-root"
                             ><code>src/components/ui-root/</code></a
                           >
                           like any family. Imports <code>core</code> only for <code>UIElement</code>. Pages that don't
@@ -3583,7 +3603,9 @@ export const cardSkeleton = {
                         ><code>scripts/gen-root-catalog.ts</code></a
                       >
                       writes a few-kB catalog;
-                      <a href="../../../../ui/test/root-catalog.test.ts" target="src-packages-ui-test-root-catalog-test-ts"
+                      <a
+                        href="../../../../ui/test/root-catalog.test.ts"
+                        target="src-packages-ui-test-root-catalog-test-ts"
                         ><code>test/root-catalog.test.ts</code></a
                       >
                       fails while it's stale. Skeletons join it in P19.
@@ -3655,7 +3677,9 @@ export const cardSkeleton = {
                       <code>ComponentVocabulary.skeleton</code> (<code>SkeletonSpec | null</code>): 37 tags describe one
                       (buttons, inputs, cards, tables ...); parts, group wrappers whose children are described, and
                       overlays say <code>null</code>.
-                      <a href="../../../../ui/test/vocabularies.test.ts" target="src-packages-ui-test-vocabularies-test-ts"
+                      <a
+                        href="../../../../ui/test/vocabularies.test.ts"
+                        target="src-packages-ui-test-vocabularies-test-ts"
                         ><code>test/vocabularies.test.ts</code></a
                       >
                       requires the field on every tag, so a new tag must decide. Written by 3 agents by family; sizes
@@ -3742,7 +3766,8 @@ export const cardSkeleton = {
                     <li>
                       The fix, once Docker Desktop runs (likely by updating it):
                       <code>yarn test:visual --os linux --update</code> in
-                      <a href="../../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> (<a href="#t1">T1</a
+                      <a href="../../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> (<a href="#t1"
+                        >T1</a
                       >).
                     </li>
                     <li>
@@ -4602,14 +4627,17 @@ export const cardSkeleton = {
                   <ul>
                     <li>
                       The prose rule has the same specificity as <code>.ui-list-plain</code>, and comes later in
-                      <a href="../../../../ui/src/styles/utilities.css" target="src-packages-ui-src-styles-utilities-css"
+                      <a
+                        href="../../../../ui/src/styles/utilities.css"
+                        target="src-packages-ui-src-styles-utilities-css"
                         ><code>utilities.css</code></a
                       >, so it wins.
                     </li>
                     <li>The <code>/components/</code> index worked around it with <code>ui-not-prose</code>.</li>
                     <li>
                       Not fixed in
-                      <a href="../../../../ui/src/styles/" target="src-packages-ui-src-styles"><code>src/styles</code></a
+                      <a href="../../../../ui/src/styles/" target="src-packages-ui-src-styles"
+                        ><code>src/styles</code></a
                       >: another agent owned
                       <a href="../../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a> then.
                     </li>
@@ -5029,8 +5057,8 @@ export const cardSkeleton = {
               <ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T02:15-04:00">2026-10-01 02:15</time></ui-date> P6 done: durable
-                  page packages/docs/content/ui-component-creation.html (links ok, check-spell ok, screenshots looked at); plan
-                  summary rewritten to what was built; handoff marked resumed.</ui-summary
+                  page packages/docs/content/ui-component-creation.html (links ok, check-spell ok, screenshots looked
+                  at); plan summary rewritten to what was built; handoff marked resumed.</ui-summary
                 ></ui-content
               >
             </ui-event>

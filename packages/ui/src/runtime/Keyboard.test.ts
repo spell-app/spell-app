@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { Fixture } from "$/ui/test/fixture"
 import { Keyboard } from "./Keyboard"

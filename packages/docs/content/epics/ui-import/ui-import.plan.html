@@ -103,7 +103,9 @@
                       ><code>src/elements/SourceElement.tsx</code></a
                     >
                     +
-                    <a href="../../../../ui/src/elements/SourceHost.ts" target="src-packages-ui-src-elements-sourcehost-ts"
+                    <a
+                      href="../../../../ui/src/elements/SourceHost.ts"
+                      target="src-packages-ui-src-elements-sourcehost-ts"
                       ><code>SourceHost.ts</code></a
                     >: base controller and host for "content from inline text or <code>source</code>"
                     (<code>content</code>, <code>save()</code>, <code>reload()</code>)
@@ -137,7 +139,9 @@
                 <a href="../../../../ui/docs/status.md" target="src-packages-ui-docs-status-md"
                   ><code>docs/status.md</code></a
                 >,
-                <a href="../../../../ui/docs/plan.md" target="src-packages-ui-docs-plan-md"><code>docs/plan.md</code></a>
+                <a href="../../../../ui/docs/plan.md" target="src-packages-ui-docs-plan-md"
+                  ><code>docs/plan.md</code></a
+                >
                 inventory,
                 <a href="../../../../ui/CHANGELOG.md" target="src-packages-ui-changelog-md"><code>CHANGELOG.md</code></a
                 >.
@@ -205,7 +209,9 @@
                 <a href="../../../../server/src/liveClient.ts" target="src-packages-server-src-liveclient-ts"
                   ><code>liveClient.ts</code></a
                 >, registered by
-                <a href="../../../tools/_assets/spell-ui-sources.js" target="src-packages-docs-assets-spell-ui-sources-js"
+                <a
+                  href="../../../tools/_assets/spell-ui-sources.js"
+                  target="src-packages-docs-assets-spell-ui-sources-js"
                   ><code>packages/docs/tools/_assets/spell-ui-sources.js</code></a
                 >; a saver that can't import <code>SourceError</code> throws <code>{ kind, message, status }</code> (<a
                   href="#d28"
@@ -588,10 +594,9 @@
               <li>
                 Shadow DOM, GitHub-like sheet on ui tokens; heading ids are GitHub slugs, so <code>#anchor</code> works;
                 relative links / images resolve against <code>source</code>. Task-list checkboxes are labelled by their
-                item's text (<a href="#d22">D22</a>);
-                <code>#id</code> links scroll inside the shadow root. The <code>heading-offset</code> PROPERTY is
-                <code>headingLevelOffset</code> (<a href="#d23">D23</a>: WebKit has a native
-                <code>headingOffset</code>).
+                item's text (<a href="#d22">D22</a>); <code>#id</code> links scroll inside the shadow root. The
+                <code>heading-offset</code> PROPERTY is <code>headingLevelOffset</code> (<a href="#d23">D23</a>: WebKit
+                has a native <code>headingOffset</code>).
               </li>
               <li>
                 Engine behind <code>MarkdownRenderer</code> (<code>render(text) -&gt; DocumentFragment</code>,
@@ -951,8 +956,8 @@
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
-                ><b>Goal:</b> Prune; durable doc packages/docs/content/ui-import.html (Overview -&gt; body, decisions -&gt; Why,
-                caveats -&gt; Limits); docs:index; leave the worktree</ui-item
+                ><b>Goal:</b> Prune; durable doc packages/docs/content/ui-import.html (Overview -&gt; body, decisions
+                -&gt; Why, caveats -&gt; Limits); docs:index; leave the worktree</ui-item
               ><ui-item icon="code branch" class="plan-commits"
                 ><b>Commits:</b>
                 <ul class="plan-commit-list">
@@ -1448,8 +1453,8 @@
                     </div>
                     <p>
                       <code>.json</code> is config, not content:
-                      <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a> holds
-                      the page server's own settings (the existing test refuses it, and still does).
+                      <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a>
+                      holds the page server's own settings (the existing test refuses it, and still does).
                     </p>
                   </div></ui-content
                 ></ui-accordion
@@ -2365,8 +2370,8 @@ Write `&lt;/script&gt;` to end a script.
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T21:26-04:00">2026-10-02 21:26</time></ui-date> P7: durable doc
-                  packages/docs/content/ui-import/ui-import.html (live examples, Why, Limits, the parser analysis); Overview
-                  made true to what was built</ui-summary
+                  packages/docs/content/ui-import/ui-import.html (live examples, Why, Limits, the parser analysis);
+                  Overview made true to what was built</ui-summary
                 ></ui-content
               ></ui-event
             ><ui-event icon="pen to square"

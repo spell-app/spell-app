@@ -2,7 +2,7 @@ import { execFileSync } from "child_process"
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { join } from "path"
-import { afterAll, describe, expect, test } from "vitest"
+import { afterAll, describe, expect, test } from "vite-plus/test"
 
 import { CLI } from "$/cli"
 

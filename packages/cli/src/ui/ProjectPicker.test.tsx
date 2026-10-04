@@ -1,5 +1,5 @@
 import { render } from "ink-testing-library"
-import { describe, test, expect, vi } from "vitest"
+import { describe, test, expect, vi } from "vite-plus/test"
 
 import { CLI } from "$/cli"
 

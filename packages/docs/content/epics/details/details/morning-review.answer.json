@@ -8,22 +8,13 @@
       "other": "Make Solid widgets for this, e.g. `<claude-option>` for the above?"
     },
     "q2": {
-      "picked": [
-        "A"
-      ]
+      "picked": ["A"]
     },
     "q3": {
-      "picked": [
-        "C"
-      ]
+      "picked": ["C"]
     },
     "q4": {
-      "picked": [
-        "A",
-        "B",
-        "C",
-        "D"
-      ]
+      "picked": ["A", "B", "C", "D"]
     }
   },
   "notes": ""

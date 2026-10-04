@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
-import { userEvent } from "vitest/browser"
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test"
+import { userEvent } from "vite-plus/test/browser"
 import { render } from "@solidjs/web"
 
 import { UI } from "$/ui/runtime"

@@ -65,7 +65,7 @@ export function findPages(dir = DOCS) {
 }
 
 /**
- * Tidy `files` (paths relative to `DOCS`) the way a page must be committed:  link targets, then oxfmt.
+ * Tidy `files` (paths relative to `DOCS`) the way a page must be committed:  link targets, then oxfmt (`vp fmt`).
  * - `doc-links.js` first:  it may add attributes oxfmt then wraps
  * - returns whether both succeeded;  their output is echoed
  * - run from `PACKAGE`, never `DOCS`:  once `content` is a link, a process started in it is in the shared repo,
@@ -75,7 +75,7 @@ export function tidy(files) {
   const paths = files.map((file) => (isAbsolute(file) ? file : join("content", file)))
   for (const [command, args] of [
     [process.execPath, [join(TOOLS, "doc-links.js"), ...paths]],
-    ["yarn", ["oxfmt", ...paths]]
+    ["yarn", ["vp", "fmt", ...paths]]
   ]) {
     const run = spawnSync(command, args, { cwd: PACKAGE, encoding: "utf8" })
     if (run.status !== 0) {

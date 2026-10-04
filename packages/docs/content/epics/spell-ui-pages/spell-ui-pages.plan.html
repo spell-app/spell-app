@@ -789,8 +789,8 @@
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
-                ><b>Goal:</b> packages/docs/content/templates/spell-ui-docs.html; shared parts via ui-include; committed ui
-                bundle in site/_assets; page server serves /ui/ from packages/ui/site; pilot page ui-button,
+                ><b>Goal:</b> packages/docs/content/templates/spell-ui-docs.html; shared parts via ui-include; committed
+                ui bundle in site/_assets; page server serves /ui/ from packages/ui/site; pilot page ui-button,
                 self-reviewed vs fomantic-ui.com</ui-item
               ><ui-item icon="code branch" class="plan-commits"
                 ><b>Commits:</b>
@@ -1365,7 +1365,9 @@
                     <div class="plan-answer-title"><b>D14</b> · Theme resetcss: in @layer ui.reset, page-only</div>
                     <p>
                       Eric Meyer's reset in <code>ui.theme</code> would beat
-                      <a href="../../../../ui/src/styles/typography.css" target="src-packages-ui-src-styles-typography-css"
+                      <a
+                        href="../../../../ui/src/styles/typography.css"
+                        target="src-packages-ui-src-styles-typography-css"
                         ><code>typography.css</code></a
                       >
                       (<code>ui.base</code>) and
@@ -1488,7 +1490,9 @@
                       Fomantic 2.9.4's <code>loader.less</code> paints every arc <code>currentColor</code> with
                       transparent sides at <code>.ui.ui.ui.loader::after</code> specificity, beating duo's
                       <code>@shapeBorderColor</code>: fomantic-ui.com shows a plain loader.
-                      <a href="../../../../ui/src/styles/themes/duo.css" target="src-packages-ui-src-styles-themes-duo-css"
+                      <a
+                        href="../../../../ui/src/styles/themes/duo.css"
+                        target="src-packages-ui-src-styles-themes-duo-css"
                         ><code>duo.css</code></a
                       >
                       draws the ring the theme's variables describe (primary top/right, secondary bottom/left), skipping
@@ -1574,7 +1578,9 @@
                         ><code>scripts/gen-site-data.ts</code></a
                       >
                       over
-                      <a href="../../../../ui/tools/SiteDataBuilder.ts" target="src-packages-ui-tools-sitedatabuilder-ts"
+                      <a
+                        href="../../../../ui/tools/SiteDataBuilder.ts"
+                        target="src-packages-ui-tools-sitedatabuilder-ts"
                         ><code>tools/SiteDataBuilder.ts</code></a
                       >
                       +
@@ -1822,7 +1828,9 @@
                       <code>components.json</code> gains <code>foundation</code>: groups (typography, sizes, spacing,
                       radii, text, surfaces, borders, palette, brand, semantic, scheme, shadows, motion, stacking,
                       breakpoints) read by
-                      <a href="../../../../ui/tools/FoundationTokens.ts" target="src-packages-ui-tools-foundationtokens-ts"
+                      <a
+                        href="../../../../ui/tools/FoundationTokens.ts"
+                        target="src-packages-ui-tools-foundationtokens-ts"
                         ><code>tools/FoundationTokens.ts</code></a
                       >
                       from the GENERATED sheets' <code>:root</code> blocks (not the style vocabulary: names and values
@@ -2272,8 +2280,8 @@
                       >. Every <a href="../../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a> /
                       <a href="../../../../ui/site/_src/" target="src-packages-ui-site-src"><code>site/_src/</code></a>
                       edit rebuilds
-                      <a href="../../../tools/_assets/" target="src-packages-docs-assets"><code>_assets/</code></a> and the page
-                      server's live reload reloads open pages. Not watched: <code>site:data</code> /
+                      <a href="../../../tools/_assets/" target="src-packages-docs-assets"><code>_assets/</code></a> and
+                      the page server's live reload reloads open pages. Not watched: <code>site:data</code> /
                       <code>site:index</code> / <code>site:kitchen</code>. A watch rebuild doesn't clear
                       <a href="../../../tools/_assets/" target="src-packages-docs-assets"><code>_assets/</code></a
                       >, so stale hashed chunks can linger: <code>yarn site:build</code> before committing. Why not
@@ -3204,7 +3212,9 @@ width: fit-content;</code></pre>
                   </p>
                   <ul>
                     <li>
-                      <a href="../../../../ui/src/styles/themes/rtl.css" target="src-packages-ui-src-styles-themes-rtl-css"
+                      <a
+                        href="../../../../ui/src/styles/themes/rtl.css"
+                        target="src-packages-ui-src-styles-themes-rtl-css"
                         ><code>rtl.css</code></a
                       >
                       does:
@@ -3476,7 +3486,9 @@ width: fit-content;</code></pre>
                     </li>
                     <li>
                       <code>@linkHoverUnderline</code> is moot:
-                      <a href="../../../../ui/src/styles/typography.css" target="src-packages-ui-src-styles-typography-css"
+                      <a
+                        href="../../../../ui/src/styles/typography.css"
+                        target="src-packages-ui-src-styles-typography-css"
                         ><code>typography.css</code></a
                       >
                       always underlines.
@@ -3837,7 +3849,9 @@ width: fit-content;</code></pre>
                   <ul>
                     <li>
                       Dated entries in
-                      <a href="../../../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a>
+                      <a href="../../../../../agents/PAPERCUTS.md" target="src-papercuts-md"
+                        ><code>agents/PAPERCUTS.md</code></a
+                      >
                       and
                       <a href="../../../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
                         ><code>agents/SUSPECTED-BUGS.md</code></a
@@ -3992,7 +4006,9 @@ width: fit-content;</code></pre>
                 ><ui-content
                   ><p>
                     Chose a committed
-                    <a href="../../../../ui/site/_data/components.json" target="src-packages-ui-site-data-components-json"
+                    <a
+                      href="../../../../ui/site/_data/components.json"
+                      target="src-packages-ui-site-data-components-json"
                       ><code>site/_data/components.json</code></a
                     >
                     (from the vocabularies, <code>yarn site:data</code>) over importing vocabularies in the elements:
@@ -9324,8 +9340,9 @@ width: fit-content;</code></pre>
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T12:03-04:00">2026-10-03 12:03</time></ui-date> P9 done: Overview
-                  true to the build, judgement calls linked from phases, durable doc packages/docs/content/spell-ui-pages.html;
-                  checks: doc-links, check-spell ok; worktree NOT left (bedtime)</ui-summary
+                  true to the build, judgement calls linked from phases, durable doc
+                  packages/docs/content/spell-ui-pages.html; checks: doc-links, check-spell ok; worktree NOT left
+                  (bedtime)</ui-summary
                 ></ui-content
               ></ui-event
             ><ui-event icon="pen to square"

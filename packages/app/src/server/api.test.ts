@@ -16,7 +16,7 @@ import http from "node:http"
 import net from "node:net"
 import os from "node:os"
 import path from "node:path"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 /** Project used by every test, in the `@user:projects` root. */
 const PROJECT = "@user:projects:Proj"

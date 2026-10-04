@@ -1,5 +1,5 @@
 import axe from "axe-core"
-import { expect } from "vitest"
+import { expect } from "vite-plus/test"
 
 import { closestAcrossShadow } from "$/ui/util"
 

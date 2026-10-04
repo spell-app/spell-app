@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from "vitest"
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { PLACEHOLDER_HOST_STATE } from "$/ui/components/components.types"
 import { expectAccessible } from "$/ui/test/a11y"

@@ -1,11 +1,16 @@
 {
-  // Linting is oxlint (see `.oxlintrc.json`); the ESLint extension is no longer used here.
+  // Linting is oxlint, via Vite+ (the `lint` block of the root's `vite.config.ts`, from `vite.lint.ts`);
+  // the ESLint extension is no longer used here.
   "oxc.enable": true,
-  // Formatting is oxfmt (see `.oxfmtrc.json`), via the Oxc extension.
+  // Read ONLY the root's `vite.config.ts`, as `vp check` does (Vite+'s editor setup):  a package's own
+  // `lint` / `fmt` block is for `vp lint` / `vp fmt` run in that package, and says the same.
+  "oxc.disableNestedConfig": true,
+  "oxc.fmt.disableNestedConfig": true,
+  // Formatting is oxfmt (the root's `vite.config.ts` `fmt` block), via the Oxc extension.
   // NOTE: MUST keep `defaultFormatter` pointed at the Oxc extension.  If it names an extension
   // that is not installed, VS Code silently falls back to another formatter -- and since
   // `.prettierrc` no longer exists, the Prettier extension would reformat with ITS defaults
-  // (semicolons, 80 columns), fighting `.oxfmtrc.json` on every save.
+  // (semicolons, 80 columns), fighting our `fmt` settings on every save.
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
   "oxc.lint.run": "onType",
@@ -14,7 +19,7 @@
   "oxc.unusedDisableDirectives": "warn",
   // Pin the formatter per language as well as globally.  A per-language `editor.defaultFormatter`
   // beats any extension that also registers for that language, so a stray Prettier/ESLint install
-  // cannot take over a save.  NOTE: markdown is deliberately absent -- `.oxfmtrc.json` ignores
+  // cannot take over a save.  NOTE: markdown is deliberately absent -- our `fmt` settings ignore
   // `**/*.md` because `AGENTS.md` and friends are hand-wrapped prose.
   "[typescript]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
   "[typescriptreact]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },

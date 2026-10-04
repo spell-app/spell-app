@@ -65,12 +65,14 @@
                 </li>
                 <li>
                   yarn: 170 scripts in 14
-                  <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a> files; the
-                  same 8 copied into 10 packages
+                  <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a> files;
+                  the same 8 copied into 10 packages
                 </li>
                 <li>
                   skills: 14 in the repo, 5 more in <code>~/.claude/skills</code> that it uses (the goals ones, symlinks
-                  into <a href="../../../tools/goals/skills/" target="src-goals-skills"><code>packages/docs/tools/goals/skills</code></a
+                  into
+                  <a href="../../../tools/goals/skills/" target="src-goals-skills"
+                    ><code>packages/docs/tools/goals/skills</code></a
                   >)
                 </li>
               </ul>
@@ -190,7 +192,8 @@
               </li>
               <li>
                 Also in play: <code>~/.claude/skills</code>'s <code>goals*</code> (symlinks into this repo's
-                <a href="../../../tools/goals/skills/" target="src-goals-skills"><code>packages/docs/tools/goals/skills</code></a
+                <a href="../../../tools/goals/skills/" target="src-goals-skills"
+                  ><code>packages/docs/tools/goals/skills</code></a
                 >), and, until 2026-10-03, <code>session</code> and <code>worktrees</code> (now in
                 <a href="../../../../../.claude/skills/" target="src-claude-skills"><code>.claude/skills</code></a
                 >, on <code>spell dev</code>)
@@ -231,12 +234,13 @@ description: Start the spell web servers of this checkout that aren't running --
           <ui-section id="surface-yarn" header="3.3 yarn scripts" sticky collapsible dividing>
             <ul>
               <li>
-                Each package's <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a
+                Each package's
+                <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a
                 >; the root's <code>ts</code> / <code>test</code> / <code>review</code> run every package's
               </li>
               <li>
-                <a href="../../../../vscode/" target="src-packages-vscode"><code>packages/vscode</code></a> is its own yarn
-                project: the root's <code>vscode*</code> scripts reach it
+                <a href="../../../../vscode/" target="src-packages-vscode"><code>packages/vscode</code></a> is its own
+                yarn project: the root's <code>vscode*</code> scripts reach it
               </li>
               <li>
                 The block copied into 10 packages (here <code>parser</code>'s), with small drift between copies (<a
@@ -447,7 +451,8 @@ description: Start the spell web servers of this checkout that aren't running --
             <ui-message state="positive" size="tiny" header="Fixed 2026-10-03">
               <p>
                 The python scripts are gone: one TypeScript module,
-                <a href="../../../../cli/src/dev/" target="src-packages-cli-src-dev"><code>packages/cli/src/dev/</code></a
+                <a href="../../../../cli/src/dev/" target="src-packages-cli-src-dev"
+                  ><code>packages/cli/src/dev/</code></a
                 >, holds each helper once. What was repeated:
               </p>
             </ui-message>

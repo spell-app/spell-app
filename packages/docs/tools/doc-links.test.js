@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { checkText, linkText, resolve, targetFor } from "./doc-links.js"
 import { DOCS, ROOT, TOOLS } from "./pages.js"
@@ -87,7 +87,9 @@ describe("targets", () => {
     expect(targetFor("http://example.com/")).toBe("ext-example-com")
     expect(targetFor(join(DOCS, "epics/commands/commands.html"))).toBe("commands")
     expect(targetFor(join(DOCS, "epics/commands/commands.plan.html"))).toBe("commands")
-    expect(targetFor(join(DOCS, "epics/commands/notes.html"))).toBe("src-packages-docs-content-epics-commands-notes-html")
+    expect(targetFor(join(DOCS, "epics/commands/notes.html"))).toBe(
+      "src-packages-docs-content-epics-commands-notes-html"
+    )
     expect(targetFor(`https://example.com/${"x".repeat(100)}`)).toHaveLength(84)
   })
 

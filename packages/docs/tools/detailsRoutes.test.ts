@@ -5,7 +5,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
-import { afterAll, beforeAll, expect, test } from "vitest"
+import { afterAll, beforeAll, expect, test } from "vite-plus/test"
 
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
@@ -97,7 +97,9 @@ test("the page reads its answer back:  null before one is sent", async () => {
     "/api/details/answer?page=%2Fpackages%2Fdocs%2Fcontent%2Fepics%2Fbig%2Fdetails%2Fshape.html"
   )
   expect(JSON.parse(none.text)).toEqual({ answer: null })
-  expect((await ask(port, "GET", "/api/details/answer?page=%2Fpackages%2Fdocs%2Fcontent%2Fother.html")).status).toBe(403)
+  expect((await ask(port, "GET", "/api/details/answer?page=%2Fpackages%2Fdocs%2Fcontent%2Fother.html")).status).toBe(
+    403
+  )
 })
 
 test("an epic's details page, and a worktree's through /worktrees/", async () => {

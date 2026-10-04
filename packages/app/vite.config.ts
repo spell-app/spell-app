@@ -1,5 +1,6 @@
-import { defineConfig } from "vite"
+import { defineConfig } from "vite-plus"
 
+import { fmtConfig, packageLint } from "../../vite.lint.ts"
 import environment from "../spell/src/node/environment.ts"
 import { appConfig } from "./vite.shared.ts"
 
@@ -14,6 +15,12 @@ const RUNTIME_ENTRY = "spell-runtime"
  * - ONE page, so it bundles its own Solid and `ui`:  `spell-solid.js` is the elements' and the runner's.
  */
 export default defineConfig({
+  // `vp lint` / `vp fmt`:  the repo root's `vite.lint.ts`
+  fmt: fmtConfig,
+  lint: packageLint({
+    react: true,
+    ignorePatterns: ["build", "dist", ".cache", "dist-runner", "dist-element", "static"]
+  }),
   ...appConfig({ iconPacks: true }),
   server: {
     port: environment.vitePort,

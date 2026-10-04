@@ -74,7 +74,7 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
      - pick several:  `data-multiple` on the section (checkboxes);  else pick one (radios)
      - every question gets an "Other" box, and the page a notes box and Send:  `_assets/details.js` adds them
    - a picture page:  delete the question sections;  nothing to send
-3. Epic page:  `yarn oxfmt <page>` before committing it.
+3. Epic page:  `yarn vp fmt <page>` before committing it.
 
 ## 3. Show it, and wait
 

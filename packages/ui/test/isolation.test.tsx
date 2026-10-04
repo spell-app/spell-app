@@ -1,5 +1,5 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
-import { commands } from "vitest/browser"
+import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test"
+import { commands } from "vite-plus/test/browser"
 import { createEffect, flush, resetErrorHalt } from "solid-js"
 import type { JSX } from "@solidjs/web"
 

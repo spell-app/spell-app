@@ -74,31 +74,60 @@
             </li>
             <li>Each moves to section 3, with plan-doc links, when it merges.</li>
           </ul>
-
-          <ui-section id="vite-plus" header="vite-plus · done 2026-10-02" sticky collapsible dividing>
-            <ui-list class="spell-meta">
-              <ui-item icon="code branch">Branch <code>vite-plus</code>, worktree only, deliberately unmerged</ui-item>
-            </ui-list>
-            <ul>
-              <li>Vite+ 1.0 (<code>vp</code>) in the root and 11 packages; Node 24.11 via volta, CI on 24.</li>
-              <li>
-                Vitest imports rewritten to <code>vite-plus/test</code>; lint and format configs folded into a root
-                <code>vite.lint.ts</code>.
-              </li>
-              <li>Tests 318-345 s → 270-276 s with <code>vp run -r</code>; <code>ts</code> 6.0 s → 3.1 s.</li>
-              <li>Found: the type-check cache can replay a stale "TSC PASSED" (needs explicit inputs).</li>
-              <li>
-                Left: format-on-save check, format 63 files, merge + <code>yarn install</code> /
-                <code>yarn vscode</code>.
-              </li>
-            </ul>
-          </ui-section>
         </ui-section>
 
         <ui-section id="3-merged" header="3. Merged into main" sticky collapsible dividing>
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section id="vite-plus" header="2026-10-02 → 10-04 · Vite+ toolchain" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/vite-plus/vite-plus.plan.html" target="vite-plus">epics/vite-plus</a></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc: <a href="vite-plus.html" target="src-packages-docs-vite-plus-html">Vite+</a></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>vite-plus</code>, one <code>/bedtime</code> run, merged 2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: <code>vite-plus</code> 1.0 replaces vite, vitest, oxlint, oxfmt and tsgolint in the root and 11
+                  packages (<code>catalog:</code> versions; <code>vite</code> aliased to <code>vite-plus-core</code>).
+                </li>
+                <li>
+                  P1: lint and format settings out of <code>.oxlintrc*.json</code> / <code>.oxfmtrc.json</code> into
+                  each <a href="../../../vite.config.ts" target="src-vite-config-ts"><code>vite.config.ts</code></a
+                  >, spreading one root module,
+                  <a href="../../../vite.lint.ts" target="src-vite-lint-ts"><code>vite.lint.ts</code></a
+                  >.
+                </li>
+                <li>P1: test imports <code>vitest</code> → <code>vite-plus/test</code>; Node 24.11+, CI on 24.</li>
+                <li>P1: oxfmt 0.70 (Vite+&apos;s pin) rewraps 4 files.</li>
+                <li>
+                  P2: measured, verdict adopt: <code>yarn ts</code> 6.0 s → 3.1 s, tests about 15% faster, dev and build
+                  unchanged.
+                </li>
+                <li>
+                  P3: root <code>ts</code> / <code>test:packages</code> / <code>review</code> run through
+                  <code>vp run</code>;
+                  <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> Toolchain
+                  section. <code>yarn vp fmt</code> / <code>yarn vp lint</code> replace <code>yarn oxfmt</code> /
+                  <code>yarn oxlint</code> in packages.
+                </li>
+                <li>Found: <code>vp run --cache</code> replays a stale "TSC PASSED" (I1), so nothing caches yet.</li>
+                <li>
+                  C6: the app&apos;s browser tests pass on a cold vite cache:
+                  <a href="../../app/src/runner/spellRuntime.ts" target="src-packages-app-src-runner-spellruntime-ts"
+                    ><code>spellRuntime.ts</code></a
+                  >, imported by URL, is one of <code>optimizeDeps.entries</code>.
+                </li>
+                <li>Left: format-on-save check, format 63 files and add a root <code>vp check</code> script.</li>
+              </ul>
+            </ui-section>
             <ui-section
               id="commands"
               header="2026-10-02 → 10-04 · Commands:  CLI, skills, yarn"
@@ -156,8 +185,8 @@
                 </li>
                 <li>
                   P5: root
-                  <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> "Commands": before
-                  a new skill, <code>spell</code> command or yarn script, read
+                  <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> "Commands":
+                  before a new skill, <code>spell</code> command or yarn script, read
                   <a href="dev/commands/commands.md" target="src-packages-docs-dev-commands-commands-md"
                     ><code>commands.md</code></a
                   >
@@ -425,8 +454,8 @@
                   <a href="../tools/_assets/details.css" target="src-packages-docs-assets-details-css"
                     ><code>details.css</code></a
                   >: option cards on
-                  <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> (radio or
-                  checkbox, Recommended, folding details), Other, notes, Send; locked once sent, Change answer;
+                  <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> (radio
+                  or checkbox, Recommended, folding details), Other, notes, Send; locked once sent, Change answer;
                   <code>GET /api/details/answer</code>. Route modules adding <code>/api/...</code> must come before
                   <a href="../../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
                     ><code>appRoutes.ts</code></a
@@ -473,7 +502,8 @@
                 >
                 <ui-item icon="book"
                   >Durable doc: the header of
-                  <a href="../../../scripts/window.mjs" target="src-scripts-window-mjs"><code>scripts/window.mjs</code></a
+                  <a href="../../../scripts/window.mjs" target="src-scripts-window-mjs"
+                    ><code>scripts/window.mjs</code></a
                   >, "Staying put"; the root's
                   <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
                   >, "Worktrees"</ui-item
@@ -748,7 +778,8 @@
                   <b>P5 · Doc Review</b>:
                   <a href="server.html" target="src-packages-docs-server-html"><code>server.html</code></a
                   >, <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> "Worktrees",
-                  the skills, <a href="../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a>
+                  the skills,
+                  <a href="../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a>
                 </li>
               </ul>
             </ui-section>
@@ -773,7 +804,9 @@
                 </li>
                 <li>
                   The <code>WorktreeCreate</code> hook; the extension's <code>WindowBridge</code>;
-                  <a href="../../../scripts/window.mjs" target="src-scripts-window-mjs"><code>scripts/window.mjs</code></a>
+                  <a href="../../../scripts/window.mjs" target="src-scripts-window-mjs"
+                    ><code>scripts/window.mjs</code></a
+                  >
                   open / close / show.
                 </li>
                 <li>
@@ -850,8 +883,8 @@
                 <li>Per-phase time estimates, totalled in the Overview.</li>
                 <li>
                   <code>/plan-doc</code> renamed <code>/epic</code>; plan docs moved to
-                  <a href="epics/" target="src-packages-docs-epics"><code>packages/docs/content/epics/</code></a> (old URLs
-                  redirect).
+                  <a href="epics/" target="src-packages-docs-epics"><code>packages/docs/content/epics/</code></a> (old
+                  URLs redirect).
                 </li>
                 <li>
                   Move first, the prompt gate, epic "stub first" and running epics: see
@@ -972,9 +1005,9 @@
               <ul>
                 <li>
                   P1:
-                  <a href="../../server/" target="src-packages-server"><code>packages/server</code></a> (<code>SRV</code>):
-                  mime, <code>safePath</code>, <code>StaticHandler</code>, an Express-shaped <code>Router</code>, ports,
-                  openers, <code>FileLock</code>.
+                  <a href="../../server/" target="src-packages-server"><code>packages/server</code></a>
+                  (<code>SRV</code>): mime, <code>safePath</code>, <code>StaticHandler</code>, an Express-shaped
+                  <code>Router</code>, ports, openers, <code>FileLock</code>.
                 </li>
                 <li>
                   P2: one live-reloading page server per checkout (<code>yarn server serve|ensure|stop|status|url</code
@@ -1129,7 +1162,8 @@
                 </li>
                 <li>
                   One alias table,
-                  <a href="../../../tsconfig.base.json" target="src-tsconfig-base-json"><code>tsconfig.base.json</code></a
+                  <a href="../../../tsconfig.base.json" target="src-tsconfig-base-json"
+                    ><code>tsconfig.base.json</code></a
                   >: <code>#name</code> → <code>$/name</code>, npm scope <code>@spell-app</code>; repeatable codemods
                   (<a href="../../../scripts/move-packages.mjs" target="src-scripts-move-packages-mjs"
                     ><code>scripts/move-packages.mjs</code></a
@@ -1140,15 +1174,20 @@
                 </li>
                 <li>
                   One copy of Solid, hoisted; one root
-                  <a href="../../../vite.decorators.ts" target="src-vite-decorators-ts"><code>vite.decorators.ts</code></a
+                  <a href="../../../vite.decorators.ts" target="src-vite-decorators-ts"
+                    ><code>vite.decorators.ts</code></a
                   >; one oxlint / oxfmt config; one root vitest run.
                 </li>
                 <li>
                   Shared root <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
                   >, <a href="../CLAUDE.md" target="src-packages-docs-claude-md"><code>CLAUDE.md</code></a
-                  >, <a href="../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a
-                  >, <a href="../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>agents/SUSPECTED-BUGS.md</code></a
-                  >, <a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a
+                  >,
+                  <a href="../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a
+                  >,
+                  <a href="../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                    ><code>agents/SUSPECTED-BUGS.md</code></a
+                  >,
+                  <a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a
                   >, the solid-2 skill; a README.
                 </li>
                 <li>CI: a per-package <code>review</code> workflow on <code>main</code> and PRs.</li>
@@ -1300,8 +1339,10 @@
               <ul>
                 <li>
                   A docs pass and review fixes;
-                  <a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a> and
-                  <a href="../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a> started.
+                  <a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a>
+                  and
+                  <a href="../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a>
+                  started.
                 </li>
                 <li>
                   Renames (<code>WhitespaceToken</code>, <code>ASTNumber</code>); <code>defineRule()</code> refactor;
@@ -1343,7 +1384,7 @@
           <ui-divider></ui-divider>
           <p class="meta">
             Last updated 2026-10-04 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages, stay-put,
-            epic-review and commands.
+            epic-review, commands and vite-plus.
           </p>
         </footer>
       </main>
