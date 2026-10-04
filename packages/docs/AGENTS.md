@@ -143,6 +143,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   (`ui-select[data-spell-filter-badge]`);  a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link).
 - `templates/epics/plan.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
 - `templates/details.html` -- a details page.  NEVER copy by hand:  `yarn details new <slug>`.
+- `templates/review.html` -- "Review":  a details page reviewing a finished run's calls, one question each (keep,
+  change, talk over), then "Where first?";  saved from `ui-docs-rework`'s morning review as the model.
 - `templates/goals/` -- goals pages, laid out as a goals folder is, so their links work in place:
   `index.html` (the home page:  every goal set), `set/index.html` (a set's contents page), `set/topic/topic.html`
   and `topic.md` (a topic's page and its agent notes).  NEVER copy by hand:  `yarn goals new-set` / `yarn goals new`
