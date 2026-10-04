@@ -105,16 +105,19 @@ describe("planFile()", () => {
     expect(CLI.planFile("x", wip, MAIN)).toBeNull()
     epic(MAIN, "x.html", "<body>not a plan doc</body>")
     expect(CLI.planFile("x", wip, MAIN)).toBeNull()
+    // a worktree cut before plan docs moved into `content/`:  its old folder still counts
+    const before = epic(wip, "x.html", '<body class="spell-doc-page plan-doc">', ["packages", "docs", "epics"])
+    expect(CLI.planFile("x", wip, MAIN)).toBe(before)
     const old = epic(wip, "x.html", '<body class="spell-doc-page plan-doc">')
     expect(CLI.planFile("x", wip, MAIN)).toBe(old)
     const renamed = epic(wip, "x.plan.html", '<body class="spell-doc-page plan-doc">')
     expect(CLI.planFile("x", wip, MAIN)).toBe(renamed)
 
-    /** Write `html` as `epics/x/<file>` in checkout `root`;  returns its path. */
-    function epic(root: string, file: string, html: string): string {
-      mkdirSync(join(root, "packages", "docs", "epics", "x"), { recursive: true })
-      writeFileSync(join(root, "packages", "docs", "epics", "x", file), html)
-      return join(root, "packages", "docs", "epics", "x", file)
+    /** Write `html` as `<epics>/x/<file>` in checkout `root`;  returns its path. */
+    function epic(root: string, file: string, html: string, epics = ["packages", "docs", "content", "epics"]): string {
+      mkdirSync(join(root, ...epics, "x"), { recursive: true })
+      writeFileSync(join(root, ...epics, "x", file), html)
+      return join(root, ...epics, "x", file)
     }
   })
 })

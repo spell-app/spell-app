@@ -10,7 +10,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 - Serving pages locally, for every package:  `$/server` (`SRV`).  Before this package, six servers each had their
   own mime table, path check, port choice and opener;  now they share these.
-  - Docs:  `packages/docs/server.html` (the library, the page server's flows, route modules, safety, why).
+  - Docs:  `packages/docs/content/server.html` (the library, the page server's flows, route modules, safety, why).
   - `mime.ts` -- ONE content-type table, `typeFor()`
   - `safePath.ts` -- `resolveInside()`:  URL path -> file under a root, never outside it
   - `StaticHandler` -- folders under URL prefixes, with html / per-extension hooks and an `ETag`

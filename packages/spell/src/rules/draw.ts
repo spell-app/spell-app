@@ -73,7 +73,7 @@ draw.addRule(draw_items, {
         { input: "draw each card in the deck", output: "spellCore.drawItems(deck)" },
         { input: "draw cards of the deck", output: "spellCore.drawItems(deck)" },
         // SKIPPED: fails, and always did -- `draw.ts` had no `.test.ts`, so these never ran.
-        // `draw_thing` (precedence 100) wins, giving `spellCore.drawThing(deck.cards)`.  See SUSPECTED-BUGS.md.
+        // `draw_thing` (precedence 100) wins, giving `spellCore.drawThing(deck.cards)`.  See agents/SUSPECTED-BUGS.md.
         { input: "draw the cards of the deck", output: "spellCore.drawItems(deck)", skip: true },
         { input: "draw all cards of the deck", output: "spellCore.drawItems(deck)" }
       ]

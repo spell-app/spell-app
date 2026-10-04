@@ -1,6 +1,6 @@
 /*
  * Spell Brand theme:  the Spell brand as Claude Design drew it (`packages/brand/spell-design-system/`), converging
- * on its pages, `@layer ui.theme`.  Epic `design-system` (`packages/docs/epics/design-system/design-system.html`).
+ * on its pages, `@layer ui.theme`.  Epic `design-system` (`packages/docs/content/epics/design-system/design-system.plan.html`).
  * - Started 2026-10-04 as a FULL COPY of `spell.css` (decision D1):  the two may drift;  whether this one replaces
  *   `spell` is a later call.  Everything below "Brand roles" is `spell.css`'s, then changed only where a brand page
  *   (`packages/brand/compare.html`) shows the copy differs from the original.

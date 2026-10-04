@@ -117,7 +117,7 @@ function getRepoRoot(): string {
 /**
  * The repo's `tsx` executable, or `undefined` if no `yarn install` has run.
  * - Looks in `<repoRoot>/node_modules/.bin` and every parent:  yarn hoists tools to the monorepo root.  It's
- *   `spell`'s `tsx`, pinned to 4.20.3 -- see `PAPERCUTS.md`.
+ *   `spell`'s `tsx`, pinned to 4.20.3 -- see `agents/PAPERCUTS.md`.
  */
 function findTsx(repoRoot: string): string | undefined {
   for (let folder = repoRoot; ; folder = dirname(folder)) {

@@ -9,7 +9,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 ## Overview
 
 - Spell's brand, and the work of bringing it into Spell UI (epic `design-system`,
-  `packages/docs/epics/design-system/design-system.plan.html`).
+  `packages/docs/content/epics/design-system/design-system.plan.html`).
 - `spell-design-system/` -- Claude Design's output, AS EXPORTED:  `readme.md` (the brand rules), tokens, logo
   assets, and 13 top-level `*.dc.html` pages.
   - NEVER edit Claude Design's files:  they're the reference the copies are measured against, and Claude Design may
@@ -66,7 +66,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 ## The elements
 
 - Each family has a docs page, `components/<tag>.html`, in Spell UI's docs format
-  (`packages/docs/templates/spell-ui-docs.html`:  masthead, Examples / Usage / API / Theming tabs), loading
+  (`packages/docs/content/templates/spell-ui-docs.html`:  masthead, Examples / Usage / API / Theming tabs), loading
   `_assets/ui/brand-docs.js` (`src/brand-docs.ts`) and `_assets/brand-docs.css`.  A new family:  its
   `<tag>.vocabulary.en.ts` (topics, aka, description), `yarn site:data`, then copy a page.  The Brand index lists them.
 

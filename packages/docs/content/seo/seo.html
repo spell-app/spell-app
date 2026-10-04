@@ -1,0 +1,1463 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Static Pages for SEO</title>
+    <meta
+      name="description"
+      content="Render @spell-app/ui pages to plain light-DOM HTML and one stylesheet, for crawlers and no-JS readers:  spell static, the $/ui/server API, how isolation works without shadow DOM, and the rules for component code."
+    />
+    <link rel="stylesheet" href="../../tools/_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Static Pages for SEO</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <h1>Static Pages for SEO</h1>
+        <p class="lede">
+          How a page of <code>ui-*</code> elements becomes plain HTML and one stylesheet, with no shadow DOM and no
+          element scripts, so crawlers and readers without JavaScript see the whole page.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="map"><b>Plan doc:</b> <a href="../epics/seo/seo.plan.html" target="seo">epic seo</a></ui-item>
+          <ui-item icon="user"
+            >Written for: anyone publishing a static page (<code>spell static</code>), calling
+            <code>$/ui/server</code> from code, or changing a <code>ui-*</code> family so it still renders
+            statically</ui-item
+          >
+          <ui-item icon="flag">Status: <ui-label size="mini" color="green">built</ui-label> (P1-P5)</ui-item>
+          <ui-item icon="code branch"
+            >Checked on: branch <code>seo</code>, 2026-10-02, against the code, a fresh <code>spell static</code> run
+            and the static parity report (plan:
+            <a href="../epics/seo/seo.plan.html" target="seo">epics/seo</a>)</ui-item
+          >
+        </ui-list>
+
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="93" label="element classes render"></ui-statistic>
+            <ui-statistic value="287 / 342" label="examples within 1%"></ui-statistic>
+            <ui-statistic value="~3 s" label="per spell static run"></ui-statistic>
+          </ui-statistics>
+          <ul>
+            <li>
+              <code>spell static page.html</code> writes <code>page.static.html</code> beside it, and the folder's
+              shared, cached stylesheet, <code>ui.static.css</code>.
+              <ul>
+                <li>every <code>ui-*</code> element is rendered in node and replaced by plain HTML</li>
+                <li>the scripts that load the elements are removed</li>
+                <li>the stylesheet holds only the families the page uses, minified</li>
+              </ul>
+            </li>
+            <li>
+              With JavaScript off, dialogs, click popups, accordions and forms still work, through native HTML (<a
+                href="#4-without-js"
+                >4</a
+              >).
+            </li>
+            <li>The same render is a library, <code>$/ui/server</code>, for a node server that renders per request.</li>
+            <li>
+              Numbers:
+              <ul>
+                <li>
+                  93 element classes in <code>StaticCatalog</code>, every family but <code>ui-code</code>,
+                  <code>ui-include</code> and <code>ui-markdown</code>
+                </li>
+                <li>
+                  287 of 342 example screenshots (every family's examples, light and dark, Chromium) differ from the
+                  live elements by 1% of pixels or less; most of the rest is known drift (<a href="#9-limits">9</a>)
+                </li>
+                <li>
+                  about 3 s per <code>spell static</code> run, mostly Vite compiling every family; pages in one run
+                  share it
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <ui-message state="positive" header="When to use it">
+            <ul>
+              <li>Pages that must be read without JavaScript: crawlers, link previews, archives, very slow devices.</li>
+              <li>
+                NOT for pages that need the elements' behaviour: the static page must never load the elements (<a
+                  href="#9-limits"
+                  >9</a
+                >, C4).
+              </li>
+            </ul>
+          </ui-message>
+        </ui-section>
+
+        <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing>
+          <ui-icon slot="icon" name="terminal"></ui-icon>
+
+          <ui-section id="spell-static" header="spell static" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Command</th>
+                    <th>Writes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>spell static page.html</code></td>
+                    <td>
+                      <code>page.static.html</code> beside the page, + <code>ui.static.css</code> in its folder (shared
+                      by every page there; its first line records what it covers, so later runs only add to it)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>spell static page.html -o out.html</code></td>
+                    <td><code>out.html</code> + <code>ui.static.css</code> beside it</td>
+                  </tr>
+                  <tr>
+                    <td><code>spell static docs/ -o site/</code></td>
+                    <td>
+                      every <code>.html</code> under <a href="../" target="src-packages-docs"><code>docs/</code></a
+                      >, same names under
+                      <a href="../../../ui/site/" target="src-packages-ui-site"><code>site/</code></a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>--inline-css</code></td>
+                    <td>each page's own stylesheet in a <code>&lt;style&gt;</code>, no <code>.css</code> file</td>
+                  </tr>
+                  <tr>
+                    <td><code>--css site/ui.css</code></td>
+                    <td>ONE stylesheet for every page, linked from each</td>
+                  </tr>
+                  <tr>
+                    <td><code>--no-minify</code></td>
+                    <td>the stylesheet readable, to debug it</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                A folder means every <code>.html</code> in it, except <code>*.static.html</code>,
+                <code>node_modules</code> and dot folders.
+              </li>
+              <li>It never overwrites a page: <code>-o</code> naming an input is refused.</li>
+              <li>
+                stdout lists each page written; stderr has sizes, removed scripts, and any <code>ui-*</code> tag it left
+                as it was.
+              </li>
+              <li>
+                Details:
+                <a href="../../../cli/README.md" target="src-packages-cli-readme-md"
+                  ><code>packages/cli/README.md</code></a
+                >, "static".
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="what-it-changes" header="What it changes in the page" sticky collapsible dividing>
+            <ul>
+              <li>
+                <b>elements:</b> each <code>ui-*</code> of a known family becomes its rendered HTML (<a
+                  href="#3-how-it-works"
+                  >3</a
+                >)
+              </li>
+              <li>
+                <b>scripts:</b> a <code>&lt;script&gt;</code> or <code>&lt;link rel=modulepreload&gt;</code> that loads
+                the elements is removed: one naming
+                <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
+                >, <code>$/ui</code>, <code>ui</code>'s
+                <a href="../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a> /
+                <a href="../../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a
+                >, a family folder, or the docs'
+                <a href="../../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                  ><code>spell-ui.js</code></a
+                >. Other scripts and import maps stay.
+              </li>
+              <li>
+                <b>stylesheet:</b> linked FIRST in <code>&lt;head&gt;</code>, before the page's own CSS, so its layer
+                order comes first
+              </li>
+              <li>
+                <b>page CSS:</b> its <code>&lt;style&gt;</code>s are rewritten, and each local linked sheet that
+                mentions elements is inlined in place, rewritten (<code>&lt;style data-static-from="..."&gt;</code>) (<a
+                  href="#css-isolation-page"
+                  >5.3</a
+                >)
+              </li>
+            </ul>
+            <ui-message state="warning" header="The static page must not load the elements">
+              <ul>
+                <li>
+                  An element upgrading on a static page would take the rendered HTML for its slotted content and show it
+                  twice.
+                </li>
+                <li>
+                  So the docs'
+                  <a href="../../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                    ><code>spell-ui.js</code></a
+                  >
+                  goes, and with it what it also bundles: the site header and the contents sidebar.
+                </li>
+              </ul>
+            </ui-message>
+          </ui-section>
+
+          <ui-section id="the-api" header="The $/ui/server API" sticky collapsible dividing>
+            <p>
+              Node only. The components' JSX must be compiled for the server (<code>generate: "ssr"</code>), so load it
+              through Vite's SSR, as
+              <a href="../../../ui/tools/StaticRenderer.ts" target="src-packages-ui-tools-staticrenderer-ts"
+                ><code>packages/ui/tools/StaticRenderer.ts</code></a
+              >
+              does, never through plain <code>node</code> / <code>tsx</code>.
+            </p>
+            <ul>
+              <li><code>StaticRender.define(...classes)</code>: the families to render, once</li>
+              <li>
+                <code>await StaticRender.prepare(html)</code>: icon packs and each family's async data (MUST be awaited:
+                the render itself is synchronous)
+              </li>
+              <li><code>StaticRender.page(html)</code> / <code>fragment(html)</code>: the rendered HTML</li>
+              <li>
+                <code>StaticStylesheet.build(families, StaticRender.sheetUsage)</code>: the stylesheet for the tags that
+                rendered (<code>StaticRender.lastTags</code>)
+              </li>
+              <li>
+                <code>StaticRender.resetUsage()</code> between pages, so each page's stylesheet covers only that page
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>StaticInteractions.ssr.test.ts, the render and its stylesheet · 6 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">StaticRender.define(...StaticCatalog.classes)
+// ...
+await StaticRender.prepare(html)
+const rendered = StaticRender.page(html)
+const families = [...StaticRender.lastTags].map((tag) =&gt; StaticRender.families.get(tag)!)
+const css = StaticStylesheet.build(families, StaticRender.sheetUsage)</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <p>
+              Whole documents (script removal, linked sheets, minify) are
+              <a href="../../../ui/tools/StaticDocument.ts" target="src-packages-ui-tools-staticdocument-ts"
+                ><code>packages/ui/tools/StaticDocument.ts</code></a
+              >'s <code>StaticDocument.render(html, options)</code>, which <code>spell static</code> calls in a child
+              process.
+            </p>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="3-how-it-works" header="3. How it works" sticky collapsible dividing>
+          <ui-icon slot="icon" name="route"></ui-icon>
+          <p>
+            Every element's controller renders to a string, as it would render into its shadow root. Then each element
+            is
+            <dfn class="spell-term" tabindex="0">flattened</dfn
+            ><ui-popup
+              header="flatten"
+              content="Replace an element (the host) with what it rendered (its root), and put its children where its slots were:  no shadow root, no host left."
+            ></ui-popup
+            >: the <dfn class="spell-term" tabindex="0">host</dfn
+            ><ui-popup header="host" content="The ui-* element itself, e.g. <ui-card>:  the page's tag."></ui-popup>
+            gives way to its
+            <dfn class="spell-term" tabindex="0">root</dfn
+            ><ui-popup
+              header="root"
+              content='The outermost element a family renders in its shadow root, e.g. <article class="ui card">.'
+            ></ui-popup
+            >.
+          </p>
+
+          <ui-section id="the-pipeline" header="The pipeline" sticky collapsible dividing>
+            <ui-steps class="spell-steps" ordered vertical size="small">
+              <ui-step
+                header="Prepare"
+                description="StaticRender.prepare(html):  icon packs, then each family's static preload(html) (emoji names, Temporal for calendars)."
+              ></ui-step>
+              <ui-step
+                header="Parse"
+                description="linkedom reads the page;  each ui-* element of a defined family gets a stand-in host (ServerHost):  real attributes, parent and children, plus a place to record states and ARIA."
+              ></ui-step>
+              <ui-step
+                header="Build every controller"
+                description="In document order, owners first, before any renders:  items need their list, tab buttons their panes."
+              ></ui-step>
+              <ui-step
+                header="Render"
+                description="renderToString per element, against ServerRuntime:  English texts, page-wide ids, no browser features."
+              ></ui-step>
+              <ui-step
+                header="Flatten"
+                description="StaticFlattener, innermost first:  host -> root, slots -> assigned children, states and ARIA written out as attributes."
+              ></ui-step>
+              <ui-step
+                header="Wire interactions"
+                description="StaticInteractions:  native invoker commands, dialog closers, popovertarget, unique ids."
+              ></ui-step>
+              <ui-step
+                header="Rewrite page styles"
+                description="StaticPageStyles on the page's <style>s (and, in spell static, its local linked sheets)."
+              ></ui-step>
+              <ui-step
+                header="Build the stylesheet"
+                description="StaticStylesheet:  foundation, then each used family's sheets rewritten for light DOM and wrapped in @scope."
+              ></ui-step>
+            </ui-steps>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>packages/ui/src/server/StaticRender.ts, render() · 32 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">/** Steps 2-5 on a parsed `document`. */
+private static render(document: Document) {
+  const ids = ServerRuntime.install().ids as unknown as ServerIds
+  // generated ids skip the page's own, numbered from 1 per page
+  ids.reset(document)
+  const elements = [...document.querySelectorAll("*")].filter((element) =&gt;
+    StaticRender.families.has(element.localName)
+  )
+  StaticRender.lastTags = new Set(elements.map((element) =&gt; element.localName))
+  const { hosts, dispose } = createRoot((dispose) =&gt; ({
+    hosts: elements.map((element) =&gt; StaticRender.build(element)),
+    dispose
+  }))
+  try {
+    for (const { host, family } of hosts) StaticRender.recordSheets(host, family)
+    const views: StaticView[] = hosts.map(({ host, family }) =&gt; ({
+      element: host as unknown as Element,
+      family,
+      // `NoHydration`:  nothing hydrates a static page, so no `_hk` keys
+      html: renderToString(() =&gt;
+        createComponent(NoHydration, {
+          get children() {
+            return ServerElement.run(host, () =&gt; host.controller!.mount())
+          }
+        })
+      )
+    }))
+    StaticFlattener.flatten(document, views)
+    StaticInteractions.wire(document, ids)
+    StaticRender.rewriteStyles(document)
+  } finally {
+    dispose()
+  }
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="the-parts" header="The parts" sticky collapsible dividing>
+            <p>
+              All in
+              <a href="../../../ui/src/server/" target="src-packages-ui-src-server"
+                ><code>packages/ui/src/server/</code></a
+              >
+              (<code>$/ui/server</code>, namespace <code>SSR</code>).
+            </p>
+            <ui-cards class="spell-flow" stackable>
+              <ui-card>
+                <ui-content>
+                  <ui-header>ServerRuntime</ui-header>
+                  <ui-description
+                    >The <code>UI</code> runtime in node: real ids, i18n, vocabulary, icons; no-op styles; any other
+                    service throws, naming itself.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>ServerHost</ui-header>
+                  <ui-description
+                    >A linkedom element dressed as a host: <code>internals</code>, <code>setState()</code>,
+                    <code>renderRoot</code> stand-ins that record what the render set.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>StaticRender</ui-header>
+                  <ui-description>Drives the render: define, prepare, page / fragment, sheet usage.</ui-description>
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>StaticFlattener</ui-header>
+                  <ui-description
+                    >Hosts out, roots in: slots, attributes, states, list items, phrasing retags.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>StaticInteractions</ui-header>
+                  <ui-description>What works without JS: commands, closers, popovers, unique ids.</ui-description>
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>StaticStylesheet + StaticSelectors</ui-header>
+                  <ui-description
+                    >Component sheets rewritten for light DOM, each in <code>@scope</code>, in the right
+                    layers.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>StaticPageStyles</ui-header>
+                  <ui-description>The page's own CSS, rewritten so it reaches what it reached before.</ui-description>
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>StaticCatalog</ui-header>
+                  <ui-description
+                    >Every family the render supports; kept in step with the visual tests' list by a
+                    test.</ui-description
+                  >
+                </ui-content>
+              </ui-card>
+            </ui-cards>
+          </ui-section>
+
+          <ui-section id="what-the-markup-becomes" header="What the markup becomes" sticky collapsible dividing>
+            <p>
+              A real <code>spell static</code> run (line breaks added). Each root is marked with its
+              <dfn class="spell-term" tabindex="0">kind</dfn
+              ><ui-popup
+                header="kind"
+                content="The tag without its ui- prefix, in data-ui on the root:  card, placeholder-image.  Unique per tag;  the stylesheet's @scope starts there."
+              ></ui-popup
+              >.
+            </p>
+            <ui-tabs class="spell-tabs" pointing secondary basic aria-label="Page markup before and after">
+              <ui-tab label="Page">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>demo.html · 7 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-html">&lt;ui-cards&gt;
+  &lt;ui-card header="Spell" meta="2026"&gt;&lt;p&gt;Words that run.&lt;/p&gt;&lt;/ui-card&gt;
+&lt;/ui-cards&gt;
+&lt;ui-button commandfor="hello" command="--show"&gt;Open&lt;/ui-button&gt;
+&lt;ui-modal id="hello" closable header="Hello"&gt;&lt;p&gt;No script needed.&lt;/p&gt;&lt;/ui-modal&gt;
+&lt;p&gt;Saving &lt;ui-loader active inline size="mini"&gt;&lt;/ui-loader&gt;&lt;/p&gt;
+</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+              <ui-tab label="Static">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>demo.static.html · 22 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-html">&lt;ul data-ui="cards" data-state="cards" role="list" part="group" class="ui cards"&gt;
+  &lt;li data-ui-li=""&gt;
+    &lt;article data-ui-slotted="" data-ui="card" data-state="in-cards" class="ui card in-cards" part="card"&gt;
+      &lt;div class="content in-card" part="content"&gt;
+        &lt;div class="header in-card" part="header"&gt;Spell&lt;/div&gt;
+        &lt;div class="meta in-card" part="meta"&gt;2026&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;p data-ui-slotted=""&gt;Words that run.&lt;/p&gt;
+    &lt;/article&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+&lt;button data-ui="button" type="button" class="ui button" part="button"
+  commandfor="hello" command="show-modal"&gt;Open&lt;/button&gt;
+&lt;dialog data-ui="modal" id="hello" class="ui modal" part="modal" aria-labelledby="ui-modal-1"&gt;
+  &lt;div id="ui-modal-1" class="header" part="header"&gt;Hello&lt;/div&gt;
+  &lt;p data-ui-slotted=""&gt;No script needed.&lt;/p&gt;
+  &lt;button command="close" commandfor="hello" type="button" class="close icon" part="close"
+    aria-label="Close"&gt;&lt;svg aria-hidden="true" ...&gt;&lt;/svg&gt;&lt;/button&gt;
+&lt;/dialog&gt;
+&lt;p&gt;Saving &lt;span data-ui="loader" aria-label="Loading…" aria-live="polite" role="status"
+  data-state="active" part="loader" class="ui mini active inline loader"&gt;&lt;/span&gt;&lt;/p&gt;</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+            </ui-tabs>
+            <ul>
+              <li>
+                <b>attributes:</b> the host's <code>id</code>, <code>class</code>, <code>style</code>,
+                <code>data-*</code>, <code>aria-*</code> ... move to the root; a form control's <code>id</code> and ARIA
+                names go to its native control instead, so <code>&lt;label for&gt;</code> labels it
+              </li>
+              <li>
+                <b>states:</b> every host state (<code>:state(x)</code>) as <code>data-state="x"</code>; owner states
+                (<code>in-card</code>) also as classes, the parts' class-grammar form
+              </li>
+              <li>
+                <b>ARIA:</b> what the element set on <code>ElementInternals</code> (<code>role="status"</code>,
+                <code>aria-live</code>) becomes attributes; element references become ids
+                (<code>aria-labelledby="ui-modal-1"</code>)
+              </li>
+              <li>
+                <b>
+                  <dfn class="spell-term" tabindex="0">author content</dfn
+                  ><ui-popup
+                    header="author content"
+                    content="What the page wrote inside an element, which the element showed through a slot.  Marked data-ui-slotted once flattened."
+                  ></ui-popup
+                  >:</b
+                >
+                slotted children are marked <code>data-ui-slotted</code>
+              </li>
+              <li>
+                <b>list items:</b> a <code>&lt;div&gt;</code> item root becomes the <code>&lt;li&gt;</code>; an
+                <code>&lt;article&gt;</code> / <code>&lt;a&gt;</code> / <code>&lt;button&gt;</code> root is wrapped in
+                <code>&lt;li data-ui-li&gt;</code> (<code>display: contents</code>); a <code>role=list</code>
+                <code>&lt;div&gt;</code> holding them becomes <code>&lt;ul&gt;</code>
+              </li>
+              <li>
+                <b>paragraphs:</b> a <code>&lt;div&gt;</code> root where only phrasing content may go (the loader
+                above), and every rendered <code>&lt;div&gt;</code> under a <code>&lt;p&gt;</code>, becomes a
+                <code>&lt;span&gt;</code>: a browser would end the paragraph at a <code>&lt;div&gt;</code>
+              </li>
+              <li><b>icons:</b> inline SVG, <code>aria-hidden</code>, read from the packs on disk</li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="4-without-js" header="4. What works without JavaScript" sticky collapsible dividing>
+          <ui-icon slot="icon" name="check"></ui-icon>
+          <ui-table celled compact striped unstackable>
+            <table>
+              <thead>
+                <tr>
+                  <th>Family</th>
+                  <th>With JS off</th>
+                  <th>How</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>modal, flyout, page dimmer</td>
+                  <td class="yes positive">opens, closes</td>
+                  <td>
+                    <code>&lt;dialog&gt;</code>; the trigger gets <code>command="show-modal"</code>; close icon,
+                    <code>approve</code>, <code>deny</code> buttons get <code>command="close"</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>click popup</td>
+                  <td class="yes positive">opens</td>
+                  <td><code>popover=auto</code>; its target button gets <code>popovertarget</code></td>
+                </tr>
+                <tr>
+                  <td>accordion</td>
+                  <td class="yes positive">works</td>
+                  <td><code>&lt;details&gt;</code>; exclusive ones share a page-unique <code>name</code></td>
+                </tr>
+                <tr>
+                  <td>forms: input, textarea, checkbox, radio, select, dropdown, slider, rating, calendar, search</td>
+                  <td class="yes positive">submit</td>
+                  <td>
+                    native controls carry <code>name</code> / <code>value</code>; hidden inputs where the control isn't
+                    one; <code>&lt;ui-button type=submit&gt;</code> renders a real submit button
+                  </td>
+                </tr>
+                <tr>
+                  <td>sticky, progress, reveal</td>
+                  <td class="yes positive">works</td>
+                  <td>CSS</td>
+                </tr>
+                <tr>
+                  <td>sidebar</td>
+                  <td class="meh warning">overlay only</td>
+                  <td><code>&lt;dialog&gt;</code> + <code>show-modal</code>; push / uncover need JS</td>
+                </tr>
+                <tr>
+                  <td>dropdown</td>
+                  <td class="meh warning">menu opens</td>
+                  <td>its trigger gets <code>popovertarget</code>, rows are in the HTML; choosing needs JS</td>
+                </tr>
+                <tr>
+                  <td>tabs</td>
+                  <td class="meh warning">selected pane</td>
+                  <td>the other panes are in the HTML, hidden</td>
+                </tr>
+                <tr>
+                  <td>inline calendar</td>
+                  <td class="meh warning">shows</td>
+                  <td>the whole picker, "today" being the day it rendered; picking needs JS</td>
+                </tr>
+                <tr>
+                  <td>hover / focus popup</td>
+                  <td class="meh warning">read, not shown</td>
+                  <td>hidden <code>role=tooltip</code>, named by the target's <code>aria-describedby</code></td>
+                </tr>
+                <tr>
+                  <td>search, shape, slider, element dimmer, nag close</td>
+                  <td class="no negative">static</td>
+                  <td>first state only</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+          <ul>
+            <li>
+              Custom commands become native ones: <code>--show</code> / <code>--open</code> =&gt;
+              <code>show-modal</code> or <code>show-popover</code>, <code>--close</code> / <code>--hide</code> =&gt;
+              <code>close</code> or <code>hide-popover</code>, <code>--toggle</code> =&gt; <code>show-modal</code> or
+              <code>toggle-popover</code>.
+            </li>
+            <li>
+              Generated ids skip the page's own; a fixed id a family repeats (<code>ui-section</code>'s
+              <code>content</code>) is renamed after its first use, with the references inside that component.
+            </li>
+            <li>
+              Open popups, modals and flyouts render CLOSED: opening one needs <code>showModal()</code> /
+              <code>showPopover()</code>.
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="5-css-isolation" header="5. CSS isolation without shadow DOM" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <p>Shadow DOM kept CSS in two directions. Without it, the static stylesheet does both jobs:</p>
+          <ul>
+            <li>a component's rules must not reach into a nested component or into author content</li>
+            <li>the page's rules must not reach into a component's own markup</li>
+          </ul>
+
+          <ui-section id="css-isolation-scope" header="Components: @scope from each root" sticky collapsible dividing>
+            <ul>
+              <li>
+                Each family's sheet is wrapped in <code>@scope (&lt;its roots&gt;) to (&lt;limit&gt;)</code>.
+                <ul>
+                  <li>
+                    roots: <code>[data-ui="card"]</code> (its kind), plus <code>.ui.card</code> markup the PAGE wrote
+                    (class grammar outside components, or in author content)
+                  </li>
+                  <li>
+                    limit: <code>[data-ui-slotted]:not([data-ui]) &gt; *, :scope [data-ui] &gt; *</code>: author content
+                    and other components' roots are in scope (as <code>::slotted()</code> and the host reached them),
+                    their insides aren't
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Every subject is anchored with <code>:where(:scope, ...)</code>. Inside <code>@scope</code> a bare
+                <code>.ui.card</code> means a card INSIDE the root, never the root itself; <code>:where()</code>
+                adds no specificity.
+              </li>
+              <li>
+                Rules about the component's own markup also say <code>:not([data-ui-slotted])</code>: in a shadow root
+                they could never touch author content.
+              </li>
+              <li>
+                Host rules land on the root: <code>:host(:state(in-cards)) &gt; .ui.card</code> =&gt;
+                <code>:scope:is([data-state~="in-cards"]):is(.ui.card)</code>.
+              </li>
+              <li>
+                List groups (cards, list, feed, steps, items): each <code>A &gt; B</code> also matches
+                <code>A &gt; [data-ui-li] &gt; B</code>, through the wrapper.
+              </li>
+              <li>
+                A sheet several families adopt (items take
+                <a
+                  href="../../../ui/src/components/ui-list/ui-list.css"
+                  target="src-packages-ui-src-components-ui-list-ui-list-css"
+                  ><code>ui-list.css</code></a
+                >) is scoped to every kind seen adopting it, and sheets are emitted in the order elements adopted them.
+              </li>
+            </ul>
+            <ui-tabs class="spell-tabs" pointing secondary basic aria-label="A card rule before and after">
+              <ui-tab label="Shadow root">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>packages/ui/src/components/ui-card/ui-card.css · 7 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-css">/* A card in a group:  the group's spacing and width. */
+.ui.cards &gt; .card,
+:host(:state(in-cards)) &gt; .ui.card {
+  margin: calc(var(--_cards-row-spacing) / 2) var(--_cards-spacing);
+  width: var(--_cards-width, var(--_card-width, var(--_ui-card-width)));
+  font-size: var(--_cards-font-size, calc(var(--ui-font-size) * var(--ui-scale, 1)));
+}</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+              <ui-tab label="Static">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>demo.static.css (--no-minify, roots shortened) · 12 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-css">@layer ui.components.card.types {
+  @scope (:is([data-ui="cards"], [data-ui="card"], .ui.cards:not([data-ui]):is(...), .ui.card:not([data-ui]):is(...)))
+    to ([data-ui-slotted]:not([data-ui]) &gt; *, :scope [data-ui] &gt; *) {
+    .ui.cards &gt; .card:where(:scope, :not([data-ui-slotted])),
+    .ui.cards &gt; [data-ui-li] &gt; .card:where(:scope, :not([data-ui-slotted])),
+    :scope:where([data-ui]):is([data-state~="in-cards"]):is(.ui.card) {
+      margin: calc(var(--_cards-row-spacing) / 2) var(--_cards-spacing);
+      width: var(--_cards-width, var(--_card-width, var(--_ui-card-width)));
+      font-size: var(--_cards-font-size, calc(var(--ui-font-size) * var(--ui-scale, 1)));
+    }
+  }
+}</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+            </ui-tabs>
+          </ui-section>
+
+          <ui-section id="css-isolation-layers" header="Layers" sticky collapsible dividing>
+            <p>
+              The stylesheet opens with <code>@layer ui-slotted, page, ui;</code>, then the usual
+              <code>ui.*</code> layers.
+            </p>
+            <ul>
+              <li>
+                <b>
+                  <dfn class="spell-term" tabindex="0">slotted layer</dfn
+                  ><ui-popup
+                    header="slotted layer"
+                    content="@layer ui-slotted, before the page's layer:  where rewritten ::slotted() and slot rules go, because in a shadow root they lost to the page's CSS."
+                  ></ui-popup
+                  >:</b
+                >
+                <code>::slotted(X)</code> rules become plain <code>X</code> rules in <code>@layer ui-slotted</code>,
+                first of all: in a shadow root any page rule beat them
+              </li>
+              <li>
+                <b>host-only rules</b> (<code>:host { --ui-color: initial }</code>) go to <code>@layer ui.reset</code>,
+                minus <code>display</code>: they now share an element with the root's own rules, which must still win
+              </li>
+              <li>
+                <b>foundation:</b> tokens and utilities keep their page selectors;
+                <a href="../../../ui/src/styles/reset.css" target="src-packages-ui-src-styles-reset-css"
+                  ><code>reset.css</code></a
+                >, which only ever applied inside shadow roots, is scoped to every component
+              </li>
+              <li>
+                <code>[hidden] { display: none }</code> unlayered: a component's <code>display</code> would beat the
+                browser's own
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="css-isolation-page" header="Page CSS: REACH" sticky collapsible dividing>
+            <p>The page's own CSS is rewritten (<code>StaticPageStyles</code>) so it reaches what it reached before:</p>
+            <ul>
+              <li><code>ui-card</code> =&gt; <code>[data-ui="card"]</code>: the tag is gone, the root has the kind</li>
+              <li>
+                <code>ui-card::part(header)</code> =&gt; <code>[data-ui="card"][part~="header"]</code> and
+                <code>[data-ui="card"] [part~="header"]</code> (that's why <code>part</code> attributes stay)
+              </li>
+              <li><code>:state(x)</code> =&gt; <code>[data-state~="x"]</code></li>
+              <li>
+                every subject gets
+                <dfn class="spell-term" tabindex="0">REACH</dfn
+                ><ui-popup
+                  header="REACH"
+                  content="A zero-specificity :where() that keeps a page rule to what page CSS reached through shadow DOM:  outside components, component roots, author content."
+                ></ui-popup
+                >, <code>:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *)</code>:
+                <code>h2 { border }</code> must not draw on a section's internal heading
+              </li>
+              <li>
+                layers and order as the page wrote them: unlayered page CSS still beats component rules on roots and
+                author content, as it beat <code>:host</code> / <code>::slotted()</code> rules in a browser
+              </li>
+            </ul>
+            <ui-tabs class="spell-tabs" pointing secondary basic aria-label="Page CSS before and after">
+              <ui-tab label="Page">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>demo.html, its &lt;style&gt; · 2 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-css">ui-card::part(header) { color: rebeccapurple; }
+h2 { border-bottom: 1px solid; }</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+              <ui-tab label="Static">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>demo.static.html, its &lt;style&gt; · 2 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-css">[data-ui="card"][part~="header"], [data-ui="card"] [part~="header"] { color: rebeccapurple; }
+h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) { border-bottom: 1px solid; }</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+            </ui-tabs>
+            <ui-message state="info" header="Which page CSS">
+              <ul>
+                <li>
+                  Rewritten: the page's <code>&lt;style&gt;</code>s, and (in <code>spell static</code>) local linked
+                  sheets.
+                </li>
+                <li>Not: remote sheets, <code>@import</code>, sheets that don't parse, styles set by scripts.</li>
+              </ul>
+            </ui-message>
+          </ui-section>
+        </ui-section>
+
+        <ui-section
+          id="6-component-rules"
+          header="6. Writing components that render statically"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="puzzle piece"></ui-icon>
+          <p>
+            Solid's server build runs a component's render and its effects' COMPUTE, never an effect's APPLY. The host
+            is a linkedom element in node. So:
+          </p>
+
+          <ui-section id="rule-host-effect" header="Host writes: hostEffect()" sticky collapsible dividing>
+            <ul>
+              <li>
+                An effect whose apply writes the HOST (<code>internals.role</code>, ARIA, states) is
+                <code>this.hostEffect(compute, apply)</code>: <code>createEffect</code> in a browser, applied once, at
+                once, on a server.
+              </li>
+              <li>A plain <code>createEffect</code> there leaves the static output without it.</li>
+              <li>Owner states (<code>in-card</code>) are set by <code>PartContext</code> itself.</li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>packages/ui/src/components/ui-item/UIItem.tsx · 6 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">this.hostEffect(
+  () =&gt; this.itemContext()?.hostRole ?? null,
+  (role) =&gt; {
+    this.host.internals.role = role
+  }
+)</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="rule-no-dom-globals" header="No DOM globals" sticky collapsible dividing>
+            <ul>
+              <li>
+                NEVER <code>instanceof Element</code> / <code>Node</code> / <code>ShadowRoot</code> /
+                <code>HTMLSlotElement</code> in shared code: node has none of them. Test <code>nodeType</code> and
+                <code>localName</code>.
+              </li>
+              <li>
+                Anything that reads the DOM in a constructor needs an <code>isServer</code> guard; observers, focus and
+                measuring belong in effects (they never apply on a server).
+              </li>
+              <li>A family's barrel calls <code>customElements.define()</code>: server code imports its files.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="rule-form-controls" header="Form controls: UIT.STATIC_CONTROL" sticky collapsible dividing>
+            <ul>
+              <li>
+                The native control spreads a <code>staticControl()</code> that is <code>{}</code> in a browser (the HOST
+                submits there, through <code>ElementInternals</code>) and, on a server, its <code>name</code>, starting
+                <code>value</code> and the <code>UIT.STATIC_CONTROL</code> mark (<code>data-ui-control</code>).
+              </li>
+              <li>
+                The flattener moves the host's <code>id</code>, <code>aria-label</code>,
+                <code>aria-labelledby</code> and <code>aria-describedby</code> onto the marked control, then drops the
+                mark.
+              </li>
+              <li>A control that isn't a form control renders hidden inputs instead (dropdown, slider).</li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>packages/ui/src/components/ui-input/TextControl.ts · 4 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">protected staticControl(): Record&lt;string, unknown&gt; {
+  if (!isServer) return {}
+  return { [UIT.STATIC_CONTROL]: "", name: this.common.name, value: this.value() || undefined }
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="rule-preload" header="Async data: static preload()" sticky collapsible dividing>
+            <ul>
+              <li>
+                The render is synchronous. Data a family loads asynchronously goes in an optional
+                <code>static preload(html, tag)</code>, which <code>StaticRender.prepare()</code> awaits for any page
+                that has the tag.
+              </li>
+              <li>Today: <code>UIEmoji</code> (the names the page uses), <code>UICalendar</code> (Temporal).</li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>packages/ui/src/components/ui-calendar/UICalendar.tsx · 3 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">static preload(): Promise&lt;unknown&gt; {
+  return UI.i18n.loadTemporal()
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="rule-compiler" header="Server compile traps" sticky collapsible dividing>
+            <ul>
+              <li>
+                NEVER an inline <code>style={{ [A]: x, [B]: y }}</code> with two or more COMPUTED keys: the server
+                compile drops the <code>;</code> between them. Return the object from a method
+                (<code>style={this.titleStyle()}</code>); see
+                <a href="../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                  ><code>packages/docs/content/solid/solid-2.md</code></a
+                >.
+              </li>
+              <li>
+                No <code>as Thing&lt;V&gt;</code> cast on a class type parameter inside a component's JSX children: the
+                SSR compile hoists the children and passes <code>V</code> as a value ("V is not defined"). Move the
+                expression into a method.
+              </li>
+              <li>
+                A server memo computes ONCE. One that reads OTHER elements' controllers is
+                <code>{ lazy: isServer }</code>, so it first runs at render time, after every controller exists.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="rule-css" header="Component CSS" sticky collapsible dividing>
+            <ul>
+              <li>
+                Statically root == host. A rule that moves the host's margin off the root needs
+                <code>:not([data-ui])</code> (never true in a shadow root), or the static root loses it too.
+              </li>
+              <li>
+                A family whose host is the box (popup, shape side) hides its root with its own CSS: the host's
+                <code>display</code> rules are dropped.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="rule-new-family" header="A new family" sticky collapsible dividing>
+            <ul>
+              <li>
+                Add its classes to
+                <a href="../../../ui/src/server/StaticCatalog.ts" target="src-packages-ui-src-server-staticcatalog-ts"
+                  ><code>packages/ui/src/server/StaticCatalog.ts</code></a
+                >
+                AND
+                <a
+                  href="../../../ui/tools/visual/StaticFamilies.ts"
+                  target="src-packages-ui-tools-visual-staticfamilies-ts"
+                  ><code>packages/ui/tools/visual/StaticFamilies.ts</code></a
+                >;
+                <a
+                  href="../../../ui/src/server/StaticCatalog.ssr.test.ts"
+                  target="src-packages-ui-src-server-staticcatalog-ssr-test-ts"
+                  ><code>StaticCatalog.ssr.test.ts</code></a
+                >
+                checks they agree.
+              </li>
+              <li>Give it a <code>ui-&lt;name&gt;.ssr.test.tsx</code> that renders its markup statically.</li>
+              <li>
+                Element references its ARIA needs (<code>aria-controls</code>, <code>aria-labelledby</code>): give the
+                target an id from <code>UI.ids</code> on a server and write the idref.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="7-checking" header="7. Checking it" sticky collapsible dividing>
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <ui-table celled compact striped unstackable>
+            <table>
+              <thead>
+                <tr>
+                  <th>Check</th>
+                  <th>
+                    Run (in <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                    >)
+                  </th>
+                  <th>Proves</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>family ssr tests</td>
+                  <td><code>yarn test</code> (ssr project)</td>
+                  <td>each family's static markup: roots, attributes, no <code>ui-*</code> left</td>
+                </tr>
+                <tr>
+                  <td>JS-off test</td>
+                  <td>
+                    <a
+                      href="../../../ui/src/server/StaticInteractions.ssr.test.ts"
+                      target="src-packages-ui-src-server-staticinteractions-ssr-test-ts"
+                      ><code>src/server/StaticInteractions.ssr.test.ts</code></a
+                    >
+                  </td>
+                  <td>
+                    Chromium with JavaScript disabled: modal opens and closes, click popup toggles, accordion opens, ids
+                    unique
+                  </td>
+                </tr>
+                <tr>
+                  <td>form round trip</td>
+                  <td>
+                    <a
+                      href="../../../ui/test/static-form.ssr.test.tsx"
+                      target="src-packages-ui-test-static-form-ssr-test-tsx"
+                      ><code>test/static-form.ssr.test.tsx</code></a
+                    >
+                    +
+                    <a href="../../../ui/test/static-form.test.ts" target="src-packages-ui-test-static-form-test-ts"
+                      ><code>test/static-form.test.ts</code></a
+                    >
+                  </td>
+                  <td>
+                    one form of every value control: the entries the static HTML submits == the live elements'
+                    <code>FormData</code>, defaults included
+                  </td>
+                </tr>
+                <tr>
+                  <td>static parity</td>
+                  <td><code>yarn test:visual --static</code></td>
+                  <td>
+                    every example rendered statically vs the live elements, light and dark; report in
+                    <a
+                      href="../../../ui/tools/results/visual/static-parity.md"
+                      target="src-packages-ui-tools-results-visual-static-parity-md"
+                      ><code>packages/ui/tools/results/visual/static-parity.md</code></a
+                    >
+                    (informational, not a gate)
+                  </td>
+                </tr>
+                <tr>
+                  <td>the command</td>
+                  <td>
+                    <code>yarn test</code> in
+                    <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a>
+                  </td>
+                  <td><code>spell static</code> on a fixture page: outputs, flags, script removal</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+          <ul>
+            <li>
+              By hand: <code>spell static some/page.html --no-minify</code>, then open
+              <code>page.static.html</code> with JavaScript off (Chrome devtools, "Disable JavaScript"). View source
+              should hold all the text.
+            </li>
+            <li>
+              Screenshot with JS off: <code>yarn tsx tools/results/shot.mts &lt;file&gt; &lt;out.png&gt;</code>
+              (scratch tool).
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="8-why" header="8. Why it's built this way" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p class="meta">Each links to its decision in the plan doc.</p>
+
+          <ui-section id="why-approach" header="Approach" sticky collapsible dividing>
+            <ul>
+              <li>
+                Solid's own server render, over a simulated DOM or a headless browser at build time: no browser needed,
+                renders per request, and fixes <code>ui</code>'s SSR for everyone (<a
+                  href="../epics/seo/seo.plan.html#d2"
+                  target="seo"
+                  >D2</a
+                >).
+              </li>
+              <li>
+                Replace each host with its root, over keeping the tags: ~40 of 55 families then match their
+                class-grammar examples, and
+                <a href="../../../ui/src/styles/native.css" target="src-packages-ui-src-styles-native-css"
+                  ><code>native.css</code></a
+                >
+                hides undefined <code>ui-root</code> / <code>ui-popup</code> / <code>ui-modal</code> (<a
+                  href="../epics/seo/seo.plan.html#d3"
+                  target="seo"
+                  >D3</a
+                >).
+              </li>
+              <li>
+                Server code in its own entry (<code>$/ui/server</code>) and the fork's
+                <code>@spell-app/solid-element/server</code>: client bundles get only <code>isServer</code> branches (<a
+                  href="../epics/seo/seo.plan.html#d8"
+                  target="seo"
+                  >D8</a
+                >, <a href="../epics/seo/seo.plan.html#d9" target="seo">D9</a>).
+              </li>
+              <li>
+                <code>ServerRuntime</code>, not <code>UIRuntime</code>: the real one builds <code>CSSStyleSheet</code>s
+                in its constructor (<a href="../epics/seo/seo.plan.html#d11" target="seo">D11</a>).
+              </li>
+              <li>
+                <code>hostEffect()</code>: the server build never runs an effect's apply (<a
+                  href="../epics/seo/seo.plan.html#d10"
+                  target="seo"
+                  >D10</a
+                >).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="why-markup" header="Markup" sticky collapsible dividing>
+            <ul>
+              <li>
+                List items in <code>&lt;li&gt;</code>: a host's <code>role=listitem</code> has no valid place on an
+                <code>&lt;article&gt;</code>; a <code>&lt;div&gt;</code> root becomes the <code>&lt;li&gt;</code> itself
+                so <code>:first-child</code> and <code>.item + .item</code> still work (<a
+                  href="../epics/seo/seo.plan.html#d4"
+                  target="seo"
+                  >D4</a
+                >, <a href="../epics/seo/seo.plan.html#d20" target="seo">D20</a>,
+                <a href="../epics/seo/seo.plan.html#d14" target="seo">D14</a>).
+              </li>
+              <li>
+                States as <code>data-state</code>, author content as <code>data-ui-slotted</code>: the stylesheet needs
+                both to stand in for <code>:state()</code> and the slot boundary (<a
+                  href="../epics/seo/seo.plan.html#d13"
+                  target="seo"
+                  >D13</a
+                >).
+              </li>
+              <li>
+                Kind = the tag without <code>ui-</code>, not the vocabulary noun: five pairs of tags share a noun (<a
+                  href="../epics/seo/seo.plan.html#d41"
+                  target="seo"
+                  >D41</a
+                >).
+              </li>
+              <li>
+                <code>&lt;div&gt;</code> =&gt; <code>&lt;span&gt;</code> in phrasing content; form ids to the native
+                control (<a href="../epics/seo/seo.plan.html#d43" target="seo">D43</a>).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="why-css" header="CSS" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>@scope</code> from <code>data-ui</code> roots, over per-element attributes: no new browser floor,
+                anchor positioning already needs newer ones (<a href="../epics/seo/seo.plan.html#d5" target="seo">D5</a
+                >).
+              </li>
+              <li>
+                Subjects anchored with <code>:where(:scope, *)</code>: without it no rule styled the root (<a
+                  href="../epics/seo/seo.plan.html#d18"
+                  target="seo"
+                  >D18</a
+                >).
+              </li>
+              <li>
+                Host-only rules in <code>ui.reset</code>, slotted rules in <code>ui-slotted</code>: they keep the
+                cascade they had across the shadow boundary (<a href="../epics/seo/seo.plan.html#d15" target="seo"
+                  >D15</a
+                >, <a href="../epics/seo/seo.plan.html#d42" target="seo">D42</a>).
+              </li>
+              <li>
+                Sheets scoped to every kind seen adopting them, in adoption order (<a
+                  href="../epics/seo/seo.plan.html#d19"
+                  target="seo"
+                  >D19</a
+                >).
+              </li>
+              <li>
+                Page CSS rewritten and kept out with <code>REACH</code> (<a
+                  href="../epics/seo/seo.plan.html#d22"
+                  target="seo"
+                  >D22</a
+                >, <a href="../epics/seo/seo.plan.html#d58" target="seo">D58</a>); class grammar the page wrote is
+                styled too (<a href="../epics/seo/seo.plan.html#d34" target="seo">D34</a>).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="why-no-js" header="No JS" sticky collapsible dividing>
+            <ul>
+              <li>
+                Native invoker commands, <code>popovertarget</code>, <code>&lt;details&gt;</code>: the platform does it
+                without scripts (<a href="../epics/seo/seo.plan.html#d47" target="seo">D47</a>).
+              </li>
+              <li>
+                Ids from one allocator that skips the page's own (<a href="../epics/seo/seo.plan.html#d48" target="seo"
+                  >D48</a
+                >, <a href="../epics/seo/seo.plan.html#d24" target="seo">D24</a>).
+              </li>
+              <li>
+                Forms submit through the native controls, server-only attributes spread onto them, so the browser render
+                is unchanged (<a href="../epics/seo/seo.plan.html#d28" target="seo">D28</a>,
+                <a href="../epics/seo/seo.plan.html#d55" target="seo">D55</a>).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="why-spell-static" header="spell static" sticky collapsible dividing>
+            <ul>
+              <li>
+                A CLI command, not a yarn script (<a href="../epics/seo/seo.plan.html#d7" target="seo">D7</a>); in a
+                child process on an SSR-only Vite server, so Vite's output and the server <code>UI</code> runtime stay
+                out of the CLI (<a href="../epics/seo/seo.plan.html#d49" target="seo">D49</a>,
+                <a href="../epics/seo/seo.plan.html#d17" target="seo">D17</a>).
+              </li>
+              <li>
+                <code>page.static.html</code> beside the page: its relative links keep working (<a
+                  href="../epics/seo/seo.plan.html#d50"
+                  target="seo"
+                  >D50</a
+                >).
+              </li>
+              <li>
+                Only element-loading scripts go: other scripts may be wanted (<a
+                  href="../epics/seo/seo.plan.html#d51"
+                  target="seo"
+                  >D51</a
+                >).
+              </li>
+              <li>
+                Stylesheet linked first: layer order is set by first mention (<a
+                  href="../epics/seo/seo.plan.html#d52"
+                  target="seo"
+                  >D52</a
+                >).
+              </li>
+              <li>
+                Lightning CSS, strict, nothing lowered; a sheet it can't parse is stripped, never silently cut (<a
+                  href="../epics/seo/seo.plan.html#d53"
+                  target="seo"
+                  >D53</a
+                >).
+              </li>
+              <li>
+                Local linked sheets inlined in place: cascade order unchanged, no extra files (<a
+                  href="../epics/seo/seo.plan.html#d59"
+                  target="seo"
+                  >D59</a
+                >).
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="9-limits" header="9. Limits" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <p class="meta">Open caveats and issues in the plan doc, as of this check.</p>
+
+          <ui-section id="limits-behaviour" header="Behaviour" sticky collapsible dividing>
+            <ul>
+              <li>
+                No zero-JS path for tabs, hover popups, dropdown choosing, calendar picking, search, shape, slider,
+                element dimmer, nag close (<a href="../epics/seo/seo.plan.html#c1" target="seo">C1</a>); hover popups
+                show nothing (<a href="../epics/seo/seo.plan.html#t31" target="seo">T31</a>).
+              </li>
+              <li>
+                Open popups, modals, flyouts, page dimmers and modal sidebars render closed (<a
+                  href="../epics/seo/seo.plan.html#c11"
+                  target="seo"
+                  >C11</a
+                >).
+              </li>
+              <li>
+                The server can't know: a tabs history hash, a nag's dismissal, measured sizes (<a
+                  href="../epics/seo/seo.plan.html#c2"
+                  target="seo"
+                  >C2</a
+                >).
+              </li>
+              <li>
+                The static page must not load the elements (<a href="../epics/seo/seo.plan.html#c4" target="seo">C4</a
+                >).
+              </li>
+              <li>
+                <code>closedby=any</code> (backdrop close) isn't in Safari (<a
+                  href="../epics/seo/seo.plan.html#c5"
+                  target="seo"
+                  >C5</a
+                >).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="limits-markup" header="Markup and layout" sticky collapsible dividing>
+            <ul>
+              <li>
+                A block root that isn't a <code>&lt;div&gt;</code> (<code>&lt;ul&gt;</code>,
+                <code>&lt;dialog&gt;</code>, <code>&lt;details&gt;</code>, <code>&lt;article&gt;</code> ...) inside a
+                <code>&lt;p&gt;</code> still splits the paragraph: wrap such elements in a <code>&lt;div&gt;</code> (<a
+                  href="../epics/seo/seo.plan.html#c20"
+                  target="seo"
+                  >C20</a
+                >).
+              </li>
+              <li>
+                Inline-block roots in flex rows lose their host's line box: checkboxes and ratings a few pixels shorter
+                (<a href="../epics/seo/seo.plan.html#c13" target="seo">C13</a>).
+              </li>
+              <li>
+                Static steps never stack on narrow screens; grid-root rules like <code>mobile reversed</code> don't
+                apply (<a href="../epics/seo/seo.plan.html#c15" target="seo">C15</a>).
+              </li>
+              <li>
+                A few pixels of drift in card groups and clearing segments (<a
+                  href="../epics/seo/seo.plan.html#c10"
+                  target="seo"
+                  >C10</a
+                >); consecutive grids miss their 1rem gap (<a href="../epics/seo/seo.plan.html#t24" target="seo">T24</a
+                >).
+              </li>
+              <li>
+                <code>display: contents</code> on <code>&lt;li&gt;</code>: older Safari drops the list-item role (<a
+                  href="../epics/seo/seo.plan.html#c9"
+                  target="seo"
+                  >C9</a
+                >).
+              </li>
+              <li>
+                <code>part</code> attributes stay in the output (<a href="../epics/seo/seo.plan.html#c7" target="seo"
+                  >C7</a
+                >).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="limits-css" header="CSS and size" sticky collapsible dividing>
+            <ul>
+              <li>
+                Page CSS in remote sheets, <code>@import</code> rules or set by scripts isn't rewritten;
+                <code>H::part(p)</code> also reaches parts of components nested in H (<a
+                  href="../epics/seo/seo.plan.html#c21"
+                  target="seo"
+                  >C21</a
+                >).
+              </li>
+              <li>
+                Page CSS isn't moved into <code>@layer page</code>: unlayered page rules beat component rules on roots
+                (<a href="../epics/seo/seo.plan.html#t27" target="seo">T27</a>).
+              </li>
+              <li>
+                The stylesheet is big: minifying saves ~16% (<a
+                  href="../solid/solid-2.html"
+                  target="src-packages-docs-solid-solid-2-html"
+                  ><code>solid-2.html</code></a
+                >, 12 families: 338 kB -&gt; 285 kB, gzip 39.5 -&gt; 38.2 kB) (<a
+                  href="../epics/seo/seo.plan.html#c19"
+                  target="seo"
+                  >C19</a
+                >).
+              </li>
+              <li>
+                A page with popups isn't minified at all: Lightning CSS can't parse <code>@container anchored()</code>,
+                so the whole sheet falls back to stripping comments (<a
+                  href="../epics/seo/seo.plan.html#i25"
+                  target="seo"
+                  >I25</a
+                >).
+              </li>
+              <li>
+                Examples built on test-only stub owners can't match statically (<a
+                  href="../epics/seo/seo.plan.html#c17"
+                  target="seo"
+                  >C17</a
+                >).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="limits-code" header="Code" sticky collapsible dividing>
+            <ul>
+              <li>
+                The SSR compile passes a class type parameter as a value (<a
+                  href="../epics/seo/seo.plan.html#i16"
+                  target="seo"
+                  >I16</a
+                >): worked around, see <a href="#rule-compiler">Server compile traps</a>.
+              </li>
+              <li>
+                <code>UIRuntime</code>'s docstring claims it constructs outside a browser; it doesn't (<a
+                  href="../epics/seo/seo.plan.html#i2"
+                  target="seo"
+                  >I2</a
+                >).
+              </li>
+              <li>
+                The client cost of the server-only methods was never measured (<a
+                  href="../epics/seo/seo.plan.html#t32"
+                  target="seo"
+                  >T32</a
+                >).
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="10-sources" header="10. Sources" sticky collapsible dividing>
+          <ui-icon slot="icon" name="book open"></ui-icon>
+          <ui-items class="spell-sources" divided>
+            <ui-item>
+              <ui-content>
+                <ui-header><a href="../epics/seo/seo.plan.html" target="seo">epics/seo/seo.plan.html</a></ui-header>
+                <ui-meta>plan doc · P1-P6, 2026-10-02</ui-meta>
+                <ui-description>Every decision, caveat and issue, with the numbers behind them.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="../../../ui/src/server/" target="src-packages-ui-src-server"
+                    ><code>packages/ui/src/server/</code></a
+                  ></ui-header
+                >
+                <ui-meta>code · <code>$/ui/server</code></ui-meta>
+                <ui-description
+                  >The render, the flattener, the stylesheet; each file's header says what it does.</ui-description
+                >
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="../../../ui/tools/StaticDocument.ts" target="src-packages-ui-tools-staticdocument-ts"
+                    ><code>packages/ui/tools/StaticDocument.ts</code></a
+                  ></ui-header
+                >
+                <ui-meta>code · whole pages</ui-meta>
+                <ui-description>Script removal, linked sheets, the stylesheet link, minifying.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a
+                    href="../../../cli/src/commands/staticCommand.ts"
+                    target="src-packages-cli-src-commands-staticcommand-ts"
+                    ><code>packages/cli/src/commands/staticCommand.ts</code></a
+                  ></ui-header
+                >
+                <ui-meta>code · <code>spell static</code></ui-meta>
+                <ui-description
+                  >Arguments, outputs, the child process (<a
+                    href="../../../cli/src/runner/renderStatic.ts"
+                    target="src-packages-cli-src-runner-renderstatic-ts"
+                    ><code>packages/cli/src/runner/renderStatic.ts</code></a
+                  >).</ui-description
+                >
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a
+                    href="../../../ui/tools/results/visual/static-parity.md"
+                    target="src-packages-ui-tools-results-visual-static-parity-md"
+                    ><code>packages/ui/tools/results/visual/static-parity.md</code></a
+                  ></ui-header
+                >
+                <ui-meta>report · <code>yarn test:visual --static</code>, 2026-10-03 03:14 UTC</ui-meta>
+                <ui-description
+                  >The 287 / 342 figure in the summary; the worst pairs and their diff images.</ui-description
+                >
+              </ui-content>
+            </ui-item>
+          </ui-items>
+        </ui-section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Last checked 2026-10-02 against branch <code>seo</code>: re-run <code>spell static</code> on a page and
+            <code>yarn test:visual --static</code> to update.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

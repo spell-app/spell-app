@@ -61,7 +61,7 @@ If spell's own app is Solid 2 (it is), **Solid** is now the better system for sp
 Either way, before building more families:
 - decide whether to send the fork's patches upstream (`spike/solid-element/UPSTREAM.md`), which lowers the ownership risk
 - adopt one-module-per-icon loading (`docs/icons.md`, "Loading strategies")
-- fix the palette contrast debt (`CODE-DEBT.md`)
+- fix the palette contrast debt (`agents/CODE-DEBT.md`)
 
 ## Appendix: history
 

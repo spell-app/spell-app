@@ -4,7 +4,7 @@ import { TAG_PREFIX } from "./ui-root.types"
 /**
  * Every family's barrel, loaded on demand (`import.meta.glob`, lazy):  `../ui-card/index.ts` => `import()` of it.
  * - A LITERAL glob, so each becomes a literal `import()`:  the lib build reuses each family's own entry chunk
- *   (`ui-card.js`), and the docs' single-file bundle (`packages/docs/scripts/bundle-spell-ui.js`) inlines them.
+ *   (`ui-card.js`), and the docs' single-file bundle (`packages/docs/tools/bundle-spell-ui.js`) inlines them.
  * - The root's own folder is left out:  it is loaded already.
  * - The doc-only `<ui-docs-*>` families (`src/docs-components/`) are a second literal glob, `DOCS_FAMILIES`;  the
  *   catalog names a family by folder alone (`folder: "ui-docs-example"`), so `load()` tries both.
