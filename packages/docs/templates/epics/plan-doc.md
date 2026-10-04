@@ -69,6 +69,10 @@ Section markup (the template's;  a hand-written Overview sub-section is the same
 - `header` is the title;  a title with markup is a `<span slot="header">` first inside instead (`1.2 The <code>x</code>
   API`)
 - every section `sticky collapsible dividing`;  `collapsed` starts it folded
+- in the browser, EVERY section of a plan doc starts folded (`spell-doc-runtime.js` `wireSectionFolds()`), unless
+  the reader opened or closed it before:  Owen opens what he wants.  `collapsed` in the markup still matters for
+  pages opened from disk without the runtime, and for the script's own bookkeeping.  A link to any id inside
+  (`#q3`, `#p2`) unfolds the sections around it and lands on it
 - NEVER change an `id`:  the items, the log and other docs link to them
 
 ## Ids:  short, so they're easy to say in chat
