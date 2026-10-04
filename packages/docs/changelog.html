@@ -157,8 +157,10 @@
                 </li>
                 <li>
                   root <a href="AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
-                  >: NEVER add a worktree's folders to a package window, since VS Code writes them into its committed
-                  <code>workspaces/&lt;pkg&gt;.code-workspace</code>
+                  >: NEVER add a worktree's folders to a package window, since VS Code writes them into its
+                  <code>workspaces/&lt;pkg&gt;.code-workspace</code>, where they outlive the worktree unseen (the files
+                  are <code>skip-worktree</code>); three dead ones removed (<code>seo</code>,
+                  <code>solid-migration</code>, <code>doc-template</code>)
                 </li>
                 <li>
                   tests: <code>processTable()</code>, <code>claudeSessions()</code>, <code>parseLsof()</code>,
