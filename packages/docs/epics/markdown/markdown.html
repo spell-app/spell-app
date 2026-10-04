@@ -45,6 +45,23 @@
           >
         </ui-list>
 
+        <ui-section id="overnight" header="Overnight · 2026-10-04" data-bedtime="active" sticky collapsible dividing>
+          <ui-icon slot="icon" name="calendar"></ui-icon>
+          <p class="overnight-summary">
+            Running P2-P9 unattended on branch <code>markdown</code>, since
+            <time datetime="2026-10-04T02:51-04:00">2026-10-04 02:51</time>.
+          </p>
+          <ui-section id="overnight-phases" header="Phases" sticky collapsible dividing>
+            <ul class="overnight-phases">
+              <li class="overnight-none">None yet.</li>
+            </ul>
+          </ui-section>
+          <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
+            <ul class="overnight-problems">
+              <li class="overnight-none">None.</li>
+            </ul>
+          </ui-section>
+        </ui-section>
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
@@ -2115,6 +2132,13 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:49-04:00">2026-10-04 02:49</time></ui-date> Bedtime started:
                   P2 (rest) to P9</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:51-04:00">2026-10-04 02:51</time></ui-date> Bedtime started:
+                  P2-P9</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

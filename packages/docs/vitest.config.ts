@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config"
 
 /**
- * vitest config for `@spell-app/docs`:  only the doc scripts' own tests (`scripts/*.test.js`), in node.
+ * vitest config for `@spell-app/docs`:  only the doc scripts' own tests (`scripts/*.test.{js,ts}`), in node.
  * - The root `vitest.config.ts` picks this up as the `docs` project.
  * - Aliases (`$/server`, which `plan-doc.js` imports) come from the repo root's `tsconfig.base.json`, through
  *   `resolve.tsconfigPaths`.
@@ -9,7 +9,7 @@ import { defineConfig } from "vitest/config"
 export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
-    include: ["scripts/**/*.test.js"],
+    include: ["scripts/**/*.test.{js,ts}"],
     environment: "node"
   }
 })

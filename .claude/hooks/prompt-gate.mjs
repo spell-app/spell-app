@@ -11,7 +11,8 @@
  *
  * ## What it does, in order
  * - stdin `{ prompt, cwd, session_id, permission_mode, ... }`
- * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` and `/unpark <name>`.
+ * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...`) and
+ *   `/unpark <name>`.  `review` is a reserved epic name:  a review runs from any window, and keeps the session's name.
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
  * 1. Plan mode, on `/isolate` or `/epic`:  blocks the prompt.  Why:  plan mode lets Claude write only the harness
  *    plan file, so no worktree can be made, and `ExitPlanMode` would ask Owen to approve a half-made plan.
@@ -97,6 +98,8 @@ export function parseCommand(prompt) {
   const [word, rest] = quoted ? [quoted[2], quoted[3]] : splitFirst(args)
   const name = kebab(word)
   if (!name || (skill === "isolate" && name === "done")) return null
+  // `/epic review [<name>]` runs from any window and keeps the session's name:  nothing to gate
+  if (skill === "epic" && name === "review") return null
   return { skill, name, text: rest.trim() }
 }
 

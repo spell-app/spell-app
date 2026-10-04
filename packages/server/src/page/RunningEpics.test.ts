@@ -94,14 +94,41 @@ describe("RunningEpics", () => {
     expect((await ask(port, "GET", "/worktrees/seo/.env")).status).toBe(403)
   })
 
-  it("puts a Running epics section in the docs index, by its marker", async () => {
+  it("puts the running epics' cards at the marker in the Epics list, each title after its state", async () => {
     const index = (await ask(port, "GET", "/packages/docs/index.html")).text
     expect(index).not.toContain(MARKER)
-    expect(index).toContain(`<ui-section id="running-epics"`)
     expect(index).toContain(`href="/worktrees/seo/packages/docs/epics/seo/seo.html"`)
-    expect(index).toContain(`color="orange">P2 · Site Map</ui-label>`)
-    expect(index).toContain(`color="blue">planning</ui-label>`)
+    // in progress:  [done/all], the active phase in the meta line
+    expect(index).toContain(`<ui-label class="spell-epic-state" size="mini" basic>1/3</ui-label> <a`)
+    expect(index).toContain("<ui-meta>P2 · Site Map · .claude/worktrees/seo</ui-meta>")
+    // planning:  a blue thought bubble;  open, so Open | All keeps it
+    expect(index).toMatch(/data-epic="vite" data-status="open">.*name="comment dots" color="blue"/)
     expect(index).toContain("SEO &amp; co")
+  })
+
+  it("drops a merged epic's card when the epic runs in a worktree;  stalled after a few days without update", () => {
+    // the closing tag split over lines, as oxfmt writes it
+    const page = `<ui-cards>${MARKER}<ui-card data-epic="seo" data-status="done"><ui-content>old</ui-content></ui-card\n  ><ui-card data-epic="other"><ui-content>x</ui-content></ui-card></ui-cards>`
+    const html = new RunningEpics(root).render(page)
+    expect(html).not.toContain(">old<")
+    expect(html).toContain('data-epic="other"')
+    const stale = mkdtempSync(join(tmpdir(), "srv-epics-stale-"))
+    try {
+      put(
+        stale,
+        ".claude/worktrees/slow/packages/docs/epics/slow/slow.html",
+        planDoc("Slow", [
+          ["done", "P1 · One"],
+          ["todo", "P2 · Two"]
+        ]).replace("<body>", '<body>updated <time id="plan-updated">2026-01-01</time>')
+      )
+      expect(new RunningEpics(stale).list()[0]?.updated).toBe("2026-01-01")
+      expect(new RunningEpics(stale).render(MARKER)).toContain(
+        'name="circle pause" color="yellow" title="stalled:  no update since 2026-01-01"'
+      )
+    } finally {
+      rmSync(stale, { recursive: true, force: true })
+    }
   })
 
   it("renders nothing with no running epic, or no marker", () => {
