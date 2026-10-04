@@ -216,8 +216,9 @@ export class PlanDoc {
 
   /**
    * Append phase `name` (2-4 words) to `#phases` (and an old doc's phase list);  returns its number.
-   * - `goal` / `files` / `verify` / `estimate`:  its body's bullets, as HTML;  omitted ones get a placeholder to
-   *   fill in
+   * - `goal` / `files` / `verify`:  its body's fields, as HTML (a `<ul>` of bullets for the goal);  omitted ones get
+   *   a placeholder to fill in
+   * - `estimate` (`1-2h`):  the phase title's BADGE, not a body field (Owen, 2026-10-04);  old markup:  the field
    * - `<ui-section id="p3" data-phase data-status header="P3 · Name" ...>`, its status icon slotted;  old markup:
    *   `section.s3` > `ui-sticky.spell-h3` > `h3#p3`
    * - removes the "Plan hung?" notice (`ui-message.plan-hung`):  a plan with a phase has been written, so a hung
@@ -230,16 +231,18 @@ export class PlanDoc {
     const label = `P${n} · ${name}`
     this.addOldListEntry(n, label)
     const values = { Goal: goal, Files: files, Verify: verify, Estimate: estimate }
-    const body = PHASE_FIELDS.map(
+    const sections = section.localName === "ui-section"
+    const body = PHASE_FIELDS.filter(([field]) => !(sections && field === "Estimate")).map(
       ([field, glyph]) => `<ui-item icon="${glyph}"><b>${field}:</b>  ${values[field] ?? "TBD"}</ui-item>`
     )
     const list = `<ui-list class="plan-phase-body">${body.join("")}</ui-list>`
-    if (section.localName === "ui-section") {
+    if (sections) {
       const phase = this.element("ui-section", {
         id: `p${n}`,
         "data-phase": n,
         "data-status": "todo",
         header: label,
+        ...(estimate && { badge: estimate }),
         sticky: "",
         collapsible: "",
         dividing: ""
@@ -259,11 +262,16 @@ ${list}`
   }
 
   /**
-   * Set phase `n`'s estimate (`2h`, `1-2h`), adding the field to a phase made before it existed;  then the
-   * Overview's total.
+   * Set phase `n`'s estimate (`2h`, `1-2h`):  the phase title's badge (dropping an old Estimate field);  old markup:
+   * the field, added to a phase made before it existed.  Then the Overview's total.
    */
   setEstimate(n, estimate) {
     const section = this.phaseSection(n)
+    if (section.localName === "ui-section") {
+      section.setAttribute("badge", estimate)
+      estimateField(section)?.remove()
+      return this.updateEstimate()
+    }
     const body = section.querySelector(":scope > .plan-phase-body")
     if (!body) throw new PlanDocError(`phase ${n} has no body (\`.plan-phase-body\`)`)
     const html = `<b>Estimate:</b>  ${text(estimate)}`
@@ -321,9 +329,11 @@ ${list}`
    * - `done` removes the phase's UPDATE markers:  once it's finished, its changes are just the plan
    * - `done` also folds every OTHER done phase (`collapsed`;  old markup:  `data-fold="closed"`, read by the page
    *   runtime):  the phase just finished stays open, the older ones get out of the way
+   * - `done` with `{ done }` (HTML:  a `<ul>` of what was built, what Owen will ask about first):  the phase's Done
+   *   field, after its Goal (`setDone()`)
    * - SIDE EFFECT:  logs the change
    */
-  setPhase(n, status) {
+  setPhase(n, status, { done } = {}) {
     if (!STATUS[status]) throw new PlanDocError(`status must be ${Object.keys(STATUS).join(" / ")}, not "${status}"`)
     const section = this.phaseSection(n)
     const entry = this.document.querySelector(`.plan-phases > [data-phase="${n}"]`)
@@ -345,10 +355,44 @@ ${list}`
     if (status === "done") {
       for (const marker of this.updateMarkers(n)) marker.remove()
       this.foldDonePhases(n)
+      if (done) this.setDone(n, done)
     } else setFolded(section, false)
     this.updateProgress()
     this.updateEstimate()
     this.log(`P${n} ${status}`)
+  }
+
+  /**
+   * Phase `n`'s Done field:  what was built, as HTML (a `<ul>`, most-asked-about first), just after its Goal;
+   * replaces an earlier one.
+   */
+  setDone(n, html) {
+    const body = this.phaseSection(n).querySelector(":scope > .plan-phase-body")
+    if (!body) throw new PlanDocError(`phase ${n} has no body (\`.plan-phase-body\`)`)
+    const old = Array.from(body.children).find((item) => /^Done:/.test(item.textContent.trim()))
+    const field = this.fragment(`<ui-item icon="circle check"><b>Done:</b>  ${html}</ui-item>`)
+    if (old) return old.replaceWith(field)
+    const goal = Array.from(body.children).find((item) => /^Goal:/.test(item.textContent.trim()))
+    if (goal) goal.after(field)
+    else body.prepend(field)
+  }
+
+  /**
+   * Each phase's Estimate field (`ui-item[icon=clock]`) into its title's badge (`badge="1-2h"`);  how many.
+   * - why:  Owen wants the estimate in the title, beside the status (2026-10-04);  `TBD` just goes
+   */
+  estimatesToBadges() {
+    let count = 0
+    for (const section of this.phaseSections) {
+      if (section.localName !== "ui-section") continue
+      const field = estimateField(section)
+      if (!field) continue
+      const value = field.textContent.trim().replace(/^Estimate:\s*/, "")
+      if (value && value !== "TBD") section.setAttribute("badge", value)
+      field.remove()
+      count++
+    }
+    return count
   }
 
   /** Fold every done phase but `latest` (the one finished last), which unfolds. */
@@ -971,6 +1015,8 @@ ${list}`
       this.foldDonePhases(done.at(-1).n)
       if (done.length > 1) changes.push(`${done.length - 1} done phases folded`)
     }
+    const badges = this.estimatesToBadges()
+    if (badges) changes.push(`${badges} phase estimates moved into their titles' badges`)
     // last:  the steps above may add sections with an intro (`section.s2` converted, "To test")
     const tips = this.introsToTips()
     if (tips) changes.push(`${tips} section intros as title tooltips (data-tip)`)
@@ -1470,8 +1516,13 @@ function estimateField(section) {
   return Array.from(body?.children ?? []).find((item) => /^Estimate:/.test(item.textContent.trim()))
 }
 
-/** Phase `section`'s estimate, as text;  `undefined` while missing or `TBD`. */
+/**
+ * Phase `section`'s estimate, as text:  its title's badge, else (old docs) its field;  `undefined` while missing or
+ * `TBD`.
+ */
 function estimateText(section) {
+  const badge = section.localName === "ui-section" ? section.getAttribute("badge") : null
+  if (badge) return badge
   const value = estimateField(section)
     ?.textContent.trim()
     .replace(/^Estimate:\s*/, "")
@@ -1567,7 +1618,9 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
                                                    copy the template, fill it in, update the docs index
   add-phase <name> "Short Name" [--goal html] [--files html] [--verify html] [--estimate 2h]
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
-  phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
+  phase <name> <N> todo|active|done [--done html] [--no-open]
+                                                   set a phase's status;  done drops its UPDATE markers, and
+                                                   --done writes its Done field (a <ul> of what was built);
                                                    brings the doc forward in VS Code (it updates itself)
   add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html]    prints the new id
   decide <name> <Q id> "decision" [--details html]  answer a question:  a decision, the question struck beside it
@@ -1627,7 +1680,9 @@ function main(argv) {
       return console.log(`P${n}`)
     }
     case "phase":
-      edit(file, (plan) => plan.setPhase(Number(need(rest[0], "a phase number")), need(rest[1], "a status")))
+      edit(file, (plan) =>
+        plan.setPhase(Number(need(rest[0], "a phase number")), need(rest[1], "a status"), { done: flags.done })
+      )
       reindex()
       // a new stage:  bring the doc forward, unless told not to.  No reload, nor a second one:  the edit reaches the
       // page by the live client (it updates itself in place, `spell-doc-runtime.js` `wireLiveUpdate()`), and showing

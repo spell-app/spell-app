@@ -287,3 +287,41 @@ ui-section:has(> ui-list.plan-items:empty)::after {
   --_ui-list-item-border-width: 0;
   --ui-list-item-border-width: 0;
 }
+
+/*
+ * The phases' Files and Verify lines:  hidden until their toggle on the Phases title is pressed (`data-show-files`
+ * / `data-show-verify` on `#phases`, `spell-doc-runtime.js` `wirePhaseToggles()`).  The toggles:  bare icons,
+ * muted, the accent while pressed.
+ */
+#phases:not([data-show-files]) .plan-phase-body > ui-item[icon="folder"],
+#phases:not([data-show-verify]) .plan-phase-body > ui-item[icon="flask"] {
+  display: none;
+}
+.plan-phase-toggles {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+button.plan-phase-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+button.plan-phase-toggle:hover {
+  background: var(--spell-accent-soft);
+}
+button.plan-phase-toggle[aria-pressed="true"] {
+  color: var(--spell-accent);
+}
+button.plan-phase-toggle:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}

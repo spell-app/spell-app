@@ -8,10 +8,29 @@ How to write and update `epics/<name>/<name>.html`, the live doc behind a `/epic
 - Use `yarn plan-doc <command>` wherever one exists (below):  it keeps ids, icons, UPDATE markers and the
   "updated" date consistent, and locks the file against parallel agents.  Hand-edit only prose:  the summary,
   Overview, phase bodies, item details.
-- Style:  caveman lite.
-  - drop filler words and articles where they don't help;  fragments OK
-  - keep a full sentence where a fragment would be ambiguous
+- Write for Owen coming back COLD (2026-10-04;  the details skill's "Writing for Owen" is the same rule):  he runs
+  5+ epics, and reads an item weeks later, from another session.  Enough that he can pick up ONE phase or item on
+  its own.  NOT caveman:
+  - a plain lead sentence first:  what it is, for whom, how he'd notice it
+  - then bullets, one idea each, nested for sub-points;  never a list run together inside a sentence ("a, b, c and
+    d" is four bullets)
+  - full words, the articles back in;  short sentences
+  - a concrete example for anything tricky:  the real code, the command and what it prints, a before / after, a
+    table of values
+  - ids explained:  "the inbox file decision (D1)", never a bare `D1`
   - identifiers, paths and numbers exact
+- Questions, issues, judgement calls and decisions end with a **Net effect** (Owen, 2026-10-04):  what concretely
+  changes, one bullet each:
+
+  ```html
+  <p><b>Net effect:</b></p>
+  <ul>
+    <li><code>D7 (Q3)</code> becomes <code>Q3</code>, answered</li>
+    <li>rule semantics changed:  an answered question is no longer struck</li>
+  </ul>
+  ```
+
+  For a question:  the recommended option's net effect (each option card may carry its own).
 - Lists:  bulleted, or numbered when order or reference matters.
 - NEVER delete an item:  close it (`yarn plan-doc close`), and it stays, struck through.
 - Keep the doc current as you go:  a caveat, issue or decision found mid-phase goes in NOW, not at the end.
@@ -40,7 +59,7 @@ Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan
 |---|---|---|
 | Overnight · `<date>` | `#overnight` | TEMPORARY, unnumbered, above the Overview:  a `/bedtime` run's report (summary, a line per phase, problems), `data-bedtime="active"` while it runs, `"done"` after.  Only `yarn plan-doc overnight` writes it;  `/epic review` removes it once the night's judgement calls are reviewed.  Nothing in it is only there:  calls, problems and todos are items, phases are log lines |
 | 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`, folded in a "Kickoff prompt" aside), the total estimate (`p.plan-estimate`, written by the script), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
-| 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  goal, files, verify, estimate |
+| 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  its estimate as the title's badge;  Goal (bullets), Done (bullets, once done), Files and Verify (hidden until the folder / flask toggle on the Phases title is pressed) |
 | 3. Questions & Decisions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then what was decided and why:  settled unless new facts arrive.  `decide` answers a question:  the decision goes at the end, the struck question just above it |
 | 4. Judgement calls | `#judgements` | choices Claude made WITHOUT the user (a `/bedtime` run, an agent mid-phase):  title the choice, details "chose X over Y because Z" + the options;  open until the user reviews it, `close` = accepted, disagreement becomes a question.  Every one ALSO linked from its phase's body (`<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j2">J2</a></ui-item>`) |
 | 5. Caveats | `#caveats` | limits and risks we accept |
@@ -99,19 +118,26 @@ Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `valu
 `hidden` while there are none):
 
 ```html
-<ui-section id="p2" data-phase="2" data-status="active" header="P2 · Short Name" sticky collapsible dividing>
-  <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+<ui-section id="p2" data-phase="2" data-status="done" header="P2 · Short Name" badge="1-2h" sticky collapsible dividing>
+  <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
   <ui-list class="plan-phase-body">
-    <ui-item icon="bullseye"><b>Goal:</b>  one line</ui-item>
+    <ui-item icon="bullseye"><b>Goal:</b>  <ul><li>what it's for, a bullet per outcome</li></ul></ui-item>
+    <ui-item icon="circle check"><b>Done:</b>  <ul><li>what was built, most-asked-about first</li></ul></ui-item>
     <ui-item icon="folder"><b>Files:</b>  what changes</ui-item>
     <ui-item icon="flask"><b>Verify:</b>  how we know it worked</ui-item>
-    <ui-item icon="clock"><b>Estimate:</b>  1-2h</ui-item>
   </ui-list>
 </ui-section>
 ```
 
-- Estimate:  wall-clock time for Claude to do the phase, agents included, Owen's review not.  `30m`, `2h`, `1h30m`,
-  or a range, `1-2h`.  `yarn plan-doc estimate <name> <N> "..."` changes it.
+- Goal:  a `<ul>`, one bullet per outcome, in Owen's terms (what he'll see or be able to do), not the build steps.
+- Done:  written when the phase is done (`phase <name> <N> done --done "<ul>..."`), a `<ul>` of what was BUILT,
+  ordered by what Owen asks about first:  where to see it, what changed in how he works, what's still rough or
+  untested by hand, then the rest.  Not the commit list (that's Commits, P3 of `review-review`).
+- Files and Verify:  hidden in the browser until the folder / flask toggle on the Phases title is pressed
+  (`spell-doc-runtime.js` `wirePhaseToggles()`);  still written for every phase.
+- Estimate:  the title's `badge`.  Wall-clock time for Claude to do the phase, agents included, Owen's review not.
+  `30m`, `2h`, `1h30m`, or a range, `1-2h`.  `yarn plan-doc estimate <name> <N> "..."` changes it;  docs before
+  2026-10-04 had an Estimate field (`migrate` moves it into the badge).
 - The total, in the Overview below the summary and the prompt:
 
   ```html
@@ -229,6 +255,7 @@ decide from WITHOUT asking back:  in the item's details, or an Overview sub-sect
 - Live:  when the doc's bundle has the components, a working example (a resizable box for layout;  real buttons
   for behaviour);  click it through in a browser before handing back.
 - Keep code in side-by-side boxes short (~40 columns) or it clips;  look at the screenshot.
+- End with the **Net effect** (see "Rules").
 - The AskUserQuestion that asks it uses the same option names and order as the doc.
 
 ## Commands (`yarn plan-doc ...`, from anywhere in the repo)
@@ -240,8 +267,9 @@ worktree took of an epic merged before it was cut:  editing that would fork the 
 | Command | Does |
 |---|---|
 | `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `epics/<name>/<name>.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
-| `add-phase <name> "Short Name" [--goal ...] [--files ...] [--verify ...]` | append a phase to the list and to `#phases` |
-| `phase <name> <N> todo\|active\|done [--no-open]` | set a phase's status;  `done` removes its UPDATE markers;  reloads the doc's VS Code tab |
+| `add-phase <name> "Short Name" [--goal <html>] [--files ...] [--verify ...] [--estimate 1-2h]` | append a phase to the list and to `#phases`;  the goal a `<ul>`, the estimate the title's badge |
+| `phase <name> <N> todo\|active\|done [--done <html>] [--no-open]` | set a phase's status;  `done` removes its UPDATE markers, and `--done` writes its Done field;  brings the doc forward in VS Code |
+| `estimate <name> <N> "1-2h"` | change a phase's estimate (its title's badge);  the Overview's total follows |
 | `add <name> question\|judgement\|caveat\|issue\|todo\|test\|decision "<title>" [--details "<html>"]` | append an item, print its id |
 | `close <name> <id>` / `reopen <name> <id>` | strike / unstrike an item |
 | `decide <name> <Q id> "<decision>" [--details "<html>"]` | answer a question:  a new decision (prints its id), the question struck and moved just above it |
@@ -258,4 +286,4 @@ worktree took of an epic merged before it was cut:  editing that would fork the 
 | `backfill <name> \| --all [--apply]` | one-off:  items not reviewed that Owen named in a past session of the epic (his message, or a modal he answered);  a dry run unless `--apply`, which marks them dated that day (`scripts/review-backfill.js`) |
 | `summary <name> [--json]` | open questions, judgement calls, issues, caveats, todos, tests, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
-| `open <name>` | show the doc rendered in VS Code (Simple Browser, beside the editor), reusing its tab and reloading it;  needs the spell extension (`yarn vscode`) |
+| `open <name>` | show the doc rendered in VS Code's doc preview (the right side bar's "Spell Docs" tab);  needs the spell extension (`yarn vscode`) |

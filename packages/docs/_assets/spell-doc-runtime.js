@@ -197,8 +197,16 @@ function highlight() {
  */
 const ADDED = ".spell-item-filter, .spell-hidden-note, .plan-review, [data-spell-added]"
 
-/** Attributes the reader's state lives in (folds, open panels, counts, the item filter):  a patch keeps them. */
-const KEPT_ATTRIBUTES = new Set(["collapsed", "open", "badge", "data-show"])
+/**
+ * Attributes the reader's state lives in (folds, open panels, counts, the item filter, the phases' Files / Verify
+ * toggles):  a patch keeps them (`isKept()`).
+ */
+const KEPT_ATTRIBUTES = new Set(["collapsed", "open", "badge", "data-show", "data-show-files", "data-show-verify"])
+
+/** Does a patch keep attribute `name` of `element` (the reader's)?  Not a phase's `badge`:  its estimate, from the source. */
+function isKept(name, element) {
+  return KEPT_ATTRIBUTES.has(name) && !(name === "badge" && element.hasAttribute("data-phase"))
+}
 
 /**
  * Elements that manage their children (panels and tabs by index, options):  a change inside replaces the whole
@@ -402,7 +410,7 @@ function planAttributes(before, after, live, plan) {
   const changes = []
   for (const name of new Set([...before.getAttributeNames(), ...after.getAttributeNames()])) {
     const value = after.getAttribute(name)
-    if (!KEPT_ATTRIBUTES.has(name) && value !== before.getAttribute(name)) changes.push([name, value])
+    if (!isKept(name, before) && value !== before.getAttribute(name)) changes.push([name, value])
   }
   if (!changes.length) return
   plan.changed.push(live)
@@ -2060,8 +2068,61 @@ function buildChrome() {
   const main = document.querySelector("main.spell-doc-main") ?? document.querySelector("main")
   if (!main) return
   buildReviewLine(main)
+  wirePhaseToggles(main)
   void wireTips(main)
-  addEventListener("spell-doc:updated", () => void wireTips(main))
+  addEventListener("spell-doc:updated", () => {
+    wirePhaseToggles(main)
+    void wireTips(main)
+  })
+}
+
+/** localStorage key prefix of a plan doc's Files / Verify toggles:  `spell-phase-fields:<path>`. */
+const PHASE_FIELDS_KEY_PREFIX = "spell-phase-fields:"
+
+/** The phases' fields a toggle shows:  the field, its icon (the body item's too), and the button's tooltip. */
+const PHASE_TOGGLES = [
+  ["files", "folder", "Show each phase's files"],
+  ["verify", "flask", "Show how each phase is checked"]
+]
+
+/**
+ * A plan doc's Phases section (`#phases`):  a bare folder and flask button on its title, showing or hiding every
+ * phase's Files and Verify lines, hidden by default (Owen, 2026-10-04).
+ * - the choice:  `data-show-files` / `data-show-verify` on `#phases` (`plan-doc.css` hides the lines without
+ *   them);  a pressed button is colored;  remembered per page (`localStorage`)
+ * - in the title's `actions` slot;  callable again (a page updated in place):  replaces the buttons it added
+ */
+function wirePhaseToggles(main) {
+  const phases = main.querySelector(":scope > ui-section#phases")
+  phases?.querySelector(":scope > .plan-phase-toggles")?.remove()
+  if (!phases?.querySelector(".plan-phase-body")) return
+  const key = `${PHASE_FIELDS_KEY_PREFIX}${location.pathname}`
+  const saved = readJSON(key)
+  const group = document.createElement("span")
+  group.className = "plan-phase-toggles"
+  group.slot = "actions"
+  group.dataset.spellAdded = ""
+  for (const [field, glyph, tip] of PHASE_TOGGLES) {
+    const button = document.createElement("button")
+    button.type = "button"
+    button.className = "plan-phase-toggle"
+    button.title = tip
+    button.setAttribute("aria-label", tip)
+    button.innerHTML = `<ui-icon name="${glyph}"></ui-icon>`
+    button.addEventListener("click", () => show(field, button, !phases.hasAttribute(`data-show-${field}`)))
+    group.append(button)
+    show(field, button, !!saved[field], false)
+  }
+  phases.append(group)
+
+  /** Show (or hide) `field`'s lines, press `button` to match;  remember it unless `save` is false. */
+  function show(field, button, on, save = true) {
+    phases.toggleAttribute(`data-show-${field}`, on)
+    button.setAttribute("aria-pressed", String(on))
+    if (!save) return
+    saved[field] = on
+    writeJSON(key, saved)
+  }
 }
 
 /**

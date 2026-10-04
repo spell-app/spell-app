@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Epic: Review Review</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Fuller Writing</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3"
+                >next: P3 · Status And Commits</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -187,7 +189,7 @@
               </blockquote></ui-content
             ></ui-accordion
           >
-          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 17h-25h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 16h-23h left</p>
           <ui-section id="o1" header="1.1 The new review loop" sticky collapsible dividing>
             <p>What a review looks like once this epic is done, step by step:</p>
             <ol>
@@ -383,11 +385,13 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
+            collapsed
+            badge="3-4h"
             id="p1"
             data-phase="1"
             data-status="done"
@@ -418,6 +422,36 @@
                     line that copies the command on click.
                   </li>
                   <li>Built by three agents at once (side bar, reloads, chrome), each on its own files.</li>
+                </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    Where to see it: VS Code's right side bar has two tabs, <b>Spell Docs</b> (the spell hat) and
+                    <b>Review</b> (a circle check); each keeps its own page.
+                  </li>
+                  <li>
+                    A plan doc changing under you no longer reloads: the page swaps in what changed, so your scroll,
+                    open sections and typed text stay. The address follows the section you're reading, so a reload or a
+                    VS Code restart lands you back there.
+                  </li>
+                  <li>
+                    The contents rail: a 32px ivory strip, only as tall as its entries; an orange bar marks sections
+                    with open items, and hovering widens it to show names and counts. The contents drawer is ivory too.
+                  </li>
+                  <li>
+                    Section titles: the fold chevron at the far right, a bigger count; folding a section you're inside
+                    no longer bounces. Each section's one-line intro is now the tooltip on its title.
+                  </li>
+                  <li>Option cards (A / B / C): a lighter header bar and no empty band under the text.</li>
+                  <li>
+                    Plan docs are titled <code>Epic: &lt;name&gt;</code>; the kickoff prompt is folded away; a line
+                    under the header copies <code>/epic review &lt;name&gt;</code> on click.
+                  </li>
+                  <li>
+                    Not tried by hand in VS Code yet: the "To test" items V1-V6 (tabs, no flash, rail in the side bar,
+                    the copy line).
+                  </li>
                 </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
@@ -474,19 +508,20 @@
                   ><code>check-spell.js</code></a
                 >
                 on three docs, screenshots looked at</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1-2h"
             id="p2"
             data-phase="2"
-            data-status="todo"
+            data-status="done"
             header="P2 · Fuller Writing"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -504,7 +539,40 @@
                     <b>Updated:</b> the estimate moves out of the body into the phase's title, as a badge just left of
                     its status, e.g. <code>1-2h</code> (it was in your kickoff, but no phase had it).
                   </li>
-                  <li><b>Updated:</b> every question, issue and decision ends with a Net effect list (<a href="#d12">D12</a>).</li>
+                  <li>
+                    <b>Updated:</b> every question, issue and decision ends with a Net effect list (<a href="#d12"
+                      >D12</a
+                    >).
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    The writing rules changed: plan docs are now written for you coming back cold: a plain lead
+                    sentence, then bullets, full words, an example for anything tricky, ids explained, and a
+                    <b>Net effect</b> list closing every question, issue, judgement call and decision (<a
+                      href="../../templates/epics/plan-doc.md"
+                      target="src-packages-docs-templates-epics-plan-doc-md"
+                      ><code>plan-doc.md</code></a
+                    >
+                    "Rules"; the <code>/epic</code> and <code>/bedtime</code> skills point to it).
+                  </li>
+                  <li>
+                    Phases: the estimate is the title's badge (e.g. <code>3-4h</code>); Goal is bullets; a finished
+                    phase gets a <b>Done</b> list like this one (<code
+                      >yarn plan-doc phase &lt;name&gt; &lt;N&gt; done --done "&lt;ul&gt;..."</code
+                    >).
+                  </li>
+                  <li>
+                    Files and Verify are hidden: the folder and flask buttons on the Phases title show them, and
+                    remember your choice per doc.
+                  </li>
+                  <li>
+                    Old docs get the estimate badge and the hidden intros when P4 migrates them; this doc already has
+                    them.
+                  </li>
+                  <li>Not done here: commits per phase (P3), and rewriting old docs' text (P4, P8).</li>
                 </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
@@ -520,11 +588,13 @@
                 <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
                   ><code>plan-doc.js</code></a
                 >, the runtime</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> plan-doc tests; this doc rewritten in the new shape</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ><ui-item icon="flask"
+                ><b>Verify:</b> plan-doc tests; this doc rewritten in the new shape</ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="3-4h"
             id="p3"
             data-phase="3"
             data-status="todo"
@@ -545,10 +615,10 @@
                   <li>A filter button on each section's title steps through those colors.</li>
                   <li>
                     <b>Updated:</b> item titles laid out in columns (chevron left, id, title, then icons and buttons),
-                    so a narrow side bar never wraps the title under them;  per item, folder / flask / git icons only
+                    so a narrow side bar never wraps the title under them; per item, folder / flask / git icons only
                     when it has files, a check or commits (it was in your kickoff, but no phase had it).
                   </li>
-                  <li><b>Updated:</b> questions and decisions merge:  one Q id per topic (<a href="#d13">D13</a>).</li>
+                  <li><b>Updated:</b> questions and decisions merge: one Q id per topic (<a href="#d13">D13</a>).</li>
                   <li>
                     Each phase ends with a "To review: I3, T4, J1" line linking what it raised that you haven't
                     reviewed.
@@ -576,10 +646,11 @@
                 <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
                   ><code>check-spell.js</code></a
                 >; commits filled in on one old doc look right</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2-3h"
             id="p4"
             data-phase="4"
             data-status="todo"
@@ -632,10 +703,19 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> Tests of every package touched; <code>yarn docs:update</code>; an old address redirects;
                 running epics still found</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · Item Actions" sticky collapsible dividing>
+          <ui-section
+            badge="3-4h"
+            id="p5"
+            data-phase="5"
+            data-status="todo"
+            header="P5 · Item Actions"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -663,10 +743,19 @@
                 (<code>inbox</code>)</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> Route tests; Playwright clicks through the menu; marks survive a live reload</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Claude Side" sticky collapsible dividing>
+          <ui-section
+            badge="3-4h"
+            id="p6"
+            data-phase="6"
+            data-status="todo"
+            header="P6 · Claude Side"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -700,10 +789,11 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> A dry run on a real doc: approve, todo, pick, revisit soon and now; the doc ends up
                 right</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1h"
             id="p7"
             data-phase="7"
             data-status="todo"
@@ -739,11 +829,11 @@
                 <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
                   ><code>plan-doc.js</code></a
                 >, <code>epics.py</code>, <code>/wtf</code> and <code>/epics</code></ui-item
-              ><ui-item icon="flask"><b>Verify:</b> Skills read end to end; plan-doc tests</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+              ><ui-item icon="flask"><b>Verify:</b> Skills read end to end; plan-doc tests</ui-item></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2-3h"
             id="p8"
             data-phase="8"
             data-status="todo"
@@ -766,10 +856,11 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> <code>yarn docs:update</code>; three docs compared with their git versions: nothing
                 lost</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1-2h"
             id="p9"
             data-phase="9"
             data-status="todo"
@@ -799,11 +890,19 @@
                   ><code>.claude/skills/epic/SKILL.md</code></a
                 >
                 "3. Plan"</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> You read the proposal</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ><ui-item icon="flask"><b>Verify:</b> You read the proposal</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p10" data-phase="10" data-status="todo" header="P10 · Doc Review" sticky collapsible dividing>
+          <ui-section
+            badge="1-2h"
+            id="p10"
+            data-phase="10"
+            data-status="todo"
+            header="P10 · Doc Review"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -824,7 +923,7 @@
                 <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
                   ><code>check-spell.js</code></a
                 >; links checked</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section></ui-section
         >
@@ -1812,7 +1911,36 @@
 
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title">The phases' progress bar label is cut off at its left end</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The green bar above the phases shows its label ("1 of 10") inside the filled part, so with one phase
+                    of ten done the label overflows the bar's left edge and is clipped.
+                  </p>
+                  <ul>
+                    <li>Seen at 700px wide, in the side bar too.</li>
+                    <li>
+                      It's the <code>ui-progress.plan-progress</code> the script writes, with
+                      <code>bar-text="ratio"</code>.
+                    </li>
+                    <li>
+                      Likely fix: put the text after the bar (a label), or let it sit outside the fill while the fill is
+                      narrow.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the progress line reads "1 of 10 phases done" in full, at any width</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section
@@ -2157,6 +2285,35 @@
                   ><ui-date><time datetime="2026-10-04T12:22-04:00">2026-10-04 12:22</time></ui-date> P1 follow-up
                   (Owen's look): rail flyout icons on the left, strip and drawers in the accent colors, no bounce when
                   folding a section you're inside, section intros moved into title tooltips</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:38-04:00">2026-10-04 12:38</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:42-04:00">2026-10-04 12:42</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:43-04:00">2026-10-04 12:43</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:43-04:00">2026-10-04 12:43</time></ui-date> P2 done: writing
+                  rules (cold reader, bullets, Net effect), estimate badges, Done field, Files / Verify toggles; checks:
+                  docs scripts 93, check-spell on 2 docs, check-live ok</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
