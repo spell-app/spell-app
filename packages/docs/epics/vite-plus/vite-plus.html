@@ -37,7 +37,7 @@
           >
           <ui-item icon="calendar"
             >Started <time id="plan-started">2026-10-02</time>, updated
-            <time id="plan-updated">2026-10-02</time></ui-item
+            <time id="plan-updated">2026-10-04</time></ui-item
           >
         </ui-list>
 
@@ -457,7 +457,7 @@
               <span class="plan-title"
                 >No speed win for dev / build / test: same engines. Only vp run caching saves time</span
               ></ui-item
-            ><ui-item id="c6" data-status="open"
+            ><ui-item id="c6" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c6">C6</a>
@@ -468,6 +468,10 @@
                   ><p>
                     Same on main (baseline) and vite-plus: first run after install,
                     <code>Failed to fetch dynamically imported module .vite/deps/...</code>. Second run: 251/251.
+                    <strong>Fixed:</strong> the tests import <code>spellRuntime.ts</code> by URL, so the up-front
+                    dependency scan never reached its imports (<code>semantic-ui-react</code>,
+                    <code>lodash/cloneDeep</code>); it is now one of <code>optimizeDeps.entries</code> in
+                    <code>packages/app/vitest.config.ts</code>. Cold: 251/251.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -856,6 +860,13 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T23:26-04:00">2026-10-02 23:26</time></ui-date> Bedtime done: 4
                   done, 0 WIP, 0 skipped</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:01-04:00">2026-10-04 17:01</time></ui-date> C6 closed: Cold
+                  vite deps cache fails app browser tests on a fresh install; they pass warm</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

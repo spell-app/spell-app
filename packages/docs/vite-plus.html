@@ -288,8 +288,9 @@ export default defineConfig({
               >; if saves add semicolons, it isn't.
             </li>
             <li>
-              A fresh install's first app browser test run fails (cold vite deps cache); it passes warm. Same on
-              <code>main</code>.
+              Fixed: a fresh install's first app browser test run used to fail (cold vite deps cache), also on
+              <code>main</code>. The tests import <code>spellRuntime.ts</code> by URL, so it is now listed in
+              <code>optimizeDeps.entries</code> (<code>packages/app/vitest.config.ts</code>).
             </li>
             <li>cli's process-spawning tests can time out at 5s when everything runs at once; they pass alone.</li>
             <li>Vite+ also manages Node and the package manager; we keep corepack yarn 4.18 and don't use that.</li>

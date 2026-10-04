@@ -67,7 +67,9 @@ function browserConfig() {
     optimizeDeps: {
       ...config.optimizeDeps,
       // crawl the tests' imports up front:  `$/app/editor` pulls in more (`marked`, `semantic-ui-react`, lodash ...)
-      entries: BROWSER_TESTS,
+      // - `spellRuntime.ts` too:  tests import it by URL (`editor.loadRuntime()`), which the crawl can't follow, so
+      //   ITS deps (`semantic-ui-react`, `lodash/cloneDeep` ...) were found mid-run on a fresh cache (C6)
+      entries: [...BROWSER_TESTS, "src/runner/spellRuntime.ts"],
       include: ["react", "react-dom", "react-dom/client", "solid-js", "@solidjs/web"]
     }
   }
