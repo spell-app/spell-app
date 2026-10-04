@@ -1241,6 +1241,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   update a flagged file even when it's unchanged.  `git checkout -- <file>` alone doesn't help while flagged. ·
   Back them up, `git update-index --no-skip-worktree` (paths from the REPO ROOT), `git checkout -- workspaces`,
   merge, write the local edits back on top, `git update-index --skip-worktree` again. · claude-code
+- 2026-10-03 · An epic's worktree window (`workspaces/ongoing/<name>.code-workspace`) showed no `packages/`
+  folder in `spell-app ⎇ <name>`, so its plan doc folder (`packages/docs/epics/<name>/`) couldn't be found to drop
+  files into.  `window.mjs`'s `worktreeWorkspace()` copies the package window's `"files.exclude": { packages: true }`,
+  which hides `packages/` in EVERY folder of the window, the worktree's root too. · `worktreeWorkspace()` no longer hides
+  `packages` (and drops the package folder:  just the main root and `⎇ <name>`);  the window already open was
+  rewritten the same way. · claude-code
 
 ## vscode
 

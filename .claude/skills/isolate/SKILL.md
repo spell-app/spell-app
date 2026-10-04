@@ -38,7 +38,7 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
 2b. Where:  `node scripts/window.mjs stay-check` (`--epic` from `/epic`) prints `recommend stay|window` and why.
    AskUserQuestion "Where should `<name>` run?", its reasons in the question, the recommended option first with
    "(Recommended)":
-   - "New window `<pkg> ⎇ <name>`":  tinted, Explorer and Source Control on the worktree;  this window keeps its
+   - "New window `⎇ <name>`":  tinted, Explorer and Source Control on the worktree;  this window keeps its
      other sessions.  Steps 3-6.
    - "Stay in this window":  no move, same tab;  its changes show in Source Control (each worktree is its own repo
      there, `git.detectWorktrees`), not in Explorer;  no tint.  Step 3, then "Stay" below.
@@ -50,7 +50,7 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
 4. Open it in its own window (root `AGENTS.md` "Worktrees"), from the worktree's root:
    - `node scripts/window.mjs open <name>`:  a NEW window from `workspaces/ongoing/<name>.code-workspace` (main
      checkout, git-ignored), the package window's theme with a tinted title bar.  Folders:  the MAIN root (so every
-     session is listed), then the worktree's `packages/<pkg>` and root.
+     session is listed), then the worktree's root, `⎇ <name>`.
      `<pkg>`:  this session's window's.
    - "which package?" (this isn't a package window):  AskUserQuestion "Which package's window?", up to 4 packages
      the work touches, most likely first and "(Recommended)";  then `open <name> --pkg <pkg>`.
@@ -65,7 +65,7 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
      new window
    - fails:  say so in one line, and do "Continue" now, in this window
 6. END THE TURN now, so the move happens at once:  nothing else this turn (no `yarn install`, no exploring, no
-   questions).  One line:  "isolated in worktree `<name>` (branch `<name>`);  moving to `<pkg> ⎇ <name>`:  press
+   questions).  One line:  "isolated in worktree `<name>` (branch `<name>`);  moving to `⎇ <name>`:  press
    enter on `continue` there".  Why:  the move waits for the turn to end, and Owen waits for the move.
 
 ## Stay:  in this window
