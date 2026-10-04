@@ -1,0 +1,69 @@
+<!doctype html>
+<!--
+  The Spell UI site's LAYOUT:  every page's chrome, written ONCE.  A page's own file holds only its `<head>` and
+  `<main id="main" class="site-main">`;  the site bundle wraps that `main` in this file's `<body>` on first load
+  (`_src/SiteShell.ts`), and from then on the router (`_src/SiteRouter.ts`) swaps only the `main`, through a
+  `<ui-include select="main#main">` in `.site-content`, while everything here stays on screen.
+  - Relative URLs here are against THIS file (`_parts/`):  the shell makes them absolute as it mounts, so they hold
+    whichever page is shown.
+  - `<ui-root display="when-ready">`:  the page stays hidden until the layout is in and every element in it is
+    ready, then shows at once:  no flash of unstyled markup (plan doc ui-docs-rework, D2).
+  - `.site-content`:  the shell puts the page's `main` in here.
+  - Only `<body>` is used.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spell UI site layout</title>
+  </head>
+  <body>
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="when-ready">
+      <ui-menu inverted class="site-top-menu" aria-label="Site">
+        <ui-item class="site-menu-item">
+          <ui-button
+            class="site-menu-button"
+            icon="bars"
+            inverted
+            basic
+            compact
+            aria-label="Components"
+            title="Components"
+            commandfor="site-nav-flyout"
+            command="--show"
+          ></ui-button>
+        </ui-item>
+        <ui-item href="../index.html" class="site-logo"><b>Spell UI</b></ui-item>
+        <ui-item href="../getting-started.html" class="site-top-link">Getting started</ui-item>
+        <ui-item href="../grammar.html" class="site-top-link">Grammar</ui-item>
+        <ui-item href="../theming.html" class="site-top-link">Theming</ui-item>
+        <ui-item href="../icons.html" class="site-top-link">Icons</ui-item>
+        <ui-item position="right" class="site-themes-item">
+          <ui-docs-themes inverted size="small"></ui-docs-themes>
+        </ui-item>
+      </ui-menu>
+
+      <ui-flyout id="site-nav-flyout" position="left" inverted closable class="site-nav-flyout" aria-label="Components">
+        <ui-docs-nav aria-label="Components (menu)">
+          <ui-docs-themes slot="header" inverted size="small" class="site-flyout-themes"></ui-docs-themes>
+        </ui-docs-nav>
+      </ui-flyout>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <div class="site-page">
+          <div class="site-content"></div>
+          <ui-include class="site-footer" source="footer.html" page-styles load="visible"></ui-include>
+        </div>
+
+        <!-- "On this page":  the router points the toc at each page (`for` its tabs, `header` its main's data-toc-header) -->
+        <aside class="site-aside">
+          <ui-docs-toc class="site-toc"></ui-docs-toc>
+        </aside>
+      </div>
+    </ui-root>
+  </body>
+</html>

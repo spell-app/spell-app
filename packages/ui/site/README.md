@@ -28,8 +28,9 @@ site/
   components/
     index.html          the component index (cards between markers, written by `yarn site:index`)
     ui-<name>.html      one page per component family, named for its main tag
-  _parts/               header.html, footer.html:  shared chrome, pulled in with `<ui-include page-styles>`
-  _src/                 site.ts (the bundle's entry:  what's in it and why), snapshot.ts, site.css (layout glue only)
+  _parts/               layout.html:  EVERY page's chrome (top bar, nav, `<ui-root>`), written once;  footer.html
+  _src/                 site.ts (the bundle's entry:  what's in it and why), snapshot.ts, SiteShell.ts (mounts the
+                        layout), SiteRouter.ts (swaps pages), site.css (layout glue only)
   _assets/              GENERATED, committed:  the bundle (`site.js`, `site.css`, a lazy chunk per family);
                         `icon-packs` is a SYMLINK to `../../src/icons/icon-packs`.  NEVER edit
   _data/                components.json, icons.json (GENERATED, committed);  pages.json (hand-kept per-family facts)
@@ -44,11 +45,22 @@ Every page loads (`../` from `components/`):
 <script type="module" src="_assets/site.js"></script>
 ```
 
-`site.js` defines `<ui-root>`, which lazy-loads every other family, the doc-only `<ui-docs-*>` elements included
-(`src/docs-components/`), on first use.  The doc-only elements read `_data/components.json` (`SiteData`), never the
-vocabularies.
+A page's `<body>` is ONE `<main id="main" class="site-main">`, nothing else:
 
-Every page's root is `<ui-root class="site" stack-with="page" ...>`:  stacking examples (`stackable`, `doubling`,
+- First load:  `site.js` fetches `_parts/layout.html` and wraps the `main` in it (`SiteShell`), THEN defines
+  `<ui-root display="when-ready">`, so the page stays hidden until the layout is in and every element is ready, and
+  shows at once:  no flash of unstyled markup, no jump.  `site.css` hides the bare `main` until then (4s at most).
+- Later clicks on links to other pages of the site:  `SiteRouter` fetches the page, loads the families it uses, then
+  swaps only the `main` through a `<ui-include select="main#main">` and `pushState`s its real URL;  the chrome stays.
+  Back / forward, deep links and reloads work as with plain pages.
+- So:  inline scripts in `main` run again on every visit (the router re-runs them), and `<head>` styles DON'T follow
+  a swap:  put page styles in `main` or `_src/site.css`.
+- A page opened from disk (`file://`), or one whose layout fetch failed, shows its `main` alone.
+
+`<ui-root>` lazy-loads every other family, the doc-only `<ui-docs-*>` elements included (`src/docs-components/`), on
+first use.  The doc-only elements read `_data/components.json` (`SiteData`), never the vocabularies.
+
+The layout's root is `<ui-root class="site" stack-with="page" ...>`:  stacking examples (`stackable`, `doubling`,
 steps, form rows, items, token tables) stack by the SCREEN, as on fomantic-ui.com, not by the narrower docs column
 (`docs/theming.md` "Stacking").
 

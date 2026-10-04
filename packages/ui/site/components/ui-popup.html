@@ -17,912 +17,891 @@
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Popup">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-popup.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-popup%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/popup.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Popup
+            <ui-header>A popup displays additional information on top of a page.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-popup" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's popup page, section by section, in its order (Types:  JavaScript, then No JavaScript;  States;
+              Variations), plus our extras (Content parts, On click, Position, Every position, Hoverable).  Hover (or focus) a
+              target to see its popup;  a popup with no `for` attaches to the element just before it.
+              `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
+            -->
+            <ui-header level="2" dividing id="types">Types</ui-header>
 
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-popup.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-popup%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/modules/popup.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
+            <ui-header level="3" id="javascript">Popup element</ui-header>
+
+            <ui-message size="small" state="info"
+              >Popup comes as an element, <code>&lt;ui-popup&gt;</code>, with the full feature set (any markup,
+              triggers, events, flipping), and as a CSS-only <code>data-tooltip</code> attribute, which needs no
+              script and suits pages with many short hints.</ui-message
+            >
+
+            <ui-docs-example
+              header="Popup"
+              description="An element can specify popup content to appear.  With no `for`, the popup attaches to the element just before it."
+            >
+              <ui-button icon="plus" aria-label="Add users"></ui-button>
+              <ui-popup content="Add users to your feed"></ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Titled"
+              description="An element can specify popup content with a title:  `header`."
+            >
+              <ui-image avatar src="../images/avatar/small/elliot.jpg" alt="Elliot Fu"></ui-image>
+              <ui-popup header="Elliot Fu" content="Elliot has been a member since July 2012"></ui-popup>
+              <ui-image avatar src="../images/avatar/small/stevie.jpg" alt="Stevie Feliciano"></ui-image>
+              <ui-popup header="Stevie Feliciano" content="Stevie has been a member since August 2013"></ui-popup>
+              <ui-image avatar src="../images/avatar/small/matt.jpg" alt="Matt"></ui-image>
+              <ui-popup header="Matt" content="Matt has been a member since July 2014"></ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="HTML"
+              description="An element can specify HTML for a popup:  slotted `<ui-header>` / `<ui-content>` and any other markup.  Hover the card."
+            >
+              <ui-card>
+                <img src="../images/movies/totoro-horizontal.jpg" alt="" />
+                <ui-content>
+                  <ui-header>My Neighbor Totoro</ui-header>
+                  <ui-description
+                    >Two sisters move to the country with their father in order to be closer to their hospitalized
+                    mother, and discover the surrounding trees are inhabited by magical spirits.</ui-description
+                  >
+                </ui-content>
+                <ui-buttons width="2" attached="bottom">
+                  <ui-button icon="plus">Queue</ui-button>
+                  <ui-button primary icon="play">Watch</ui-button>
+                </ui-buttons>
+              </ui-card>
+              <ui-popup>
+                <ui-header>User Rating</ui-header>
+                <ui-content><ui-rating color="yellow" max-rating="5" value="5" readonly></ui-rating></ui-content>
+              </ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example header="Pre-Existing">
+              <p slot="description">An element can display a popup that is already included in the page.</p>
+              <ui-message slot="description" size="small" state="info"
+                >Every <code>&lt;ui-popup&gt;</code> is markup already in the page: there is no
+                <code>data-html</code> string to build one from.</ui-message
+              >
+              <ui-card>
+                <img src="../images/movies/watchmen-horizontal.jpg" alt="" />
+                <ui-content>
+                  <ui-header>Watchmen</ui-header>
+                  <ui-description
+                    >In a gritty and alternate 1985 the glory days of costumed vigilantes have been brought to a
+                    close by a government crackdown, but after one of the masked veterans is brutally murdered an
+                    investigation into the killer is initiated.</ui-description
+                  >
+                </ui-content>
+                <ui-buttons width="2" attached="bottom">
+                  <ui-button icon="plus">Queue</ui-button>
+                  <ui-button primary icon="play">Watch</ui-button>
+                </ui-buttons>
+              </ui-card>
+              <ui-popup header="User Rating">
+                <ui-rating color="yellow" value="3" readonly></ui-rating>
+              </ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="On click"
+              description='`on="click"` makes the popup a small non-modal dialog that toggles on click, for content you interact with;  `flowing` lets it be as wide as its content.'
+            >
+              <ui-button id="popup-types-plan">Choose a plan</ui-button>
+              <ui-popup for="popup-types-plan" on="click" position="bottom left" flowing header="Basic plan">
+                <p>Does not include upload or chat.</p>
+                <ui-button size="small" primary>Choose</ui-button>
+              </ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Content parts"
+              description='Slotted `<ui-header>` and `<ui-content>` style themselves as the popup&apos;s header and content.  This one opens on keyboard focus (`on="focus"`).'
+            >
+              <ui-button id="popup-types-parts">Parts</ui-button>
+              <ui-popup for="popup-types-parts" on="focus">
+                <ui-header>Slotted header</ui-header>
+                <ui-content>Slotted content, styled by the popup.</ui-content>
+              </ui-popup>
+            </ui-docs-example>
+
+            <ui-header level="3" id="no-javascript">No JavaScript</ui-header>
+
+            <ui-docs-example header="Tooltip">
+              <p slot="description">
+                An element can specify a simple tooltip that can appear without JavaScript via the
+                <code>data-tooltip</code> attribute. If the tooltip should be shown inverted, also add the
+                <code>data-inverted</code> attribute.
+              </p>
+              <ui-message slot="description" size="small" state="warning"
+                >Tooltips use an element's <code>::before</code> and <code>::after</code> pseudo-elements, and
+                screen readers don't reliably announce them: use them for hints only, and a
+                <code>&lt;ui-popup&gt;</code> for anything that matters.</ui-message
+              >
+              <ui-button icon="plus" aria-label="Add users" data-tooltip="Add users to your feed"></ui-button>
+              <ui-button
+                icon="plus"
+                aria-label="Add users"
+                data-tooltip="Add users to your feed"
+                data-inverted
+              ></ui-button>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Tooltip Position"
+              description="A tooltip can be shown at a specific position relative to the element via the `data-position` attribute."
+            >
+              <ui-button data-tooltip="Add users to your feed" data-position="top left">Top Left</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-position="top center">Top Center</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-position="top right">Top Right</ui-button>
+              <ui-divider></ui-divider>
+              <ui-button data-tooltip="Add users to your feed" data-position="bottom left">Bottom Left</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-position="bottom center"
+                >Bottom Center</ui-button
+              >
+              <ui-button data-tooltip="Add users to your feed" data-position="bottom right">Bottom Right</ui-button>
+              <ui-divider></ui-divider>
+              <ui-button data-tooltip="Add users to your feed" data-position="right center">Right Center</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-position="left center">Left Center</ui-button>
+            </ui-docs-example>
+            <ui-docs-example>
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-position="top left"
+                >Top Left</ui-button
+              >
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-position="top center"
+                >Top Center</ui-button
+              >
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-position="top right"
+                >Top Right</ui-button
+              >
+              <ui-divider></ui-divider>
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-position="bottom left"
+                >Bottom Left</ui-button
+              >
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-position="bottom center"
+                >Bottom Center</ui-button
+              >
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-position="bottom right"
+                >Bottom Right</ui-button
+              >
+              <ui-divider></ui-divider>
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-position="right center"
+                >Right Center</ui-button
+              >
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-position="left center"
+                >Left Center</ui-button
+              >
+            </ui-docs-example>
+            <ui-docs-example
+              description="Ours also sits beside the element, lined up with its top or bottom edge:  `left top`, `left bottom`, `right top`, `right bottom`."
+            >
+              <ui-button data-tooltip="Add users to your feed" data-position="right top">Right Top</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-position="right bottom">Right Bottom</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-position="left top">Left Top</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-position="left bottom">Left Bottom</ui-button>
+            </ui-docs-example>
+
+            <ui-docs-example header="Tooltip Size">
+              <p slot="description">A tooltip can vary in size via the <code>data-variation</code> attribute.</p>
+              <ui-message slot="description" size="small" state="info"
+                >The <code>data-variation</code> attribute takes several words, just like a class would: sizes,
+                <code>basic</code>, <code>fixed</code>, <code>multiline</code>, <code>visible</code> and
+                colours.</ui-message
+              >
+              <ui-button data-tooltip="Add users to your feed" data-variation="mini">Mini</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-variation="tiny">Tiny</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-variation="small">Small</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-variation="medium">Medium</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-variation="large">Large</ui-button>
+              <ui-button data-tooltip="Add users to your feed" data-variation="huge">Huge</ui-button>
+              <ui-divider></ui-divider>
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="mini">Mini</ui-button>
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="tiny">Tiny</ui-button>
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="small"
+                >Small</ui-button
+              >
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="medium"
+                >Medium</ui-button
+              >
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="large"
+                >Large</ui-button
+              >
+              <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="huge">Huge</ui-button>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Basic Tooltip"
+              description="A tooltip can provide more basic formatting:  no pointing arrow."
+            >
+              <ui-button
+                data-tooltip="The default theme's basic tooltip removes the pointing arrow."
+                data-variation="basic"
+                >Basic</ui-button
+              >
+              <ui-button data-tooltip="You can combine me" data-variation="tiny basic">Tiny Basic</ui-button>
+              <ui-button
+                data-inverted
+                data-tooltip="The default theme's basic tooltip removes the pointing arrow."
+                data-variation="basic"
+                >Basic</ui-button
+              >
+              <ui-button data-inverted data-tooltip="You can combine me" data-variation="tiny basic"
+                >Tiny Basic</ui-button
+              >
+            </ui-docs-example>
+
+            <ui-docs-example header="Multiline Tooltip">
+              <p slot="description">
+                A tooltip can show multiple lines via line breaks in the attribute and adding
+                <code>multiline</code> to the <code>data-variation</code> attribute.
+              </p>
+              <ui-message slot="description" size="small" state="warning"
+                >Line breaks in the attribute become tooltip line breaks; a non-breaking space must be the U+A0
+                character itself, not <code>&amp;nbsp;</code>.</ui-message
+              >
+              <ui-button
+                data-tooltip="Look, I have multiple lines!
+            -one
+            -two
+            -three"
+                data-position="bottom center"
+                data-variation="multiline"
+                >Multiline tooltip</ui-button
+              >
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Visible Tooltip"
+              description="A tooltip can be shown visible all the time by adding `visible` to the `data-variation` attribute."
+            >
+              <ui-button
+                data-tooltip="I am visible all the time"
+                data-variation="visible"
+                data-position="right center"
+                >Important Button</ui-button
+              >
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Colored Tooltip"
+              description="A tooltip can have different colors via the `data-variation` attribute."
+            >
+              <ui-buttons spaced compact wrapping>
+                <ui-button data-variation="red" data-tooltip="Red">Red</ui-button>
+                <ui-button data-variation="orange" data-tooltip="Orange">Orange</ui-button>
+                <ui-button data-variation="yellow" data-tooltip="Yellow">Yellow</ui-button>
+                <ui-button data-variation="olive" data-tooltip="Olive">Olive</ui-button>
+                <ui-button data-variation="green" data-tooltip="Green">Green</ui-button>
+                <ui-button data-variation="teal" data-tooltip="Teal">Teal</ui-button>
+                <ui-button data-variation="blue" data-tooltip="Blue">Blue</ui-button>
+                <ui-button data-variation="violet" data-tooltip="Violet">Violet</ui-button>
+                <ui-button data-variation="purple" data-tooltip="Purple">Purple</ui-button>
+                <ui-button data-variation="pink" data-tooltip="Pink">Pink</ui-button>
+                <ui-button data-variation="brown" data-tooltip="Brown">Brown</ui-button>
+                <ui-button data-variation="grey" data-tooltip="Grey">Grey</ui-button>
+                <ui-button data-variation="black" data-tooltip="Black">Black</ui-button>
+              </ui-buttons>
+            </ui-docs-example>
+
+            <ui-header level="2" dividing id="states">States</ui-header>
+
+            <ui-docs-example
+              header="Loading"
+              description="A popup may show its content is being loaded:  a spinner over faded content."
+            >
+              <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
+              <ui-popup
+                position="bottom left"
+                loading
+                header="Matt"
+                content="Matt has been a member since July 2014"
+              ></ui-popup>
+              <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
+              <ui-popup
+                position="bottom left"
+                inverted
+                loading
+                header="Matt"
+                content="Matt has been a member since July 2014"
+              ></ui-popup>
+            </ui-docs-example>
+            <!-- GAP I41:  no `double` loader or loader speed on a popup;  those two show the plain loader. -->
+            <ui-docs-example description="The loader inherits the color of the popup.">
+              <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
+              <ui-popup
+                position="bottom left"
+                color="purple"
+                loading
+                header="Matt"
+                content="Matt has been a member since July 2014"
+              ></ui-popup>
+              <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
+              <ui-popup
+                position="bottom left"
+                color="orange"
+                loading
+                header="Matt"
+                content="Matt has been a member since July 2014"
+              ></ui-popup>
+              <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
+              <ui-popup
+                position="bottom left"
+                color="blue"
+                loading
+                header="Matt"
+                content="Matt has been a member since July 2014"
+              ></ui-popup>
+              <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
+              <ui-popup
+                position="bottom left"
+                color="green"
+                loading
+                header="Matt"
+                content="Matt has been a member since July 2014"
+              ></ui-popup>
+            </ui-docs-example>
+
+            <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+            <ui-docs-example
+              header="Basic"
+              description="A popup can provide more basic formatting:  no pointing arrow."
+            >
+              <ui-button icon="plus" aria-label="Add"></ui-button>
+              <ui-popup basic content="The default theme's basic popup removes the pointing arrow."></ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example header="Width">
+              <p slot="description">
+                A popup can be extra wide to allow for longer content: <code>wide</code>, <code>wide="very"</code>.
+              </p>
+              <ui-message slot="description" size="small" state="info"
+                >A popup's width is capped by its maximum width, so short content stays narrow even when it is
+                <code>wide</code>. Add <code>fixed</code> to make it always that wide; the CSS-only tooltip takes
+                <code>fixed</code>, <code>wide fixed</code> and <code>very wide fixed</code> in its
+                <code>data-variation</code>.</ui-message
+              >
+              <ui-icon circular link name="heart" aria-label="Wide"></ui-icon>
+              <ui-popup
+                wide
+                content="Hello. This is a wide pop-up which allows for lots of content with additional space. You can fit a lot of words here and the paragraphs will be pretty wide."
+              ></ui-popup>
+              <ui-icon circular link name="heart" aria-label="Very wide"></ui-icon>
+              <ui-popup
+                wide="very"
+                content="Hello. This is a very wide pop-up which allows for lots of content with additional space. You can fit a lot of words here and the paragraphs will be pretty wide."
+              ></ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example header="Fluid">
+              <p slot="description">A fluid popup takes up the entire width of its target.</p>
+              <ui-message slot="description" size="small" state="info"
+                >Fomantic's fluid popup spans its offset container; ours spans its target, so make the target as
+                wide as the popup should be (here a <code>fluid</code> button).</ui-message
+              >
+              <ui-button fluid>Show fluid popup</ui-button>
+              <ui-popup fluid position="bottom left">
+                <ui-grid columns="4" divided text-align="center">
+                  <ui-column>1</ui-column>
+                  <ui-column>2</ui-column>
+                  <ui-column>3</ui-column>
+                  <ui-column>4</ui-column>
+                </ui-grid>
+              </ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example header="Size" description="A popup can vary in size.">
+              <ui-icon circular link name="heart" aria-label="Mini"></ui-icon>
+              <ui-popup size="mini" content="Hello. This is a mini popup"></ui-popup>
+              <ui-icon circular link name="heart" aria-label="Tiny"></ui-icon>
+              <ui-popup size="tiny" content="Hello. This is a tiny popup"></ui-popup>
+              <ui-icon circular link name="heart" aria-label="Small"></ui-icon>
+              <ui-popup size="small" content="Hello. This is a small popup"></ui-popup>
+              <ui-icon circular link name="heart" aria-label="Large"></ui-icon>
+              <ui-popup size="large" content="Hello. This is a large popup"></ui-popup>
+              <ui-icon circular link name="heart" aria-label="Huge"></ui-icon>
+              <ui-popup size="huge" content="Hello. This is a huge popup"></ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Flowing"
+              description="A popup can have no maximum width and continue to flow to fit its content."
+            >
+              <ui-button>Show flowing popup</ui-button>
+              <ui-popup flowing>
+                <ui-grid columns="3" divided text-align="center">
+                  <ui-column>
+                    <ui-header level="4">Basic Plan</ui-header>
+                    <p><b>2</b> projects, $10 a month</p>
+                    <ui-button>Choose</ui-button>
+                  </ui-column>
+                  <ui-column>
+                    <ui-header level="4">Business Plan</ui-header>
+                    <p><b>5</b> projects, $20 a month</p>
+                    <ui-button>Choose</ui-button>
+                  </ui-column>
+                  <ui-column>
+                    <ui-header level="4">Premium Plan</ui-header>
+                    <p><b>8</b> projects, $25 a month</p>
+                    <ui-button>Choose</ui-button>
+                  </ui-column>
+                </ui-grid>
+              </ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example header="Inverted" description="A popup can have its colors inverted.">
+              <ui-icon circular link name="heart" aria-label="Inverted"></ui-icon>
+              <ui-popup inverted content="Hello. This is an inverted popup"></ui-popup>
+              <ui-button
+                icon="plus"
+                aria-label="Add"
+                data-tooltip="Hello. This is an inverted popup"
+                data-position="top left"
+                data-inverted
+              ></ui-button>
+            </ui-docs-example>
+
+            <ui-docs-example header="Colored" description="A popup can have different colors.">
+              <ui-button>Red</ui-button>
+              <ui-popup color="red" content="Red"></ui-popup>
+              <ui-button>Orange</ui-button>
+              <ui-popup color="orange" content="Orange"></ui-popup>
+              <ui-button>Yellow</ui-button>
+              <ui-popup color="yellow" content="Yellow"></ui-popup>
+              <ui-button>Olive</ui-button>
+              <ui-popup color="olive" content="Olive"></ui-popup>
+              <ui-button>Green</ui-button>
+              <ui-popup color="green" content="Green"></ui-popup>
+              <ui-button>Teal</ui-button>
+              <ui-popup color="teal" content="Teal"></ui-popup>
+              <ui-button>Blue</ui-button>
+              <ui-popup color="blue" content="Blue"></ui-popup>
+              <ui-button>Violet</ui-button>
+              <ui-popup color="violet" content="Violet"></ui-popup>
+              <ui-button>Purple</ui-button>
+              <ui-popup color="purple" content="Purple"></ui-popup>
+              <ui-button>Pink</ui-button>
+              <ui-popup color="pink" content="Pink"></ui-popup>
+              <ui-button>Brown</ui-button>
+              <ui-popup color="brown" content="Brown"></ui-popup>
+              <ui-button>Grey</ui-button>
+              <ui-popup color="grey" content="Grey"></ui-popup>
+              <ui-button>Black</ui-button>
+              <ui-popup color="black" content="Black"></ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Position"
+              description='A popup can be positioned around its target.  These are `open` from the start (`on="manual"`);  each flips to the other side when there is no room.'
+            >
+              <ui-segment basic padded="very">
+                <ui-button id="popup-variations-top">Top right</ui-button>
+                <ui-popup
+                  for="popup-variations-top"
+                  on="manual"
+                  open
+                  position="top right"
+                  content="Top right"
+                ></ui-popup>
+                <ui-button id="popup-variations-bottom">Bottom center</ui-button>
+                <ui-popup
+                  for="popup-variations-bottom"
+                  on="manual"
+                  open
+                  position="bottom center"
+                  content="Bottom center"
+                ></ui-popup>
+                <ui-button id="popup-variations-right">Right center</ui-button>
+                <ui-popup
+                  for="popup-variations-right"
+                  on="manual"
+                  open
+                  position="right center"
+                  content="Right"
+                ></ui-popup>
+              </ui-segment>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Every position"
+              description="Fomantic's eight positions, plus four of ours:  `left top`, `left bottom`, `right top` and `right bottom` sit beside the target, lined up with its top or bottom edge.  Word order matters:  `top left` is above.  Hover each button."
+            >
+              <ui-button>Top left</ui-button>
+              <ui-popup position="top left" content="top left"></ui-popup>
+              <ui-button>Top center</ui-button>
+              <ui-popup position="top center" content="top center"></ui-popup>
+              <ui-button>Top right</ui-button>
+              <ui-popup position="top right" content="top right"></ui-popup>
+              <ui-button>Bottom left</ui-button>
+              <ui-popup position="bottom left" content="bottom left"></ui-popup>
+              <ui-button>Bottom center</ui-button>
+              <ui-popup position="bottom center" content="bottom center"></ui-popup>
+              <ui-button>Bottom right</ui-button>
+              <ui-popup position="bottom right" content="bottom right"></ui-popup>
+              <ui-button>Left center</ui-button>
+              <ui-popup position="left center" content="left center"></ui-popup>
+              <ui-button>Right center</ui-button>
+              <ui-popup position="right center" content="right center"></ui-popup>
+              <ui-button>Left top</ui-button>
+              <ui-popup position="left top" content="left top"></ui-popup>
+              <ui-button>Left bottom</ui-button>
+              <ui-popup position="left bottom" content="left bottom"></ui-popup>
+              <ui-button>Right top</ui-button>
+              <ui-popup position="right top" content="right top"></ui-popup>
+              <ui-button>Right bottom</ui-button>
+              <ui-popup position="right bottom" content="right bottom"></ui-popup>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Hoverable"
+              description='A hover popup stays open while the pointer is over it (WCAG 1.4.13).  `hoverable="false"` is Fomantic&apos;s default:  it closes as the pointer leaves the target.'
+            >
+              <ui-button>Hoverable (default)</ui-button>
+              <ui-popup hide-delay="200" content="Move the pointer onto me"></ui-popup>
+              <ui-button>Not hoverable</ui-button>
+              <ui-popup hoverable="false" content="I close as you leave the button"></ui-popup>
+            </ui-docs-example>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  targets, triggers, invoker commands, events, the CSS-only tooltip, keyboard, accessibility, frameworks. -->
+            <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                Write a `<ui-popup>` next to what it explains. There is no `.popup()` call to make: the popup finds its
+                TARGET by itself, in this order:
+
+                1. the `target` property (any element),
+                2. else `for` (the id of an element in the same document or shadow root),
+                3. else the element just before it (Fomantic's `inline: true`, always on).
+
+                It then sits in the top layer, positioned by CSS anchor positioning: no script measures anything, and when
+                there is no room it flips to the other side (top to bottom, left to right) by itself.
+
+                Content comes from the `header` / `content` shorthands (Fomantic's `data-title` / `data-content`), slotted
+                markup (Fomantic's `data-html` and pre-existing popups), or `<ui-header>` / `<ui-content>` parts. A pre-existing
+                popup anywhere in the page is just a `<ui-popup for="...">` placed there.
+              </script>
+            </ui-markdown>
+            <ui-docs-example
+              header="Target element"
+              description="`for` names the target by id, so the popup can sit anywhere;  this one appears at the label, whichever button you hover."
+            >
+              <ui-label id="popup-usage-target" icon="user">Anna</ui-label>
+              <ui-button>Hover me</ui-button>
+              <ui-popup for="popup-usage-target" content="Anna, project owner"></ui-popup>
+            </ui-docs-example>
+
+            <ui-header level="2" dividing id="triggers">Triggers</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                `on` picks what opens it:
+
+                - `hover` (the default): pointer hover and keyboard focus, after `show-delay` (50ms); it hides `hide-delay`
+                  (70ms) after the pointer leaves. The popup stays open while the pointer is over it, so its text can be read
+                  and selected (WCAG 1.4.13). `hoverable="false"` is Fomantic's default instead: it hides as the pointer
+                  leaves the target, even onto the popup.
+                - `focus`: keyboard or pointer focus on the target only.
+                - `click`: a click toggles it; it behaves as a small non-modal dialog, for content you interact with.
+                - `manual`: only your code, through `open`.
+
+                Escape and a click elsewhere close it.
+              </script>
+            </ui-markdown>
+            <ui-docs-example
+              header="Specifying a trigger event"
+              description='A popup trigger event can be specified:  `on="click"` here, `on="focus"` for an input.'
+            >
+              <ui-button id="popup-usage-click">Click me</ui-button>
+              <ui-popup
+                for="popup-usage-click"
+                on="click"
+                header="Clicked"
+                content="Click again, or press Escape, to close."
+              ></ui-popup>
+              <ui-input id="popup-usage-focus" placeholder="Focus me" icon="search"></ui-input>
+              <ui-popup for="popup-usage-focus" on="focus" content="Type to search"></ui-popup>
+            </ui-docs-example>
+            <ui-docs-example
+              header="Wide popup menu"
+              description="Complex content, like a wide menu, is markup already in the page:  a `flowing` hover popup that stays open while the pointer is on it works like a dropdown menu."
+            >
+              <ui-menu>
+                <ui-item id="popup-usage-browse" icon="dropdown" link>Browse</ui-item>
               </ui-menu>
-              <ui-header level="1" class="site-title">
-                Popup
-                <ui-header>A popup displays additional information on top of a page.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-popup" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
+              <ui-popup for="popup-usage-browse" flowing position="bottom left" hide-delay="300">
+                <ui-grid columns="3" divided relaxed>
+                  <ui-column>
+                    <ui-header level="4">Fabrics</ui-header>
+                    <ui-list link>
+                      <ui-item href="#cashmere">Cashmere</ui-item>
+                      <ui-item href="#linen">Linen</ui-item>
+                      <ui-item href="#cotton">Cotton</ui-item>
+                      <ui-item href="#viscose">Viscose</ui-item>
+                    </ui-list>
+                  </ui-column>
+                  <ui-column>
+                    <ui-header level="4">Size</ui-header>
+                    <ui-list link>
+                      <ui-item href="#small">Small</ui-item>
+                      <ui-item href="#medium">Medium</ui-item>
+                      <ui-item href="#large">Large</ui-item>
+                      <ui-item href="#plus-sizes">Plus Sizes</ui-item>
+                    </ui-list>
+                  </ui-column>
+                  <ui-column>
+                    <ui-header level="4">Colors</ui-header>
+                    <ui-list link>
+                      <ui-item href="#neutrals">Neutrals</ui-item>
+                      <ui-item href="#brights">Brights</ui-item>
+                      <ui-item href="#pastels">Pastels</ui-item>
+                    </ui-list>
+                  </ui-column>
+                </ui-grid>
+              </ui-popup>
+            </ui-docs-example>
 
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Popup"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
+            <ui-header level="2" dividing id="positioning">Positioning</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                `position` places it: `top left` (the default) ... `right center`, plus `left top` ... `right bottom` (beside
+                the target, lined up with its top or bottom edge). Word order matters: `top left` is above. When there is no
+                room it flips to the other side, inside the viewport.
+              </script>
+            </ui-markdown>
+            <ui-message size="small" class="site-not-ported"
+              >Not ported: <code>offset</code> / <code>data-offset</code>, <code>boundary</code>,
+              <code>scrollContext</code>, <code>lastResort</code> and the <code>transition</code> setting -- CSS
+              anchor positioning places and flips the popup; set the gap with <code>--ui-popup-distance</code> and
+              the motion with <code>--ui-popup-duration</code>.</ui-message
+            >
 
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's popup page, section by section, in its order (Types:  JavaScript, then No JavaScript;  States;
-                  Variations), plus our extras (Content parts, On click, Position, Every position, Hoverable).  Hover (or focus) a
-                  target to see its popup;  a popup with no `for` attaches to the element just before it.
-                  `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
+            <ui-header level="2" dividing id="invoker-commands">Invoker commands</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                A button can drive a popup with no script, through an invoker command: `commandfor` names the popup, `command`
+                is `--show`, `--close` or `--toggle` (or the native `show-popover` / `hide-popover` / `toggle-popover`). The
+                popup always opens at ITS target, whichever button sent the command (a `manual` popup suits this).
+              </script>
+            </ui-markdown>
+            <ui-docs-example header="Invoker commands" description="It appears at the label, not at the buttons.">
+              <ui-buttons size="small" basic>
+                <ui-button commandfor="popup-invoker-tip" command="--toggle">Toggle</ui-button>
+                <ui-button commandfor="popup-invoker-tip" command="--close">Close</ui-button>
+              </ui-buttons>
+              <ui-label id="popup-invoker-target">Anna</ui-label>
+              <ui-popup
+                id="popup-invoker-tip"
+                for="popup-invoker-target"
+                on="manual"
+                content="Anna, project owner"
+              ></ui-popup>
+            </ui-docs-example>
 
-                <ui-header level="3" id="javascript">Popup element</ui-header>
+            <ui-header level="2" dividing id="events">Events</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                `open` is the controlled state: writing it shows or hides the popup and fires nothing. The user's own changes
+                (the trigger, an invoker command) dispatch the cancelable events first.
 
-                <ui-message size="small" state="info"
-                  >Popup comes as an element, <code>&lt;ui-popup&gt;</code>, with the full feature set (any markup,
-                  triggers, events, flipping), and as a CSS-only <code>data-tooltip</code> attribute, which needs no
-                  script and suits pages with many short hints.</ui-message
+                - `ui-open` -- about to show; `detail` is `{ open: true, originalEvent? }`. `preventDefault()` keeps it hidden.
+                - `ui-close` -- about to hide; `detail` is `{ open: false, originalEvent? }`. `preventDefault()` keeps it open,
+                  except when the browser already dismissed a `hint` popover (Escape, a click elsewhere).
+              </script>
+            </ui-markdown>
+            <ui-code language="js">
+              <script type="text/plain">
+                const popup = document.querySelector("ui-popup")
+                popup.target = document.querySelector("#avatar") // wins over `for`
+                popup.addEventListener("ui-close", (event) => {
+                  if (form.dirty) event.preventDefault() // keep it open
+                })
+                popup.open = true // show it from code:  no event
+              </script>
+            </ui-code>
+            <ui-message size="small" class="site-not-ported"
+              >Not ported: Fomantic's behaviors (<code>show</code>, <code>hide</code>, <code>toggle</code>,
+              <code>reposition</code> ...) and callbacks (<code>onShow</code>, <code>onHidden</code> ...) -- write
+              <code>open</code>, and listen for <code>ui-open</code> / <code>ui-close</code>.</ui-message
+            >
+
+            <ui-header level="2" dividing id="tooltips">CSS-only tooltips</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                The CSS-only tooltip is a plain attribute on any element: `data-tooltip` (the text), `data-position` (the same
+                twelve positions, default `top center`), `data-inverted` and `data-variation` (sizes, hues, `basic`, `fixed`,
+                `wide fixed`, `very wide fixed`, `multiline`, `visible`). It lives in the page stylesheet, so it works with no
+                script and costs nothing.
+
+                But it cannot flip, cannot hold markup, and its text is a CSS pseudo-element, which screen readers do not
+                reliably announce: use it for hints only, and a `<ui-popup>` for anything that matters. On an element that
+                already draws `::before` / `::after` (an `<i>` icon in Fomantic), put it on a wrapper instead.
+              </script>
+            </ui-markdown>
+            <ui-code language="html">
+              <script type="text/plain">
+                <button data-tooltip="Add users" data-position="bottom left" data-inverted data-variation="small">+</button>
+              </script>
+            </ui-code>
+
+            <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                - **Tab** onto the target shows a `hover` or `focus` popup; leaving the target hides it.
+                - **Enter** / **Space** toggles a `click` popup (the target's own activation).
+                - **Escape** closes the popup.
+              </script>
+            </ui-markdown>
+
+            <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                - The ARIA pattern follows `on`:
+                  - `hover`, `focus` and `manual` popups are tooltips: the popup has `role="tooltip"` and the target is
+                    `aria-describedby` it, so its text is read as the target's description. Keep that text short, and put
+                    nothing interactive in it.
+                  - `click` popups are non-modal dialogs: `role="dialog"`, named by `header` or the popup's `aria-label`; the
+                    target gets `aria-haspopup="dialog"`, `aria-expanded` and `aria-controls`.
+                - The ARIA goes on the element that actually takes focus: for a `<ui-button>`, its inner `<button>`.
+                - Hover popups also open on keyboard focus, stay open while hovered, and close with Escape: hoverable,
+                  persistent and dismissible, as WCAG 1.4.13 asks.
+                - A target with only an icon still needs its own name (`aria-label`): a tooltip describes, it does not name.
+                - The CSS-only `data-tooltip` text is a pseudo-element and is not reliably announced; never rely on it alone.
+                - If the element fails to render, its native fallback never shows the popup: no positioning, triggers, events
+                  or Escape. A tooltip-like popup copies its text into the target's native `title` (when it has none), so the
+                  hint survives; a `click` popup shows nothing.
+              </script>
+            </ui-markdown>
+
+            <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                Set `target` as a property when the target is not a sibling or an id, and listen for `ui-open` / `ui-close`.
+              </script>
+            </ui-markdown>
+            <ui-header level="4" id="framework-react">React 19</ui-header>
+            <ui-code language="jsx">
+              <script type="text/plain">
+                <ui-popup target={anchorEl} on="click" header="Share" onui-close={() => setOpen(false)}>
+                  ...
+                </ui-popup>
+              </script>
+            </ui-code>
+            <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+            <ui-code language="html">
+              <script type="text/plain">
+                <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                <ui-popup :target="anchorEl" on="click" header="Share" @ui-close="open = false">...</ui-popup>
+              </script>
+            </ui-code>
+            <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+            <ui-code language="jsx">
+              <script type="text/plain">
+                // no `on:` namespace:  listen through a ref
+                <ui-popup
+                  prop:target={anchorEl}
+                  on="click"
+                  header="Share"
+                  ref={(el) => el.addEventListener("ui-close", () => setOpen(false))}
                 >
+                  ...
+                </ui-popup>
+              </script>
+            </ui-code>
+          </ui-tab>
 
-                <ui-docs-example
-                  header="Popup"
-                  description="An element can specify popup content to appear.  With no `for`, the popup attaches to the element just before it."
-                >
-                  <ui-button icon="plus" aria-label="Add users"></ui-button>
-                  <ui-popup content="Add users to your feed"></ui-popup>
-                </ui-docs-example>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-popup"></ui-docs-api>
+          </ui-tab>
 
-                <ui-docs-example
-                  header="Titled"
-                  description="An element can specify popup content with a title:  `header`."
-                >
-                  <ui-image avatar src="../images/avatar/small/elliot.jpg" alt="Elliot Fu"></ui-image>
-                  <ui-popup header="Elliot Fu" content="Elliot has been a member since July 2012"></ui-popup>
-                  <ui-image avatar src="../images/avatar/small/stevie.jpg" alt="Stevie Feliciano"></ui-image>
-                  <ui-popup header="Stevie Feliciano" content="Stevie has been a member since August 2013"></ui-popup>
-                  <ui-image avatar src="../images/avatar/small/matt.jpg" alt="Matt"></ui-image>
-                  <ui-popup header="Matt" content="Matt has been a member since July 2014"></ui-popup>
-                </ui-docs-example>
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                Theme with the public `--ui-popup-*` tokens: set one on the element, on any ancestor (`:root` for every popup),
+                or on the box through `::part(popup)`. They inherit into the shadow root, where the sheet reads each through a
+                private alias, so nothing inside blocks them. `wide` and `very wide` swap the max width for
+                `--ui-popup-wide-width` / `--ui-popup-very-wide-width`; a slotted header reads `--ui-popup-header-font-size`
+                from the popup. The CSS-only tooltip reads `--ui-tooltip-*` tokens on the element that carries it.
+              </script>
+            </ui-markdown>
+            <ui-code language="css">
+              <script type="text/plain">
+                /* every popup on the page */
+                :root {
+                  --ui-popup-radius: 0.5em;
+                }
+                /* one kind */
+                ui-popup.help {
+                  --ui-popup-max-width: 320px;
+                  --ui-popup-distance: 0.75em;
+                }
+                /* the CSS-only tooltips */
+                [data-tooltip] {
+                  --ui-tooltip-distance: 0.75em;
+                }
+              </script>
+            </ui-code>
+            <ui-message state="info" size="small">
+              <ui-markdown>
+                <script type="text/markdown">
+                  The host resets the colour remap and `--ui-scale`, so a popup opened from inside a red message or a large
+                  button is neither red nor large: give the popup its own `color` / `size`. Never set the `--_ui-popup-*` names:
+                  they're the sheet's private plumbing.
+                </script>
+              </ui-markdown>
+            </ui-message>
+            <ui-markdown>Edit a value below to try it.</ui-markdown>
+            <ui-docs-tokens family="ui-popup" playground></ui-docs-tokens>
 
-                <ui-docs-example
-                  header="HTML"
-                  description="An element can specify HTML for a popup:  slotted `<ui-header>` / `<ui-content>` and any other markup.  Hover the card."
-                >
-                  <ui-card>
-                    <img src="../images/movies/totoro-horizontal.jpg" alt="" />
-                    <ui-content>
-                      <ui-header>My Neighbor Totoro</ui-header>
-                      <ui-description
-                        >Two sisters move to the country with their father in order to be closer to their hospitalized
-                        mother, and discover the surrounding trees are inhabited by magical spirits.</ui-description
-                      >
-                    </ui-content>
-                    <ui-buttons width="2" attached="bottom">
-                      <ui-button icon="plus">Queue</ui-button>
-                      <ui-button primary icon="play">Watch</ui-button>
-                    </ui-buttons>
-                  </ui-card>
-                  <ui-popup>
-                    <ui-header>User Rating</ui-header>
-                    <ui-content><ui-rating color="yellow" max-rating="5" value="5" readonly></ui-rating></ui-content>
-                  </ui-popup>
-                </ui-docs-example>
+            <ui-header level="2" dividing id="themes">Themes</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                theme to the whole site.
 
-                <ui-docs-example header="Pre-Existing">
-                  <p slot="description">An element can display a popup that is already included in the page.</p>
-                  <ui-message slot="description" size="small" state="info"
-                    >Every <code>&lt;ui-popup&gt;</code> is markup already in the page: there is no
-                    <code>data-html</code> string to build one from.</ui-message
-                  >
-                  <ui-card>
-                    <img src="../images/movies/watchmen-horizontal.jpg" alt="" />
-                    <ui-content>
-                      <ui-header>Watchmen</ui-header>
-                      <ui-description
-                        >In a gritty and alternate 1985 the glory days of costumed vigilantes have been brought to a
-                        close by a government crackdown, but after one of the masked veterans is brutally murdered an
-                        investigation into the killer is initiated.</ui-description
-                      >
-                    </ui-content>
-                    <ui-buttons width="2" attached="bottom">
-                      <ui-button icon="plus">Queue</ui-button>
-                      <ui-button primary icon="play">Watch</ui-button>
-                    </ui-buttons>
-                  </ui-card>
-                  <ui-popup header="User Rating">
-                    <ui-rating color="yellow" value="3" readonly></ui-rating>
-                  </ui-popup>
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="On click"
-                  description='`on="click"` makes the popup a small non-modal dialog that toggles on click, for content you interact with;  `flowing` lets it be as wide as its content.'
-                >
-                  <ui-button id="popup-types-plan">Choose a plan</ui-button>
-                  <ui-popup for="popup-types-plan" on="click" position="bottom left" flowing header="Basic plan">
-                    <p>Does not include upload or chat.</p>
-                    <ui-button size="small" primary>Choose</ui-button>
-                  </ui-popup>
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="Content parts"
-                  description='Slotted `<ui-header>` and `<ui-content>` style themselves as the popup&apos;s header and content.  This one opens on keyboard focus (`on="focus"`).'
-                >
-                  <ui-button id="popup-types-parts">Parts</ui-button>
-                  <ui-popup for="popup-types-parts" on="focus">
-                    <ui-header>Slotted header</ui-header>
-                    <ui-content>Slotted content, styled by the popup.</ui-content>
-                  </ui-popup>
-                </ui-docs-example>
-
-                <ui-header level="3" id="no-javascript">No JavaScript</ui-header>
-
-                <ui-docs-example header="Tooltip">
-                  <p slot="description">
-                    An element can specify a simple tooltip that can appear without JavaScript via the
-                    <code>data-tooltip</code> attribute. If the tooltip should be shown inverted, also add the
-                    <code>data-inverted</code> attribute.
-                  </p>
-                  <ui-message slot="description" size="small" state="warning"
-                    >Tooltips use an element's <code>::before</code> and <code>::after</code> pseudo-elements, and
-                    screen readers don't reliably announce them: use them for hints only, and a
-                    <code>&lt;ui-popup&gt;</code> for anything that matters.</ui-message
-                  >
-                  <ui-button icon="plus" aria-label="Add users" data-tooltip="Add users to your feed"></ui-button>
-                  <ui-button
-                    icon="plus"
-                    aria-label="Add users"
-                    data-tooltip="Add users to your feed"
-                    data-inverted
-                  ></ui-button>
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="Tooltip Position"
-                  description="A tooltip can be shown at a specific position relative to the element via the `data-position` attribute."
-                >
-                  <ui-button data-tooltip="Add users to your feed" data-position="top left">Top Left</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-position="top center">Top Center</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-position="top right">Top Right</ui-button>
-                  <ui-divider></ui-divider>
-                  <ui-button data-tooltip="Add users to your feed" data-position="bottom left">Bottom Left</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-position="bottom center"
-                    >Bottom Center</ui-button
-                  >
-                  <ui-button data-tooltip="Add users to your feed" data-position="bottom right">Bottom Right</ui-button>
-                  <ui-divider></ui-divider>
-                  <ui-button data-tooltip="Add users to your feed" data-position="right center">Right Center</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-position="left center">Left Center</ui-button>
-                </ui-docs-example>
-                <ui-docs-example>
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-position="top left"
-                    >Top Left</ui-button
-                  >
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-position="top center"
-                    >Top Center</ui-button
-                  >
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-position="top right"
-                    >Top Right</ui-button
-                  >
-                  <ui-divider></ui-divider>
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-position="bottom left"
-                    >Bottom Left</ui-button
-                  >
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-position="bottom center"
-                    >Bottom Center</ui-button
-                  >
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-position="bottom right"
-                    >Bottom Right</ui-button
-                  >
-                  <ui-divider></ui-divider>
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-position="right center"
-                    >Right Center</ui-button
-                  >
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-position="left center"
-                    >Left Center</ui-button
-                  >
-                </ui-docs-example>
-                <ui-docs-example
-                  description="Ours also sits beside the element, lined up with its top or bottom edge:  `left top`, `left bottom`, `right top`, `right bottom`."
-                >
-                  <ui-button data-tooltip="Add users to your feed" data-position="right top">Right Top</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-position="right bottom">Right Bottom</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-position="left top">Left Top</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-position="left bottom">Left Bottom</ui-button>
-                </ui-docs-example>
-
-                <ui-docs-example header="Tooltip Size">
-                  <p slot="description">A tooltip can vary in size via the <code>data-variation</code> attribute.</p>
-                  <ui-message slot="description" size="small" state="info"
-                    >The <code>data-variation</code> attribute takes several words, just like a class would: sizes,
-                    <code>basic</code>, <code>fixed</code>, <code>multiline</code>, <code>visible</code> and
-                    colours.</ui-message
-                  >
-                  <ui-button data-tooltip="Add users to your feed" data-variation="mini">Mini</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-variation="tiny">Tiny</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-variation="small">Small</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-variation="medium">Medium</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-variation="large">Large</ui-button>
-                  <ui-button data-tooltip="Add users to your feed" data-variation="huge">Huge</ui-button>
-                  <ui-divider></ui-divider>
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="mini">Mini</ui-button>
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="tiny">Tiny</ui-button>
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="small"
-                    >Small</ui-button
-                  >
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="medium"
-                    >Medium</ui-button
-                  >
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="large"
-                    >Large</ui-button
-                  >
-                  <ui-button data-inverted data-tooltip="Add users to your feed" data-variation="huge">Huge</ui-button>
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="Basic Tooltip"
-                  description="A tooltip can provide more basic formatting:  no pointing arrow."
-                >
-                  <ui-button
-                    data-tooltip="The default theme's basic tooltip removes the pointing arrow."
-                    data-variation="basic"
-                    >Basic</ui-button
-                  >
-                  <ui-button data-tooltip="You can combine me" data-variation="tiny basic">Tiny Basic</ui-button>
-                  <ui-button
-                    data-inverted
-                    data-tooltip="The default theme's basic tooltip removes the pointing arrow."
-                    data-variation="basic"
-                    >Basic</ui-button
-                  >
-                  <ui-button data-inverted data-tooltip="You can combine me" data-variation="tiny basic"
-                    >Tiny Basic</ui-button
-                  >
-                </ui-docs-example>
-
-                <ui-docs-example header="Multiline Tooltip">
-                  <p slot="description">
-                    A tooltip can show multiple lines via line breaks in the attribute and adding
-                    <code>multiline</code> to the <code>data-variation</code> attribute.
-                  </p>
-                  <ui-message slot="description" size="small" state="warning"
-                    >Line breaks in the attribute become tooltip line breaks; a non-breaking space must be the U+A0
-                    character itself, not <code>&amp;nbsp;</code>.</ui-message
-                  >
-                  <ui-button
-                    data-tooltip="Look, I have multiple lines!
-                -one
-                -two
-                -three"
-                    data-position="bottom center"
-                    data-variation="multiline"
-                    >Multiline tooltip</ui-button
-                  >
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="Visible Tooltip"
-                  description="A tooltip can be shown visible all the time by adding `visible` to the `data-variation` attribute."
-                >
-                  <ui-button
-                    data-tooltip="I am visible all the time"
-                    data-variation="visible"
-                    data-position="right center"
-                    >Important Button</ui-button
-                  >
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="Colored Tooltip"
-                  description="A tooltip can have different colors via the `data-variation` attribute."
-                >
-                  <ui-buttons spaced compact wrapping>
-                    <ui-button data-variation="red" data-tooltip="Red">Red</ui-button>
-                    <ui-button data-variation="orange" data-tooltip="Orange">Orange</ui-button>
-                    <ui-button data-variation="yellow" data-tooltip="Yellow">Yellow</ui-button>
-                    <ui-button data-variation="olive" data-tooltip="Olive">Olive</ui-button>
-                    <ui-button data-variation="green" data-tooltip="Green">Green</ui-button>
-                    <ui-button data-variation="teal" data-tooltip="Teal">Teal</ui-button>
-                    <ui-button data-variation="blue" data-tooltip="Blue">Blue</ui-button>
-                    <ui-button data-variation="violet" data-tooltip="Violet">Violet</ui-button>
-                    <ui-button data-variation="purple" data-tooltip="Purple">Purple</ui-button>
-                    <ui-button data-variation="pink" data-tooltip="Pink">Pink</ui-button>
-                    <ui-button data-variation="brown" data-tooltip="Brown">Brown</ui-button>
-                    <ui-button data-variation="grey" data-tooltip="Grey">Grey</ui-button>
-                    <ui-button data-variation="black" data-tooltip="Black">Black</ui-button>
-                  </ui-buttons>
-                </ui-docs-example>
-
-                <ui-header level="2" dividing id="states">States</ui-header>
-
-                <ui-docs-example
-                  header="Loading"
-                  description="A popup may show its content is being loaded:  a spinner over faded content."
-                >
-                  <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
-                  <ui-popup
-                    position="bottom left"
-                    loading
-                    header="Matt"
-                    content="Matt has been a member since July 2014"
-                  ></ui-popup>
-                  <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
-                  <ui-popup
-                    position="bottom left"
-                    inverted
-                    loading
-                    header="Matt"
-                    content="Matt has been a member since July 2014"
-                  ></ui-popup>
-                </ui-docs-example>
-                <!-- GAP I41:  no `double` loader or loader speed on a popup;  those two show the plain loader. -->
-                <ui-docs-example description="The loader inherits the color of the popup.">
-                  <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
-                  <ui-popup
-                    position="bottom left"
-                    color="purple"
-                    loading
-                    header="Matt"
-                    content="Matt has been a member since July 2014"
-                  ></ui-popup>
-                  <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
-                  <ui-popup
-                    position="bottom left"
-                    color="orange"
-                    loading
-                    header="Matt"
-                    content="Matt has been a member since July 2014"
-                  ></ui-popup>
-                  <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
-                  <ui-popup
-                    position="bottom left"
-                    color="blue"
-                    loading
-                    header="Matt"
-                    content="Matt has been a member since July 2014"
-                  ></ui-popup>
-                  <ui-image avatar size="tiny" src="../images/avatar/large/tom.jpg" alt="Matt"></ui-image>
-                  <ui-popup
-                    position="bottom left"
-                    color="green"
-                    loading
-                    header="Matt"
-                    content="Matt has been a member since July 2014"
-                  ></ui-popup>
-                </ui-docs-example>
-
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example
-                  header="Basic"
-                  description="A popup can provide more basic formatting:  no pointing arrow."
-                >
-                  <ui-button icon="plus" aria-label="Add"></ui-button>
-                  <ui-popup basic content="The default theme's basic popup removes the pointing arrow."></ui-popup>
-                </ui-docs-example>
-
-                <ui-docs-example header="Width">
-                  <p slot="description">
-                    A popup can be extra wide to allow for longer content: <code>wide</code>, <code>wide="very"</code>.
-                  </p>
-                  <ui-message slot="description" size="small" state="info"
-                    >A popup's width is capped by its maximum width, so short content stays narrow even when it is
-                    <code>wide</code>. Add <code>fixed</code> to make it always that wide; the CSS-only tooltip takes
-                    <code>fixed</code>, <code>wide fixed</code> and <code>very wide fixed</code> in its
-                    <code>data-variation</code>.</ui-message
-                  >
-                  <ui-icon circular link name="heart" aria-label="Wide"></ui-icon>
-                  <ui-popup
-                    wide
-                    content="Hello. This is a wide pop-up which allows for lots of content with additional space. You can fit a lot of words here and the paragraphs will be pretty wide."
-                  ></ui-popup>
-                  <ui-icon circular link name="heart" aria-label="Very wide"></ui-icon>
-                  <ui-popup
-                    wide="very"
-                    content="Hello. This is a very wide pop-up which allows for lots of content with additional space. You can fit a lot of words here and the paragraphs will be pretty wide."
-                  ></ui-popup>
-                </ui-docs-example>
-
-                <ui-docs-example header="Fluid">
-                  <p slot="description">A fluid popup takes up the entire width of its target.</p>
-                  <ui-message slot="description" size="small" state="info"
-                    >Fomantic's fluid popup spans its offset container; ours spans its target, so make the target as
-                    wide as the popup should be (here a <code>fluid</code> button).</ui-message
-                  >
-                  <ui-button fluid>Show fluid popup</ui-button>
-                  <ui-popup fluid position="bottom left">
-                    <ui-grid columns="4" divided text-align="center">
-                      <ui-column>1</ui-column>
-                      <ui-column>2</ui-column>
-                      <ui-column>3</ui-column>
-                      <ui-column>4</ui-column>
-                    </ui-grid>
-                  </ui-popup>
-                </ui-docs-example>
-
-                <ui-docs-example header="Size" description="A popup can vary in size.">
-                  <ui-icon circular link name="heart" aria-label="Mini"></ui-icon>
-                  <ui-popup size="mini" content="Hello. This is a mini popup"></ui-popup>
-                  <ui-icon circular link name="heart" aria-label="Tiny"></ui-icon>
-                  <ui-popup size="tiny" content="Hello. This is a tiny popup"></ui-popup>
-                  <ui-icon circular link name="heart" aria-label="Small"></ui-icon>
-                  <ui-popup size="small" content="Hello. This is a small popup"></ui-popup>
-                  <ui-icon circular link name="heart" aria-label="Large"></ui-icon>
-                  <ui-popup size="large" content="Hello. This is a large popup"></ui-popup>
-                  <ui-icon circular link name="heart" aria-label="Huge"></ui-icon>
-                  <ui-popup size="huge" content="Hello. This is a huge popup"></ui-popup>
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="Flowing"
-                  description="A popup can have no maximum width and continue to flow to fit its content."
-                >
-                  <ui-button>Show flowing popup</ui-button>
-                  <ui-popup flowing>
-                    <ui-grid columns="3" divided text-align="center">
-                      <ui-column>
-                        <ui-header level="4">Basic Plan</ui-header>
-                        <p><b>2</b> projects, $10 a month</p>
-                        <ui-button>Choose</ui-button>
-                      </ui-column>
-                      <ui-column>
-                        <ui-header level="4">Business Plan</ui-header>
-                        <p><b>5</b> projects, $20 a month</p>
-                        <ui-button>Choose</ui-button>
-                      </ui-column>
-                      <ui-column>
-                        <ui-header level="4">Premium Plan</ui-header>
-                        <p><b>8</b> projects, $25 a month</p>
-                        <ui-button>Choose</ui-button>
-                      </ui-column>
-                    </ui-grid>
-                  </ui-popup>
-                </ui-docs-example>
-
-                <ui-docs-example header="Inverted" description="A popup can have its colors inverted.">
-                  <ui-icon circular link name="heart" aria-label="Inverted"></ui-icon>
-                  <ui-popup inverted content="Hello. This is an inverted popup"></ui-popup>
-                  <ui-button
-                    icon="plus"
-                    aria-label="Add"
-                    data-tooltip="Hello. This is an inverted popup"
-                    data-position="top left"
-                    data-inverted
-                  ></ui-button>
-                </ui-docs-example>
-
-                <ui-docs-example header="Colored" description="A popup can have different colors.">
-                  <ui-button>Red</ui-button>
-                  <ui-popup color="red" content="Red"></ui-popup>
-                  <ui-button>Orange</ui-button>
-                  <ui-popup color="orange" content="Orange"></ui-popup>
-                  <ui-button>Yellow</ui-button>
-                  <ui-popup color="yellow" content="Yellow"></ui-popup>
-                  <ui-button>Olive</ui-button>
-                  <ui-popup color="olive" content="Olive"></ui-popup>
-                  <ui-button>Green</ui-button>
-                  <ui-popup color="green" content="Green"></ui-popup>
-                  <ui-button>Teal</ui-button>
-                  <ui-popup color="teal" content="Teal"></ui-popup>
-                  <ui-button>Blue</ui-button>
-                  <ui-popup color="blue" content="Blue"></ui-popup>
-                  <ui-button>Violet</ui-button>
-                  <ui-popup color="violet" content="Violet"></ui-popup>
-                  <ui-button>Purple</ui-button>
-                  <ui-popup color="purple" content="Purple"></ui-popup>
-                  <ui-button>Pink</ui-button>
-                  <ui-popup color="pink" content="Pink"></ui-popup>
-                  <ui-button>Brown</ui-button>
-                  <ui-popup color="brown" content="Brown"></ui-popup>
-                  <ui-button>Grey</ui-button>
-                  <ui-popup color="grey" content="Grey"></ui-popup>
-                  <ui-button>Black</ui-button>
-                  <ui-popup color="black" content="Black"></ui-popup>
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="Position"
-                  description='A popup can be positioned around its target.  These are `open` from the start (`on="manual"`);  each flips to the other side when there is no room.'
-                >
-                  <ui-segment basic padded="very">
-                    <ui-button id="popup-variations-top">Top right</ui-button>
-                    <ui-popup
-                      for="popup-variations-top"
-                      on="manual"
-                      open
-                      position="top right"
-                      content="Top right"
-                    ></ui-popup>
-                    <ui-button id="popup-variations-bottom">Bottom center</ui-button>
-                    <ui-popup
-                      for="popup-variations-bottom"
-                      on="manual"
-                      open
-                      position="bottom center"
-                      content="Bottom center"
-                    ></ui-popup>
-                    <ui-button id="popup-variations-right">Right center</ui-button>
-                    <ui-popup
-                      for="popup-variations-right"
-                      on="manual"
-                      open
-                      position="right center"
-                      content="Right"
-                    ></ui-popup>
-                  </ui-segment>
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="Every position"
-                  description="Fomantic's eight positions, plus four of ours:  `left top`, `left bottom`, `right top` and `right bottom` sit beside the target, lined up with its top or bottom edge.  Word order matters:  `top left` is above.  Hover each button."
-                >
-                  <ui-button>Top left</ui-button>
-                  <ui-popup position="top left" content="top left"></ui-popup>
-                  <ui-button>Top center</ui-button>
-                  <ui-popup position="top center" content="top center"></ui-popup>
-                  <ui-button>Top right</ui-button>
-                  <ui-popup position="top right" content="top right"></ui-popup>
-                  <ui-button>Bottom left</ui-button>
-                  <ui-popup position="bottom left" content="bottom left"></ui-popup>
-                  <ui-button>Bottom center</ui-button>
-                  <ui-popup position="bottom center" content="bottom center"></ui-popup>
-                  <ui-button>Bottom right</ui-button>
-                  <ui-popup position="bottom right" content="bottom right"></ui-popup>
-                  <ui-button>Left center</ui-button>
-                  <ui-popup position="left center" content="left center"></ui-popup>
-                  <ui-button>Right center</ui-button>
-                  <ui-popup position="right center" content="right center"></ui-popup>
-                  <ui-button>Left top</ui-button>
-                  <ui-popup position="left top" content="left top"></ui-popup>
-                  <ui-button>Left bottom</ui-button>
-                  <ui-popup position="left bottom" content="left bottom"></ui-popup>
-                  <ui-button>Right top</ui-button>
-                  <ui-popup position="right top" content="right top"></ui-popup>
-                  <ui-button>Right bottom</ui-button>
-                  <ui-popup position="right bottom" content="right bottom"></ui-popup>
-                </ui-docs-example>
-
-                <ui-docs-example
-                  header="Hoverable"
-                  description='A hover popup stays open while the pointer is over it (WCAG 1.4.13).  `hoverable="false"` is Fomantic&apos;s default:  it closes as the pointer leaves the target.'
-                >
-                  <ui-button>Hoverable (default)</ui-button>
-                  <ui-popup hide-delay="200" content="Move the pointer onto me"></ui-popup>
-                  <ui-button>Not hoverable</ui-button>
-                  <ui-popup hoverable="false" content="I close as you leave the button"></ui-popup>
-                </ui-docs-example>
-              </ui-tab>
-
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  targets, triggers, invoker commands, events, the CSS-only tooltip, keyboard, accessibility, frameworks. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Write a `<ui-popup>` next to what it explains. There is no `.popup()` call to make: the popup finds its
-                    TARGET by itself, in this order:
-
-                    1. the `target` property (any element),
-                    2. else `for` (the id of an element in the same document or shadow root),
-                    3. else the element just before it (Fomantic's `inline: true`, always on).
-
-                    It then sits in the top layer, positioned by CSS anchor positioning: no script measures anything, and when
-                    there is no room it flips to the other side (top to bottom, left to right) by itself.
-
-                    Content comes from the `header` / `content` shorthands (Fomantic's `data-title` / `data-content`), slotted
-                    markup (Fomantic's `data-html` and pre-existing popups), or `<ui-header>` / `<ui-content>` parts. A pre-existing
-                    popup anywhere in the page is just a `<ui-popup for="...">` placed there.
-                  </script>
-                </ui-markdown>
-                <ui-docs-example
-                  header="Target element"
-                  description="`for` names the target by id, so the popup can sit anywhere;  this one appears at the label, whichever button you hover."
-                >
-                  <ui-label id="popup-usage-target" icon="user">Anna</ui-label>
-                  <ui-button>Hover me</ui-button>
-                  <ui-popup for="popup-usage-target" content="Anna, project owner"></ui-popup>
-                </ui-docs-example>
-
-                <ui-header level="2" dividing id="triggers">Triggers</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `on` picks what opens it:
-
-                    - `hover` (the default): pointer hover and keyboard focus, after `show-delay` (50ms); it hides `hide-delay`
-                      (70ms) after the pointer leaves. The popup stays open while the pointer is over it, so its text can be read
-                      and selected (WCAG 1.4.13). `hoverable="false"` is Fomantic's default instead: it hides as the pointer
-                      leaves the target, even onto the popup.
-                    - `focus`: keyboard or pointer focus on the target only.
-                    - `click`: a click toggles it; it behaves as a small non-modal dialog, for content you interact with.
-                    - `manual`: only your code, through `open`.
-
-                    Escape and a click elsewhere close it.
-                  </script>
-                </ui-markdown>
-                <ui-docs-example
-                  header="Specifying a trigger event"
-                  description='A popup trigger event can be specified:  `on="click"` here, `on="focus"` for an input.'
-                >
-                  <ui-button id="popup-usage-click">Click me</ui-button>
-                  <ui-popup
-                    for="popup-usage-click"
-                    on="click"
-                    header="Clicked"
-                    content="Click again, or press Escape, to close."
-                  ></ui-popup>
-                  <ui-input id="popup-usage-focus" placeholder="Focus me" icon="search"></ui-input>
-                  <ui-popup for="popup-usage-focus" on="focus" content="Type to search"></ui-popup>
-                </ui-docs-example>
-                <ui-docs-example
-                  header="Wide popup menu"
-                  description="Complex content, like a wide menu, is markup already in the page:  a `flowing` hover popup that stays open while the pointer is on it works like a dropdown menu."
-                >
-                  <ui-menu>
-                    <ui-item id="popup-usage-browse" icon="dropdown" link>Browse</ui-item>
-                  </ui-menu>
-                  <ui-popup for="popup-usage-browse" flowing position="bottom left" hide-delay="300">
-                    <ui-grid columns="3" divided relaxed>
-                      <ui-column>
-                        <ui-header level="4">Fabrics</ui-header>
-                        <ui-list link>
-                          <ui-item href="#cashmere">Cashmere</ui-item>
-                          <ui-item href="#linen">Linen</ui-item>
-                          <ui-item href="#cotton">Cotton</ui-item>
-                          <ui-item href="#viscose">Viscose</ui-item>
-                        </ui-list>
-                      </ui-column>
-                      <ui-column>
-                        <ui-header level="4">Size</ui-header>
-                        <ui-list link>
-                          <ui-item href="#small">Small</ui-item>
-                          <ui-item href="#medium">Medium</ui-item>
-                          <ui-item href="#large">Large</ui-item>
-                          <ui-item href="#plus-sizes">Plus Sizes</ui-item>
-                        </ui-list>
-                      </ui-column>
-                      <ui-column>
-                        <ui-header level="4">Colors</ui-header>
-                        <ui-list link>
-                          <ui-item href="#neutrals">Neutrals</ui-item>
-                          <ui-item href="#brights">Brights</ui-item>
-                          <ui-item href="#pastels">Pastels</ui-item>
-                        </ui-list>
-                      </ui-column>
-                    </ui-grid>
-                  </ui-popup>
-                </ui-docs-example>
-
-                <ui-header level="2" dividing id="positioning">Positioning</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `position` places it: `top left` (the default) ... `right center`, plus `left top` ... `right bottom` (beside
-                    the target, lined up with its top or bottom edge). Word order matters: `top left` is above. When there is no
-                    room it flips to the other side, inside the viewport.
-                  </script>
-                </ui-markdown>
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: <code>offset</code> / <code>data-offset</code>, <code>boundary</code>,
-                  <code>scrollContext</code>, <code>lastResort</code> and the <code>transition</code> setting -- CSS
-                  anchor positioning places and flips the popup; set the gap with <code>--ui-popup-distance</code> and
-                  the motion with <code>--ui-popup-duration</code>.</ui-message
-                >
-
-                <ui-header level="2" dividing id="invoker-commands">Invoker commands</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A button can drive a popup with no script, through an invoker command: `commandfor` names the popup, `command`
-                    is `--show`, `--close` or `--toggle` (or the native `show-popover` / `hide-popover` / `toggle-popover`). The
-                    popup always opens at ITS target, whichever button sent the command (a `manual` popup suits this).
-                  </script>
-                </ui-markdown>
-                <ui-docs-example header="Invoker commands" description="It appears at the label, not at the buttons.">
-                  <ui-buttons size="small" basic>
-                    <ui-button commandfor="popup-invoker-tip" command="--toggle">Toggle</ui-button>
-                    <ui-button commandfor="popup-invoker-tip" command="--close">Close</ui-button>
-                  </ui-buttons>
-                  <ui-label id="popup-invoker-target">Anna</ui-label>
-                  <ui-popup
-                    id="popup-invoker-tip"
-                    for="popup-invoker-target"
-                    on="manual"
-                    content="Anna, project owner"
-                  ></ui-popup>
-                </ui-docs-example>
-
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `open` is the controlled state: writing it shows or hides the popup and fires nothing. The user's own changes
-                    (the trigger, an invoker command) dispatch the cancelable events first.
-
-                    - `ui-open` -- about to show; `detail` is `{ open: true, originalEvent? }`. `preventDefault()` keeps it hidden.
-                    - `ui-close` -- about to hide; `detail` is `{ open: false, originalEvent? }`. `preventDefault()` keeps it open,
-                      except when the browser already dismissed a `hint` popover (Escape, a click elsewhere).
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const popup = document.querySelector("ui-popup")
-                    popup.target = document.querySelector("#avatar") // wins over `for`
-                    popup.addEventListener("ui-close", (event) => {
-                      if (form.dirty) event.preventDefault() // keep it open
-                    })
-                    popup.open = true // show it from code:  no event
-                  </script>
-                </ui-code>
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: Fomantic's behaviors (<code>show</code>, <code>hide</code>, <code>toggle</code>,
-                  <code>reposition</code> ...) and callbacks (<code>onShow</code>, <code>onHidden</code> ...) -- write
-                  <code>open</code>, and listen for <code>ui-open</code> / <code>ui-close</code>.</ui-message
-                >
-
-                <ui-header level="2" dividing id="tooltips">CSS-only tooltips</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The CSS-only tooltip is a plain attribute on any element: `data-tooltip` (the text), `data-position` (the same
-                    twelve positions, default `top center`), `data-inverted` and `data-variation` (sizes, hues, `basic`, `fixed`,
-                    `wide fixed`, `very wide fixed`, `multiline`, `visible`). It lives in the page stylesheet, so it works with no
-                    script and costs nothing.
-
-                    But it cannot flip, cannot hold markup, and its text is a CSS pseudo-element, which screen readers do not
-                    reliably announce: use it for hints only, and a `<ui-popup>` for anything that matters. On an element that
-                    already draws `::before` / `::after` (an `<i>` icon in Fomantic), put it on a wrapper instead.
-                  </script>
-                </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <button data-tooltip="Add users" data-position="bottom left" data-inverted data-variation="small">+</button>
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - **Tab** onto the target shows a `hover` or `focus` popup; leaving the target hides it.
-                    - **Enter** / **Space** toggles a `click` popup (the target's own activation).
-                    - **Escape** closes the popup.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - The ARIA pattern follows `on`:
-                      - `hover`, `focus` and `manual` popups are tooltips: the popup has `role="tooltip"` and the target is
-                        `aria-describedby` it, so its text is read as the target's description. Keep that text short, and put
-                        nothing interactive in it.
-                      - `click` popups are non-modal dialogs: `role="dialog"`, named by `header` or the popup's `aria-label`; the
-                        target gets `aria-haspopup="dialog"`, `aria-expanded` and `aria-controls`.
-                    - The ARIA goes on the element that actually takes focus: for a `<ui-button>`, its inner `<button>`.
-                    - Hover popups also open on keyboard focus, stay open while hovered, and close with Escape: hoverable,
-                      persistent and dismissible, as WCAG 1.4.13 asks.
-                    - A target with only an icon still needs its own name (`aria-label`): a tooltip describes, it does not name.
-                    - The CSS-only `data-tooltip` text is a pseudo-element and is not reliably announced; never rely on it alone.
-                    - If the element fails to render, its native fallback never shows the popup: no positioning, triggers, events
-                      or Escape. A tooltip-like popup copies its text into the target's native `title` (when it has none), so the
-                      hint survives; a `click` popup shows nothing.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Set `target` as a property when the target is not a sibling or an id, and listen for `ui-open` / `ui-close`.
-                  </script>
-                </ui-markdown>
-                <ui-header level="4" id="framework-react">React 19</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    <ui-popup target={anchorEl} on="click" header="Share" onui-close={() => setOpen(false)}>
-                      ...
-                    </ui-popup>
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                    <ui-popup :target="anchorEl" on="click" header="Share" @ui-close="open = false">...</ui-popup>
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    // no `on:` namespace:  listen through a ref
-                    <ui-popup
-                      prop:target={anchorEl}
-                      on="click"
-                      header="Share"
-                      ref={(el) => el.addEventListener("ui-close", () => setOpen(false))}
-                    >
-                      ...
-                    </ui-popup>
-                  </script>
-                </ui-code>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-popup"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-popup-*` tokens: set one on the element, on any ancestor (`:root` for every popup),
-                    or on the box through `::part(popup)`. They inherit into the shadow root, where the sheet reads each through a
-                    private alias, so nothing inside blocks them. `wide` and `very wide` swap the max width for
-                    `--ui-popup-wide-width` / `--ui-popup-very-wide-width`; a slotted header reads `--ui-popup-header-font-size`
-                    from the popup. The CSS-only tooltip reads `--ui-tooltip-*` tokens on the element that carries it.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    /* every popup on the page */
-                    :root {
-                      --ui-popup-radius: 0.5em;
-                    }
-                    /* one kind */
-                    ui-popup.help {
-                      --ui-popup-max-width: 320px;
-                      --ui-popup-distance: 0.75em;
-                    }
-                    /* the CSS-only tooltips */
-                    [data-tooltip] {
-                      --ui-tooltip-distance: 0.75em;
-                    }
-                  </script>
-                </ui-code>
-                <ui-message state="info" size="small">
-                  <ui-markdown>
-                    <script type="text/markdown">
-                      The host resets the colour remap and `--ui-scale`, so a popup opened from inside a red message or a large
-                      button is neither red nor large: give the popup its own `color` / `size`. Never set the `--_ui-popup-*` names:
-                      they're the sheet's private plumbing.
-                    </script>
-                  </ui-markdown>
-                </ui-message>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-popup" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                    theme to the whole site.
-
-                    Themes that restyle popups: GitHub (Fomantic's popup page lists only its default theme).
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+                Themes that restyle popups: GitHub (Fomantic's popup page lists only its default theme).
+              </script>
+            </ui-markdown>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

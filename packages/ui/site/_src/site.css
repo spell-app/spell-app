@@ -4,11 +4,11 @@
  * - Everything visible is a `<ui-*>` widget:  a rule here that changes a LOOK is a widget gap -- record it as a plan
  *   issue (`Gap:  <ui-tag> <what's missing>`) instead.  The few that do are marked `GAP` with their issue.
  * - In `@layer ui.app`, the page's own layer:  above the components, so a layout rule wins without `!important`.
- * - The page skeleton is the template's (`packages/docs/templates/spell-ui-docs.html`);  the measures are Fomantic's
- *   docs.css:  a 250px nav column, the main column 3em from it, a 319px rail 3em right of the content (387px kept free
- *   for it), rails hidden on narrower screens.
+ * - The chrome is `_parts/layout.html` (a page is its `main` alone:  `SiteShell`);  three columns:  nav, page,
+ *   aside ("On this page");  the measures are Fomantic's docs.css:  a 250px nav column, the main column 3em from it;
+ *   the aside hidden on narrower screens.
  * - Breakpoints in px (this file isn't run through the `@custom-media` import):  Fomantic's computer (992px) and the
- *   width where content + rail no longer fit (1200px).
+ *   width where content + aside no longer fit (1200px).
  */
 
 @layer ui.app {
@@ -16,17 +16,41 @@
     /* Fomantic docs.css measures, shared by the rules below. */
     --site-nav-width: 250px;
     --site-gutter: 3em;
-    --site-rail-room: 387px;
-    --site-rail-width: 319px;
+    --site-aside-width: 280px;
     /* The fixed `<spell-site-header>` bar above everything (its own rule sets the height). */
     --site-top: var(--spell-site-header-height, 0px);
+  }
+
+  /*
+   * ## Before the layout:  a page's file holds only its `main`;  hidden until `SiteShell` wraps it in
+   * `_parts/layout.html` (then `<ui-root display="when-ready">` hides it until ready).  Shown anyway after 4s, and
+   * never hidden without scripting:  a page that can't mount still reads.
+   */
+  @media (scripting: enabled) {
+    html:not(.site-mounted) body > main.site-main {
+      visibility: hidden;
+      animation: 0s linear 4s forwards site-reveal;
+    }
+  }
+  @keyframes site-reveal {
+    to {
+      visibility: visible;
+    }
   }
 
   /* ## Page grid:  the nav column beside the main column */
   .site-layout {
     display: grid;
-    grid-template-columns: var(--site-nav-width) minmax(0, 1fr);
+    grid-template-columns: var(--site-nav-width) minmax(0, 1fr) var(--site-aside-width);
     align-items: start;
+  }
+  /* the page column:  its `main` (the content box, then the router's include), then the footer */
+  .site-page {
+    min-width: 0;
+  }
+  .site-content,
+  .site-content-include {
+    display: block;
   }
   .site-nav {
     position: sticky;
@@ -38,15 +62,11 @@
     min-width: 0;
   }
 
-  /* ## Header:  the include and its placeholder take the menu's room;  the menu sits flush on the page */
+  /* ## Top bar:  the menu sits flush on the page */
   body {
     margin: 0;
   }
-  .site-header {
-    display: block;
-  }
-  .site-top-menu::part(menu),
-  .site-header-placeholder::part(menu) {
+  .site-top-menu::part(menu) {
     margin: 0;
     border-radius: 0;
   }
@@ -60,12 +80,12 @@
     --ui-docs-nav-height: 100%;
   }
 
-  /* ## Masthead and body:  Fomantic's main column, left-aligned beside the nav, room kept for the rail */
+  /* ## Masthead and body:  Fomantic's main column, left-aligned beside the nav */
   .site-masthead > ui-container::part(container),
   .site-body::part(container) {
     width: auto;
     max-width: none;
-    margin-inline: var(--site-gutter) var(--site-rail-room);
+    margin-inline: var(--site-gutter);
   }
   .site-masthead::part(segment) {
     padding-block: 3em;
@@ -86,21 +106,18 @@
     padding-inline: 0;
   }
 
-  /* ## Rail:  the "On this page" toc, sticky below the site header */
-  .site-rail {
-    --ui-rail-width: var(--site-rail-width);
-    --ui-rail-distance: calc(var(--site-gutter) * 2);
-  }
-  /* the sticky's host is `display: contents`:  its box is the part, sticking inside the full-height rail */
-  .site-toc::part(sticky) {
-    padding-block-end: 2em;
-  }
-  /* nothing to list (the API tab):  no rail, and the content takes its room */
-  .site-body:has(ui-docs-toc:state(empty)) .site-rail {
-    display: none;
-  }
-  .site-body:has(ui-docs-toc:state(empty))::part(container) {
-    margin-inline-end: var(--site-gutter);
+  /*
+   * ## Aside:  the "On this page" toc in its own column, sticky below the site header.  The column stays when the toc
+   * is empty (the API tab), so the page's width never jumps between tabs.
+   */
+  .site-aside {
+    position: sticky;
+    top: var(--site-top);
+    box-sizing: border-box;
+    max-height: calc(100dvh - var(--site-top));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 3em 1.5em 2em 0;
   }
 
   /* ## Content:  section headers land below the fixed bar */
@@ -122,14 +139,13 @@
     margin-inline: var(--site-gutter);
   }
 
-  /* ## Narrower than content + rail:  no rail, the content takes its room */
+  /* ## Narrower than content + aside:  no aside, the content takes its room */
   @media (width < 1200px) {
-    .site-rail {
-      display: none;
+    .site-layout {
+      grid-template-columns: var(--site-nav-width) minmax(0, 1fr);
     }
-    .site-masthead > ui-container::part(container),
-    .site-body::part(container) {
-      margin-inline-end: var(--site-gutter);
+    .site-aside {
+      display: none;
     }
   }
 
