@@ -33,8 +33,9 @@
  *   editor tab (never the sidebar), and the old window closes its tab.
  *   - So `/isolate` ends its turn RIGHT AFTER `handoff`, and does the rest (`yarn install` ...) in the new window.
  *   - `--prompt <text>`:  typed into the new tab's input, so Owen only presses enter to carry on.
- * - On leaving, it moves BACK (`handoff <name> --back`):  its package's window opens it, and the worktree's window
- *   closes (its file deleted).  `close <name>` just closes the window:  for a session that never moved there.
+ * - On leaving (`/isolate done`), it does NOT move back:  it stays in the worktree's window, which Owen closes
+ *   (`close <name>` closes it and deletes its file).  `handoff <name> --back` still moves a session back to its
+ *   package's window, but no skill uses it any more (Owen, 2026-10-03:  "just confusing things").
  *   - A session can't move processes:  the new tab RESUMES it (same session id), and closing the old tab ends the
  *     old `claude` process.  The resumed session goes back into its worktree by itself (Claude records
  *     `worktree-state` in the transcript).
@@ -60,8 +61,7 @@
  * - Its changes show in Source Control (`git.detectWorktrees`), not in Explorer, and the title bar isn't tinted.
  * - Fine when it's the window's ONLY session.  Else the others share its doc preview (one doc at a time) and its
  *   Source Control, and a second worktree there is easy to mix up with the first.
- * - Later, it can still move:  `open <name>`, `handoff <name>`.  On leaving, `handoff <name> --back` says it
- *   stays put, since it's not in the worktree's window.
+ * - Later, it can still move:  `open <name>`, `handoff <name>`.
  *
  * ## Commands
  * - `init`:  write the window file of every package that lacks one;  never overwrites (themes are Owen's to change)

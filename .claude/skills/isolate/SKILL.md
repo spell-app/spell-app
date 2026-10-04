@@ -139,11 +139,12 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    - Can't fix them (keeping both sides needs a decision only the user can make, or the checks fail):
      `git merge --abort`, say so, list each file and why, then AskUserQuestion "Continue exiting?"
      options "Exit, unmerged" and "Stay isolated"
-4. Move the session back, from the worktree's root:  `node scripts/window.mjs handoff <name> --back`.  When this
-   turn ends, the package's window opens the session in an editor tab, and the worktree's window closes (its
-   `.code-workspace` deleted).  A session that never moved there (it stayed, or the move failed):  it says the
-   session "stays put" and closes the worktree's window, if one is open;  nothing moves.  An older session that `add`ed the worktree to its own window:
-   `node scripts/window.mjs remove packages/<pkg>`.
+4. NO move back:  the session stays in the window it's in (the worktree's, or the one it stayed in).  Why:  Owen
+   (2026-10-03) "we don't need to go back into the originating window.  That's just confusing things".
+   - The worktree's window stays open for Owen to read the summary;  he closes it.  Its file
+     (`workspaces/ongoing/<name>.code-workspace`) goes with `node scripts/window.mjs close <name>` later, or
+     `/whassup` lists it.
+   - NEVER `handoff <name> --back` from here.
 5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
    Never `remove` unasked (and on a hook-made worktree `remove` refuses without `discard_changes`).
 6. Merging (only after "Merge now" got the branch ready), now in the main checkout:
@@ -151,6 +152,6 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
      session may be working there.  Either fails:  say which and don't merge.
    - `git merge --ff-only <name>`.  Refused (`main` moved since step 2):  say so and don't merge;  `/isolate <name>`
      re-enters the worktree to merge `main` in again.
-7. One line (plus "this session moves back to `<pkg>`'s window when this turn ends", after step 4's move):
+7. One line (plus, in a worktree's window, "close this window when you're done with it"):
    - merged:  the worktree can go (`git worktree remove .claude/worktrees/<name>`, `git branch -d <name>`)
    - not merged:  how to merge later (`git merge <name>` from the main checkout), then the same cleanup
