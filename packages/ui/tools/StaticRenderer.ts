@@ -16,7 +16,7 @@ import { createServer, type InlineConfig, type ViteDevServer } from "vite"
  *     called on the server side".  Its `ssr` option would change a dev server's ELEMENT pages too (`hydratable`).
  *   - `mode: "test"` touches only this server:  `import.meta.env.MODE`, `.env.test` files (none).
  * - No HTTP of its own (middleware mode), no HMR, no dependency discovery.
- * - See `PAPERCUTS.md` (`## ui`, "`server.ssrLoadModule()` of `$/ui/server`").
+ * - See `agents/PAPERCUTS.md` (`## ui`, "`server.ssrLoadModule()` of `$/ui/server`").
  ****************/
 export class StaticRenderer {
   /** `packages/ui/`, with a trailing `/`:  the server's root by default. */

@@ -1,7 +1,7 @@
 /**
  * Entry of the brand DOCS pages' bundle, `_assets/ui/brand-docs.js`:  `brand-ui.js` plus Spell UI's docs widgets, for
  * the `<ui-brand-*>` elements' pages (`components/<tag>.html`), written in Spell UI's docs format
- * (`packages/docs/templates/spell-ui-docs.html`).
+ * (`packages/docs/content/templates/spell-ui-docs.html`).
  * - Built with `brand-ui.js` (`vite.config.ts`, two entries):  they share their chunks, so a page loads ONE of them.
  * - A page loads it as (from `components/`):
  *     <link rel="stylesheet" href="../_assets/ui/brand-ui.css">

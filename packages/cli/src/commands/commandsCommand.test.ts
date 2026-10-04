@@ -23,7 +23,7 @@ write(
 )
 write(ROOT, ".claude/skills/isolate/SKILL.md", "---\nname: isolate\n---")
 write(ROOT, ".claude/skills/solid-2/SKILL.md", "---\nname: solid-2\n---")
-write(ROOT, "goals/_skills/goals/SKILL.md", "---\nname: goals\n---")
+write(ROOT, "packages/docs/tools/goals/skills/goals/SKILL.md", "---\nname: goals\n---")
 write(HOME, ".claude/skills/session/SKILL.md", "---\nname: session\n---")
 write(HOME, ".claude/skills/graphify/SKILL.md", "---\nname: graphify\n---")
 

@@ -1,14 +1,14 @@
 <!-- bedtime: active -->
 # Morning plan:  vite-plus
 
-Plan doc:  `packages/docs/epics/vite-plus/vite-plus.plan.html`.  Branch `vite-plus`, worktree `.claude/worktrees/vite-plus`.
+Plan doc:  `packages/docs/content/epics/vite-plus/vite-plus.html`.  Branch `vite-plus`, worktree `.claude/worktrees/vite-plus`.
 
 ## 1. Summary
 
 - All 4 phases done, 0 WIP, 0 skipped.  Branch `vite-plus`, NOT merged.
 - Verdict:  adopt.  Every package's checks as on `main`;  `yarn ts` 6.0s -> 3.1s;  tests ~15% faster;  dev/build
   same.  Biggest catch:  `vp run --cache` is unsafe here (I1).
-- Durable doc:  `packages/docs/vite-plus.html`.
+- Durable doc:  `packages/docs/content/vite-plus.html`.
 - Commits (`git log --oneline main..HEAD`):
   - `36eae09f` P4:  Doc Review
   - `149549f8` P3:  Rollout
@@ -41,7 +41,7 @@ Plan doc:  `packages/docs/epics/vite-plus/vite-plus.plan.html`.  Branch `vite-pl
   hand-edited instead).
 - J5:  `engines.node` `>=24.11` in all 12 `package.json`s;  CI `node-version: 24`.
 - J6:  `yarn oxfmt` / `yarn oxlint` no longer work in a package (migrate dropped them as direct deps;  `yarn vitest`
-  still works).  Broke `yarn plan-doc add` (tidy step).  Fixed `packages/docs/scripts/pages.js` `tidy()` and
+  still works).  Broke `yarn plan-doc add` (tidy step).  Fixed `packages/docs/tools/pages.js` `tidy()` and
   `packages/docs/AGENTS.md` to `yarn vp fmt`.  Alternative:  re-add both as catalog deps.
 - Checks:  per package ts / lint / format:check / test == baseline (same pre-existing failures, nothing new);
   app `build` + `build:element` ok;  `yarn vscode` ok (installed from this branch).  Root `yarn test`:  4 cli 5s
@@ -71,7 +71,7 @@ Plan doc:  `packages/docs/epics/vite-plus/vite-plus.plan.html`.  Branch `vite-pl
 
 ### P4 · Doc Review
 
-- `packages/docs/vite-plus.html` (check-spell ok, screenshots looked at), docs index;  plan doc:  C1 closed, summary
+- `packages/docs/content/vite-plus.html` (check-spell ok, screenshots looked at), docs index;  plan doc:  C1 closed, summary
   rewritten.  Worktree NOT left (bedtime).  `36eae09f`.
 
 ## 3. Problems

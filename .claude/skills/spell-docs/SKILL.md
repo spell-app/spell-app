@@ -1,6 +1,6 @@
 ---
 name: spell-docs
-description: Open the spell docs (the docs index, `packages/docs/index.html`, or one page of it) in VS Code's doc preview -- the "Spell Docs" view in the right side bar, served live by the page server.  Use for `/spell-docs [page]` (e.g. `/spell-docs`, `/spell-docs solid/solid-2`), or when Owen says "show me the docs" / "open the docs in VS Code".
+description: Open the spell docs (the docs index, `packages/docs/content/index.html`, or one page of it) in VS Code's doc preview -- the "Spell Docs" view in the right side bar, served live by the page server.  Use for `/spell-docs [page]` (e.g. `/spell-docs`, `/spell-docs solid/solid-2`), or when Owen says "show me the docs" / "open the docs in VS Code".
 argument-hint: "[page]"
 ---
 
@@ -10,7 +10,7 @@ argument-hint: "[page]"
    what isn't running (page server, editor, Spell UI's docs) and prints their ports;  a failed row:  say so in one
    line, with `/spell-serve`'s advice, and go on -- the docs need only the page server.
 1. From the checkout this session is in (a worktree shows ITS docs):  `yarn docs:open $ARGUMENTS --vs`.
-   - No argument:  the docs index, `packages/docs/index.html` (the page server's `/`).
+   - No argument:  the docs index, `packages/docs/content/index.html` (the page server's `/`).
    - `<page>` is relative to `packages/docs`;  `.html` and a folder's own page may be left off (`solid/solid-2`,
      `server`).
    - It starts the page server first (live reload), then asks THIS session's window, through the spell extension,

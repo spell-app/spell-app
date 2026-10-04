@@ -15,7 +15,7 @@ import type { Handler } from "$/server"
  * - From the goals server's `/api/events`.
  */
 export class LiveReload {
-  /** folder that paths are reported relative to, as URL paths (`/packages/docs/x.html`) */
+  /** folder that paths are reported relative to, as URL paths (`/packages/docs/content/x.html`) */
   readonly root: string
 
   /** ms a path must be quiet before it's reported */

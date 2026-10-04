@@ -29,7 +29,7 @@ import { TocIndex } from "../src/docs-components/ui-docs-toc/TocIndex.ts"
  * - Every page is checked, whatever failed before it.  Problems go to stderr, with each page's URL, counts and
  *   screenshots;  a JSON summary is the last thing on stdout.
  * - Look at the screenshots too:  the checks can't see overlap, clipping or ugly wrapping.
- * - Replaces the Astro site's `check` script.  Model:  the docs' checker, `packages/docs/scripts/check-spell.js`.
+ * - Replaces the Astro site's `check` script.  Model:  the docs' checker, `packages/docs/tools/check-spell.js`.
  */
 export class SiteCheck {
   /** `packages/ui/`. */

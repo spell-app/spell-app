@@ -35,7 +35,7 @@ const HOOKS = import.meta.glob<VisualHooks>("/src/components/*/examples/elements
 /**
  * Every component sheet, by path.
  * - NOTE: `ui-popup.anchored.css` is excluded:  Lightning CSS can't parse its `@container anchored(...)`
- *   (`CODE-DEBT.md`), so it's imported `?raw` above, as the demo does.
+ *   (`agents/CODE-DEBT.md`), so it's imported `?raw` above, as the demo does.
  */
 const SHEETS = import.meta.glob<string>(["/src/components/*/*.css", "!**/ui-popup.anchored.css"], {
   query: "?inline",
