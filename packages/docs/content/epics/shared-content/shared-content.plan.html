@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../../tools/_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../../tools/_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T16:10:37-04:00" class="spell-doc-page plan-doc" data-plan="shared-content">
+  <body data-recent-since="2026-10-04T17:11:48-04:00" class="spell-doc-page plan-doc" data-plan="shared-content">
     <spell-site-header root="../../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Shared Content</h1>
             <span class="plan-step"
-              ><ui-label basic color="orange" icon="circle half stroke" href="#p2" title="P2 · Move Logic Out"
-                >P2</ui-label
+              ><ui-label basic color="grey" icon="circle right" href="#p3" title="Next:  P3 · Link-Aware Tools"
+                >P3</ui-label
               ></span
             >
           </header></ui-sticky
@@ -69,7 +69,7 @@
               </blockquote></ui-content
             >
           </ui-accordion>
-          <p class="plan-estimate"><b>Estimate:</b> 9h-13h in all, 8h-12h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 9h-13h in all, 7h-10h left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <p>Docs content is tracked per branch today, which costs twice:</p>
             <ul>
@@ -103,7 +103,9 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td><code>packages/docs/content</code></td>
+                    <td>
+                      <a href="../../" target="src-packages-docs-content"><code>packages/docs/content</code></a>
+                    </td>
                     <td>
                       ALL docs content, at the paths it has today under
                       <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
@@ -148,9 +150,11 @@
             </ui-table>
             <p>
               The tools stay tracked in spell-app, versioned per branch: docs scripts, <code>_assets</code> and the
-              goals tooling go to <code>packages/docs/tools/</code>, beside the <code>content</code> link (<a href="#q9"
-                >Q9</a
-              >). Templates are content (<a href="#q10">Q10</a>).
+              goals tooling go to
+              <a href="../../../tools/" target="src-packages-docs-tools"><code>packages/docs/tools/</code></a
+              >, beside the <code>content</code> link (<a href="#q9">Q9</a>). Templates are content (<a href="#q10"
+                >Q10</a
+              >).
             </p>
             <ui-accordion class="spell-code" styled open="0">
               <ui-title>The layout · 14 lines</ui-title>
@@ -248,11 +252,12 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="8" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="8" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
+            collapsed
             id="p1"
             data-phase="1"
             data-status="done"
@@ -297,25 +302,28 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="active"
+            data-status="done"
             header="P2 · Move Logic Out"
             badge="1-2h"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
                 <ul>
                   <li>
-                    The three soon-to-be-shared folders hold content only: <code>packages/docs/content</code> (every
-                    docs page and template), <code>goals</code> (goal sets), <code>agents/</code> (the three logs)
+                    The three soon-to-be-shared folders hold content only:
+                    <a href="../../" target="src-packages-docs-content"><code>packages/docs/content</code></a> (every
+                    docs page and template), <code>goals</code> (goal sets),
+                    <a href="../../../../../agents/" target="src-agents"><code>agents/</code></a> (the three logs)
                   </li>
                   <li>
-                    All docs and goals tooling lives in <code>packages/docs/tools</code>; every yarn script keeps its
-                    name
+                    All docs and goals tooling lives in
+                    <a href="../../../tools/" target="src-packages-docs-tools"><code>packages/docs/tools</code></a
+                    >; every yarn script keeps its name
                   </li>
                   <li>
                     Every reference to a docs path gains <code>/content/</code> (<a href="#c6">C6</a>); old URLs
@@ -323,10 +331,48 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </li>
                   <li>Still all tracked: nothing is shared yet, so this merges like any branch</li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    Where to see it:
+                    <a href="../../" target="src-packages-docs-content"><code>packages/docs/content/</code></a> holds
+                    every page, plan doc and template;
+                    <a href="../../../tools/" target="src-packages-docs-tools"><code>packages/docs/tools/</code></a> the
+                    scripts, <code>_assets</code> and the goals tooling;
+                    <a href="../../../../../agents/" target="src-agents"><code>agents/</code></a> the three logs. Page
+                    URLs gained <code>/content/</code>; old ones redirect.
+                  </li>
+                  <li>Nothing is shared yet: all still tracked, so the branch merges like any other.</li>
+                  <li>
+                    Every <code>yarn</code> script kept its name; <code>yarn plan-doc</code>, <code>docs:*</code>,
+                    <code>details</code>, <code>goals</code> work from the new places.
+                  </li>
+                  <li>
+                    <a href="../../../tools/relocate.js" target="src-packages-docs-tools-relocate-js"
+                      ><code>packages/docs/tools/relocate.js</code></a
+                    >: where each path went, plus <code>relocateLinks()</code>, <code>relocateMentions()</code> and
+                    <code>repairLinks()</code>; ran over the whole repo, and P6 reuses it on the worktrees.
+                  </li>
+                  <li>
+                    Checked: tests for docs (112), server (88), goals (4), cli (150, plus 1 failure from vite-plus, I1);
+                    <code>yarn ts</code> for every package; link check on all 44 pages (only the 2
+                    <code>.oxfmtrc.json</code> links from vite-plus, T4); check-spell on the index, a guide and this
+                    plan doc; curl on the page server's new URLs and redirects.
+                  </li>
+                  <li>
+                    Merged <code>main</code> twice on the way (review-review P4, vite-plus): vite-plus's new pages moved
+                    and relocated.
+                  </li>
+                  <li>Not tried by hand: the VS Code doc preview, and a goals page's live buttons.</li>
+                </ul></ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> moved into <code>packages/docs/tools/</code>: scripts, _assets, goals tooling; every
-                page, epic and template into <code>packages/docs/content/</code>; root logs into <code>agents/</code>;
-                every <code>_assets</code> path in the pages; root
+                ><b>Files:</b> moved into
+                <a href="../../../tools/" target="src-packages-docs-tools"><code>packages/docs/tools/</code></a
+                >: scripts, _assets, goals tooling; every page, epic and template into
+                <a href="../../" target="src-packages-docs-content"><code>packages/docs/content/</code></a
+                >; root logs into <a href="../../../../../agents/" target="src-agents"><code>agents/</code></a
+                >; every <code>_assets</code> path in the pages; root
                 <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a
                 >,
                 <a href="../../../tools/pages.js" target="src-packages-docs-scripts-pages-js"><code>pages.js</code></a
@@ -337,6 +383,10 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
               ><ui-item icon="flask"
                 ><b>Verify:</b> <code>yarn docs:update</code>, <code>yarn goals:test</code>, <code>yarn test</code>;
                 docs index and a plan doc open from the page server AND from <code>file://</code></ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#j1">J1</a>, <a href="#j2">J2</a>, <a href="#j3">J3</a>,
+                <a href="#j4">J4</a>, <a href="#j5">J5</a>, <a href="#j6">J6</a>, <a href="#c7">C7</a>,
+                <a href="#c8">C8</a>, <a href="#t4">T4</a>, <a href="#i1">I1</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -582,7 +632,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
           <ui-icon slot="icon" name="file circle question"></ui-icon>
           <ui-list class="plan-items" data-kind="decision" divided relaxed
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T16:14:36-04:00"
               id="q1"
               data-status="decided"
@@ -619,12 +669,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item
-              data-state="recent"
-              data-changed="2026-10-04T17:06:03-04:00"
-              id="q2"
-              data-status="done"
-              data-answered
+            ><ui-item data-state="old" data-changed="2026-10-04T17:06:03-04:00" id="q2" data-status="done" data-answered
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q2">Q2</a>
@@ -650,12 +695,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item
-              data-state="recent"
-              data-changed="2026-10-04T17:06:04-04:00"
-              id="q3"
-              data-status="done"
-              data-answered
+            ><ui-item data-state="old" data-changed="2026-10-04T17:06:04-04:00" id="q3" data-status="done" data-answered
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q3">Q3</a>
@@ -707,12 +747,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item
-              data-state="recent"
-              data-changed="2026-10-04T17:06:06-04:00"
-              id="q4"
-              data-status="done"
-              data-answered
+            ><ui-item data-state="old" data-changed="2026-10-04T17:06:06-04:00" id="q4" data-status="done" data-answered
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q4">Q4</a>
@@ -741,7 +776,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T16:14:42-04:00"
               id="q5"
               data-status="decided"
@@ -766,7 +801,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T16:14:44-04:00"
               id="q6"
               data-status="decided"
@@ -799,7 +834,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T16:14:45-04:00"
               id="q7"
               data-status="decided"
@@ -832,7 +867,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T16:14:47-04:00"
               id="q8"
               data-status="decided"
@@ -854,7 +889,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T17:06:07-04:00"
               id="q9"
               data-status="decided"
@@ -883,8 +918,8 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                       <code>_assets</code>, goals tooling)
                     </li>
                     <li>
-                      <code>packages/docs/content</code>: a link to <code>spell-app-dev/packages/docs/content</code>,
-                      holding ALL docs content:
+                      <a href="../../" target="src-packages-docs-content"><code>packages/docs/content</code></a
+                      >: a link to <code>spell-app-dev/packages/docs/content</code>, holding ALL docs content:
                       <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
                       >,
                       <a href="../../changelog.html" target="src-packages-docs-changelog-html"
@@ -913,18 +948,25 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                     </li>
                     <li>links between pages don't change (they move together)</li>
                     <li>
-                      pages load assets from <code>../tools/_assets/</code> (depth-adjusted); the peer has a
-                      <code>packages/docs/tools</code> link back to spell-app's, so <code>file://</code> still works
+                      pages load assets from
+                      <a href="../../../tools/_assets/" target="src-packages-docs-tools-assets"
+                        ><code>../tools/_assets/</code></a
+                      >
+                      (depth-adjusted); the peer has a
+                      <a href="../../../tools/" target="src-packages-docs-tools"><code>packages/docs/tools</code></a>
+                      link back to spell-app's, so <code>file://</code> still works
                     </li>
                     <li>
-                      three links per checkout: <code>packages/docs/content</code>, <code>goals</code>,
+                      three links per checkout:
+                      <a href="../../" target="src-packages-docs-content"><code>packages/docs/content</code></a
+                      >, <code>goals</code>,
                       <code>agents</code>
                     </li>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T17:06:09-04:00"
               id="q10"
               data-status="decided"
@@ -938,8 +980,10 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                     Page, plan doc, details and goals templates, and
                     <a href="../../templates/epics/plan-doc.md" target="src-packages-docs-templates-epics-plan-doc-md"
                       ><code>plan-doc.md</code></a
-                    >'s rules, are content: <code>packages/docs/content/templates/</code>. The tools read them through
-                    the link (Owen, 2026-10-04).
+                    >'s rules, are content:
+                    <a href="../../templates/" target="src-packages-docs-content-templates"
+                      ><code>packages/docs/content/templates/</code></a
+                    >. The tools read them through the link (Owen, 2026-10-04).
                   </p>
                   <p><b>Net effect:</b></p>
                   <ul>
@@ -948,7 +992,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T17:06:10-04:00"
               id="q11"
               data-status="decided"
@@ -978,7 +1022,183 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
           data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
         >
           <ui-icon slot="icon" name="gavel"></ui-icon>
-          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:43:21-04:00"
+              id="j1"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j1">J1</a>
+                  <span class="plan-title"
+                    >Tools flattened into packages/docs/tools; goals tooling in tools/goals, its skills in
+                    tools/goals/skills</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose to move <code>packages/docs/scripts/*</code> straight into
+                    <a href="../../../tools/" target="src-packages-docs-tools"><code>packages/docs/tools/</code></a> (no
+                    <code>tools/scripts/</code>), with <code>_assets</code> beside them, because Owen said "scripts live
+                    in <a href="../../../tools/" target="src-packages-docs-tools"><code>packages/docs/tools</code></a
+                    >". The goals tools went to <code>tools/goals/</code>, the goals skills to
+                    <code>tools/goals/skills/</code>; the five <code>.claude/skills/goals*</code> links point there.
+                    <code>goals/tsconfig.json</code> is gone: tsx uses
+                    <a href="../../../tsconfig.json" target="src-packages-docs-tsconfig-json"
+                      ><code>packages/docs/tsconfig.json</code></a
+                    >.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      run a docs script as <code>node tools/x.js</code> from
+                      <a href="../../../" target="src-packages-docs"><code>packages/docs</code></a
+                      >, or through its unchanged <code>yarn</code> script
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:43:23-04:00"
+              id="j2"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j2">J2</a>
+                  <span class="plan-title">In the docs tools, DOCS now means packages/docs/content</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Nearly every tool used <code>DOCS</code> as "where the pages are" (<code>join(DOCS, "epics")</code>,
+                    templates, page paths), so
+                    <a href="../../../tools/pages.js" target="src-packages-docs-tools-pages-js"
+                      ><code>pages.js</code></a
+                    >
+                    keeps that meaning and adds <code>PACKAGE</code>, <code>TOOLS</code> and <code>ASSETS</code>. Tools
+                    that start <code>yarn</code> run it from <code>PACKAGE</code>: once <code>content</code> is a link,
+                    a process started inside it would be in the shared repo, outside the yarn workspace.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>one changed constant instead of a hundred changed call sites</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:43:24-04:00"
+              id="j3"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j3">J3</a>
+                  <span class="plan-title"
+                    >GOALS_DIR still works: the goals tools honour it, and spell goals passes the folder it found</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The goals tools used to find their goals folder by sitting inside it. Now they're in
+                    <a href="../../../tools/goals/" target="src-packages-docs-tools-goals"
+                      ><code>packages/docs/tools/goals</code></a
+                    >, so
+                    <a href="../../../tools/goals/targets.js" target="src-packages-docs-tools-goals-targets-js"
+                      ><code>targets.js</code></a
+                    >
+                    reads <code>GOALS_DIR</code> when set, else <code>&lt;root&gt;/goals</code>;
+                    <code>spell goals</code> sets <code>GOALS_DIR</code> to the folder it found (the nearest
+                    <code>goals.preferences.json5</code>). The <code>/goals</code> skills'
+                    <a
+                      href="../../../tools/goals/skills/goals/scripts/goals.sh"
+                      target="src-packages-docs-tools-goals-skills-goals-scripts-goals-sh"
+                      ><code>goals.sh</code></a
+                    >
+                    no longer searches: it always uses its checkout's
+                    <a href="../../../../../goals/" target="src-goals"><code>goals/</code></a
+                    >.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      a goals folder outside the checkout works through <code>spell goals</code> or
+                      <code>GOALS_DIR</code>, not through the skills' script
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:43:26-04:00"
+              id="j4"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j4">J4</a>
+                  <span class="plan-title">Old docs URLs redirect to /packages/docs/content/...</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The page server sends <code>/packages/docs/&lt;x&gt;</code> (a page or folder that isn't under
+                    <code>content/</code> or
+                    <a href="../../../../ui/tools/" target="src-packages-ui-tools"><code>tools/</code></a> and isn't on
+                    disk) to <code>/packages/docs/content/&lt;x&gt;</code>, keeping the query; an old plan doc name
+                    lands on <code>&lt;name&gt;.plan.html</code> in the same hop. <code>/</code> goes to the new docs
+                    index. Checked with curl: <code>/packages/docs/solid/solid-2.html</code> and
+                    <code>/packages/docs/epics/seo/seo.html</code> both land.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>bookmarks, open tabs and VS Code's doc preview keep working</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:43:28-04:00"
+              id="j5"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j5">J5</a>
+                  <span class="plan-title">Worktrees cut before the move still show their plan docs</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>RunningEpics</code> (the docs index's running epics) and the CLI's
+                    <code>epicsDir()</code> look in
+                    <a href="../" target="src-packages-docs-content-epics"><code>packages/docs/content/epics</code></a
+                    >, else the old
+                    <a href="../../../epics/" target="src-packages-docs-epics"><code>packages/docs/epics</code></a
+                    >, so the 5 open worktrees keep working until <a href="#p6">P6</a> migrates them.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:43:29-04:00"
+              id="j6"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j6">J6</a>
+                  <span class="plan-title">Rebuilt the docs bundle rather than editing it</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The site header's Docs link is compiled into <code>tools/_assets/spell-ui.js</code>, which must
+                    never be edited by hand, so <code>tools/bundle-spell-ui.js</code> rebuilt it. The emoji name chunks
+                    changed with it (UI's data moved on since the last bundle). UI's own
+                    <a href="../../../../ui/site/_assets/site.js" target="src-packages-ui-site-assets-site-js"
+                      ><code>site/_assets/site.js</code></a
+                    >
+                    got the same one-string change as text: identical to what its build writes.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
@@ -1019,10 +1239,11 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   ></ui-title
                 ><ui-content
                   ><p>
-                    The peer's <code>packages/docs/tools</code> link points at the MAIN checkout's
-                    <code>spell-app/packages/docs/tools</code>, the main checkout. A worktree that changes the CSS or
-                    the bundle sees its change only through its own page server (which mounts its own
-                    <code>_assets</code>), not from <code>file://</code>.
+                    The peer's
+                    <a href="../../../tools/" target="src-packages-docs-tools"><code>packages/docs/tools</code></a> link
+                    points at the MAIN checkout's <code>spell-app/packages/docs/tools</code>, the main checkout. A
+                    worktree that changes the CSS or the bundle sees its change only through its own page server (which
+                    mounts its own <code>_assets</code>), not from <code>file://</code>.
                   </p>
                   <p><b>Net effect:</b></p>
                   <ul>
@@ -1127,6 +1348,57 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T17:43:31-04:00"
+              id="c7"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title"
+                    >relocate.js's path rewrite must only touch content, never code</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Running <code>relocateMentions()</code> a second time, after the merge, also rewrote code that names
+                    the OLD paths on purpose:
+                    <a
+                      href="../../../../server/src/page/RunningEpics.ts"
+                      target="src-packages-server-src-page-runningepics-ts"
+                      ><code>RunningEpics.ts</code></a
+                    >'s fallback became <code>["packages/docs/content/epics", "packages/docs/content/epics"]</code>.
+                    Caught and reverted. <a href="#p6">P6</a>'s <code>migrate</code> runs it on a worktree's moved
+                    CONTENT files only, and <code>repairLinks()</code> fixes links written for the old place.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T17:43:32-04:00"
+              id="c8"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c8">C8</a>
+                  <span class="plan-title">The docs' experiment scripts won't run from the shared repo</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../solid/experiments/" target="src-packages-docs-content-solid-experiments"
+                      ><code>solid/experiments/</code></a
+                    >
+                    and
+                    <a href="../../precedence/experiments/" target="src-packages-docs-content-precedence-experiments"
+                      ><code>precedence/experiments/</code></a
+                    >
+                    moved with their pages (<a href="#q11">Q11</a>). After the cutover, Node runs them from their real
+                    path in <code>../spell-app-dev</code>, where there's no <code>node_modules</code> and no
+                    <code>$/</code> aliases. Accepted: nothing runs them as tools; copy one into the repo to re-measure.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1181,13 +1453,86 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T17:43:36-04:00"
+              id="t4"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title">Small leftovers from P2</span> </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      two links to <code>.oxfmtrc.json</code>, which <code>vite-plus</code> deleted (<a
+                        href="../../spell-ui-pages.html"
+                        target="src-packages-docs-content-spell-ui-pages-html"
+                        ><code>spell-ui-pages.html</code></a
+                      >, its plan doc): broken on <code>main</code> too
+                    </li>
+                    <li>
+                      <code>content/templates/spell-ui-docs.html</code>'s header comment still says
+                      <a href="../../../../ui/site/" target="src-packages-ui-site"><code>../../ui/site/</code></a>
+                    </li>
+                    <li>
+                      <a href="../../../../ui/AGENTS.md" target="src-packages-ui-agents-md"
+                        ><code>packages/ui/AGENTS.md:175</code></a
+                      >
+                      is over 120 columns after the rewrite
+                    </li>
+                    <li>
+                      <a
+                        href="../../../../../.github/scripts/changed-packages.mjs"
+                        target="src-github-scripts-changed-packages-mjs"
+                        ><code>.github/scripts/changed-packages.mjs</code></a
+                      >
+                      could skip review for content-only changes (<a href="../../../../../agents/" target="src-agents"
+                        ><code>agents/</code></a
+                      >, <a href="../../../../../goals/" target="src-goals"><code>goals/</code></a
+                      >)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
 
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:43:34-04:00"
+              id="i1"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title">spell serve's editor is broken on main since vite-plus</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Not this epic's, found here:
+                    <a
+                      href="../../../../app/src/server/EditorServer.ts"
+                      target="src-packages-app-src-server-editorserver-ts"
+                      ><code>packages/app/src/server/EditorServer.ts:102</code></a
+                    >
+                    starts <code>node_modules/vite/bin/vite.js</code>, which <code>vite-plus</code> removed, so
+                    <a href="../../../../cli/" target="src-packages-cli"><code>packages/cli</code></a
+                    >'s "spell serve --headless" test fails on <code>main</code> and here. Logged in
+                    <a href="../../../../../agents/SUSPECTED-BUGS.md" target="src-agents-suspected-bugs-md"
+                      ><code>agents/SUSPECTED-BUGS.md</code></a
+                    >
+                    ("app").
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section
@@ -1207,9 +1552,12 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   <span class="plan-title">Two sessions edit at once</span></ui-title
                 ><ui-content
                   ><p>
-                    A session in main and one in a worktree both edit <code>agents/PAPERCUTS.md</code> and one plan doc
-                    in the same minute. Should: two auto commits in the peer, no lost lines, links intact, both page
-                    servers reload.
+                    A session in main and one in a worktree both edit
+                    <a href="../../../../../agents/PAPERCUTS.md" target="src-agents-papercuts-md"
+                      ><code>agents/PAPERCUTS.md</code></a
+                    >
+                    and one plan doc in the same minute. Should: two auto commits in the peer, no lost lines, links
+                    intact, both page servers reload.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1249,6 +1597,20 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   ><p>
                     Open a package window. Should: <code>spell-app-dev</code> is a folder, with its own Source Control
                     entry showing the auto commits.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T17:43:54-04:00" id="v5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v5">V5</a>
+                  <span class="plan-title">VS Code doc preview after P2</span></ui-title
+                ><ui-content
+                  ><p>
+                    Rebuild the extension from this branch (<code>yarn vscode</code>, once it's merged or from this
+                    worktree), then <code>/spell-docs</code> and <code>yarn plan-doc open shared-content</code>. Should:
+                    the docs index and this plan doc show in the side bar, from <code>/packages/docs/content/...</code>,
+                    and an edit reloads them.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1378,6 +1740,13 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T17:11-04:00">2026-10-04 17:11</time></ui-date> P2
                   active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:43-04:00">2026-10-04 17:43</time></ui-date> P2
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
