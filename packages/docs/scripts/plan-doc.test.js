@@ -86,14 +86,44 @@ describe("PlanDoc phases", () => {
       '<ui-section id="p2" data-phase="2" data-status="todo" header="P2 · Runtime + Index" sticky collapsible dividing>'
     )
     const body = plan.document.querySelector('ui-section[data-phase="2"] > ui-list.plan-phase-body')
-    expect(Array.from(body.children, (item) => item.getAttribute("icon"))).toEqual([
-      "bullseye",
-      "folder",
-      "flask",
-      "clock"
-    ])
+    // the estimate is the title's badge, not a field
+    expect(Array.from(body.children, (item) => item.getAttribute("icon"))).toEqual(["bullseye", "folder", "flask"])
     expect(body.textContent).toContain("sidebar from headings")
     expect(plan.check()).toEqual([])
+  })
+
+  it("puts the estimate in the phase title's badge", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { estimate: "1-2h" })
+    expect(plan.document.getElementById("p1").getAttribute("badge")).toBe("1-2h")
+    expect(plan.phases[0].estimate).toBe("1-2h")
+    plan.setEstimate(1, "3h")
+    expect(plan.document.getElementById("p1").getAttribute("badge")).toBe("3h")
+    expect(plan.document.querySelector("p.plan-estimate").textContent).toContain("3h in all")
+  })
+
+  it("writes a done phase's Done field, after its Goal, replacing an earlier one", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { goal: "<ul><li>a goal</li></ul>" })
+    plan.setPhase(1, "done", { done: "<ul><li>built it</li></ul>" })
+    const fields = () =>
+      Array.from(plan.document.querySelectorAll("#p1 .plan-phase-body > ui-item"), (item) => item.getAttribute("icon"))
+    expect(fields()).toEqual(["bullseye", "circle check", "folder", "flask"])
+    plan.setDone(1, "<ul><li>built it again</li></ul>")
+    expect(fields()).toEqual(["bullseye", "circle check", "folder", "flask"])
+    expect(plan.document.querySelector('#p1 ui-item[icon="circle check"]').textContent).toContain("built it again")
+  })
+
+  it("migrate moves an old Estimate field into the badge", () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.document
+      .querySelector("#p1 .plan-phase-body")
+      .append(plan.fragment('<ui-item icon="clock"><b>Estimate:</b>  2h</ui-item>'))
+    plan.document.getElementById("p1").removeAttribute("badge")
+    expect(plan.estimatesToBadges()).toBe(1)
+    expect(plan.document.getElementById("p1").getAttribute("badge")).toBe("2h")
+    expect(plan.document.querySelector('#p1 ui-item[icon="clock"]')).toBe(null)
   })
 
   it("sets status on the section and its heading, and logs it", () => {
@@ -234,13 +264,12 @@ describe("PlanDoc estimates", () => {
     expect(plan.document.querySelector(".plan-prompt-panel").nextElementSibling.className).toBe("plan-estimate")
   })
 
-  it("adds the field to a phase made without one", () => {
+  it("estimates a phase made without one", () => {
     const plan = freshPlan()
     plan.addPhase("One")
-    plan.document.querySelector('#p1 ui-item[icon="clock"]').remove()
     expect(plan.phases[0].estimate).toBeUndefined()
     plan.setEstimate(1, "1h")
-    expect(plan.document.querySelector('#p1 ui-item[icon="clock"]').textContent).toBe("Estimate:  1h")
+    expect(plan.phases[0].estimate).toBe("1h")
     expect(() => plan.setEstimate(9, "1h")).toThrow(PlanDocError)
   })
 })
