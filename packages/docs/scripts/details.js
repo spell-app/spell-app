@@ -1,8 +1,9 @@
 /**
  * `yarn details <command>`:  details pages, questions Claude explains on a page and Owen answers ON it (`/details`,
  * `.claude/skills/details/SKILL.md`).
- * - `new <slug> [--title "..."] [--epic <name>] [--description "..."]` -- a page from `templates/details.html`;
- *   prints its path
+ * - `new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]` -- a page from
+ *   `templates/details.html`;  prints its path.  `--from`:  the whole page from a JSON list of questions
+ *   (`DetailsSpec`, below), so a skill with many questions to ask (`/worktrees`, `/bedtime`) needn't hand-write it
  *   - scratch:  `packages/docs/details/<slug>.html`, ignored by version control, swept after 14 days
  *   - `--epic <name>`:  `packages/docs/epics/<name>/details/<slug>.html`, committed with the plan doc
  * - `show <page> [--wait]` -- start the page server if needed, show the page in THIS session's VS Code window (the
@@ -46,7 +47,8 @@ async function main(argv) {
     if (command === "new") {
       // scratch pages sweep themselves:  nobody has to remember to
       for (const file of sweep(DOCS, SWEEP_DAYS)) console.error(`swept ${relative(DOCS, file)}`)
-      console.log(shown(createPage(DOCS, target, flags)))
+      const spec = flags.from ? JSON.parse(readFileSync(findFile(flags.from), "utf8")) : undefined
+      console.log(shown(createPage(DOCS, target, { ...flags, spec })))
       return 0
     }
     if (command === "show") {
@@ -96,7 +98,8 @@ const USAGE = `usage:  yarn details new <slug> [--title "..."] [--epic <name>] [
  * - `--epic <name>`:  in that epic's `details/` (the epic must exist);  else the scratch `details/`
  * - sets `<title>`, the h1, the breadcrumb, the description and the footer's date;  refuses to overwrite
  */
-export function createPage(docs, slug, { title = "Details", epic, description } = {}) {
+export function createPage(docs, slug, { title, epic, description, spec } = {}) {
+  title ??= spec?.title ?? "Details"
   if (!slug || !SLUG.test(slug)) throw new Error(`a slug is lower-kebab-case:  '${slug ?? ""}'`)
   if (epic && !existsSync(join(docs, "epics", epic))) throw new Error(`no epic '${epic}' (epics/${epic}/)`)
   const folder = epic ? join(docs, "epics", epic, "details") : join(docs, "details")
@@ -111,10 +114,76 @@ export function createPage(docs, slug, { title = "Details", epic, description } 
   document.querySelector('meta[name="description"]').setAttribute("content", description ?? `Details:  ${title}`)
   const footer = document.querySelector("footer .meta")
   if (footer) footer.textContent = `Asked ${today()}.`
+  if (spec) fillFromSpec(document, spec)
   mkdirSync(folder, { recursive: true })
   writeFileSync(file, serialize(document))
   return file
 }
+
+/**
+ * Fill a new page's `document` from `spec` (`DetailsSpec`):  lede, "Asked by", the "Where we are" box, the context,
+ * then one question section per question, replacing the template's examples.
+ * - text fields are HTML (Claude writes them);  titles and letters go in attributes, escaped
+ */
+function fillFromSpec(document, spec) {
+  const lede = document.querySelector("p.lede")
+  if (lede && spec.lede) lede.innerHTML = spec.lede
+  const asked = document.querySelector('ui-item[icon="comments"]')
+  if (asked && spec.askedBy) asked.innerHTML = `Asked by:  ${spec.askedBy}`
+  const where = document.querySelector("ui-message.spell-where ul")
+  if (where && spec.where) {
+    const rows = [
+      ["Epic", spec.where.epic],
+      ["Just now", spec.where.justNow],
+      ["This decides", spec.where.decides]
+    ].filter(([, text]) => text)
+    where.innerHTML = rows.map(([label, text]) => `<li><b>${label}:</b>  ${text}</li>`).join("")
+  }
+  const context = document.querySelector("ui-section#context")
+  if (context) {
+    if (spec.context) context.innerHTML = `<ui-icon slot="icon" name="lightbulb"></ui-icon>${spec.context}`
+    else context.remove()
+  }
+  const example = document.querySelector("ui-section.spell-question")
+  const html = (spec.questions ?? []).map((question, i) => questionHtml(question, i)).join("\n")
+  if (example) example.outerHTML = html
+}
+
+/** One question's section, from a `DetailsSpec` question;  `i`:  its place, for the default id (`q1` ...). */
+function questionHtml(question, i) {
+  const id = question.id ?? `q${i + 1}`
+  const options = (question.options ?? []).map((option, j) => {
+    const letter = option.letter ?? String.fromCharCode(65 + j)
+    const more = option.details ? `<div class="spell-option-details">${option.details}</div>` : ""
+    const flag = option.recommended ? " data-recommended" : ""
+    return `<div class="spell-option" data-option="${attr(letter)}" data-title="${attr(option.title ?? letter)}"${flag}><p>${option.summary ?? ""}</p>${more}</div>`
+  })
+  const multiple = question.multiple ? " data-multiple" : ""
+  const header = attr(question.title ?? `Q${i + 1}`)
+  return `<ui-section id="${attr(id)}" class="spell-question" header="${header}" sticky collapsible dividing${multiple}><ui-icon slot="icon" name="circle question"></ui-icon><p>${question.text ?? ""}</p>${options.join("")}</ui-section>`
+}
+
+/** `path` as given:  absolute, else from `packages/docs` or the repo root (`yarn workspace` hides where yarn ran). */
+function findFile(path) {
+  const found = [DOCS, resolve(DOCS, "../..")].map((base) => resolve(base, path)).find((each) => existsSync(each))
+  if (!found) throw new Error(`no file ${path}`)
+  return found
+}
+
+/** `text` safe in a double-quoted attribute. */
+function attr(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
+}
+
+/**
+ * What `new --from` reads:  a whole page as data.
+ * - `title`, `lede`, `askedBy` (`session <code>x</code>, while ...`);  HTML allowed except in `title`
+ * - `where`:  `{ epic, justNow, decides }`, the "Where we are" box (`.claude/skills/details/SKILL.md`, "Writing for Owen")
+ * - `context`:  HTML for "1. Context" (the picture);  none:  the section goes
+ * - `questions[]`:  `{ id?, title, text, multiple?, options[] }`;  an option:  `{ letter?, title, summary,
+ *   details?, recommended? }` (letters default to A, B ...)
+ * - plain JS:  no type, this comment is the spec
+ */
 
 /**
  * The details page `target` names under `docs`:  a path, a slug in the scratch `details/`, `<epic>/<slug>`, or a
