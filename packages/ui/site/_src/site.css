@@ -17,8 +17,13 @@
     --site-nav-width: 250px;
     --site-gutter: 3em;
     --site-aside-width: 280px;
-    /* The fixed `<spell-site-header>` bar above everything (its own rule sets the height). */
-    --site-top: var(--spell-site-header-height, 0px);
+    /* The narrow screens' top bar (`.site-topbar`). */
+    --site-topbar-height: 52px;
+    /*
+     * What sticks to the top of the viewport above everything else:  nothing on wide screens (the site header is
+     * docked in the right column), the top bar on narrower ones (set below).
+     */
+    --site-top: 0px;
   }
 
   /*
@@ -62,17 +67,45 @@
     min-width: 0;
   }
 
-  /* ## Top bar:  the menu sits flush on the page */
+  /*
+   * ## Top bar:  only while the right column is hidden (below 1200px;  see there).  A slim bar of the page's own
+   * colours:  the menu button and the brand (below 992px), the docked site header, the look controls.
+   * GAP:  a bar like this has no widget of its own (a `ui-menu` brings Fomantic's menu look);  its look is these
+   * few rules, on the theme's tokens.
+   */
   body {
     margin: 0;
   }
-  .site-top-menu::part(menu) {
-    margin: 0;
-    border-radius: 0;
+  .site-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-sizing: border-box;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    height: var(--site-topbar-height);
+    padding-inline: 16px;
+    background: var(--ui-background);
+    border-block-end: 1px solid var(--ui-border-color);
   }
-  /* the menu button opens the nav flyout:  only where the nav column is hidden */
+  .site-topbar > spell-site-header {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .site-topbar-brand {
+    --ui-header-margin-top: 0;
+    --ui-header-margin-bottom: 0;
+    white-space: nowrap;
+  }
+  .site-topbar-brand > a {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* the menu button opens the nav flyout, and the brand shows:  only where the nav column is hidden */
   @media (width >= 992px) {
-    .site-menu-item {
+    .site-menu-button,
+    .site-topbar-brand {
       display: none;
     }
   }
@@ -117,7 +150,17 @@
     max-height: calc(100dvh - var(--site-top));
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 3em 1.5em 2em 0;
+    padding: 1.5em 1.5em 2em 0;
+  }
+  /* its header:  the docked site header over the look controls, a rule below them */
+  .site-aside-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding-block-end: 1.25em;
+    margin-block-end: 1.5em;
+    border-block-end: 1px solid var(--ui-border-color);
   }
 
   /* ## Content:  section headers land below the fixed bar */
@@ -141,6 +184,12 @@
 
   /* ## Narrower than content + aside:  no aside, the content takes its room */
   @media (width < 1200px) {
+    :root {
+      --site-top: var(--site-topbar-height);
+    }
+    .site-topbar {
+      display: flex;
+    }
     .site-layout {
       grid-template-columns: var(--site-nav-width) minmax(0, 1fr);
     }
@@ -164,20 +213,20 @@
     }
   }
 
-  /* ## Phone:  the header keeps the menu button, the logo and the theme picker */
+  /* ## Phone:  no page links in the masthead;  the top bar keeps its look controls (the flyout needs no copy) */
   @media (width < 768px) {
-    .site-top-link {
+    .site-page-links {
       display: none;
     }
-    .site-page-links,
-    .site-themes-item {
+    /* no room for the site row in the top bar:  the brand takes the space */
+    .site-topbar > spell-site-header {
       display: none;
+    }
+    .site-topbar-brand {
+      flex: 1 1 auto;
     }
   }
-  /* the flyout's copy of the theme picker:  phones only (the top menu has it elsewhere) */
-  @media (width >= 768px) {
-    .site-flyout-themes {
-      display: none;
-    }
+  .site-flyout-themes {
+    display: none;
   }
 }

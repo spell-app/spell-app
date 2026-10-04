@@ -23,6 +23,9 @@ export class SiteRouter {
   /** Folders under the site root that hold no pages:  their links load normally. */
   static readonly NOT_PAGES = ["_assets/", "_data/", "_parts/", "examples/", "images/"]
 
+  /** Dispatched on `document` after a swap (`SiteHeader.PAGE_EVENT`, spelled out:  the header's module is the server's). */
+  static readonly PAGE_EVENT = "spell-site:page"
+
   /** Give up on a swap that hasn't arrived after this long, ms:  full load instead. */
   static readonly TIMEOUT = 10_000
 
@@ -211,6 +214,8 @@ export class SiteRouter {
     const main = this.content.querySelector("main#main")
     if (main) SiteRouter.runScripts(main)
     this.followPage()
+    // `<spell-site-header>` re-draws:  its title and "open in VS Code" link
+    document.dispatchEvent(new Event(SiteRouter.PAGE_EVENT))
   }
 
   /**

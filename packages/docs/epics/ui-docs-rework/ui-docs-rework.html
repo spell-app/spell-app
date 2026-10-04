@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Docs Rework</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Nav Panel</ui-label></span
+              ><ui-label basic color="orange" icon="circle half stroke" href="#p3">P3 · Nav Panel</ui-label></span
             >
           </header></ui-sticky
         >
@@ -79,7 +79,7 @@
               icon which shows the current state, clicking it switches it.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 13h-18h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 11h-15h left</p>
           <ui-section id="o1" header="1.1 Today" sticky collapsible dividing>
             <p>Where the site stands, so the rest reads against it.</p>
             <ui-table celled compact striped unstackable>
@@ -438,7 +438,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -472,7 +472,16 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p2" data-phase="2" data-status="done" header="P2 · Layout Shell" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p2"
+            data-phase="2"
+            data-status="done"
+            header="P2 · Layout Shell"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -491,8 +500,8 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Nav Panel" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p3" data-phase="3" data-status="active" header="P3 · Nav Panel" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> left sidebar as the brand panel (Color Set Chooser): lockup header band, search under it,
@@ -503,8 +512,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Right Sidebar" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p4" data-phase="4" data-status="done" header="P4 · Right Sidebar" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> right sidebar always shown: header = docked spell-site-header row + scheme + theme, then
@@ -514,7 +523,10 @@
                 (docked)</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> same width on all 4 tabs; screenshots at 1440 / 1100 / 800 / 390</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j17">J17</a> <a href="#j18">J18</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · Theme Overlay" sticky collapsible dividing>
@@ -533,13 +545,13 @@
           <ui-section
             id="p6"
             data-phase="6"
-            data-status="todo"
+            data-status="active"
             header="P6 · Sections & Ids"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> nested ui-sections with nested ids (#examples-types-emphasis), sticky tabs, TOC from
@@ -1291,6 +1303,44 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j17" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j17">J17</a>
+                  <span class="plan-title"
+                    >&lt;spell-site-header docked&gt;: a new attribute, two copies in the layout (right column, narrow
+                    top bar)</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Chose one element with a compact <code>docked</code> mode over a second, Spell-UI-only bar: the
+                    docs, plan docs and goals keep the fixed bar unchanged. Docked: no fixed position, no crumbs (the
+                    page shows its title), no scheme button (the page's own control has it), no room kept (<code
+                      >--spell-site-header-height</code
+                    >
+                    0). Two copies, one shown per width: right column at 1200px+, top bar below. It re-draws on
+                    <code>spell-site:page</code>, which the router fires after a swap (title, VS Code link).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j18" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j18">J18</a>
+                  <span class="plan-title"
+                    >Narrow screens: one slim top bar of the page's colours replaces the dark Spell UI menu</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Below 1200px (right column hidden): docked site header + look controls; below 992px also the menu
+                    button (flyout) and a "Spell UI" brand; below 768px the site row moves to the flyout (no room). Its
+                    Getting started / Grammar / Theming / Icons links are gone: the nav panel lists them. Options: keep
+                    Fomantic's dark menu (off-brand), or a ui-menu (brings Fomantic's menu look).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1456,13 +1506,14 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t3" data-status="open"
+            ><ui-item id="t3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t3">T3</a>
                   <span class="plan-title"
                     >P4: spell-site-header shows the FIRST page's title and VS Code link after a swap</span
-                  > </ui-title
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label></ui-title
                 ><ui-content
                   ><p>
                     It reads <code>document.title</code> once. P4 docks it; it should re-render on the router's swap.
@@ -1674,6 +1725,49 @@
                   layout.html written once, SiteShell + SiteRouter (ui-include swaps, pushState), ui-root when-ready
                   after layout + theme; checks: ui review (one flaky theme test fixed), Playwright: CLS 0.0002, swap
                   keeps chrome, back / forward, deep link</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:14-04:00">2026-10-04 03:14</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:14-04:00">2026-10-04 03:14</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:14-04:00">2026-10-04 03:14</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:19-04:00">2026-10-04 03:19</time></ui-date> T3 closed: P4:
+                  spell-site-header shows the FIRST page's title and VS Code link after a swap</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:19-04:00">2026-10-04 03:19</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:19-04:00">2026-10-04 03:19</time></ui-date> P4 done: right
+                  column header (docked site header + look controls), slim narrow top bar, spell-site-header docked mode
+                  + re-draw on swap; checks: server 84 tests, ui tsc, screenshots 1440 / 1100 / 800 / 390</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
