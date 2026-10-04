@@ -149,8 +149,8 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
  * An epic's card:  its state mark before the title (`epicState()`), then as `card()`, the active phase in the
  * meta line.
  * - `data-epic`:  its name, so the page server drops this card when the epic is running in a worktree too
- * - `data-status`:  `done` or `open`, so the section counts it and Open | All hides the done ones
- *   (`spell-doc-runtime.js`)
+ * - `data-status`:  `done` or `open`, so the section counts it, and its filter steps through them (`open` blue,
+ *   `done` grey:  `spell-doc-runtime.js`)
  * - SAME markup as `$/server/page` `RunningEpics`' cards:  change both
  */
 function epicCard(page) {

@@ -68,13 +68,13 @@
           >
         </ui-section>
 
-        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, don't re-argue without new facts. An answered question sits just above its decision.">
-          <ui-icon slot="icon" name="gavel"></ui-icon>
+        <ui-section id="decisions" header="3. Questions" sticky collapsible dividing data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts.">
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
           <ui-list class="plan-items" data-kind="decision" divided relaxed></ui-list>
         </ui-section>
 
         <ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question.">
-          <ui-icon slot="icon" name="compass"></ui-icon>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
           <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
         </ui-section>
 
