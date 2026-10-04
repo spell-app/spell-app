@@ -36,9 +36,47 @@ describe("testing language rulex", () => {
     })
 
     it("prints a symbol run's specials back escaped, so they read back the same", () => {
-      // spacing doesn't round-trip yet (a morning question):  escapes do
-      expect(rulex.compile("\\[{x}\\]\\({y}\\)").toRulexSyntax()).toBe("\\[ {x} \\]\\( {y} \\)")
+      expect(rulex.compile("\\[{x}\\]\\({y}\\)").toRulexSyntax()).toBe("\\[{x}\\]\\({y}\\)")
       expect(rulex.compile("\\*\\* {x}").toRulexSyntax()).toBe("\\*\\* {x}")
+    })
+
+    it.each([
+      // touching vs spaced parts, symbols, keywords
+      "{a} {b}",
+      "{a}{b}",
+      "isn't",
+      "isn ' t",
+      "--",
+      "- -",
+      "> =",
+      ">=?",
+      "!\\[{alt}\\]\\({url}\\)",
+      // `{space}` / `{spaces}`
+      "{a}{space}{b}",
+      "-{spaces}{text}",
+      "a{spaces}b",
+      // repeats:  a symbol run vs copies that may space;  a delimiter touching vs spaced
+      "#{1,6}",
+      "- {3,}",
+      "\\*+",
+      "\\* +",
+      "[{item},]",
+      "[{item} ,]",
+      // groups and flags, as spell writes them
+      "give {thing:expression} (to {recipient})?",
+      "(note|tip)/i [{x} or]?",
+      "the? number of {arg} (in|of) {list:expression}",
+      "{property} (=|is|of) {value:expression}",
+      "{lhs:simple_expression} {rhsChain:expression_suffix}+",
+      "(a|an) {type} for [sources:(its {property}) and]"
+    ])("prints `%s` back exactly", (syntax) => {
+      expect(rulex.compile(syntax).toRulexSyntax()).toBe(syntax)
+    })
+
+    it("prints what it can't keep (`{a} {spaces} {b}`) as syntax that reads back the same", () => {
+      const printed = rulex.compile("{a} {spaces} {b}").toRulexSyntax()
+      expect(printed).toBe("{a}{spaces}{b}")
+      expect(rulex.compile(printed)).toEqual(rulex.compile("{a} {spaces} {b}"))
     })
 
     it("prints /i back", () => {
@@ -67,7 +105,10 @@ describe("testing language rulex", () => {
   describe("spacing as written", () => {
     class PlainParser extends P.Parser {
       get tokenizer(): P.Tokenizer {
-        return this.derived("tokenizer", () => new RulexTokenizer({ whitespacePolicy: P.WhitespacePolicy.LEADING_ONLY }))
+        return this.derived(
+          "tokenizer",
+          () => new RulexTokenizer({ whitespacePolicy: P.WhitespacePolicy.LEADING_ONLY })
+        )
       }
     }
     const parser = new PlainParser({ module: "spacing" })

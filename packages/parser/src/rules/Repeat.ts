@@ -122,6 +122,10 @@ export class Repeat<
    * Return rulex string for this rule.
    * - `rule+` / `rule*` / `rule{1,6}` normally, or `[rule delimiter]` (optionally suffixed `?`) when `delimiter`
    *   is set.
+   * - Spaced as written, so it reads back the same:
+   *   - a symbol whose copies may space gets a space before its flag (`- {3,}`;  a run is `-{3,}`)
+   *   - a delimiter that must touch the item touches it (`[{item},]`;  `[{item} ,]` lets it space)
+   * - A named repeat of a subrule prints as written, `{name:rule}+`, not `(name:{rule})+`.
    */
   toRulexSyntax() {
     const { matchGroup, optional } = this.getRulexFlags()
@@ -130,9 +134,17 @@ export class Repeat<
     // don't double-up on parens
     let rule = this.rule.toRulexSyntax()
     if (this.delimiter) {
+      // a sequence item keeps its parens:  `[(its {property}) and]`, else the list can't be read back
+      const bare = this.rule instanceof P.Sequence && !this.rule.matchGroup && !this.rule.optional
+      if (bare) rule = `(${rule})`
       const delimiter = this.delimiter.toRulexSyntax()
-      return `[${matchGroup}${rule}${delimiter}]${optional}`
+      const gap = this.delimiter.spacing === "none" ? "" : " "
+      return `[${matchGroup}${rule}${gap}${delimiter}]${optional}`
     }
+    if (matchGroup && this.rule instanceof P.Subrule && !this.rule.matchGroup && !this.rule.optional) {
+      return `{${matchGroup}${this.rule.rule}}${repeatSymbol}`
+    }
+    if (this.rule instanceof P.Symbol && this.itemSpacing !== "none" && !matchGroup) rule += " "
 
     const wrapInParens =
       matchGroup ||

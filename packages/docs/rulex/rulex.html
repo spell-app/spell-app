@@ -747,18 +747,25 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
               </li>
             </ul>
           </ui-message>
-          <ui-message state="warning" header="Printing back loses escapes">
+          <ui-message state="positive" header="Printing back:  as written">
             <ul>
               <li>
                 <code>rule.toRulexSyntax()</code> prints a rule back as syntax. That's used for LSP descriptions and for
                 spell's <code>SPELL: DECLARES</code> comments.
               </li>
               <li>
-                <code>Symbols</code> joins its literals without escaping. So <code>\[{text}\]\({url}\)</code> prints as
-                <code>\[ {text} ]( {url} \)</code>, where the <code>(</code> would re-read as a choice.
+                It keeps escapes and spacing (2026-10-04): <code>\[{text}\]\({url}\)</code>, <code>--</code> vs
+                <code>- -</code>, <code>-{spaces}{text}</code>, <code>[{item},]</code> vs <code>[{item} ,]</code> all
+                print back unchanged.
               </li>
-              <li><code>\*\*{text}\*\*</code> prints as <code>** {text} **</code>, which re-reads as repeat flags.</li>
-              <li>Spell's syntaxes don't trip it today: none of them puts a special symbol in a symbol run.</li>
+              <li>
+                Of spell's 472 registered syntaxes, 452 print back exactly. The other 20 (5 syntaxes) read back as the
+                same rule, but lose what a rule doesn't keep: redundant parens (<code>(of {x}?)</code>) and a space
+                inside a subrule (<code>{value: expression}</code>). Checked by
+                <a href="experiments/round-trip.mts" target="src-packages-docs-rulex-experiments-round-trip-mts"
+                  ><code>experiments/round-trip.mts</code></a
+                >.
+              </li>
             </ul>
           </ui-message>
         </ui-section>
@@ -967,7 +974,10 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
                   <td>None. <code>{x}/i</code> is an error: a subrule's own rule decides what it matches</td>
                 </tr>
                 <tr>
-                  <td><b>Round trip</b>: <code>toRulexSyntax()</code> escapes specials and keeps the spacing</td>
+                  <td>
+                    <ui-label size="mini" color="green">built</ui-label> <b>Round trip</b>:
+                    <code>toRulexSyntax()</code> escapes specials and keeps the spacing
+                  </td>
                   <td><code>\[{text}\]\({url}\)</code> prints back unchanged</td>
                   <td><code>SPELL: DECLARES</code> comments and LSP descriptions print correct syntax</td>
                 </tr>

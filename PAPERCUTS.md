@@ -1251,6 +1251,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   update a flagged file even when it's unchanged.  `git checkout -- <file>` alone doesn't help while flagged. ·
   Back them up, `git update-index --no-skip-worktree` (paths from the REPO ROOT), `git checkout -- workspaces`,
   merge, write the local edits back on top, `git update-index --skip-worktree` again. · claude-code
+- 2026-10-04 · Swapped a diff out to speed-test HEAD (`git diff > p.patch`, `git checkout --`), then `git apply
+  p.patch` printed nothing and changed nothing:  run from `packages/docs`, `git apply` SILENTLY skips every path
+  outside the current folder. · Apply from the repo root (`git -C <root> apply <patch>`), and check `git status`
+  after. · claude-code
 
 ## vscode
 

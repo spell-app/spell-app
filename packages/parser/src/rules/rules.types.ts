@@ -38,6 +38,25 @@ export function escapeRulex(literal: string) {
   return RULEX_SPECIALS.includes(literal) ? `\\${literal}` : literal
 }
 
+/**
+ * What rulex writes before a part with `spacing`, so a rule prints back as it was written (`compile()` reads it
+ * back the same).
+ * - `none` => nothing, touching (`{a}{b}`, `--`)
+ * - `one` / `some` => `{space}` / `{spaces}`
+ * - unset => one space (`{a} {b}`:  may space)
+ */
+export function rulexSpacing(spacing: Spacing | undefined) {
+  if (spacing === "none") return ""
+  if (spacing === "one") return "{space}"
+  if (spacing === "some") return "{spaces}"
+  return " "
+}
+
+/** `rules` as one rulex sequence, each spaced from the one before as its `spacing` says (`rulexSpacing()`). */
+export function joinRulex(rules: P.Rule[]) {
+  return rules.map((rule, index) => (index ? rulexSpacing(rule.spacing) : "") + rule.toRulexSyntax()).join("")
+}
+
 // ## Spacing
 
 /**
