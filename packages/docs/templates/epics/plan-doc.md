@@ -1,6 +1,6 @@
 # Plan docs
 
-How to write and update `epics/<name>/<name>.html`, the live doc behind a `/epic <name>` session.
+How to write and update `epics/<name>/<name>.plan.html`, the live doc behind a `/epic <name>` session.
 `plan.html` beside this is the template;  `scripts/plan-doc.js` (`yarn plan-doc`) edits the structured parts.
 
 ## Rules
@@ -32,7 +32,8 @@ How to write and update `epics/<name>/<name>.html`, the live doc behind a `/epic
 
   For a question:  the recommended option's net effect (each option card may carry its own).
 - Lists:  bulleted, or numbered when order or reference matters.
-- NEVER delete an item:  close it (`yarn plan-doc close`), and it stays, struck through.
+- NEVER delete an item:  close it (`yarn plan-doc close`), and it stays, closed (not struck).  An item another
+  decision made moot:  `yarn plan-doc cancel`, the one status shown struck through (J16 of `review-review`).
 - Keep the doc current as you go:  a caveat, issue or decision found mid-phase goes in NOW, not at the end.
 
 ## Page header
@@ -45,6 +46,16 @@ phase is, else the next phase (grey).
   reading the title drop the `Epic: ` (`plan-doc.js` `TITLE_PREFIX`).
 - Under the header, the runtime adds the review line (every plan doc, no markup):  "To review this doc, type
   `/epic review <name>`";  a click copies the command.  Never write it by hand.
+
+The meta lines (`ui-list.plan-meta`) end with the durable doc, once Doc Review has written one (2026-10-04);  the
+durable doc's own meta list (`ui-list.spell-meta`) starts with the plan doc, ONE standard line each way:
+
+```html
+<!-- the plan doc's last meta line -->
+<ui-item icon="book"><b>Durable doc:</b>  <a href="../../server.html">Page Server</a></ui-item>
+<!-- the durable doc's first meta line -->
+<ui-item icon="map"><b>Plan doc:</b>  <a href="epics/unified-server/unified-server.plan.html" target="unified-server">epic unified-server</a></ui-item>
+```
 
 Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan-hung`.
 - How to restart a hung plan:  a new session in the worktree's window, `/epic <name>`, "Reuse".  Plus the kickoff
@@ -60,8 +71,8 @@ Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan
 | Overnight · `<date>` | `#overnight` | TEMPORARY, unnumbered, above the Overview:  a `/bedtime` run's report (summary, a line per phase, problems), `data-bedtime="active"` while it runs, `"done"` after.  Only `yarn plan-doc overnight` writes it;  `/epic review` removes it once the night's judgement calls are reviewed.  Nothing in it is only there:  calls, problems and todos are items, phases are log lines |
 | 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`, folded in a "Kickoff prompt" aside), the total estimate (`p.plan-estimate`, written by the script), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
 | 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  its estimate as the title's badge;  Goal (bullets), Done (bullets, once done), Files and Verify (hidden until the folder / flask toggle on the Phases title is pressed) |
-| 3. Questions & Decisions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then what was decided and why:  settled unless new facts arrive.  `decide` answers a question:  the decision goes at the end, the struck question just above it |
-| 4. Judgement calls | `#judgements` | choices Claude made WITHOUT the user (a `/bedtime` run, an agent mid-phase):  title the choice, details "chose X over Y because Z" + the options;  open until the user reviews it, `close` = accepted, disagreement becomes a question.  Every one ALSO linked from its phase's body (`<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j2">J2</a></ui-item>`) |
+| 3. Questions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then the answered ones, in id order:  settled unless new facts arrive.  A decision IS an answered question (D13 of `review-review`, 2026-10-04):  `decide` writes the answer INTO the question;  `add ... decision` makes a question born answered.  Icon `file circle question` |
+| 4. Judgement calls | `#judgements` | choices Claude made WITHOUT the user (a `/bedtime` run, an agent mid-phase):  title the choice, details "chose X over Y because Z" + the options;  open until the user reviews it, `close` = accepted, disagreement becomes a question.  Its phase's "To review" line lists it while it's open and not reviewed (never hand-write a "Judgement calls:" line;  an old doc's stay, J14 of `review-review`).  Icon `gavel` |
 | 5. Caveats | `#caveats` | limits and risks we accept |
 | 6. Todos | `#todos` | later work that isn't a caveat or an issue |
 | 7. Issues | `#issues` | problems found, open until fixed |
@@ -71,13 +82,17 @@ Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan
 - Every section is a `<ui-section>` (markup below):  its title sticks, it folds from its chevron (the reader's folds
   are remembered per page), a rule runs under its title.
 - A section with items shows `open/all` at its title's right (its `badge`, set by the page runtime), and its open
-  count as a badge in the contents and the rail.  Open:  any `data-status` but `done` and `decided`, so "Questions &
-  Decisions" counts the questions waiting.
+  count as a badge in the contents and the rail.  Open:  any `data-status` but `done` and `decided`, so "Questions"
+  counts the questions waiting.
 - Older docs:  `yarn plan-doc migrate <name>` brings one up to date, whatever its age, and prints what it changed:
   - before 2026-10-01:  a `#plan` section (summary + phase list), a separate `#questions`, another order (an
     answered question moves beside the decision whose title names it, `(Q8)`)
   - before 2026-10-02:  `section.s2|s3` > `ui-sticky.spell-h2|h3` > `h2|h3` sections, phases in
     `#phases-section` (the id is gone:  `#phases` is the section now), `data-fold="closed"`
+  - before 2026-10-04:  `D` items (`d7`) beside the struck questions they answer.  `migrate` merges each INTO its
+    question, as its answer card (`<div class="plan-answer-block" id="d7">`, titled `D7 · ...`:  old `#d7` links
+    still land, opening the question);  a stand-alone one becomes a question born answered;  a struck one
+    `canceled`.  It chooses the option card the decision names (`B: ...`, `option B`, or the option's words)
 
 Section markup (the template's;  a hand-written Overview sub-section is the same, nested in `#overview`):
 
@@ -102,7 +117,10 @@ Section markup (the template's;  a hand-written Overview sub-section is the same
 
 ## Ids:  short, so they're easy to say in chat
 
-- Items:  `q1` questions, `j1` judgement calls, `c1` caveats, `i1` issues, `t1` todos, `v1` tests ("verify":  `t` is taken), `d1` decisions.  Shown as `Q1`, `J1`, `C1` ...
+- Items:  `q1` questions (answered ones are the decisions), `j1` judgement calls, `c1` caveats, `i1` issues, `t1`
+  todos, `v1` tests ("verify":  `t` is taken).  Shown as `Q1`, `J1`, `C1` ...
+  - docs from before 2026-10-04 also have `d1` decisions, each beside the struck question it answers;  the script
+    reads both shapes, and `migrate` merges them (the `d7` id stays, on the answer card:  `close d7` finds its question)
 - Phases:  `p1` ...  Shown as `P1 · Short Name`:  a 2-4 word name, so "start P2" is unambiguous.
 - Link to them in prose:  `<a href="#i2">I2</a>`.  `yarn plan-doc check` fails on a link to a missing id.
 
@@ -123,8 +141,12 @@ Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `valu
   <ui-list class="plan-phase-body">
     <ui-item icon="bullseye"><b>Goal:</b>  <ul><li>what it's for, a bullet per outcome</li></ul></ui-item>
     <ui-item icon="circle check"><b>Done:</b>  <ul><li>what was built, most-asked-about first</li></ul></ui-item>
+    <ui-item icon="code branch" class="plan-commits"><b>Commits:</b>  <ul class="plan-commit-list">
+      <li data-sha="2c71ac57..."><a class="plan-commit" href="https://github.com/spell-app/spell-app/commit/2c71ac57..." target="github">2c71ac5</a>  one or two sentences</li>
+    </ul></ui-item>
     <ui-item icon="folder"><b>Files:</b>  what changes</ui-item>
     <ui-item icon="flask"><b>Verify:</b>  how we know it worked</ui-item>
+    <ui-item icon="list check" class="plan-to-review"><b>To review:</b>  <a href="#j1">J1</a>, <a href="#c3">C3</a></ui-item>
   </ui-list>
 </ui-section>
 ```
@@ -132,7 +154,16 @@ Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `valu
 - Goal:  a `<ul>`, one bullet per outcome, in Owen's terms (what he'll see or be able to do), not the build steps.
 - Done:  written when the phase is done (`phase <name> <N> done --done "<ul>..."`), a `<ul>` of what was BUILT,
   ordered by what Owen asks about first:  where to see it, what changed in how he works, what's still rough or
-  untested by hand, then the rest.  Not the commit list (that's Commits, P3 of `review-review`).
+  untested by hand, then the rest.  Not the commit list:  that's Commits.
+- Commits:  written by the script, after Done (else Goal), oldest first:  `commit <name> <sha> --phase N "..."`
+  adds one;  `commits <name> --backfill` reads the doc's git history (`git log --follow`) and adds what's missing
+  - phase commits by subject:  `P3:  Name -- summary` (also `P4 + P5:`, `WIP P3:`, `<epic> P3:`, `P6a:`,
+    `P1 follow-up:`);  the sentence is what follows ` -- `, else the colon
+  - item fixes:  `Fix I3:  ...` (or `<epic> I3:`), listed in the item's details
+  - the short sha links to GitHub (from `git remote get-url origin`);  no GitHub remote:  `<code class="plan-commit">`
+- To review:  written by the script on every edit, LAST:  the items added while this phase was active
+  (`data-phase`) that are still open, not reviewed and not under way, in page order;  none:  no line.  It replaces
+  the hand-written "Judgement calls:" line;  an old doc keeps its own (J14 of `review-review`), the line after it.
 - Files and Verify:  hidden in the browser until the folder / flask toggle on the Phases title is pressed
   (`spell-doc-runtime.js` `wirePhaseToggles()`);  still written for every phase.
 - Estimate:  the title's `badge`.  Wall-clock time for Claude to do the phase, agents included, Owen's review not.
@@ -171,11 +202,44 @@ With details, the item's line IS the panel's title (it opens on a click, or on a
 </ui-item>
 ```
 
-- `data-status`:  `open` (questions, caveats, issues, todos), `decided` (a decision in force), `done` (struck
-  through, never removed:  fixed, answered, or a superseded decision)
-- an answered question:  `<a class="plan-answer" href="#d7">→ D7</a>` after its title;  its decision's title ends in
-  `(<a href="#q3">Q3</a>)` and its details say what was asked
+- `data-status`:  `open` (questions, caveats, issues, todos), `decided` (an answered question:  a decision in
+  force), `done` (closed, never removed:  fixed, passed, accepted;  NOT struck), `canceled` (made moot by another
+  decision, or a superseded answer:  closed like `done`, its title struck through;  `cancel`, `reopen` undoes it)
+- an answered question (`decide`) keeps its title;  `data-answered`, and its details start with the answer:
+
+  ```html
+  <ui-item id="q3" data-status="decided" data-answered data-phase="3" data-changed="2026-10-04T12:46:05-04:00" data-state="recent">
+    <ui-accordion class="plan-item">
+      <ui-title><a class="plan-id" href="#q3">Q3</a> <span class="plan-title">Which browser first?</span></ui-title>
+      <ui-content><div class="plan-answer-block"><b>Answer:</b>  Chrome</div><p>why ...</p></ui-content>
+    </ui-accordion>
+  </ui-item>
+  ```
+
+  `add ... decision "title"`:  a question born answered, its title the answer (no answer block)
+- docs from before 2026-10-04:  a struck question with `<a class="plan-answer" href="#d7">→ D7</a>`, then decision
+  `D7` titled `... (<a href="#q3">Q3</a>)`;  read as they are until `migrate` merges them ("Older docs" above)
+- an item's commits (`commit <name> <sha> --item I3 "..."`):  `<div class="plan-commits"><b>Commits:</b>  <ul
+  class="plan-commit-list">...</ul></div>` at the end of its details;  an item without details gets a panel
 - details are optional;  they start collapsed
+
+Item state (written by the script on every edit;  the page colors the id badge by it):
+
+- `data-changed`:  when a command last changed the item's status or review marks (`add`, `close`, `reopen`,
+  `decide`, `review`, `defer`, `queue`, `unqueue`), ISO local time with offset;  `data-bedtime` too while a
+  `/bedtime` run is on, until `review` (or `queue`) clears it
+- `data-phase="N"`:  the phase active when it was added (its "To review" line lists it)
+- `<body data-recent-since>`:  the commit time of `HEAD~2` in the doc's checkout (D2:  green = changed in this
+  commit or the last);  none without git history
+- `data-state`, from those:
+
+  | State | Color | When |
+  |---|---|---|
+  | `attention` | red | open and needs Owen:  an open question;  an open judgement call or issue not reviewed |
+  | `progress` | orange | `data-queued` (a review's to-do) or `data-working` |
+  | `open` | blue | open, not urgent:  todos, caveats, tests;  reviewed issues and judgement calls |
+  | `recent` | green | decided, reviewed or closed since `data-recent-since`;  or `data-bedtime` |
+  | `old` | grey | decided, reviewed or closed before that |
 - docs made before 2026-10-01 have `ol.plan-items` of `<li>`s with a "details" panel, and a phase list under
   `#plan`;  the script still edits those, and `migrate` converts them
 
@@ -185,15 +249,16 @@ Review marks (`/epic review`, and any session that talks an item through with Ow
 ```html
 <ui-item id="i4" data-status="open" data-reviewed="2026-10-03" data-queued="2026-10-03" data-work="Skip short sections">
   <ui-accordion class="plan-item">
-    <ui-title><a class="plan-id" href="#i4">I4</a> <span class="plan-title">One line</span> <ui-label class="plan-review" size="mini" basic color="blue" title="Skip short sections">to do</ui-label></ui-title>
+    <ui-title><a class="plan-id" href="#i4">I4</a> <ui-label class="plan-review" size="mini" basic color="orange" title="Skip short sections">to do</ui-label> <span class="plan-title">One line</span></ui-title>
     ...
 ```
 
 - `data-reviewed`:  gone through with Owen, that day.  `data-deferred`:  put off for now;  still not reviewed.
   `data-queued` + `data-work`:  work a review decided on, not started yet;  the next review offers it first.
-- the label shows the strongest:  "to do" (blue), else "deferred" (grey, its date on hover), else "reviewed 10-03" (green)
-- REVIEWED also counts:  struck (`done`), `decided`, or linked (`href="#i4"`) from a decision's details.  So a doc
-  reviewed before the marks existed isn't all "not reviewed".
+- the label shows the strongest:  "to do" (orange), else "deferred" (grey, its date on hover), else "reviewed
+  10-03" (green while the item is `recent`, then grey)
+- REVIEWED also counts:  closed (`done`, `canceled`), `decided`, or linked (`href="#i4"`) from a decision's details (an answered
+  question's, or an old doc's `D` item's).  So a doc reviewed before the marks existed isn't all "not reviewed".
 - the outcome goes in the log (`I4 reviewed:  accepted`), not on the item
 
 Log line (in `#log`'s `<ui-feed class="plan-log">`;  a `<ul>` of `<time>` + text before 2026-10-01):
@@ -266,16 +331,19 @@ worktree took of an epic merged before it was cut:  editing that would fork the 
 
 | Command | Does |
 |---|---|
-| `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `epics/<name>/<name>.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
+| `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `epics/<name>/<name>.plan.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
 | `add-phase <name> "Short Name" [--goal <html>] [--files ...] [--verify ...] [--estimate 1-2h]` | append a phase to the list and to `#phases`;  the goal a `<ul>`, the estimate the title's badge |
 | `phase <name> <N> todo\|active\|done [--done <html>] [--no-open]` | set a phase's status;  `done` removes its UPDATE markers, and `--done` writes its Done field;  brings the doc forward in VS Code |
 | `estimate <name> <N> "1-2h"` | change a phase's estimate (its title's badge);  the Overview's total follows |
-| `add <name> question\|judgement\|caveat\|issue\|todo\|test\|decision "<title>" [--details "<html>"]` | append an item, print its id |
-| `close <name> <id>` / `reopen <name> <id>` | strike / unstrike an item |
-| `decide <name> <Q id> "<decision>" [--details "<html>"]` | answer a question:  a new decision (prints its id), the question struck and moved just above it |
+| `add <name> question\|judgement\|caveat\|issue\|todo\|test\|decision "<title>" [--details "<html>"]` | append an item, print its id;  a `decision` is a question born answered (`Q7`) |
+| `close <name> <id>` / `reopen <name> <id>` | close an item (`done`) / open it again |
+| `cancel <name> <id> ["why"]` | an item made moot by another decision:  `canceled`, struck through;  logs why;  `reopen` undoes it |
+| `decide <name> <Q id> "<answer>" [--details "<html>"]` | answer a question:  the answer goes INTO it (`decided`, an answer block first in its details);  prints its id |
+| `commit <name> <sha> --phase N \| --item <id> "<sentence>"` | list a commit under a phase or an item (replaces its entry) |
+| `commits <name> --backfill` | list every phase and item commit in the doc's git history that isn't yet (subjects `P3:  Name -- summary`, `Fix I3:  ...`) |
 | `log <name> "<text>"` | add a timestamped line to the log |
 | `prompt <name> "<text>"` / `prompt <name> --file <path>` | set (replace) the prompt quoted in the Overview;  `""` removes it |
-| `migrate <name>` | bring an older doc (before 2026-10-01, or with `section.s2` markup) into this layout (prints what changed;  "already current" otherwise) |
+| `migrate <name>` | bring an older doc (before 2026-10-01, `section.s2` markup, `D` items) into this layout (prints what changed;  "already current" otherwise) |
 | `overnight <name> start "P3-P6" [--branch b]` / `phase <N> "text"` / `problem "text"` / `done "summary"` / `remove` | a `/bedtime` run's Overnight section (`/bedtime`'s cheat sheet) |
 | `review <name> <id> ["outcome"]` | mark an item reviewed today;  the outcome goes in the log |
 | `defer <name> <id>` | put an item off:  dated, still not reviewed |

@@ -1,7 +1,7 @@
 <!-- bedtime: done -->
 # Morning plan:  ui-docs-rework
 
-Plan doc:  `packages/docs/epics/ui-docs-rework/ui-docs-rework.html`.  Branch `ui-docs-rework`, worktree
+Plan doc:  `packages/docs/epics/ui-docs-rework/ui-docs-rework.plan.html`.  Branch `ui-docs-rework`, worktree
 `.claude/worktrees/ui-docs-rework`.  Never merged tonight.
 
 ## 1. Summary

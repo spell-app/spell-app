@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
 import type { UIHost } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -433,7 +433,9 @@ describe("<ui-brand-color-picker>", () => {
       <b slot="header">Choose a colour</b><button slot="actions" aria-label="Done">x</button><p>families</p>
     </ui-brand-color-picker>`)
     expect(part(host, "head").querySelector<HTMLSlotElement>('slot[name="header"]')!.assignedElements()).toHaveLength(1)
-    expect(part(host, "head").querySelector<HTMLSlotElement>('slot[name="actions"]')!.assignedElements()).toHaveLength(1)
+    expect(part(host, "head").querySelector<HTMLSlotElement>('slot[name="actions"]')!.assignedElements()).toHaveLength(
+      1
+    )
     expect(part(host, "families").querySelector("slot")!.assignedElements()[0]!.textContent).toBe("families")
     const empty = await picker(`<ui-brand-color-picker></ui-brand-color-picker>`)
     expect(empty.shadowRoot!.querySelector('[part~="families"]')).toBeNull()

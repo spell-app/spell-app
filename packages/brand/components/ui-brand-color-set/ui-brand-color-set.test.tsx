@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest"
-import { userEvent } from "vitest/browser"
+import { describe, expect, it } from "vite-plus/test"
+import { userEvent } from "vite-plus/test/browser"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { expectAccessible } from "$/ui/test/a11y"

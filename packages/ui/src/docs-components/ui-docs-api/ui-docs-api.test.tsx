@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"

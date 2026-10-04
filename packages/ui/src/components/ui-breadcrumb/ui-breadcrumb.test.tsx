@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from "vitest"
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { BREADCRUMB_DIVIDER_TOKENS } from "$/ui/components/components.types"
 import { UI } from "$/ui/runtime"

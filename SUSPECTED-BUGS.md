@@ -459,6 +459,11 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- `src/runner/element.build.test.ts` "one Solid per page" fails on `main` (2026-10-04, plain vite) and on
+  `vite-plus` alike:  the element build puts Solid code in `ui/customElement.js` as well as `spell-solid.js`, so a
+  page may load a second Solid.  Prove:  `yarn vitest run src/runner/element.build.test.ts` in `packages/app`.
+  Likely from `ui`'s newer `customElement` chunk, not the toolchain.  (found merging epic `vite-plus`;  unverified)
+
 - `package.json` `clean`:  removes `.cache` and `build`, but the builds write `dist/`, `dist-runner/`,
   `dist-element/`, which it leaves.  Prove:  `yarn build:element && yarn clean && ls`.  (found by epic `commands`,
   P2;  unverified)
@@ -549,7 +554,7 @@ every entry below that date was fixed or disproven;  what's left:
   `yarn plan-doc summary unified-server`.  Fix:  treat a missing list as empty, or have `migrate` add it.
 - Every plan doc's phase "Estimate" line has a blank icon:  `PHASE_FIELDS` in `scripts/plan-doc.js` gives it
   `clock`, which isn't in `ICONS` in `scripts/bundle-spell-ui.js` (only `clock rotate left` is).  Prove:
-  `node scripts/check-spell.js epics/isolate-changes/isolate-changes.html` notes "5 icon(s) with no <svg> drawn",
+  `node scripts/check-spell.js epics/isolate-changes/isolate-changes.plan.html` notes "5 icon(s) with no <svg> drawn",
   all `ui-item[clock]`.  Fix:  add `solid/clock` to `ICONS`, then `yarn docs:update`.
 
 ## server

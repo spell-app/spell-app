@@ -7,8 +7,10 @@
       "Bash(git restore *)",
       "Bash(yarn *)",
       "Bash(npx *)",
-      "Bash(git *)"
-    ]
+      "Bash(git *)",
+      "Edit(//Users/owen/www/spell-app/spell-app-dev/**)"
+    ],
+    "additionalDirectories": ["/Users/owen/www/spell-app/spell-app-dev"]
   },
   "hooks": {
     "WorktreeCreate": [

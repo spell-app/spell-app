@@ -127,7 +127,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
     nothing worth a reader's time:  typo fixes, a papercut)
 - An entry:  one nested `<ui-section id="<epic or worktree name>" header="YYYY-MM-DD · Title">` under its month,
   newest first (the page's header comment has the markup):
-  - a `spell-meta` list with LINKS:  the plan doc (`epics/<name>/<name>.html`, `target="<name>"`), the durable
+  - a `spell-meta` list with LINKS:  the plan doc (`epics/<name>/<name>.plan.html`, `target="<name>"`), the durable
     doc, the branch
   - EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary
 - Then finish the page as `packages/docs/AGENTS.md` says ("Finishing a page"), and bump its footer's date and
@@ -160,6 +160,26 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   The API:  `packages/docs/solid/cheatsheet.html`.
 - MUST keep `solid-2.md` up to date when a Solid decision changes or an RC bump changes behaviour.
 - How `ui` writes its elements on Solid:  "Solid authoring" in `packages/ui/AGENTS.md`.
+
+## Toolchain:  Vite+
+
+- One dev dependency, `vite-plus` (command `vp`), pins vite (as `@voidzero-dev/vite-plus-core`), vitest, oxlint,
+  oxfmt and tsgolint together:  the versions are the yarn `catalog:` in `.yarnrc.yml`.  Node 24 (`engines`).
+  - Bump them together:  `vite-plus` and every `catalog:` entry to what `vp toolchain` lists.  NEVER pin one tool
+    on its own.
+- Commands, run in a package or the root:  `yarn vp lint`, `yarn vp fmt [--check]`, `yarn vp test`, `yarn vp check`.
+  `yarn oxfmt` / `yarn oxlint` no longer work in a package (not its own deps);  `yarn vitest` still does.
+- Tests import from `vite-plus/test` (`/browser`, `/browser-playwright`), configs from `vite-plus`:  lint rule
+  `vite-plus/prefer-vite-plus-imports`.
+- Lint / format settings:  the repo root's `vite.lint.ts`, spread by every `vite.config.ts` (`lint` / `fmt`
+  blocks).  No `.oxlintrc.json` / `.oxfmtrc.json` any more.
+  - The editor and `vp check` read the ROOT block only:  a rule for some packages goes in `rootLint()`'s
+    `overrides` too.
+- Root `ts` / `test:packages` / `review` are `vp run` over every `@spell-app/*` package:  `ts` and
+  `test:packages` 4 at a time, `review` one at a time (its tests flake under load).
+  - NEVER `vp run --cache` a plain script:  its file tracking misses TS 7's native `tsc`, so it replays a stale
+    pass.  A cached task needs `run.tasks` with explicit `cache.input` (`packages/docs/epics/vite-plus`, I1).
+  - Flags BEFORE the task name (`vp run --cache -r ts`):  after it, they go to the task.
 
 ## Long-term debt
 

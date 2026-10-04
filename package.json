@@ -4,7 +4,6 @@
   "description": "Spell:  the parser, the spell language and its tools, and @spell-app/ui",
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell-app",
-  "type": "module",
   "workspaces": [
     "packages/brand",
     "packages/cli",
@@ -19,12 +18,13 @@
     "packages/ui",
     "packages/util"
   ],
+  "type": "module",
   "scripts": {
-    "ts": "yarn workspaces foreach -A --exclude spell-app run ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:packages": "yarn workspaces foreach -A --exclude spell-app run test",
-    "review": "yarn workspaces foreach -A --exclude spell-app run review",
+    "ts": "vp run --fail-if-no-match -F '@spell-app/*' ts",
+    "test": "vp test run",
+    "test:watch": "vp test",
+    "test:packages": "vp run --fail-if-no-match -F '@spell-app/*' test",
+    "review": "vp run --fail-if-no-match --concurrency-limit 1 -F '@spell-app/*' review",
     "vscode": "yarn vscode:build && yarn vscode:install",
     "vscode:build": "cd packages/vscode && yarn install && yarn build && yarn package",
     "vscode:install": "cd packages/vscode && yarn install-extension",
@@ -42,6 +42,25 @@
     "serve": "node scripts/serve.mjs",
     "commands:check": "node packages/cli/bin/spell.mjs dev commands check"
   },
+  "devDependencies": {
+    "@vitest/browser-playwright": "catalog:",
+    "playwright": "1.63.0",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "resolutions": {
+    "@solidjs/element": "2.0.0-rc.13",
+    "@solidjs/signals": "2.0.0-rc.13",
+    "@solidjs/web": "2.0.0-rc.13",
+    "solid-js": "2.0.0-rc.13",
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0",
+    "vitest": "5.0.1"
+  },
+  "engines": {
+    "node": ">=24.11"
+  },
+  "packageManager": "yarn@4.18.0",
   "pageServer": {
     "routes": [
       "goals/_tools/goalsRoutes.ts",
@@ -53,21 +72,5 @@
       "packages/docs",
       "packages/brand"
     ]
-  },
-  "devDependencies": {
-    "@vitest/browser-playwright": "5.0.2",
-    "playwright": "1.63.0",
-    "vite": "8.3.1",
-    "vitest": "5.0.2"
-  },
-  "engines": {
-    "node": ">=22.17"
-  },
-  "packageManager": "yarn@4.18.0",
-  "resolutions": {
-    "solid-js": "2.0.0-rc.13",
-    "@solidjs/web": "2.0.0-rc.13",
-    "@solidjs/signals": "2.0.0-rc.13",
-    "@solidjs/element": "2.0.0-rc.13"
   }
 }

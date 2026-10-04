@@ -1,5 +1,5 @@
-import { defineConfig, type TestProjectConfiguration } from "vitest/config"
-import { playwright } from "@vitest/browser-playwright"
+import { defineConfig, type TestProjectConfiguration } from "vite-plus"
+import { playwright } from "vite-plus/test/browser-playwright"
 
 import { standardDecorators } from "../../vite.decorators.ts"
 import { packageVersion } from "../../vite.packageVersion.ts"

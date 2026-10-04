@@ -89,7 +89,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     `ui-*` markup into plain light-DOM HTML (no shadow DOM, no JS) in node, for SEO.  Stand-in hosts are linkedom
     elements (`ServerHost`), controllers render with `renderToString`, `StaticFlattener` swaps each host for its
     root, `StaticInteractions` wires what works without JS.  Node only:  NEVER imported by a component or `$/ui`.
-    Plan:  `packages/docs/epics/seo/seo.html`
+    Plan:  `packages/docs/epics/seo/seo.plan.html`
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
     (`FormElement`, `FormHost`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through

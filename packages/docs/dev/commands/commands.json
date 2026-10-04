@@ -1031,7 +1031,7 @@
       "id": "plans",
       "title": "Plan docs (epics)",
       "icon": "map",
-      "intro": "Plan docs at `packages/docs/epics/<name>/<name>.html`:  structured edits through `plan-doc`, the rest in `/epic` prose.",
+      "intro": "Plan docs at `packages/docs/epics/<name>/<name>.plan.html`:  structured edits through `plan-doc`, the rest in `/epic` prose.",
       "rows": [
         {
           "op": "Start a plan doc",
@@ -2904,6 +2904,7 @@
               "lsp review",
               "parser review",
               "server review",
+              "brand review",
               "spell review",
               "ui review",
               "util review"
@@ -2981,6 +2982,7 @@
               "lsp lint",
               "parser lint",
               "server lint",
+              "brand lint",
               "spell lint",
               "ui lint",
               "util lint",
@@ -3010,6 +3012,7 @@
               "lsp lint:fix",
               "parser lint:fix",
               "server lint:fix",
+              "brand lint:fix",
               "spell lint:fix",
               "ui lint:fix",
               "util lint:fix"

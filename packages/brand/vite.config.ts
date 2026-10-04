@@ -1,6 +1,7 @@
-import { defineConfig, type UserConfig } from "vite"
+import { defineConfig, type UserConfig } from "vite-plus"
 import { fileURLToPath } from "node:url"
 
+import { fmtConfig, packageLint } from "../../vite.lint.ts"
 import { baseConfig } from "../ui/vite.config.ts"
 
 /** `packages/brand/`. */
@@ -26,10 +27,14 @@ export const DOCS_ENTRY = `${ROOT}src/brand-docs.ts`
  *   inline every theme, engine and emoji chunk).
  * - Aliases set here as well, as the site's config does:  files outside a `tsconfig.json`'s `include` may not get
  *   `tsconfigPaths`.  `@spell-app/solid-element` from SOURCE:  a fresh checkout has no `dist/`.
+ * - Also `vp lint` / `vp fmt`:  the repo root's `vite.lint.ts`;  Claude Design's files and the committed bundle are
+ *   not ours to lint.
  */
 export default defineConfig(() => {
   const base = baseConfig()
   return {
+    fmt: fmtConfig,
+    lint: packageLint({ ignorePatterns: ["_assets/ui", "spell-design-system", "leonardo", ".compare", ".vitest"] }),
     ...base,
     root: ROOT,
     base: "./",

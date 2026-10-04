@@ -242,6 +242,16 @@
                 <ui-meta>ui-import/ui-import.html</ui-meta>
               </ui-content></ui-card
             >
+            <ui-card
+              ><ui-content>
+                <ui-header><a href="vite-plus.html" target="src-packages-docs-vite-plus-html">Vite+</a></ui-header>
+                <ui-description
+                  >The repo's toolchain on Vite+ 1.0: one vite-plus dependency pins vite, vitest, oxlint and oxfmt; how
+                  it's set up, what it bought, and its limits.</ui-description
+                >
+                <ui-meta>vite-plus.html</ui-meta>
+              </ui-content></ui-card
+            >
           </ui-cards>
         </ui-section>
         <ui-section id="epics" header="Epics" sticky collapsible dividing>
@@ -252,139 +262,173 @@
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/cli-additions/cli-additions.html" target="cli-additions"
+                  <a href="epics/cli-additions/cli-additions.plan.html" target="cli-additions"
                     >spell CLI Additions</a
                   ></ui-header
                 >
                 <ui-description>Plan doc: spell CLI Additions.</ui-description>
-                <ui-meta>epics/cli-additions/cli-additions.html</ui-meta>
+                <ui-meta>epics/cli-additions/cli-additions.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="commands" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/commands/commands.html" target="commands">Commands: CLI, skills, yarn</a></ui-header
+                  <a href="epics/commands/commands.plan.html" target="commands"
+                    >Commands: CLI, skills, yarn</a
+                  ></ui-header
                 >
                 <ui-description>Plan doc: Commands: CLI, skills, yarn.</ui-description>
-                <ui-meta>epics/commands/commands.html</ui-meta>
+                <ui-meta>epics/commands/commands.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="details" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/details/details.plan.html" target="details">Details Pages</a></ui-header
+                >
+                <ui-description>Plan doc: Details Pages.</ui-description>
+                <ui-meta>epics/details/details.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="docs-workspace" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/docs-workspace/docs-workspace.html" target="docs-workspace"
+                  <a href="epics/docs-workspace/docs-workspace.plan.html" target="docs-workspace"
                     >Docs workspace + /plan-doc</a
                   ></ui-header
                 >
                 <ui-description>Plan doc: Docs workspace + /plan-doc.</ui-description>
-                <ui-meta>epics/docs-workspace/docs-workspace.html</ui-meta>
+                <ui-meta>epics/docs-workspace/docs-workspace.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="epic-review" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/epic-review/epic-review.html" target="epic-review">Epic Review</a></ui-header
+                  <a href="epics/epic-review/epic-review.plan.html" target="epic-review">Epic Review</a></ui-header
                 >
                 <ui-description>Plan doc: Epic Review.</ui-description>
-                <ui-meta>epics/epic-review/epic-review.html</ui-meta>
+                <ui-meta>epics/epic-review/epic-review.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="isolate-changes" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/isolate-changes/isolate-changes.html" target="isolate-changes"
+                  <a href="epics/isolate-changes/isolate-changes.plan.html" target="isolate-changes"
                     >Isolate &amp; Epic Changes</a
                   ></ui-header
                 >
                 <ui-description>Plan doc: Isolate &amp; Epic Changes.</ui-description>
-                <ui-meta>epics/isolate-changes/isolate-changes.html</ui-meta>
+                <ui-meta>epics/isolate-changes/isolate-changes.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="review-review" data-status="open"
+              ><ui-content>
+                <ui-header
+                  ><ui-label class="spell-epic-state" size="mini" basic>4/10</ui-label>
+                  <a href="epics/review-review/review-review.plan.html" target="review-review"
+                    >Review Review</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Review Review.</ui-description>
+                <ui-meta>epics/review-review/review-review.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="seo" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/seo/seo.html" target="seo">SEO · Static Server Render</a></ui-header
+                  <a href="epics/seo/seo.plan.html" target="seo">SEO · Static Server Render</a></ui-header
                 >
                 <ui-description
                   >Plan doc: server-render ui-* pages to static light-DOM HTML for SEO, no shadow DOM, no
                   JS.</ui-description
                 >
-                <ui-meta>epics/seo/seo.html</ui-meta>
+                <ui-meta>epics/seo/seo.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="solid-migration" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/solid-migration/solid-migration.html" target="solid-migration"
+                  <a href="epics/solid-migration/solid-migration.plan.html" target="solid-migration"
                     >Solid Migration</a
                   ></ui-header
                 >
                 <ui-description>Plan doc: Solid Migration.</ui-description>
-                <ui-meta>epics/solid-migration/solid-migration.html</ui-meta>
+                <ui-meta>epics/solid-migration/solid-migration.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="spell-ui-pages" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/spell-ui-pages/spell-ui-pages.html" target="spell-ui-pages"
+                  <a href="epics/spell-ui-pages/spell-ui-pages.plan.html" target="spell-ui-pages"
                     >Spell UI Pages</a
                   ></ui-header
                 >
                 <ui-description>Plan doc: Spell UI Pages.</ui-description>
-                <ui-meta>epics/spell-ui-pages/spell-ui-pages.html</ui-meta>
+                <ui-meta>epics/spell-ui-pages/spell-ui-pages.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="ui-component-creation" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/ui-component-creation/ui-component-creation.html" target="ui-component-creation"
+                  <a href="epics/ui-component-creation/ui-component-creation.plan.html" target="ui-component-creation"
                     >UI Component Creation</a
                   ></ui-header
                 >
                 <ui-description>Plan doc: UI Component Creation.</ui-description>
-                <ui-meta>epics/ui-component-creation/ui-component-creation.html</ui-meta>
+                <ui-meta>epics/ui-component-creation/ui-component-creation.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="ui-docs-rework" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/ui-docs-rework/ui-docs-rework.html" target="ui-docs-rework"
+                  <a href="epics/ui-docs-rework/ui-docs-rework.plan.html" target="ui-docs-rework"
                     >Spell UI Docs Rework</a
                   ></ui-header
                 >
                 <ui-description>Plan doc: Spell UI Docs Rework.</ui-description>
-                <ui-meta>epics/ui-docs-rework/ui-docs-rework.html</ui-meta>
+                <ui-meta>epics/ui-docs-rework/ui-docs-rework.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="ui-import" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/ui-import/ui-import.html" target="ui-import">UI Import</a></ui-header
+                  <a href="epics/ui-import/ui-import.plan.html" target="ui-import">UI Import</a></ui-header
                 >
                 <ui-description>Plan doc: UI Import.</ui-description>
-                <ui-meta>epics/ui-import/ui-import.html</ui-meta>
+                <ui-meta>epics/ui-import/ui-import.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="unified-server" data-status="done"
               ><ui-content>
                 <ui-header
                   ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
-                  <a href="epics/unified-server/unified-server.html" target="unified-server"
+                  <a href="epics/unified-server/unified-server.plan.html" target="unified-server"
                     >Unified Server</a
                   ></ui-header
                 >
                 <ui-description>Plan doc: Unified Server.</ui-description>
-                <ui-meta>epics/unified-server/unified-server.html</ui-meta>
+                <ui-meta>epics/unified-server/unified-server.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="vite-plus" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/vite-plus/vite-plus.plan.html" target="vite-plus">Vite+</a></ui-header
+                >
+                <ui-description>Plan doc: Vite+.</ui-description>
+                <ui-meta>epics/vite-plus/vite-plus.plan.html</ui-meta>
               </ui-content></ui-card
             >
           </ui-cards>

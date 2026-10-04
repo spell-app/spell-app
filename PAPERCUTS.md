@@ -987,6 +987,11 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   serves `dist-element/`, though the demo's comment says the dev server does.  The app's own pages work. · For a live
   check:  a tiny static server for `/demo/` + `/element/` that proxies `/api/` to the page server -- dropping
   `Origin` / `Referer`, or the page server answers 403. · app
+- 2026-10-04 · After merging `vite-plus`, the page server's editor never started:  `.spell-server.editor.log` said
+  `Cannot find module .../node_modules/vite/bin/vite.js`.  `vite` is aliased to `@voidzero-dev/vite-plus-core`,
+  which ships no bin, and `vp dev` prints no `ready in` line for `EditorServer` to wait on.  The epic's own checks
+  never started the page server, so nothing caught it. · `EditorServer` runs `vite-plus/bin/vp dev` and waits for
+  `Local:`;  `yarn stop` matches `vp dev`. · app
 
 ## cli
 
@@ -1130,6 +1135,15 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   history) resolves, so `doc-links.py` links it to a second path for the same file;  unlinking it by hand gets
   re-linked on the next run. · Wrote the old name as plain text;  `doc-links.py` should resolve paths
   case-sensitively (compare against the real directory listing). · docs
+- 2026-10-02 · After `vp migrate` (Vite+), every `yarn plan-doc add` failed with "Couldn't find a script named
+  `oxfmt`" -- AFTER writing the item, so a retry made a duplicate.  Migrate drops `oxfmt` / `oxlint` as direct deps
+  (they come with `vite-plus`), and `yarn <bin>` only runs a package's OWN deps' binaries. · `tidy()` in
+  `scripts/pages.js` runs `yarn vp fmt`;  use `yarn vp fmt` / `yarn vp lint` by hand (`yarn vitest` still works). · docs
+- 2026-10-02 · `yarn vp run -r ts --cache` printed ` --cache` from every script:  flags AFTER the task name go to
+  the task. · Flags first:  `vp run --cache -r ts`. · docs
+- 2026-10-02 · `vp run --cache` replayed "TSC PASSED" for a package with a planted type error:  input
+  auto-tracking can't see TS 7's native `tsc` read files. · NEVER `--cache` plain scripts;  a cached task needs
+  explicit `cache.input` globs (`run.tasks` in `vite.config.ts`).  See `epics/vite-plus` I1. · docs
 - 2026-10-03 · `git ls-files 'packages/docs/**/*.html'` left out the top-level pages (`index.html`, `cli.html` ...):
   a quoted `**/` pathspec didn't match zero folders here, so a "every page" comparison silently skipped five.  And
   `git checkout -- <pages>` to reset between runs reverted another agent's live plan-doc edit in the same worktree.
@@ -1160,7 +1174,7 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `findList()` (adds nothing, never throws);  `migrate` still adds the section.  Plan docs are read by PATH now
   (`plan-doc summaries`), in one run. · docs
 - 2026-10-04 · `yarn docs:update` failed at "check links" before any page check ran:  the finished epic
-  `epics/ui-component-creation/ui-component-creation.html` still linked to Astro files that P7 of `spell-ui-pages`
+  `epics/ui-component-creation/ui-component-creation.plan.html` still linked to Astro files that P7 of `spell-ui-pages`
   deleted (`site/src/layouts/Docs.astro`, `ui-root.mdx`, `RootDemo.astro`), broken on `main` too. · Unlinked the
   four (kept their `<code>` names, the history).  A page-deleting change wants `doc-links.py --check` on EVERY page,
   epics included. · ui-docs-rework
@@ -1289,6 +1303,20 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   the removal had deleted the pid file. · Stop a worktree's servers BEFORE removing it (`yarn server stop` in it);
   after the fact, `ps -eo pid,command | grep worktrees/<name>`, kill those, `rm -rf` the folder.  `/isolate done`
   should do the stop. · claude-code
+
+- 2026-10-04 · Claude Edit refused `PAPERCUTS.md` reached through a FILE symlink ("it is a symbolic link.  Write to
+  the link's target path instead"), and every Write into a linked folder whose target sat outside the repo stopped for a
+  permission prompt. · File links:  no setting helps, so share whole FOLDERS only (Edit / Write through a folder link
+  work).  Prompts:  `permissions.additionalDirectories` + `Edit(//<abs path>/**)` for the target, in
+  `~/.claude/settings.json` (every session, worktrees too) and `.claude/settings.json`. · claude-code
+
+- 2026-10-04 · `/epics` failed at once:  `epics.py` dies with "No module named 'worktrees'".  It imports
+  `.claude/skills/worktrees/scripts/worktrees.py`, which the `commands` epic ported to `spell dev stock` and deleted;
+  `epics.py` was never ported (`commands.json`'s target:  `spell dev plan-doc list`).  Also, worktrees branched
+  before review-review P4 still hold `<name>.html`, not `<name>.plan.html`. · By hand:  `spell dev stock --json` for
+  worktrees and sessions, plus each doc's `tsx scripts/plan-doc.js summary <name> --json`, run in its OWN checkout's
+  `packages/docs` (an old-format doc needs its own branch's script).  Fix:  port `epics.py` to `spell dev plan-doc
+  list`. · claude-code
 
 ## vscode
 

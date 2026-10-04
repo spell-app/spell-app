@@ -24,6 +24,7 @@
           element scripts, so crawlers and readers without JavaScript see the whole page.
         </p>
         <ui-list class="spell-meta">
+          <ui-item icon="map"><b>Plan doc:</b> <a href="../epics/seo/seo.plan.html" target="seo">epic seo</a></ui-item>
           <ui-item icon="user"
             >Written for: anyone publishing a static page (<code>spell static</code>), calling
             <code>$/ui/server</code> from code, or changing a <code>ui-*</code> family so it still renders
@@ -32,7 +33,8 @@
           <ui-item icon="flag">Status: <ui-label size="mini" color="green">built</ui-label> (P1-P5)</ui-item>
           <ui-item icon="code branch"
             >Checked on: branch <code>seo</code>, 2026-10-02, against the code, a fresh <code>spell static</code> run
-            and the static parity report (plan: <a href="../epics/seo/seo.html" target="seo">epics/seo</a>)</ui-item
+            and the static parity report (plan:
+            <a href="../epics/seo/seo.plan.html" target="seo">epics/seo</a>)</ui-item
           >
         </ui-list>
 
@@ -1045,7 +1047,7 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
               <li>
                 Solid's own server render, over a simulated DOM or a headless browser at build time: no browser needed,
                 renders per request, and fixes <code>ui</code>'s SSR for everyone (<a
-                  href="../epics/seo/seo.html#d2"
+                  href="../epics/seo/seo.plan.html#d2"
                   target="seo"
                   >D2</a
                 >).
@@ -1057,7 +1059,7 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
                   ><code>native.css</code></a
                 >
                 hides undefined <code>ui-root</code> / <code>ui-popup</code> / <code>ui-modal</code> (<a
-                  href="../epics/seo/seo.html#d3"
+                  href="../epics/seo/seo.plan.html#d3"
                   target="seo"
                   >D3</a
                 >).
@@ -1065,18 +1067,18 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
               <li>
                 Server code in its own entry (<code>$/ui/server</code>) and the fork's
                 <code>@spell-app/solid-element/server</code>: client bundles get only <code>isServer</code> branches (<a
-                  href="../epics/seo/seo.html#d8"
+                  href="../epics/seo/seo.plan.html#d8"
                   target="seo"
                   >D8</a
-                >, <a href="../epics/seo/seo.html#d9" target="seo">D9</a>).
+                >, <a href="../epics/seo/seo.plan.html#d9" target="seo">D9</a>).
               </li>
               <li>
                 <code>ServerRuntime</code>, not <code>UIRuntime</code>: the real one builds <code>CSSStyleSheet</code>s
-                in its constructor (<a href="../epics/seo/seo.html#d11" target="seo">D11</a>).
+                in its constructor (<a href="../epics/seo/seo.plan.html#d11" target="seo">D11</a>).
               </li>
               <li>
                 <code>hostEffect()</code>: the server build never runs an effect's apply (<a
-                  href="../epics/seo/seo.html#d10"
+                  href="../epics/seo/seo.plan.html#d10"
                   target="seo"
                   >D10</a
                 >).
@@ -1090,30 +1092,30 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
                 List items in <code>&lt;li&gt;</code>: a host's <code>role=listitem</code> has no valid place on an
                 <code>&lt;article&gt;</code>; a <code>&lt;div&gt;</code> root becomes the <code>&lt;li&gt;</code> itself
                 so <code>:first-child</code> and <code>.item + .item</code> still work (<a
-                  href="../epics/seo/seo.html#d4"
+                  href="../epics/seo/seo.plan.html#d4"
                   target="seo"
                   >D4</a
-                >, <a href="../epics/seo/seo.html#d20" target="seo">D20</a>,
-                <a href="../epics/seo/seo.html#d14" target="seo">D14</a>).
+                >, <a href="../epics/seo/seo.plan.html#d20" target="seo">D20</a>,
+                <a href="../epics/seo/seo.plan.html#d14" target="seo">D14</a>).
               </li>
               <li>
                 States as <code>data-state</code>, author content as <code>data-ui-slotted</code>: the stylesheet needs
                 both to stand in for <code>:state()</code> and the slot boundary (<a
-                  href="../epics/seo/seo.html#d13"
+                  href="../epics/seo/seo.plan.html#d13"
                   target="seo"
                   >D13</a
                 >).
               </li>
               <li>
                 Kind = the tag without <code>ui-</code>, not the vocabulary noun: five pairs of tags share a noun (<a
-                  href="../epics/seo/seo.html#d41"
+                  href="../epics/seo/seo.plan.html#d41"
                   target="seo"
                   >D41</a
                 >).
               </li>
               <li>
                 <code>&lt;div&gt;</code> =&gt; <code>&lt;span&gt;</code> in phrasing content; form ids to the native
-                control (<a href="../epics/seo/seo.html#d43" target="seo">D43</a>).
+                control (<a href="../epics/seo/seo.plan.html#d43" target="seo">D43</a>).
               </li>
             </ul>
           </ui-section>
@@ -1122,34 +1124,36 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
             <ul>
               <li>
                 <code>@scope</code> from <code>data-ui</code> roots, over per-element attributes: no new browser floor,
-                anchor positioning already needs newer ones (<a href="../epics/seo/seo.html#d5" target="seo">D5</a>).
+                anchor positioning already needs newer ones (<a href="../epics/seo/seo.plan.html#d5" target="seo">D5</a
+                >).
               </li>
               <li>
                 Subjects anchored with <code>:where(:scope, *)</code>: without it no rule styled the root (<a
-                  href="../epics/seo/seo.html#d18"
+                  href="../epics/seo/seo.plan.html#d18"
                   target="seo"
                   >D18</a
                 >).
               </li>
               <li>
                 Host-only rules in <code>ui.reset</code>, slotted rules in <code>ui-slotted</code>: they keep the
-                cascade they had across the shadow boundary (<a href="../epics/seo/seo.html#d15" target="seo">D15</a>,
-                <a href="../epics/seo/seo.html#d42" target="seo">D42</a>).
+                cascade they had across the shadow boundary (<a href="../epics/seo/seo.plan.html#d15" target="seo"
+                  >D15</a
+                >, <a href="../epics/seo/seo.plan.html#d42" target="seo">D42</a>).
               </li>
               <li>
                 Sheets scoped to every kind seen adopting them, in adoption order (<a
-                  href="../epics/seo/seo.html#d19"
+                  href="../epics/seo/seo.plan.html#d19"
                   target="seo"
                   >D19</a
                 >).
               </li>
               <li>
                 Page CSS rewritten and kept out with <code>REACH</code> (<a
-                  href="../epics/seo/seo.html#d22"
+                  href="../epics/seo/seo.plan.html#d22"
                   target="seo"
                   >D22</a
-                >, <a href="../epics/seo/seo.html#d58" target="seo">D58</a>); class grammar the page wrote is styled too
-                (<a href="../epics/seo/seo.html#d34" target="seo">D34</a>).
+                >, <a href="../epics/seo/seo.plan.html#d58" target="seo">D58</a>); class grammar the page wrote is
+                styled too (<a href="../epics/seo/seo.plan.html#d34" target="seo">D34</a>).
               </li>
             </ul>
           </ui-section>
@@ -1158,17 +1162,17 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
             <ul>
               <li>
                 Native invoker commands, <code>popovertarget</code>, <code>&lt;details&gt;</code>: the platform does it
-                without scripts (<a href="../epics/seo/seo.html#d47" target="seo">D47</a>).
+                without scripts (<a href="../epics/seo/seo.plan.html#d47" target="seo">D47</a>).
               </li>
               <li>
-                Ids from one allocator that skips the page's own (<a href="../epics/seo/seo.html#d48" target="seo"
+                Ids from one allocator that skips the page's own (<a href="../epics/seo/seo.plan.html#d48" target="seo"
                   >D48</a
-                >, <a href="../epics/seo/seo.html#d24" target="seo">D24</a>).
+                >, <a href="../epics/seo/seo.plan.html#d24" target="seo">D24</a>).
               </li>
               <li>
                 Forms submit through the native controls, server-only attributes spread onto them, so the browser render
-                is unchanged (<a href="../epics/seo/seo.html#d28" target="seo">D28</a>,
-                <a href="../epics/seo/seo.html#d55" target="seo">D55</a>).
+                is unchanged (<a href="../epics/seo/seo.plan.html#d28" target="seo">D28</a>,
+                <a href="../epics/seo/seo.plan.html#d55" target="seo">D55</a>).
               </li>
             </ul>
           </ui-section>
@@ -1176,42 +1180,42 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
           <ui-section id="why-spell-static" header="spell static" sticky collapsible dividing>
             <ul>
               <li>
-                A CLI command, not a yarn script (<a href="../epics/seo/seo.html#d7" target="seo">D7</a>); in a child
-                process on an SSR-only Vite server, so Vite's output and the server <code>UI</code> runtime stay out of
-                the CLI (<a href="../epics/seo/seo.html#d49" target="seo">D49</a>,
-                <a href="../epics/seo/seo.html#d17" target="seo">D17</a>).
+                A CLI command, not a yarn script (<a href="../epics/seo/seo.plan.html#d7" target="seo">D7</a>); in a
+                child process on an SSR-only Vite server, so Vite's output and the server <code>UI</code> runtime stay
+                out of the CLI (<a href="../epics/seo/seo.plan.html#d49" target="seo">D49</a>,
+                <a href="../epics/seo/seo.plan.html#d17" target="seo">D17</a>).
               </li>
               <li>
                 <code>page.static.html</code> beside the page: its relative links keep working (<a
-                  href="../epics/seo/seo.html#d50"
+                  href="../epics/seo/seo.plan.html#d50"
                   target="seo"
                   >D50</a
                 >).
               </li>
               <li>
                 Only element-loading scripts go: other scripts may be wanted (<a
-                  href="../epics/seo/seo.html#d51"
+                  href="../epics/seo/seo.plan.html#d51"
                   target="seo"
                   >D51</a
                 >).
               </li>
               <li>
                 Stylesheet linked first: layer order is set by first mention (<a
-                  href="../epics/seo/seo.html#d52"
+                  href="../epics/seo/seo.plan.html#d52"
                   target="seo"
                   >D52</a
                 >).
               </li>
               <li>
                 Lightning CSS, strict, nothing lowered; a sheet it can't parse is stripped, never silently cut (<a
-                  href="../epics/seo/seo.html#d53"
+                  href="../epics/seo/seo.plan.html#d53"
                   target="seo"
                   >D53</a
                 >).
               </li>
               <li>
                 Local linked sheets inlined in place: cascade order unchanged, no extra files (<a
-                  href="../epics/seo/seo.html#d59"
+                  href="../epics/seo/seo.plan.html#d59"
                   target="seo"
                   >D59</a
                 >).
@@ -1228,29 +1232,30 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
             <ul>
               <li>
                 No zero-JS path for tabs, hover popups, dropdown choosing, calendar picking, search, shape, slider,
-                element dimmer, nag close (<a href="../epics/seo/seo.html#c1" target="seo">C1</a>); hover popups show
-                nothing (<a href="../epics/seo/seo.html#t31" target="seo">T31</a>).
+                element dimmer, nag close (<a href="../epics/seo/seo.plan.html#c1" target="seo">C1</a>); hover popups
+                show nothing (<a href="../epics/seo/seo.plan.html#t31" target="seo">T31</a>).
               </li>
               <li>
                 Open popups, modals, flyouts, page dimmers and modal sidebars render closed (<a
-                  href="../epics/seo/seo.html#c11"
+                  href="../epics/seo/seo.plan.html#c11"
                   target="seo"
                   >C11</a
                 >).
               </li>
               <li>
                 The server can't know: a tabs history hash, a nag's dismissal, measured sizes (<a
-                  href="../epics/seo/seo.html#c2"
+                  href="../epics/seo/seo.plan.html#c2"
                   target="seo"
                   >C2</a
                 >).
               </li>
               <li>
-                The static page must not load the elements (<a href="../epics/seo/seo.html#c4" target="seo">C4</a>).
+                The static page must not load the elements (<a href="../epics/seo/seo.plan.html#c4" target="seo">C4</a
+                >).
               </li>
               <li>
                 <code>closedby=any</code> (backdrop close) isn't in Safari (<a
-                  href="../epics/seo/seo.html#c5"
+                  href="../epics/seo/seo.plan.html#c5"
                   target="seo"
                   >C5</a
                 >).
@@ -1264,35 +1269,37 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
                 A block root that isn't a <code>&lt;div&gt;</code> (<code>&lt;ul&gt;</code>,
                 <code>&lt;dialog&gt;</code>, <code>&lt;details&gt;</code>, <code>&lt;article&gt;</code> ...) inside a
                 <code>&lt;p&gt;</code> still splits the paragraph: wrap such elements in a <code>&lt;div&gt;</code> (<a
-                  href="../epics/seo/seo.html#c20"
+                  href="../epics/seo/seo.plan.html#c20"
                   target="seo"
                   >C20</a
                 >).
               </li>
               <li>
                 Inline-block roots in flex rows lose their host's line box: checkboxes and ratings a few pixels shorter
-                (<a href="../epics/seo/seo.html#c13" target="seo">C13</a>).
+                (<a href="../epics/seo/seo.plan.html#c13" target="seo">C13</a>).
               </li>
               <li>
                 Static steps never stack on narrow screens; grid-root rules like <code>mobile reversed</code> don't
-                apply (<a href="../epics/seo/seo.html#c15" target="seo">C15</a>).
+                apply (<a href="../epics/seo/seo.plan.html#c15" target="seo">C15</a>).
               </li>
               <li>
                 A few pixels of drift in card groups and clearing segments (<a
-                  href="../epics/seo/seo.html#c10"
+                  href="../epics/seo/seo.plan.html#c10"
                   target="seo"
                   >C10</a
-                >); consecutive grids miss their 1rem gap (<a href="../epics/seo/seo.html#t24" target="seo">T24</a>).
+                >); consecutive grids miss their 1rem gap (<a href="../epics/seo/seo.plan.html#t24" target="seo">T24</a
+                >).
               </li>
               <li>
                 <code>display: contents</code> on <code>&lt;li&gt;</code>: older Safari drops the list-item role (<a
-                  href="../epics/seo/seo.html#c9"
+                  href="../epics/seo/seo.plan.html#c9"
                   target="seo"
                   >C9</a
                 >).
               </li>
               <li>
-                <code>part</code> attributes stay in the output (<a href="../epics/seo/seo.html#c7" target="seo">C7</a
+                <code>part</code> attributes stay in the output (<a href="../epics/seo/seo.plan.html#c7" target="seo"
+                  >C7</a
                 >).
               </li>
             </ul>
@@ -1303,14 +1310,14 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
               <li>
                 Page CSS in remote sheets, <code>@import</code> rules or set by scripts isn't rewritten;
                 <code>H::part(p)</code> also reaches parts of components nested in H (<a
-                  href="../epics/seo/seo.html#c21"
+                  href="../epics/seo/seo.plan.html#c21"
                   target="seo"
                   >C21</a
                 >).
               </li>
               <li>
                 Page CSS isn't moved into <code>@layer page</code>: unlayered page rules beat component rules on roots
-                (<a href="../epics/seo/seo.html#t27" target="seo">T27</a>).
+                (<a href="../epics/seo/seo.plan.html#t27" target="seo">T27</a>).
               </li>
               <li>
                 The stylesheet is big: minifying saves ~16% (<a
@@ -1318,20 +1325,22 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
                   target="src-packages-docs-solid-solid-2-html"
                   ><code>solid-2.html</code></a
                 >, 12 families: 338 kB -&gt; 285 kB, gzip 39.5 -&gt; 38.2 kB) (<a
-                  href="../epics/seo/seo.html#c19"
+                  href="../epics/seo/seo.plan.html#c19"
                   target="seo"
                   >C19</a
                 >).
               </li>
               <li>
                 A page with popups isn't minified at all: Lightning CSS can't parse <code>@container anchored()</code>,
-                so the whole sheet falls back to stripping comments (<a href="../epics/seo/seo.html#i25" target="seo"
+                so the whole sheet falls back to stripping comments (<a
+                  href="../epics/seo/seo.plan.html#i25"
+                  target="seo"
                   >I25</a
                 >).
               </li>
               <li>
                 Examples built on test-only stub owners can't match statically (<a
-                  href="../epics/seo/seo.html#c17"
+                  href="../epics/seo/seo.plan.html#c17"
                   target="seo"
                   >C17</a
                 >).
@@ -1343,21 +1352,21 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
             <ul>
               <li>
                 The SSR compile passes a class type parameter as a value (<a
-                  href="../epics/seo/seo.html#i16"
+                  href="../epics/seo/seo.plan.html#i16"
                   target="seo"
                   >I16</a
                 >): worked around, see <a href="#rule-compiler">Server compile traps</a>.
               </li>
               <li>
                 <code>UIRuntime</code>'s docstring claims it constructs outside a browser; it doesn't (<a
-                  href="../epics/seo/seo.html#i2"
+                  href="../epics/seo/seo.plan.html#i2"
                   target="seo"
                   >I2</a
                 >).
               </li>
               <li>
                 The client cost of the server-only methods was never measured (<a
-                  href="../epics/seo/seo.html#t32"
+                  href="../epics/seo/seo.plan.html#t32"
                   target="seo"
                   >T32</a
                 >).
@@ -1371,7 +1380,7 @@ h2:where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *) {
           <ui-items class="spell-sources" divided>
             <ui-item>
               <ui-content>
-                <ui-header><a href="../epics/seo/seo.html" target="seo">epics/seo/seo.html</a></ui-header>
+                <ui-header><a href="../epics/seo/seo.plan.html" target="seo">epics/seo/seo.plan.html</a></ui-header>
                 <ui-meta>plan doc · P1-P6, 2026-10-02</ui-meta>
                 <ui-description>Every decision, caveat and issue, with the numbers behind them.</ui-description>
               </ui-content>

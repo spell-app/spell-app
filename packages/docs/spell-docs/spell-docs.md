@@ -115,7 +115,7 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
     brings the column back
   - then one `a.spell-rail-item[data-rail]` per top-level section (h2), its icon (else its number), its open count
     a pill on the icon's corner;  scroll-follow marks the current section's `selected`
-  - 400px wide and under:  only the bars button, at the top right over the page header's end
+  - 480px wide and under:  only the bars button, at the top right over the page header's end
   - `buildContents()` / `buildRail()` / `wireContents()` can run again (a page updated in place):  each replaces
     what it built, or drops its listeners, first
   - pages from before 2026-10-01 hand-wrote a "Contents" `.spell-toc-open`:  the runtime removes it
@@ -150,8 +150,7 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
     folded.
 - Counts (`countItems()`):  a top-level section with `[data-status]` items shows "open/all" on its title:  its
   `badge` (`<ui-section>`), or a `ui-label.spell-count` at its h2's right.  Nested sections get no count of their own.
-  Not open:  `done`, and `decided` (a plan's decision in force:  "Questions & Decisions" counts the questions
-  waiting).
+  Not open:  `done`, and `decided` (an answered question:  "Questions" counts the ones still waiting).
 - Anchors (`wireAnchors()`):  any same-page link to an id in `main` -- a section, a heading or a plan item -- is the
   runtime's:  it unfolds every folded section around the target (`collapsed = false`:  not saved), opens the
   target's panel (a plan item's `ui-accordion`), and scrolls by the site header plus the target's

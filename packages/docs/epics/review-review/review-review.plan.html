@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
-  <body class="spell-doc-page plan-doc" data-plan="review-review">
+  <body data-recent-since="2026-10-04T12:34:30-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Review Review</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3"
-                >next: P3 · Status And Commits</ui-label
+              ><ui-label basic color="grey" icon="circle right" href="#p5" title="Next:  P5 · Item Actions"
+                >P5</ui-label
               ></span
             >
           </header></ui-sticky
@@ -189,7 +189,7 @@
               </blockquote></ui-content
             ></ui-accordion
           >
-          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 16h-23h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 11h-16h left</p>
           <ui-section id="o1" header="1.1 The new review loop" sticky collapsible dividing>
             <p>What a review looks like once this epic is done, step by step:</p>
             <ol>
@@ -385,7 +385,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -453,6 +453,28 @@
                     the copy line).
                   </li>
                 </ul></ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="cd6a9d768ce7cb1446a6dbfa3aaadd7d927c3392">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/cd6a9d768ce7cb1446a6dbfa3aaadd7d927c3392"
+                      target="github"
+                      >cd6a9d7</a
+                    >
+                    Spell Docs + Review tabs, in-place page updates, chevrons right, rail redesign, Epic: titles
+                  </li>
+                  <li data-sha="d42c62e0f80b54d12955b2a9136204d2d66028ec">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/d42c62e0f80b54d12955b2a9136204d2d66028ec"
+                      target="github"
+                      >d42c62e</a
+                    >
+                    ivory rail with orange attention bars, no fold bounce, section intros as title tooltips
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
                 <a href="../../../vscode/" target="src-packages-vscode"><code>packages/vscode/</code></a> (<a
@@ -512,6 +534,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             badge="1-2h"
             id="p2"
             data-phase="2"
@@ -574,6 +597,19 @@
                   </li>
                   <li>Not done here: commits per phase (P3), and rewriting old docs' text (P4, P8).</li>
                 </ul></ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="2c71ac578248c57a9f434025a2a59c170ef81186">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/2c71ac578248c57a9f434025a2a59c170ef81186"
+                      target="github"
+                      >2c71ac5</a
+                    >
+                    plan docs written for a cold reader, estimate badges, Done lists, Files / Verify toggles
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
                 <a href="../../templates/epics/plan-doc.md" target="src-packages-docs-templates-epics-plan-doc-md"
@@ -594,16 +630,17 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             badge="3-4h"
             id="p3"
             data-phase="3"
-            data-status="todo"
+            data-status="done"
             header="P3 · Status And Commits"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -632,6 +669,56 @@
                     calls the gavel.
                   </li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    Where to see it: every item's id badge is colored by where it stands: red needs you, blue open but
+                    not urgent, orange in progress, green changed in this or the last commit (or overnight), grey older.
+                    Done items are no longer struck through; the color says it (J16).
+                  </li>
+                  <li>
+                    Each section's title has one round filter button instead of "Open | All": it steps through all and
+                    each color the section has, and remembers your choice per doc.
+                  </li>
+                  <li>
+                    Each phase ends with a "To review" line of colored chips: the items it raised that you haven't
+                    reviewed (P3's lists J12-J15, the calls the agents made).
+                  </li>
+                  <li>
+                    Commits: each phase lists the commits that landed it (short hash links to GitHub, a sentence each),
+                    filled in from git (<code>yarn plan-doc commits &lt;name&gt; --backfill</code>); hidden until the
+                    git button in the page header shows them. Commits naming an item (<code>Fix I3:</code>) show on that
+                    item.
+                  </li>
+                  <li>
+                    Questions and decisions are one list now ("3. Questions"): answering Q3 writes the answer into Q3,
+                    no new D item. Old docs, this one included, still show their D items until P4 migrates them.
+                  </li>
+                  <li>
+                    Icons: Questions has the file-with-question-mark, judgement calls the gavel. Item titles lay out in
+                    columns, so the title never wraps under its badges.
+                  </li>
+                  <li>
+                    The phases' progress label is readable again (I1): the text sits beside the fill. Look at it, then I
+                    close I1.
+                  </li>
+                  <li>Not tried by hand in VS Code yet: V7 (all of this in the side bar).</li>
+                </ul></ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="85747d8ab1a5a302214ec766b2aac4b7967d82aa">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/85747d8ab1a5a302214ec766b2aac4b7967d82aa"
+                      target="github"
+                      >85747d8</a
+                    >
+                    item status colors, per-status filters, To review lines, commits per phase, questions and decisions
+                    merged
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
                 <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
@@ -646,6 +733,8 @@
                 <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
                   ><code>check-spell.js</code></a
                 >; commits filled in on one old doc look right</ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#v7">V7</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -653,13 +742,13 @@
             badge="2-3h"
             id="p4"
             data-phase="4"
-            data-status="todo"
+            data-status="done"
             header="P4 · Rename And Migrate"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -677,6 +766,37 @@
                     >).
                   </li>
                   <li>Then a checkpoint: you look at the visual changes before the item actions.</li>
+                </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    Every plan doc is now <code>epics/&lt;name&gt;/&lt;name&gt;.plan.html</code> (14 renamed, links
+                    rewritten in 31 files); an old address redirects, and epics still running in other worktrees are
+                    found under either name.
+                  </li>
+                  <li>
+                    Decisions are inside their questions now, in every doc: 53 became the ivory "D7 · ..." answer card
+                    of the question they answered, 319 became questions born answered; old <code>#d7</code> links open
+                    the question and land on the card. 17 chosen options were found and framed green; 9 couldn't be
+                    (C5).
+                  </li>
+                  <li>
+                    All about 380 OPEN items of the 13 older docs are rewritten in the new style: a plain title, a lead
+                    sentence, bullets, ids explained, a Net effect on questions, issues and calls. Every fact kept;
+                    items that look done or obsolete got a dated note (about 25), and what couldn't be verified says
+                    "not checked".
+                  </li>
+                  <li>
+                    Every doc migrated: <code>Epic:</code> titles, the new icons, estimate badges, intros as tooltips,
+                    status colors, commits filled in from git. The hand-written "Judgement calls" lines stay (J14).
+                  </li>
+                  <li>
+                    New status <code>canceled</code> (made moot by another decision): the only items struck through
+                    (J16); <code>yarn plan-doc cancel &lt;name&gt; &lt;id&gt;</code>.
+                  </li>
+                  <li>Durable docs start with one standard "Plan doc" link; plan docs link their durable doc.</li>
+                  <li>Closed and decided items keep their old wording: P8 rewrites those.</li>
                 </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
@@ -703,6 +823,10 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> Tests of every package touched; <code>yarn docs:update</code>; an old address redirects;
                 running epics still found</ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#q7">Q7</a>, <a href="#j19">J19</a>, <a href="#j20">J20</a>,
+                <a href="#j21">J21</a>, <a href="#c5">C5</a>, <a href="#c6">C6</a>, <a href="#t1">T1</a>,
+                <a href="#v8">V8</a>, <a href="#v9">V9</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -929,24 +1053,86 @@
         >
 
         <ui-section
-          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, don't re-argue without new facts. An answered question sits just above its decision."
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts."
           id="decisions"
-          header="3. Questions & Decisions"
+          header="3. Questions"
           sticky
           collapsible
           dividing
         >
-          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
 
           <ui-list class="plan-items" data-kind="decision" divided relaxed
-            ><ui-item id="q1" data-status="done"
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T14:18:06-04:00"
+              id="q7"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q7">Q7</a>
+                  <span class="plan-title"
+                    >Should a reload land on the remembered section without unfolding it?</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    When you reload a plan doc (or VS Code restarts), the page goes back to the section you were
+                    reading: the address holds it, e.g. <code>#p3</code>. Today it scrolls there but leaves the section
+                    folded, as you left it (J9).
+                  </p>
+                  <ul>
+                    <li>
+                      Example: you were reading P3's Goal, folded P3, scrolled on to Questions, and reloaded. The
+                      address says <code>#decisions</code>, so you land on Questions; P3 stays folded.
+                    </li>
+                    <li>
+                      The catch: the address follows whatever is at the top of the screen, so after a fold it may name a
+                      section you only scrolled past.
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Land without unfolding (recommended)</ui-label>
+                        <ul>
+                          <li>Your folds stay exactly as you left them.</li>
+                          <li>If the remembered section is folded, you see its title at the top.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Land and unfold it</ui-label>
+                        <ul>
+                          <li>You always see the content you were reading.</li>
+                          <li>But a reload can open a section you had folded on purpose.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    >
+                  </ui-grid>
+                  <p><b>Net effect (A):</b></p>
+                  <ul>
+                    <li>no change: a reload keeps your folds</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-answered data-state="old" id="q1" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q1">Q1</a>
-                  <span class="plan-title">Where should your marks wait until Claude picks them up?</span>
-                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                  <span class="plan-title">Where should your marks wait until Claude picks them up?</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d1">
+                    <div class="plan-answer-title">
+                      <b>D1</b> · Your marks wait in an inbox file beside the plan doc
+                    </div>
+                    <ul>
+                      <li>e.g. <code>epics/wwod/wwod.inbox.json</code>; the page draws the marks over the doc.</li>
+                      <li>Claude applies them to the plan doc when you send.</li>
+                    </ul>
+                  </div>
+                  <p>
                     When you click Approve, pick an option card, or type a "revisit" note, it has to be saved somewhere
                     before Claude acts on it.
                   </p>
@@ -961,7 +1147,7 @@
                     </li>
                   </ul>
                   <ui-grid class="spell-pros-cons" columns="2" stackable
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">A · An inbox file beside the plan doc (recommended)</ui-label>
                         <ul>
@@ -992,31 +1178,27 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d1" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d1">D1</a>
-                  <span class="plan-title"
-                    >Your marks wait in an inbox file beside the plan doc (<a href="#q1">Q1</a>)</span
-                  ></ui-title
-                ><ui-content
-                  ><ul>
-                    <li>e.g. <code>epics/wwod/wwod.inbox.json</code>; the page draws the marks over the doc.</li>
-                    <li>Claude applies them to the plan doc when you send.</li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q1">Q1</a>: Where should your marks wait until Claude picks them up?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q2" data-status="done"
+            ><ui-item data-answered data-state="old" id="q2" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q2">Q2</a>
-                  <span class="plan-title">What does "recently" mean for a green (recently decided) item?</span>
-                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                  <span class="plan-title"
+                    >What does "recently" mean for a green (recently decided) item?</span
+                  ></ui-title
                 ><ui-content
-                  ><p>You asked for green = decided "in this or the last commit", grey = decided earlier.</p>
+                  ><div class="plan-answer-block" id="d2">
+                    <div class="plan-answer-title">
+                      <b>D2</b> · Green: changed in this or the last commit, or during a /bedtime run; grey: older
+                    </div>
+                    <ul>
+                      <li>A /bedtime run's changes stay green until you review them.</li>
+                      <li>
+                        plan-doc stamps each change with its time, and the doc with the last commit's time, so the page
+                        can color without running git.
+                      </li>
+                    </ul>
+                  </div>
+                  <p>You asked for green = decided "in this or the last commit", grey = decided earlier.</p>
                   <ul>
                     <li>
                       Example: D7 was decided yesterday in a /review; since then there were six commits (P4, P5, two
@@ -1036,7 +1218,7 @@
                           <li>Survives any number of commits in between.</li>
                         </ul></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B · This or the last commit</ui-label>
                         <ul>
@@ -1056,36 +1238,19 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d2" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d2">D2</a>
-                  <span class="plan-title"
-                    >Green: changed in this or the last commit, or during a /bedtime run; grey: older (<a href="#q2"
-                      >Q2</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><ul>
-                    <li>A /bedtime run's changes stay green until you review them.</li>
-                    <li>
-                      plan-doc stamps each change with its time, and the doc with the last commit's time, so the page
-                      can color without running git.
-                    </li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q2">Q2</a>: What does "recently" mean for a green (recently decided) item?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q3" data-status="done"
+            ><ui-item data-answered data-state="old" id="q3" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q3">Q3</a>
-                  <span class="plan-title">What should the review command be called?</span>
-                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                  <span class="plan-title">What should the review command be called?</span></ui-title
                 ><ui-content
-                  ><p>You asked for <code>/review &lt;name&gt;</code>.</p>
+                  ><div class="plan-answer-block" id="d3">
+                    <div class="plan-answer-title"><b>D3</b> · The command stays /epic review</div>
+                    <ul>
+                      <li>No clash with Claude Code's built-in /review.</li>
+                    </ul>
+                  </div>
+                  <p>You asked for <code>/review &lt;name&gt;</code>.</p>
                   <ul>
                     <li>
                       Claude Code has had a built-in <code>/review</code> (review a pull request). A project skill with
@@ -1104,7 +1269,7 @@
                           <li>Your name for it. If the built-in wins, fall back to B.</li>
                         </ul></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B · /epic review</ui-label>
                         <ul>
@@ -1116,28 +1281,23 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d3" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d3">D3</a>
-                  <span class="plan-title">The command stays /epic review (<a href="#q3">Q3</a>)</span></ui-title
-                ><ui-content
-                  ><ul>
-                    <li>No clash with Claude Code's built-in /review.</li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q3">Q3</a>: What should the review command be called?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q4" data-status="done"
+            ><ui-item data-answered data-state="old" id="q4" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q4">Q4</a>
-                  <span class="plan-title">Should the existing plan docs be rewritten in the new, fuller style?</span>
-                  <a class="plan-answer" href="#d4">→ D4</a></ui-title
+                  <span class="plan-title"
+                    >Should the existing plan docs be rewritten in the new, fuller style?</span
+                  ></ui-title
                 ><ui-content
-                  ><p>There are 15 plan docs, several hundred items, mostly in the terse style.</p>
+                  ><div class="plan-answer-block" id="d4">
+                    <div class="plan-answer-title">
+                      <b>D4</b> · Rewrite the open items of every old doc now (P4), the rest in a later phase (P8)
+                    </div>
+                    <ul>
+                      <li>So you can see the new style on real items right away.</li>
+                    </ul>
+                  </div>
+                  <p>There are 15 plan docs, several hundred items, mostly in the terse style.</p>
                   <ul>
                     <li>
                       Example: todo T5 in unified-server reads "Review: live client is a stringified function: P2.
@@ -1158,7 +1318,7 @@
                           <li>No big rewrite to check.</li>
                         </ul></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B · Rewrite the open items of every doc</ui-label>
                         <ul>
@@ -1177,32 +1337,19 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d4" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d4">D4</a>
-                  <span class="plan-title"
-                    >Rewrite the open items of every old doc now (P4), the rest in a later phase (P8) (<a href="#q4"
-                      >Q4</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><ul>
-                    <li>So you can see the new style on real items right away.</li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q4">Q4</a>: Should the existing plan docs be rewritten in the new, fuller style?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q5" data-status="done"
+            ><ui-item data-answered data-state="old" id="q5" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q5">Q5</a>
-                  <span class="plan-title">Should /bedtime keep its new Overnight section?</span>
-                  <a class="plan-answer" href="#d5">→ D5</a></ui-title
+                  <span class="plan-title">Should /bedtime keep its new Overnight section?</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d5">
+                    <div class="plan-answer-title"><b>D5</b> · /bedtime's Overnight section goes</div>
+                    <ul>
+                      <li>/bedtime is plain "get it all done" mode; its calls show up red in the doc.</li>
+                    </ul>
+                  </div>
+                  <p>
                     Yesterday's change put a temporary "Overnight" report at the top of the plan doc (what each phase
                     did, what went wrong).
                   </p>
@@ -1216,7 +1363,7 @@
                     </li>
                   </ul>
                   <ui-grid class="spell-pros-cons" columns="2" stackable
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">A · Drop it (recommended)</ui-label>
                         <ul>
@@ -1239,28 +1386,23 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d5" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d5">D5</a>
-                  <span class="plan-title">/bedtime's Overnight section goes (<a href="#q5">Q5</a>)</span></ui-title
-                ><ui-content
-                  ><ul>
-                    <li>/bedtime is plain "get it all done" mode; its calls show up red in the doc.</li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q5">Q5</a>: Should /bedtime keep its new Overnight section?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q6" data-status="done"
+            ><ui-item data-answered data-state="old" id="q6" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q6">Q6</a>
-                  <span class="plan-title">What happens on "revisit now" when no Claude session is listening?</span>
-                  <a class="plan-answer" href="#d6">→ D6</a></ui-title
+                  <span class="plan-title"
+                    >What happens on "revisit now" when no Claude session is listening?</span
+                  ></ui-title
                 ><ui-content
-                  ><p>"Revisit now" needs a session to start the background agent.</p>
+                  ><div class="plan-answer-block" id="d6">
+                    <div class="plan-answer-title">
+                      <b>D6</b> · "Revisit now" with no session reviewing waits for the next /epic review
+                    </div>
+                    <ul>
+                      <li>The page says so and keeps the mark; nothing runs without you.</li>
+                    </ul>
+                  </div>
+                  <p>"Revisit now" needs a session to start the background agent.</p>
                   <ul>
                     <li>
                       Example: you open the plan doc from the docs index on Sunday, no /review running, and click
@@ -1268,7 +1410,7 @@
                     </li>
                   </ul>
                   <ui-grid class="spell-pros-cons" columns="2" stackable
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">A · Wait for the next /review (recommended)</ui-label>
                         <ul>
@@ -1297,238 +1439,269 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d6" data-status="decided"
+            ><ui-item data-answered data-state="old" id="q8" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d6">D6</a>
-                  <span class="plan-title"
-                    >"Revisit now" with no session reviewing waits for the next /epic review (<a href="#q6">Q6</a
-                    >)</span
-                  ></ui-title
-                ><ui-content
-                  ><ul>
-                    <li>The page says so and keeps the mark; nothing runs without you.</li>
-                  </ul>
-                  <p class="meta">
-                    Answers <a href="#q6">Q6</a>: What happens on "revisit now" when no Claude session is listening?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d7" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d7">D7</a>
+                  ><a class="plan-id" href="#q8">Q8</a>
                   <span class="plan-title">Page to Claude goes through a file and a background waiter</span></ui-title
                 ><ui-content
-                  ><ul>
-                    <li>
-                      Nothing can push a message into a running Claude session: it wakes only when you type, or when a
-                      background command it started finishes.
-                    </li>
-                    <li>The Claude extension types a prompt only into a tab it opens fresh.</li>
-                    <li>So, like details pages: the page writes a file, the session's waiter finishes and wakes it.</li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d7">
+                    <div class="plan-answer-title">
+                      <b>D7</b> · Page to Claude goes through a file and a background waiter
+                    </div>
+                    <ul>
+                      <li>
+                        Nothing can push a message into a running Claude session: it wakes only when you type, or when a
+                        background command it started finishes.
+                      </li>
+                      <li>The Claude extension types a prompt only into a tab it opens fresh.</li>
+                      <li>
+                        So, like details pages: the page writes a file, the session's waiter finishes and wakes it.
+                      </li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d8" data-status="decided"
+            ><ui-item data-answered data-state="old" id="q9" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d8">D8</a>
+                  ><a class="plan-id" href="#q9">Q9</a>
                   <span class="plan-title"
                     >No plan docs to bring back from git: links standardized instead</span
                   ></ui-title
                 ><ui-content
-                  ><ul>
-                    <li>
-                      Every past plan doc is still in
-                      <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
-                      >, complete: Doc Review always made a separate durable doc.
-                    </li>
-                    <li>What's missing is a consistent link both ways (the commands durable page has none).</li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d8">
+                    <div class="plan-answer-title">
+                      <b>D8</b> · No plan docs to bring back from git: links standardized instead
+                    </div>
+                    <ul>
+                      <li>
+                        Every past plan doc is still in
+                        <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
+                        >, complete: Doc Review always made a separate durable doc.
+                      </li>
+                      <li>What's missing is a consistent link both ways (the commands durable page has none).</li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d9" data-status="decided"
-              ><a class="plan-id" href="#d9">D9</a>
-              <span class="plan-title"
-                >Visual changes first (P1-P4), then a checkpoint, then the item actions (P5-P6)</span
-              ></ui-item
-            ><ui-item id="d10" data-status="decided"
+            ><ui-item data-answered data-state="old" id="q10" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d10">D10</a>
+                  ><a class="plan-id" href="#q10">Q10</a>
+                  <span class="plan-title"
+                    >Visual changes first (P1-P4), then a checkpoint, then the item actions (P5-P6)</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d9">
+                    <div class="plan-answer-title">
+                      <b>D9</b> · Visual changes first (P1-P4), then a checkpoint, then the item actions (P5-P6)
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-answered data-state="old" id="q11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q11">Q11</a>
                   <span class="plan-title"
                     >Reloads update the page in place instead of splitting it into includes</span
                   ></ui-title
                 ><ui-content
-                  ><ul>
-                    <li>
-                      On a change the page fetches its new version and swaps in only what changed: no reload, so scroll,
-                      folds and a half-typed note survive.
-                    </li>
-                    <li>
-                      Not &lt;ui-include&gt; pieces: those need the page server (blank when opened from disk), arrive
-                      after the contents list is built, and turn one doc into many files.
-                    </li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d10">
+                    <div class="plan-answer-title">
+                      <b>D10</b> · Reloads update the page in place instead of splitting it into includes
+                    </div>
+                    <ul>
+                      <li>
+                        On a change the page fetches its new version and swaps in only what changed: no reload, so
+                        scroll, folds and a half-typed note survive.
+                      </li>
+                      <li>
+                        Not &lt;ui-include&gt; pieces: those need the page server (blank when opened from disk), arrive
+                        after the contents list is built, and turn one doc into many files.
+                      </li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d11" data-status="decided"
+            ><ui-item data-answered data-state="old" id="q12" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d11">D11</a>
+                  ><a class="plan-id" href="#q12">Q12</a>
                   <span class="plan-title"
                     >Side bar views: new message { spell: "go", hash } into the page</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    When something asks a side bar tab to show the page it ALREADY shows (same path, whatever its
-                    <code>?t=</code> stamp), the view no longer reloads it. It reveals the tab and, if a
-                    <code>#hash</code> was asked for, posts <code>{ spell: "go", hash }</code> into the page's frame
-                    (hash without the <code>#</code>).
-                  </p>
-                  <ul>
-                    <li>
-                      The page's live client (<a
-                        href="../../../server/src/liveClient.ts"
-                        target="src-packages-server-src-liveclient-ts"
-                        ><code>packages/server/src/liveClient.ts</code></a
-                      >, agent B) must handle it: scroll to that id, the way a link to it lands. Until it does, a
-                      repeated <code>yarn plan-doc open --hash ...</code> on the same page only reveals the tab.
-                    </li>
-                    <li>
-                      Only a DIFFERENT page changes the frame's <code>src</code>. The reload button and "Restart page
-                      server" still reload.
-                    </li>
-                    <li>
-                      Between the extension and the view's own script there is also
-                      <code>{ spell: "navigate", url }</code>, which points the existing frame at a new page; the page
-                      never sees it.
-                    </li>
-                    <li>
-                      The page's own messages (<code>place</code>, <code>open</code>, <code>history</code>) are
-                      unchanged.
-                    </li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d11">
+                    <div class="plan-answer-title">
+                      <b>D11</b> · Side bar views: new message { spell: "go", hash } into the page
+                    </div>
+                    <p>
+                      When something asks a side bar tab to show the page it ALREADY shows (same path, whatever its
+                      <code>?t=</code> stamp), the view no longer reloads it. It reveals the tab and, if a
+                      <code>#hash</code> was asked for, posts <code>{ spell: "go", hash }</code> into the page's frame
+                      (hash without the <code>#</code>).
+                    </p>
+                    <ul>
+                      <li>
+                        The page's live client (<a
+                          href="../../../server/src/liveClient.ts"
+                          target="src-packages-server-src-liveclient-ts"
+                          ><code>packages/server/src/liveClient.ts</code></a
+                        >, agent B) must handle it: scroll to that id, the way a link to it lands. Until it does, a
+                        repeated <code>yarn plan-doc open --hash ...</code> on the same page only reveals the tab.
+                      </li>
+                      <li>
+                        Only a DIFFERENT page changes the frame's <code>src</code>. The reload button and "Restart page
+                        server" still reload.
+                      </li>
+                      <li>
+                        Between the extension and the view's own script there is also
+                        <code>{ spell: "navigate", url }</code>, which points the existing frame at a new page; the page
+                        never sees it.
+                      </li>
+                      <li>
+                        The page's own messages (<code>place</code>, <code>open</code>, <code>history</code>) are
+                        unchanged.
+                      </li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d12" data-status="decided"
+            ><ui-item data-answered data-state="old" id="q13" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d12">D12</a>
+                  ><a class="plan-id" href="#q13">Q13</a>
                   <span class="plan-title"
                     >Questions, issues and other items end with a Net effect list</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Owen, 2026-10-04: every question, issue, judgement call and decision gets a short
-                    <b>Net effect</b> block, so the consequence is clear without reading the reasoning.
-                  </p>
-                  <ul>
-                    <li>
-                      Shape: a bold "Net effect:" line, then one bullet per concrete change, e.g. "<code>x</code>
-                      becomes <code>y</code>", "rule semantics changed: ...".
-                    </li>
-                    <li>
-                      For a question: the net effect of the recommended option (each option card may carry its own).
-                    </li>
-                    <li>
-                      Goes into the writing rules in P2 (<a
-                        href="../../templates/epics/plan-doc.md"
-                        target="src-packages-docs-templates-epics-plan-doc-md"
-                        ><code>plan-doc.md</code></a
-                      >, the epic skill), and into the rewrites in P4 and P8.
-                    </li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d12">
+                    <div class="plan-answer-title">
+                      <b>D12</b> · Questions, issues and other items end with a Net effect list
+                    </div>
+                    <p>
+                      Owen, 2026-10-04: every question, issue, judgement call and decision gets a short
+                      <b>Net effect</b> block, so the consequence is clear without reading the reasoning.
+                    </p>
+                    <ul>
+                      <li>
+                        Shape: a bold "Net effect:" line, then one bullet per concrete change, e.g. "<code>x</code>
+                        becomes <code>y</code>", "rule semantics changed: ...".
+                      </li>
+                      <li>
+                        For a question: the net effect of the recommended option (each option card may carry its own).
+                      </li>
+                      <li>
+                        Goes into the writing rules in P2 (<a
+                          href="../../templates/epics/plan-doc.md"
+                          target="src-packages-docs-templates-epics-plan-doc-md"
+                          ><code>plan-doc.md</code></a
+                        >, the epic skill), and into the rewrites in P4 and P8.
+                      </li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d13" data-status="decided"
+            ><ui-item data-answered data-state="old" id="q14" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d13">D13</a>
+                  ><a class="plan-id" href="#q14">Q14</a>
                   <span class="plan-title"
                     >Decisions merge into questions: one Q id per topic, old docs too</span
                   > </ui-title
                 ><ui-content
-                  ><p>Owen, 2026-10-04: a decision is a question that has been answered.</p>
-                  <ul>
-                    <li>
-                      Answering Q3 writes the answer INTO Q3 (status decided, badge green, later grey); no new D item,
-                      no struck copy.
-                    </li>
-                    <li>
-                      A choice made without asking first is a question born answered (<code>add question --answer</code
-                      >, or <code>add decision</code> kept as an alias).
-                    </li>
-                    <li>
-                      Old docs are merged too (P4): each Q+D pair becomes one answered Q; a decision with no question
-                      becomes an answered Q with the next free number; the old <code>#dN</code> anchors stay as aliases
-                      on the new item, so links from durable docs and the changelog still land.
-                    </li>
-                    <li>
-                      Tooling in P3 (<code>decide</code>, <code>items --json</code>, the review picker, counts);
-                      migration in P4.
-                    </li>
-                  </ul>
-                  <p><b>Net effect:</b></p>
-                  <ul>
-                    <li><code>D7 (Q3)</code> becomes <code>Q3</code>, answered</li>
-                    <li>the Questions section lists open questions first, then answered ones</li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d13">
+                    <div class="plan-answer-title">
+                      <b>D13</b> · Decisions merge into questions: one Q id per topic, old docs too
+                    </div>
+                    <p>Owen, 2026-10-04: a decision is a question that has been answered.</p>
+                    <ul>
+                      <li>
+                        Answering Q3 writes the answer INTO Q3 (status decided, badge green, later grey); no new D item,
+                        no struck copy.
+                      </li>
+                      <li>
+                        A choice made without asking first is a question born answered (<code
+                          >add question --answer</code
+                        >, or <code>add decision</code> kept as an alias).
+                      </li>
+                      <li>
+                        Old docs are merged too (P4): each Q+D pair becomes one answered Q; a decision with no question
+                        becomes an answered Q with the next free number; the old <code>#dN</code> anchors stay as
+                        aliases on the new item, so links from durable docs and the changelog still land.
+                      </li>
+                      <li>
+                        Tooling in P3 (<code>decide</code>, <code>items --json</code>, the review picker, counts);
+                        migration in P4.
+                      </li>
+                    </ul>
+                    <p><b>Net effect:</b></p>
+                    <ul>
+                      <li><code>D7 (Q3)</code> becomes <code>Q3</code>, answered</li>
+                      <li>the Questions section lists open questions first, then answered ones</li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d14" data-status="decided"
+            ><ui-item data-answered data-state="old" id="q15" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d14">D14</a>
+                  ><a class="plan-id" href="#q15">Q15</a>
                   <span class="plan-title"
                     >P1 reloads: the docs runtime patches the page, the live client only fetches</span
                   > </ui-title
                 ><ui-content
-                  ><ul>
-                    <li>
-                      When the page's own file changes, the live client (<a
-                        href="../../../server/src/liveClient.ts"
-                        target="src-packages-server-src-liveclient-ts"
-                        ><code>packages/server/src/liveClient.ts</code></a
-                      >) fetches the new version and fires a cancelable <code>spell-server:change</code> event on
-                      <code>window</code> (detail: <code>{ path, html, etag, reload() }</code>). If nothing takes it,
-                      the page reloads as before.
-                    </li>
-                    <li>
-                      The docs runtime (<a
-                        href="../../_assets/spell-doc-runtime.js"
-                        target="src-packages-docs-assets-spell-doc-runtime-js"
-                        ><code>spell-doc-runtime.js</code></a
-                      >
-                      <code>wireLiveUpdate()</code>) takes it and patches the page. It does the patching because only it
-                      knows what it built from the markup (contents, rail, counts, item filters, folds) and how to
-                      rebuild those; pages without the runtime (Spell UI's site, proxied pages) keep reloading.
-                    </li>
-                    <li>
-                      The patch compares the source as the page LOADED with the new source, never the live page (which
-                      the runtime and the elements have added to). The runtime reads that baseline once at start, and
-                      trusts it only when its ETag is the one the page was served with.
-                    </li>
-                    <li>
-                      Only what changed is touched: elements are matched by <code>id</code>, else in order by tag; a
-                      changed attribute is set in place, changed text replaces the smallest element that holds it, new
-                      elements are added folded as the reader would expect. Scroll, folds, open panels, focus and typed
-                      text survive.
-                    </li>
-                    <li>
-                      After the patch the runtime re-wires (counts, item filters, contents and rail only when their
-                      entries changed, sticky lines when sections came in, code colors) and fires
-                      <code>spell-doc:updated</code> with the changed elements.
-                    </li>
-                    <li>
-                      For agent C (runtime chrome): an element the runtime adds inside <code>main</code> should carry
-                      <code>data-spell-added</code> (or join <code>ADDED</code>), and the patch never calls
-                      <code>wireFolds()</code> again (that would refold link-opened sections on a plan doc).
-                      <code>trackStickyHeights()</code> is called again when sections are added; making it drop its
-                      previous ResizeObserver would stop a small leak.
-                    </li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d14">
+                    <div class="plan-answer-title">
+                      <b>D14</b> · P1 reloads: the docs runtime patches the page, the live client only fetches
+                    </div>
+                    <ul>
+                      <li>
+                        When the page's own file changes, the live client (<a
+                          href="../../../server/src/liveClient.ts"
+                          target="src-packages-server-src-liveclient-ts"
+                          ><code>packages/server/src/liveClient.ts</code></a
+                        >) fetches the new version and fires a cancelable <code>spell-server:change</code> event on
+                        <code>window</code> (detail: <code>{ path, html, etag, reload() }</code>). If nothing takes it,
+                        the page reloads as before.
+                      </li>
+                      <li>
+                        The docs runtime (<a
+                          href="../../_assets/spell-doc-runtime.js"
+                          target="src-packages-docs-assets-spell-doc-runtime-js"
+                          ><code>spell-doc-runtime.js</code></a
+                        >
+                        <code>wireLiveUpdate()</code>) takes it and patches the page. It does the patching because only
+                        it knows what it built from the markup (contents, rail, counts, item filters, folds) and how to
+                        rebuild those; pages without the runtime (Spell UI's site, proxied pages) keep reloading.
+                      </li>
+                      <li>
+                        The patch compares the source as the page LOADED with the new source, never the live page (which
+                        the runtime and the elements have added to). The runtime reads that baseline once at start, and
+                        trusts it only when its ETag is the one the page was served with.
+                      </li>
+                      <li>
+                        Only what changed is touched: elements are matched by <code>id</code>, else in order by tag; a
+                        changed attribute is set in place, changed text replaces the smallest element that holds it, new
+                        elements are added folded as the reader would expect. Scroll, folds, open panels, focus and
+                        typed text survive.
+                      </li>
+                      <li>
+                        After the patch the runtime re-wires (counts, item filters, contents and rail only when their
+                        entries changed, sticky lines when sections came in, code colors) and fires
+                        <code>spell-doc:updated</code> with the changed elements.
+                      </li>
+                      <li>
+                        For agent C (runtime chrome): an element the runtime adds inside <code>main</code> should carry
+                        <code>data-spell-added</code> (or join <code>ADDED</code>), and the patch never calls
+                        <code>wireFolds()</code> again (that would refold link-opened sections on a plan doc).
+                        <code>trackStickyHeights()</code> is called again when sections are added; making it drop its
+                        previous ResizeObserver would stop a small leak.
+                      </li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -1543,13 +1716,19 @@
           collapsible
           dividing
         >
-          <ui-icon slot="icon" name="compass"></ui-icon>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
 
           <ui-list class="plan-items" data-kind="judgement" divided relaxed
-            ><ui-item id="j1" data-status="open"
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-changed="2026-10-04T14:17:18-04:00"
+              data-state="recent"
+              id="j1"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j1">J1</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Review tab: a codicon, an empty state, no Docs Index button</span> </ui-title
                 ><ui-content
                   ><p>Three small choices about the new "Review" tab in the right side bar:</p>
@@ -1573,10 +1752,16 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j2" data-status="open"
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-changed="2026-10-04T14:17:21-04:00"
+              data-state="recent"
+              id="j2"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j2">J2</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Review pages ignore the "beside" setting; a pending move keeps one doc</span
                   > </ui-title
@@ -1597,10 +1782,16 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j3" data-status="open"
+            ><ui-item
+              data-changed="2026-10-04T14:19:12-04:00"
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              id="j3"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j3">J3</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Very narrow rail cut-off: 400px</span> </ui-title
                 ><ui-content
                   ><p>
@@ -1630,10 +1821,16 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j4" data-status="open"
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-changed="2026-10-04T14:17:26-04:00"
+              data-state="recent"
+              id="j4"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j4">J4</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Kickoff prompt in a folded aside, not a sub-section</span> </ui-title
                 ><ui-content
                   ><p>
@@ -1657,10 +1854,16 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j5" data-status="open"
+            ><ui-item
+              data-changed="2026-10-04T14:19:14-04:00"
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              id="j5"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j5">J5</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Section chevron: down when open, left when folded</span> </ui-title
                 ><ui-content
                   ><p>
@@ -1681,10 +1884,16 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j6" data-status="open"
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-changed="2026-10-04T14:17:31-04:00"
+              data-state="recent"
+              id="j6"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j6">J6</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Contents rail: accent for the current section, counts as accent pills</span
                   > </ui-title
@@ -1715,10 +1924,16 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j7" data-status="open"
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-changed="2026-10-04T14:17:35-04:00"
+              data-state="recent"
+              id="j7"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j7">J7</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Pages with their own scripts, and the goals pages, still reload on an edit</span
                   > </ui-title
@@ -1743,10 +1958,16 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j8" data-status="open"
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-changed="2026-10-04T14:17:38-04:00"
+              data-state="recent"
+              id="j8"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j8">J8</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >A script change reloads only pages that load scripts from that folder</span
                   > </ui-title
@@ -1772,7 +1993,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j9" data-status="open"
+            ><ui-item data-state="attention" id="j9" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j9">J9</a>
@@ -1793,10 +2014,16 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j10" data-status="open"
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-changed="2026-10-04T14:17:41-04:00"
+              data-state="recent"
+              id="j10"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j10">J10</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Showing the page again at an id adds a history entry</span> </ui-title
                 ><ui-content
                   ><ul>
@@ -1813,10 +2040,16 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j11" data-status="open"
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-changed="2026-10-04T14:17:45-04:00"
+              data-state="recent"
+              id="j11"
+              data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j11">J11</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Undefined elements are hidden for at most 2 seconds</span> </ui-title
                 ><ui-content
                   ><ul>
@@ -1839,6 +2072,434 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T14:17:48-04:00"
+              id="j12"
+              data-status="done"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j12">J12</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title"
+                    >Red beats green: an item waiting on you stays red even when it changed overnight or just now</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    When an item could be two colors at once, the page shows the more urgent one. You'd notice it after
+                    a <code>/bedtime</code> run: a judgement call made overnight is red, not green.
+                  </p>
+                  <ul>
+                    <li>
+                      The order, strongest first:
+                      <ol>
+                        <li>closed (struck or answered): green if recent, else grey</li>
+                        <li>work under way (<code>data-queued</code>, <code>data-working</code>): orange</li>
+                        <li>
+                          waiting on you (an open question; an open judgement call or issue you haven't reviewed): red
+                        </li>
+                        <li>reviewed recently, or touched by a <code>/bedtime</code> run: green</li>
+                        <li>everything else open: blue</li>
+                      </ol>
+                    </li>
+                    <li>
+                      Chose this over "bedtime changes are always green" (D2's wording) because red is the one color
+                      that asks you to act: hiding a new overnight judgement call in green would let it slip by.
+                    </li>
+                    <li>
+                      A just-added todo or caveat stays blue (not green): green means decided, reviewed or closed
+                      recently, and adding isn't any of those.
+                    </li>
+                    <li>
+                      A reviewed caveat or todo goes green, then back to blue (not grey) once the review is no longer
+                      recent: it's still open.
+                    </li>
+                    <li>
+                      Closed wins over queued: an issue closed while still on the to-do list is green or grey, not
+                      orange.
+                    </li>
+                  </ul>
+                  <p>
+                    Example: overnight, Claude adds J12 (a call) and T9 (a todo). In the morning J12 is red and T9
+                    green; after <code>/epic review</code> marks J12 reviewed, it turns green.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                        ><code>plan-doc.js</code></a
+                      >
+                      <code>itemState()</code> applies this order; the page only reads <code>data-state</code>
+                    </li>
+                    <li>D2 holds for closed items and quiet ones; open items needing you stay red</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T14:17:51-04:00"
+              id="j13"
+              data-status="done"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j13">J13</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title"
+                    >The To review line lists every open item you haven't reviewed, overnight ones included</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Each phase's "To review" line (last in its body) links the items that phase raised that you still
+                    need to look at. The plan said "red or blue, and not reviewed"; the script lists a bit more.
+                  </p>
+                  <ul>
+                    <li>
+                      Listed: items added while the phase was active (<code>data-phase</code>), still open, not reviewed
+                      (no <code>data-reviewed</code>), and not on the to-do list or being worked on.
+                    </li>
+                    <li>
+                      The difference: a todo or caveat a <code>/bedtime</code> run added is GREEN (D2), yet you haven't
+                      reviewed it. The narrower rule would leave it off the line; this one keeps it.
+                    </li>
+                    <li>Deferred items stay listed: deferring isn't reviewing.</li>
+                    <li>Page order: Questions first, then Judgement calls, Caveats, Todos, Issues, To test.</li>
+                  </ul>
+                  <p>
+                    Example: <code>To review: Q4, J12, C5</code>. Review J12 and it drops off; review all three and the
+                    line goes.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <code>updateToReview()</code> filters on open + not reviewed + not under way, not on the color
+                    </li>
+                    <li>overnight todos and caveats show up in the morning's To review line</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T14:17:53-04:00"
+              id="j14"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j14">J14</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title"
+                    >migrate drops every hand-written Judgement calls line, and keeps what it linked in To review</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Older plan docs end some phases with a hand-written line like <code>Judgement calls: J4 J6</code>.
+                    The new "To review" line replaces it, so <code>migrate</code> removes it.
+                  </p>
+                  <ul>
+                    <li>
+                      Any icon, not just the compass: the <code>commands</code> and <code>details</code> docs have the
+                      same line with a gavel, linking T items (judgement calls were todos there).
+                    </li>
+                    <li>
+                      The items the line linked get that phase (<code>data-phase</code>), unless they already have one:
+                      old items have none, so without this they'd vanish from every To review line.
+                    </li>
+                    <li>
+                      Tried in memory (nothing written) on <code>spell-ui-pages</code> (4 phases get lines, J1-J8),
+                      <code>commands</code> (6 lines removed) and <code>details</code> (2): each
+                      <code>check</code> clean.
+                    </li>
+                  </ul>
+                  <p>
+                    Example (<code>spell-ui-pages</code>, P2): before, <code>Judgement calls: J4 J6</code>; after,
+                    <code>To review: J4, J6</code> while they're open and not reviewed, then nothing.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>P4's migrate run removes these lines from every doc</li>
+                    <li>an accepted (closed) or reviewed call no longer shows under its phase</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T14:17:56-04:00"
+              id="j15"
+              data-status="done"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j15">J15</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title"
+                    >Two small markers beyond the plan: data-answered on answered questions, data-sha on commit
+                    entries</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The script writes two attributes the plan didn't name. Neither shows on the page; they let commands
+                    tell things apart later.
+                  </p>
+                  <ul>
+                    <li>
+                      <code>data-answered</code> on a question that has an answer (<code>decide</code>, or
+                      <code>add ... decision</code>): so <code>reopen</code> after <code>close</code> knows to put it
+                      back as decided, not as a question waiting on you. A born-answered question has no answer block to
+                      look for, so the status alone can't tell.
+                    </li>
+                    <li>
+                      <code>data-sha</code> (the full hash) on each commit entry's <code>&lt;li&gt;</code>: so
+                      <code>commit</code> replaces an entry instead of adding a second, and
+                      <code>commits --backfill</code> skips what's listed, even with no GitHub link to read the hash
+                      from.
+                    </li>
+                    <li>
+                      Also: review labels follow the new colors: "to do" orange (was blue), "reviewed 10-02" green while
+                      recent, then grey; the review picker's state icon takes the item's page color.
+                    </li>
+                  </ul>
+                  <p>
+                    Example:
+                    <code
+                      >&lt;li data-sha="cd6a9d76..."&gt;&lt;a class="plan-commit" ...&gt;cd6a9d7&lt;/a&gt; Spell Docs +
+                      Review tabs ...&lt;/li&gt;</code
+                    >
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the page contract (markup the page styles) is unchanged: these are extra</li>
+                    <li>
+                      re-running <code>commits --backfill</code> adds nothing (tried: <code>0 commits added</code>)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T14:17:58-04:00"
+              id="j16"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j16">J16</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title"
+                    >Done items lose their strike-through: the chip's color says it</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Item id chips are now colored by state (red, blue, orange, green, grey), so the old strike-through
+                    on done items is gone.
+                  </p>
+                  <ul>
+                    <li>
+                      An item decided or reviewed a while ago (grey) gets a soft grey chip, and its title turns muted
+                      grey. A recent one (green) keeps a normal title.
+                    </li>
+                    <li>
+                      The other four states get solid chips in UI colors, so the items still in play stand out from the
+                      history.
+                    </li>
+                    <li>Old docs without <code>data-state</code>: open items are blue, done and decided ones grey.</li>
+                    <li>
+                      Example: <code>D1</code> decided last week reads as a pale grey chip and a grey title, not a
+                      struck-through line.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>no struck-through titles anywhere; history reads quieter instead</li>
+                    <li>
+                      to bring the strike back: one rule in
+                      <a href="../../_assets/plan-doc.css" target="src-packages-docs-assets-plan-doc-css"
+                        ><code>plan-doc.css</code></a
+                      >, "Item states"
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T14:18:01-04:00"
+              id="j17"
+              data-status="done"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j17">J17</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title">Filter button: "all" is outlined grey, "old" solid grey</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The round filter button on each section title is quiet while it shows everything, and solid in the
+                    color of the state it shows.
+                  </p>
+                  <ul>
+                    <li>
+                      The brief suggested the other way round (old outlined). But "all" is the default, on every
+                      section, all the time: a solid grey circle on each title would be the loudest thing there.
+                    </li>
+                    <li>
+                      Steps with no items in that section are skipped, e.g. Judgement calls with only red and blue items
+                      goes all, red, blue, all.
+                    </li>
+                    <li>
+                      The choice is saved under a new key per page, so the old "Open | All" choice (which hid done
+                      items) is dropped: every section starts at all.
+                    </li>
+                    <li>
+                      The commits button in the page header shows only on a doc that has commits; pressed, it is the
+                      accent violet (orange would read as "in progress").
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      a resting filter button is an outlined grey circle; red, orange, blue, green or solid grey means a
+                      filter is on
+                    </li>
+                    <li>docs reopen with every item shown, once</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T14:18:05-04:00"
+              id="j18"
+              data-status="done"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j18">J18</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title">Red chips stay deep red in dark mode</span> </ui-title
+                ><ui-content
+                  ><p>
+                    In dark mode the UI red is a light salmon, almost the same as the dark mode orange, so red and
+                    orange chips side by side were hard to tell apart.
+                  </p>
+                  <ul>
+                    <li>
+                      The "needs attention" chip uses the light-mode red (<code>--ui-red-on-light</code>) with
+                      near-white text in both modes.
+                    </li>
+                    <li>Orange, blue, green and grey use the normal dark-mode tokens.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>in dark mode, red chips are a deep red with white text, clearly not orange</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T14:40:00-04:00"
+              id="j19"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j19">J19</a>
+                  <span class="plan-title">Merged answers drop their 'Answers Q3: ...' line</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Old decisions ended with a grey line pointing back at their question, e.g.
+                    <code>Answers Q1: Where should your marks wait?</code>. Once the decision sits INSIDE Q1 as its
+                    answer card, that line only links Q1 to itself, so <code>migrate</code> removes it.
+                  </p>
+                  <ul>
+                    <li>Only a <code>p.meta</code> starting "Answers" that links the question it now sits in.</li>
+                    <li>Every other word of the decision is kept, in its card.</li>
+                    <li>Chose this over keeping it: a self-link reads as clutter in a narrow side bar.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a merged answer card has the decision title and its reasons, no "Answers Qn" line</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T14:40:01-04:00"
+              id="j20"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j20">J20</a>
+                  <span class="plan-title">plan-doc --here: migrate this checkout's copies, not main's</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Every <code>yarn plan-doc</code> command edits an epic's LIVE doc: its own worktree's, else the MAIN
+                    checkout's. For P4's sweep that would have edited the main checkout, which this branch must not
+                    touch.
+                  </p>
+                  <ul>
+                    <li>
+                      Added <code>--here</code>: this checkout's copy, either file name. Used for <code>migrate</code>,
+                      <code>commits --backfill</code> and <code>check</code> on all 14 docs.
+                    </li>
+                    <li>
+                      Documented as for a sweep only: an epic's own edits must still go to its live doc, or its record
+                      forks.
+                    </li>
+                  </ul>
+                  <p>Example: <code>yarn plan-doc migrate seo --here</code></p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      a new flag in
+                      <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                        ><code>plan-doc.js</code></a
+                      >
+                      and its usage text
+                    </li>
+                    <li>the 14 migrated docs reach main when this branch merges</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T14:40:03-04:00"
+              id="j21"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j21">J21</a>
+                  <span class="plan-title">Commit links may share the one github tab in the link check</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>doc-links.js --check</code> fails a page when one tab name (<code>target</code>) opens several
+                    addresses. Every plan doc's commit links share <code>target="github"</code> on purpose (P3), so all
+                    12 docs with backfilled commits failed.
+                  </p>
+                  <ul>
+                    <li>The check now skips <code>target="github"</code>, as it skips <code>_self</code>.</li>
+                    <li>
+                      Chose this over a tab per commit: re-clicking commits reuses one GitHub tab, as P3 designed.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <a href="../../scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                        ><code>doc-links.js</code></a
+                      >: a <code>SHARED_TAB</code> constant; <code>yarn docs:update</code> passes again
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1846,7 +2507,7 @@
         <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed
-            ><ui-item id="c1" data-status="open"
+            ><ui-item data-state="open" id="c1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c1">C1</a>
@@ -1858,7 +2519,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c2" data-status="open"
+            ><ui-item data-state="open" id="c2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c2">C2</a>
@@ -1872,7 +2533,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c3" data-status="open"
+            ><ui-item data-state="open" id="c3" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c3">C3</a>
@@ -1887,10 +2548,83 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c4" data-status="open"
+            ><ui-item data-state="open" id="c4" data-status="open"
               ><a class="plan-id" href="#c4">C4</a>
               <span class="plan-title"
                 >Plan docs in other running worktrees keep the old markup until they merge or migrate</span
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T14:39:47-04:00"
+              id="c5"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c5">C5</a>
+                  <span class="plan-title">Migrate chose an option card for 17 old answers, not for 9</span> </ui-title
+                ><ui-content
+                  ><p>
+                    When <code>migrate</code> merged an old decision into its question, it marked the option card the
+                    decision names as chosen (the green-framed card). It could name one for 17 questions and not for 9.
+                  </p>
+                  <ul>
+                    <li>
+                      Chosen from the decision title: a letter first (<code>B: real URLs</code>), <code>option B</code>,
+                      or every word of one option title (<code>Merge at the end</code> picks
+                      <code>B. Merge at the end</code>).
+                    </li>
+                    <li>
+                      Not chosen (no card marked): commands Q4; epic-review Q2, Q3, Q4, Q5; ui-component-creation Q13,
+                      Q14, Q17, Q21. Their answers paraphrase or combine options.
+                    </li>
+                    <li>
+                      Per doc (chosen / not): commands 2/1, epic-review 1/4, review-review 1/0, solid-migration 4/0,
+                      ui-component-creation 5/4, ui-docs-rework 4/0.
+                    </li>
+                  </ul>
+                  <p>
+                    Example: ui-component-creation Q14 "a nested root inherits and adds" vs the card "A. Inner inherits,
+                    adds": the word "inner" is missing, so no card.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>those 9 questions show their answer card, but no option card is framed as chosen</li>
+                    <li>
+                      marking one by hand: <code>yarn plan-doc decide</code> is not needed; add
+                      <code>data-chosen</code> to the card's <code>ui-column</code>
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T14:40:17-04:00"
+              id="c6"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title">server.html links back to one of its two epics</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../server.html" target="src-packages-docs-server-html"><code>server.html</code></a>
+                    (Page Server) is the durable doc of two epics: <code>unified-server</code> (the whole page) and
+                    <code>isolate-changes</code> (its "Running epics" section).
+                  </p>
+                  <ul>
+                    <li>Its meta list has ONE standard "Plan doc:" line, to unified-server, as the rule says.</li>
+                    <li>
+                      isolate-changes' plan doc does link <code>server.html#running-epics-flow</code> as its durable
+                      doc; the way back is not on the page.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>none now; a second "Plan doc:" line in that section would close the loop if wanted</li>
+                  </ul></ui-content
+                ></ui-accordion
               ></ui-item
             ></ui-list
           >
@@ -1906,13 +2640,54 @@
         >
           <ui-icon slot="icon" name="list check"></ui-icon>
 
-          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T14:18:08-04:00"
+              id="t1"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title"
+                    >The Review tab: a tab bar of open reviews, and a "What would you like to review?" start page</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, reviewing J1 (2026-10-04): the Review tab in VS Code's side bar should hold several reviews at
+                    once, and offer a start page.
+                  </p>
+                  <ul>
+                    <li>
+                      <b>Tab bar</b> across the top of the Review tab: one tab per open review page, each with a close
+                      button.
+                    </li>
+                    <li>
+                      <b>Empty state</b>: "What would you like to review?", then one row per open epic, drawn like a
+                      plan item (id-chip-like badge, title, its counts in the status colors).
+                    </li>
+                    <li>
+                      <b>Opening an epic</b> shows a condensed view of what's pending: one card per section (Questions,
+                      Judgement calls, Issues ...), each listing its items waiting on you. (Owen's message ended here:
+                      ask what else that view shows.)
+                    </li>
+                    <li>Where: P5 / P6 (the Review tab is the review surface).</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the Review tab becomes a small review app: pick an epic, see what's pending, open the doc</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
-            ><ui-item id="i1" data-status="open"
+            ><ui-item data-state="attention" id="i1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
@@ -1939,6 +2714,52 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T14:40:25-04:00"
+              id="i2"
+              data-status="done"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title"
+                    >The details epic was missing from the docs index and its checks</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The plan doc of the epic named <code>details</code> (<a
+                      href="../details/"
+                      target="src-packages-docs-epics-details"
+                      ><code>epics/details/</code></a
+                    >) never showed in the docs index, and <code>yarn docs:update</code> never checked it.
+                  </p>
+                  <ul>
+                    <li>
+                      Why:
+                      <a href="../../scripts/pages.js" target="src-packages-docs-scripts-pages-js"
+                        ><code>pages.js</code></a
+                      >
+                      <code>findPages()</code> skips every folder named <code>details</code> (details pages are
+                      scratch), and that caught the epic's folder too.
+                    </li>
+                    <li>
+                      Fixed: only
+                      <a href="../details/" target="src-packages-docs-epics-details"><code>epics/details/</code></a>
+                      itself is let through; details pages stay skipped.
+                    </li>
+                    <li>
+                      Its first check found a link to a deleted <code>doc-links.py</code>: unwrapped to plain code (and
+                      the same for <code>epics/review-scratch/</code> in epic-review).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the index lists 14 epics, not 13</li>
+                    <li>two dead links in old item text are plain code now</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1954,7 +2775,7 @@
           <ui-icon slot="icon" name="flask"></ui-icon>
 
           <ui-list class="plan-items" data-kind="test" divided relaxed
-            ><ui-item id="v1" data-status="open"
+            ><ui-item data-state="open" id="v1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v1">V1</a>
@@ -1969,8 +2790,8 @@
                     </li>
                     <li>
                       <code>yarn docs:open --vs</code> shows the docs index in Spell Docs.
-                      <code>yarn docs:open epics/review-review/review-review.html --review</code> shows the plan doc in
-                      Review.
+                      <code>yarn docs:open epics/review-review/review-review.plan.html --review</code> shows the plan
+                      doc in Review.
                     </li>
                     <li>
                       Switching between the two tabs keeps each page as it was, scroll position included; neither
@@ -1987,7 +2808,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v2" data-status="open"
+            ><ui-item data-state="open" id="v2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v2">V2</a>
@@ -2015,21 +2836,21 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v3" data-status="open"
+            ><ui-item data-state="open" id="v3" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v3">V3</a>
                   <span class="plan-title">Side bar link with --review</span> </ui-title
                 ><ui-content
                   ><p>
-                    <code>yarn docs:link epics/review-review/review-review.html --review</code> prints a side bar link
-                    that opens the page in the Review tab (once the page server has been restarted, so it has the new
-                    route code). <code>--show</code> with <code>--review</code> shows it there at once. Without
+                    <code>yarn docs:link epics/review-review/review-review.plan.html --review</code> prints a side bar
+                    link that opens the page in the Review tab (once the page server has been restarted, so it has the
+                    new route code). <code>--show</code> with <code>--review</code> shows it there at once. Without
                     <code>--review</code>, links keep using the Spell Docs tab.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v4" data-status="open"
+            ><ui-item data-state="open" id="v4" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v4">V4</a>
@@ -2050,7 +2871,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v5" data-status="open"
+            ><ui-item data-state="open" id="v5" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v5">V5</a>
@@ -2072,7 +2893,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v6" data-status="open"
+            ><ui-item data-state="open" id="v6" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v6">V6</a>
@@ -2100,6 +2921,92 @@
                       Rerunnable in a headless browser: <code>node scripts/check-live.js</code> in
                       <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
                       >.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T13:08:35-04:00"
+              id="v7"
+              data-status="open"
+              data-phase="3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v7">V7</a>
+                  <span class="plan-title">Item colors, filter button and commits in the side bar</span> </ui-title
+                ><ui-content
+                  ><p>Open this plan doc in the Spell Docs side bar (about 350px wide), light and dark theme.</p>
+                  <ul>
+                    <li>
+                      Item chips: red, blue, orange, green and grey, readable in both themes; long titles wrap in their
+                      own column, never under the chip.
+                    </li>
+                    <li>
+                      Click a section filter button a few times: it steps through the colors present in that section,
+                      the tooltip says what it shows, "N hidden · show all" appears under the list; reload keeps the
+                      choice.
+                    </li>
+                    <li>
+                      The round button left of the step label shows and hides every Commits block; an item with commits
+                      has a small icon at the right of its line that opens it with its commits.
+                    </li>
+                    <li>The phases progress bar reads "2 of 10" in full, beside the green fill.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>passes when all four hold in both themes</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T14:40:19-04:00"
+              id="v8"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v8">V8</a>
+                  <span class="plan-title">An old #d link opens its question</span> </ui-title
+                ><ui-content
+                  ><p>
+                    In VS Code's side bar, open <code>epics/commands/commands.plan.html#d10</code> (or click any old
+                    <code>D10</code> link in another doc).
+                  </p>
+                  <ul>
+                    <li>
+                      Should: unfold Questions, open Q10, and land on its ivory answer card titled "D10 · Port the
+                      python tools to TypeScript".
+                    </li>
+                    <li>
+                      Known: the card lands a few pixels under the stuck Questions title (seen in a headless browser).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T14:40:20-04:00"
+              id="v9"
+              data-status="open"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v9">V9</a>
+                  <span class="plan-title">Old plan doc URLs redirect</span> </ui-title
+                ><ui-content
+                  ><p>
+                    With the page server running, open <code>/packages/docs/epics/seo/seo.html</code> (the old name).
+                  </p>
+                  <ul>
+                    <li>
+                      Should: land on <a href="../seo/seo.plan.html" target="seo"><code>seo.plan.html</code></a
+                      >, its <code>#hash</code> kept.
+                    </li>
+                    <li>
+                      A worktree not yet merged (still <code>&lt;name&gt;.html</code>) keeps serving its old file: no
+                      redirect while the old file exists.
                     </li>
                   </ul></ui-content
                 ></ui-accordion
@@ -2314,6 +3221,339 @@
                   ><ui-date><time datetime="2026-10-04T12:43-04:00">2026-10-04 12:43</time></ui-date> P2 done: writing
                   rules (cold reader, bullets, Net effect), estimate badges, Done field, Files / Verify toggles; checks:
                   docs scripts 93, check-spell on 2 docs, check-live ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:46-04:00">2026-10-04 12:46</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:46-04:00">2026-10-04 12:46</time></ui-date> P3 also fixes I1
+                  (the progress bar's cut-off label), Owen 2026-10-04</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:48-04:00">2026-10-04 12:48</time></ui-date> P1-P2 merged into
+                  main (725c10b0) so other epics pick them up; extension reinstalled from main</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T13:10-04:00">2026-10-04 13:10</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T13:10-04:00">2026-10-04 13:10</time></ui-date> P3 done: status
+                  colors, section filter, To review lines, commits (backfilled), questions and decisions merged, item
+                  title columns, progress label; checks: docs scripts 107, check-spell on 3 docs, check-live
+                  ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T13:53-04:00">2026-10-04 13:53</time></ui-date> P3 follow-up
+                  (Owen): option cards fold, the chosen one open and framed green (decide --option); answers as ivory
+                  cards titled by the answer; smaller, tighter item text; item title lines on a light band; headings
+                  back in the system font</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:09-04:00">2026-10-04 14:09</time></ui-date> P4
+                  todo</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:12-04:00">2026-10-04 14:12</time></ui-date> P3 follow-up 2
+                  (Owen): section bands instead of rules (purple-50 / purple-25), page edge to edge with content inset
+                  16px, centred id chips with a status tooltip, smaller titles bold while wanting a look, one toggle
+                  button per status (grey: all / only red), icon-only git button, step label &lt;icon&gt; P4, instant
+                  jumps, tighter phase bullets</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:13-04:00">2026-10-04 14:13</time></ui-date> P3 merged into
+                  main (bf19f201)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:13-04:00">2026-10-04 14:13</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J1 closed: Review
+                  tab: a codicon, an empty state, no Docs Index button</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J1 reviewed:
+                  accepted; plus a tab bar and an empty state for the Review tab (T-item)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J2 closed: Review
+                  pages ignore the "beside" setting; a pending move keeps one doc</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J2 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J3 reviewed:
+                  changed: the cut-off is 480px</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J4 closed: Kickoff
+                  prompt in a folded aside, not a sub-section</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J4 reviewed:
+                  accepted; a blank line before the prompt text</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J5 reviewed:
+                  changed: Material's convention (open: chevron up; folded: chevron down)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J6 closed:
+                  Contents rail: accent for the current section, counts as accent pills</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J6 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J7 closed: Pages
+                  with their own scripts, and the goals pages, still reload on an edit</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J7 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J8 closed: A
+                  script change reloads only pages that load scripts from that folder</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J8 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J10 closed:
+                  Showing the page again at an id adds a history entry</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J10 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J11 closed:
+                  Undefined elements are hidden for at most 2 seconds</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J11 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J12 closed: Red
+                  beats green: an item waiting on you stays red even when it changed overnight or just now</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J12 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J13 closed: The To
+                  review line lists every open item you haven't reviewed, overnight ones included</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J13 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J14 reviewed:
+                  changed: keep the hand-written Judgement calls lines</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J15 closed: Two
+                  small markers beyond the plan: data-answered on answered questions, data-sha on commit
+                  entries</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J15 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:17-04:00">2026-10-04 14:17</time></ui-date> J16 reviewed:
+                  changed: strike through only CANCELED items (made moot by another decision)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:18-04:00">2026-10-04 14:18</time></ui-date> J17 closed: Filter
+                  button: "all" is outlined grey, "old" solid grey</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:18-04:00">2026-10-04 14:18</time></ui-date> J17 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:18-04:00">2026-10-04 14:18</time></ui-date> J18 closed: Red
+                  chips stay deep red in dark mode</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:18-04:00">2026-10-04 14:18</time></ui-date> J18 reviewed:
+                  accepted</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:19-04:00">2026-10-04 14:19</time></ui-date> J3 closed: Very
+                  narrow rail cut-off: 400px</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:19-04:00">2026-10-04 14:19</time></ui-date> J5 closed: Section
+                  chevron: down when open, left when folded</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:19-04:00">2026-10-04 14:19</time></ui-date> Rail flyout
+                  narrows after a section is picked (Owen); J3 480px, J4 blank line before the prompt, J5 Material
+                  chevrons done; J14, J16 with the P4 migration</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:40-04:00">2026-10-04 14:40</time></ui-date> I2 closed: The
+                  details epic was missing from the docs index and its checks</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T15:07-04:00">2026-10-04 15:07</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T15:07-04:00">2026-10-04 15:07</time></ui-date> P4 done:
+                  .plan.html rename, decisions merged into questions in every doc, every doc migrated and its open items
+                  rewritten (4 agents), canceled status; checks: docs scripts 112, plan-doc check on 14 docs,
+                  docs:update (every page's browser check) ok</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

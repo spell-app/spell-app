@@ -3,8 +3,8 @@
  * `plan-doc.js`.
  */
 import { spawnSync } from "node:child_process"
-import { readdirSync } from "node:fs"
-import { dirname, join, relative, resolve, sep } from "node:path"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
+import { basename, dirname, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { Window } from "../../../scripts/window.mjs"
@@ -19,9 +19,24 @@ export const ROOT = resolve(DOCS, "../..")
  * Folders that hold no pages.
  * - `examples`:  fragments a page includes (`ui-import/examples/part.html`), not pages:  no sections, no contents
  * - `details`:  details pages (`yarn details`), questions for one session:  not in the index, not checked with the
- *   docs (scratch `details/`, and an epic's `epics/<name>/details/`)
+ *   docs (scratch `details/`, and an epic's `epics/<name>/details/`);  NOT the `details` epic's own folder,
+ *   `epics/details/` (`findPages()`)
  */
 const SKIP_DIRS = new Set(["_assets", "scripts", "node_modules", "experiments", "examples", "details"])
+
+/**
+ * Epic `name`'s plan doc in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html` when that is a
+ * plan doc (`<body class="... plan-doc">`);  `undefined` when there's neither.
+ * - why both:  plan docs were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree cut
+ *   before then still has `<name>.html` until it merges `main`
+ */
+export function planDocIn(dir, name) {
+  const file = join(dir, `${name}.plan.html`)
+  if (existsSync(file)) return file
+  const old = join(dir, `${name}.html`)
+  if (!existsSync(old)) return undefined
+  return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(readFileSync(old, "utf8")) ? old : undefined
+}
 
 /** Every `.html` page under `dir` (default:  all of them), sorted, skipping tooling folders. */
 export function findPages(dir = DOCS) {
@@ -29,21 +44,23 @@ export function findPages(dir = DOCS) {
   for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     const path = join(dir, entry.name)
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) found.push(...findPages(path))
+      // the `details` EPIC's folder (`epics/details/`) holds a plan doc:  only details PAGES' folders are skipped
+      const epic = entry.name === "details" && basename(dir) === "epics"
+      if (!SKIP_DIRS.has(entry.name) || epic) found.push(...findPages(path))
     } else if (entry.name.endsWith(".html")) found.push(path)
   }
   return found
 }
 
 /**
- * Tidy `files` (paths relative to `DOCS`) the way a page must be committed:  link targets, then oxfmt.
+ * Tidy `files` (paths relative to `DOCS`) the way a page must be committed:  link targets, then oxfmt (`vp fmt`).
  * - `doc-links.js` first:  it may add attributes oxfmt then wraps
  * - returns whether both succeeded;  their output is echoed
  */
 export function tidy(files) {
   for (const [command, args] of [
     [process.execPath, ["scripts/doc-links.js", ...files]],
-    ["yarn", ["oxfmt", ...files]]
+    ["yarn", ["vp", "fmt", ...files]]
   ]) {
     const run = spawnSync(command, args, { cwd: DOCS, encoding: "utf8" })
     if (run.status !== 0) {

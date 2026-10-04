@@ -132,9 +132,17 @@
   }
   .brand.field
     > .control
-    > ::slotted(
-      :is(ui-input, ui-select, ui-dropdown, ui-slider, ui-textarea, ui-brand-color-picker, input, select, textarea)
-    ) {
+    > ::slotted(:is(
+      ui-input,
+      ui-select,
+      ui-dropdown,
+      ui-slider,
+      ui-textarea,
+      ui-brand-color-picker,
+      input,
+      select,
+      textarea
+    )) {
     flex: 1 1 auto;
     min-width: 0;
   }

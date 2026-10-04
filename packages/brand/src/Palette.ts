@@ -32,7 +32,13 @@ export class Palette {
   /** `#abc` / `#aabbcc` -> sRGB, each channel 0-1. */
   static hexToRgb(hex: string): Rgb {
     const digits = hex.replace("#", "")
-    const full = digits.length === 3 ? [...digits].map((digit) => digit + digit).join("") : digits
+    const full =
+      digits.length === 3
+        ? digits
+            .split("")
+            .map((digit) => digit + digit)
+            .join("")
+        : digits
     const number = Number.parseInt(full, 16)
     return [((number >> 16) & 255) / 255, ((number >> 8) & 255) / 255, (number & 255) / 255]
   }
@@ -128,7 +134,7 @@ export class Palette {
     const x = chroma * (1 - Math.abs((sector % 2) - 1))
     const m = lightness - chroma / 2
     const amounts: Record<string, number> = { c: chroma, x, "0": 0 }
-    const [r, g, b] = [...HUE_SECTORS[Math.floor(sector)]!].map((channel) => amounts[channel]! + m)
+    const [r, g, b] = HUE_SECTORS[Math.floor(sector)]!.split("").map((channel) => amounts[channel]! + m)
     return [r!, g!, b!]
   }
 

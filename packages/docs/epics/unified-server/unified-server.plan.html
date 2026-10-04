@@ -1,0 +1,2291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epic: Unified Server</title>
+    <meta name="description" content="Plan doc:  Unified Server." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body data-recent-since="2026-10-04T12:34:30-04:00" class="spell-doc-page plan-doc" data-plan="unified-server">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Unified Server</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Epic: Unified Server</h1>
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch"
+            >Plan doc for <code>/plan-doc unified-server</code>, branch <code>unified-server</code></ui-item
+          >
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/unified-server</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-02</time>, updated
+            <time id="plan-updated">2026-10-04</time></ui-item
+          >
+          <ui-item icon="book"
+            ><b>Durable doc:</b>
+            <a href="../../server.html" target="src-packages-docs-server-html">Page Server</a></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            New leaf package
+            <a href="../../../server/" target="src-packages-server"><code>packages/server</code></a>
+            (<code>$/server</code>, namespace <code>SRV</code>): one set of page-serving helpers replaces six
+            hand-rolled copies in goals, the VS Code preview, the CLI, ui's tools and the app's Express API. On it, ONE
+            per-checkout page server serves docs, plans, goals, Spell UI docs and finally the editor (<code
+              >spell serve</code
+            >) on one port, with live reload, a shared site header and an API that edits pages in place.
+          </p>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled
+            ><ui-title>Kickoff prompt</ui-title
+            ><ui-content
+              ><blockquote class="plan-prompt">
+                <p>
+                  We now have a bunch of different things that are creating/"serving" pages<br />- the editor app<br />-
+                  general docs<br />- plan files<br />- spell/ui docs<br />- goals
+                </p>
+                <p>I think we should centralize that base functionality into a `server` package.</p>
+              </blockquote></ui-content
+            ></ui-accordion
+          >
+          <p>
+            What gets built; becomes
+            <a href="../../server.html" target="src-packages-docs-server-html"
+              ><code>packages/docs/server.html</code></a
+            >
+            in <a href="#p8">P8</a>.
+          </p>
+          <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
+            <p>
+              <a href="../../../server/src/" target="src-packages-server-src"><code>packages/server/src/</code></a
+              >: barrel is node built-ins only (<a href="#d4">D4</a>).
+            </p>
+            <ul>
+              <li>
+                <a href="../../../spell/src/node/server.types.ts" target="src-packages-spell-src-node-server-types-ts"
+                  ><code>server.types.ts</code></a
+                >: <code>Handler</code>, <code>RouteParams</code>, <code>HtmlTransform</code>,
+                <code>FileTransform</code>, <code>Mount</code>, <code>ServerInfo</code>, <code>HttpError</code>
+              </li>
+              <li>
+                <a href="../../../server/src/mime.ts" target="src-packages-server-src-mime-ts"><code>mime.ts</code></a
+                >: ONE <code>TYPES</code> table (union of cli / goals / DocPreview copies)
+              </li>
+              <li>
+                <a href="../../../server/src/safePath.ts" target="src-packages-server-src-safepath-ts"
+                  ><code>safePath.ts</code></a
+                >: <code>resolveInside(root, urlPath)</code> -&gt; file, or 400 / 403 / 404; dir -&gt;
+                <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a>
+              </li>
+              <li>
+                <code>StaticHandler</code>: prefix -&gt; dir mounts (longest wins), HEAD, <code>no-store</code>,
+                <code>ETag</code>, html hooks, per-ext transform hooks
+              </li>
+              <li>
+                <code>Request</code> / <code>Reply</code> / <code>Router</code> / <code>bodies</code>: the Express
+                subset the app's <code>api.ts</code> uses
+              </li>
+              <li>
+                <code>LiveReload</code>: SSE hub over <code>fs.watch</code>, 250ms debounce; client
+                <code>assets/live.js</code>
+              </li>
+              <li>
+                <code>Guard</code>: Host allowlist, per-run token (<code>x-server-token</code>), same-origin check
+              </li>
+              <li>
+                <a href="../../../server/src/ports.ts" target="src-packages-server-src-ports-ts"
+                  ><code>ports.ts</code></a
+                >: <code>isFree</code>, <code>freePort</code>, <code>listenPreferred</code>
+              </li>
+              <li><code>PidFile</code>: status (ping + root match), ensure (spawn detached, poll), stop</li>
+              <li><code>FileLock</code>: <code>&lt;file&gt;.lock</code>, from goals' <code>withLock</code></li>
+              <li>
+                <a href="../../../server/src/open.ts" target="src-packages-server-src-open-ts"><code>open.ts</code></a
+                >: browser, new window, reused Chrome tab, VS Code
+              </li>
+              <li><code>WebServer</code>: <code>node:http</code> + all of the above</li>
+              <li>
+                opt-in, not in barrel: <code>page/</code> (page server, editor, CLI, Astro proxy),
+                <a href="../../../ui/site/" target="src-packages-ui-site"><code>site/</code></a> (site header)
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o2" header="1.2 Page Server" sticky collapsible dividing>
+            <ul>
+              <li>
+                one per checkout root (main + each worktree): pid <code>&lt;root&gt;/.spell-server.json</code>, log
+                <a href="../../../../.spell-server.log" target="src-spell-server-log"><code>.spell-server.log</code></a>
+              </li>
+              <li>
+                port: prefer 4747, else any free; real port in pid file; pages read injected
+                <code>window.SPELL_SERVER</code>
+              </li>
+              <li>
+                <code>/</code> -&gt; docs index; <code>/_server/ping|events|live.js|page</code>; <code>/ui/</code> -&gt;
+                <code>astro dev</code> (<a href="#d10">D10</a>); dot files blocked
+              </li>
+              <li>
+                watches named folders only (never the whole root: <code>node_modules</code>,
+                <a href="../../../../.git" target="src-git"><code>.git</code></a
+                >, worktrees flood the watcher)
+              </li>
+              <li>
+                route modules, listed in root
+                <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a>
+                <code>"pageServer": {"routes": [...]}</code>: goals (<a href="#p5">P5</a>), app (<a href="#p7">P7</a>)
+              </li>
+              <li><code>yarn server serve|start|ensure|stop|status|url &lt;file&gt;</code></li>
+              <li>
+                no body parsing of its own: each route parses its own (page edits 10mb, goals 64kb, the app's
+                <code>/api</code> as JSON5); a second parser skips a body already read
+              </li>
+              <li>
+                <code>/editor</code>: the app's route module redirects to vite's dev server, which
+                <code>spell serve</code> records in
+                <a href="../../../../.spell-server.editor.json" target="src-spell-server-editor-json"
+                  ><code>.spell-server.editor.json</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o3" header="1.3 Editing Pages" sticky collapsible dividing>
+            <ul>
+              <li>writes the ORIGINAL file; never commits (<a href="#d12">D12</a>)</li>
+              <li><code>PUT /_server/page?path=</code>: whole page</li>
+              <li>
+                <code>PATCH /_server/page?path=</code> <code>{id, html, inner?, parent?}</code>: one element by
+                <code>id</code> (or, <code>parent: "section"</code>, the section around it); parse5 source locations
+                give its byte range, so the rest of the file is untouched
+              </li>
+              <li>missing id 404, duplicate id 409, stale <code>If-Match</code> 409, bad token 403</li>
+              <li>
+                UI (<a href="#d18">D18</a>): hover a section with an <code>id</code> -&gt; edit -&gt; source textarea
+                -&gt; save
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o4" header="1.4 Locking" sticky collapsible dividing>
+            <p>Yes, needed (<a href="#d13">D13</a>): several writers touch the same pages.</p>
+            <ul>
+              <li>
+                <code>SRV.FileLock</code>: tools that cooperate (page-edit API, <code>yarn plan-doc</code>,
+                <code>yarn goals</code>, app saves); replaces two copied <code>withLock</code>s and the unused
+                <code>proper-lockfile</code> <code>lock-utils.ts</code> (deleted in <a href="#p6">P6</a>)
+              </li>
+              <li>
+                <code>If-Match</code> / <code>ETag</code>: writers that don't lock (VS Code, Claude's Edit): 409, caller
+                reloads
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o5" header="1.5 Site Header" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>&lt;spell-site-header&gt;</code>: fixed bar; Docs, Spell UI, Plans, Goals, Editor; active one from
+                the path
+              </li>
+              <li>
+                also: worktree / branch badge, title + breadcrumb, Open in VS Code, light / dark toggle (<a href="#d17"
+                  >D17</a
+                >)
+              </li>
+              <li>
+                self-contained (shadow DOM), in the docs bundle and the Astro layout; in each page / template, so it
+                shows on <code>file://</code> too (<a href="#d11">D11</a>)
+              </li>
+              <li>sets <code>--spell-site-header-height</code> so sticky headers sit below it</li>
+            </ul>
+          </ui-section>
+          <ui-section id="o6" header="1.6 Flows" sticky collapsible dividing>
+            <ol>
+              <li>
+                open a page: caller runs <code>yarn server ensure</code> -&gt; base URL -&gt; opens
+                <code>base/&lt;path&gt;</code> (Chrome tab, or VS Code)
+              </li>
+              <li>
+                file changes: watcher -&gt; SSE <code>change</code> -&gt; <code>live.js</code> reloads if it's this page
+                or css / js
+              </li>
+              <li>
+                goals button: POST <code>/api/goals/&lt;op&gt;</code> + token -&gt; <code>Guard</code> -&gt; goals route
+                module
+              </li>
+              <li>VS Code preview <code>?file=</code>: page server running -&gt; its URL; else an in-process server</li>
+              <li>
+                <code>spell serve</code>: ensure page server (all route modules), then Vite for editor dev,
+                <code>/api</code> proxied to it; Ctrl-C stops vite, and the page server if it started it
+              </li>
+            </ol>
+          </ui-section>
+        </ui-section>
+        <ui-section
+          data-tip="One section per phase: goal, decisions, files, how to verify."
+          id="phases"
+          header="2. Phases"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="8" total="8" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            collapsed
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Library Core"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye">
+                <b>Goal:</b> scaffold packages/server + pure helpers (mime, safePath, StaticHandler, Router, bodies,
+                ports, open, FileLock), unit-tested </ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="c8ab84426d0728735d84cd94c4afbf113cccb6b6">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/c8ab84426d0728735d84cd94c4afbf113cccb6b6"
+                      target="github"
+                      >c8ab844</a
+                    >
+                    packages/server ($/server, SRV): mime, safePath, StaticHandler, Express-shaped Router + bodies,
+                    ports, open, FileLock
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/server/**, tsconfig.base.json, root package.json, AGENTS.md</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> yarn workspace @spell-app/server review</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t3">T3</a></ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            collapsed
+            id="p2"
+            data-phase="2"
+            data-status="done"
+            header="P2 · Page Server"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye">
+                <b>Goal:</b> yarn server serve|start|stop|status|url: live-reloading server on repo root, with page-edit
+                API </ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="a2a1f436ffaff8608d4e730ea5be5f51bf8b3215">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/a2a1f436ffaff8608d4e730ea5be5f51bf8b3215"
+                      target="github"
+                      >a2a1f43</a
+                    >
+                    yarn server serve|ensure|stop|status|url: one live-reloading server per checkout, page-edit API
+                    (/_server/page, by id, If-Match + FileLock)
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder">
+                <b>Files:</b> src/LiveReload.ts, assets/live.js, Guard.ts, PidFile.ts, WebServer.ts, page/PageServer.ts,
+                page/PageEditor.ts, page/cli.ts, .gitignore </ui-item
+              ><ui-item icon="flask">
+                <b>Verify:</b> integration tests: injection, SSE change, PUT, PATCH by id byte-exact, If-Match 409,
+                token 403, pid cleanup </ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t4">T4</a> <a href="#t5">T5</a></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            collapsed
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · CLI And UI"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> cli/serve.ts and ui/tools/StaticServer.ts become thin users of SRV</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="9f1da95d0f15d6c412e2b43357559aa517ef28e8">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/9f1da95d0f15d6c412e2b43357559aa517ef28e8"
+                      target="github"
+                      >9f1da95</a
+                    >
+                    cli serve.ts and ui's StaticServer on SRV.WebServer; DockerBrowserServer and spell serve use SRV
+                    ports
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder">
+                <b>Files:</b> packages/cli/src/serve.ts, serveCommand.ts, packages/ui/tools/StaticServer.ts,
+                SmokeRunner.ts </ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> ui smoke, spell icons --open, spell run on a UI project, cli tests</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            collapsed
+            id="p4"
+            data-phase="4"
+            data-status="done"
+            header="P4 · Docs And Preview"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye">
+                <b>Goal:</b> docs, plans, Spell UI docs from page server with live reload; site header; edit-section UI </ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="79a33179669e93372c007e93e6ec8f0d69a57d15">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/79a33179669e93372c007e93e6ec8f0d69a57d15"
+                      target="github"
+                      >79a3317</a
+                    >
+                    docs, plans, goals and Spell UI (/ui/, astro dev proxied) on the page server;
+                    &lt;spell-site-header&gt; on every page; edit mode; DocPreview on SRV
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder">
+                <b>Files:</b> packages/docs/scripts/pages.js, plan-doc.js, page/AstroProxy.ts, site/SiteHeader.ts,
+                templates, ui/site layout, vscode/DocPreview.ts </ui-item
+              ><ui-item icon="flask">
+                <b>Verify:</b> plan-doc open here + main (different ports), edit reloads, /ui/ works, header on all
+                properties, yarn vscode </ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t6">T6</a> <a href="#t7">T7</a> <a href="#t8">T8</a>
+                <a href="#t9">T9</a> <a href="#t10">T10</a> <a href="#t17">T17</a></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            collapsed
+            id="p5"
+            data-phase="5"
+            data-status="done"
+            header="P5 · Goals Migration"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> goals served by page server; server.js gone; goals CLI under tsx</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="4f07bd308d44e2935fff7d3a0aa4c239f53c164d">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/4f07bd308d44e2935fff7d3a0aa4c239f53c164d"
+                      target="github"
+                      >4f07bd3</a
+                    >
+                    goals served by the page server through a route module (goalsRoutes.ts); server.js gone; goals tools
+                    under tsx
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> goals/_tools/goalsRoutes.ts, launch.js, goals.js, goals.sh, goals-live.js</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> route-module tests, startup time, yarn goals open, every button</ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t16">T16</a> <a href="#t17">T17</a></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            collapsed
+            id="p6"
+            data-phase="6"
+            data-status="done"
+            header="P6 · App Router"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> app API off Express, behaviour unchanged</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="bda1c11c349224231ea5844703c391d5c3d3f5ec">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/bda1c11c349224231ea5844703c391d5c3d3f5ec"
+                      target="github"
+                      >bda1c11</a
+                    >
+                    the app's API on SRV.WebServer + SRV.Router; Express, body-parser, express-json5, proper-lockfile
+                    gone
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder">
+                <b>Files:</b> packages/app/src/server/*, packages/spell/src/node/response-utils.ts, project-utils.ts </ui-item
+              ><ui-item icon="flask"><b>Verify:</b> contract tests pass before and after; editor round-trip</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t11">T11</a></ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            collapsed
+            id="p7"
+            data-phase="7"
+            data-status="done"
+            header="P7 · Spell Serve"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> spell serve / yarn start = page server with docs, plans, goals, Spell UI, editor</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="39148466b489ae98f7aee13e794e2377b0f5a227">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/39148466b489ae98f7aee13e794e2377b0f5a227"
+                      target="github"
+                      >3914846</a
+                    >
+                    spell serve (and yarn start) runs everything: the page server with the app's /api as a route module
+                    (appRoutes.ts), plus vite for the editor
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/app/src/server/appRoutes.ts, cli serveCommand.ts, app vite.config.ts</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> spell serve: header switches all properties; editor round-trip; cli tests</ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t12">T12</a> <a href="#t13">T13</a> <a href="#t14">T14</a>
+                <a href="#t15">T15</a> <a href="#t16">T16</a></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section id="p8" data-phase="8" data-status="done" header="P8 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> plan doc true to what was built; durable page packages/docs/server.html</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="a86011f6d873d78c90b4b6aae488721401cf2cda">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/a86011f6d873d78c90b4b6aae488721401cf2cda"
+                      target="github"
+                      >a86011f</a
+                    >
+                    durable page packages/docs/server.html; plan doc true to what was built
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"><b>Files:</b> TBD</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check, yarn docs:index</ui-item></ui-list
+            >
+          </ui-section>
+        </ui-section>
+        <ui-section
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts."
+          id="decisions"
+          header="3. Questions"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item data-state="old" data-answered data-status="decided" id="q1"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a>
+                  <span class="plan-title">Library + ONE page server</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d1">
+                    <div class="plan-answer-title"><b>D1</b> · Library + ONE page server</div>
+                    <p>Not library-only. Why: docs and plans gain live reload; one URL scheme for every property.</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a>
+                  <span class="plan-title">TypeScript; goals runs via tsx</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d2">
+                    <div class="plan-answer-title"><b>D2</b> · TypeScript; goals runs via tsx</div>
+                    <p>Why: repo convention. Accepts goals being less portable (<a href="#c2">C2</a>).</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title"
+                    >Migrate goals, DocPreview, cli serve, ui StaticServer, app Express</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d3">
+                    <div class="plan-answer-title">
+                      <b>D3</b> · Migrate goals, DocPreview, cli serve, ui StaticServer, app Express
+                    </div>
+                    <p>Vite dev servers (app, ui tools) and Astro stay; Astro is proxied at <code>/ui/</code>.</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title">Leaf package; page/ and site/ opt-in</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d4">
+                    <div class="plan-answer-title"><b>D4</b> · Leaf package; page/ and site/ opt-in</div>
+                    <ul>
+                      <li>barrel: node built-ins only; json5 / esbuild come in as caller hooks</li>
+                      <li>
+                        <code>page/</code>,
+                        <a href="../../../ui/site/" target="src-packages-ui-site"><code>site/</code></a
+                        >: not in the barrel, may have deps (<code>parse5</code>)
+                      </li>
+                      <li>
+                        anything may import it:
+                        <a href="../../../ui/tools/" target="src-packages-ui-tools"><code>ui/tools</code></a
+                        >, <a href="../../../ui/site/" target="src-packages-ui-site"><code>ui/site</code></a
+                        >, <code>spell/node</code>, <code>cli</code>, <code>app</code>, <code>vscode</code>,
+                        <code>docs</code>, <code>goals</code>
+                      </li>
+                    </ul>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q5">Q5</a>
+                  <span class="plan-title">Goals endpoints move to /api/goals/*</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d5">
+                    <div class="plan-answer-title"><b>D5</b> · Goals endpoints move to /api/goals/*</div>
+                    <p>
+                      Header <code>x-goals-token</code> becomes <code>x-server-token</code>. Already-open goals pages
+                      need one reload.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q6">Q6</a>
+                  <span class="plan-title">App migration starts with contract tests</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d6">
+                    <div class="plan-answer-title"><b>D6</b> · App migration starts with contract tests</div>
+                    <p>Tests run against the CURRENT Express server first, then unchanged against the new router.</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q7"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q7">Q7</a> <span class="plan-title">Self-namespace SRV</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d7">
+                    <div class="plan-answer-title"><b>D7</b> · Self-namespace SRV</div>
+                    <p><code>SRV.Router</code>, <code>SRV.WebServer</code>. Owen's pick.</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q8"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q8">Q8</a> <span class="plan-title">Up to 10 agents</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d8">
+                    <div class="plan-answer-title"><b>D8</b> · Up to 10 agents</div>
+                    <p>
+                      Owen's answer; overrides the earlier max-5 default for this work. Parallel only where files don't
+                      overlap.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q9"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q9">Q9</a>
+                  <span class="plan-title">Docs And Preview before Goals</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d9">
+                    <div class="plan-answer-title"><b>D9</b> · Docs And Preview before Goals</div>
+                    <p>Owen: header and openers land first; goals then reuses them.</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q10"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q10">Q10</a>
+                  <span class="plan-title">Spell UI docs: proxy astro dev at /ui/</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d10">
+                    <div class="plan-answer-title"><b>D10</b> · Spell UI docs: proxy astro dev at /ui/</div>
+                    <p>Owen's pick: live HMR, no rebuild lag. Costs a second process (<a href="#c5">C5</a>).</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q11"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q11">Q11</a>
+                  <span class="plan-title">Site header in each page and template</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d11">
+                    <div class="plan-answer-title"><b>D11</b> · Site header in each page and template</div>
+                    <p>
+                      Owen's pick over server injection: shows on <code>file://</code> too. Costs a one-time edit of
+                      every page (<a href="#c6">C6</a>).
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q12"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q12">Q12</a>
+                  <span class="plan-title">Page edits write the original file, never commit</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d12">
+                    <div class="plan-answer-title"><b>D12</b> · Page edits write the original file, never commit</div>
+                    <p>
+                      Section edits by <code>id</code> splice the source byte range (parse5 locations), so nothing else
+                      in the file is reformatted.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q13"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q13">Q13</a>
+                  <span class="plan-title">Locking: SRV.FileLock + If-Match</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d13">
+                    <div class="plan-answer-title"><b>D13</b> · Locking: SRV.FileLock + If-Match</div>
+                    <ul>
+                      <li>
+                        <code>FileLock</code> serializes cooperating tools: page-edit API, plan-doc, goals, app saves
+                      </li>
+                      <li>
+                        <code>If-Match</code> / <code>ETag</code> catches writers that don't lock (VS Code, Claude's
+                        Edit): 409, caller reloads
+                      </li>
+                    </ul>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q14"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q14">Q14</a>
+                  <span class="plan-title">spell serve runs everything</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d14">
+                    <div class="plan-answer-title"><b>D14</b> · spell serve runs everything</div>
+                    <p>Once app is integrated (P7): docs, plans, goals, Spell UI, editor, one server.</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q15"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q15">Q15</a>
+                  <span class="plan-title">All phases overnight, commit per phase</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d15">
+                    <div class="plan-answer-title"><b>D15</b> · All phases overnight, commit per phase</div>
+                    <p>
+                      Owen's instruction: commit after each phase on branch <code>unified-server</code> without asking;
+                      leave unmerged for review (<code>/isolate done</code>).
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q16"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q16">Q16</a>
+                  <span class="plan-title">Failing checks: record, WIP commit, continue</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d16">
+                    <div class="plan-answer-title"><b>D16</b> · Failing checks: record, WIP commit, continue</div>
+                    <p>
+                      Record an issue, commit with a <code>WIP:</code> prefix, go on with phases that don't depend on
+                      it; stop only if everything after depends on it.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q17"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q17">Q17</a> <span class="plan-title">Header extras</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d17">
+                    <div class="plan-answer-title"><b>D17</b> · Header extras</div>
+                    <ul>
+                      <li>worktree / branch badge</li>
+                      <li>page title + breadcrumb</li>
+                      <li>Open in VS Code button</li>
+                      <li>light / dark toggle</li>
+                    </ul>
+                    <p>Badge and VS Code button hidden on <code>file://</code>.</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q18"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q18">Q18</a>
+                  <span class="plan-title">Page edits: API + edit-section UI</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d18">
+                    <div class="plan-answer-title"><b>D18</b> · Page edits: API + edit-section UI</div>
+                    <p>
+                      Hover a section with an <code>id</code> -&gt; edit -&gt; source textarea -&gt; <code>PATCH</code>;
+                      409 -&gt; reload prompt. API in P2, UI in P4.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q19"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q19">Q19</a>
+                  <span class="plan-title">P3: StaticServer kept as a thin wrapper over SRV.WebServer</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d19">
+                    <div class="plan-answer-title">
+                      <b>D19</b> · P3: StaticServer kept as a thin wrapper over SRV.WebServer
+                    </div>
+                    <p>
+                      Kept the class (listen/close, plus a new untilInterrupted) so SmokeRunner is barely touched; it
+                      owns only the import-map html hook and the esbuild .ts transform. DockerBrowserServer.freePort now
+                      calls SRV.freePort (same 127.0.0.1, port 0). Side effect: listen() now falls back to any free port
+                      if the wanted one (5199) is taken, instead of failing.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q20"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q20">Q20</a>
+                  <span class="plan-title">Spell UI site: base /ui, header via alias</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d20">
+                    <div class="plan-answer-title"><b>D20</b> · Spell UI site: base /ui, header via alias</div>
+                    <p>
+                      packages/ui/site now has <code>base: "/ui"</code>; internal URLs already went through
+                      <code>url()</code> (BASE_URL), so only config changed. <code>$/server</code> alias added to
+                      astro.config.mjs and site tsconfig (no package.json dependency needed, same as
+                      <code>$/util</code>). Docs.astro carries <code>&lt;spell-site-header&gt;</code> +
+                      <code>defineSite()</code>; site.css sticky header, sidebar, TOC and anchors are offset by
+                      <code>--spell-site-header-height</code>.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered data-status="decided" id="q21"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q21">Q21</a>
+                  <span class="plan-title">P4: header height stays out of --spell-top</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d21">
+                    <div class="plan-answer-title"><b>D21</b> · P4: header height stays out of --spell-top</div>
+                    <p>
+                      The header's own <code>:root { scroll-padding-top }</code> already adds
+                      <code>--spell-site-header-height</code> to every native jump, so <code>--spell-top</code> and the
+                      headings' CSS <code>scroll-margin-top</code> leave it out (else a native jump would count it
+                      twice).
+                      <a
+                        href="../../_assets/spell-doc-runtime.js"
+                        target="src-packages-docs-assets-spell-doc-runtime-js"
+                        ><code>spell-doc-runtime.js</code></a
+                      >
+                      adds it (<code>siteHeaderHeight()</code>, 0 without a header) where it measures from the viewport
+                      top: h2 / h3 sticky <code>offset</code>s, the contents' sticky <code>offset</code>, its own anchor
+                      jumps, and the scroll-follow line. CSS adds it to the cheatsheet filter bar's <code>top</code>,
+                      the contents column's height and the narrow-screen drawer's <code>top</code> / height.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
+          id="judgements"
+          header="4. Judgement calls"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item data-state="old" data-status="done" id="c1"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title">tsx slows each goals call</span></ui-title
+                ><ui-content
+                  ><p>
+                    ~200-400ms per <code>yarn goals</code> / <code>goals.sh</code> call; measured in P5.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="c2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">The goals tools now depend on this repo</span></ui-title
+                ><ui-content
+                  ><p>
+                    The goals folder (<a href="../../../../goals/" target="src-goals"><code>goals/</code></a
+                    >) can no longer be copied into another project and just run: since the page server took over its
+                    server, it leans on parts of this repo.
+                  </p>
+                  <ul>
+                    <li>
+                      It needs this repo's <code>$/server</code> package (<a
+                        href="../../../server/"
+                        target="src-packages-server"
+                        ><code>packages/server</code></a
+                      >).
+                    </li>
+                    <li>It needs <code>tsx</code> to run.</li>
+                    <li>
+                      It needs the <code>pageServer</code> field in the root
+                      <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                      >.
+                    </li>
+                    <li>What tsx costs each call: <a href="#c10">C10</a>.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="c3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title"
+                    >Doc previews with no page server lose goals buttons and <code>/ui/</code></span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    When VS Code's doc preview opens a page by its file (<code>?file=</code>) and no page server is
+                    running, the page still shows, but parts of it don't work. You'd notice a goals page whose buttons
+                    do nothing, or a Spell UI link (<code>/ui/</code>) that fails.
+                  </p>
+                  <ul>
+                    <li>
+                      Why: the extension's <code>DocPreview</code> then serves the checkout with a server of its own,
+                      in-process. It has live reload, but no route modules, so no goals buttons and no
+                      <code>/ui/</code>.
+                    </li>
+                    <li>The fix, for now: run <code>yarn server start</code>, then reopen the page.</li>
+                    <li>Why the extension doesn't start the page server itself: <a href="#c4">C4</a>.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="c4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title">The VS Code extension never starts the page server</span></ui-title
+                ><ui-content
+                  ><p>
+                    The spell extension never runs <code>tsx</code>, so it never starts the page server: a VS Code
+                    opened from the Dock or Finder (not from a terminal) may have no <code>node</code> on its PATH.
+                  </p>
+                  <ul>
+                    <li>
+                      So whatever opens a doc runs <code>yarn server ensure</code> first, which starts the page server
+                      if it isn't running.
+                    </li>
+                    <li>
+                      When nothing did, the preview falls back to its own server, without goals buttons or
+                      <code>/ui/</code> (<a href="#c3">C3</a>).
+                    </li>
+                    <li>The choice itself is up for review: <a href="#t10">T10</a>.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="c5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c5">C5</a>
+                  <span class="plan-title">Spell UI pages (<code>/ui/</code>) cost a second process</span></ui-title
+                ><ui-content
+                  ><p>
+                    When this was written, the page server showed the Spell UI docs (<code>/ui/</code>) by running
+                    Astro's dev server beside it, a second process.
+                  </p>
+                  <ul>
+                    <li><code>astro dev</code> started on the first <code>/ui/</code> request.</li>
+                    <li>It stopped when the page server stopped.</li>
+                    <li>
+                      Looks done or obsolete: the Astro site was retired on 2026-10-03 (commit <code>fc83daab</code>,
+                      epic <code>spell-ui-pages</code>); <code>/ui/</code> now serves
+                      <a href="../../../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a> as
+                      plain static pages, with no second process (the durable doc,
+                      <a href="../../server.html" target="src-packages-docs-server-html">Page Server</a>) (checked
+                      2026-10-04).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="c6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title">Adding the site header meant editing every page once</span></ui-title
+                ><ui-content
+                  ><p>
+                    The bar at the top of every docs page (<code>&lt;spell-site-header&gt;</code>) is markup inside each
+                    page, so adding it was a one-time edit to every page that already existed.
+                  </p>
+                  <ul>
+                    <li>Every existing docs, plan and goals page got the header element.</li>
+                    <li>
+                      Pages made later get it from their templates (how each template tool sets the header's
+                      <code>root</code>: <a href="#c8">C8</a>).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="c7"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title"><code>yarn site:check</code> crashed (an older problem)</span></ui-title
+                ><ui-content
+                  ><p>Found during this epic, not caused by it: Spell UI's site check died before checking anything.</p>
+                  <ul>
+                    <li>
+                      It ran <code>astro check</code>, which crashed in <code>@volar/kit</code>:
+                      <code>Cannot read properties of undefined (reading 'useCaseSensitiveFileNames')</code>.
+                    </li>
+                    <li>It crashed even with the tsconfig untouched.</li>
+                    <li>
+                      Logged in
+                      <a href="../../../../PAPERCUTS.md" target="src-papercuts-md"><code>PAPERCUTS.md</code></a
+                      >.
+                    </li>
+                    <li>
+                      Also seen, also not new: the site's own header row overflowed at 390px wide, clipping its
+                      "Classic" toggle.
+                    </li>
+                    <li>
+                      Looks done or obsolete: the Astro site was retired on 2026-10-03 (commit <code>fc83daab</code>);
+                      <code>yarn site:check</code> now runs
+                      <a href="../../../ui/tools/SiteCheck.ts" target="src-packages-ui-tools-sitecheck-ts"
+                        ><code>packages/ui/tools/SiteCheck.ts</code></a
+                      >, a Playwright check of the plain HTML pages, not <code>astro check</code> (checked 2026-10-04).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="c8"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c8">C8</a>
+                  <span class="plan-title"
+                    >How each page-making tool sets the header's <code>root</code></span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    The site header needs a <code>root</code> attribute: the relative path from its page up to the
+                    folder the header's links start from, so they work even when the page is opened from disk
+                    (<code>file://</code>). Each tool that makes pages from a template sets it its own way (settled in
+                    the Docs And Preview phase, <a href="#p4">P4</a>).
+                  </p>
+                  <ul>
+                    <li>
+                      <code>docs:new</code> (<a
+                        href="../../scripts/new-page.js"
+                        target="src-packages-docs-scripts-new-page-js"
+                        ><code>new-page.js</code></a
+                      >): the same <code>../</code> prefix it gives the page's asset paths, plus <code>../..</code>,
+                      because <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> is two folders
+                      below the repo root.
+                    </li>
+                    <li>
+                      <code>goals new</code> and <code>goals new-set</code> (and the goals home page, made from its
+                      template): <code>fromTemplate()</code> sets <code>root</code> to the path from the page up to
+                      goals' <code>ROOT</code>, the folder holding
+                      <a href="../../../../goals/" target="src-goals"><code>goals/</code></a
+                      >.
+                      <ui-accordion class="spell-code" styled open="0"
+                        ><ui-title>goals/_tools/goals.js · 3 lines</ui-title
+                        ><ui-content>
+                          <pre><code class="language-js">const root = relative(dirname(dest), ROOT).split("\\").join("/") || "."
+// ...
+  .replace(/(&lt;spell-site-header\b[^&gt;]*?\broot=")[^"]*"/, `$1${root}"`)</code></pre>
+                        </ui-content></ui-accordion
+                      >
+                    </li>
+                    <li>
+                      <code>plan-doc new</code>: nothing to change. Its template,
+                      <a href="../../templates/epics/plan.html" target="src-packages-docs-templates-epics-plan-html"
+                        ><code>templates/epics/plan.html</code></a
+                      >, sits at the same depth as the plan docs' own folders (<code>plans/&lt;name&gt;/</code> then,
+                      <code>epics/&lt;name&gt;/</code> now). So its <code>root="../../../.."</code> is already right, as
+                      are its asset paths, which aren't rewritten either.
+                    </li>
+                    <li>
+                      The catch: goals is meant to be portable. In another project, the header's spell-specific
+                      properties would point nowhere (more on that: <a href="#c2">C2</a>).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="c9"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title"><code>docs:update</code> stopped on a fresh checkout</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn docs:update</code> failed before its browser checks on any checkout without a local clone
+                    of Fomantic UI.
+                  </p>
+                  <ul>
+                    <li>
+                      The cause: the ui-component-creation plan doc (<a
+                        href="../ui-component-creation/"
+                        target="src-packages-docs-epics-ui-component-creation"
+                        ><code>plans/ui-component-creation</code></a
+                      >
+                      then) links <code>packages/ui/reference/Fomantic-UI/</code>.
+                    </li>
+                    <li>
+                      That folder is a git-ignored clone, and it was missing from this worktree AND from the main
+                      checkout.
+                    </li>
+                    <li>
+                      So the link check (<code>doc-links.py --check</code> then) failed, and stopped
+                      <code>docs:update</code>.
+                    </li>
+                    <li>
+                      The Docs And Preview phase (<a href="#p4">P4</a>) ran it with an empty stand-in folder, removed
+                      afterwards:
+                      <ul>
+                        <li>all 17 docs pages passed</li>
+                        <li><code>yarn goals check</code>: all 17 goals pages passed</li>
+                      </ul>
+                    </li>
+                    <li>
+                      Looks done or obsolete: the link check is now
+                      <a href="../../scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                        ><code>scripts/doc-links.js</code></a
+                      >, which accepts a missing target that version control ignores (its header names
+                      <code>packages/ui/reference/</code>); <code>doc-links.js --check</code> on that plan doc reports 0
+                      problems with the folder still absent (checked 2026-10-04).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="c10"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c10">C10</a>
+                  <span class="plan-title">The goals tools are slower under <code>tsx</code></span></ui-title
+                ><ui-content
+                  ><p>
+                    Running the goals tools under <code>tsx</code> (so they can use the page server's code) adds about
+                    0.13 seconds to every call.
+                  </p>
+                  <ul>
+                    <li>Measured: <code>goals.sh help</code> took 0.05s with plain node, and 0.18s under tsx.</li>
+                    <li><code>yarn goals help</code> takes about 0.6s, mostly yarn's own start-up.</li>
+                    <li>
+                      To run anywhere else, the goals folder now needs this repo's
+                      <a href="../../../server/" target="src-packages-server"><code>packages/server</code></a> and
+                      <code>tsx</code> (<a href="#c2">C2</a>).
+                    </li>
+                    <li>The choice to run under tsx is up for review: <a href="#t17">T17</a>.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+        <ui-section
+          data-tip="For later: not caveats, not issues."
+          id="todos"
+          header="6. Todos"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="list check"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item data-state="old" data-status="done" id="t1"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title">Adopt SRV.FileLock everywhere</span></ui-title
+                ><ui-content><p>P1 builds it; P4 (plan-doc), P5 (goals), P6 (app) adopt.</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-status="done" id="t2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title">Delete app ts.zip if stale</span></ui-title
+                ><ui-content
+                  ><p><code>packages/app/src/server/ts.zip</code> was an old snapshot: deleted in P6.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title"
+                    >Choice to review: a <code>:name*</code> route part takes the whole rest of the path</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    In the Library Core phase (<a href="#p1">P1</a>), the new router (<a
+                      href="../../../server/src/Router.ts"
+                      target="src-packages-server-src-router-ts"
+                      ><code>packages/server/src/Router.ts</code></a
+                    >) was made to differ from Express 4 on purpose: it fixes Express's behaviour instead of copying it.
+                    You'd notice it in the app's project-file URLs.
+                  </p>
+                  <ul>
+                    <li>
+                      A route like <code>/projects/file/:projectId/:filePath*</code> now puts the WHOLE rest of the path
+                      in <code>filePath</code>, slashes included.
+                    </li>
+                    <li>
+                      Express 4 put only the first segment in <code>filePath</code>, and the rest in
+                      <code>params[0]</code>.
+                    </li>
+                    <li>With Express, a project file in a sub-folder answered 404 or <code>EISDIR</code>.</li>
+                    <li>
+                      The app's QUIRK contract tests, which pinned Express's split, changed with it in the App Router
+                      phase (<a href="#p6">P6</a>).
+                    </li>
+                  </ul>
+                  <ui-table celled compact striped
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>Request</th>
+                          <th>Express 4</th>
+                          <th>Now</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>/projects/file/p1/src/main.spell</code></td>
+                          <td><code>filePath</code> = <code>src</code>; the rest in <code>params[0]</code></td>
+                          <td><code>filePath</code> = <code>src/main.spell</code></td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>project files in sub-folders load</li>
+                    <li>a route handler never reads <code>params[0]</code> for a <code>:name*</code> part</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title">Choice to review: page edits must send <code>If-Match</code></span></ui-title
+                ><ui-content
+                  ><p>
+                    In the Page Server phase (<a href="#p2">P2</a>), edits through the page server were made to require
+                    the version of the page being edited, so nothing overwrites a file blindly.
+                  </p>
+                  <ul>
+                    <li>
+                      A <code>PUT</code> or <code>PATCH</code> without an <code>If-Match</code> header answers
+                      <code>428</code>.
+                    </li>
+                    <li>The other option: allow blind writes.</li>
+                    <li>
+                      Every caller already has the page's ETag, from the page it loaded: the edit UI, and
+                      <code>editPage()</code>.
+                    </li>
+                    <li>
+                      An ETag that's out of date (the file changed underneath) answers <code>409</code>, and the caller
+                      reloads.
+                    </li>
+                  </ul>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>packages/server/src/page/PageEditor.ts · 1 line</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">if (!expected) throw new SRV.HttpError(428, "If-Match required:  send the ETag the page was served with")</code></pre>
+                    </ui-content></ui-accordion
+                  >
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a tool that writes through the page server reads the page first, for its ETag</li>
+                    <li>
+                      an edit made in VS Code or by an agent meanwhile is never silently overwritten: the edit gets a
+                      409
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t5">T5</a>
+                  <span class="plan-title"
+                    >Choice to review: the live-reload script is a function turned into text</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    In the Page Server phase (<a href="#p2">P2</a>), the script that every served page runs for live
+                    reload and edits (<code>liveClient()</code>) was written as a TypeScript function that the server
+                    sends as text, <code>(fn)()</code>, not as a separate <code>.js</code> file.
+                  </p>
+                  <ul>
+                    <li>
+                      Why: the VS Code extension's bundle is CommonJS, which has no <code>import.meta.url</code> to find
+                      a <code>.js</code> file beside it by.
+                    </li>
+                    <li>
+                      The cost: it needs a <code>__name</code> shim. tsx (its <code>keepNames</code>) wraps nested
+                      functions in <code>__name(fn, "fn")</code>, a helper that lives in the module, not in the
+                      function's text.
+                    </li>
+                    <li>It MUST stay self-contained: no imports, no module helpers.</li>
+                  </ul>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>packages/server/src/liveClient.ts · liveClientScript() · 6 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">return [
+  "// spell server:  live reload and page edits (packages/server/src/liveClient.ts)",
+  "var __name = (fn) =&gt; fn;",
+  `(${liveClient.toString()})()`,
+  ""
+].join("\n")</code></pre>
+                    </ui-content></ui-accordion
+                  >
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the extension and the page server serve the same script without finding a file on disk</li>
+                    <li>anyone editing <code>liveClient()</code> must not import anything into it</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t6">T6</a>
+                  <span class="plan-title"
+                    >Choice to review: Vite's root paths were sent to <code>astro dev</code></span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    In the Docs And Preview phase (<a href="#p4">P4</a>), the page server had to show the Astro site at
+                    <code>/ui/</code>. In dev, Astro serves its modules from the ROOT of the server, whatever its
+                    <code>base</code> says.
+                  </p>
+                  <ul>
+                    <li>
+                      The paths it asks for: <code>/@vite/client</code>, <code>/@fs/...</code>, <code>/src/...</code>.
+                    </li>
+                    <li>
+                      None of those exists at the repo root, so the page server sent them on to
+                      <code>astro dev</code> while it ran.
+                    </li>
+                    <li>
+                      Its hot-reload websocket went the same way, picked out by its <code>vite-hmr</code> subprotocol.
+                    </li>
+                    <li>
+                      The options not taken:
+                      <ul>
+                        <li>Astro on its own port, in an iframe</li>
+                        <li>a redirect to Astro's own port</li>
+                      </ul>
+                    </li>
+                    <li>
+                      Looks done or obsolete: the Astro site was retired on 2026-10-03 (commit <code>fc83daab</code>),
+                      and <code>/ui/</code> is plain static pages now, so nothing is proxied (checked 2026-10-04).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>while Astro ran: <code>/ui/</code> pages hot-reloaded on the page server's own origin</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t7"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t7">T7</a>
+                  <span class="plan-title"
+                    >Choice to review: <code>astro dev</code> ran with <code>--ignore-lock</code></span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    In the Docs And Preview phase (<a href="#p4">P4</a>), Astro 7 turned out to move
+                    <code>astro dev</code> into the background by itself, then exit, whenever it detects an AI agent in
+                    its environment (<code>CLAUDECODE</code> ...).
+                  </p>
+                  <ul>
+                    <li>
+                      <code>--ignore-lock</code> kept it in the foreground, so the page server owned it and could stop
+                      it.
+                    </li>
+                    <li>
+                      The side effect: no Astro lock file, so a <code>yarn site:dev</code> started beside it wouldn't
+                      notice it.
+                    </li>
+                    <li>
+                      Looks done or obsolete: the Astro site was retired on 2026-10-03 (commit <code>fc83daab</code>);
+                      the page server no longer runs <code>astro dev</code> (checked 2026-10-04).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>while Astro ran: stopping the page server stopped Astro too</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t8"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t8">T8</a>
+                  <span class="plan-title"
+                    >Choice to review: "Open in VS Code" is a plain <code>vscode://file</code> link</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    In the Docs And Preview phase (<a href="#p4">P4</a>), the header's "Open in VS Code" button was made
+                    a plain link, <code>vscode://file/&lt;path&gt;</code>. You'd notice it when several VS Code windows
+                    are open.
+                  </p>
+                  <ul>
+                    <li>It works from <code>file://</code> pages too.</li>
+                    <li>But it opens the file in the LAST FOCUSED VS Code window, not the window of this session.</li>
+                    <li>Opening it in the right window would need the window bridge, which needs a server endpoint.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>with several windows open, the file may open in the wrong one</li>
+                    <li>no server is needed for the button to work</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t9"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t9">T9</a>
+                  <span class="plan-title">Choice to review: two theme toggles on Spell UI pages</span></ui-title
+                ><ui-content
+                  ><p>
+                    In the Docs And Preview phase (<a href="#p4">P4</a>), Spell UI's pages ended up with two theme
+                    controls: the site header's and the site's own. They could disagree.
+                  </p>
+                  <ul>
+                    <li>
+                      The header's light / dark / OS button set <code>color-scheme</code> on <code>&lt;html&gt;</code>.
+                    </li>
+                    <li>The Astro site kept its own Light / Dark / System toggle.</li>
+                    <li>Both were left in: the site's toggle is part of what the site documents.</li>
+                    <li>
+                      Since then (checked 2026-10-04): the Astro site is gone, but the plain HTML site still has its own
+                      theme picker (<code>&lt;ui-docs-themes&gt;</code>, in
+                      <a href="../../../ui/site/_parts/layout.html" target="src-packages-ui-site-parts-layout-html"
+                        ><code>packages/ui/site/_parts/layout.html</code></a
+                      >) beside the header. The header's button is now one light / dark flip, stored under the same key
+                      as Spell UI's <code>ThemePreference</code> (<a
+                        href="../../../server/src/site/SiteHeader.ts"
+                        target="src-packages-server-src-site-siteheader-ts"
+                        ><code>SiteHeader.ts</code></a
+                      >), so the two may no longer disagree. Not checked in a browser.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>Spell UI pages show two theme controls</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t10"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t10">T10</a>
+                  <span class="plan-title">Choice to review: the extension never starts the page server</span></ui-title
+                ><ui-content
+                  ><p>
+                    In the Docs And Preview phase (<a href="#p4">P4</a>), VS Code's doc preview
+                    (<code>DocPreview</code>) was made to use a page server only when one is already running.
+                  </p>
+                  <ul>
+                    <li>It finds a running page server by its pid file.</li>
+                    <li>
+                      Otherwise it starts its own <code>SRV.WebServer</code>, inside the extension:
+                      <ul>
+                        <li>live reload works</li>
+                        <li>no goals buttons</li>
+                        <li>no <code>/ui/</code></li>
+                      </ul>
+                    </li>
+                    <li>The scripts that open docs start the page server first, so they get the full one.</li>
+                    <li>
+                      The other option: have the extension start the page server. But a VS Code opened from the Dock may
+                      have no <code>node</code> on its PATH (<a href="#c4">C4</a>).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a doc opened by a script gets the full page server</li>
+                    <li>
+                      a doc opened some other way, with no page server running, gets the reduced one (<a href="#c3"
+                        >C3</a
+                      >)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t11"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t11">T11</a>
+                  <span class="plan-title">Choice to review: three API answers changed on purpose</span></ui-title
+                ><ui-content
+                  ><p>
+                    In the App Router phase (<a href="#p6">P6</a>), the app's API moved from Express onto the new
+                    router, and a few of its answers were changed on purpose, besides the nested-path fix (<a href="#t3"
+                      >T3</a
+                    >).
+                  </p>
+                  <ui-table celled compact striped
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>Request</th>
+                          <th>Before (Express)</th>
+                          <th>Now</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>an unknown <code>DELETE /api/...</code></td>
+                          <td>not the API's own 404</td>
+                          <td>the API's own 404 text</td>
+                        </tr>
+                        <tr>
+                          <td>a <code>.spell</code> file</td>
+                          <td><code>application/octet-stream</code></td>
+                          <td><code>text/plain</code></td>
+                        </tr>
+                        <tr>
+                          <td>a body that isn't valid JSON5</td>
+                          <td>an HTML error page</td>
+                          <td><code>400 {error}</code>, as JSON</td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <ul>
+                    <li>Each is marked <code>CHANGED</code> in <code>api.test.ts</code>.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      a client reading these answers sees JSON or plain text where it used to see HTML or a download
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t12"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t12">T12</a>
+                  <span class="plan-title">Choice to review: "Editor" redirects to Vite</span></ui-title
+                ><ui-content
+                  ><p>
+                    In the Spell Serve phase (<a href="#p7">P7</a>), the page server's <code>/editor</code> was made a
+                    redirect to Vite's dev server, where the editor actually runs. You'd notice that the editor has no
+                    site header, and the Editor tab leaves the page server's address.
+                  </p>
+                  <ul>
+                    <li>Where Vite runs was recorded by <code>spell serve</code> when this was written.</li>
+                    <li>
+                      The other option: serve a built editor under <code>/editor/</code>. That needs a Vite
+                      <code>base</code> and a router basename.
+                    </li>
+                    <li>
+                      Since then (checked 2026-10-04): the page server starts Vite itself (<code>EditorServer</code>, in
+                      <a href="../../../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                        ><code>packages/app/src/server/appRoutes.ts</code></a
+                      >) and reads its address from its record; when the editor isn't up yet,
+                      <code>/editor</code> answers 503 with a "reload" message.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the editor has no site header</li>
+                    <li>the Editor tab goes to another origin (Vite's port)</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t13"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t13">T13</a>
+                  <span class="plan-title"
+                    >Choice to review: <code>yarn start</code> runs <code>spell serve --headless</code></span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    In the Spell Serve phase (<a href="#p7">P7</a>), <code>yarn start</code> in
+                    <a href="../../../app/" target="src-packages-app"><code>packages/app</code></a> was changed to run
+                    <code>spell serve --headless</code>. You'd notice the API on a different port.
+                  </p>
+                  <ul>
+                    <li>The API is now on the page server: port 4747, or a free one. It used to be on 3001.</li>
+                    <li><code>yarn start:server</code> still runs the API alone, on 3001.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      anything that called the API on 3001 after <code>yarn start</code> must use the page server's port
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t14"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t14">T14</a>
+                  <span class="plan-title"
+                    >Choice to review: the app's API has no token, only an <code>Origin</code> check</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    In the Spell Serve phase (<a href="#p7">P7</a>), the app's API joined the page server, but without
+                    the token the page server's own writes need.
+                  </p>
+                  <ul>
+                    <li>
+                      Why: the editor calls <code>/api</code> from Vite's origin, through Vite's proxy, so the page
+                      server's token can't apply.
+                    </li>
+                    <li>
+                      Instead, a write whose <code>Origin</code> isn't this machine is refused (403): that stops other
+                      sites posting into your projects (CSRF).
+                    </li>
+                    <li>Express had no check at all.</li>
+                  </ul>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>packages/app/src/server/appRoutes.ts · the allowed origins · 1 line</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin)</code></pre>
+                    </ui-content></ui-accordion
+                  >
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>any page on this machine, on any port, can still write through the API</li>
+                    <li>pages from other sites can't</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t15"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t15">T15</a>
+                  <span class="plan-title"
+                    >Choice to review: <code>spell serve</code> stops only a page server it started</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    In the Spell Serve phase (<a href="#p7">P7</a>), <code>spell serve</code> was made to leave alone a
+                    page server it didn't start. You'd notice it when docs are open elsewhere.
+                  </p>
+                  <ul>
+                    <li>Ctrl-C stops Vite.</li>
+                    <li>It stops the page server only if <code>spell serve</code> launched it.</li>
+                    <li>A page server that was already running (docs open elsewhere) stays up.</li>
+                    <li>
+                      Since then (checked 2026-10-04): Vite is the page server's child (<a
+                        href="../../../cli/src/commands/serveCommand.ts"
+                        target="src-packages-cli-src-commands-servecommand-ts"
+                        ><code>serveCommand.ts</code></a
+                      >), so Ctrl-C stops both, or neither when the page server was already running.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>docs and goals pages open in another window keep working after Ctrl-C</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t16"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t16">T16</a>
+                  <span class="plan-title">Choice to review: each route parses its own request bodies</span></ui-title
+                ><ui-content
+                  ><p>
+                    Found when goals' buttons hung (Goals Migration and Spell Serve phases, <a href="#p5">P5</a> and
+                    <a href="#p7">P7</a>): the page server parses no request bodies itself.
+                  </p>
+                  <ul>
+                    <li>
+                      Each route does its own, with its own limit:
+                      <ul>
+                        <li>page edits</li>
+                        <li>goals: 64kb</li>
+                        <li>the app's API: JSON5, 10mb</li>
+                      </ul>
+                    </li>
+                    <li>
+                      A body can be read only once: a second parser in the same chain (<code>parseBodies</code>) skips a
+                      body already read.
+                    </li>
+                  </ul>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>packages/app/src/server/appRoutes.ts · 1 line</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">router.use("/api", refuseForeignOrigins, SRV.parseBodies({ limit: 10 * 1024 * 1024, parseJson: JSON5.parse }), api)</code></pre>
+                    </ui-content></ui-accordion
+                  >
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a new route module brings its own body parser, with its own size limit</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t17"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t17">T17</a>
+                  <span class="plan-title"
+                    >Choice to review: <code>plan-doc</code> and the goals tools run under <code>tsx</code></span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    In the Docs And Preview and Goals Migration phases (<a href="#p4">P4</a>, <a href="#p5">P5</a>), two
+                    plain-node tools were moved onto <code>tsx</code>, so they could use the page server's TypeScript
+                    code.
+                  </p>
+                  <ul>
+                    <li>What they use: <code>SRV.FileLock</code> and <code>PageServer.ensure()</code>.</li>
+                    <li><code>yarn plan-doc</code>: about 1.2s per call.</li>
+                    <li>The goals tools: about 0.13s more per call (<a href="#c10">C10</a>).</li>
+                    <li>The other option: keep them plain node, with their own copies of that code.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>one copy of the lock and of the server start-up, shared</li>
+                    <li>every <code>plan-doc</code> and goals call is slower</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-status="done" id="t18"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t18">T18</a>
+                  <span class="plan-title">Rebuild the extension from main</span></ui-title
+                ><ui-content
+                  ><p>Done after the merge: <code>yarn vscode</code> from the main checkout.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t19"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t19">T19</a>
+                  <span class="plan-title">Stop the old goals server on port 4747</span></ui-title
+                ><ui-content
+                  ><p>
+                    After the merge, the old goals server could still be running on port 4747, from the deleted
+                    <code>server.js</code>. Until it stops, the page server takes another port.
+                  </p>
+                  <ul>
+                    <li>
+                      To stop it: kill the pid in
+                      <a href="../../../../goals/.server.json" target="src-goals-server-json"
+                        ><code>goals/.server.json</code></a
+                      >.
+                    </li>
+                    <li>
+                      Looks done or obsolete: <code>goals/.server.json</code> is gone, and port 4747 is held by the page
+                      server (<code>packages/server/src/page/cli.ts serve</code>) (checked 2026-10-04).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t20"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t20">T20</a>
+                  <span class="plan-title">Reload any open goals pages once</span></ui-title
+                ><ui-content
+                  ><p>
+                    A goals page that was open before the merge still talks to the old server, so its buttons fail until
+                    it's reloaded.
+                  </p>
+                  <ul>
+                    <li>The endpoints changed: now <code>/api/goals/*</code>.</li>
+                    <li>The token header changed: now <code>x-server-token</code>.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-status="open" id="t21"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t21">T21</a>
+                  <span class="plan-title">Remove the unified-server worktree</span></ui-title
+                ><ui-content
+                  ><p>Clean-up once the epic is merged: delete its worktree and its branch.</p>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>shell · 1 line</ui-title
+                    ><ui-content>
+                      <pre><code class="language-bash">git worktree remove .claude/worktrees/unified-server &amp;&amp; git branch -d unified-server</code></pre>
+                    </ui-content></ui-accordion
+                  >
+                  <ul>
+                    <li>
+                      Looks done or obsolete: <code>git worktree list</code> has no <code>unified-server</code>, and no
+                      branch of that name exists (checked 2026-10-04).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item data-state="old" data-status="done" id="i1"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title">P4: header is 45px, not 44</span></ui-title
+                ><ui-content
+                  ><p>
+                    The bar is <code>height: 44px</code> plus a 1px <code>border-bottom</code> (content-box), so it
+                    covers 45px while <code>--spell-site-header-height</code> says 44: every stuck h2 / filter bar /
+                    drawer sits 1px under the bar's border. Measured: bar bottom 45, stuck h2 top 44. Fix in
+                    <a href="../../../server/src/site/SiteHeader.ts" target="src-packages-server-src-site-siteheader-ts"
+                      ><code>SiteHeader.ts</code></a
+                    >
+                    STYLE: <code>box-sizing: border-box</code> on <code>header</code>. Not mine to edit
+                    (packages/server).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-status="done" id="i2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title">macOS fs.watch reports the watched folder itself</span></ui-title
+                ><ui-content
+                  ><p>
+                    P2. <code>docs</code> came through as <code>/docs/docs</code>, so live reload sometimes skipped the
+                    real change. Fixed: <code>LiveReload</code> ignores folders.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-status="done" id="i3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title">tsx keepNames broke the stringified live client</span></ui-title
+                ><ui-content
+                  ><p>
+                    P2. <code>__name()</code> calls in <code>()()</code> would throw in the browser. Fixed: a no-op
+                    shim.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-status="done" id="i4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i4">I4</a>
+                  <span class="plan-title">astro dev exited at once</span></ui-title
+                ><ui-content
+                  ><p>
+                    P4. Astro 7 backgrounds itself when it detects an AI agent in the environment. Fixed:
+                    <code>--ignore-lock</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-status="done" id="i5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i5">I5</a> <span class="plan-title">goals buttons hung</span></ui-title
+                ><ui-content
+                  ><p>
+                    P5. The page server's own body parser drained the stream; goals' parser then waited forever. Fixed:
+                    a body is read once, and parsing is per route.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-status="done" id="i6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i6">I6</a>
+                  <span class="plan-title">Express :filePath* kept only the first segment</span></ui-title
+                ><ui-content
+                  ><p>
+                    P6. Found by the contract tests: nested project files 404'd and saves hit EISDIR. Fixed by
+                    <code>SRV.Router</code>; removed from SUSPECTED-BUGS.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="attention" data-status="open" id="i7"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i7">I7</a>
+                  <span class="plan-title"
+                    >The editor's home page asks for <code>@system:guides</code>, which doesn't exist</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    An older problem, on <code>main</code> too: opening the editor's home page logs a console error.
+                  </p>
+                  <ul>
+                    <li>The home page lists the <code>@system:guides</code> project root.</li>
+                    <li>
+                      Checked 2026-10-04:
+                      <a href="../../../spell/src/SpellSetup.ts" target="src-packages-spell-src-spellsetup-ts"
+                        ><code>packages/spell/src/SpellSetup.ts</code></a
+                      >
+                      declares <code>@system:guides</code>, but
+                      <a href="../../../spell/projects/system/" target="src-packages-spell-projects-system"
+                        ><code>packages/spell/projects/system/</code></a
+                      >
+                      holds only <code>examples</code> and <code>library</code>.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      once fixed (a guides folder, or no guides root): the home page loads without the console error
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="attention" data-status="open" id="i8"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i8">I8</a>
+                  <span class="plan-title"><code>yarn lint</code> in the CLI fails on an older warning</span></ui-title
+                ><ui-content
+                  ><p>
+                    An older problem: <code>yarn lint</code> in
+                    <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a> fails, because it
+                    allows no warnings (<code>--max-warnings 0</code>) and one file has one.
+                  </p>
+                  <ul>
+                    <li>
+                      The file:
+                      <a href="../../../cli/src/ui/TargetPrompt.tsx" target="src-packages-cli-src-ui-targetprompt-tsx"
+                        ><code>TargetPrompt.tsx</code></a
+                      >.
+                    </li>
+                    <li>The warning: React's <code>exhaustive-deps</code> rule, on a <code>useEffect</code>.</li>
+                    <li>
+                      Still failing on 2026-10-04, now under oxlint:
+                      <code
+                        >src/ui/TargetPrompt.tsx:72:5: warning react-hooks(exhaustive-deps): React Hook useEffect has a
+                        missing dependency: 'handle'</code
+                      >.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      once fixed: <code>yarn lint</code> in
+                      <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a> passes
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+        <ui-section
+          data-tip="What to check by hand before merging: each a step, and what should happen. Struck through once it passes."
+          id="tests"
+          header="8. To test"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="flask"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section
+          data-tip="Plan changes, oldest first, local time."
+          id="log"
+          header="9. Log"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-02T00:25-04:00">2026-10-02 00:25</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T00:58-04:00">2026-10-02 00:58</time></ui-date> P1 added: Library
+                  Core</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T00:58-04:00">2026-10-02 00:58</time></ui-date> P2 added: Page
+                  Server</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T00:58-04:00">2026-10-02 00:58</time></ui-date> P3 added: CLI And
+                  UI</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T00:59-04:00">2026-10-02 00:59</time></ui-date> P4 added: Docs And
+                  Preview</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T00:59-04:00">2026-10-02 00:59</time></ui-date> P5 added: Goals
+                  Migration</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T00:59-04:00">2026-10-02 00:59</time></ui-date> P6 added: App
+                  Router</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T00:59-04:00">2026-10-02 00:59</time></ui-date> P7 added: Spell
+                  Serve</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T00:59-04:00">2026-10-02 00:59</time></ui-date> P8 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:01-04:00">2026-10-02 01:01</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:08-04:00">2026-10-02 01:08</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:08-04:00">2026-10-02 01:08</time></ui-date> P1 done:
+                  packages/server scaffold + library core, 46 tests</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:09-04:00">2026-10-02 01:09</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:15-04:00">2026-10-02 01:15</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:15-04:00">2026-10-02 01:15</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:20-04:00">2026-10-02 01:20</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:20-04:00">2026-10-02 01:20</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:35-04:00">2026-10-02 01:35</time></ui-date> P4: docs, plans,
+                  goals and Spell UI served by the page server, site header on every page</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:35-04:00">2026-10-02 01:35</time></ui-date> P4: docs, plans,
+                  goals and Spell UI served by the page server; site header on every page</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:36-04:00">2026-10-02 01:36</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:37-04:00">2026-10-02 01:37</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:44-04:00">2026-10-02 01:44</time></ui-date> P5
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:44-04:00">2026-10-02 01:44</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:47-04:00">2026-10-02 01:47</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:47-04:00">2026-10-02 01:47</time></ui-date> T2 closed: Delete
+                  app ts.zip if stale</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:48-04:00">2026-10-02 01:48</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:50-04:00">2026-10-02 01:50</time></ui-date> P7
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:51-04:00">2026-10-02 01:51</time></ui-date> P8
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:51-04:00">2026-10-02 01:51</time></ui-date> I1 closed: P4:
+                  header is 45px, not 44</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:51-04:00">2026-10-02 01:51</time></ui-date> T1 closed: Adopt
+                  SRV.FileLock everywhere</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:51-04:00">2026-10-02 01:51</time></ui-date> C1 closed: tsx
+                  slows each goals call</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:59-04:00">2026-10-02 01:59</time></ui-date> P8
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:16-04:00">2026-10-02 07:16</time></ui-date> I2 closed: macOS
+                  fs.watch reports the watched folder itself</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:16-04:00">2026-10-02 07:16</time></ui-date> I3 closed: tsx
+                  keepNames broke the stringified live client</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:16-04:00">2026-10-02 07:16</time></ui-date> I4 closed: astro
+                  dev exited at once</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:17-04:00">2026-10-02 07:17</time></ui-date> I5 closed: goals
+                  buttons hung</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:17-04:00">2026-10-02 07:17</time></ui-date> I6 closed: Express
+                  :filePath* kept only the first segment</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:17-04:00">2026-10-02 07:17</time></ui-date> T18 closed:
+                  Rebuild the extension from main</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:17-04:00">2026-10-02 07:17</time></ui-date> Bedtime run done:
+                  P1-P8 merged into main (8818db63); morning notes folded in</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>

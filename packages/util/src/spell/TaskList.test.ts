@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 import { Task, TaskList } from "$/util"
 
 describe("TaskList.forEach", () => {

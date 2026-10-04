@@ -44,7 +44,7 @@ Each package has its own README or `AGENTS.md` (how it's built).  Imports use on
 
 ## Getting started
 
-You need Node 22.17 or later.  Yarn 4.18 comes with the repo (`.yarn/releases/`), so any `yarn` runs the right one.
+You need Node 24.11 or later.  Yarn 4.18 comes with the repo (`.yarn/releases/`), so any `yarn` runs the right one.
 
 ```sh
 git clone https://github.com/spell-app/spell-app.git
