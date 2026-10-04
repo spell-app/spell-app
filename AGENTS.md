@@ -46,9 +46,13 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `packages/server/` (`@spell-app/server`, `$/server`, `SRV`) -- serving pages locally:  static folders, an
     Express-shaped router, live reload, ports, openers, a file lock, and the ONE page server per checkout
     (`yarn server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
+  - `packages/brand/` (`@spell-app/brand`) -- Spell's brand:  Claude Design's pages and tokens (never edited), their
+    Spell UI copies (`*.spell.html`), and the `<ui-brand-*>` elements those need.  The site header's Brand tab.
+    See `packages/brand/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:
   `docs` -> anything (its experiments import any package;  nothing imports `docs`),
-  `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
+  `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`,
+  `brand` -> `ui` / `server`, and
   `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
   `@spell-app/ui` lives on its own.
   - `server` is a LEAF (node built-ins only, imports no package):  ANY package may import it, `ui`'s tools too.

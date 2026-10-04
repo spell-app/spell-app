@@ -1,0 +1,1835 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epic: Design System</title>
+    <meta name="description" content="Plan doc:  Design System." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="design-system">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Design System</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Epic: Design System</h1>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p2"
+                >next: P2 · Theme &amp; Bundle</ui-label
+              ></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch"
+            >Plan doc for <code>/epic design-system</code>, branch <code>design-system</code></ui-item
+          >
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/design-system</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-04</time>, updated
+            <time id="plan-updated">2026-10-04</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            Rebuild every Claude Design brand page in
+            <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> with Spell UI elements
+            and a new <code>spell-brand</code> theme, under a new Brand tab, until each copy looks like its original;
+            the new elements (a property panel, a fuller form field, color chips, pickers and ranges) start as
+            <code>&lt;ui-brand-*&gt;</code> in
+            <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
+            >. Then restyle the docs pages and templates in the same look, and list what the theme still can't do.
+          </p>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled>
+            <ui-title>Kickoff prompt</ui-title>
+            <ui-content
+              ><blockquote class="plan-prompt">
+                <p>
+                  I had Claude Design create brand files and mockups, they are in `packages/brand`<br />- ingest those
+                  to understand what's there<br />- make the `brand` pages show with the page server, in a `Brand` tab
+                  between "Spell UI" and "App"<br />- make copies of all of the pages with spell ui -- e.g. `Brand
+                  Montage.dc.html` becomes `Brand Montage.spell.html`. <br />- Make a new "spell brand" theme and
+                  upddate it to make these pages converge as much as possible. Note anything that we can't do with the
+                  current spell/ui theme.<br />- You can add extra solid web components to do this, call them
+                  `&lt;ui-brand-xxx&gt;` in `packages/brand/components` for now (we'll merge some back into spell/ui
+                  soon).<br />- I specifically want a few generic components from this:<br />
+                  - &lt;ui-panel&gt; like the color set chooser example -- like a &lt;ui-segment&gt; but tuned for
+                  property panels. Header/subheader/padding like the example.<br />- &lt;ui-field&gt; for wrapping a
+                  form component, label, buttons, errors. Not sure how this relates to current `&lt;ui-field&gt;` from
+                  fomantic. Make an analysis.<br />- `&lt;ui-color&gt;` for a color chip, &lt;ui-color-picker&gt;,
+                  &lt;ui-color-set&gt;, &lt;ui-color-range&gt; (like in color palette example
+                </p>
+                <p>
+                  Overall goals:<br />- start building with this aesthetic with the UI components quickly.<br />- re-do
+                  doc templates/etc using this aesthetic<br />- use the spell/UI widgets in Claude Design (may require
+                  publishing to npm, which is fine)
+                </p>
+              </blockquote></ui-content
+            >
+          </ui-accordion>
+          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 33h-44h left</p>
+          <ui-section id="o1" header="1.1 What Claude Design made" sticky collapsible dividing>
+            <p>
+              <a href="../../../brand/spell-design-system/" target="src-packages-brand-spell-design-system"
+                ><code>packages/brand/spell-design-system/</code></a
+              >
+              is Claude Design's output: 13 pages, a token set, and logo assets. The pages are NOT plain HTML.
+            </p>
+            <ul>
+              <li>
+                Each <code>*.dc.html</code> page is a <code>&lt;x-dc&gt;</code> template that Claude Design's own
+                runtime (<code>support.js</code>, 69 KB, generated) compiles into React at load time.
+                <ul>
+                  <li>
+                    Templating: <code>{{ value }}</code>, <code>&lt;sc-if&gt;</code>, <code>&lt;sc-for&gt;</code>, and
+                    <code>style-hover="..."</code> for hover styles.
+                  </li>
+                  <li>State and handlers live in a <code>&lt;script type="text/x-dc"&gt;</code> class.</li>
+                  <li>React and Font Awesome come from CDNs, so the pages need the internet.</li>
+                  <li>
+                    Four pages also fetch local files (<code>lib/palette.mjs</code>,
+                    <a href="../../../../readme.md" target="src-readme-md"><code>readme.md</code></a
+                    >), so they need a server: they don't work from <code>file://</code>.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Nearly everything is inline <code>style="..."</code>. The <code>sp-*</code> classes in
+                <code>components/components.css</code> (and the 28 thin React wrappers over them in
+                <code>components/*/</code>) are used only by the small specimen cards, never by the 13 pages.
+              </li>
+              <li>
+                The tokens (<code>tokens/*.css</code>): 17-step OKLCH color ladders for 20 color sets, semantic light
+                and dark tokens (<code>--surface-card</code>, <code>--text-strong</code>, <code>--accent</code>), type,
+                a 4px spacing grid, radii, shadows and motion.
+              </li>
+            </ul>
+            <p>The 13 pages, in three kinds:</p>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>Kind</th>
+                    <th>Page</th>
+                    <th>What it is</th>
+                    <th>Hard to rebuild</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td rowspan="3">Product mockups</td>
+                    <td>Spell App</td>
+                    <td>
+                      The builder: sidebar, Build screen with spell composer, build checklist, phone preview; Your Apps,
+                      Templates, Settings
+                    </td>
+                    <td>the "casting" checklist animation</td>
+                  </tr>
+                  <tr>
+                    <td>Spell Docs</td>
+                    <td>
+                      A docs site: three columns, tip callout, numbered steps, Spell / Compiled example tabs, prev /
+                      next
+                    </td>
+                    <td>—</td>
+                  </tr>
+                  <tr>
+                    <td>Spell Marketing</td>
+                    <td>
+                      Public site: hero with "try a spell", how it works, Spell vs Compiled, aubergine call to action
+                    </td>
+                    <td>—</td>
+                  </tr>
+                  <tr>
+                    <td rowspan="4">Tools</td>
+                    <td>Color Palette</td>
+                    <td>20 color sets × 17 steps of chips; click to copy</td>
+                    <td>—</td>
+                  </tr>
+                  <tr>
+                    <td>Color Set Chooser</td>
+                    <td>An inspector panel that makes a color ladder from one base color, with live preview and CSS</td>
+                    <td>the OKLCH color plane on a <code>&lt;canvas&gt;</code>; collapse animations</td>
+                  </tr>
+                  <tr>
+                    <td>Theme Creator</td>
+                    <td>
+                      Picks primary, secondary, accent and neutral sets, type and shape; emits a Spell UI theme sheet
+                    </td>
+                    <td>—</td>
+                  </tr>
+                  <tr>
+                    <td>Brand Palette</td>
+                    <td>Four candidate purples, side by side, with contrast labels</td>
+                    <td>colors computed from OKLCH math</td>
+                  </tr>
+                  <tr>
+                    <td rowspan="6">Brand</td>
+                    <td>Design System</td>
+                    <td>The index: a card per page, with a live, scaled-down thumbnail</td>
+                    <td>scaled <code>&lt;iframe&gt;</code> thumbnails</td>
+                  </tr>
+                  <tr>
+                    <td>Design Guide</td>
+                    <td>The readme, rendered, with a table of contents</td>
+                    <td>needs a markdown renderer</td>
+                  </tr>
+                  <tr>
+                    <td>Logo</td>
+                    <td>Lockups, the hat mark, app icons, do's and don'ts</td>
+                    <td>—</td>
+                  </tr>
+                  <tr>
+                    <td>Logo Explorations</td>
+                    <td>Earlier logo rounds, as images</td>
+                    <td>—</td>
+                  </tr>
+                  <tr>
+                    <td>Flourishes</td>
+                    <td>Generated swoops and blobs (<code>&lt;spell-flourish&gt;</code>, plain JS)</td>
+                    <td>procedural SVG (reusable as-is)</td>
+                  </tr>
+                  <tr>
+                    <td>Brand Montage</td>
+                    <td>A fixed 1600 × 1600 board: lockup, light and dark app frames, palette, tiles</td>
+                    <td>hand-drawn SVG blobs; scale-to-fit</td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+            <p>
+              Smaller pieces: <code>guidelines/*.html</code> (23 static specimen cards), <code>pages/</code> and
+              <code>ui_kits/</code> (wrappers that only <code>&lt;iframe&gt;</code> the top-level pages), and
+              <a href="../../../brand/leonardo/" target="src-packages-brand-leonardo"
+                ><code>packages/brand/leonardo/</code></a
+              >
+              (the original reference images). The plan rebuilds only the 13 top-level pages.
+            </p>
+          </ui-section>
+
+          <ui-section id="o2" header="1.2 Spell UI already has a spell theme" sticky collapsible dividing>
+            <p>
+              The most important finding:
+              <a href="../../../ui/src/styles/themes/spell.css" target="src-packages-ui-src-styles-themes-spell-css"
+                ><code>packages/ui/src/styles/themes/spell.css</code></a
+              >
+              (544 lines) was built FROM these same brand files, and it is already the look of the Spell UI docs and of
+              every <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> page. It already has:
+            </p>
+            <ul>
+              <li>
+                the purple and aubergine palette, with House of Owen grey-blue as the neutral and Polished Ivory as the
+                accent
+              </li>
+              <li>Palatino headings, system sans body, system mono code</li>
+              <li>pill buttons, 12px inputs, 16px cards, round checkboxes</li>
+              <li>soft violet-tinted shadows; an aubergine dark mode</li>
+              <li>a 3px focus ring and buttons that press to 97%</li>
+            </ul>
+            <p>
+              So the new theme, <code>spell-brand.css</code>, starts as a full copy of this one, and the convergence
+              work changes only the copy (<a href="#d1">D1</a>). Docs pages stay on <code>spell</code> until the Docs
+              Restyle phase (<a href="#p9">P9</a>) moves them over.
+            </p>
+          </ui-section>
+
+          <ui-section id="o3" header="1.3 The Brand tab" sticky collapsible dividing>
+            <p>
+              The page server already serves
+              <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> (it serves the whole
+              repo at <code>/</code>); a Brand tab is configuration plus an index page.
+            </p>
+            <ul>
+              <li>
+                Tab: one new entry in <code>PROPERTIES</code> (<a
+                  href="../../../server/src/site/site.types.ts"
+                  target="src-packages-server-src-site-site-types-ts"
+                  ><code>packages/server/src/site/site.types.ts</code></a
+                >), between Spell UI and App, matching any path under <code>/packages/brand/</code>. The header is
+                compiled into two bundles, so both get rebuilt.
+              </li>
+              <li>
+                Live reload: add <code>"packages/brand"</code> to the root
+                <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                >'s <code>pageServer.watch</code>.
+              </li>
+              <li>
+                Landing page: a new
+                <a href="../../../brand/index.html" target="src-packages-brand-index-html"
+                  ><code>packages/brand/index.html</code></a
+                >, one row per page with three links: the original (<code>.dc.html</code>), the copy
+                (<code>.spell.html</code>), and a COMPARE view that shows both side by side, so convergence can be
+                judged at a glance.
+              </li>
+              <li>File names with spaces work (<code>Brand%20Montage.spell.html</code>).</li>
+              <li>
+                The original <code>.dc.html</code> pages get no site header (they're Claude Design's, and we leave them
+                untouched); only the <code>.spell.html</code> copies and the index carry it.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o4" header="1.4 What the theme can't do today" sticky collapsible dividing>
+            <p>
+              The brand asks for things that Spell UI's tokens (the <code>--ui-*</code> CSS variables a theme sets)
+              don't reach. Each one is either a theme override rule, a new token in
+              <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a
+              >, or accepted as a gap. Known so far:
+            </p>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>Brand wants</th>
+                    <th>Why the theme can't</th>
+                    <th>Likely fix</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>White default button with a hairline border</td>
+                    <td>buttons have no border or border-color token</td>
+                    <td>add <code>--ui-button-border-*</code> tokens</td>
+                  </tr>
+                  <tr>
+                    <td>3px soft focus halo on inputs</td>
+                    <td><code>ui-input</code> shows focus only as a border color; no ring or shadow token</td>
+                    <td>add <code>--ui-input-focus-shadow</code></td>
+                  </tr>
+                  <tr>
+                    <td>Serif ONLY for real headings</td>
+                    <td>
+                      Fomantic uses the heading font for card, list, step, accordion and section titles too; one shared
+                      font token
+                    </td>
+                    <td>per-family title font tokens, or theme override rules</td>
+                  </tr>
+                  <tr>
+                    <td>Mono uppercase eyebrow titles on panels</td>
+                    <td>
+                      <code>ui-section</code>'s title font is fixed to the heading font; no
+                      <code>text-transform</code> token
+                    </td>
+                    <td>title font and transform tokens</td>
+                  </tr>
+                  <tr>
+                    <td>One control height (36px) for buttons, inputs, selects</td>
+                    <td>each family's height falls out of its own padding × line height</td>
+                    <td>a shared <code>--ui-control-height</code></td>
+                  </tr>
+                  <tr>
+                    <td>Press to 97% on everything pressable</td>
+                    <td>only buttons, through a theme override</td>
+                    <td>a press-scale token</td>
+                  </tr>
+                  <tr>
+                    <td>Blurred modal backdrop; springy switch knob</td>
+                    <td>no token</td>
+                    <td>small tokens</td>
+                  </tr>
+                  <tr>
+                    <td>Square color chips</td>
+                    <td>no such element</td>
+                    <td><code>&lt;ui-brand-color&gt;</code> (<a href="#o7">1.7</a>)</td>
+                  </tr>
+                  <tr>
+                    <td>Lavender blobs, flourish lines, sparkles</td>
+                    <td>page art, not theme</td>
+                    <td><code>&lt;ui-brand-*&gt;</code> elements</td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+            <p>The convergence work adds to this table: every gap found while rebuilding a page goes here.</p>
+          </ui-section>
+
+          <ui-section id="o5" sticky collapsible dividing>
+            <span slot="header">1.5 <code>&lt;ui-field&gt;</code> and <code>&lt;ui-brand-field&gt;</code></span>
+            <p>
+              You asked for an analysis. Today's <code>&lt;ui-field&gt;</code> is Fomantic's <code>.field</code>: a
+              block with a label above a control, that <code>&lt;ui-form&gt;</code> finds and puts error messages into.
+            </p>
+            <ul>
+              <li>
+                It renders <code>&lt;div class="field"&gt;&lt;slot&gt;&lt;/slot&gt;</code> plus an error "prompt" label
+                that appears when <code>&lt;ui-form&gt;</code> calls <code>showErrors()</code>.
+              </li>
+              <li>
+                Attributes: <code>state</code> (error, info, success, warning), <code>inline</code>,
+                <code>required</code> (an asterisk), <code>disabled</code>, <code>width</code>.
+              </li>
+              <li>No <code>label</code> attribute: you write the <code>&lt;label&gt;</code> yourself.</li>
+              <li>No place for help text, buttons, a value readout or an info tooltip.</li>
+            </ul>
+            <p>What the brand's inspector field (the Color Set Chooser's "Vibrancy" row) needs:</p>
+            <ui-accordion class="spell-code" styled open="0"
+              ><ui-title>The field we want · 8 lines</ui-title
+              ><ui-content>
+                <pre><code class="language-html">&lt;ui-brand-field label="Vibrancy" value="100%" info="How saturated the middle steps are."&gt;
+  &lt;ui-button slot="actions" size="mini" circular icon="rotate left"&gt;Reset&lt;/ui-button&gt;
+  &lt;ui-slider min="0" max="200" step="20" ticked&gt;&lt;/ui-slider&gt;
+  &lt;span slot="help"&gt;Above 100% can leave the sRGB gamut.&lt;/span&gt;
+&lt;/ui-brand-field&gt;
+&lt;!-- draws:  Vibrancy ............ [Reset] 100% (i)
+               ===========o==================
+               Above 100% can leave the sRGB gamut. --&gt;</code></pre>
+              </ui-content></ui-accordion
+            >
+            <p>
+              Every one of these could have been added to <code>&lt;ui-field&gt;</code> without breaking old markup. You
+              chose a NEW element instead, <code>&lt;ui-brand-field&gt;</code>, and to leave
+              <code>&lt;ui-field&gt;</code> as Fomantic's (<a href="#d3">D3</a>).
+            </p>
+            <ul>
+              <li>
+                <code>&lt;ui-brand-field&gt;</code> also answers to <code>&lt;ui-form&gt;</code> the way
+                <code>&lt;ui-field&gt;</code> does (<code>:state(field)</code> and <code>showErrors()</code>), so form
+                validation errors show in it.
+              </li>
+              <li>
+                Whether the two merge is for the follow-up epic that moves the brand elements into Spell UI (<a
+                  href="#t2"
+                  >T2</a
+                >).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o6" sticky collapsible dividing>
+            <span slot="header">1.6 <code>&lt;ui-brand-panel&gt;</code></span>
+            <p>
+              A property panel, like the Color Set Chooser's left column: a tinted box with a full-width header band,
+              collapsible sub-heads, and tight 16px padding.
+            </p>
+            <ul>
+              <li>
+                <code>&lt;ui-section&gt;</code> already has about 80% of it: a header, a subhead, collapsing with
+                animation, actions, a badge, nesting.
+              </li>
+              <li>
+                So <code>&lt;ui-brand-panel&gt;</code> is a thin element on the same machinery (<a href="#d9">D9</a>):
+                the outer panel is the box and header band, and each nested panel is a sub-head band.
+              </li>
+              <li>
+                It lives in <code>packages/brand/components</code> for now, like every new element (<a href="#d2">D2</a
+                >).
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0"
+              ><ui-title>Sketch · 10 lines</ui-title
+              ><ui-content>
+                <pre><code class="language-html">&lt;ui-brand-panel header="Color Set" collapsible&gt;
+  &lt;ui-input placeholder="Name, e.g. brand"&gt;&lt;/ui-input&gt;
+  &lt;ui-brand-panel header="Tweak" collapsible&gt;
+    &lt;ui-brand-field label="Vibrancy" value="100%"&gt;...&lt;/ui-brand-field&gt;
+  &lt;/ui-brand-panel&gt;
+  &lt;ui-brand-panel header="Presets" collapsible collapsed&gt;
+    &lt;ui-brand-color-set&gt;...&lt;/ui-brand-color-set&gt;
+  &lt;/ui-brand-panel&gt;
+&lt;/ui-brand-panel&gt;</code></pre>
+              </ui-content></ui-accordion
+            >
+          </ui-section>
+
+          <ui-section id="o7" header="1.7 Color elements" sticky collapsible dividing>
+            <p>
+              Four new elements, from the Color Palette and Color Set Chooser pages, in
+              <code>packages/brand/components</code> for now (<a href="#d2">D2</a>):
+            </p>
+            <ul>
+              <li>
+                <code>&lt;ui-brand-color value="#6550CA"&gt;</code>: a square chip. Optional label (hex, OKLCH, or a
+                name), "AA" when text on it passes contrast, click to copy, a popover with its values.
+              </li>
+              <li>
+                <code>&lt;ui-brand-color-set&gt;</code>: a row or grid of chips that you pick one from (the Chooser's
+                presets, Theme Creator's set pickers), or a whole 17-step ladder (the Palette's rows).
+              </li>
+              <li>
+                <code>&lt;ui-brand-color-picker&gt;</code>: the Chooser's popover: a lightness × colourfulness square
+                drawn on a canvas, a hue slider whose track is a rainbow, and hex / OKLCH inputs.
+              </li>
+              <li>
+                <code>&lt;ui-brand-color-range&gt;</code>: a ladder made from one base color (the Chooser's "variants"),
+                using the brand's <code>generateScale()</code> math from <code>lib/palette.mjs</code>, ported to
+                TypeScript.
+              </li>
+            </ul>
+            <p>
+              "OKLCH" is a way to write a color as Lightness, Chroma (colourfulness) and Hue that matches what eyes see:
+              two colors with the same L look equally light. The brand generates every ladder in it.
+            </p>
+          </ui-section>
+
+          <ui-section id="o8" header="1.8 Bundles and Claude Design" sticky collapsible dividing>
+            <p>
+              A <code>.spell.html</code> page needs one script with Spell UI, the brand theme and the new elements (<a
+                href="#d7"
+                >D7</a
+              >). The same script, published, is how Claude Design could use our widgets: that's a follow-up epic (<a
+                href="#d4"
+                >D4</a
+              >, <a href="#t1">T1</a>), not this one.
+            </p>
+            <ul>
+              <li>
+                Docs pages load
+                <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                  ><code>packages/docs/_assets/spell-ui.js</code></a
+                >: one classic script with everything, works from <code>file://</code>. But it also carries the docs
+                page runtime (contents sidebar, rail), and can't compile new Solid elements.
+              </li>
+              <li>
+                So the brand pages get their own bundle, <code>packages/brand/_assets/brand-ui.js</code>, built with
+                Spell UI's own Vite setup (it compiles Solid JSX and our decorators).
+              </li>
+              <li>
+                Claude Design builds static HTML that can load scripts from public CDNs (jsDelivr, unpkg). Once
+                <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> is on
+                npm, the brand bundle (or a twin of it) is a single
+                <code>&lt;script src="https://cdn.jsdelivr.net/npm/@spell-app/ui/..."&gt;</code> line.
+                <ul>
+                  <li>
+                    Blocker:
+                    <a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
+                      ><code>@spell-app/solid-element</code></a
+                    >
+                    is <code>private</code>, so it must be published too, or bundled into ui.
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="1" total="10" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Brand Tab"
+            badge="1-2h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>a Brand tab in the page server's header, between Spell UI and App, lit on every brand page</li>
+                  <li>
+                    <a href="../../../brand/index.html" target="src-packages-brand-index-html"
+                      ><code>packages/brand/index.html</code></a
+                    >: every page with Original, Spell and Compare links
+                  </li>
+                  <li>Compare: the original and the Spell UI copy side by side, at the same width</li>
+                  <li>brand pages reload by themselves when their files change</li>
+                  <li>
+                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> is a workspace
+                    package, <code>@spell-app/brand</code> (<code>$/brand</code>), with its own
+                    <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a>
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    where to see it: the <b>Brand</b> tab in the site header (between Spell UI and App) lands on
+                    <a href="../../../brand/index.html" target="src-packages-brand-index-html"
+                      ><code>packages/brand/index.html</code></a
+                    >: 13 pages in three tables (mockups, tools, brand), each with Original, "not yet" and Compare
+                  </li>
+                  <li>
+                    Compare (<code>compare.html?page=...</code>): the original and its copy side by side or overlaid, at
+                    390 / 768 / 1280 / 1600 wide, scaled to fit, scroll kept in step; the view lives in the address (<a
+                      href="#j1"
+                      >J1</a
+                    >)
+                  </li>
+                  <li>
+                    brand pages reload by themselves:
+                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> is in
+                    <code>pageServer.watch</code> (checked: an edit to the index showed up in place)
+                  </li>
+                  <li>
+                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> is a
+                    workspace, <code>@spell-app/brand</code>, with
+                    <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                    >; the root <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> lists
+                    it, and the dependency direction <code>brand</code> -&gt; <code>ui</code> / <code>server</code>
+                  </li>
+                  <li>
+                    not yet tried by hand: scroll sync (no copy exists yet to scroll against); the
+                    <code>$/brand</code> alias waits for P2, when <code>packages/brand/src</code> exists
+                  </li>
+                  <li>
+                    both bundles with the header rebuilt (<a
+                      href="../../_assets/spell-ui.js"
+                      target="src-packages-docs-assets-spell-ui-js"
+                      ><code>spell-ui.js</code></a
+                    >, the Spell UI site's <code>site.js</code>); server tests and types pass; no console errors on the
+                    index, Compare, the docs index or <code>/ui/</code>
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../../server/src/site/site.types.ts" target="src-packages-server-src-site-site-types-ts"
+                  ><code>packages/server/src/site/site.types.ts</code></a
+                >
+                (<code>PROPERTIES</code>); root
+                <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a>
+                (<code>pageServer.watch</code>, workspaces);
+                <code>packages/brand/{package.json,AGENTS.md,CLAUDE.md,index.html,compare.html}</code>;
+                <a href="../../../../tsconfig.base.json" target="src-tsconfig-base-json"
+                  ><code>tsconfig.base.json</code></a
+                >
+                (<code>$/brand</code>); root
+                <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> (package list,
+                dependency direction); rebuilt
+                <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                  ><code>packages/docs/_assets/spell-ui.js</code></a
+                >
+                and
+                <a href="../../../ui/site/_assets/site.js" target="src-packages-ui-site-assets-site-js"
+                  ><code>packages/ui/site/_assets/site.js</code></a
+                ></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> the page server shows the tab, lit on brand pages; index and Compare render (Playwright
+                screenshots); an edit to a brand page reloads it</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j1">J1</a>, <a href="#j2">J2</a>, <a href="#j3">J3</a></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="todo"
+            header="P2 · Theme & Bundle"
+            badge="3-4h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    a <code>spell-brand</code> theme: a full copy of <code>spell</code>, with a first pass against the
+                    brand's <code>tokens/theme.css</code>
+                  </li>
+                  <li>
+                    <code>packages/brand/_assets/brand-ui.js</code>: the one script a brand page loads (Solid, Spell UI,
+                    the brand elements, the site header, the theme)
+                  </li>
+                  <li>
+                    <code>yarn brand:compare</code>: screenshots each original / copy pair, side by side, with how far
+                    apart they are (a diff %)
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <code>packages/ui/src/styles/themes/spell-brand.css</code>;
+                <code>packages/brand/vite.config.ts</code>; <code>packages/brand/src/brand-ui.entry.ts</code>;
+                <code>packages/brand/scripts/compare.ts</code>; yarn scripts <code>brand:build</code>,
+                <code>brand:compare</code> (+ <code>commands.json</code>, <code>yarn commands:check</code>)</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>yarn brand:build</code> bundles one Solid; a smoke
+                <code>.spell.html</code> renders themed <code>&lt;ui-*&gt;</code> from the page server;
+                <code>brand:compare</code> writes its images</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p3"
+            data-phase="3"
+            data-status="todo"
+            header="P3 · Panel & Field"
+            badge="3-4h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    <code>&lt;ui-brand-panel&gt;</code>: the Color Set Chooser's inspector box: tinted, a full-width
+                    header band, collapsible sub-head bands, 16px padding
+                  </li>
+                  <li>
+                    <code>&lt;ui-brand-field&gt;</code>: a label, a value readout, action buttons, an info tooltip, help
+                    and error text around one control; <code>&lt;ui-form&gt;</code> validation finds it
+                  </li>
+                  <li>a specimen page showing both, light and dark</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <code>packages/brand/components/ui-brand-panel/*</code>,
+                <code>.../ui-brand-field/*</code> (tsx, css, vocabulary, tests);
+                <code>packages/brand/vitest.config.ts</code>;
+                <code>packages/brand/components/components.spell.html</code></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> vitest: render, collapse, slots, <code>showErrors()</code>, form validation; the
+                specimen page by eye</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p4"
+            data-phase="4"
+            data-status="todo"
+            header="P4 · Color Elements"
+            badge="5-7h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    <code>&lt;ui-brand-color&gt;</code>: a square chip; label (hex, OKLCH, name), "AA" when text on it
+                    passes contrast, click to copy, a popover with its values
+                  </li>
+                  <li><code>&lt;ui-brand-color-set&gt;</code>: chips to pick one from, or one ladder row</li>
+                  <li><code>&lt;ui-brand-color-range&gt;</code>: a 17-step ladder from one base color</li>
+                  <li>
+                    <code>&lt;ui-brand-color-picker&gt;</code>: the lightness × colourfulness square, a rainbow hue
+                    slider, hex and OKLCH inputs
+                  </li>
+                  <li>the brand's color math (<code>lib/palette.mjs</code>) in TypeScript</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <code>packages/brand/src/palette.ts</code> (+ test against
+                <code>lib/palette.json</code>); <code>packages/brand/components/ui-brand-color*/*</code></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> the TypeScript palette reproduces <code>palette.json</code> exactly; element tests; the
+                specimen page</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p5"
+            data-phase="5"
+            data-status="todo"
+            header="P5 · Tool Pages"
+            badge="4-5h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    Color Palette, Color Set Chooser, Theme Creator and Brand Palette as working
+                    <code>.spell.html</code> copies
+                  </li>
+                  <li>Theme Creator writes a real Spell UI theme sheet you can drop into <code>themes/</code></li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <code>packages/brand/spell-design-system/&lt;Name&gt;.spell.html</code> × 4</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>brand:compare</code> per pair; every interaction clicked through in a
+                browser</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p6"
+            data-phase="6"
+            data-status="todo"
+            header="P6 · Brand Pages"
+            badge="3-4h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    Design System (the index, with thumbnails), Design Guide, Logo, Logo Explorations, Flourishes and
+                    Brand Montage as <code>.spell.html</code> copies
+                  </li>
+                  <li>
+                    page-art elements: <code>&lt;ui-brand-flourish&gt;</code>, <code>&lt;ui-brand-logo&gt;</code>,
+                    <code>&lt;ui-brand-blob&gt;</code>
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> 6 <code>.spell.html</code> pages;
+                <code>packages/brand/components/ui-brand-{flourish,logo,blob}/*</code></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>brand:compare</code>; by eye, light and dark</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p7"
+            data-phase="7"
+            data-status="todo"
+            header="P7 · Mockup Pages"
+            badge="5-6h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    Spell App, Spell Docs and Spell Marketing as <code>.spell.html</code> copies, as interactive as the
+                    originals (casting, tabs, light / dark)
+                  </li>
+                  <li>
+                    elements: <code>&lt;ui-brand-checklist&gt;</code> (the build progress list),
+                    <code>&lt;ui-brand-composer&gt;</code> (the serif spell input), <code>&lt;ui-brand-phone&gt;</code>
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> 3 <code>.spell.html</code> pages;
+                <code>packages/brand/components/ui-brand-{checklist,composer,phone}/*</code></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>brand:compare</code>; click through each page</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p8"
+            data-phase="8"
+            data-status="todo"
+            header="P8 · Convergence"
+            badge="3-4h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>every copy as close to its original as the theme allows</li>
+                  <li>
+                    every gap left listed in the Overview's "What the theme can't do" table, each with an issue and the
+                    Spell UI change it needs
+                  </li>
+                  <li>each page's diff % recorded in this doc</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> <code>spell-brand.css</code>; brand components; this plan doc</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>brand:compare</code> numbers before and after; Owen looks at the Compare
+                views</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p9"
+            data-phase="9"
+            data-status="todo"
+            header="P9 · Docs Restyle"
+            badge="6-8h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    docs pages in the brand look, on <code>spell-brand</code>: mono eyebrows, serif headings with italic
+                    ledes, ivory asides, tinted panels, an aubergine dark mode
+                  </li>
+                  <li>
+                    every kind: durable, cheatsheet, commands, plan docs, details, goals, the changelog and the index
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <code>packages/docs/_assets/{spell-ui.entry.js,spell-doc.css,plan-doc.css,details.css,goals.css}</code>;
+                <code>packages/docs/templates/*</code>; rebuilt
+                <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                  ><code>spell-ui.js</code></a
+                ></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>yarn docs:update</code> (check-spell on every page) passes; its screenshots looked
+                at; <code>node scripts/check-live.js</code></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p10"
+            data-phase="10"
+            data-status="todo"
+            header="P10 · Doc Review"
+            badge="1-2h"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>this doc pruned and true to what was built</li>
+                  <li>a durable doc, <code>packages/docs/design-system/design-system.html</code></li>
+                  <li>the changelog entry; follow-up epics as todos</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> this plan doc; <code>packages/docs/design-system/design-system.html</code>;
+                <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                  ><code>packages/docs/changelog.html</code></a
+                ></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>yarn plan-doc check design-system</code>; the durable doc's finishing
+                steps</ui-item
+              ></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section
+          id="decisions"
+          header="3. Questions & Decisions"
+          sticky
+          collapsible
+          dividing
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, don't re-argue without new facts. An answered question sits just above its decision."
+        >
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="q1" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a>
+                  <span class="plan-title">New spell-brand theme, or converge the existing spell theme?</span>
+                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                ><ui-content
+                  ><p>
+                    You asked for a new "spell brand" theme. But Spell UI's <code>spell</code> theme (<a href="#o2"
+                      >1.2</a
+                    >) was already built from these brand files, and it's the look of every docs page. A brand-new theme
+                    would start as a copy of it. Which file does the convergence work change?
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A. Thin overlay on spell (recommended)</ui-label>
+                        <p>
+                          A new <code>themes/spell-brand.css</code> holding ONLY what differs from <code>spell</code>,
+                          applied on top of it (<code>ThemeSheets.apply("spell-brand")</code> loads classic, then spell,
+                          then the overlay).
+                        </p>
+                        <p>
+                          Why recommended: the overlay IS the list of changes, easy to review; docs pages don't shift
+                          while we experiment; folding it into <code>spell</code> at the end is a paste.
+                        </p>
+                        <p>Cost: a small change so a theme can name the theme it builds on.</p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Full copy</ui-label>
+                        <p>
+                          <code>themes/spell-brand.css</code> as a full copy of <code>spell.css</code> (544 lines), then
+                          edited.
+                        </p>
+                        <p>Cost: two near-identical sheets drift apart; hard to see what changed.</p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Edit spell itself</ui-label>
+                        <p>No new theme: converge <code>spell.css</code> directly.</p>
+                        <p>
+                          Cost: every docs page and the Spell UI site change look while we work, before you've judged
+                          the result.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p><b>Net effect (A):</b></p>
+                  <ul>
+                    <li>new <code>packages/ui/src/styles/themes/spell-brand.css</code>, only the differences</li>
+                    <li>themes can say which theme they build on</li>
+                    <li>docs pages keep today's <code>spell</code> look until you choose to fold the overlay in</li>
+                  </ul>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title"
+                    >B: spell-brand.css starts as a full copy of spell.css, then converges (<a href="#q1">Q1</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>Asked: a new spell-brand theme, or converge the existing spell theme?</p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      new <code>packages/ui/src/styles/themes/spell-brand.css</code>, a full copy of
+                      <code>spell.css</code> to start
+                    </li>
+                    <li>
+                      docs pages stay on <code>spell</code> until the Docs Restyle phase (<a href="#p9">P9</a>) moves
+                      them to <code>spell-brand</code>
+                    </li>
+                    <li>the two sheets can drift: folding them back together is a later call</li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q1">Q1</a>: New spell-brand theme, or converge the existing spell theme?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a>
+                  <span class="plan-title"
+                    >Where do the generic elements live: packages/ui, or packages/brand first?</span
+                  >
+                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                ><ui-content
+                  ><p>
+                    Where do the new GENERIC elements live: <code>&lt;ui-panel&gt;</code>, the extended
+                    <code>&lt;ui-field&gt;</code>, and the four color elements? Your prompt says
+                    <code>&lt;ui-brand-xxx&gt;</code> in <code>packages/brand/components</code> "for now", but also
+                    calls these generic, to merge back into Spell UI.
+                  </p>
+                  <p>
+                    An element written outside
+                    <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> loses: the
+                    <code>&lt;ui-root&gt;</code> lazy loading list, the Spell UI docs site page, the per-family test
+                    harness (<code>$/ui/test/*</code> is internal), and the vocabulary checks.
+                    <code>&lt;ui-field&gt;</code> can't move anyway: it's an existing ui element.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A. Generic in ui, brand-only in brand (recommended)</ui-label>
+                        <p>
+                          <code>&lt;ui-panel&gt;</code>, <code>&lt;ui-field&gt;</code> and
+                          <code>&lt;ui-color*&gt;</code> go straight into
+                          <a href="../../../ui/src/components/" target="src-packages-ui-src-components"
+                            ><code>packages/ui/src/components/</code></a
+                          >, with tests and a docs page. Page art that only the brand needs
+                          (<code>&lt;ui-brand-flourish&gt;</code>, <code>&lt;ui-brand-logo&gt;</code>,
+                          <code>&lt;ui-brand-checklist&gt;</code>, <code>&lt;ui-brand-composer&gt;</code> ...) goes in
+                          <code>packages/brand/components</code>.
+                        </p>
+                        <p>
+                          Why recommended: no merge step later, and the generic ones are tested like every other ui
+                          element from day one.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Everything in brand first</ui-label>
+                        <p>
+                          All new elements in <code>packages/brand/components</code> as
+                          <code>&lt;ui-brand-panel&gt;</code>, <code>&lt;ui-brand-color&gt;</code> ...; a later epic
+                          moves the good ones into ui and renames them.
+                        </p>
+                        <p>
+                          Cost: the move is a second pass of tests, docs and renames; the extended
+                          <code>&lt;ui-field&gt;</code> would have to be a new
+                          <code>&lt;ui-brand-field&gt;</code> beside the real one.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p><b>Net effect (A):</b></p>
+                  <ul>
+                    <li>
+                      5 new ui families (<code>ui-panel</code>, <code>ui-color</code>, <code>ui-color-set</code>,
+                      <code>ui-color-picker</code>, <code>ui-color-range</code>) and a bigger <code>ui-field</code>,
+                      each with tests and a Spell UI docs page
+                    </li>
+                    <li>
+                      <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> becomes a
+                      small workspace package (<code>@spell-app/brand</code>) holding only
+                      <code>&lt;ui-brand-*&gt;</code> page art and the pages
+                    </li>
+                  </ul>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title"
+                    >B: every new element in packages/brand/components as &lt;ui-brand-*&gt; first (<a href="#q2">Q2</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>Asked: where do the generic elements live?</p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <code>&lt;ui-brand-panel&gt;</code>, <code>&lt;ui-brand-field&gt;</code>,
+                      <code>&lt;ui-brand-color&gt;</code>, <code>-color-set</code>, <code>-color-picker</code>,
+                      <code>-color-range</code>, and the page-art elements, all in
+                      <code>packages/brand/components/</code>
+                    </li>
+                    <li>a later epic moves the good ones into Spell UI and drops the <code>brand-</code></li>
+                    <li>accepted cost: caveat <a href="#c1">C1</a></li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q2">Q2</a>: Where do the generic elements live: packages/ui, or packages/brand
+                    first?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title">Extend &lt;ui-field&gt;, or add a new field element?</span>
+                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                ><ui-content
+                  ><p>
+                    The analysis is in <a href="#o5">1.5</a>. In short: everything the brand's inspector field needs (a
+                    label, a value readout, action buttons, an info tooltip, help text, error text) can be ADDED to
+                    today's <code>&lt;ui-field&gt;</code> without breaking a field written the old way.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A. Extend &lt;ui-field&gt; (recommended)</ui-label>
+                        <p>
+                          New attributes <code>label</code>, <code>value</code>, <code>info</code>, <code>help</code>;
+                          new slots <code>label</code>, <code>actions</code>, <code>value</code>, <code>help</code>.
+                          Errors keep coming from <code>&lt;ui-form&gt;</code>'s <code>showErrors()</code>, and can also
+                          be set by hand (<code>error="..."</code>).
+                        </p>
+                        <p>
+                          Why recommended: one field element; old markup and form validation keep working; every form
+                          gets help text and actions.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. A new element</ui-label>
+                        <p>
+                          A separate <code>&lt;ui-property&gt;</code> (or <code>&lt;ui-panel-field&gt;</code>) for
+                          inspector rows; <code>&lt;ui-field&gt;</code> stays Fomantic's.
+                        </p>
+                        <p>
+                          Cost: two field-like elements to choose between; <code>&lt;ui-form&gt;</code> validation only
+                          finds one of them unless it learns both.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p><b>Net effect (A):</b></p>
+                  <ul>
+                    <li><code>&lt;ui-field&gt;</code> gains 4 attributes and 4 slots; existing pages unchanged</li>
+                    <li>its Spell UI docs page gets new examples (inspector row, help text, actions)</li>
+                  </ul>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title"
+                    >B: a new &lt;ui-brand-field&gt; element; &lt;ui-field&gt; stays Fomantic's (<a href="#q3">Q3</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>Asked: extend <code>&lt;ui-field&gt;</code>, or add a new field element?</p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <code>&lt;ui-brand-field&gt;</code>: attributes <code>label</code>, <code>value</code>,
+                      <code>info</code>, <code>help</code>, <code>error</code>; slots <code>label</code>,
+                      <code>actions</code>, <code>value</code>, <code>help</code>
+                    </li>
+                    <li>
+                      it also answers to <code>&lt;ui-form&gt;</code> the way <code>&lt;ui-field&gt;</code> does
+                      (<code>:state(field)</code>, <code>showErrors()</code>), so validation errors show in it
+                    </li>
+                    <li><code>&lt;ui-field&gt;</code> is unchanged</li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q3">Q3</a>: Extend &lt;ui-field&gt;, or add a new field element?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q4" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title"
+                    >How much of the overall goals (docs templates, Claude Design) is in this epic?</span
+                  >
+                  <a class="plan-answer" href="#d4">→ D4</a></ui-title
+                ><ui-content
+                  ><p>
+                    Your prompt ends with three overall goals. This epic clearly covers the first ("start building with
+                    this aesthetic"). How much of the other two goes in THIS epic?
+                  </p>
+                  <ul>
+                    <li>
+                      "Re-do doc templates using this aesthetic": the plan doc, durable, cheatsheet, details and goals
+                      templates, and
+                      <a href="../../_assets/spell-doc.css" target="src-packages-docs-assets-spell-doc-css"
+                        ><code>spell-doc.css</code></a
+                      >.
+                    </li>
+                    <li>
+                      "Use the Spell UI widgets in Claude Design": publish
+                      <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                      (and
+                      <a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
+                        ><code>@spell-app/solid-element</code></a
+                      >, which is <code>private</code> today) to npm, a CDN script, and a try-out in Claude Design.
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top"
+                          >A. Pages + theme + elements here; the rest next (recommended)</ui-label
+                        >
+                        <p>
+                          This epic ends with the Brand tab, the theme, the new elements and all 13 pages converged.
+                          Docs templates and npm / Claude Design are two follow-up epics, each started from this one's
+                          results.
+                        </p>
+                        <p>
+                          Why recommended: this epic is already about 30 hours; publishing is outward-facing and you'll
+                          want to see the elements first.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. A + the CDN bundle</ui-label>
+                        <p>
+                          Also make the publishable bundle and dry-run the npm publish (no real publish), and add a test
+                          page loading it the way Claude Design would.
+                        </p>
+                        <p>Cost: about +3h. The real publish waits for your go.</p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Everything</ui-label>
+                        <p>B, plus restyling every docs template.</p>
+                        <p>Cost: about +8-10h, and every docs page changes look in this branch.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p><b>Net effect (A):</b></p>
+                  <ul>
+                    <li>
+                      two todos left at the end: "docs templates in the brand look" and "publish Spell UI for Claude
+                      Design", each to become its own epic
+                    </li>
+                  </ul>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title"
+                    >Pages, theme, elements AND docs templates here; no CDN bundle or npm publish (<a href="#q4">Q4</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Asked: how much of the overall goals is in this epic? Answered "A&amp;C", then "no CDN bundle,
+                    everything else".
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      a Docs Restyle phase (<a href="#p9">P9</a>) moves the docs pages and templates to the brand look
+                    </li>
+                    <li>
+                      publishing to npm and trying the widgets in Claude Design: a follow-up epic (todo
+                      <a href="#t1">T1</a>)
+                    </li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q4">Q4</a>: How much of the overall goals (docs templates, Claude Design) is in
+                    this epic?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d5">D5</a>
+                  <span class="plan-title">spell-brand.css lives in packages/ui's themes folder</span></ui-title
+                ><ui-content
+                  ><p>
+                    Even though the elements start in
+                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
+                    >, the theme goes in
+                    <a href="../../../ui/src/styles/themes/" target="src-packages-ui-src-styles-themes"
+                      ><code>packages/ui/src/styles/themes/</code></a
+                    >. Why: that folder is the theme registry (it's read by a glob), so
+                    <code>ThemeSheets.apply("spell-brand")</code> and the Spell UI site's theme switcher work with no
+                    extra code.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>one new file in ui; no registry change</li>
+                    <li>the Spell UI docs site can show every component in the brand theme</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d6">D6</a>
+                  <span class="plan-title">packages/brand becomes a workspace package, @spell-app/brand</span></ui-title
+                ><ui-content
+                  ><p>
+                    It needs a build (Solid JSX, decorators) and tests, so it becomes a real package:
+                    <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                    >, <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                    >, the <code>$/brand</code> alias.
+                  </p>
+                  <ul>
+                    <li>
+                      It imports <code>$/ui</code> (the barrel and <code>$/ui/core</code>) and
+                      <code>$/server</code> (the site header).
+                    </li>
+                    <li>Nothing imports it, except possibly <code>docs</code> in the Docs Restyle phase.</li>
+                    <li>
+                      Claude Design's files stay where they are, in
+                      <a href="../../../brand/spell-design-system/" target="src-packages-brand-spell-design-system"
+                        ><code>packages/brand/spell-design-system/</code></a
+                      >.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>dependency direction: <code>brand</code> -&gt; <code>ui</code> / <code>server</code></li>
+                    <li>root <code>yarn ts</code> / <code>yarn test</code> cover it</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d7">D7</a>
+                  <span class="plan-title">Brand pages load one script, brand-ui.js</span></ui-title
+                ><ui-content
+                  ><p>
+                    Every <code>.spell.html</code> page loads <code>packages/brand/_assets/brand-ui.js</code>: Solid,
+                    Spell UI, the <code>&lt;ui-brand-*&gt;</code> elements, the site header and the
+                    <code>spell-brand</code> theme, in one classic script.
+                  </p>
+                  <ul>
+                    <li>
+                      Built by Vite with Spell UI's own <code>baseConfig()</code>, since the elements need Solid's JSX
+                      compiler and our decorators. The docs bundle's esbuild can't compile them.
+                    </li>
+                    <li>One copy of Solid, checked at build time, as the docs bundle does.</li>
+                    <li>
+                      Icons: Font Awesome 7 Free from jsDelivr, since a classic script can't load icon packs from disk.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <code>yarn brand:build</code>, and a committed <code>brand-ui.js</code> (like the docs'
+                      <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                        ><code>spell-ui.js</code></a
+                      >)
+                    </li>
+                    <li>brand pages need the internet for icons (caveat <a href="#c2">C2</a>)</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d8">D8</a>
+                  <span class="plan-title">The original .dc.html pages stay untouched</span></ui-title
+                ><ui-content
+                  ><p>
+                    Claude Design's pages are the reference: no site header, no edits. Only the
+                    <code>.spell.html</code> copies, the index and the Compare view carry the header.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      opening an original from the Brand index leaves the site (its own look, no tab bar); the browser's
+                      Back returns
+                    </li>
+                    <li>Claude Design can re-export over them without a merge</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d9">D9</a>
+                  <span class="plan-title">&lt;ui-brand-panel&gt; reuses &lt;ui-section&gt;'s folding</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-section&gt;</code> already folds with animation, keeps folded content searchable
+                    (<code>hidden="until-found"</code>), and nests. <code>&lt;ui-brand-panel&gt;</code> builds on that
+                    rather than copying the brand's hand-made margin math.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      the collapse looks slightly different from the original (Spell UI's animation, not the brand's
+                      slide-in); noted in the Convergence phase if it shows
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d10">D10</a>
+                  <span class="plan-title">Dark mode on brand pages uses Spell UI's color-scheme</span></ui-title
+                ><ui-content
+                  ><p>
+                    The brand's CSS switches on <code>data-theme="dark"</code>; Spell UI switches on CSS
+                    <code>color-scheme</code> (the <code>ui-dark</code> class, or
+                    <code>&lt;ui-root theme="dark"&gt;</code>). The copies use Spell UI's way, so every element follows.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>each page's light / dark toggle sets <code>ui-dark</code> on the page</li>
+                    <li>with no toggle, pages follow the system setting</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          id="judgements"
+          header="4. Judgement calls"
+          sticky
+          collapsible
+          dividing
+          data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
+        >
+          <ui-icon slot="icon" name="compass"></ui-icon>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed
+            ><ui-item id="j1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j1">J1</a>
+                  <span class="plan-title"
+                    >The Compare view: side by side or overlaid, at a chosen width</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose a Compare page with these controls, because judging convergence needs the two at the SAME
+                    layout width, and an overlay shows small shifts that side by side hides:
+                  </p>
+                  <ul>
+                    <li>a page menu (all 13)</li>
+                    <li>
+                      modes: Side by side, Overlay (the copy over the original, with a "Copy on top" opacity slider),
+                      Original only, Spell only
+                    </li>
+                    <li>
+                      widths: 390, 768, 1280 (default), 1600; each frame renders at that width and scales down to fit
+                      its pane
+                    </li>
+                    <li>scrolling one frame scrolls the other</li>
+                    <li>
+                      the view lives in the address
+                      (<code>compare.html?page=Spell%20Docs&amp;mode=overlay&amp;width=1280&amp;mix=40</code>), so a
+                      reload or a pasted link lands on the same view
+                    </li>
+                  </ul>
+                  <p>
+                    Other options: a single page with a draggable split (swipe), or screenshot-only diffs (P2's
+                    <code>brand:compare</code> adds those anyway).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <a href="../../../brand/compare.html" target="src-packages-brand-compare-html"
+                        ><code>packages/brand/compare.html</code></a
+                      >
+                      + <code>_assets/brand-pages.{js,css}</code>
+                    </li>
+                    <li>
+                      the dark / light toggle of each original isn't reachable from Compare (it's inside Claude Design's
+                      page)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j2">J2</a>
+                  <span class="plan-title">A built flag per page, not a check over the network</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The index shows "not yet" for a copy that doesn't exist. Chose a <code>built: true|false</code> flag
+                    on each page in <code>brand-pages.js</code>'s list over asking the server (<code>HEAD</code>),
+                    because a missing file logs a console error (page checks fail on those) and
+                    <code>file://</code> can't ask at all.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>each phase that adds a copy flips its flag in the same change</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j3">J3</a>
+                  <span class="plan-title"
+                    >The index and Compare load the docs bundle; only the copies load brand-ui.js</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The Brand index and Compare are docs-like pages (sections, contents, tables), so they load
+                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>packages/docs/_assets/spell-ui.js</code></a
+                    >
+                    and
+                    <a href="../../_assets/spell-doc.css" target="src-packages-docs-assets-spell-doc-css"
+                      ><code>spell-doc.css</code></a
+                    >, as goals pages do. The <code>.spell.html</code> copies will load <code>brand-ui.js</code> (<a
+                      href="#d7"
+                      >D7</a
+                    >), from P2.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      the index and Compare look like the docs, and move to the brand look with them in the Docs Restyle
+                      phase (<a href="#p9">P9</a>)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title">&lt;ui-brand-*&gt; elements live outside Spell UI for now</span></ui-title
+                ><ui-content
+                  ><p>
+                    Accepted with Q2's answer. Until a later epic moves them into
+                    <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                    >, the brand elements:
+                  </p>
+                  <ul>
+                    <li>
+                      aren't in <code>&lt;ui-root&gt;</code>'s lazy loading list: a page must load
+                      <code>brand-ui.js</code>
+                    </li>
+                    <li>have no page on the Spell UI docs site</li>
+                    <li>need their own test setup (<code>$/ui/test/*</code> is internal to ui)</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">Brand pages need the internet and the page server</span></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>Internet: icons come from jsDelivr; the originals load React from unpkg.</li>
+                    <li>
+                      Page server: the Compare view, and four originals that fetch local files (Color Palette, Color Set
+                      Chooser, Theme Creator, Design Guide), don't work from <code>file://</code>.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          id="todos"
+          header="6. Todos"
+          sticky
+          collapsible
+          dividing
+          data-tip="For later: not caveats, not issues."
+        >
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title">Follow-up epic: publish Spell UI for Claude Design</span></ui-title
+                ><ui-content
+                  ><p>
+                    Out of this epic (Q4). Publish
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                    and
+                    <a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
+                      ><code>@spell-app/solid-element</code></a
+                    >
+                    (private today) to npm, make a CDN script from <code>brand-ui.js</code>, and try the widgets in
+                    Claude Design.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title"
+                    >Follow-up epic: move the good &lt;ui-brand-*&gt; elements into Spell UI</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Q2's "later epic": <code>&lt;ui-brand-panel&gt;</code>, <code>&lt;ui-brand-field&gt;</code> and the
+                    color elements into <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                    >, renamed without <code>brand-</code>, with tests and docs pages. Also decide whether
+                    <code>spell-brand</code> replaces <code>spell</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section
+          id="tests"
+          header="8. To test"
+          sticky
+          collapsible
+          dividing
+          data-tip="What to check by hand before merging: each a step, and what should happen. Struck through once it passes."
+        >
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <ui-list class="plan-items" data-kind="test" divided relaxed
+            ><ui-item id="v1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v1">V1</a>
+                  <span class="plan-title">Open the Brand tab from any docs page</span> </ui-title
+                ><ui-content
+                  ><p>
+                    In the side bar's doc preview or a browser on the page server, click <b>Brand</b> in the header. It
+                    should land on the Brand index, with the Brand tab lit, 13 pages in three tables, each with
+                    Original, "not yet" and Compare.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v2">V2</a>
+                  <span class="plan-title">Click through a Compare view</span> </ui-title
+                ><ui-content
+                  ><p>
+                    From the index, click Compare on Spell App. The original fills the left pane, scaled to fit; the
+                    right says "Not built yet". Try each mode and width: Overlay shows the slider; Original or Spell
+                    alone fill the width; 1600 shrinks the page, 390 shows its phone layout. Reload: the same view comes
+                    back.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          id="log"
+          header="9. Log"
+          sticky
+          collapsible
+          dividing
+          data-tip="Plan changes, oldest first, local time."
+        >
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-04T13:13-04:00">2026-10-04 13:13</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P1 added: Brand
+                  Tab</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P2 added: Theme
+                  &amp; Bundle</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P3 added: Panel
+                  &amp; Field</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P4 added: Color
+                  Elements</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P5 added: Tool
+                  Pages</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P6 added: Brand
+                  Pages</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P7 added: Mockup
+                  Pages</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P8 added:
+                  Convergence</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P9 added: Docs
+                  Restyle</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> P10 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> Q1 answered: D1 B:
+                  spell-brand.css starts as a full copy of spell.css, then converges</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> Q2 answered: D2 B:
+                  every new element in packages/brand/components as &lt;ui-brand-*&gt; first</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> Q3 answered: D3 B:
+                  a new &lt;ui-brand-field&gt; element; &lt;ui-field&gt; stays Fomantic's</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:32-04:00">2026-10-04 14:32</time></ui-date> Q4 answered: D4
+                  Pages, theme, elements AND docs templates here; no CDN bundle or npm publish</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:34-04:00">2026-10-04 14:34</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:40-04:00">2026-10-04 14:40</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brand</title>
+    <meta
+      name="description"
+      content="Spell's brand:  Claude Design's pages beside their Spell UI copies, with a side-by-side compare view."
+    />
+    <link rel="stylesheet" href="../docs/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="_assets/brand-pages.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <h1>Brand</h1>
+        <p class="lede">
+          Claude Design's brand pages, each beside its copy built with Spell UI. Compare shows the two side by side.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="palette"
+            >Originals: <a href="spell-design-system/" target="brand-folder"><code>spell-design-system/</code></a
+            >, as Claude Design exported them; the brand rules are its
+            <a href="spell-design-system/readme.md" target="brand-readme"><code>readme.md</code></a></ui-item
+          >
+          <ui-item icon="layer group"
+            >Copies: <code>&lt;Name&gt;.spell.html</code> beside each original, on Spell UI and the
+            <code>spell-brand</code> theme</ui-item
+          >
+          <ui-item icon="map"
+            >Plan: epic
+            <a href="../docs/epics/design-system/design-system.html" target="design-system"
+              ><code>design-system</code></a
+            ></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="mockups" header="1. Product mockups" sticky collapsible dividing>
+          <ui-icon slot="icon" name="desktop"></ui-icon>
+          <p>Screens of Spell itself: the app, its docs, its public site.</p>
+          <ui-table celled compact striped unstackable
+            ><table>
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th>What it is</th>
+                  <th>Open</th>
+                </tr>
+              </thead>
+              <tbody data-brand-pages="mockup"></tbody></table
+          ></ui-table>
+        </ui-section>
+
+        <ui-section id="tools" header="2. Tools" sticky collapsible dividing>
+          <ui-icon slot="icon" name="wand magic sparkles"></ui-icon>
+          <p>Pages that work on colours and themes.</p>
+          <ui-table celled compact striped unstackable
+            ><table>
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th>What it is</th>
+                  <th>Open</th>
+                </tr>
+              </thead>
+              <tbody data-brand-pages="tool"></tbody></table
+          ></ui-table>
+        </ui-section>
+
+        <ui-section id="brand" header="3. Brand" sticky collapsible dividing>
+          <ui-icon slot="icon" name="hat wizard"></ui-icon>
+          <p>The marks, the art, and Claude Design's own index.</p>
+          <ui-table celled compact striped unstackable
+            ><table>
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th>What it is</th>
+                  <th>Open</th>
+                </tr>
+              </thead>
+              <tbody data-brand-pages="brand"></tbody></table
+          ></ui-table>
+        </ui-section>
+
+        <ui-section id="sources" header="4. Sources" sticky collapsible dividing>
+          <ui-icon slot="icon" name="folder"></ui-icon>
+          <ul>
+            <li>
+              <a href="spell-design-system/SKILL.md" target="brand-skill"><code>spell-design-system/SKILL.md</code></a
+              >: Claude Design's skill file, for using the brand in other tools.
+            </li>
+            <li>
+              <a href="spell-design-system/tokens/" target="brand-tokens"><code>spell-design-system/tokens/</code></a
+              >: the brand's colours, type, spacing and shadows as CSS variables.
+            </li>
+            <li>
+              <a href="leonardo/" target="brand-leonardo"><code>leonardo/</code></a
+              >: the reference images and brief from before Claude Design.
+            </li>
+          </ul>
+        </ui-section>
+      </main>
+    </div>
+    <script src="../docs/_assets/spell-ui.js"></script>
+    <script src="_assets/brand-pages.js"></script>
+  </body>
+</html>

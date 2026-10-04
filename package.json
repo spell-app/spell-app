@@ -6,6 +6,7 @@
   "repository": "https://github.com/spell-app/spell-app",
   "type": "module",
   "workspaces": [
+    "packages/brand",
     "packages/cli",
     "packages/docs",
     "packages/lsp",
@@ -49,7 +50,8 @@
       "packages/app/src/server/appRoutes.ts"
     ],
     "watch": [
-      "packages/docs"
+      "packages/docs",
+      "packages/brand"
     ]
   },
   "devDependencies": {
