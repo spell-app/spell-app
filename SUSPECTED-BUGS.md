@@ -162,19 +162,28 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   language server if an editor ever reports a replaced file (e.g. delete + create, as some `git` operations do) as
   `created`.  Likely fix:  `refresh()` also reloads each file's contents from disk.
 
-- `src/rules/expressions.ts` `is_a`:  its operand is `{expression:type}`, and `type` accepts ANY word --
+- `packages/spell/src/rules/expressions.ts` `is_a`:  its operand is `{expression:type}`, and `type` accepts ANY word --
   so `print the card is a new card` compiles to `spellCore.isOfType(card, 'New')` and leaves `card` as a parse
   error, where `is_equal` + `a new card` was meant.  Probably wants `known_type`.  Run:
-  `docs/precedence/experiments/grammar-today.mts`, probe P7.  Found 2026-09-30.
+  `packages/docs/precedence/experiments/grammar-today.mts`, probe P7.  Found 2026-09-30;  still so 2026-10-03.
+  Epic `precedence-and-types` (types) should fix it.
 
-- `src/rules/lists.ts` `list_length` (precedence 3) vs `list_filter` (2):  `the number of cards in the
-  deck where ...` likely matches `list_length` with `the deck` and leaves `where ...` unparsed, as precedence is
-  compared before length.  From reading `Choice.getBestMatch()`, NOT run.  Found 2026-09-30.
+- `packages/spell/src/rules/lists.ts` `list_length` (precedence 3) vs `list_filter` (2):  `the number of cards in the
+  deck where ...` matches `list_length` with `the deck` and leaves `where ...` unparsed, as precedence is
+  compared before length.  CONFIRMED by running 2026-10-03:  `itemCountOf(deck)`, then Don't understand
+  "where the card is red";  `the cards in the deck where its color is red` alone works.  Found 2026-09-30.
 
 - An ad-hoc property is not reactive:  `set the pile of the card to the pile` compiles to a plain `this.pile = pile`
   (`Card.move_to_$pile` in the Solitaire snapshot), never through `setProp()` -- so nothing drawn from
-  `the pile of the card` redraws when it changes.  Maybe intended;  `packages/docs/precedence/precedence.html` section 9 proposes
-  declaring such properties from their first assignment.  Found 2026-09-30.
+  `the pile of the card` redraws when it changes.  Since solid-migration P11, a DECLARED property's setter is
+  `setProp()` (reactive) and an undeclared one a plain field, with no warning.  Epic `precedence-and-types` decided
+  (D10) to auto-declare a property at its first `set`, reactive + typed.  Found 2026-09-30.
+
+- `packages/spell/src/rules/types.ts` `TYPE_VALUE_MAP` maps `choice` to `boolean` (`:53-56`), while `as yes or no`
+  compiles to `'choice'` (`classes.ts:427`).  So `a todo has a done as choice` likely emits
+  `declareProp('done', { type: 'boolean' })`, and `isOfType()` warns on every set:  the runtime's `typesOf(true)` is
+  `["choice"]` (`packages/core/src/core.ts:122-128,163-167`).  From reading the code, NOT run.  Epic
+  `precedence-and-types` P4 (one type vocabulary) should fix it.  Found 2026-10-03.
 
 ### 2. Server robustness / security
 

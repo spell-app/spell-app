@@ -7,7 +7,7 @@ import { loadFixtureProject, parseSpellProject, summarize } from "$/spell/test"
  * Whole-project parse of `examples/Solitaire`.
  * - Snapshot pins compiled output + errors, so parser changes that alter output show up in review.
  * - Benchmark only runs with `BENCH=1`:
- *   `BENCH=1 npx vitest run src/languages/spell/SpellProject.test.ts --reporter=verbose --silent=false`
+ *   `BENCH=1 yarn vitest run src/SpellProject.test.ts --reporter=verbose --silent=false`
  */
 describe("Solitaire project", () => {
   const files = loadFixtureProject("Solitaire")

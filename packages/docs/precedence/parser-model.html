@@ -1,0 +1,1618 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Parser Model</title>
+    <meta
+      name="description"
+      content="Every parser and spell-rule change the precedence-and-types epic makes, modelled before any code:  what's added, what goes, and the simplest option at each fork."
+    />
+    <link rel="stylesheet" href="../_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section href="precedence.html" target="precedence">Precedence and Types</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Parser Model</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <h1>Parser Model</h1>
+        <p class="lede">
+          Every change the precedence-and-types epic makes to the parser and spell's rules, modelled BEFORE any code, so
+          we can see whether the parser stays easy to follow.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="user"
+            >Written for: Owen, deciding whether
+            <a href="../epics/precedence-and-types/precedence-and-types.html#p3" target="precedence-and-types"
+              >P3 · Binding Power</a
+            >
+            may start, and in what shape</ui-item
+          >
+          <ui-item icon="flag"
+            >Status: <ui-label size="mini" color="green">decided</ui-label> 2026-10-04 (D21-D25); §4.5 to be prototyped
+            before P3 builds it</ui-item
+          >
+          <ui-item icon="flask"
+            >Researched on: branch <code>precedence-and-types</code>, 2026-10-03, by reading the code and running
+            today's parser. The recommended design is reasoned, NOT prototyped (see
+            <a href="#q-prototype">Prototype?</a>)</ui-item
+          >
+          <ui-item icon="book open"
+            >The argument for the whole epic: <a href="precedence.html" target="precedence">Precedence and Types</a>.
+            The plan:
+            <a href="../epics/precedence-and-types/precedence-and-types.html" target="precedence-and-types"
+              >plan doc</a
+            ></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="+35" label="lines in packages/parser"></ui-statistic>
+            <ui-statistic value="4" label="new concepts, 4 gone"></ui-statistic>
+            <ui-statistic value="9/9" label="probes fixed"></ui-statistic>
+          </ui-statistics>
+          <ul>
+            <li>
+              The design doc's binding-power machinery is bigger than it needs to be: a generic
+              <code>P.OperatorExpression</code>, an <code>{x:operand}</code> slot type, a bound threaded through every
+              <code>parse()</code> by a module flag, and kept alternatives on every <code>Choice</code>. About 180 lines
+              in <a href="../../parser/" target="src-packages-parser"><code>packages/parser</code></a
+              >, six new concepts.
+            </li>
+            <li>
+              A smaller design fixes the same nine probes:
+              <ul>
+                <li>
+                  keep <code>compound_expression</code>, make it THE <code>expression</code> rule (no longer one choice
+                  among 42), and let it stop at a <code>bound</code>
+                </li>
+                <li>
+                  everything else that was an <code>expression</code> is a
+                  <dfn class="spell-term" tabindex="0">single expression</dfn
+                  ><ui-popup
+                    header="single expression"
+                    content="One operand, no operators after it:  a literal, a variable, `the X of Y`, `the first card of the deck`, a method call.  Today's `simple_expression`, renamed `single_expression` (D22)."
+                  ></ui-popup
+                  >: a list prefix's last slot becomes <code>{list:single_expression}</code>, so it can't swallow an
+                  operator
+                </li>
+                <li>
+                  suffix rules get a <code>bindingPower</code>, read ONLY by the shunting-yard that's already there
+                </li>
+                <li>
+                  one new step in <code>Sequence</code>, <dfn class="spell-term" tabindex="0">give-back</dfn
+                  ><ui-popup
+                    header="give-back"
+                    content="When a required word fails because the slot before it swallowed it, re-parse that slot shorter so the word fits.  Only on the way to failing, so whatever parses today parses the same."
+                  ></ui-popup
+                  >, about 35 lines: the only change to
+                  <a href="../../parser/" target="src-packages-parser"><code>packages/parser</code></a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              Gone: <code>isLeftRecursive</code>, <code>compound_expression</code> competing with its own left side at
+              precedence 12, "postfix applies at once", and the double parse that makes nested expressions cost
+              2<sup>depth</sup>.
+            </li>
+            <li>
+              Types, scope and members (P4-P8) are mostly spell-side: one record type added to scope
+              (<code>ScopeMethod</code>), member lookup moved from the language server into <code>TypeScope</code>, and
+              <code>EnumerationRule</code> plus two vocabulary tables deleted. <a href="#6-types">§6</a>.
+            </li>
+          </ul>
+          <ui-message state="positive" header="Recommendation">
+            <ul>
+              <li>
+                P3 builds the smaller design (<a href="#4-5-recommended">§4.5</a>), not the design doc's §4. Plan doc
+                <a href="../epics/precedence-and-types/precedence-and-types.html#q11" target="precedence-and-types"
+                  >Q11</a
+                >.
+              </li>
+              <li>
+                P4-P8 follow the recommendations in <a href="#6-2-forks">§6.2</a>. Plan doc
+                <a href="../epics/precedence-and-types/precedence-and-types.html#q15" target="precedence-and-types"
+                  >Q15</a
+                >.
+              </li>
+            </ul>
+          </ui-message>
+        </ui-section>
+
+        <ui-section id="2-today" header="2. How it works today" sticky collapsible dividing>
+          <ui-icon slot="icon" name="magnifying glass"></ui-icon>
+          <ui-section id="2-1-trace" header="2.1 One sentence, traced" sticky collapsible dividing>
+            <p>
+              <code>print the first card of the deck is face up</code>, where Card.spell declares
+              <code>a card "is face up" if its direction is up</code>. Today it compiles to
+              <code>getItemOf(deck.is_face_up, 1)</code>: the <code>is face up</code> lands on the deck.
+            </p>
+            <ui-steps class="spell-steps" ordered>
+              <ui-step
+                header="statement"
+                description="BlockLine.parse → Parser.parse → the `statement` Choice tries every statement rule;  only `print` passes its test()."
+              ></ui-step>
+              <ui-step
+                header="expression @ the whole line"
+                description="The `expression` Choice parses ALL its alternatives.  compound_expression's test() always passes (every child is a subrule), so it runs too."
+              ></ui-step>
+              <ui-step
+                header="compound_expression"
+                description="Its {lhs:simple_expression} parses `the first card of …` — ALL 8 tokens (step 4) — then needs a suffix, finds no tokens left, and fails."
+              ></ui-step>
+              <ui-step
+                header="ordinal_position_expression"
+                description="`the first card of {expression}`:  its trailing {expression} sees `the deck is face up` and takes it all, because compound_expression (precedence 12) beats known_variable `the deck` (precedence 0)."
+              ></ui-step>
+              <ui-step
+                header="result"
+                description="Only the ordinal rule matched, so it wins:  getItemOf(deck.is_face_up, 1).  `the first card of the deck` (6 tokens) was never a candidate."
+              ></ui-step>
+            </ui-steps>
+            <ui-accordion class="spell-aside" styled>
+              <ui-title>Aside: the call path, file by file</ui-title>
+              <ui-content>
+                <ul>
+                  <li>
+                    <code>BlockLine.parse</code> (<a
+                      href="../../spell/src/rules/BlockLine.ts"
+                      target="src-packages-spell-src-rules-blockline-ts"
+                      ><code>packages/spell/src/rules/BlockLine.ts</code></a
+                    >:80) → <code>Parser.parse</code> (<a
+                      href="../../parser/src/Parser.ts"
+                      target="src-packages-parser-src-parser-ts"
+                      ><code>packages/parser/src/Parser.ts</code></a
+                    >:100-112) → <code>Choice.parse</code> (<a
+                      href="../../parser/src/rules/Choice.ts"
+                      target="src-packages-parser-src-rules-choice-ts"
+                      ><code>packages/parser/src/rules/Choice.ts</code></a
+                    >:83-132)
+                  </li>
+                  <li>
+                    <code>print</code> (<a
+                      href="../../spell/src/rules/UI.ts"
+                      target="src-packages-spell-src-rules-ui-ts"
+                      ><code>packages/spell/src/rules/UI.ts</code></a
+                    >:49) → <code>Repeat</code> → <code>Subrule.parse("expression")</code> (<a
+                      href="../../parser/src/rules/Subrule.ts"
+                      target="src-packages-parser-src-rules-subrule-ts"
+                      ><code>packages/parser/src/rules/Subrule.ts</code></a
+                    >:33-47)
+                  </li>
+                  <li>
+                    <code>compound_expression</code> (<a
+                      href="../../spell/src/rules/expressions.ts"
+                      target="src-packages-spell-src-rules-expressions-ts"
+                      ><code>packages/spell/src/rules/expressions.ts</code></a
+                    >:310, syntax :432), <code>ordinal_position_expression</code> (<a
+                      href="../../spell/src/rules/lists.ts"
+                      target="src-packages-spell-src-rules-lists-ts"
+                      ><code>packages/spell/src/rules/lists.ts</code></a
+                    >:478)
+                  </li>
+                  <li>
+                    the alias: <code>quoted_type_expression</code> (<a
+                      href="../../spell/src/rules/methods.ts"
+                      target="src-packages-spell-src-rules-methods-ts"
+                      ><code>packages/spell/src/rules/methods.ts</code></a
+                    >:1402) registers a <code>MethodPostfixRule</code>, syntax <code>{operator:is} face up</code>,
+                    precedence 20
+                  </li>
+                  <li>
+                    compile: <code>compound_expression.getAST()</code>'s shunting-yard applies the postfix at once (<a
+                      href="../../spell/src/rules/expressions.ts"
+                      target="src-packages-spell-src-rules-expressions-ts"
+                      ><code>expressions.ts</code></a
+                    >:376-384) → <code>deck.is_face_up</code>
+                  </li>
+                </ul>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="2-2-twice" header="2.2 Everything is parsed twice per level" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>SpellParser.getNamesForRule()</code> registers every <code>expression</code> rule a second time as
+                <code>simple_expression</code>, except the two left-recursive ones.
+              </li>
+              <li>
+                So at each position, the <code>expression</code> Choice parses every alternative, then
+                <code>compound_expression</code>'s <code>{lhs:simple_expression}</code> parses them all AGAIN.
+              </li>
+              <li>
+                A prefix rule's trailing <code>{expression}</code> repeats this one level down: 2<sup>depth</sup>.
+              </li>
+              <li>No memo outside completion: <code>Expectations.memoized()</code> says "NOT for normal parsing".</li>
+            </ul>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>the first card of … the deck</th>
+                    <th class="num right aligned">depth 1</th>
+                    <th class="num right aligned">2</th>
+                    <th class="num right aligned">3</th>
+                    <th class="num right aligned">4</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>ordinal_position_expression</code> parses, today</td>
+                    <td class="num right aligned">2</td>
+                    <td class="num right aligned">4</td>
+                    <td class="num right aligned">8</td>
+                    <td class="num right aligned no negative">16</td>
+                  </tr>
+                  <tr>
+                    <td>proposed: one <code>single_expression</code> parse per level</td>
+                    <td class="num right aligned">1</td>
+                    <td class="num right aligned">2</td>
+                    <td class="num right aligned">3</td>
+                    <td class="num right aligned yes positive">4</td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+            <p class="meta">
+              Counted 2026-10-03 by wrapping <code>parse()</code>: 1062 Sequence / Choice parses at depth 4.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-3-precedence" header="2.3 One number, two jobs" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>precedence</code> is read in exactly two places:
+                <ul>
+                  <li>
+                    <code>Choice.getBestMatch()</code>: which whole match wins (highest precedence, then longest, then
+                    earliest)
+                  </li>
+                  <li>
+                    the shunting-yard in <code>compound_expression.getAST()</code>: how tightly an infix operator binds
+                    (<a href="../../spell/src/rules/expressions.ts" target="src-packages-spell-src-rules-expressions-ts"
+                      ><code>expressions.ts</code></a
+                    >:391)
+                  </li>
+                </ul>
+              </li>
+              <li>42 rules set it. Values in use:</li>
+            </ul>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th class="num right aligned">value</th>
+                    <th>rules</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="num right aligned">0</td>
+                    <td>the default, including <code>ends_with</code> and <code>backwards_if</code> by omission</td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">1</td>
+                    <td><code>else_if</code>, <code>round_number</code></td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">2</td>
+                    <td>
+                      <code>max</code>, <code>min</code>, <code>list_filter</code>, <code>list_membership_test</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">3</td>
+                    <td><code>list_length</code>, <code>list_position</code></td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">5, 6</td>
+                    <td><code>or</code>, <code>and</code></td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">9</td>
+                    <td><code>quoted_type_expression</code></td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">10</td>
+                    <td>
+                      <code>is_equal</code>, <code>is_exactly</code>, <code>create_type</code>,
+                      <code>create_list_type</code>, <code>define_property_has</code>,
+                      <code>quoted_property_formula</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">11</td>
+                    <td>
+                      15 suffix rules: comparisons, <code>is a</code>, <code>includes</code>, <code>is empty</code> …
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">12</td>
+                    <td><code>compound_expression</code></td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">13, 14</td>
+                    <td><code>+ -</code>, <code>* /</code></td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">20</td>
+                    <td>generated: <code>EnumerationRule</code>, <code>QuotedPropertyRule</code>, method aliases</td>
+                  </tr>
+                  <tr>
+                    <td class="num right aligned">100</td>
+                    <td><code>draw_thing</code></td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="3-ledger" header="3. Concept ledger" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p>
+            What a reader of the parser must know, before and after. "Who" is who has to know it to read or write code.
+          </p>
+          <ui-section id="3-1-p3" header="3.1 Binding power (P3), recommended design" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>concept</th>
+                    <th>where</th>
+                    <th class="num right aligned">lines</th>
+                    <th>who</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td><code>bindingPower</code> on suffix rules: how tightly an operator binds</td>
+                    <td>
+                      <a
+                        href="../../spell/src/rules/expressions.ts"
+                        target="src-packages-spell-src-rules-expressions-ts"
+                        ><code>expressions.ts</code></a
+                      >, a named <code>BP</code> table
+                    </td>
+                    <td class="num right aligned">~30</td>
+                    <td>operator authors</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td><code>compound_expression.bound</code> + <code>arithmetic_expression</code> (bound 12)</td>
+                    <td>
+                      <a
+                        href="../../spell/src/rules/expressions.ts"
+                        target="src-packages-spell-src-rules-expressions-ts"
+                        ><code>expressions.ts</code></a
+                      >
+                    </td>
+                    <td class="num right aligned">~30</td>
+                    <td>rule authors choosing a slot</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td>
+                      <code>single_expression</code>: one operand, no operators (renamed <code>simple_expression</code>)
+                    </td>
+                    <td><code>SpellParser.getNamesForRule()</code></td>
+                    <td class="num right aligned">±0</td>
+                    <td>rule authors</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td><code>Sequence.giveBack()</code></td>
+                    <td>
+                      <a href="../../parser/src/rules/Sequence.ts" target="src-packages-parser-src-rules-sequence-ts"
+                        ><code>packages/parser/src/rules/Sequence.ts</code></a
+                      >
+                    </td>
+                    <td class="num right aligned">~35</td>
+                    <td>readers of <code>Sequence</code></td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">−</td>
+                    <td><code>isLeftRecursive</code></td>
+                    <td>
+                      <a href="../../parser/src/rules/Rule.ts" target="src-packages-parser-src-rules-rule-ts"
+                        ><code>Rule.ts</code></a
+                      >,
+                      <a
+                        href="../../spell/src/rules/expressions.ts"
+                        target="src-packages-spell-src-rules-expressions-ts"
+                        ><code>expressions.ts</code></a
+                      >,
+                      <a href="../../spell/src/rules/lists.ts" target="src-packages-spell-src-rules-lists-ts"
+                        ><code>lists.ts</code></a
+                      >
+                    </td>
+                    <td class="num right aligned">−10</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">−</td>
+                    <td><code>compound_expression</code> as one of 42 alternatives, at precedence 12</td>
+                    <td>
+                      <a
+                        href="../../spell/src/rules/expressions.ts"
+                        target="src-packages-spell-src-rules-expressions-ts"
+                        ><code>expressions.ts</code></a
+                      >
+                    </td>
+                    <td class="num right aligned">−5</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">−</td>
+                    <td>
+                      <code>precedence</code> as binding power (the shunting-yard reads <code>bindingPower</code>)
+                    </td>
+                    <td>
+                      <a
+                        href="../../spell/src/rules/expressions.ts"
+                        target="src-packages-spell-src-rules-expressions-ts"
+                        ><code>expressions.ts</code></a
+                      >:391
+                    </td>
+                    <td class="num right aligned">±0</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">−</td>
+                    <td>"postfix applies at once"</td>
+                    <td>
+                      <a
+                        href="../../spell/src/rules/expressions.ts"
+                        target="src-packages-spell-src-rules-expressions-ts"
+                        ><code>expressions.ts</code></a
+                      >:376-384
+                    </td>
+                    <td class="num right aligned">±0</td>
+                    <td></td>
+                  </tr>
+                </tbody></table
+            ></ui-table>
+            <p>
+              Plus about 50 mechanical syntax edits (<a href="#5-rules">§5</a>). The design doc's version, for
+              comparison: about +180 lines in
+              <a href="../../parser/" target="src-packages-parser"><code>packages/parser</code></a> and six new concepts
+              (<a href="#4-2-loop">§4.2</a>).
+            </p>
+          </ui-section>
+
+          <ui-section id="3-2-p4-p8" header="3.2 Types, scope, members (P4-P8)" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>concept</th>
+                    <th>phase</th>
+                    <th class="num right aligned">lines</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td><code>Rule.getDatatype(match)</code>, <code>match.datatype</code>: what an expression IS</td>
+                    <td>P4</td>
+                    <td class="num right aligned">25</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td><code>P.Datatype</code> + one normaliser: one vocabulary, spell's words</td>
+                    <td>P4</td>
+                    <td class="num right aligned">30</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td>
+                      <code>TypeScope.itemType</code>, <code>getMember()</code>, <code>chain()</code>,
+                      <code>isA()</code>
+                    </td>
+                    <td>P4</td>
+                    <td class="num right aligned">50</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td><code>ScopeMethod</code>: a method as a record (params, return type), not only a rule</td>
+                    <td>P4-P5</td>
+                    <td class="num right aligned">50</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td>bare typed parameter, typed call check, return inference</td>
+                    <td>P5</td>
+                    <td class="num right aligned">100</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td>
+                      <code>member_words</code>, known / loose property reads, <code>class_member</code>, auto-declare
+                    </td>
+                    <td>P6</td>
+                    <td class="num right aligned">175</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td>built-in member table (data, not code)</td>
+                    <td>P7</td>
+                    <td class="num right aligned">150</td>
+                  </tr>
+                  <tr>
+                    <td class="yes positive">+</td>
+                    <td>exclusive family: on <code>TypeScope</code> + runtime <code>List</code></td>
+                    <td>P8</td>
+                    <td class="num right aligned">100</td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">−</td>
+                    <td>
+                      LSP <code>propertyOf</code> / <code>typeChain</code> / <code>isA</code> /
+                      <code>typeOfVariable</code>: moved into <code>TypeScope</code>
+                    </td>
+                    <td>P4</td>
+                    <td class="num right aligned">−35</td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">−</td>
+                    <td>LSP regexes reading parameters out of method names</td>
+                    <td>P5</td>
+                    <td class="num right aligned">−25</td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">−</td>
+                    <td><code>EnumerationRule</code>: one generated rule per enumeration</td>
+                    <td>P6</td>
+                    <td class="num right aligned">−55</td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">−</td>
+                    <td>
+                      <code>TYPE_VALUE_MAP</code>, <code>SIMPLE_TYPES</code>: two of today's three type vocabularies
+                    </td>
+                    <td>P4, P7</td>
+                    <td class="num right aligned">−40</td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">−</td>
+                    <td>single-token <code>property</code>, Pile.spell's <code>to move</code> bookkeeping</td>
+                    <td>P6, P8</td>
+                    <td class="num right aligned">−26</td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="4-binding-power" header="4. Binding power: the forks" sticky collapsible dividing>
+          <ui-icon slot="icon" name="code branch"></ui-icon>
+          <p>Each fork: the options side by side, one recommended, favouring fewer things to know.</p>
+
+          <ui-section id="4-1-bound" header="4.1 How an operand learns where to stop" sticky collapsible dividing>
+            <ui-grid class="spell-pros-cons" columns="2" stackable>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top" color="green">A. A named bounded rule (recommended)</ui-label>
+                  <ul>
+                    <li>
+                      the slot names what it takes: <code>{list:single_expression}</code>,
+                      <code>{expression:arithmetic_expression}</code>, <code>{expression}</code>
+                    </li>
+                    <li>spell needs exactly three bounds (below); each is a rule you can read</li>
+                    <li>no plumbing; completion's memo works as is (it keys on the rule's name)</li>
+                    <li>~8 lines, spell only</li>
+                  </ul>
+                </ui-segment>
+              </ui-column>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top">B. The design doc's <code>{x:operand}</code></ui-label>
+                  <ul>
+                    <li>"an expression bounded by MY <code>bindingPower</code>": the bound is implicit</li>
+                    <li>travels as a module flag set by <code>Sequence</code>; every full slot must reset it</li>
+                    <li>memo key must include the bound, or completion replays the wrong parse</li>
+                    <li>~14-20 lines in core; readers of <code>Sequence</code> and <code>Subrule</code> must know</li>
+                  </ul>
+                </ui-segment>
+              </ui-column>
+            </ui-grid>
+            <p>The three bounds spell needs, given Owen's decisions:</p>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>slot</th>
+                    <th>takes</th>
+                    <th>used by</th>
+                    <th>example</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>{x:single_expression}</code></td>
+                    <td>one operand, no operators</td>
+                    <td>
+                      list prefixes, <code>the X of</code>, <code>biggest</code> / <code>smallest</code>, suffix
+                      right-hand sides
+                    </td>
+                    <td><code>the number of cards in the deck + 1</code> → <code>itemCountOf(deck) + 1</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>{x:arithmetic_expression}</code></td>
+                    <td><code>+ - * /</code>, stops before <code>is</code></td>
+                    <td>
+                      <code>absolute value of</code>, <code>round</code> (<a
+                        href="../epics/precedence-and-types/precedence-and-types.html#d3"
+                        target="precedence-and-types"
+                        >D3</a
+                      >)
+                    </td>
+                    <td><code>the absolute value of x + 1 is 3</code> → <code>abs(x + 1) == 3</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>{x:expression}</code></td>
+                    <td>everything</td>
+                    <td>statements, method-call arguments, slots closed by a word (<code>position of {x} in</code>)</td>
+                    <td><code>notify x + y</code></td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+          </ui-section>
+
+          <ui-section id="4-2-loop" header="4.2 Where the expression loop lives" sticky collapsible dividing>
+            <ui-grid class="spell-pros-cons" columns="2" stackable>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top" color="green"
+                    >A. Keep <code>compound_expression</code>, fix it (recommended)</ui-label
+                  >
+                  <ul>
+                    <li>it becomes the ONLY rule named <code>expression</code>: a single expression, then suffixes</li>
+                    <li>
+                      no suffix: returns the single expression's own match, so
+                      <code>match.is(known_variable)</code> still works
+                    </li>
+                    <li>the shunting-yard stays; it reads <code>bindingPower</code>, and postfix pops like infix</li>
+                    <li>core: 0 lines; spell: ~+30</li>
+                  </ul>
+                </ui-segment>
+              </ui-column>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top">B. Generic <code>P.OperatorExpression</code> (design doc)</ui-label>
+                  <ul>
+                    <li>
+                      a Pratt loop in
+                      <a href="../../parser/" target="src-packages-parser"><code>packages/parser</code></a
+                      >, <code>bindingPower</code> on every <code>Rule</code>
+                    </li>
+                    <li>binding power becomes a parser-wide idea that only spell uses</li>
+                    <li>shunting-yard deleted (−110), loop added (+60-90)</li>
+                    <li>core: ~+90; spell: ~−140</li>
+                  </ul>
+                </ui-segment>
+              </ui-column>
+            </ui-grid>
+            <p>
+              Both get rid of the 2<sup>depth</sup> cost the same way: <code>single_expression</code> is parsed once per
+              level. A third option, a spell-only Pratt loop in
+              <a href="../../spell/src/rules/expressions.ts" target="src-packages-spell-src-rules-expressions-ts"
+                ><code>expressions.ts</code></a
+              >, sits between the two (core +8 for a <code>minBP</code> argument); no reason to prefer it over A.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-3-backtrack" header="4.3 Backtracking" sticky collapsible dividing>
+            <p>
+              Needed for one probe: <code>remove the card of the pile</code>, after
+              <code>to remove (a card) of (a pile)</code>. <code>{thisArg:expression}</code> takes
+              <code>the card of the pile</code> as a property read, and the <code>of</code> the rule needs is gone.
+            </p>
+            <ui-grid class="spell-pros-cons" columns="2" stackable>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top" color="green">A. Give-back in <code>Sequence</code> (recommended)</ui-label>
+                  <ul>
+                    <li>
+                      a word fails right after a slot: re-parse that slot cut just before each place the word appears,
+                      last first
+                    </li>
+                    <li>only on the way to failing: nothing that parses today changes</li>
+                    <li>reaches any depth; also fixes <code>between {a} and {b}</code></li>
+                    <li>~35 lines, all in <code>Sequence</code>; off in completion mode</li>
+                  </ul>
+                </ui-segment>
+              </ui-column>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top">B. Kept alternatives (design doc)</ui-label>
+                  <ul>
+                    <li>
+                      <code>Choice</code> keeps every candidate, sorted; <code>Sequence</code> resumes from the next
+                    </li>
+                    <li>reaches only the Choice directly under the slot</li>
+                    <li>~55 lines across <code>Choice</code>, <code>Match</code>, <code>Sequence</code></li>
+                  </ul>
+                </ui-segment>
+              </ui-column>
+            </ui-grid>
+            <ui-accordion class="spell-aside" styled>
+              <ui-title>Aside: two options ruled out</ui-title>
+              <ui-content>
+                <ul>
+                  <li>
+                    A lookahead hint (<code>Sequence</code> tells its child the next word, <code>getBestMatch()</code>
+                    prefers candidates followed by it): a module flag again, leaking into nested Choices.
+                  </li>
+                  <li>No backtracking: <code>remove the card of the pile</code> keeps failing (1 of 9 probes).</li>
+                </ul>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="4-4-simpler" header="4.4 Is there anything simpler?" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>option</th>
+                    <th>probes</th>
+                    <th>catch</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      syntax only: list prefixes' last slot <code>{x:simple_expression}</code>,
+                      <code>ends_with</code> set, <code>compound_expression</code> raised above 20
+                    </td>
+                    <td class="meh warning">7 of 9</td>
+                    <td>
+                      a magic precedence; <code>remove the card of the pile</code> still fails; the double parse stays
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><a href="#4-5-recommended">recommended</a>: 4.1 A + 4.2 A + 4.3 A</td>
+                    <td class="yes positive">9 of 9</td>
+                    <td>also <code>abs(x + 1) == 3</code>; one parse per level</td>
+                  </tr>
+                  <tr>
+                    <td>design doc §4</td>
+                    <td class="yes positive">9 of 9</td>
+                    <td>six new concepts, ~180 core lines</td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+            <p>
+              Probes: <code>the first card of the deck is face up</code> ·
+              <code>the number of cards in the deck is 52</code> · <code>… + 1</code> ·
+              <code>the suit of the first card of the deck is hearts</code> · <code>remove the card of the pile</code> ·
+              <code>card suits includes x</code> · <code>x ends with y and 1</code> · <code>x + y is empty</code> ·
+              <code>the absolute value of x + 1</code>.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-5-recommended" header="4.5 The recommended design, in code" sticky collapsible dividing>
+            <p>
+              Sketches in the repo's style, not yet compiled. Today's <code>compound_expression</code> for comparison:
+              <code>{lhs:simple_expression} {rhsChain:expression_suffix}+</code>, precedence 12, left-recursive.
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>expressions.ts · compound_expression becomes the expression loop · 36 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">/**
+ * `expression`:  a single expression, then each operator suffix binding TIGHTER than `bound`, e.g. `x + 1 is 3`.
+ * - The only rule registered as `expression`:  every other `expression` alias is a `single_expression`, see `getNamesForRule()`.
+ * - No suffix =&gt; the single expression's own match, as is, so `match.is(known_variable)` still works on `{thing:expression}`.
+ * - Suffixes' rhs is a `single_expression`, so the chain is flat:  `getAST()` groups it by `bindingPower` (shunting-yard).
+ */
+export class compound_expression extends SpellExpression {
+  static ruleName = "expression"
+  @proto static alias: string | string[] = []
+  /** Suffixes must bind tighter than this to be ours:  0 takes all, see `arithmetic_expression`. */
+  @proto static bound = 0
+
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const lhs = this.rules[0]!.parse(scope, tokens)
+    if (!lhs) return undefined
+    const chain = this.rules[1] as P.Repeat
+    const suffixes: P.Match[] = []
+    let rest = tokens.slice(lhs.length)
+    while (rest.length) {
+      const suffix = chain.rule.parse(scope, rest)
+      if (!suffix || bindingPowerOf(suffix) &lt;= this.bound) break
+      suffixes.push(suffix)
+      rest = rest.slice(suffix.length)
+    }
+    // completion:  an operator after us only EXTENDS us
+    if (!rest.length) P.Expectations.current?.expect(chain, this, 1, true)
+    if (!suffixes.length) {
+      lhs.matchGroup = this.name
+      return lhs
+    }
+    const matched = [lhs, ...suffixes]
+    return new P.Match({ rule: this, matched, tokens: matched.flatMap((it) =&gt; it.tokens), scope })
+  }
+}
+expressions.addRule(compound_expression, { syntax: "{lhs:single_expression} {rhsChain:expression_suffix}*", tests })</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>expressions.ts · the shunting-yard's one change, postfix pops too · 11 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">/** Apply every stacked operator binding at least as tightly as `power`. */
+function reduceWhile(power: number) {
+  for (let top = opStack.at(-1); top &amp;&amp; bindingPowerOf(top.match) &gt;= power; top = opStack.at(-1)) {
+    const op = opStack.pop()!
+    const rhs = output.pop()
+    output.push(applyOperatorToRule({ ...op, rhs, lhs: output.pop() }))
+  }
+}
+if (rhs.rule instanceof PostfixOperatorSuffix) {
+  reduceWhile(bindingPowerOf(rhs)) // `x + y is empty` =&gt; isEmpty(x + y)
+  output.push(applyOperatorToRule({ match: rhs, lhs: output.pop(), operator: rhs.groups.operator || rhs }))
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>expressions.ts + SpellParser.ts · the other two pieces · 19 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">/** `expression` with arithmetic suffixes only, e.g. `x + 1` in `the absolute value of x + 1 is 3`. */
+class arithmetic_expression extends compound_expression {
+  static ruleName = "arithmetic_expression"
+  @proto static bound = BP.takesSum // 12:  `+ - * /` yes, `is` no
+}
+
+// SpellParser
+/**
+ * Every rule aliased `expression` is registered as a `single_expression` instead -- except `expression` itself.
+ * - So `{expression}` is a whole expression, operators and all;  `{single_expression}` is one operand without them.
+ */
+protected getNamesForRule(rule: P.Rule, names: string[]): string[] {
+  if (rule.name === "expression") return names
+  return names.map((name) =&gt; (name === "expression" ? "single_expression" : name))
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>Sequence.ts · give-back, the one change in packages/parser · 26 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">/**
+ * Our `index`th rule, a word, failed because the slot before it took it, e.g. `of` in `remove the card of
+ *   the pile` for `remove {thisArg:expression} of {callArgs:expression}`:  re-parse that slot on tokens ending
+ *   just before each place the word is, LAST first, and go on from there.
+ * - Only on the way to failing:  whatever parses today parses the same.
+ * - NOT in expecting mode:  a cut-short slot would record that it ran out of tokens.
+ */
+private giveBack(scope: P.Scope, tokens: P.Token[], index: number, start: number, matched: P.Match[]) {
+  const word = this.rules[index]!
+  const slot = this.rules[index - 1]!
+  const taken = matched.at(-1)
+  if (!taken || P.Expectations.current || !isWord(word) || isWord(slot)) return undefined
+  const slotStart = start - taken.length
+  for (let cut = taken.length - 1; cut &gt; 0; cut--) {
+    if (!word.test(scope, tokens, slotStart + cut)) continue
+    const shorter = slot.parse(scope, tokens.slice(slotStart, slotStart + cut))
+    if (shorter?.length !== cut) continue
+    const rest = this.parseFrom(scope, tokens, index, slotStart + cut, [...matched.slice(0, -1), shorter])
+    if (rest) return rest
+  }
+  return undefined
+}
+// `parseFrom()`:  today's loop body, moved into a method so give-back can resume it
+// isWord(rule) ~== rule instanceof P.Literal || rule instanceof P.Literals</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>expressions.ts · binding powers as named levels · 13 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">/**
+ * How tightly each operator suffix binds:  read ONLY by `compound_expression`'s shunting-yard.
+ * - Not `precedence`, which only says which of several matches of the SAME words wins.
+ * - A new level is a new name here, with a why.
+ */
+export const BP = {
+  ternary: 4, // `X if C otherwise Y`
+  or: 5,
+  and: 6,
+  equality: 10, // `is`, `is exactly`
+  comparison: 11, // `&lt;`, `is a`, `includes`, `is empty`, quoted aliases ...
+  takesSum: 12, // the bound of `arithmetic_expression`
+  sum: 13, // `+ -`
+  product: 14 // `* /`
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="4-6-after" header="4.6 The same sentence, after" sticky collapsible dividing>
+            <ui-steps class="spell-steps" ordered>
+              <ui-step
+                header="expression @ the whole line"
+                description="ONE rule now:  compound_expression parses a single expression, then suffixes."
+              ></ui-step>
+              <ui-step
+                header="single expression"
+                description="ordinal_position_expression:  `the first card of {list:single_expression}`;  its single expression is `the deck` — a single expression can't take `is face up`.  6 tokens."
+              ></ui-step>
+              <ui-step
+                header="suffix"
+                description="`is face up` (bindingPower 11, above the bound 0) applies to the whole single expression."
+              ></ui-step>
+              <ui-step header="result" description="getItemOf(deck, 1).is_face_up"></ui-step>
+            </ui-steps>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="5-rules" header="5. Spell rules that change in P3" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ul>
+            <li>
+              48 rules touched: 35 syntax strings, 12 numbers only, <code>compound_expression</code> rewritten. With the
+              recommended design most string changes are ONE rename, <code>simple_expression</code> →
+              <code>single_expression</code>, or a trailing <code>{expression}</code> →
+              <code>{x:single_expression}</code>.
+            </li>
+            <li>
+              Rule of thumb: a slot closed by a required word stays <code>{expression}</code>, like a paren. A slot at
+              the end, or followed only by optional words, becomes <code>{x:single_expression}</code>.
+            </li>
+            <li>
+              Every operand slot stays NAMED (<code>{list:single_expression}</code>), so <code>match.groups</code> and
+              every <code>getAST()</code> keep their keys.
+            </li>
+          </ul>
+
+          <ui-section id="5-1-operators" header="5.1 Operators (suffix rules)" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>rules</th>
+                    <th>syntax change</th>
+                    <th>precedence → bindingPower</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>or</code>, <code>and</code></td>
+                    <td rowspan="5">
+                      right side <code>{expression:simple_expression}</code> →
+                      <code>{expression:single_expression}</code>
+                    </td>
+                    <td>5, 6 → <code>BP.or</code>, <code>BP.and</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>is_equal</code>, <code>is_exactly</code></td>
+                    <td>10 → <code>BP.equality</code></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>is_same_type_as</code>, <code>is_in</code>, <code>includes</code>,
+                      <code>does_not_include</code>, <code>gt_lt</code>, <code>is_gt_lt</code>, <code>starts_with</code>
+                    </td>
+                    <td>11 → <code>BP.comparison</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>ends_with</code></td>
+                    <td class="yes positive">
+                      unset → <code>BP.comparison</code>: fixes <code>endsWith(x, y &amp;&amp; 1)</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>plus</code>, <code>minus</code>, <code>times</code>, <code>divided_by</code></td>
+                    <td>13, 14 → <code>BP.sum</code>, <code>BP.product</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>is_a</code></td>
+                    <td>none in P3; <code>{expression:known_type}</code> in P4</td>
+                    <td>11 → <code>BP.comparison</code></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>is_empty</code>, <code>exists</code>, <code>as_uppercase</code>, <code>as_lowercase</code>,
+                      <code>as_a_type</code>
+                    </td>
+                    <td>none (postfix)</td>
+                    <td>11 → <code>BP.comparison</code>; <code>x + y is empty</code> → <code>isEmpty(x + y)</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>is_defined</code></td>
+                    <td>none</td>
+                    <td class="meh warning">
+                      keeps a precedence: <code>x is undefined</code> also matches <code>is_equal</code> +
+                      <code>undefined</code>, same length
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>list_membership_test</code></td>
+                    <td>
+                      <code>{list:simple_expression} (operator:has …) …</code> → <code>(operator:has …) …</code>:
+                      becomes a postfix suffix
+                    </td>
+                    <td>2 → <code>BP.comparison</code>; <code>isLeftRecursive</code> goes</td>
+                  </tr>
+                  <tr>
+                    <td><code>backwards_if</code></td>
+                    <td>
+                      none: the <code>else</code> slot stays <code>{expression}</code>, so chains read right to left
+                    </td>
+                    <td>unset → <code>BP.ternary</code></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      generated: <code>MethodPostfixRule</code>, <code>MethodInfixRule</code>,
+                      <code>QuotedPropertyRule</code>
+                    </td>
+                    <td>the generator writes <code>{expression:single_expression}</code></td>
+                    <td>keep 20 (which alias wins), add <code>BP.comparison</code></td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+          </ui-section>
+
+          <ui-section
+            id="5-2-prefixes"
+            header="5.2 Prefix rules (single expressions that end in a slot)"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>rule</th>
+                    <th>last slot today</th>
+                    <th>proposed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <code>ordinal_position_expression</code>, <code>position_expression</code>,
+                      <code>copy_list</code>, <code>merge_lists</code>
+                    </td>
+                    <td><code>{expression}</code></td>
+                    <td><code>{expression:single_expression}</code></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>list_length</code>, <code>list_position</code>, <code>random_item_expression</code>,
+                      <code>random_items_expression</code>, <code>range_between_expression</code>,
+                      <code>range_count_expression</code>
+                    </td>
+                    <td><code>{list:expression}</code></td>
+                    <td><code>{list:single_expression}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>range_starting_with_expression</code></td>
+                    <td><code>{thing:expression}</code></td>
+                    <td><code>{thing:single_expression}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>max</code>, <code>min</code></td>
+                    <td><code>{expression}</code></td>
+                    <td>
+                      <code>{expression:single_expression}</code> (keep precedence 2: beats
+                      <code>the biggest of x</code> as a property)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>absolute_value</code>, <code>round_number</code></td>
+                    <td><code>{expression}</code></td>
+                    <td><code>{expression:arithmetic_expression}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>property_expression</code></td>
+                    <td><code>{expression:simple_expression}</code></td>
+                    <td><code>{expression:single_expression}</code> (rename only)</td>
+                  </tr>
+                  <tr>
+                    <td><code>there_is_a</code> (missed by the design doc)</td>
+                    <td><code>{expression}</code></td>
+                    <td class="meh warning">
+                      open:
+                      <a
+                        href="../epics/precedence-and-types/precedence-and-types.html#q13"
+                        target="precedence-and-types"
+                        >Q13</a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>_await</code> (missed)</td>
+                    <td><code>{expression}?</code></td>
+                    <td class="meh warning">
+                      open:
+                      <a
+                        href="../epics/precedence-and-types/precedence-and-types.html#q13"
+                        target="precedence-and-types"
+                        >Q13</a
+                      >
+                    </td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+            <p>
+              Slots closed by a word stay full: <code>position of {thing:expression} in</code>,
+              <code>{start:expression} to {end:expression}</code>.
+            </p>
+          </ui-section>
+
+          <ui-section id="5-3-precedence-after" header="5.3 Precedence, after" sticky collapsible dividing>
+            <ul>
+              <li>
+                Suffix rules drop <code>precedence</code>: <code>bindingPower</code> does that job. 25 of 28 suffix
+                rules then have one number.
+              </li>
+              <li>
+                Kept, each with a one-line why: <code>is_defined</code>, the three generated alias bases (20),
+                <code>max</code> / <code>min</code> (2), <code>list_length</code> / <code>list_position</code> (3),
+                statement rules at 10.
+              </li>
+              <li>
+                <code>draw_thing</code> 100 → 0. Alone that does NOT un-skip <code>draw_items</code>' test: both match
+                <code>draw the cards of the deck</code> in 6 tokens and the earlier rule wins, so
+                <code>draw_items</code>
+                moves above it.
+              </li>
+              <li>
+                A snapshot test lists every rule's non-default <code>precedence</code> and <code>bindingPower</code>:
+                the table can't drift from PARSING.md.
+              </li>
+              <li>
+                Registration throws when an <code>expression_suffix</code> has no <code>bindingPower</code> (why
+                <code>ends_with</code> went wrong: 0 was a silent default).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="5-4-edges" header="5.4 Edge cases found" sticky collapsible dividing>
+            <ol>
+              <li>
+                <b>Fixed by P3, not P4:</b> <code>the card is a new card</code> → <code>card == new Card()</code>. With
+                precedence no longer deciding suffixes, the 4-token <code>is_equal</code> beats <code>is_a</code>.
+              </li>
+              <li>
+                <b>Method calls inside an expression take a single expression</b> (D24): <code>if double x is 4</code> →
+                <code>double(x) == 4</code>. As a statement they keep a whole one: <code>notify x + y</code> →
+                <code>notify(x + y)</code>. So the method-rule generator registers each call rule twice: as a statement
+                and as an expression.
+              </li>
+              <li>
+                <b><code>and</code> is both an operator and a separator.</b>
+                <code>whose color is red and direction is up</code> (<code>Card.spell</code>:133) works only because
+                <code>direction</code> isn't a known name. P3 doesn't change this; noted as a caveat.
+              </li>
+              <li>
+                <b>Saved declarations hold rule syntax.</b> <code>{expression:simple_expression}</code> is in
+                <a
+                  href="../../spell/projects/system/library/cards/cards.compiled.js"
+                  target="src-packages-spell-projects-system-library-cards-cards-compiled-js"
+                  ><code>packages/spell/projects/system/library/cards/cards.compiled.js</code></a
+                >
+                and the Solitaire examples: <code>simple_expression</code> stays an alias of
+                <code>single_expression</code> until P4's version bump.
+              </li>
+              <li>
+                <b><code>list_membership_test</code>'s <code>where</code> body eats to the end of the line</b>, and a
+                user's <code>"has (a card)"</code> alias (precedence 20) can win the suffix choice first. Give-back
+                covers the word-after-slot case only; this one gets a probe.
+              </li>
+            </ol>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="6-types" header="6. Types, scope and members (P4-P8)" sticky collapsible dividing>
+          <ui-icon slot="icon" name="map"></ui-icon>
+          <ui-section id="6-1-today" header="6.1 Today: written, never read" sticky collapsible dividing>
+            <ul>
+              <li>
+                Type facts are written in a dozen places; nothing on the parse or compile path reads them. Only the
+                language server (hover, go-to-type) and <code>SPELL: DECLARES</code> do.
+              </li>
+              <li>
+                Dropped on the floor: method argument types (<a
+                  href="../../spell/src/rules/methods.ts"
+                  target="src-packages-spell-src-rules-methods-ts"
+                  ><code>methods.ts</code></a
+                >:315), <code>this</code> / <code>it</code>, local variables, loop items, list item types, getter types.
+              </li>
+              <li>
+                Three vocabularies: the AST says <code>string</code>, rules say <code>text</code>; <code>array</code> /
+                <code>List</code> / <code>list</code>; <code>choice</code> maps to <code>boolean</code> in
+                <code>TYPE_VALUE_MAP</code> but <code>as yes or no</code> compiles to <code>'choice'</code> (a suspected
+                bug, logged).
+              </li>
+              <li>Methods exist only as parser rules: <code>scope.methods</code> is never filled.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="6-2-forks" header="6.2 The forks, recommended" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>fork</th>
+                    <th>recommended</th>
+                    <th>instead of</th>
+                    <th>why</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>where a match's type comes from</td>
+                    <td>
+                      a <code>datatype</code> static + ~12 rules overriding <code>getDatatype(match)</code>, which reads
+                      only <code>match.data</code>
+                    </td>
+                    <td><code>getDatatype</code> on all ~150 rules; or on the AST node</td>
+                    <td>
+                      types are needed WHILE parsing (typed calls, members); AST is built later. Lookups stay in
+                      <code>parse()</code>, as today's rule says
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>type names</td>
+                    <td>
+                      <code>Card</code> for user types, lowercase built-ins (<code>text</code>,
+                      <code>list of cards</code>)
+                    </td>
+                    <td>all lowercase</td>
+                    <td><code>SPELL: DECLARES</code> already writes <code>of: Card</code>; lookups normalise</td>
+                  </tr>
+                  <tr>
+                    <td>method records</td>
+                    <td>new <code>ScopeMethod</code>, in the existing (never filled) <code>methods</code> lists</td>
+                    <td>
+                      a <code>ScopeVariable</code> with <code>kind: "method"</code>; or the method's own
+                      <code>MethodScope</code>
+                    </td>
+                    <td>
+                      hover treats variables as properties; a <code>MethodScope</code> in a list gets re-parented and
+                      breaks body lookups
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>multi-word members</td>
+                    <td><code>member_words</code>: 1..N words, stops at structural words; the reader resolves them</td>
+                    <td>one literal rule per member (today's <code>EnumerationRule</code>); a trie</td>
+                    <td>no rule per member to merge or rebuild on import; nothing new to journal</td>
+                  </tr>
+                  <tr>
+                    <td>built-in members</td>
+                    <td>
+                      a data table in <a href="../../spell/" target="src-packages-spell"><code>packages/spell</code></a>
+                    </td>
+                    <td>a <code>builtins.spell</code> parsed at startup; statics on <code>spellCore</code> classes</td>
+                    <td>no startup parse; the parser never imports runtime code</td>
+                  </tr>
+                  <tr>
+                    <td>exclusive lists</td>
+                    <td>family on <code>TypeScope</code> + a runtime static on the <code>List</code> subclass</td>
+                    <td>runtime flag only</td>
+                    <td><code>the pile of a card</code> gets a type, go-to-definition, and survives import</td>
+                  </tr>
+                  <tr>
+                    <td>auto-declare on first <code>set</code></td>
+                    <td>
+                      hook in <code>assignment_statement.mutateScope()</code>; emit
+                      <code>Card.declareProp('pile', { type: 'Pile' })</code> at the top of the setting file
+                    </td>
+                    <td>inside the method body; in the owner's class</td>
+                    <td>runs once, before any read; never changes another file's output</td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+            <p>
+              <code>member_words</code>' stop list needs <code>as with whose for from then else otherwise</code> on top
+              of <code>of the a an is has have in to and or if where</code>: otherwise
+              <code>a card has short rank as text</code> swallows <code>as text</code>.
+            </p>
+          </ui-section>
+
+          <ui-section id="6-3-rules" header="6.3 Rules that change in P4-P8" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>phase</th>
+                    <th>rule</th>
+                    <th>change</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>P4</td>
+                    <td><code>is_a</code></td>
+                    <td><code>{expression:type}</code> → <code>{expression:known_type}</code></td>
+                  </tr>
+                  <tr>
+                    <td>P5</td>
+                    <td><code>method_signature</code> + new <code>bare_type_arg</code></td>
+                    <td>
+                      <code>({bare_type_arg}|{method_keyword}|\({method_arg}\))+</code>, <code>bare_type_arg</code> =
+                      <code>(a|an) {type:known_type}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>P5</td>
+                    <td>
+                      <code>DynamicMethodRule</code>, <code>MethodInfixRule</code>, <code>MethodPostfixRule</code>
+                    </td>
+                    <td>parameter types in statics, not syntax: saved call syntax unchanged</td>
+                  </tr>
+                  <tr>
+                    <td>P6</td>
+                    <td>
+                      <code>the_property_of</code>, <code>its_property</code>, <code>object_literal_property</code>,
+                      <code>the_property_of_a_thing</code>, <code>a_things_property</code>,
+                      <code>property_value_getter</code>, <code>define_property_has</code>,
+                      <code>quoted_property_formula</code>
+                    </td>
+                    <td>
+                      <code>{property}</code> → <code>{property:member_words}</code> (group name kept: no
+                      <code>getAST()</code> changes)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>P6</td>
+                    <td><code>property_expression</code></td>
+                    <td>split: a resolved (declared) read, higher precedence, and a loose single-word read</td>
+                  </tr>
+                  <tr>
+                    <td>P6</td>
+                    <td><code>EnumerationRule</code> → <code>class_member</code></td>
+                    <td>one static rule, <code>{type:known_type} {member:member_words}</code></td>
+                  </tr>
+                  <tr>
+                    <td>P6</td>
+                    <td><code>its_ordinal</code></td>
+                    <td>
+                      drop its <code>property_accessor</code> alias (it lets <code>property_expression</code> build
+                      nonsense)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>P6</td>
+                    <td><code>assignment_statement</code>, getters</td>
+                    <td>
+                      scope-changing per match (<code>getScopeChanges(match)</code>), so a plain
+                      <code>set x to 1</code> stays cheap
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>P8</td>
+                    <td><code>create_list_type</code> ×2</td>
+                    <td><code>is (a|an) (exclusive:exclusive)? list of …</code></td>
+                  </tr>
+                </tbody>
+              </table></ui-table
+            >
+            <ui-message state="warning" header="One P5 trap">
+              <ul>
+                <li>
+                  <code>buildSignatureData()</code> (<a
+                    href="../../spell/src/rules/methods.ts"
+                    target="src-packages-spell-src-rules-methods-ts"
+                    ><code>methods.ts</code></a
+                  >:784) tells a keyword from a parenthesised argument by its match length. A bare
+                  <code>a card</code> is 2 tokens, like a keyword pair: it must test the rule instead.
+                </li>
+              </ul>
+            </ui-message>
+          </ui-section>
+
+          <ui-section id="6-4-trace" header="6.4 One read, traced after P6" sticky collapsible dividing>
+            <p>
+              <code>the short rank of the first card of the deck</code> →
+              <code>spellCore.getItemOf(deck, 1).short_rank</code>
+            </p>
+            <ui-steps class="spell-steps" ordered>
+              <ui-step header="member_words" description="`short rank`, stopping at `of`."></ui-step>
+              <ui-step
+                header="the single expression after `of`"
+                description="ordinal_position_expression → `the deck` is a known variable whose datatype is Deck (set when `the deck is a new deck` committed);  Deck's itemType is Card, so its datatype is Card."
+              ></ui-step>
+              <ui-step
+                header="resolve"
+                description="Card.getMember(`short rank`) walks the super-type chain, finds the getter (datatype text, inferred from its returns), stashes it in match.data."
+              ></ui-step>
+              <ui-step
+                header="rejected on the way"
+                description="`the first card` as a member of Deck:  not declared, more than one word → not a property read."
+              ></ui-step>
+              <ui-step
+                header="compile"
+                description="getAST() reads match.data:  getItemOf(deck, 1).short_rank"
+              ></ui-step>
+            </ui-steps>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="7-questions" header="7. Questions this raises" sticky collapsible dividing>
+          <ui-icon slot="icon" name="circle question"></ui-icon>
+          <p>Answered 2026-10-04, in the plan doc:</p>
+          <ul>
+            <li><b>D21</b> (Q11) · the smaller binding-power design (§4.5), prototyped first</li>
+            <li>
+              <b>D22</b> (Q12) · <code>simple_expression</code> is renamed <code>single_expression</code> (not
+              <code>term</code>)
+            </li>
+            <li>
+              <b>D23</b> (Q13) · <code>there is a …</code> and <code>wait for …</code> both take a single expression
+            </li>
+            <li>
+              <b>D24</b> (Q14) · one-argument calls take a single expression inside expressions; statements keep whole
+              arguments
+            </li>
+            <li><b>D25</b> (Q15) · §6.2's recommendations, as a set</li>
+          </ul>
+          <ui-section id="q-prototype" header="Prototype?" sticky collapsible dividing>
+            <ul>
+              <li>
+                §4.5 is reasoned from the code and today's probe output, NOT run. Its riskiest parts: give-back in
+                completion mode, and <code>compound_expression</code> returning the single expression's own match.
+              </li>
+              <li>
+                Option: a throwaway prototype of §4.5 against the probe ledger and the spell suite before P3 commits to
+                it (~1-2h), kept off this branch.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="8-parsing-md" header="8. PARSING.md, after" sticky collapsible dividing>
+          <ui-icon slot="icon" name="pen to square"></ui-icon>
+          <ul>
+            <li>
+              "Rules and matching" gains: <code>precedence</code> answers only "several matches of the SAME words: which
+              wins?"; <code>bindingPower</code> only "how tightly does this operator bind?".
+            </li>
+            <li>
+              New section "Expressions": a single expression, then suffixes; the three slot kinds; the shunting-yard;
+              give-back.
+            </li>
+            <li>
+              Corrected on the way: quoted aliases come from <code>quoted_type_expression</code>, not
+              <code>quoted_property_formula</code> (PARSING.md:130, wrong today); methods get records (:131-132); member
+              lookup lives in <code>TypeScope</code> (:101, :112-113).
+            </li>
+          </ul>
+          <ui-accordion class="spell-code" styled open="0">
+            <ui-title>Draft: "Adding an expression rule" · 14 lines</ui-title>
+            <ui-content>
+              <pre><code class="language-markdown">## Adding an expression rule
+
+- A TERM stands alone:  a literal, `the X of Y`, `the first card of …`.  `extends SpellExpression` (alias
+  `expression`, registered as `single_expression`).
+  - A slot at its END takes `{name:single_expression}`:  `the first card of {list:single_expression}` stops before any operator.
+  - Math that should take a sum (`the absolute value of x + 1`):  `{name:arithmetic_expression}`.
+  - A slot closed by a required word (`of`, `in`, `to`) stays `{name:expression}`, like a paren.
+- An OPERATOR follows an expression:  `extends InfixOperatorSuffix` (`x OP y`) or `PostfixOperatorSuffix`
+  (`x is empty`).  Its right side is `{expression:single_expression}`.  MUST set `bindingPower` from `BP`
+  (registration throws without it);  build output in `compileASTExpression()`.
+- `precedence` only settles a tie between rules matching the SAME words.  Leave it unset unless a probe shows a
+  tie going wrong;  then set it, with a one-line why.
+- Always NAME a slot, so `match.groups` keeps its key.  Add one mixed-operator line to the probe ledger.</code></pre>
+            </ui-content>
+          </ui-accordion>
+        </ui-section>
+
+        <ui-section id="9-risks" header="9. Risks" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ul>
+            <li>
+              <b>Completion.</b> Today the <code>expression</code> Choice marks <code>x</code> as "may continue" when an
+              operator could follow. That Choice is gone, so the loop records it itself (sketched in §4.5); otherwise
+              the language server's "incomplete statement" check breaks.
+              <a
+                href="../../spell/src/parserTests/Expectations.test.ts"
+                target="src-packages-spell-src-parsertests-expectations-test-ts"
+                ><code>Expectations.test.ts</code></a
+              >
+              pins today's record.
+            </li>
+            <li>
+              <b>Left recursion.</b> Only <code>isLeftRecursive</code> guards a single expression starting with
+              <code>{expression}</code>
+              today. After: a 5-line check at registration.
+            </li>
+            <li>
+              <b>Incremental parsing and the journal.</b> P3 keeps parsing pure: nothing new to journal. P4-P6 add scope
+              records and mutate some (a method's return type, <code>exclusive</code>): those go through the journal
+              like <code>claim()</code>; first datatype wins, no widening.
+            </li>
+            <li>
+              <b>Return types.</b> <code>commitStatement()</code> runs <code>mutateScope()</code> BEFORE a body parses,
+              so return inference needs a post-body hook, and a body edit that changes the return type must re-parse
+              what follows.
+            </li>
+            <li>
+              <b>Declarations.</b> New keys (<code>params</code>, <code>returns</code>, <code>itemType</code>,
+              <code>exclusive</code>, <code>auto</code>); <code>SPELL_VERSION</code> 0.8.0 → 0.9.0; regenerate the cards
+              library; a loader shim for <code>rule: "enumeration"</code>.
+            </li>
+            <li>
+              <b>Speed.</b> Baseline (P1): <code>speedTest()</code> 74ms, BENCH 115ms. Expect better after P3 (no double
+              parse); give-back adds parses only to sequences already failing.
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="10-sources" header="10. Sources" sticky collapsible dividing>
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <ui-items class="spell-sources" divided>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a
+                    href="../../spell/src/grammar.probes.test.ts"
+                    target="src-packages-spell-src-grammar-probes-test-ts"
+                    ><code>packages/spell/src/grammar.probes.test.ts</code></a
+                  ></ui-header
+                >
+                <ui-meta
+                  >probe ledger (P1) · <code>yarn vitest run src/grammar.probes.test.ts</code> in
+                  <a href="../../spell/" target="src-packages-spell"><code>packages/spell</code></a></ui-meta
+                >
+                <ui-description>Every probe above, today's output as inline snapshots.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a
+                    href="experiments/grammar-today.mts"
+                    target="src-packages-docs-precedence-experiments-grammar-today-mts"
+                    ><code>experiments/grammar-today.mts</code></a
+                  ></ui-header
+                >
+                <ui-meta
+                  >experiment · <code>yarn tsx precedence/experiments/grammar-today.mts</code> in
+                  <a href="../" target="src-packages-docs"><code>packages/docs</code></a></ui-meta
+                >
+                <ui-description>The design doc's evidence; re-run 2026-10-03, unchanged.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="../../spell/PARSING.md" target="src-packages-spell-parsing-md"
+                    ><code>packages/spell/PARSING.md</code></a
+                  ></ui-header
+                >
+                <ui-meta>reference</ui-meta>
+                <ui-description>The parse pipeline as it is today.</ui-description>
+              </ui-content>
+            </ui-item>
+          </ui-items>
+        </ui-section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">Last checked 2026-10-03 against branch <code>precedence-and-types</code>.</p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../_assets/spell-ui.js"></script>
+  </body>
+</html>

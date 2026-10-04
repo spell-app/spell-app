@@ -208,6 +208,11 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   which is the repo root in a root run. · Give every child process an explicit `cwd` (the package folder, from
   `environment.srcDir`) and resolve files from `import.meta.dirname`, never the bare working directory. ·
   spell, ui
+- 2026-10-03 · Importing `$/spell/test` (or anything that loads `src/node/environment.ts`) prints a 15-line
+  `{ environment: { vitePort ... testFilesRoot } }` to stderr:  every vitest file using the fixtures, every `tsx`
+  experiment.  It buries the output you came for (`grammar-today.mts`, `--silent=false` BENCH runs). ·
+  `console.warn({ environment })` at the bottom of `environment.ts`;  not fixed yet -- filter with `grep` meanwhile. ·
+  spell
 
 ## ui
 
@@ -1136,6 +1141,15 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   every key unquoted) and collapsed the plan template's two spaces after a period (`templates/epics/plan.html`):
   `.oxfmtrc.json` ignores `docs/_assets/spell-ui.js` and `lazy/`, not `emoji/`. · Reverted with `git checkout`
   after the run;  `**/docs/_assets/emoji/**` (and maybe the templates) want an ignore pattern. · docs
+- 2026-10-03 · Reviving a paused design from its zip handoff (`outstanding/precedence-and-types/`), an agent set out
+  to port its experiments -- already ported and committed in `packages/docs/precedence/experiments/` (solid-migration
+  P8). · Before restoring a handoff's files, `git ls-files | grep <topic>`:  the repo copy wins. · docs
+- 2026-10-03 · Same `tsc` command, different compiler:  the root's `node_modules/.bin/tsc` is TypeScript 6.0.3
+  (`@typescript/old`), `yarn tsc` inside `packages/docs` is 7.0.2.  Both gave 13 errors on 9 lines for
+  `typescript-check.ts`, but TS7 words one code differently. · Say which one a doc means;  run it as `yarn tsc` from
+  the package. · docs
+- 2026-10-03 · The worktree guard refuses a Bash command whose TEXT mentions `git` (e.g. a python heredoc editing
+  PAPERCUTS.md) as "cannot be shown to stay inside the worktree". · Use the Edit tool for such edits. · claude-code
 
 ## claude-code
 
@@ -1217,6 +1231,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   it's found by its label, and a new session has none (`no tabs titled ''`), while sessions opened in a worktree's
   window share that worktree's title. · `.claude/hooks/prompt-gate.mjs` renames the session on `/isolate|epic|unpark
   <name>` before Claude runs, and blocks those inside another worktree. · claude-code
+- 2026-10-03 · In a worktree-isolated agent, the worktree guard refused three plain Bash commands as "too complex to
+  verify":  a `for` loop calling `$P <args>` (command name in a variable), and `cat > file <<EOF` heredocs chained
+  with `&&` / `;` and a `yarn` run.  Nothing in them touched git. · One plain command per Bash call, no command name
+  in a variable;  write files with the Write / Edit tools, not heredocs. · claude-code
 
 ## vscode
 
