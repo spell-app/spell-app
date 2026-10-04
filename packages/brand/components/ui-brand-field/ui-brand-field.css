@@ -1,0 +1,179 @@
+/*
+ * `<ui-brand-field>`:  the brand's inspector field (Color Set Chooser's "Vibrancy" row), also fine in a form.
+ * - Markup:  `div.brand.field` > `.row` (`.label`, `.actions`, `.value`, `.info` > `.tip`), `.control`, `.help`,
+ *   `.error.message`.
+ * - Label row:  13px medium label at the start;  actions, the value (12px mono, muted) and the info icon (faded,
+ *   its tip a dark bubble under it) at the end.  The control sits right under the row.
+ * - Public tokens (`--ui-brand-field-*`) are never declared here:  read through private aliases.  Defaults:  the
+ *   `spell-brand` roles, else plain `--ui-*` tokens.
+ */
+
+@layer ui.components.brand-field.types, ui.components.brand-field.content, ui.components.brand-field.states;
+
+@layer ui.components.brand-field.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  .brand.field {
+    --_ui-brand-field-gap: var(--ui-brand-field-gap, 0.375em);
+    --_ui-brand-field-label-color: var(--ui-brand-field-label-color, var(--spell-text-body, var(--ui-text-color)));
+    --_ui-brand-field-value-color: var(--ui-brand-field-value-color, var(--spell-text-muted, var(--ui-text-muted)));
+    --_ui-brand-field-help-color: var(--ui-brand-field-help-color, var(--spell-text-muted, var(--ui-text-muted)));
+    --_ui-brand-field-error-color: var(--ui-brand-field-error-color, var(--spell-danger, var(--ui-red-text)));
+    --_ui-brand-field-tip-background: var(
+      --ui-brand-field-tip-background,
+      var(--spell-surface-inverse, var(--ui-text-dark))
+    );
+    --_ui-brand-field-tip-color: var(--ui-brand-field-tip-color, var(--spell-text-inverse, var(--ui-surface)));
+    --_ui-brand-field-tip-width: var(--ui-brand-field-tip-width, 16.25em);
+
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: var(--_ui-brand-field-gap);
+    font-family: var(--ui-font-family);
+    font-size: var(--ui-font-size);
+    color: var(--_ui-brand-field-label-color);
+  }
+}
+
+@layer ui.components.brand-field.content {
+  /* ## Label row */
+  .brand.field > .row {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    min-height: 1.25em;
+    font-size: 0.8125em;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .brand.field > .row > .label {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-inline-end: auto;
+  }
+  .brand.field.required > .row > .label::after {
+    content: " *";
+    color: var(--_ui-brand-field-error-color);
+  }
+  .brand.field > .row > .actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+  }
+  .brand.field > .row > .value {
+    color: var(--_ui-brand-field-value-color);
+    font-family: var(--ui-font-family-mono);
+    font-size: calc(12em / 13);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ## Info icon and its tip */
+  .brand.field > .row > .info {
+    position: relative;
+    display: inline-flex;
+    width: 1em;
+    height: 1em;
+    opacity: 0.4;
+    cursor: help;
+    border-radius: var(--ui-radius-circle, 50%);
+  }
+  .brand.field > .row > .info:is(:hover, :focus-visible) {
+    opacity: 1;
+  }
+  .brand.field > .row > .info:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: 2px;
+  }
+  .brand.field > .row > .info > svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+  }
+  .brand.field > .row > .info > .tip {
+    position: absolute;
+    inset-block-start: calc(100% + 0.5em);
+    inset-inline-end: -0.5em;
+    z-index: var(--ui-z-popup, 30);
+    box-sizing: border-box;
+    width: var(--_ui-brand-field-tip-width);
+    padding: 0.625em 0.75em;
+    border-radius: var(--ui-radius-s, 8px);
+    background: var(--_ui-brand-field-tip-background);
+    box-shadow: var(--spell-shadow-lg, var(--ui-shadow-floating));
+    color: var(--_ui-brand-field-tip-color);
+    font-size: calc(12em / 13);
+    font-weight: 400;
+    line-height: 1.45;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity var(--ui-duration-fast) var(--ui-ease),
+      visibility var(--ui-duration-fast);
+  }
+  /* the tip is shown, so it's no longer faded with the icon */
+  .brand.field > .row > .info:is(:hover, :focus-visible) > .tip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* ## The control:  full width */
+  .brand.field > .control {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 0;
+  }
+  .brand.field
+    > .control
+    > ::slotted(:is(ui-input, ui-select, ui-dropdown, ui-slider, ui-textarea, input, select, textarea)) {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* ## Help and error text */
+  .brand.field > :is(.help, .error.message) {
+    font-size: 0.75em;
+    line-height: 1.4;
+  }
+  .brand.field > .help {
+    color: var(--_ui-brand-field-help-color);
+  }
+  .brand.field > .error.message {
+    color: var(--_ui-brand-field-error-color);
+  }
+}
+
+@layer ui.components.brand-field.states {
+  /* Inline:  the label row beside the control */
+  .brand.field.inline {
+    flex-flow: row wrap;
+    align-items: center;
+    column-gap: 0.75em;
+  }
+  .brand.field.inline > .control {
+    flex: 1 1 12em;
+  }
+  .brand.field.inline > :is(.help, .error.message) {
+    flex-basis: 100%;
+  }
+
+  /* States tint the label (`error` also comes from an error message) */
+  .brand.field.error > .row > .label {
+    color: var(--_ui-brand-field-error-color);
+  }
+  .brand.field:is(.info, .success, .warning) > .row > .label {
+    color: var(--ui-color-text, inherit);
+  }
+
+  /* Disabled:  faded, and `inert` */
+  :host(:state(disabled)) > .brand.field {
+    opacity: var(--ui-disabled-opacity, 0.45);
+  }
+}

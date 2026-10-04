@@ -49,10 +49,40 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 - `yarn build` -- the copies' bundle, `_assets/ui/` (commit it);  rerun after changing `components/`, `src/`, or
   Spell UI source the pages use.
+- `yarn site:data` -- the elements' docs data, `_data/components.json` (+ hand-kept `pages.json`), by Spell UI's
+  `SiteDataBuilder` reading `components/`;  rerun after a vocabulary or a sheet's tokens change, and commit both.
 - `yarn compare [<page>...] [--width 1280] [--height 900] [--dark] [--full]` -- screenshots each original and its
   copy, and a diff % per page, into `.compare/` (git-ignored):  `dc.png`, `spell.png`, `side.png`, `diff.png`,
   `report.md`.  A rough guide:  LOOK at `side.png` or the Compare view.
+- `yarn test` -- the elements' tests, in a real browser (`vitest.config.ts`:  Vitest browser mode, chromium), with
+  Spell UI's helpers (`$/ui/test/ElementFixture`, `$/ui/test/a11y`).  The root's `yarn test` runs them as `brand`.
 - `yarn ts`, `yarn format`.
+
+## The elements
+
+- Each family has a docs page, `components/<tag>.html`, in Spell UI's docs format
+  (`packages/docs/templates/spell-ui-docs.html`:  masthead, Examples / Usage / API / Theming tabs), loading
+  `_assets/ui/brand-docs.js` (`src/brand-docs.ts`) and `_assets/brand-docs.css`.  A new family:  its
+  `<tag>.vocabulary.en.ts` (topics, aka, description), `yarn site:data`, then copy a page.  The Brand index lists them.
+
+- `<ui-brand-panel>` (`components/ui-brand-panel/`) -- the inspector panel:  a `UISection` subclass defined under
+  its own tag with `<ui-section>`'s vocabulary (`define(tag)`), so it takes every section attribute, slot and event;
+  only `ui-brand-panel.css` differs.  A panel in a panel is a sub-head band.
+- `<ui-brand-field>` (`components/ui-brand-field/`) -- a label row (label, actions, value, info tip), the control,
+  help and error;  `:state(field)` + `showErrors()`, so `<ui-form>` validates it as a `<ui-field>`.  Names an unnamed
+  slotted control after its `label` (`aria-label`).
+
+## Imports
+
+As the root's, plus these reaches into `ui` past its barrel, each because the barrel can't give it (until the elements
+move into Spell UI, epic todo T2):
+- `$/ui/core` -- the element authoring API (`UIElement`, `proto`, `Cell` ...), as a `ui` family imports it
+- `$/ui/runtime`, `$/ui/icons`, `$/ui/styles`, `$/ui/styles/ui.css` -- the bundle entries (`src/`), as Spell UI's site
+  entry does
+- `$/ui/docs-components/...` -- the docs widgets and `SiteData` (`src/brand-docs.ts`):  not in `$/ui`'s barrel
+- `$/ui/components/ui-section/ui-section.vocabulary.en` -- `<ui-brand-panel>`'s docs vocabulary:  data, which node
+  must load without the barrel's elements
+- `$/ui/tools/SiteDataBuilder` (`scripts/site-data.ts`) and `$/ui/test/...` (tests)
 
 ## Serving
 

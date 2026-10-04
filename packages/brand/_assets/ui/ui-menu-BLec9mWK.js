@@ -1,0 +1,1 @@
+import{t as e}from"./ui-menu-BX_NrFOi.js";export{e as UIMenu};

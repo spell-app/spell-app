@@ -79,6 +79,53 @@
       </header>
 
       <section>
+        <div class="eyebrow">Panel &amp; fields</div>
+        <div class="row" style="align-items: start">
+          <ui-brand-panel header="Color Set" color="accent" collapsible style="width: 380px">
+            <ui-input placeholder="Name, e.g. brand" aria-label="Name"></ui-input>
+            <ui-brand-field
+              label="Base color"
+              value="#8E96B5"
+              info="The color the set is built around.  Pick one, or paste a hex or OKLCH value."
+            >
+              <ui-input value="#8E96B5"></ui-input>
+            </ui-brand-field>
+            <ui-brand-panel header="Tweak" collapsible>
+              <ui-brand-field
+                label="Base color sits at"
+                value="400"
+                info="Which of the 17 steps the base color lands on.  Auto picks the step closest in lightness."
+              >
+                <ui-button slot="actions" size="mini" circular basic icon="check">Auto</ui-button>
+                <ui-slider min="0" max="16" value="6" ticked></ui-slider>
+              </ui-brand-field>
+              <ui-brand-field label="Vibrancy" value="100%" info="How colourful the middle steps are.">
+                <ui-button slot="actions" size="mini" circular basic icon="rotate left">Reset</ui-button>
+                <ui-slider min="0" max="200" step="20" value="100" ticked></ui-slider>
+              </ui-brand-field>
+              <ui-brand-field label="Hue drift toward dark" value="0°" help="Turns the darkest steps warmer or cooler.">
+                <ui-slider min="-40" max="40" step="8" value="0" ticked></ui-slider>
+              </ui-brand-field>
+            </ui-brand-panel>
+            <ui-brand-panel header="Presets" collapsible collapsed>
+              <p>Six preset chips: <code>&lt;ui-brand-color-set&gt;</code> in P4.</p>
+            </ui-brand-panel>
+          </ui-brand-panel>
+          <ui-brand-panel header="A form" style="width: 320px">
+            <ui-brand-field label="Email" required error="That doesn't look like an email.">
+              <ui-input value="owen@" type="email"></ui-input>
+            </ui-brand-field>
+            <ui-brand-field label="App name" help="Shown on the home screen.">
+              <ui-input value="Habit Tracker"></ui-input>
+            </ui-brand-field>
+            <ui-brand-field label="Notifications" inline>
+              <ui-checkbox type="toggle" selected></ui-checkbox>
+            </ui-brand-field>
+          </ui-brand-panel>
+        </div>
+      </section>
+
+      <section>
         <div class="eyebrow">Buttons</div>
         <div class="row">
           <ui-button primary icon="wand magic sparkles">Build</ui-button>

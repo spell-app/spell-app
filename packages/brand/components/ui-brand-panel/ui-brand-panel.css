@@ -1,0 +1,266 @@
+/*
+ * `<ui-brand-panel>`:  the brand's inspector panel, drawn over `<ui-section>`'s markup (`ui-section.css` comes first).
+ * - Markup (the section's):  `section.ui.section.brand.panel` > `.title` > `hN.heading` > `.toggle` (fold icon, icon,
+ *   header), then `.subhead`, then `.content`.
+ * - Top-level panel:  a tinted box (16px padding, 16px radius, hairline, soft shadow);  its title is a full-width
+ *   HEADER BAND across the top (bold sans 17px, chevron at the far end).
+ * - `.sub` (a panel inside a panel):  no box;  its title is a full-width SUB-HEAD BAND (bold 12px capitals, a hairline
+ *   above), its content the fields under it.
+ * - Layers:  `ui.components.brand-panel.*` are declared after the section's, so these rules win without
+ *   `!important`.
+ * - Public tokens (`--ui-brand-panel-*`) are never declared here:  read through private aliases, so a value set on
+ *   `:root`, an ancestor or the host reaches the box.  Defaults:  the panel's HUE (`color`, else `primary`).
+ * - `color`:  any hue (`violet`, `teal` ...), and `accent` (Polished Ivory:  the `spell-brand` theme adds it);  none:
+ *   `primary` (Owen, 2026-10-04).  The hue's remap (`--ui-color*`) paints the box:  the header band its `background`,
+ *   the box and sub-head bands lighter mixes of it with the surface, the border and the text its own colours.
+ *   - Handed to sub-panels as `--_brand-panel-hue-*`:  the section resets `--ui-color*` at its `<slot>` (so a field
+ *     inside isn't tinted), so a sub-panel without a `color` of its own takes its outer panel's this way.
+ *   - A hue the page has no tokens for (`accent` outside `spell-brand`) makes the `-hue-*` values invalid:  the last
+ *     fallbacks (the brand's ivory roles, else plain surfaces) show.
+ */
+
+@layer ui.components.brand-panel.types, ui.components.brand-panel.content, ui.components.brand-panel.states;
+
+@layer ui.components.brand-panel.types {
+  /* No `color` on a top-level panel:  `primary`'s mixes (a sub-panel without one follows its panel instead) */
+  .ui.section.brand.panel:not(.sub):not(
+      :is(
+        .primary,
+        .secondary,
+        .red,
+        .orange,
+        .yellow,
+        .olive,
+        .green,
+        .teal,
+        .blue,
+        .violet,
+        .purple,
+        .pink,
+        .brown,
+        .grey,
+        .black,
+        .accent
+      )
+    ) {
+    --_brand-panel-hue-box: color-mix(in oklab, var(--ui-primary-background) 35%, var(--ui-surface));
+    --_brand-panel-hue-border: color-mix(in oklab, var(--ui-primary) 28%, var(--ui-surface));
+    --_brand-panel-hue-header: var(--ui-primary-background);
+    --_brand-panel-hue-header-color: var(--ui-primary-header);
+    --_brand-panel-hue-subhead: color-mix(in oklab, var(--ui-primary-background) 65%, var(--ui-surface));
+    --_brand-panel-hue-subhead-color: var(--ui-primary-text);
+  }
+
+  /* A coloured panel hands its hue's mixes down (sub-panels inherit them;  their own `color` overrides). */
+  .ui.section.brand.panel:is(
+      .primary,
+      .secondary,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black,
+      .accent
+    ) {
+    --_brand-panel-hue-box: color-mix(in oklab, var(--ui-color-background) 35%, var(--ui-surface));
+    --_brand-panel-hue-border: color-mix(in oklab, var(--ui-color) 28%, var(--ui-surface));
+    --_brand-panel-hue-header: var(--ui-color-background);
+    --_brand-panel-hue-header-color: var(--ui-color-header);
+    --_brand-panel-hue-subhead: color-mix(in oklab, var(--ui-color-background) 65%, var(--ui-surface));
+    --_brand-panel-hue-subhead-color: var(--ui-color-text);
+  }
+
+  .ui.section.brand.panel {
+    --_ui-brand-panel-background: var(
+      --ui-brand-panel-background,
+      var(--_brand-panel-hue-box, light-dark(var(--spell-accent-25, var(--ui-surface)), var(--ui-surface)))
+    );
+    --_ui-brand-panel-border-color: var(
+      --ui-brand-panel-border-color,
+      var(
+        --_brand-panel-hue-border,
+        light-dark(var(--spell-accent-150, var(--ui-border-color)), var(--ui-border-color))
+      )
+    );
+    --_ui-brand-panel-header-background: var(
+      --ui-brand-panel-header-background,
+      var(
+        --_brand-panel-hue-header,
+        light-dark(var(--spell-accent-100, var(--ui-surface-strong)), var(--ui-surface-strong))
+      )
+    );
+    --_ui-brand-panel-header-color: var(
+      --ui-brand-panel-header-color,
+      var(--_brand-panel-hue-header-color, var(--spell-text-strong, var(--ui-text-dark)))
+    );
+    --_ui-brand-panel-subhead-background: var(
+      --ui-brand-panel-subhead-background,
+      var(
+        --_brand-panel-hue-subhead,
+        light-dark(var(--spell-accent-75, var(--ui-surface-muted)), var(--ui-surface-muted))
+      )
+    );
+    --_ui-brand-panel-subhead-color: var(
+      --ui-brand-panel-subhead-color,
+      var(
+        --_brand-panel-hue-subhead-color,
+        light-dark(var(--spell-accent-800, var(--ui-text-muted)), var(--ui-text-muted))
+      )
+    );
+    --_ui-brand-panel-radius: var(--ui-brand-panel-radius, var(--ui-radius-l, 16px));
+    --_ui-brand-panel-padding: var(--ui-brand-panel-padding, 1em);
+    --_ui-brand-panel-gap: var(--ui-brand-panel-gap, 0.5em);
+    --_ui-brand-panel-shadow: var(--ui-brand-panel-shadow, var(--spell-shadow-sm, var(--ui-shadow-raised)));
+  }
+
+  /* The box:  the band's colours reach to its edges, so the band's corners follow the box's. */
+  .ui.section.brand.panel:not(.sub) {
+    margin-block: 0;
+    padding: var(--_ui-brand-panel-padding);
+    border: 1px solid var(--_ui-brand-panel-border-color);
+    border-radius: var(--_ui-brand-panel-radius);
+    background: var(--_ui-brand-panel-background);
+    box-shadow: var(--_ui-brand-panel-shadow);
+    font-family: var(--ui-font-family);
+  }
+
+  /* A sub-panel:  no box of its own;  it reaches the outer panel's edges (out through its padding). */
+  .ui.section.brand.panel.sub {
+    margin-block: 0;
+    margin-inline: calc(-1 * var(--_ui-brand-panel-padding));
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+  }
+}
+
+@layer ui.components.brand-panel.content {
+  /* No rule under a band:  a `dividing` section AROUND the panel hands its private `--_section-title-border` down
+     (custom properties inherit through the slot), which would draw one in the hue */
+  .ui.section.brand.panel > .title {
+    border-bottom: none;
+  }
+
+  /* ## Header band:  across the top of the box, out through its padding */
+  .ui.section.brand.panel:not(.sub) > .title {
+    margin: calc(-1 * var(--_ui-brand-panel-padding));
+    margin-block-end: 0;
+    padding: 0.75em var(--_ui-brand-panel-padding);
+    border-radius: calc(var(--_ui-brand-panel-radius) - 1px) calc(var(--_ui-brand-panel-radius) - 1px) 0 0;
+    background: var(--_ui-brand-panel-header-background);
+    color: var(--_ui-brand-panel-header-color);
+  }
+  .ui.section.brand.panel:not(.sub) > .title > .heading {
+    font-family: var(--ui-font-family);
+    font-size: 1.0625em;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+
+  /* ## Sub-head band:  small capitals, a hairline above */
+  .ui.section.brand.panel.sub > .title {
+    margin: 0;
+    padding: 0.25em var(--_ui-brand-panel-padding);
+    border-top: 1px solid var(--_ui-brand-panel-border-color);
+    border-radius: 0;
+    background: var(--_ui-brand-panel-subhead-background);
+    color: var(--_ui-brand-panel-subhead-color);
+  }
+  .ui.section.brand.panel.sub > .title > .heading,
+  .ui.section.brand.panel.sub > .title > .heading > .toggle {
+    font-family: var(--ui-font-family);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.5;
+    /* a `<button>` resets `text-transform`:  set on the toggle too */
+    text-transform: uppercase;
+  }
+  .ui.section.brand.panel.sub > .title > .heading {
+    font-size: 0.75em;
+  }
+
+  /* ## The chevron:  small, quiet, at the far end of the band */
+  .ui.section.brand.panel > .title > .heading > .toggle > .fold.icon {
+    order: 2;
+    margin-inline-start: auto;
+    width: 0.6875em;
+    height: 0.6875em;
+    opacity: 0.55;
+    transition:
+      rotate var(--_ui-section-duration) var(--ui-ease),
+      opacity var(--ui-duration-fast) var(--ui-ease);
+  }
+  .ui.section.brand.panel > .title > .heading > .toggle:hover > .fold.icon {
+    opacity: 1;
+  }
+  /* the sub-head band's text is 12px:  keep its chevron the header band's size */
+  .ui.section.brand.panel.sub > .title > .heading > .toggle > .fold.icon {
+    width: 0.9166em;
+    height: 0.9166em;
+  }
+
+  /* ## Subhead text (`subhead`):  small, muted, under the band */
+  .ui.section.brand.panel > .subhead {
+    padding: 0.5em 0 0;
+    font-size: 0.8125em;
+  }
+  .ui.section.brand.panel.sub > .subhead {
+    padding-inline: var(--_ui-brand-panel-padding);
+  }
+
+  /* ## Content:  fields in a column, 8px apart */
+  .ui.section.brand.panel > .content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--_ui-brand-panel-gap);
+    font-size: 0.875em;
+  }
+  /* padding only while unfolded:  the section's `.content[hidden]` rule (no padding) must keep winning */
+  .ui.section.brand.panel > .content:not([hidden]) {
+    padding: 0.75em 0 0;
+  }
+  /* NOTE:  no compounding of the 14px:  every section root resets to `--ui-font-size` */
+  .ui.section.brand.panel.sub > .content:not([hidden]) {
+    padding: 0.75em var(--_ui-brand-panel-padding) 0.25em;
+  }
+}
+
+@layer ui.components.brand-panel.states {
+  /* Folded:  only the band shows;  the box closes up under it */
+  :host(:state(collapsed)) > .ui.section.brand.panel:not(.sub) {
+    padding-block-end: 0;
+  }
+  :host(:state(collapsed)) > .ui.section.brand.panel:not(.sub) > .title {
+    margin-block-end: 0;
+    border-radius: calc(var(--_ui-brand-panel-radius) - 1px);
+  }
+
+  /* A folded LAST sub-panel:  its band closes the outer box, out through the outer padding, rounded to its corners.
+     - on the inner root, not the host:  the outer panel's `::slotted(:last-child)` zeroes the host's margin, and
+       an outer rule beats a `:host` one.  The host is a flex item (its own formatting context), so the root's
+       negative margin shortens it. */
+  :host(:last-child:state(collapsed)) > .ui.section.brand.panel.sub {
+    margin-block-end: calc(-1 * var(--_ui-brand-panel-padding));
+  }
+  /* ... and the outer content, which clips (`overflow-y: clip`, for the fold animation), lets it show in its padding.
+     - BOTH axes clip:  Chrome honours `overflow-clip-margin` only then;  the margin also covers the sub-panels'
+       bands, which reach out sideways through the same padding
+     - the margin in px (`--ui-font-size`), not the private `1em` alias:  that would resolve at the content's 14px */
+  .ui.section.brand.panel:not(.sub) > .content {
+    overflow: clip;
+    overflow-clip-margin: var(--ui-brand-panel-padding, var(--ui-font-size));
+  }
+  :host(:last-child:state(collapsed)) > .ui.section.brand.panel.sub > .title {
+    border-radius: 0 0 calc(var(--_ui-brand-panel-radius) - 1px) calc(var(--_ui-brand-panel-radius) - 1px);
+  }
+}

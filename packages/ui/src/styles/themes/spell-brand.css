@@ -304,6 +304,22 @@
     --ui-checkbox-checked-background: var(--ui-primary);
     --ui-checkbox-checked-border-color: var(--ui-primary);
     --ui-checkbox-checked-mark-color: var(--ui-primary-on);
+    /* spell-brand:  the brand's range (Color Set Chooser):  a thin pill track in Spell Purple, an 18px thumb set off
+       by a soft shadow, never a white ring;  compact, so a field's label row sits right above it (issue I2) */
+    --ui-slider-height: 1.125em;
+    --ui-slider-padding-block: 0.375em;
+    --ui-slider-padding-inline: 0.5625em;
+    --ui-slider-track-height: 0.25em;
+    --ui-slider-track-radius: var(--ui-radius-pill);
+    --ui-slider-track-color: light-dark(var(--spell-brand-150), var(--spell-hairline));
+    --ui-slider-fill-color: var(--ui-primary);
+    --ui-slider-fill-color-focus: var(--ui-primary-hover);
+    --ui-slider-thumb-background: light-dark(oklch(1 0 0), var(--spell-violet-50));
+    --ui-slider-thumb-background-hover: light-dark(var(--spell-violet-25), oklch(1 0 0));
+    --ui-slider-thumb-shadow:
+      0 1px 3px light-dark(rgb(43 47 63 / 0.28), rgb(6 3 20 / 0.6)),
+      0 0 0 0.5px light-dark(rgb(43 47 63 / 0.12), transparent);
+    --ui-slider-tick-color: light-dark(var(--spell-brand-300), var(--spell-hairline-strong));
     --ui-card-radius: var(--ui-radius-l);
     --ui-segment-radius: var(--ui-radius-l);
     --ui-message-radius: var(--ui-radius-l);
@@ -664,5 +680,49 @@
     ::after {
       transition: none !important;
     }
+  }
+}
+
+/*
+ * spell-brand:  the `accent` hue, Polished Ivory (the brand's warm accent, `palette.css` `accent-*`), beside Fomantic's.
+ * - Tokens as every hue's (`colors.css`):  base, text, header, border, background, inverted, on, inverted-on, and the
+ *   remap `.ui.accent` / `.ui-accent` onto the generic `--ui-color*`, so `color="accent"` tints any element that takes
+ *   a `color` while this theme is on.
+ * - The NAME is added to the `hues` value set by the brand bundle (`packages/brand/src/hues.ts`):  a theme sheet can't.
+ *   Elsewhere the attribute is refused;  under another theme, accepted but untinted.
+ * - `<ui-brand-panel color="accent">`:  the Color Set Chooser's ivory panel.
+ */
+@layer ui.theme {
+  :root {
+    --ui-accent-on-light: #867044; /* accent-600 */
+    --ui-accent-on-dark: #baa479; /* accent-400 */
+    --ui-accent: light-dark(var(--ui-accent-on-light), var(--ui-accent-on-dark));
+    --ui-accent-hover: oklch(from var(--ui-accent) calc(l - 0.05) calc(c * 1.1) h);
+    --ui-accent-focus: oklch(from var(--ui-accent) calc(l - 0.08) calc(c * 1.2) h);
+    --ui-accent-down: oklch(from var(--ui-accent) calc(l - 0.1) c h);
+    --ui-accent-active: oklch(from var(--ui-accent) calc(l - 0.05) calc(c * 1.15) h);
+    --ui-accent-text: light-dark(var(--spell-accent-800), var(--spell-accent-200)); /* accent-800 / 200 */
+    --ui-accent-header: light-dark(var(--spell-violet-900), var(--spell-accent-100));
+    --ui-accent-border: light-dark(var(--spell-accent-300), rgb(234 221 196 / 0.3));
+    --ui-accent-background: light-dark(var(--spell-accent-100), #2c2152); /* ivory;  dark:  the brand's warm surface */
+    --ui-accent-inverted: var(--ui-accent-on-dark);
+    --ui-accent-on: light-dark(oklch(1 0 0), var(--ui-ink-on-light));
+    --ui-accent-inverted-on: var(--ui-ink-on-light);
+  }
+
+  .ui.accent,
+  .ui-accent {
+    --ui-color: var(--ui-accent);
+    --ui-color-hover: var(--ui-accent-hover);
+    --ui-color-focus: var(--ui-accent-focus);
+    --ui-color-down: var(--ui-accent-down);
+    --ui-color-active: var(--ui-accent-active);
+    --ui-color-text: var(--ui-accent-text);
+    --ui-color-header: var(--ui-accent-header);
+    --ui-color-border: var(--ui-accent-border);
+    --ui-color-background: var(--ui-accent-background);
+    --ui-color-inverted: var(--ui-accent-inverted);
+    --ui-color-on: var(--ui-accent-on);
+    --ui-color-inverted-on: var(--ui-accent-inverted-on);
   }
 }

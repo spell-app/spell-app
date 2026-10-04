@@ -37,7 +37,43 @@
           >
         </ui-list>
 
-        <ui-section id="mockups" header="1. Product mockups" sticky collapsible dividing>
+        <ui-section id="components" header="1. Components" sticky collapsible dividing>
+          <ui-icon slot="icon" name="puzzle piece"></ui-icon>
+          <p>
+            The <code>&lt;ui-brand-*&gt;</code> elements the copies are built from, each with a page in Spell UI's docs
+            format: examples, usage, API and tokens.
+          </p>
+          <ui-table celled compact striped unstackable
+            ><table>
+              <thead>
+                <tr>
+                  <th>Element</th>
+                  <th>What it is</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-panel.html"><code>&lt;ui-brand-panel&gt;</code></a>
+                  </td>
+                  <td>An inspector: a tinted box of fields under a header band, with sub-head bands that fold.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-field.html"><code>&lt;ui-brand-field&gt;</code></a>
+                  </td>
+                  <td>One control with its label, a value readout, actions, an info tip, help and errors.</td>
+                </tr>
+                <tr>
+                  <td><a href="components/components.spell.html">Specimen</a></td>
+                  <td>Spell UI and the brand elements together in the <code>spell-brand</code> theme.</td>
+                </tr>
+              </tbody>
+            </table></ui-table
+          >
+        </ui-section>
+
+        <ui-section id="mockups" header="2. Product mockups" sticky collapsible dividing>
           <ui-icon slot="icon" name="desktop"></ui-icon>
           <p>Screens of Spell itself: the app, its docs, its public site.</p>
           <ui-table celled compact striped unstackable
@@ -53,7 +89,7 @@
           ></ui-table>
         </ui-section>
 
-        <ui-section id="tools" header="2. Tools" sticky collapsible dividing>
+        <ui-section id="tools" header="3. Tools" sticky collapsible dividing>
           <ui-icon slot="icon" name="wand magic sparkles"></ui-icon>
           <p>Pages that work on colours and themes.</p>
           <ui-table celled compact striped unstackable
@@ -69,7 +105,7 @@
           ></ui-table>
         </ui-section>
 
-        <ui-section id="brand" header="3. Brand" sticky collapsible dividing>
+        <ui-section id="brand" header="4. Brand" sticky collapsible dividing>
           <ui-icon slot="icon" name="hat wizard"></ui-icon>
           <p>The marks, the art, and Claude Design's own index.</p>
           <ui-table celled compact striped unstackable
@@ -85,7 +121,7 @@
           ></ui-table>
         </ui-section>
 
-        <ui-section id="sources" header="4. Sources" sticky collapsible dividing>
+        <ui-section id="sources" header="5. Sources" sticky collapsible dividing>
           <ui-icon slot="icon" name="folder"></ui-icon>
           <ul>
             <li>

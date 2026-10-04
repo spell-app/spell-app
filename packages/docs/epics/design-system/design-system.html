@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Epic: Design System</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3"
-                >next: P3 · Panel &amp; Field</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Color Elements</ui-label></span
             >
           </header></ui-sticky
         >
@@ -85,7 +83,7 @@
               </blockquote></ui-content
             >
           </ui-accordion>
-          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 30h-40h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 27h-36h left</p>
           <ui-section id="o1" header="1.1 What Claude Design made" sticky collapsible dividing>
             <p>
               <a href="../../../brand/spell-design-system/" target="src-packages-brand-spell-design-system"
@@ -533,7 +531,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -641,6 +639,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p2"
             data-phase="2"
             data-status="done"
@@ -753,14 +752,14 @@
           <ui-section
             id="p3"
             data-phase="3"
-            data-status="todo"
+            data-status="done"
             header="P3 · Panel & Field"
             badge="3-4h"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -775,10 +774,48 @@
                   </li>
                   <li>a specimen page showing both, light and dark</li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    where to see it: the specimen page
+                    <a
+                      href="../../../brand/components/components.spell.html"
+                      target="src-packages-brand-components-components-spell-html"
+                      ><code>packages/brand/components/components.spell.html</code></a
+                    >, "Panel &amp; fields": the Color Set Chooser's inspector rebuilt (Color Set, Tweak, Presets) and a
+                    small form, light and dark
+                  </li>
+                  <li>
+                    <code>&lt;ui-brand-panel&gt;</code>: a <code>&lt;ui-section&gt;</code> under its own tag (every
+                    section attribute, slot and event: <code>header</code>, <code>subhead</code>,
+                    <code>collapsible</code>, <code>collapsed</code>, <code>actions</code> ...); the ivory box with a
+                    full-width header band; a panel inside a panel is a sub-head band in small capitals; a folded last
+                    band closes the box; tokens <code>--ui-brand-panel-*</code>
+                  </li>
+                  <li>
+                    <code>&lt;ui-brand-field&gt;</code>: <code>label</code>, <code>value</code>, <code>info</code> (a
+                    tip on hover and focus), <code>help</code>, <code>error</code>, <code>required</code>,
+                    <code>inline</code>, <code>disabled</code>; slots <code>label</code>, <code>actions</code>,
+                    <code>value</code>, <code>help</code>; <code>&lt;ui-form&gt;</code> validates it like a
+                    <code>&lt;ui-field&gt;</code>; it names its control from the label (<a href="#j5">J5</a>)
+                  </li>
+                  <li>
+                    rough: <code>&lt;ui-slider&gt;</code> inside a field is tall and aubergine, unlike the brand's thin
+                    purple range (<a href="#i2">I2</a>)
+                  </li>
+                  <li>
+                    tests: <code>yarn test</code> in
+                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> (Vitest in
+                    Chromium, Spell UI's helpers), 11 passing, axe included; on the commands page
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> <code>packages/brand/components/ui-brand-panel/*</code>,
                 <code>.../ui-brand-field/*</code> (tsx, css, vocabulary, tests);
-                <code>packages/brand/vitest.config.ts</code>;
+                <a href="../../../brand/vitest.config.ts" target="src-packages-brand-vitest-config-ts"
+                  ><code>packages/brand/vitest.config.ts</code></a
+                >;
                 <a
                   href="../../../brand/components/components.spell.html"
                   target="src-packages-brand-components-components-spell-html"
@@ -787,7 +824,7 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> vitest: render, collapse, slots, <code>showErrors()</code>, form validation; the
                 specimen page by eye</ui-item
-              ></ui-list
+              ><ui-item icon="compass"><b>Judgement calls:</b> <a href="#j5">J5</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -1566,6 +1603,126 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d11">D11</a>
+                  <span class="plan-title"
+                    >Each brand element gets a docs page in Spell UI's docs format</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, after P3 (2026-10-04): "make a new brand page which shows off the new components, use the
+                    spell/ui doc format".
+                  </p>
+                  <ul>
+                    <li>
+                      <code>packages/brand/components/&lt;tag&gt;.html</code>, one per family: a masthead, then Examples
+                      / Usage / API / Theming tabs, as
+                      <a
+                        href="../../templates/spell-ui-docs.html"
+                        target="src-packages-docs-templates-spell-ui-docs-html"
+                        ><code>packages/docs/templates/spell-ui-docs.html</code></a
+                      >; the site header on top, no Spell UI site shell (nav, search).
+                    </li>
+                    <li>
+                      Examples are live <code>&lt;ui-docs-example&gt;</code>s: the code shown is the markup as written.
+                      API and Tokens come from the brand's own data,
+                      <a href="../../../brand/_data/components.json" target="src-packages-brand-data-components-json"
+                        ><code>packages/brand/_data/components.json</code></a
+                      >
+                      (<code>yarn site:data</code>), built by Spell UI's <code>SiteDataBuilder</code>, which now takes
+                      other folders (<code>SiteDataOptions</code>).
+                    </li>
+                    <li>
+                      Loaded with <code>_assets/ui/brand-docs.js</code>, a second entry of the brand bundle: the
+                      snapshot first, then the brand bundle, <code>UI.load()</code>, then the docs widgets.
+                    </li>
+                    <li>Listed first on the Brand index, "1. Components".</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      every new <code>&lt;ui-brand-*&gt;</code> family (P4's colour elements next) gets a vocabulary
+                      with topics and aka, a page, and <code>yarn site:data</code>
+                    </li>
+                    <li>
+                      the brand package reaches past <code>ui</code>'s barrel for the docs widgets (listed in
+                      <a href="../../../brand/AGENTS.md" target="src-packages-brand-agents-md"
+                        ><code>packages/brand/AGENTS.md</code></a
+                      >, "Imports")
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title"
+                    >&lt;ui-brand-panel color&gt;: any hue, plus the brand's `accent`</span
+                  ></ui-title
+                ><ui-content
+                  ><p>Owen, after P3 (2026-10-04): "`color` attribute for Panel, including `color=accent`".</p>
+                  <ul>
+                    <li>
+                      <code>color</code> (the section's own attribute) paints the whole panel from the hue's remap: the
+                      header band its background, the box and sub-head bands lighter mixes with the surface, the border
+                      and the text the hue. Sub-panels without a <code>color</code> follow their panel (handed down as
+                      <code>--_brand-panel-hue-*</code>, since the section resets <code>--ui-color*</code> at its slot).
+                    </li>
+                    <li>
+                      <code>accent</code> is a NEW hue: Polished Ivory. The brand bundle adds the name to Spell UI's
+                      <code>hues</code> (<a href="../../../brand/src/hues.ts" target="src-packages-brand-src-hues-ts"
+                        ><code>packages/brand/src/hues.ts</code></a
+                      >); <code>spell-brand</code> gives it tokens (<code>--ui-accent-*</code>) and the
+                      <code>.ui.accent</code> remap, so <code>color="accent"</code> tints ANY element while that theme
+                      is on.
+                    </li>
+                    <li>
+                      No <code>color</code>: the ivory look, unchanged; <code>accent</code> names it (judgement
+                      <a href="#j6">J6</a>).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the panel's docs page has a Colors example (accent, violet, grey, teal)</li>
+                    <li>
+                      under any other theme, <code>accent</code> is accepted but tints nothing; a Spell UI-wide
+                      <code>accent</code> hue is part of moving the elements into Spell UI (<a href="#t2">T2</a>)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d13">D13</a>
+                  <span class="plan-title">An uncoloured panel is primary; accent is the ivory, by name</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-04, on judgement <a href="#j6">J6</a> (which kept the ivory as the default): "default
+                    should be <code>primary</code> color". Replaces <a href="#d12">D12</a>'s "no <code>color</code>: the
+                    ivory look".
+                  </p>
+                  <ul>
+                    <li>
+                      A top-level <code>&lt;ui-brand-panel&gt;</code> without <code>color</code> paints itself from
+                      <code>primary</code> (Spell Purple under <code>spell-brand</code>: lavender bands); a sub-panel
+                      without one still follows its panel.
+                    </li>
+                    <li>The ivory is <code>color="accent"</code>.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      the brand copies whose panels are ivory (Color Set Chooser, Theme Creator) say
+                      <code>color="accent"</code>; the specimen page's Color Set panel does already
+                    </li>
+                    <li>the panel docs page's Colors example starts with "Default" (primary)</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1710,6 +1867,59 @@
                       <code>brand-ui.css</code>
                     </li>
                     <li>caveat <a href="#c2">C2</a> no longer needs the internet for icons</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j5">J5</a>
+                  <span class="plan-title">&lt;ui-brand-field&gt; names its control from the label</span> </ui-title
+                ><ui-content
+                  ><p>
+                    A <code>&lt;label for&gt;</code> inside the field's shadow root can't point at the control in the
+                    light DOM, so screen readers would hear an unnamed slider. Chose: the field writes
+                    <code>aria-label="&lt;label&gt;"</code> on a slotted control that has no <code>aria-label</code> /
+                    <code>aria-labelledby</code> of its own, renames it when <code>label</code> changes, and never
+                    touches a control that came with its own name. A click on the label focuses the control.
+                  </p>
+                  <p>
+                    Other options: make the author name each control (easy to forget), or give the field
+                    <code>role="group"</code> with the label as its name (names the group, not the slider).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <code>&lt;ui-brand-field label="Vibrancy"&gt;&lt;ui-slider&gt;</code> reads "Vibrancy, slider"
+                    </li>
+                    <li>a SIDE EFFECT on light-DOM children, documented on the class</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-reviewed="2026-10-04" id="j6" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j6">J6</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title"
+                    >An uncoloured panel stays ivory; `color="accent"` names that look</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Chose to keep the panel's default as the brand's ivory (the Color Set Chooser's look), so
+                    <code>color="accent"</code> draws the same thing, by name.
+                  </p>
+                  <p>
+                    Other option: a NEUTRAL default (white box, grey bands), with ivory only under
+                    <code>color="accent"</code>. That reads more like a plain Spell UI segment, but every brand page
+                    would need <code>color="accent"</code> on its panels to match the originals.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      <code>&lt;ui-brand-panel&gt;</code> == <code>&lt;ui-brand-panel color="accent"&gt;</code> under
+                      <code>spell-brand</code>
+                    </li>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1862,6 +2072,25 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item data-reviewed="2026-10-04" id="i2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title"
+                    >&lt;ui-slider&gt; is tall and its fill is aubergine; the brand's range is thin and purple</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    On the specimen page, each <code>&lt;ui-slider ticked&gt;</code> in a
+                    <code>&lt;ui-brand-field&gt;</code> takes about 45px with its ticks, and its filled part is dark
+                    aubergine. The Color Set Chooser uses a native <code>&lt;input type="range" list&gt;</code>: a thin
+                    track about 20px tall, Spell Purple (<code>accent-color</code>), small tick marks under it. For the
+                    Tool Pages (<a href="#p5">P5</a>) or Convergence (<a href="#p8">P8</a>): a
+                    <code>spell-brand</code> slider look, a compact slider size, or the native range.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1933,6 +2162,63 @@
                     mono capitals, and eight brand-role swatches show (tint, warm, selected, inverse, accent, accent
                     soft, blob, code). Switch to dark with the sun button in the header: the canvas turns aubergine, the
                     swatches change.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v5">V5</a>
+                  <span class="plan-title">Fold the panel's bands on the specimen page</span> </ui-title
+                ><ui-content
+                  ><p>
+                    On
+                    <a
+                      href="../../../brand/components/components.spell.html"
+                      target="src-packages-brand-components-components-spell-html"
+                      ><code>packages/brand/components/components.spell.html</code></a
+                    >: click "Color Set", "Tweak" and "Presets". Each folds and unfolds with a short slide; the chevron
+                    turns. With "Presets" folded (it starts so), its band closes the bottom of the box, no gap under it.
+                    In dark mode too.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v6">V6</a>
+                  <span class="plan-title">Hover and tab to a field's info icon</span> </ui-title
+                ><ui-content
+                  ><p>
+                    On the specimen page, hover the (i) after "Base color": a dark bubble with the tip shows under it.
+                    Tab to it: the same bubble, and a focus ring. A screen reader reads the label and the tip.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v7">V7</a>
+                  <span class="plan-title">Read the two component docs pages</span></ui-title
+                ><ui-content
+                  ><p>
+                    From the Brand index, "1. Components": open Brand Panel, then Brand Field. Each: examples work
+                    (fold, hover the (i), the toggle), the code button shows the markup; Usage reads well; API lists the
+                    attributes, slots, parts, events; Theming's preview changes as you edit a token, Reset puts it back.
+                    Dark mode too.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v8">V8</a> <span class="plan-title">Try a coloured panel</span></ui-title
+                ><ui-content
+                  ><p>
+                    On the Brand Panel page, Examples, Variations, Colors: four panels, accent (ivory), violet, grey,
+                    teal; each band, box and border in its hue, the Tweak sub-head band following. Dark mode: the same
+                    hues on aubergine. In DevTools, change one panel's <code>color</code> to <code>red</code>: it
+                    repaints.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2112,6 +2398,57 @@
                   ><ui-date><time datetime="2026-10-04T16:11-04:00">2026-10-04 16:11</time></ui-date> I1 fixed: three
                   checked-state tokens on ui-checkbox (defaults unchanged); spell-brand fills a ticked box purple with a
                   white check</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:13-04:00">2026-10-04 16:13</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:24-04:00">2026-10-04 16:24</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:29-04:00">2026-10-04 16:29</time></ui-date> I2 closed:
+                  &lt;ui-slider&gt; is tall and its fill is aubergine; the brand's range is thin and purple</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:29-04:00">2026-10-04 16:29</time></ui-date> I2 reviewed:
+                  fixed: spell-brand sets the --ui-slider-* tokens: thin purple pill track, 18px soft-shadow thumb,
+                  compact</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:37-04:00">2026-10-04 16:37</time></ui-date> After P3 (Owen):
+                  I2 fixed (brand slider tokens); docs pages for ui-brand-panel and ui-brand-field in Spell UI's docs
+                  format (D11)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:56-04:00">2026-10-04 16:56</time></ui-date> J6 reviewed: Owen:
+                  the default should be primary, not ivory (D13)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:56-04:00">2026-10-04 16:56</time></ui-date> J6 closed: An
+                  uncoloured panel stays ivory; `color="accent"` names that look</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
