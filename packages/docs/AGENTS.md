@@ -71,6 +71,9 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - counts:  a top-level section holding `[data-status]` items shows `open/all` on its title (its `badge`) and the
     open count as a badge in the contents and the rail (open:  any status but `done` or `decided`);  nested
     sections get no count of their own
+  - item filter:  a top-level section with plan items (`.plan-items`) gets an "Open | All" button group left of
+    its count;  Open (the default) hides struck items, with "N hidden · show all" under the list;  remembered
+    per page
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
   - code colors (highlight.js from cdnjs)
 - Headings:

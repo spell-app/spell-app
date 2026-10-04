@@ -307,8 +307,9 @@ function inspectPage() {
  */
 function scrollToMiddleSection() {
   const room = document.documentElement.scrollHeight - innerHeight
+  // a section barely taller than its title (an empty "Todos" in a new plan doc) has no middle to stick over:  skip it
   const sections = [...document.querySelectorAll("main > ui-section, section.s2")].filter(
-    (s) => s.getBoundingClientRect().top + scrollY + 200 < room
+    (s) => s.getBoundingClientRect().top + scrollY + 200 < room && s.offsetHeight > 200
   )
   const middle = sections[Math.floor(sections.length / 2)]
   middle?.scrollIntoView()

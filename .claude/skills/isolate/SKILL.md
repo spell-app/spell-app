@@ -94,7 +94,7 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
 - Check, and rename if needed, whenever an isolated or epic session STARTS or RESUMES work:
   - "Continue" above (the first turn in the new window)
   - each `/epic` phase start ("5. Each phase", step 1;  Doc Review is a phase too)
-  - `.claude/skills/park/SKILL.md` "Resume" (`/unpark`, `/wait-for`), and `/wakeup`
+  - `.claude/skills/park/SKILL.md` "Resume" (`/unpark`, `/wait-for`)
   - Owen reopening the session to carry on ("start P3", "continue")
 - How:  `python3 ~/.claude/skills/session/scripts/session.py name <name>`.  It checks first:  already `<name>`
   (or queued), it does nothing;  else it queues `<name>`, which lands on Owen's NEXT prompt.

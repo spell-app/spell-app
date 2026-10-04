@@ -166,6 +166,107 @@
               </ul>
             </ui-section>
 
+            <ui-section id="epic-review" header="2026-10-03 → 10-04 · /epic review" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/epic-review/epic-review.html" target="epic-review">epics/epic-review</a></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="epic-review.html" target="src-packages-docs-epic-review-html">epic-review.html</a></ui-item
+                >
+                <ui-item icon="code branch">Branch <code>epic-review</code></ui-item>
+              </ui-list>
+              <p><b>P1 · Interaction mockup</b></p>
+              <ul>
+                <li>
+                  The prompt hook lets <code>/epic review ...</code> through: no rename, no block;
+                  <code>review</code> is a reserved epic name
+                </li>
+                <li>The review flow mocked on canned data first, reshaped over six rounds of Owen's clicks</li>
+              </ul>
+              <p><b>P2 · Review state</b></p>
+              <ul>
+                <li>
+                  <code>yarn plan-doc review / defer / queue / unqueue</code>: dated marks on items, a label right after
+                  the id (reviewed, deferred, to do)
+                </li>
+                <li>
+                  "Reviewed" also counts struck, decided, and decision-linked items; <code>items</code> (sections,
+                  counts, the to-do list, each item's recommendation) and <code>list</code> (every epic, main and
+                  worktrees)
+                </li>
+                <li>
+                  Open | All on every plan doc item section: Open (the default) hides struck items, "N hidden · show
+                  all"
+                </li>
+                <li>
+                  <a href="scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                    ><code>check-spell.js</code></a
+                  >
+                  skips sections too short to stick (an empty Todos failed every new doc)
+                </li>
+              </ul>
+              <p><b>P3 · Review backfill</b></p>
+              <ul>
+                <li>
+                  <code>yarn plan-doc backfill &lt;name&gt; | --all [--apply]</code>
+                  (<a href="scripts/review-backfill.js" target="src-packages-docs-scripts-review-backfill-js"
+                    ><code>scripts/review-backfill.js</code></a
+                  >): items Owen named in a past session of the epic, his messages and modal answers; a dry run by
+                  default
+                </li>
+              </ul>
+              <p><b>P4 · The real review</b></p>
+              <ul>
+                <li>
+                  The epic skill's section 7, on real commands; every <code>/epic</code> session marks what it talks
+                  through
+                </li>
+                <li>
+                  The item picker: a details page from <code>plan-doc items --section s --spec</code>, the not-reviewed
+                  items ticked; Explain further: a details page
+                </li>
+                <li>
+                  Every <code>plan-doc</code> command but <code>new</code> edits the epic's live doc (its worktree, else
+                  main)
+                </li>
+              </ul>
+              <p><b>P5 · Epics index</b></p>
+              <ul>
+                <li>
+                  One Epics section in the docs index: <code>docs:index</code> writes merged cards and a slot,
+                  <code>RunningEpics</code> fills it with running ones; no separate "Running epics"
+                </li>
+                <li>
+                  Each card's title after its state: [3/6], done (green check), planning (blue thought bubble), stalled
+                  (yellow pause); Open | All on the section; a "circle pause" icon bundled
+                </li>
+              </ul>
+              <p><b>P6 · Dry run</b></p>
+              <ul>
+                <li>
+                  The picker reworked: two-column cards (tick box, (?) more details, state icon | title, whole text),
+                  Select all / none, Open | All, no site header
+                </li>
+                <li>
+                  Every details page: the Send bar pinned as the page's bottom (notes and a round send button), long
+                  text clamped with Show more, folds only when they hold more, "Asked" date up top, boxes that start
+                  ticked
+                </li>
+              </ul>
+              <p><b>P7 · Doc review</b></p>
+              <ul>
+                <li>
+                  The durable doc,
+                  <a href="epic-review.html" target="src-packages-docs-epic-review-html"
+                    ><code>epic-review.html</code></a
+                  >
+                </li>
+              </ul>
+            </ui-section>
+
             <ui-section
               id="epics-skill"
               header="2026-10-03 · /epics, and /whassup merged into /worktrees"
@@ -1154,7 +1255,7 @@
           <ui-divider></ui-divider>
           <p class="meta">
             Last updated 2026-10-04 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages, stay-put
-            and ui-docs-rework (in its worktree).
+            and epic-review.
           </p>
         </footer>
       </main>

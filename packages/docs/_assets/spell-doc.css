@@ -356,6 +356,32 @@ pre code {
             Widgets
 *******************************/
 
+/*
+ * ## Open | All:  a section's item filter (`ui-buttons.spell-item-filter`, slotted into its title's `actions` by the
+ * runtime's `wireItemFilters()`):  plan docs' item lists (`.plan-items`) and the index's epics (`.spell-epics`).
+ * Just after the title, left of the count badge;  Open hides done items, with "6 hidden · show all" under them.
+ */
+.spell-doc-main ui-section::part(actions) {
+  order: 1;
+}
+.spell-doc-main ui-section::part(badge) {
+  order: 2;
+}
+.spell-doc-main ui-section[data-show="open"] :is(.plan-items, .spell-epics) > [data-status="done"] {
+  display: none;
+}
+.spell-doc-main a.spell-hidden-note:not([hidden]) {
+  display: inline-block;
+  margin: 4px 0 0 4px;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+}
+/* an epic card's state, before its title:  [3/6], or a done / planning / stalled icon */
+.spell-doc-main .spell-epic-state {
+  margin-right: 4px;
+  vertical-align: 0.1em;
+}
+
 /* ## Messages, tables, cards:  page spacing;  tables scroll inside their box at phone width */
 .spell-doc-main :is(ui-message, ui-cards, ui-accordion, ui-statistics, ui-steps, ui-tabs, ui-grid, ui-feed, ui-items) {
   margin: 16px 0;
