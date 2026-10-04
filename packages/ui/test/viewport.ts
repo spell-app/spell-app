@@ -1,11 +1,11 @@
-import { onTestFinished } from "vitest"
-import { page } from "vitest/browser"
+import { onTestFinished } from "vite-plus/test"
+import { page } from "vite-plus/test/browser"
 
 /****************
  * ### `Viewport`
  * Resize the test iframe for one test, put back when it finishes -- for `stack-with="page"` and other `@media` rules.
  * - Render FIRST, then resize:  WebKit keeps a shared adopted sheet's `@media` results stale when no element using it
- *   is alive at the resize (`SUSPECTED-BUGS.md`, `## ui`, `Styles.ts`)
+ *   is alive at the resize (`agents/SUSPECTED-BUGS.md`, `## ui`, `Styles.ts`)
  ****************/
 export class Viewport {
   /** Viewport `width` x `height` until the test ends;  waits a frame for the media queries to follow. */

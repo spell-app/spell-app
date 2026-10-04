@@ -1,6 +1,6 @@
 ---
 name: epics
-description: List the open epics -- every `/epic` plan doc (`packages/docs/epics/<name>/`, on `main` or in its own worktree) with phases left, still planning, or done but not merged -- with each one's phase, worktree, session, what's waiting on Owen, and links to its plan doc.  List only:  changes nothing.  Use for `/epics` (open ones), `/epics all` (finished ones too), or when Owen asks "what epics are open?", "which plans are running?", "where are my epics at?".  Everything else open (sessions, worktrees, clean-up):  `/worktrees`.
+description: List the open epics -- every `/epic` plan doc (`packages/docs/content/epics/<name>/`, on `main` or in its own worktree) with phases left, still planning, or done but not merged -- with each one's phase, worktree, session, what's waiting on Owen, and links to its plan doc.  List only:  changes nothing.  Use for `/epics` (open ones), `/epics all` (finished ones too), or when Owen asks "what epics are open?", "which plans are running?", "where are my epics at?".  Everything else open (sessions, worktrees, clean-up):  `/worktrees`.
 argument-hint: "[all]"
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `packages/docs/epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").
+description: Run a planning session against a live plan doc, `packages/docs/content/epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").
 argument-hint: <name> [what to plan] | review [<name>]
 ---
 
@@ -9,10 +9,10 @@ argument-hint: <name> [what to plan] | review [<name>]
 An EPIC is a planning session and the work it plans;  its live record is the PLAN DOC.  (Was `/plan-doc` until
 2026-10-02;  `yarn plan-doc` keeps its name, since it edits the plan doc.)
 
-Plan, then build, in worktree `<name>`, keeping `packages/docs/epics/<name>/<name>.plan.html` (the PLAN DOC) current
+Plan, then build, in worktree `<name>`, keeping `packages/docs/content/epics/<name>/<name>.plan.html` (the PLAN DOC) current
 the whole time.  The plan doc is the user's view of the work:  they read it in VS Code's doc preview (the right side bar's "Spell Docs" view) while you work.
 
-- Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/epics/plan-doc.md`.  Read it first.
+- Rules for the doc (sections, ids, markers, prose):  `packages/docs/content/templates/epics/plan-doc.md`.  Read it first.
 - Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
@@ -48,7 +48,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   it `<name>.<time>.md` first).  No text, but that file exists:  it IS the kickoff prompt (the hook saved it);  say
   so in one line.  Delete the file only once the plan doc holds it (`plan-doc new --prompt-file`).
 - Look for collisions (from the repo root), every time:
-  - `packages/docs/epics/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
+  - `packages/docs/content/epics/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
   - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2
   - any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the
     user types it in "Other").  Never overwrite an existing plan doc.
@@ -188,7 +188,7 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
     doc's own card:  `yarn plan-doc` doesn't touch the index in a worktree (until now the main server added its
     card to the index's Epics section)
 - The plan doc stays in `epics/` as the record:  every phase done.
-- Changelog:  add the epic's entry to `packages/docs/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
+- Changelog:  add the epic's entry to `packages/docs/content/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
   the plan doc and the durable doc;  under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
 - Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  No move back:  the session and its
   plan doc stay in the window they're in.

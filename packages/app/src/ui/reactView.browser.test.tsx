@@ -1,5 +1,5 @@
 /** @jsxImportSource react */
-import { describe, test, expect, afterEach } from "vitest"
+import { describe, test, expect, afterEach } from "vite-plus/test"
 import React from "react"
 import { createRoot } from "react-dom/client"
 

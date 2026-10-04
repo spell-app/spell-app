@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, onTestFinished } from "vitest"
+import { beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
 import type { StickyDetail } from "$/ui/components/components.types"

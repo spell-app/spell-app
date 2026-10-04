@@ -44,7 +44,7 @@ Each package has its own README or `AGENTS.md` (how it's built).  Imports use on
 
 ## Getting started
 
-You need Node 22.17 or later.  Yarn 4.18 comes with the repo (`.yarn/releases/`), so any `yarn` runs the right one.
+You need Node 24.11 or later.  Yarn 4.18 comes with the repo (`.yarn/releases/`), so any `yarn` runs the right one.
 
 ```sh
 git clone https://github.com/spell-app/spell-app.git
@@ -74,10 +74,10 @@ can change files.
 
 - [`AGENTS.md`](AGENTS.md):  the conventions every package follows, for people and coding agents alike.
   Each package's own `AGENTS.md` adds what's local to it.
-- [`PAPERCUTS.md`](PAPERCUTS.md):  what slowed development down, and the fix.  Check it first when tooling fails
+- [`agents/PAPERCUTS.md`](agents/PAPERCUTS.md):  what slowed development down, and the fix.  Check it first when tooling fails
   mysteriously.
-- [`SUSPECTED-BUGS.md`](SUSPECTED-BUGS.md):  things that look wrong but aren't confirmed yet.
-- [`CODE-DEBT.md`](CODE-DEBT.md):  structural problems we've chosen not to fix yet, and why.
+- [`agents/SUSPECTED-BUGS.md`](agents/SUSPECTED-BUGS.md):  things that look wrong but aren't confirmed yet.
+- [`agents/CODE-DEBT.md`](agents/CODE-DEBT.md):  structural problems we've chosen not to fix yet, and why.
 
 ## History
 

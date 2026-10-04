@@ -28,7 +28,7 @@ export function takeStock(main = CLI.mainRoot()): CLI.StockReport {
   const sessions = liveSessions(main)
   const items: CLI.StockItem[] = []
   // every plan doc in one tool run, not one each
-  const epicsDir = join(main, "packages", "docs", "epics")
+  const epicsDir = CLI.epicsDir(main)
   const planNames = existsSync(epicsDir)
     ? readdirSync(epicsDir).filter((name) => statSync(join(epicsDir, name)).isDirectory())
     : []
@@ -50,7 +50,7 @@ export function takeStock(main = CLI.mainRoot()): CLI.StockReport {
       items.push(checkoutItem(main, branch, null, branch, sessions, claimed))
   }
   const names = new Set(items.map((item) => item.name))
-  const epics = join(main, "packages", "docs", "epics")
+  const epics = CLI.epicsDir(main)
   for (const name of existsSync(epics) ? readdirSync(epics).sort() : []) {
     if (!statSync(join(epics, name)).isDirectory() || names.has(name)) continue
     const item = planItem(main, name)
@@ -312,7 +312,7 @@ function deadActions(main: string, item: CLI.StockItem): CLI.StockAction[] {
 
 /**
  * Merge a finished branch into `main`.
- * - NOTE: `--no-edit` makes a merge commit, where `/isolate done` fast-forwards (`--ff-only`):  `SUSPECTED-BUGS.md`,
+ * - NOTE: `--no-edit` makes a merge commit, where `/isolate done` fast-forwards (`--ff-only`):  `agents/SUSPECTED-BUGS.md`,
  *   "claude-code";  one policy is roadmap R3's `spell dev worktree merge`
  */
 function merge(item: CLI.StockItem): CLI.StockAction {

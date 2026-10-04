@@ -21,8 +21,8 @@ How spell looks and sounds everywhere:  a visual language made with Claude Desig
 
 - **Theming:**  `packages/ui/docs/theming.md`;  tokens in `packages/ui/src/styles/tokens.css` and
   `colors.css` (OKLCH, `light-dark()`).
-- **Docs pages:**  system fonts and UI tokens (`packages/docs/_assets/spell-doc.css`);  this master plan adds a
-  stacked-card look (`goals/_assets/goals.css`).
+- **Docs pages:**  system fonts and UI tokens (`packages/docs/tools/_assets/spell-doc.css`);  this master plan adds a
+  stacked-card look (`packages/docs/tools/_assets/goals.css`).
 - **Names we hold:**  the GitHub org `spell-app`, the npm scope `@spell-app` (nothing published).  Old notes
   imagine `spell.app`.
 
@@ -68,5 +68,5 @@ _None yet._
 ## Pointers
 
 - `packages/ui/docs/theming.md`, `packages/ui/src/styles/` -- how a theme plugs in
-- `goals/_assets/goals.css` -- this site's look:  a first sketch, not the brand
+- `packages/docs/tools/_assets/goals.css` -- this site's look:  a first sketch, not the brand
 - Related:  [spell-ui](../spell-ui/spell-ui.md), [docs](../docs/docs.md), [native](../native/native.md)

@@ -6,7 +6,7 @@ import type { SRV, ServerInfo } from "$/server"
 
 /**
  * A ROUTE MODULE:  a file that adds routes to the page server, e.g. goals' buttons, the app's `/api`.
- * - listed in the repo root's `package.json`, `"pageServer": { "routes": ["goals/_tools/goalsRoutes.ts"] }`
+ * - listed in the repo root's `package.json`, `"pageServer": { "routes": ["packages/docs/tools/goals/goalsRoutes.ts"] }`
  * - its DEFAULT export is this;  `setup()` runs once, before the server listens
  */
 export type RouteModule = {
@@ -41,7 +41,7 @@ export type RouteContext = {
 export type PageServerSettings = {
   /** route modules, paths relative to the repo root */
   routes?: string[]
-  /** folders to live-reload, relative to the root (default `["packages/docs"]`) */
+  /** folders to live-reload, relative to the root (default:  the docs pages and their bundle, `DEFAULT_WATCH`) */
   watch?: string[]
 }
 

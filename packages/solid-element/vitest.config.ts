@@ -1,6 +1,6 @@
 import solid from "@solidjs/vite-plugin"
-import { playwright } from "@vitest/browser-playwright"
-import { defineConfig } from "vitest/config"
+import { playwright } from "vite-plus/test/browser-playwright"
+import { defineConfig } from "vite-plus"
 
 /**
  * Tests run in a REAL browser (chromium, Vitest browser mode), as in the rest of the repo.

@@ -15,7 +15,7 @@
  *   ranges:  the data says.  `ui-emoji.css`'s `font-variant-emoji: emoji` covers any the data misses, where the
  *   browser supports it.
  * - Output is COMMITTED (like the icon data):  installs and CI need neither the reference clone nor this
- *   dependency.  `.oxfmtrc.json` ignores it, so formatting never inflates it.
+ *   dependency.  The `fmt` settings (`vite.lint.ts`) ignore it, so formatting never inflates it.
  * - Chunks:  `a` ... `z` by the name's first letter, `0` for names starting with a digit (`100`, `1st_place_medal`).
  *   `EmojiData.chunkOf()` MUST agree.
  */

@@ -3,7 +3,7 @@
 // Note that lots of parser functionality is tested via other files in this package. ???
 //
 
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 import { proto } from "$/util"
 import { P, Parser, ParserError, Rule, type RuleConstructor } from "$/parser"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.

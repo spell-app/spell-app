@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
 import { Fixture } from "$/ui/test/fixture"

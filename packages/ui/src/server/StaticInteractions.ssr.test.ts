@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
 import { chromium, type Browser, type Page } from "@playwright/test"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { StaticCatalog, StaticRender, StaticStylesheet } from "$/ui/server"
 
