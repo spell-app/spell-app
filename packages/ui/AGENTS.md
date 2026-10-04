@@ -125,12 +125,14 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     - `_parts/` -- shared header / footer, pulled in with `<ui-include>`
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
-  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`, `gen-site-data.ts`,
-    `site-new.ts`, `site-components-index.ts`, `site-kitchen-sink.ts`) and the site bundle's build (`site-bundle.ts`,
-    watched by `site-dev.ts`)
+  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`,
+    `gen-markdown.ts`, `gen-site-data.ts`, `site-new.ts`, `site-components-index.ts`, `site-kitchen-sink.ts`) and the
+    site bundle's build (`site-bundle.ts`, watched by `site-dev.ts`)
   - `src/languages/` -- GENERATED, committed:  `spell.<lang>.js`, spell's pre-compiled highlighter for
     `<ui-code language="spell">` (`yarn gen:spell`;  the root `AGENTS.md`'s one `ui` -> spell exception).  NEVER edit;
     lint and format skip it
+  - `src/components/ui-markdown/md.bundle.js` (+ `.d.ts`, `MDBundle.ts`) -- GENERATED, committed the same way:  the
+    pre-compiled markdown engine (`@spell-app/markdown`, `yarn gen:markdown`).  NEVER edit;  lint and format skip it
   - `reference/Fomantic-UI/` -- READ-ONLY, git-ignored clone of Fomantic for porting.  NEVER edit or import it.
 - Commands:
   - `yarn review` -- tsc (root, node configs, the fork) + oxlint `--fix` + oxfmt + every test (`ssr`, `browser`,

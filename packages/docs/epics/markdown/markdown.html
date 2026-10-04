@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Markdown on the parser</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · ui Bundle</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p8">next: P8 · Live Preview</ui-label></span
             >
           </header></ui-sticky
         >
@@ -73,6 +73,11 @@
                 spec); speed 6x -&gt; 1.7x marked; checks: markdown 30 tests, spec 670/670; <a href="#j6">J6</a>,
                 <a href="#j7">J7</a>
               </li>
+              <li>
+                <b>P6</b> 53bba70b app &lt;Markdown&gt; on MD (lazy import); LSP colours markdown in comments (bold /
+                italic / link / strike, code as string); extension modifiers declared, not installed; checks: markdown
+                32, lsp 97, app browser tests green; <a href="#j8">J8</a>, <a href="#j9">J9</a>
+              </li>
             </ul>
           </ui-section>
           <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
@@ -103,7 +108,7 @@
               preview editor); scope = useful GFM subset first.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 7h-11h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 5h-7h left</p>
           <ui-section id="o1" header="1.1 Shape" sticky collapsible dividing collapsed>
             <p>
               New package
@@ -274,7 +279,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="6" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="7" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -535,14 +540,14 @@
           <ui-section
             id="p7"
             data-phase="7"
-            data-status="todo"
+            data-status="done"
             header="P7 · ui Bundle"
             sticky
             collapsible
             dividing
             collapsed
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>yarn gen:markdown</code> in
@@ -554,7 +559,10 @@
                 <code>&lt;ui-markdown&gt;</code>; else plain keeps marked, the bundle loads only for the editable one.
                 Bundle API: <code>render()</code> + incremental <code>MD.MarkdownDocument</code>.</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> <code>packages/ui/scripts/gen-markdown.ts</code>,
+                ><b>Files:</b>
+                <a href="../../../ui/scripts/gen-markdown.ts" target="src-packages-ui-scripts-gen-markdown-ts"
+                  ><code>packages/ui/scripts/gen-markdown.ts</code></a
+                >,
                 <a href="../../../ui/src/languages/" target="src-packages-ui-src-languages"
                   ><code>packages/ui/src/languages/</code></a
                 >
@@ -572,6 +580,20 @@
                   ><code>ui-markdown.test.tsx</code></a
                 >
                 green on new engine; <code>yarn measure</code>; docs bundler lazy chunk works</ui-item
+              ><ui-item icon="flag"
+                ><b>Outcome:</b> measure only (D28): 257 kB raw, <b>88.2 kB gz</b> vs marked + DOMPurify ~25 kB, so
+                plain <code>&lt;ui-markdown&gt;</code> keeps marked and the bundle (<a
+                  href="../../../ui/src/components/ui-markdown/md.bundle.js"
+                  target="src-packages-ui-src-components-ui-markdown-md-bundle-js"
+                  ><code>md.bundle.js</code></a
+                >
+                +
+                <a
+                  href="../../../ui/src/components/ui-markdown/MDBundle.ts"
+                  target="src-packages-ui-src-components-ui-markdown-mdbundle-ts"
+                  ><code>MDBundle.ts</code></a
+                >) waits for the editable one; slimming is <a href="#i6">I6</a>. <code>MD.MarkdownDocument</code> moved
+                to P8, which uses it.</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 2-4h</ui-item></ui-list
             >
           </ui-section>
@@ -2212,6 +2234,51 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="i6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i6">I6</a>
+                  <span class="plan-title"
+                    >MD bundle is 88 kB gz, 3.5x marked + DOMPurify (25 kB): slim it before swapping plain
+                    &lt;ui-markdown&gt;?</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    P7 measured
+                    <a
+                      href="../../../ui/src/components/ui-markdown/md.bundle.js"
+                      target="src-packages-ui-src-components-ui-markdown-md-bundle-js"
+                      ><code>md.bundle.js</code></a
+                    >
+                    (<code>yarn gen:markdown</code>, minified): <b>257 kB raw, 88.2 kB gzipped</b>. Per D28 (measure
+                    only), plain <code>&lt;ui-markdown&gt;</code> keeps marked; the bundle loads only for the editable
+                    one (P8).
+                  </p>
+                  <ul>
+                    <li>
+                      Where the bytes go (raw): <code>entities</code> 52.2 kB (the full HTML5 entity table), lodash 43.1
+                      kB (through <code>$/util</code>'s barrel), the parser's
+                      <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                        ><code>AST.ts</code></a
+                      >
+                      31.0 kB,
+                      <a href="../../../parser/src/rulex/rulex.ts" target="src-packages-parser-src-rulex-rulex-ts"
+                        ><code>rulex.ts</code></a
+                      >
+                      12.1, Tokenizer 10.2, BlockScanner 10.0, InlineParser 8.1, pluralize 5.8, chalk 5.4.
+                    </li>
+                    <li>
+                      Slimming, roughly: entities via the browser (a <code>&lt;textarea&gt;</code> decode) ~-50 kB;
+                      <code>$/util</code> generic files only (no lodash / chalk / pluralize) ~-55 kB; split
+                      <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                        ><code>AST.ts</code></a
+                      >
+                      out of the parser barrel ~-30 kB. Probably ~35 kB gz after all three: still above marked, but in
+                      range. Each touches the parser or util barrels, so it's its own change.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2672,6 +2739,28 @@
                   / italic / link / strikethrough modifiers, code spans as strings) from MD inline positions; extension
                   declares + styles the modifiers (not installed: J8); checks: markdown 32, lsp 97, app Markdown +
                   explorer browser tests green</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:28-04:00">2026-10-04 03:28</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:32-04:00">2026-10-04 03:32</time></ui-date> P7
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:32-04:00">2026-10-04 03:32</time></ui-date> P7 done: yarn
+                  gen:markdown writes ui's md.bundle.js; 88.2 kB gz vs marked 25 kB, so plain &lt;ui-markdown&gt; keeps
+                  marked (I6)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -54,6 +54,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED, `packages/ui/src/languages/spell.<lang>.js`, a
     committed bundle `yarn gen:spell` (in `packages/ui`) builds from `packages/spell/src/highlight/browser.ts`.  `ui`'s
     source never imports `$/spell`;  regenerate after changing spell's grammar.
+    - Likewise markdown:  `packages/ui/src/components/ui-markdown/md.bundle.js`, built by `yarn gen:markdown` (in
+      `packages/ui`) from `packages/markdown/src/browser.ts`;  regenerate after changing `markdown` or `parser`.
   - The direction is by convention, not enforced:  every alias works from every package.
 - ONE alias table, `tsconfig.base.json` at the repo root, read its header comment.  Every package's `tsconfig.json`
   extends it, so `$/parser` means the same file wherever it's compiled from.
