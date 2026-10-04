@@ -124,6 +124,30 @@
                 </ui-docs-example>
 
                 <ui-docs-example
+                  header="Editable"
+                  description="`editable` adds Write / Preview tabs:  a text box, and a preview drawn with `ui-*` elements by spell's own markdown engine (on spell's parser), loaded with the first preview."
+                >
+                  <ui-markdown editable>
+                    <script type="text/markdown">
+                      # Try it
+
+                      Type **markdown** here, then look at the *Preview*.
+
+                      - [x] tables, task lists, alerts
+                      - [ ] your text
+
+                      > [!TIP]
+                      > Alerts become messages.
+
+                      | Engine | Draws with |
+                      | ------ | ---------- |
+                      | marked | plain HTML |
+                      | spell  | `ui-*`     |
+                    </script>
+                  </ui-markdown>
+                </ui-docs-example>
+
+                <ui-docs-example
                   header="Trusted"
                   description="Raw HTML is sanitized:  `trusted` keeps it as written, `<ui-*>` elements included.  ONLY for text you wrote."
                 >
@@ -170,6 +194,10 @@
                       heading (property `headingLevelOffset`: `headingOffset` is WebKit's native `headingoffset`).
                     - `headings` lists the headings (`{ level, text, id }`), e.g. for a table of contents; `ui-render` fires with
                       them after each render.
+                    - `editable`: Write / Preview tabs. The preview uses spell's own markdown engine (`@spell-app/markdown`,
+                      on spell's parser), in a lazy chunk of its own, and draws with `ui-*` elements: headers, lists, tables,
+                      messages for alerts, checkboxes for tasks. Each keystroke is a `ui-change` and makes the element dirty;
+                      `save()` writes the text back to `source`.
                   </script>
                 </ui-markdown>
 
@@ -196,7 +224,8 @@
                 <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
                 <ui-markdown>
                   <script type="text/markdown">
-                    Nothing of its own: links, task-list checkboxes and code blocks inside are ordinary tab stops.
+                    Nothing of its own: links, task-list checkboxes and code blocks inside are ordinary tab stops. `editable`'s
+                    tabs are one tab stop: the arrow keys move between Write and Preview, Home and End to either end.
                   </script>
                 </ui-markdown>
 

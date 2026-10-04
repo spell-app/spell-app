@@ -86,6 +86,7 @@ export function renderBlocks(block: Block, inline: InlineRenderer = plainInline,
   /**
    * A list.  `ui`:  `ui-list bulleted` / `ordered`, each ordered item numbered by `value` (`ui-list` has no `start`).
    * - A bullet list inside an ordered `ui-list` stays a plain `<ul>`:  `ui-list` would number it `1.1`.
+   * - A bullet list of task items only is a `ui-list` without `bulleted`:  the checkboxes are its markers, as on GitHub.
    */
   function drawList(block: Block, inOrdered: boolean): P.Markup {
     const { type, start = 1 } = block.list!
@@ -95,7 +96,9 @@ export function renderBlocks(block: Block, inline: InlineRenderer = plainInline,
       if (ui && ordered && drawn.tag === "ui-item") drawn.attrs.value = `${start + i}.`
       return drawn
     })
-    if (ui && !(inOrdered && !ordered)) return h("ui-list", { [ordered ? "ordered" : "bulleted"]: "" }, ...items)
+    const tasks = !ordered && block.children.every((item) => MD.taskOf(item))
+    const look = ordered ? "ordered" : tasks ? undefined : "bulleted"
+    if (ui && !(inOrdered && !ordered)) return h("ui-list", look ? { [look]: "" } : {}, ...items)
     return h(ordered ? "ol" : "ul", { start: ordered && start !== 1 ? start : undefined }, ...items)
   }
 
