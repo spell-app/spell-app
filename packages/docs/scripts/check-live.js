@@ -17,10 +17,11 @@ import { join } from "node:path"
 
 import { chromium } from "playwright"
 
-import { DOCS, ensurePageServer, serverUrl, tidy } from "./pages.js"
+import { DOCS, ensurePageServer, planDocIn, serverUrl, tidy } from "./pages.js"
 
 const name = process.argv[2] ?? "review-review"
-const file = join(DOCS, "epics", name, `${name}.html`)
+// either name:  `<name>.plan.html`, else an old `<name>.html` (`planDocIn()`)
+const file = planDocIn(join(DOCS, "epics", name), name) ?? join(DOCS, "epics", name, `${name}.plan.html`)
 const served = ensurePageServer()
 if (!served) {
   console.error("check-live:  no page server")

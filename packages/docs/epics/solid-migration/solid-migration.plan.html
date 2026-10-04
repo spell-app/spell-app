@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Solid Migration</title>
+    <title>Epic: Solid Migration</title>
     <meta name="description" content="Plan doc:  Solid Migration." />
     <link rel="stylesheet" href="../../_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
-  <body class="spell-doc-page plan-doc" data-plan="solid-migration">
+  <body data-recent-since="2026-10-04T12:34:30-04:00" class="spell-doc-page plan-doc" data-plan="solid-migration">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -23,7 +23,7 @@
         </ui-breadcrumb>
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
-            <h1>Solid Migration</h1>
+            <h1>Epic: Solid Migration</h1>
             <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
@@ -39,7 +39,13 @@
           >
           <ui-item icon="calendar"
             >Started <time id="plan-started">2026-10-02</time>, updated
-            <time id="plan-updated">2026-10-02</time></ui-item
+            <time id="plan-updated">2026-10-04</time></ui-item
+          >
+          <ui-item icon="book"
+            ><b>Durable doc:</b>
+            <a href="../../solid-migration.html" target="src-packages-docs-solid-migration-html"
+              >Solid Migration</a
+            ></ui-item
           >
         </ui-list>
 
@@ -55,7 +61,14 @@
             <a href="../../solid-migration.html" target="src-packages-docs-solid-migration-html">Solid Migration</a>.
           </p>
 
-          <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled
+            ><ui-title>Kickoff prompt</ui-title
+            ><ui-content
+              ><blockquote class="plan-prompt">
+                <p>convert this into a plan doc with name "solid-migration"</p>
+              </blockquote></ui-content
+            ></ui-accordion
+          >
           <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 0m left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <p><b>Outcome</b> (P10, 2026-10-02):</p>
@@ -591,6 +604,7 @@
           >
 
           <ui-section
+            badge="30m-1h"
             collapsed
             id="p1"
             data-phase="1"
@@ -605,6 +619,19 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> create() runs exactly once, after all field initializers, for hand-written AND compiled
                 subclasses (handoff 0b)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="d9570a2e006d03056fc5e869850ad6d03aef7e73">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/d9570a2e006d03056fc5e869850ad6d03aef7e73"
+                      target="github"
+                      >d9570a2</a
+                    >
+                    `@thing` runs `create()` after field initializers, exactly once
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/core/src/classes/Thing.ts, List.tsx; audit subclasses of Thing / List / App /
                 Observable, Loadable, Task (packages/util/src/spell/), console.ts, SP.*; what spell 'to create a …' /
@@ -612,10 +639,11 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> test pinning the order, incl. a compiled class extending a @thing class; NOTE: on
                 Thing.create()</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 30m-1h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1-2h"
             collapsed
             id="p2"
             data-phase="2"
@@ -629,16 +657,30 @@
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> ui + solid-element on rc.13; one Solid in root node_modules</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="c15b88b38a24457c865eec872ae94a3033922cb7">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/c15b88b38a24457c865eec872ae94a3033922cb7"
+                      target="github"
+                      >c15b88b</a
+                    >
+                    Solid rc.13 everywhere; P5 removed from the plan
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/ui/package.json, packages/solid-element/package.json, yarn.lock; solid-2.md if
                 behaviour changed</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> ui yarn review, test:visual, test:fork; re-run packages/docs/solid/experiments/* and
                 diff</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2-3h"
             collapsed
             id="p3"
             data-phase="3"
@@ -654,6 +696,19 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> app builds with Solid and React side by side; nothing rendered by Solid yet (handoff
                 0c)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="be0d61e16476e44c8d5b83601c1abb6406b21f65">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/be0d61e16476e44c8d5b83601c1abb6406b21f65"
+                      target="github"
+                      >be0d61e</a
+                    >
+                    app builds React and Solid side by side
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/app/package.json (solid-js, @solidjs/web exact, @spell-app/ui,
                 @spell-app/solid-element; @solidjs/vite-plugin 3.0.0-next.47); packages/app/vite.shared.ts
@@ -664,10 +719,11 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> smoke test: Solid component with <code>&lt;ui-button&gt;</code> in a vitest SSR project;
                 build, build:runner, build:element</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1-2h"
             collapsed
             id="p4"
             data-phase="4"
@@ -683,6 +739,19 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Solid code sees easy-state changes (spell Things, the editor store); easy-state stays
                 (handoff 1, narrowed)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="0ace568b340cec7125e42c73625213df56666202">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/0ace568b340cec7125e42c73625213df56666202"
+                      target="github"
+                      >0ace568</a
+                    >
+                    Solid sees easy-state change
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/util/src/spell/ (a <code>tracked()</code> helper: a Solid accessor re-read when
                 the easy-state values it read change); its tests</ui-item
@@ -690,10 +759,11 @@
                 ><b>Verify:</b> tests in Solid's CLIENT build (<a href="#c7">C7</a>): an easy-state write updates a
                 Solid memo / effect after <code>flush()</code>; disposal stops tracking; no
                 <code>REACTIVE_WRITE_IN_OWNED_SCOPE</code></ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2-4h"
             collapsed
             id="p6"
             data-phase="6"
@@ -707,16 +777,39 @@
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> packages/app/src/ui/ on Solid + <code>&lt;ui-*&gt;</code> (handoff 3)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="a926428d72335bfabb8fb5cb01116fa7cfe9729d">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/a926428d72335bfabb8fb5cb01116fa7cfe9729d"
+                      target="github"
+                      >a926428</a
+                    >
+                    menus, Actions, ErrorBoundary, notices, Markdown, ui loading
+                  </li>
+                  <li data-sha="af29a8c8f2d5fdf7550eff3c7df2f512268bea82">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/af29a8c8f2d5fdf7550eff3c7df2f512268bea82"
+                      target="github"
+                      >af29a8c</a
+                    >
+                    console, match / AST viewers, explorers, Monaco editors, modals
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/app/src/ui/ (~45 files, ~6.5k lines); delete SUIPassThroughs.ts; forms -&gt;
                 <code>&lt;ui-form&gt;</code>; modals -&gt; UI.modals.*; Monaco via lazy() (never static-import monaco);
                 <code>&lt;ui-*&gt;</code> JSX types in one ui.types.ts</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> explorer tests -&gt; renderToString; Thing Explorer updates live</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-4h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2-3h"
             collapsed
             id="p7"
             data-phase="7"
@@ -731,6 +824,19 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>&lt;spell-app&gt;</code> / <code>&lt;spell-editor&gt;</code> and the VS Code runner
                 on Solid (handoff 4)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="46406324992cf38c4f2e06c1cf71b1e63215c51f">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/46406324992cf38c4f2e06c1cf71b1e63215c51f"
+                      target="github"
+                      >4640632</a
+                    >
+                    runners, `&lt;spell-app&gt;` and `&lt;spell-editor&gt;` on Solid; one Solid per page across builds
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/app/src/runner/SpellAppElement.tsx,
                 packages/app/src/spellEditor/SpellEditorElement.tsx -&gt; customElement() from @spell-app/solid-element;
@@ -739,10 +845,11 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> element.build.test.ts pins Solid only in spell-solid.js; /demo/spell-app.html runs two
                 <code>&lt;spell-app&gt;</code>s; yarn vscode Run Project</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="2h"
             collapsed
             id="p8"
             data-phase="8"
@@ -755,14 +862,27 @@
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> pages, router, hotkeys and AST views on Solid (handoff 5)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="4fa7ff19e5babbdebd2055e76bda8bf5c351204b">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/4fa7ff19e5babbdebd2055e76bda8bf5c351204b"
+                      target="github"
+                      >4fa7ff1</a
+                    >
+                    the editor shell on Solid; the parser draws ASTs as data
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/app/src/pages/ (@reach/router -&gt; @solidjs/router@next, 7 routes); 4 hotkeys
                 -&gt; one listener; packages/parser/src/ast/AST.ts views, renderAST.ts</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> yarn start: every route; hotkeys; AST viewer</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2h</ui-item></ui-list
+              ><ui-item icon="flask"><b>Verify:</b> yarn start: every route; hotkeys; AST viewer</ui-item></ui-list
             >
           </ui-section>
           <ui-section
+            badge="4-6h"
             collapsed
             id="p11"
             data-phase="11"
@@ -778,6 +898,19 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> spell cells replace easy-state under Observable / extend.ts and the editor store, same
                 API; React reads through a bridge (was P4's full scope, Q3)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="54b6ea4bc05f1518603717642ef6858dbc9f8f84">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/54b6ea4bc05f1518603717642ef6858dbc9f8f84"
+                      target="github"
+                      >54b6ea4</a
+                    >
+                    spell cells replace easy-state
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/util/src/spell/ (cells from experiments/spell-cells.core.ts);
                 packages/util/src/spell/spellDecorators.ts (@prop / @derived); packages/parser/src/ast/AST.ts
@@ -786,10 +919,11 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> experiments pinned as browser vitest cases (scripts kept); fixtures blessed, diff read;
                 parser speed test on diff AND HEAD; Solitaire / Todos / Calculator run</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
           <ui-section
+            badge="1-2h"
             collapsed
             id="p9"
             data-phase="9"
@@ -805,6 +939,19 @@
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> no React in the app's own UI; React stays only where <code>core</code> renders compiled
                 spell (handoff 6, narrowed by <a href="#d9">D9</a>)</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="3fa79578fe18c2b15bff69caf91563a87baa241b">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/3fa79578fe18c2b15bff69caf91563a87baa241b"
+                      target="github"
+                      >3fa7957</a
+                    >
+                    React only for spell programs
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> React deps in app (except what <code>core</code> needs), parser (AST views), cli;
                 @vitejs/plugin-react scoped to <code>core</code>-rendering files; SOLID_FILES / pragmas flipped to a
@@ -812,37 +959,69 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> test: no React in the editor / app bundles beyond <code>core</code>'s; yarn review at
                 root</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ></ui-list
             >
           </ui-section>
-          <ui-section id="p10" data-phase="10" data-status="done" header="P10 · Doc Review" sticky collapsible dividing>
+          <ui-section
+            badge="1h"
+            id="p10"
+            data-phase="10"
+            data-status="done"
+            header="P10 · Doc Review"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> plan doc true to what was built; durable doc</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="c585c1bdb40766218d0e15634a00bbee9e161679">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/c585c1bdb40766218d0e15634a00bbee9e161679"
+                      target="github"
+                      >c585c1b</a
+                    >
+                    plan doc true to what was built; durable `packages/docs/solid-migration.html`
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> this doc; new durable doc packages/docs/solid-migration.html;
                 packages/docs/solid/solid-2.html + solid-2.md true to what's built</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check; Finishing a page</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+              ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check; Finishing a page</ui-item></ui-list
             >
           </ui-section></ui-section
         >
 
-        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
-          <ui-icon slot="icon" name="gavel"></ui-icon>
-          <p class="meta">
-            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
-            settled, don't re-argue without new facts. An answered question sits just above its decision.
-          </p>
+        <ui-section
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts."
+          id="decisions"
+          header="3. Questions"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
+
           <ui-list class="plan-items" data-kind="decision" divided relaxed
-            ><ui-item id="q1" data-status="done"
+            ><ui-item data-state="old" data-answered id="q1" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q1">Q1</a>
-                  <span class="plan-title">Solid version: bump ui to rc.13 first, or start app on rc.11?</span>
-                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                  <span class="plan-title"
+                    >Solid version: bump ui to rc.13 first, or start app on rc.11?</span
+                  ></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d1">
+                    <div class="plan-answer-title"><b>D1</b> · Bump ui to rc.13 first: P2, before Tooling</div>
+                    <p>
+                      App never moves Solid twice; ui's suites catch RC behaviour changes before app depends on them.
+                    </p>
+                  </div>
+                  <p>
                     One Solid per page: <code>app</code> must run the SAME Solid as
                     <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
                     and its fork <code>solid-element</code>. Today both pin <b>rc.11</b>; <b>rc.13</b> is current. Every
@@ -853,7 +1032,7 @@
                     behaved the same on rc.11 and rc.13; public API unchanged.
                   </p>
                   <ui-grid class="spell-pros-cons" columns="2" stackable
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top" color="green">A. Bump ui to rc.13 first (recommended)</ui-label>
                         <ul>
@@ -880,30 +1059,20 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d1" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d1">D1</a>
-                  <span class="plan-title"
-                    >Bump ui to rc.13 first: P2, before Tooling (<a href="#q1">Q1</a>)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>
-                    App never moves Solid twice; ui's suites catch RC behaviour changes before app depends on them.
-                  </p>
-                  <p class="meta">
-                    Answers <a href="#q1">Q1</a>: Solid version: bump ui to rc.13 first, or start app on rc.11?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q2" data-status="done"
+            ><ui-item data-state="old" data-answered id="q2" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q2">Q2</a>
-                  <span class="plan-title">Merge each phase into main, or only at the end?</span>
-                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                  <span class="plan-title">Merge each phase into main, or only at the end?</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d2">
+                    <div class="plan-answer-title"><b>D2</b> · Merge at the end: main stays React-only until P10</div>
+                    <p>
+                      Owen, 2026-10-02. Cost: long-lived branch, merge <code>main</code> in at each phase start to keep
+                      conflicts small.
+                    </p>
+                  </div>
+                  <p>
                     This plan has ~10 phases on branch <code>solid-migration</code>; every phase leaves the app green
                     (React and Solid side by side from tooling until "Remove React").
                   </p>
@@ -923,7 +1092,7 @@
                           </li>
                         </ul></ui-segment
                       ></ui-column
-                    ><ui-column
+                    ><ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B. Merge at the end</ui-label>
                         <ul>
@@ -935,198 +1104,27 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d2" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d2">D2</a>
-                  <span class="plan-title"
-                    >Merge at the end: main stays React-only until P10 (<a href="#q2">Q2</a>)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>
-                    Owen, 2026-10-02. Cost: long-lived branch, merge <code>main</code> in at each phase start to keep
-                    conflicts small.
-                  </p>
-                  <p class="meta">
-                    Answers <a href="#q2">Q2</a>: Merge each phase into main, or only at the end?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d3" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d3">D3</a>
-                  <span class="plan-title"
-                    >Design from 2026-09-30 stands: ui from source, clean break in spell JSX, incremental phases</span
-                  ></ui-title
-                ><ui-content
-                  ><p>Taken with Owen before the pause; see <a href="#o2">1.2</a>.</p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d4" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d4">D4</a>
-                  <span class="plan-title">Spell state in spell cells, not Solid signals</span></ui-title
-                ><ui-content
-                  ><p>
-                    Solid 2 stages writes: read right after write returns the old value until flush. Spell is imperative
-                    (<code>set</code> then <code>print</code> must be exact). Measured:
-                    <a
-                      href="../../solid/experiments/read-after-write.mjs"
-                      target="src-packages-docs-solid-experiments-read-after-write-mjs"
-                      ><code>packages/docs/solid/experiments/read-after-write.mjs</code></a
-                    >,
-                    <a
-                      href="../../solid/experiments/entanglement.mjs"
-                      target="src-packages-docs-solid-experiments-entanglement-mjs"
-                      ><code>entanglement.mjs</code></a
-                    >.
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d5" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d5">D5</a>
-                  <span class="plan-title">ui via the $/ui workspace alias, not a sibling ../ui alias</span></ui-title
-                ><ui-content
-                  ><p>
-                    Handoff risk 4 (build tied to a sibling checkout) is gone with the monorepo: one workspace, one
-                    hoisted <code>node_modules</code>, <code>$/ui</code> in
-                    <a href="../../../../tsconfig.base.json" target="src-tsconfig-base-json"
-                      ><code>tsconfig.base.json</code></a
-                    >. P3 drops <code>server.fs.allow ../ui</code> and the absolute-path aliases.
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d6" data-status="decided"
-              ><a class="plan-id" href="#d6">D6</a> <span class="plan-title">Up to 5 agents</span></ui-item
-            ><ui-item id="d7" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d7">D7</a>
-                  <span class="plan-title"
-                    >@thing lives in packages/util/src/spell/spellDecorators.ts, not beside @proto</span
-                  > </ui-title
-                ><ui-content
-                  ><p>
-                    <code>ui</code> re-exports all of <code>$/util/decorators</code> (<a
-                      href="../../../ui/src/util/index.ts"
-                      target="src-packages-ui-src-util-index-ts"
-                      ><code>packages/ui/src/util/index.ts</code></a
-                    >), and <code>@thing</code> is spell-only. P4's <code>@prop</code> / <code>@derived</code> go in the
-                    same file. Supersedes the handoff's 'beside <code>@proto</code>'.
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d8" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d8">D8</a>
-                  <span class="plan-title">create() guard: runsCreate(), not a decorator-only fix</span> </ui-title
-                ><ui-content
-                  ><p>
-                    <code>Thing</code> / <code>List</code> call <code>create()</code> only when no
-                    <code>@thing</code> class sits between <code>new.target</code> and them; a
-                    <code>@thing</code> wrapper calls it only when none sits between <code>new.target</code> and itself.
-                    So exactly once for: compiled classes (no fields, base calls it), <code>@thing</code> classes,
-                    compiled classes extending <code>@thing</code> ones, and <code>@thing</code> on <code>@thing</code>.
-                    Compiled output unchanged.
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d9" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d9">D9</a>
-                  <span class="plan-title">P5 (Core + JSX Emit) removed: too much for this thread</span> </ui-title
-                ><ui-content
-                  ><p>
-                    Owen, 2026-10-02. <code>core</code> rendering (<code>element()</code>, <code>Thing.Component</code>,
-                    <code>List</code>, <code>App.start()</code>), the parser's JSX emit and the spell projects'
-                    <code>SUI.*</code> → <code>&lt;ui-*&gt;</code> move stay React for now. Consequences:
-                  </p>
-                  <ul>
-                    <li>P4's React bridge stays past this thread</li>
-                    <li>P6 / P7 host compiled-spell React output inside Solid UI (two renderers on one page)</li>
-                    <li>P9 narrowed to the app's own UI</li>
-                    <li>phase ids kept: P1-P4, P6-P10 (renumbering would break links)</li>
-                  </ul></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d10" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d10">D10</a>
-                  <span class="plan-title"
-                    >solid-element: &lt;Errored&gt; instead of createErrorBoundary</span
-                  > </ui-title
-                ><ui-content
-                  ><p>
-                    rc.13 moved <code>createErrorBoundary</code> (and <code>createLoadingBoundary</code>,
-                    <code>createRevealOrder</code>, <code>sharedConfig</code>, <code>$DEVCOMP</code>) from
-                    <code>solid-js</code> to <code>solid-js/internal</code>.
-                    <a href="../../../solid-element/src/errors.ts" target="src-packages-solid-element-src-errors-ts"
-                      ><code>packages/solid-element/src/errors.ts</code></a
-                    >
-                    now calls the public <code>Errored</code> as a function (<code>children</code> as a getter), the
-                    same code in rc.11 and rc.13; fork tests pass on both. Rule added to
-                    <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
-                      ><code>solid-2.md</code></a
-                    >: never import <code>solid-js/internal</code>.
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d11" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d11">D11</a>
-                  <span class="plan-title">JSX: Solid by default, React files marked</span> </ui-title
-                ><ui-content
-                  ><p>
-                    App's <code>tsc</code> follows <code>$/ui</code> into ui's 138 Solid <code>.tsx</code>, checked with
-                    app's JSX setting, so app can't stay React-by-default without touching all of ui. So:
-                    <a href="../../../app/tsconfig.json" target="src-packages-app-tsconfig-json"
-                      ><code>packages/app/tsconfig.json</code></a
-                    >
-                    <code>jsx: preserve</code> + <code>jsxImportSource: @solidjs/web</code>; the 55 React
-                    <code>.tsx</code> (51 app, 2 core, 2 parser) start with <code>/** @jsxImportSource react */</code>;
-                    <a href="../../../app/vite.shared.ts" target="src-packages-app-vite-shared-ts"
-                      ><code>packages/app/vite.shared.ts</code></a
-                    >
-                    <code>reactFiles()</code> reads the same marker for the React / Solid plugins. ONE marker, no path
-                    list (supersedes the handoff's <code>SOLID_FILES</code>). A missing marker: <code>tsc</code> fails
-                    (checked).
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="d12" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d12">D12</a>
-                  <span class="plan-title">Lightning CSS errorRecovery on in app</span> </ui-title
-                ><ui-content
-                  ><p>
-                    Switching app to Lightning CSS (for ui's <code>@custom-media</code> and <code>light-dark()</code>)
-                    made the dev server 500 on <code>static/semantic-ui-css/semantic.min.css</code> (linked from
-                    <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
-                    >): selectors like <code>:before.ui</code> are invalid. <code>errorRecovery: true</code> drops such
-                    rules with a warning, as browsers already do. Checked: the app renders with Semantic's styles, no
-                    console errors besides the missing API server.
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q3" data-status="done"
+            ><ui-item data-state="old" data-answered id="q3" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q3">Q3</a>
                   <span class="plan-title"
                     >P4 scope, now spell output stays React: bridge only, or full spell cells?</span
-                  >
-                  <a class="plan-answer" href="#d13">→ D13</a></ui-title
+                  ></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d13">
+                    <div class="plan-answer-title">
+                      <b>D13</b> · P4 = bridge only; full spell cells become their own phase, between P8 and P9 (P11 ·
+                      Spell Cells)
+                    </div>
+                    <p>
+                      Owen, 2026-10-02. P4: keep easy-state, add a <code>$/util</code> helper so Solid UI sees
+                      easy-state changes. P11 (run after P8, before P9): cells replace easy-state for Things and the
+                      editor store, <code>@prop</code> / <code>@derived</code>, class schema and parser emit, React
+                      reading through a bridge.
+                    </p>
+                  </div>
+                  <p>
                     P4 was designed to serve P5: spell state moves to <dfn>spell cells</dfn> (each Thing keeps its
                     values in a <code>Map</code>, read and written synchronously, with one bridge telling Solid about
                     changes) so compiled spell could render through Solid and still read its own writes at once. With P5
@@ -1135,7 +1133,7 @@
                     Thing Explorer, the project list, the console.
                   </p>
                   <ui-grid class="spell-pros-cons" columns="2" stackable>
-                    <ui-column
+                    <ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top" color="green">A. Bridge only (recommended)</ui-label>
                         <ul>
@@ -1181,35 +1179,21 @@
                   </p>
                 </ui-content></ui-accordion
               ></ui-item
-            ><ui-item id="d13" data-status="decided"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#d13">D13</a>
-                  <span class="plan-title"
-                    >P4 = bridge only; full spell cells become their own phase, between P8 and P9 (P11 · Spell Cells)
-                    (<a href="#q3">Q3</a>)</span
-                  ></ui-title
-                ><ui-content
-                  ><p>
-                    Owen, 2026-10-02. P4: keep easy-state, add a <code>$/util</code> helper so Solid UI sees easy-state
-                    changes. P11 (run after P8, before P9): cells replace easy-state for Things and the editor store,
-                    <code>@prop</code> / <code>@derived</code>, class schema and parser emit, React reading through a
-                    bridge.
-                  </p>
-                  <p class="meta">
-                    Answers <a href="#q3">Q3</a>: P4 scope, now spell output stays React: bridge only, or full spell
-                    cells?
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="q4" data-status="done"
+            ><ui-item data-state="old" data-answered id="q4" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q4">Q4</a>
-                  <span class="plan-title">Conversion order: top-down (Solid shell first) or bottom-up?</span>
-                  <a class="plan-answer" href="#d14">→ D14</a></ui-title
+                  <span class="plan-title">Conversion order: top-down (Solid shell first) or bottom-up?</span></ui-title
                 ><ui-content
-                  ><p>
+                  ><div class="plan-answer-block" id="d14">
+                    <div class="plan-answer-title"><b>D14</b> · Bottom-up, the handoff order: P6, P7, P8</div>
+                    <p>
+                      Owen, 2026-10-02. React pages host converted Solid components through a Solid-in-React island
+                      adapter until P8 flips the shell (then it goes); compiled spell's React output sits in a
+                      React-in-Solid island for good.
+                    </p>
+                  </div>
+                  <p>
                     React and Solid will live in one page for a while. An <dfn>island</dfn> is a component of one
                     framework mounted inside the other: a small adapter renders it into its own
                     <code>&lt;div&gt;</code>. Compiled spell's React output inside the Solid runner is a
@@ -1239,7 +1223,7 @@
 /&gt;</code></pre>
                       </ui-segment></ui-column
                     >
-                    <ui-column
+                    <ui-column data-chosen
                       ><ui-segment
                         ><ui-label attached="top">B. Bottom-up (handoff order)</ui-label>
                         <ul>
@@ -1261,462 +1245,792 @@
                   </p>
                 </ui-content></ui-accordion
               ></ui-item
-            ><ui-item id="d14" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q5" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d14">D14</a>
+                  ><a class="plan-id" href="#q5">Q5</a>
                   <span class="plan-title"
-                    >Bottom-up, the handoff order: P6, P7, P8 (<a href="#q4">Q4</a>)</span
+                    >Design from 2026-09-30 stands: ui from source, clean break in spell JSX, incremental phases</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    Owen, 2026-10-02. React pages host converted Solid components through a Solid-in-React island
-                    adapter until P8 flips the shell (then it goes); compiled spell's React output sits in a
-                    React-in-Solid island for good.
-                  </p>
-                  <p class="meta">
-                    Answers <a href="#q4">Q4</a>: Conversion order: top-down (Solid shell first) or bottom-up?
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d3">
+                    <div class="plan-answer-title">
+                      <b>D3</b> · Design from 2026-09-30 stands: ui from source, clean break in spell JSX, incremental
+                      phases
+                    </div>
+                    <p>Taken with Owen before the pause; see <a href="#o2">1.2</a>.</p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d15" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q6" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d15">D15</a>
+                  ><a class="plan-id" href="#q6">Q6</a>
+                  <span class="plan-title">Spell state in spell cells, not Solid signals</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d4">
+                    <div class="plan-answer-title"><b>D4</b> · Spell state in spell cells, not Solid signals</div>
+                    <p>
+                      Solid 2 stages writes: read right after write returns the old value until flush. Spell is
+                      imperative (<code>set</code> then <code>print</code> must be exact). Measured:
+                      <a
+                        href="../../solid/experiments/read-after-write.mjs"
+                        target="src-packages-docs-solid-experiments-read-after-write-mjs"
+                        ><code>packages/docs/solid/experiments/read-after-write.mjs</code></a
+                      >,
+                      <a
+                        href="../../solid/experiments/entanglement.mjs"
+                        target="src-packages-docs-solid-experiments-entanglement-mjs"
+                        ><code>entanglement.mjs</code></a
+                      >.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q7">Q7</a>
+                  <span class="plan-title">ui via the $/ui workspace alias, not a sibling ../ui alias</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d5">
+                    <div class="plan-answer-title">
+                      <b>D5</b> · ui via the $/ui workspace alias, not a sibling ../ui alias
+                    </div>
+                    <p>
+                      Handoff risk 4 (build tied to a sibling checkout) is gone with the monorepo: one workspace, one
+                      hoisted <code>node_modules</code>, <code>$/ui</code> in
+                      <a href="../../../../tsconfig.base.json" target="src-tsconfig-base-json"
+                        ><code>tsconfig.base.json</code></a
+                      >. P3 drops <code>server.fs.allow ../ui</code> and the absolute-path aliases.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title><a class="plan-id" href="#q8">Q8</a> <span class="plan-title">Up to 5 agents</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d6">
+                    <div class="plan-answer-title"><b>D6</b> · Up to 5 agents</div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q9">Q9</a>
+                  <span class="plan-title"
+                    >@thing lives in packages/util/src/spell/spellDecorators.ts, not beside @proto</span
+                  > </ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d7">
+                    <div class="plan-answer-title">
+                      <b>D7</b> · @thing lives in packages/util/src/spell/spellDecorators.ts, not beside @proto
+                    </div>
+                    <p>
+                      <code>ui</code> re-exports all of <code>$/util/decorators</code> (<a
+                        href="../../../ui/src/util/index.ts"
+                        target="src-packages-ui-src-util-index-ts"
+                        ><code>packages/ui/src/util/index.ts</code></a
+                      >), and <code>@thing</code> is spell-only. P4's <code>@prop</code> / <code>@derived</code> go in
+                      the same file. Supersedes the handoff's 'beside <code>@proto</code>'.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q10">Q10</a>
+                  <span class="plan-title">create() guard: runsCreate(), not a decorator-only fix</span> </ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d8">
+                    <div class="plan-answer-title">
+                      <b>D8</b> · create() guard: runsCreate(), not a decorator-only fix
+                    </div>
+                    <p>
+                      <code>Thing</code> / <code>List</code> call <code>create()</code> only when no
+                      <code>@thing</code> class sits between <code>new.target</code> and them; a
+                      <code>@thing</code> wrapper calls it only when none sits between <code>new.target</code> and
+                      itself. So exactly once for: compiled classes (no fields, base calls it),
+                      <code>@thing</code> classes, compiled classes extending <code>@thing</code> ones, and
+                      <code>@thing</code> on <code>@thing</code>. Compiled output unchanged.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q11">Q11</a>
+                  <span class="plan-title">P5 (Core + JSX Emit) removed: too much for this thread</span> </ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d9">
+                    <div class="plan-answer-title">
+                      <b>D9</b> · P5 (Core + JSX Emit) removed: too much for this thread
+                    </div>
+                    <p>
+                      Owen, 2026-10-02. <code>core</code> rendering (<code>element()</code>,
+                      <code>Thing.Component</code>, <code>List</code>, <code>App.start()</code>), the parser's JSX emit
+                      and the spell projects' <code>SUI.*</code> → <code>&lt;ui-*&gt;</code> move stay React for now.
+                      Consequences:
+                    </p>
+                    <ul>
+                      <li>P4's React bridge stays past this thread</li>
+                      <li>P6 / P7 host compiled-spell React output inside Solid UI (two renderers on one page)</li>
+                      <li>P9 narrowed to the app's own UI</li>
+                      <li>phase ids kept: P1-P4, P6-P10 (renumbering would break links)</li>
+                    </ul>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q12">Q12</a>
+                  <span class="plan-title"
+                    >solid-element: &lt;Errored&gt; instead of createErrorBoundary</span
+                  > </ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d10">
+                    <div class="plan-answer-title">
+                      <b>D10</b> · solid-element: &lt;Errored&gt; instead of createErrorBoundary
+                    </div>
+                    <p>
+                      rc.13 moved <code>createErrorBoundary</code> (and <code>createLoadingBoundary</code>,
+                      <code>createRevealOrder</code>, <code>sharedConfig</code>, <code>$DEVCOMP</code>) from
+                      <code>solid-js</code> to <code>solid-js/internal</code>.
+                      <a href="../../../solid-element/src/errors.ts" target="src-packages-solid-element-src-errors-ts"
+                        ><code>packages/solid-element/src/errors.ts</code></a
+                      >
+                      now calls the public <code>Errored</code> as a function (<code>children</code> as a getter), the
+                      same code in rc.11 and rc.13; fork tests pass on both. Rule added to
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >: never import <code>solid-js/internal</code>.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q13">Q13</a>
+                  <span class="plan-title">JSX: Solid by default, React files marked</span> </ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d11">
+                    <div class="plan-answer-title"><b>D11</b> · JSX: Solid by default, React files marked</div>
+                    <p>
+                      App's <code>tsc</code> follows <code>$/ui</code> into ui's 138 Solid <code>.tsx</code>, checked
+                      with app's JSX setting, so app can't stay React-by-default without touching all of ui. So:
+                      <a href="../../../app/tsconfig.json" target="src-packages-app-tsconfig-json"
+                        ><code>packages/app/tsconfig.json</code></a
+                      >
+                      <code>jsx: preserve</code> + <code>jsxImportSource: @solidjs/web</code>; the 55 React
+                      <code>.tsx</code> (51 app, 2 core, 2 parser) start with
+                      <code>/** @jsxImportSource react */</code>;
+                      <a href="../../../app/vite.shared.ts" target="src-packages-app-vite-shared-ts"
+                        ><code>packages/app/vite.shared.ts</code></a
+                      >
+                      <code>reactFiles()</code> reads the same marker for the React / Solid plugins. ONE marker, no path
+                      list (supersedes the handoff's <code>SOLID_FILES</code>). A missing marker: <code>tsc</code> fails
+                      (checked).
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q14" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q14">Q14</a>
+                  <span class="plan-title">Lightning CSS errorRecovery on in app</span> </ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d12">
+                    <div class="plan-answer-title"><b>D12</b> · Lightning CSS errorRecovery on in app</div>
+                    <p>
+                      Switching app to Lightning CSS (for ui's <code>@custom-media</code> and <code>light-dark()</code>)
+                      made the dev server 500 on <code>static/semantic-ui-css/semantic.min.css</code> (linked from
+                      <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      >): selectors like <code>:before.ui</code> are invalid. <code>errorRecovery: true</code> drops
+                      such rules with a warning, as browsers already do. Checked: the app renders with Semantic's
+                      styles, no console errors besides the missing API server.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q15" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q15">Q15</a>
                   <span class="plan-title"
                     >Solid UI loads @spell-app/ui once: $/app/solid loadUI.ts, Fomantic icon names</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    <a href="../../../app/src/solid/loadUI.ts" target="src-packages-app-src-solid-loadui-ts"
-                      ><code>packages/app/src/solid/loadUI.ts</code></a
-                    >, imported by the <code>$/app/solid</code> barrel: <code>$/ui</code> whole (every family defines
-                    itself, as the docs bundle does; from another package, barrel only), then <code>UI.load()</code> and
-                    <code>UI.icons.use("fomantic")</code> page-wide (the app speaks Fomantic icon names; the last pack
-                    wins). Exports <code>uiReady</code> for tests. Never reachable from <code>spell-runtime.js</code>.
-                    The app build (<a href="../../../ui/vite.config.ts" target="src-packages-ui-vite-config-ts"
-                      ><code>vite.config.ts</code></a
-                    >) now emits the packs to <code>assets/icon-packs</code> (T3, app build only; runner / element /
-                    editor builds still off).
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d15">
+                    <div class="plan-answer-title">
+                      <b>D15</b> · Solid UI loads @spell-app/ui once: $/app/solid loadUI.ts, Fomantic icon names
+                    </div>
+                    <p>
+                      <a href="../../../app/src/solid/loadUI.ts" target="src-packages-app-src-solid-loadui-ts"
+                        ><code>packages/app/src/solid/loadUI.ts</code></a
+                      >, imported by the <code>$/app/solid</code> barrel: <code>$/ui</code> whole (every family defines
+                      itself, as the docs bundle does; from another package, barrel only), then
+                      <code>UI.load()</code> and <code>UI.icons.use("fomantic")</code> page-wide (the app speaks
+                      Fomantic icon names; the last pack wins). Exports <code>uiReady</code> for tests. Never reachable
+                      from <code>spell-runtime.js</code>. The app build (<a
+                        href="../../../ui/vite.config.ts"
+                        target="src-packages-ui-vite-config-ts"
+                        ><code>vite.config.ts</code></a
+                      >) now emits the packs to <code>assets/icon-packs</code> (T3, app build only; runner / element /
+                      editor builds still off).
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d16" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q16" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d16">D16</a>
+                  ><a class="plan-id" href="#q16">Q16</a>
                   <span class="plan-title"
                     >Shared Solid UI conventions (P6a): Action, MoreMenu, on(), ErrorBoundary</span
                   > </ui-title
                 ><ui-content
-                  ><ul>
-                    <li>
-                      Menus: <code>&lt;ui-menu&gt;</code> of <code>&lt;ui-item link&gt;</code>; sub-menus
-                      <code>&lt;ui-menu position&gt;</code>; hosts are <code>display: contents</code>, so page CSS
-                      styles <code>::part(menu)</code> / <code>::part(item)</code> (<a
-                        href="../../../app/src/solid/chrome.css"
-                        target="src-packages-app-src-solid-chrome-css"
-                        ><code>chrome.css</code></a
-                      >).
-                    </li>
-                    <li>
-                      <code>&lt;MoreMenu&gt;</code> is a <code>&lt;ui-dropdown&gt;</code> whose items are DATA: choosing
-                      one clicks the <code>&lt;ui-item&gt;</code> (so <code>onClick</code> works in menus and dropdowns
-                      alike) and resets the value; it provides the <code>InDropdown</code> context, so
-                      <code>&lt;Action&gt;</code> renders its icon as the item's <code>icon</code> attribute there and
-                      keeps titles text.
-                    </li>
-                    <li>
-                      <code>ui-*</code> events: <code>ref={on("ui-change", handler)}</code> (<code>$/app/solid</code>
-                      <code>on()</code>); native events: <code>onClick</code>.
-                    </li>
-                    <li>
-                      <code>editor</code> reads: <code>tracked(() =&gt; editor.x)</code> in the component body, the
-                      accessor read in JSX.
-                    </li>
-                    <li>
-                      <code>Actions.PROJECT_DROPDOWN_ACTIONS</code> / <code>FILE_DROPDOWN_ACTIONS</code> are components
-                      now, not element arrays.
-                    </li>
-                    <li>
-                      <code>&lt;ErrorBoundary fallback onError&gt;</code> wraps <code>&lt;Errored&gt;</code>; replaces
-                      subclassing React's <code>ErrorHandler</code>.
-                    </li>
-                  </ul></ui-content
+                  ><div class="plan-answer-block" id="d16">
+                    <div class="plan-answer-title">
+                      <b>D16</b> · Shared Solid UI conventions (P6a): Action, MoreMenu, on(), ErrorBoundary
+                    </div>
+                    <ul>
+                      <li>
+                        Menus: <code>&lt;ui-menu&gt;</code> of <code>&lt;ui-item link&gt;</code>; sub-menus
+                        <code>&lt;ui-menu position&gt;</code>; hosts are <code>display: contents</code>, so page CSS
+                        styles <code>::part(menu)</code> / <code>::part(item)</code> (<a
+                          href="../../../app/src/solid/chrome.css"
+                          target="src-packages-app-src-solid-chrome-css"
+                          ><code>chrome.css</code></a
+                        >).
+                      </li>
+                      <li>
+                        <code>&lt;MoreMenu&gt;</code> is a <code>&lt;ui-dropdown&gt;</code> whose items are DATA:
+                        choosing one clicks the <code>&lt;ui-item&gt;</code> (so <code>onClick</code> works in menus and
+                        dropdowns alike) and resets the value; it provides the <code>InDropdown</code> context, so
+                        <code>&lt;Action&gt;</code> renders its icon as the item's <code>icon</code> attribute there and
+                        keeps titles text.
+                      </li>
+                      <li>
+                        <code>ui-*</code> events: <code>ref={on("ui-change", handler)}</code> (<code>$/app/solid</code>
+                        <code>on()</code>); native events: <code>onClick</code>.
+                      </li>
+                      <li>
+                        <code>editor</code> reads: <code>tracked(() =&gt; editor.x)</code> in the component body, the
+                        accessor read in JSX.
+                      </li>
+                      <li>
+                        <code>Actions.PROJECT_DROPDOWN_ACTIONS</code> / <code>FILE_DROPDOWN_ACTIONS</code> are
+                        components now, not element arrays.
+                      </li>
+                      <li>
+                        <code>&lt;ErrorBoundary fallback onError&gt;</code> wraps <code>&lt;Errored&gt;</code>; replaces
+                        subclassing React's <code>ErrorHandler</code>.
+                      </li>
+                    </ul>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d17" data-status="done"
+            ><ui-item data-state="old" data-answered id="q17" data-status="canceled"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d17">D17</a>
+                  ><a class="plan-id" href="#q17">Q17</a>
                   <span class="plan-title"
                     >P6c: ASTViewer mounts renderAST's React tree through a local React-in-Solid adapter</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    <code>src/solid/ASTViewer.tsx</code> keeps <code>ast.component</code> (React, from
-                    <code>$/parser</code>'s
-                    <a href="../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
-                      ><code>renderAST.ts</code></a
-                    >, P8's) and mounts it with a private <code>&lt;ReactHost&gt;</code>: a React root on a
-                    <code>display: contents</code> div, re-rendered per new element, unmounted on a microtask at
-                    cleanup. Why not Solid: the drawing is spread through ~60 <code>renderChildren()</code> methods in
-                    <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
-                      ><code>AST.ts</code></a
-                    >
-                    (2.7k lines), not one file. No <code>flushSync</code> (inside a <code>solidIsland()</code> it runs
-                    in React's commit, where it can't flush): a React error boundary (<code>&lt;ReactCatcher&gt;</code>)
-                    calls <code>onRendered</code> after each commit, which re-applies scroll/highlight.
-                    <code>ast.component</code> throwing is read in render so the Solid
-                    <code>&lt;ErrorBoundary&gt;</code> catches it (an effect's error would halt Solid). Goes in P8.
-                  </p>
-                  <p>
-                    Superseded by <a href="#d24">D24</a> (P8): AST views draw <code>P.Markup</code>;
-                    <code>&lt;ReactHost&gt;</code> is gone.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d17">
+                    <div class="plan-answer-title">
+                      <b>D17</b> · P6c: ASTViewer mounts renderAST's React tree through a local React-in-Solid adapter
+                    </div>
+                    <p>
+                      <code>src/solid/ASTViewer.tsx</code> keeps <code>ast.component</code> (React, from
+                      <code>$/parser</code>'s
+                      <a href="../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                        ><code>renderAST.ts</code></a
+                      >, P8's) and mounts it with a private <code>&lt;ReactHost&gt;</code>: a React root on a
+                      <code>display: contents</code> div, re-rendered per new element, unmounted on a microtask at
+                      cleanup. Why not Solid: the drawing is spread through ~60 <code>renderChildren()</code> methods in
+                      <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                        ><code>AST.ts</code></a
+                      >
+                      (2.7k lines), not one file. No <code>flushSync</code> (inside a <code>solidIsland()</code> it runs
+                      in React's commit, where it can't flush): a React error boundary
+                      (<code>&lt;ReactCatcher&gt;</code>) calls <code>onRendered</code> after each commit, which
+                      re-applies scroll/highlight. <code>ast.component</code> throwing is read in render so the Solid
+                      <code>&lt;ErrorBoundary&gt;</code> catches it (an effect's error would halt Solid). Goes in P8.
+                    </p>
+                    <p>
+                      Superseded by <a href="#d24">D24</a> (P8): AST views draw <code>P.Markup</code>;
+                      <code>&lt;ReactHost&gt;</code> is gone.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d18" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q18" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d18">D18</a>
+                  ><a class="plan-id" href="#q18">Q18</a>
                   <span class="plan-title"
                     >P6f: dialogs build their own &lt;ui-modal&gt; (no editor.modals / ModalRoot)</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    <code>editor.alert/confirm/prompt/promptForNumber</code> go to <code>UI.modals</code>;
-                    <code>choose()</code> to a Solid <code>&lt;Chooser&gt;</code> that <code>openChooser()</code> mounts
-                    in <code>&lt;body&gt;</code> and removes once hidden, like ui's own dialogs. So
-                    <code>editor.modals</code>, <code>modalId</code>, <code>debugModals</code>,
-                    <code>showModal()</code> and <code>ModalEntry</code> are gone, and nothing replaces React's
-                    <code>&lt;UI.ModalRoot /&gt;</code> in
-                    <a href="../../../app/src/index.tsx" target="src-packages-app-src-index-tsx"
-                      ><code>index.tsx</code></a
-                    >. <code>editor</code> loads <code>$/app/solid/modals</code> by dynamic <code>import()</code>,
-                    keeping Solid and <code>$/ui</code> out of
-                    <a href="../../../app/src/editor.ts" target="src-packages-app-src-editor-ts"
-                      ><code>editor.ts</code></a
-                    >.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d18">
+                    <div class="plan-answer-title">
+                      <b>D18</b> · P6f: dialogs build their own &lt;ui-modal&gt; (no editor.modals / ModalRoot)
+                    </div>
+                    <p>
+                      <code>editor.alert/confirm/prompt/promptForNumber</code> go to <code>UI.modals</code>;
+                      <code>choose()</code> to a Solid <code>&lt;Chooser&gt;</code> that
+                      <code>openChooser()</code> mounts in <code>&lt;body&gt;</code> and removes once hidden, like ui's
+                      own dialogs. So <code>editor.modals</code>, <code>modalId</code>, <code>debugModals</code>,
+                      <code>showModal()</code> and <code>ModalEntry</code> are gone, and nothing replaces React's
+                      <code>&lt;UI.ModalRoot /&gt;</code> in
+                      <a href="../../../app/src/index.tsx" target="src-packages-app-src-index-tsx"
+                        ><code>index.tsx</code></a
+                      >. <code>editor</code> loads <code>$/app/solid/modals</code> by dynamic <code>import()</code>,
+                      keeping Solid and <code>$/ui</code> out of
+                      <a href="../../../app/src/editor.ts" target="src-packages-app-src-editor-ts"
+                        ><code>editor.ts</code></a
+                      >.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d19" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q19" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d19">D19</a>
+                  ><a class="plan-id" href="#q19">Q19</a>
                   <span class="plan-title"
                     >P6e: Solid Monaco editors reuse the React-free plumbing in ui/monaco</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    <code>src/solid/monaco/</code> holds only the Solid <code>MonacoEditor</code> /
-                    <code>FileEditor</code>; <code>monaco</code>, <code>SpellMonaco</code>, <code>SpellModels</code> ...
-                    stay in <code>$/app/ui/monaco</code> and the Solid barrel re-exports the three
-                    <code>LazyMonaco</code> needs. Monaco stays a lazy chunk: a scratch build with the Solid editors as
-                    an extra entry kept the 4.46 MB <code>monaco</code> chunk reachable only through
-                    <code>import()</code>, and the app entry's static closure unchanged (1129 kB before, 1130 kB after).
-                    P8 can move the plumbing into <code>solid/monaco</code> when the React editors go.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d19">
+                    <div class="plan-answer-title">
+                      <b>D19</b> · P6e: Solid Monaco editors reuse the React-free plumbing in ui/monaco
+                    </div>
+                    <p>
+                      <code>src/solid/monaco/</code> holds only the Solid <code>MonacoEditor</code> /
+                      <code>FileEditor</code>; <code>monaco</code>, <code>SpellMonaco</code>,
+                      <code>SpellModels</code> ... stay in <code>$/app/ui/monaco</code> and the Solid barrel re-exports
+                      the three <code>LazyMonaco</code> needs. Monaco stays a lazy chunk: a scratch build with the Solid
+                      editors as an extra entry kept the 4.46 MB <code>monaco</code> chunk reachable only through
+                      <code>import()</code>, and the app entry's static closure unchanged (1129 kB before, 1130 kB
+                      after). P8 can move the plumbing into <code>solid/monaco</code> when the React editors go.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d20" data-status="done"
+            ><ui-item data-state="old" data-answered id="q20" data-status="canceled"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d20">D20</a>
+                  ><a class="plan-id" href="#q20">Q20</a>
                   <span class="plan-title"
                     >Thing Explorer: tracked() for registry lists, trackedProgram() for program-code reads, each per row
                     / property</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    Tree lists (<code>topLevel()</code>, <code>all()</code>, <code>bySuperType()</code>, a details'
-                    property list) through <code>tracked()</code>; each row label, property value and a list's items
-                    through <code>trackedProgram()</code>, which re-reads a microtask after the change (never mid-write;
-                    10 writes = 1 read per reader). So a prop change shows after a microtask, then <code>flush()</code>.
-                    One changed prop redraws its own cell only (pinned by
-                    <a
-                      href="../../../app/src/solid/ThingExplorer.browser.test.tsx"
-                      target="src-packages-app-src-solid-thingexplorer-browser-test-tsx"
-                      ><code>ThingExplorer.browser.test.tsx</code></a
-                    >). Things never go in a Solid store.
-                  </p>
-                  <p>
-                    Superseded by <a href="#d28">D28</a> (P11): <code>trackedProgram()</code> is gone;
-                    <code>tracked()</code> re-reads on Solid's schedule, so every read is safe for program code.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d20">
+                    <div class="plan-answer-title">
+                      <b>D20</b> · Thing Explorer: tracked() for registry lists, trackedProgram() for program-code
+                      reads, each per row / property
+                    </div>
+                    <p>
+                      Tree lists (<code>topLevel()</code>, <code>all()</code>, <code>bySuperType()</code>, a details'
+                      property list) through <code>tracked()</code>; each row label, property value and a list's items
+                      through <code>trackedProgram()</code>, which re-reads a microtask after the change (never
+                      mid-write; 10 writes = 1 read per reader). So a prop change shows after a microtask, then
+                      <code>flush()</code>. One changed prop redraws its own cell only (pinned by
+                      <a
+                        href="../../../app/src/solid/ThingExplorer.browser.test.tsx"
+                        target="src-packages-app-src-solid-thingexplorer-browser-test-tsx"
+                        ><code>ThingExplorer.browser.test.tsx</code></a
+                      >). Things never go in a Solid store.
+                    </p>
+                    <p>
+                      Superseded by <a href="#d28">D28</a> (P11): <code>trackedProgram()</code> is gone;
+                      <code>tracked()</code> re-reads on Solid's schedule, so every read is safe for program code.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d21" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q21" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d21">D21</a>
+                  ><a class="plan-id" href="#q21">Q21</a>
                   <span class="plan-title"
                     >P7: one Solid per page across our builds -- spell-solid.js + spell-ui.js from a third build</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    A third build, packages/app/vite.solid.config.ts, runs FIRST in yarn build:element (and in yarn
-                    build:runner, --outDir dist-runner): its one entry is a virtual module re-exporting solid-js,
-                    @solidjs/web and @spell-app/solid-element WHOLE as spell-solid.js, plus loadSpellUI = () =&gt;
-                    import($/ui), which makes ui's barrel a lazy chunk, spell-ui.js, whose own lazy chunks go in ui/.
-                    The element, editor and runner builds add sharedSolid() (vite.shared.ts): an enforce-pre resolveId
-                    that makes solid-js, @solidjs/web, @spell-app/solid-element and $/ui externals, written as
-                    ./spell-solid.js / ./spell-ui.js by output.paths; any other Solid / ui specifier is a build error.
-                    Why not one build with three entries: cssCodeSplit false would put Monaco's CSS in spell-app.css
-                    (CODE-DEBT). Why ONE entry, not spell-ui as a second: with two entries rolldown split Solid into a
-                    shared ui/customElement.js chunk; as a dynamic import of spell-solid.js everything ui needs from
-                    Solid is exported by spell-solid.js (allow-extension). base ./ so Vite's module preloading of ui's
-                    chunks doesn't 404 at the page's /. spell-runtime.js never loads either file. The runner uses the
-                    same layout (one pin, one webview CSP). Bonus: an import-map variant of the elements is the same
-                    configs without output.paths. Pinned by element.build.test.ts (sourcemap sources per chunk).
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d21">
+                    <div class="plan-answer-title">
+                      <b>D21</b> · P7: one Solid per page across our builds -- spell-solid.js + spell-ui.js from a third
+                      build
+                    </div>
+                    <p>
+                      A third build, packages/app/vite.solid.config.ts, runs FIRST in yarn build:element (and in yarn
+                      build:runner, --outDir dist-runner): its one entry is a virtual module re-exporting solid-js,
+                      @solidjs/web and @spell-app/solid-element WHOLE as spell-solid.js, plus loadSpellUI = () =&gt;
+                      import($/ui), which makes ui's barrel a lazy chunk, spell-ui.js, whose own lazy chunks go in ui/.
+                      The element, editor and runner builds add sharedSolid() (vite.shared.ts): an enforce-pre resolveId
+                      that makes solid-js, @solidjs/web, @spell-app/solid-element and $/ui externals, written as
+                      ./spell-solid.js / ./spell-ui.js by output.paths; any other Solid / ui specifier is a build error.
+                      Why not one build with three entries: cssCodeSplit false would put Monaco's CSS in spell-app.css
+                      (CODE-DEBT). Why ONE entry, not spell-ui as a second: with two entries rolldown split Solid into a
+                      shared ui/customElement.js chunk; as a dynamic import of spell-solid.js everything ui needs from
+                      Solid is exported by spell-solid.js (allow-extension). base ./ so Vite's module preloading of ui's
+                      chunks doesn't 404 at the page's /. spell-runtime.js never loads either file. The runner uses the
+                      same layout (one pin, one webview CSP). Bonus: an import-map variant of the elements is the same
+                      configs without output.paths. Pinned by element.build.test.ts (sourcemap sources per chunk).
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d22" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q22" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d22">D22</a>
+                  ><a class="plan-id" href="#q22">Q22</a>
                   <span class="plan-title"
                     >P7a: elements are customElement() on a base class; pushed code is a property-only prop</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    <code>&lt;spell-app&gt;</code> / <code>&lt;spell-editor&gt;</code> are <code>customElement()</code>s
-                    (<a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
-                      ><code>@spell-app/solid-element</code></a
-                    >) with <code>BaseElement</code> holding their methods (<code>run()</code>, <code>restart()</code>,
-                    <code>compile()</code>, <code>save()</code>, <code>assets</code>). Every attribute is now a property
-                    too. Code an editor pushed is the property-only prop <code>pushed</code>, dropped by an
-                    <code>addPropertyChangedCallback</code> when <code>project</code> / <code>src</code> /
-                    <code>scopes</code> / <code>name</code> / <code>editor</code> change. The editor keeps its state in
-                    <code>ownedWrite</code> signals the component draws. Leaving the page disposes a microtask later, so
-                    a same-tick move keeps the app. <code>&lt;spell-app&gt;</code> wraps its shadow root in
-                    <code>&lt;ui-root icons=fomantic display=immediately&gt;</code>; the VS Code webview HTML wraps
-                    <code>#runner-root</code> the same way.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d22">
+                    <div class="plan-answer-title">
+                      <b>D22</b> · P7a: elements are customElement() on a base class; pushed code is a property-only
+                      prop
+                    </div>
+                    <p>
+                      <code>&lt;spell-app&gt;</code> / <code>&lt;spell-editor&gt;</code> are
+                      <code>customElement()</code>s (<a
+                        href="../../../solid-element/README.md"
+                        target="src-packages-solid-element-readme-md"
+                        ><code>@spell-app/solid-element</code></a
+                      >) with <code>BaseElement</code> holding their methods (<code>run()</code>,
+                      <code>restart()</code>, <code>compile()</code>, <code>save()</code>, <code>assets</code>). Every
+                      attribute is now a property too. Code an editor pushed is the property-only prop
+                      <code>pushed</code>, dropped by an <code>addPropertyChangedCallback</code> when
+                      <code>project</code> / <code>src</code> / <code>scopes</code> / <code>name</code> /
+                      <code>editor</code> change. The editor keeps its state in <code>ownedWrite</code> signals the
+                      component draws. Leaving the page disposes a microtask later, so a same-tick move keeps the app.
+                      <code>&lt;spell-app&gt;</code> wraps its shadow root in
+                      <code>&lt;ui-root icons=fomantic display=immediately&gt;</code>; the VS Code webview HTML wraps
+                      <code>#runner-root</code> the same way.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d23" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q23" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d23">D23</a>
+                  ><a class="plan-id" href="#q23">Q23</a>
                   <span class="plan-title"
                     >P8a: @solidjs/router@next, editor navigates through a handed-over navigate()</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    <code>@solidjs/router</code> <code>2.0.0-next.35</code> (rc.13), pinned exactly;
-                    <code>@reach/router</code>, <code>@types/reach__router</code> and
-                    <code>react-hotkeys-hook</code> removed. <code>src/pages/routes.tsx</code>: three routes, each
-                    page's URLs ONE route with a <code>path</code> array, so moving between files keeps the page
-                    mounted; route components call <code>followRoute()</code> (params to
-                    <code>editor.selectPath()</code>, in an effect). <code>explicitLinks</code>: only
-                    <code>&lt;a link&gt;</code> clicks, never a running program's own links.
-                    <a href="../../../app/src/editor.ts" target="src-packages-app-src-editor-ts"
-                      ><code>editor.ts</code></a
-                    >
-                    calls <code>src/pages/navigation.ts</code> <code>navigate()</code> (no Solid), which the router's
-                    root layout hands its <code>useNavigate()</code> to. The router ships JSX source:
-                    <code>vite.shared.ts</code> <code>NOT_SOLID_SOURCE</code> lets the Solid plugin compile it. Hotkeys:
-                    ONE <code>keydown</code> listener on <code>document</code> while the editor page is up
-                    (<code>editorHotkeys()</code>); React's <code>shift-command+r</code> never matched (<code
-                      >hotkeys-js</code
-                    >
-                    split on <code>+</code>), now Mod+Shift+R reloads the file.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d23">
+                    <div class="plan-answer-title">
+                      <b>D23</b> · P8a: @solidjs/router@next, editor navigates through a handed-over navigate()
+                    </div>
+                    <p>
+                      <code>@solidjs/router</code> <code>2.0.0-next.35</code> (rc.13), pinned exactly;
+                      <code>@reach/router</code>, <code>@types/reach__router</code> and
+                      <code>react-hotkeys-hook</code> removed. <code>src/pages/routes.tsx</code>: three routes, each
+                      page's URLs ONE route with a <code>path</code> array, so moving between files keeps the page
+                      mounted; route components call <code>followRoute()</code> (params to
+                      <code>editor.selectPath()</code>, in an effect). <code>explicitLinks</code>: only
+                      <code>&lt;a link&gt;</code> clicks, never a running program's own links.
+                      <a href="../../../app/src/editor.ts" target="src-packages-app-src-editor-ts"
+                        ><code>editor.ts</code></a
+                      >
+                      calls <code>src/pages/navigation.ts</code> <code>navigate()</code> (no Solid), which the router's
+                      root layout hands its <code>useNavigate()</code> to. The router ships JSX source:
+                      <code>vite.shared.ts</code> <code>NOT_SOLID_SOURCE</code> lets the Solid plugin compile it.
+                      Hotkeys: ONE <code>keydown</code> listener on <code>document</code> while the editor page is up
+                      (<code>editorHotkeys()</code>); React's <code>shift-command+r</code> never matched (<code
+                        >hotkeys-js</code
+                      >
+                      split on <code>+</code>), now Mod+Shift+R reloads the file.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d24" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q24" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d24">D24</a>
+                  ><a class="plan-id" href="#q24">Q24</a>
                   <span class="plan-title"
                     >P8: AST views draw framework-free Markup, not Solid JSX (supersedes D17)</span
                   ></ui-title
                 ><ui-content
-                  ><p>
-                    <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
-                      ><code>packages/parser/src/ast/AST.ts</code></a
-                    >
-                    (was <code>.tsx</code>) and
-                    <a href="../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
-                      ><code>renderAST.ts</code></a
-                    >
-                    build <code>P.Markup</code>: plain data (<code>{ tag, attrs, children }</code>, text, arrays) from
-                    <code>render.h()</code> / <code>render.span()</code>. The app's <code>ASTViewer</code> draws it with
-                    <code>P.render.toDOM()</code> in render, inside its <code>&lt;ErrorBoundary&gt;</code>: no
-                    <code>&lt;ReactHost&gt;</code>, no React in
-                    <a href="../../../parser/" target="src-packages-parser"><code>packages/parser</code></a
-                    >. Why not Solid JSX:
-                    <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
-                      ><code>AST.ts</code></a
-                    >
-                    loads wherever the parser does, and the CLI / language server run its SOURCE through
-                    <code>tsx</code> (esbuild), the parser / spell / lsp / core / cli tests through Vite's oxc: none can
-                    compile Solid's JSX, and Solid's DOM build would land in node tools. Moving the ~55
-                    <code>renderChildren()</code> into an opt-in Solid module would split each class's drawing from its
-                    <code>compile()</code>. The tree is static (a new compile makes a new AST), so Solid's reactivity
-                    buys nothing. The pane's DOM is byte-identical to the React one (Todos, Solitaire).
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d24">
+                    <div class="plan-answer-title">
+                      <b>D24</b> · P8: AST views draw framework-free Markup, not Solid JSX (supersedes D17)
+                    </div>
+                    <p>
+                      <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                        ><code>packages/parser/src/ast/AST.ts</code></a
+                      >
+                      (was <code>.tsx</code>) and
+                      <a href="../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                        ><code>renderAST.ts</code></a
+                      >
+                      build <code>P.Markup</code>: plain data (<code>{ tag, attrs, children }</code>, text, arrays) from
+                      <code>render.h()</code> / <code>render.span()</code>. The app's <code>ASTViewer</code> draws it
+                      with <code>P.render.toDOM()</code> in render, inside its <code>&lt;ErrorBoundary&gt;</code>: no
+                      <code>&lt;ReactHost&gt;</code>, no React in
+                      <a href="../../../parser/" target="src-packages-parser"><code>packages/parser</code></a
+                      >. Why not Solid JSX:
+                      <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                        ><code>AST.ts</code></a
+                      >
+                      loads wherever the parser does, and the CLI / language server run its SOURCE through
+                      <code>tsx</code> (esbuild), the parser / spell / lsp / core / cli tests through Vite's oxc: none
+                      can compile Solid's JSX, and Solid's DOM build would land in node tools. Moving the ~55
+                      <code>renderChildren()</code> into an opt-in Solid module would split each class's drawing from
+                      its <code>compile()</code>. The tree is static (a new compile makes a new AST), so Solid's
+                      reactivity buys nothing. The pane's DOM is byte-identical to the React one (Todos, Solitaire).
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d25" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q25" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d25">D25</a>
+                  ><a class="plan-id" href="#q25">Q25</a>
                   <span class="plan-title"
                     >P11: the Solid bridge is the HOST's; one cells context per page, shared by every runtime copy</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    packages/util/src/spell/cells.ts keeps its state (who is reading, pending derived checks, host
-                    flushes) in ONE object on globalThis (Symbol.for('@spell-app/cells')), so the app's $/util and each
-                    spell-runtime.js copy (one per &lt;spell-app&gt;) track into the same readers; sources are
-                    duck-typed across copies. bridgeSolid({ enableExternalSource, flush }) in $/util is called by the
-                    host, packages/app/src/solid/cellsBridge.ts, imported by index.tsx, runner/main.tsx,
-                    SpellAppElement, SpellEditorElement and tracked(): util / core never import Solid, so
-                    spell-runtime.js holds none (element.build.test.ts still passes). Bridged once per Solid (remembered
-                    in the context): Solid pipes every enableExternalSource() call, so a second would wrap every
-                    computation twice. Pinned: app src/solid/cellsBridge.browser.test.tsx (incl. a second copy of
-                    cells.ts loaded with ?copy).
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d25">
+                    <div class="plan-answer-title">
+                      <b>D25</b> · P11: the Solid bridge is the HOST's; one cells context per page, shared by every
+                      runtime copy
+                    </div>
+                    <p>
+                      packages/util/src/spell/cells.ts keeps its state (who is reading, pending derived checks, host
+                      flushes) in ONE object on globalThis (Symbol.for('@spell-app/cells')), so the app's $/util and
+                      each spell-runtime.js copy (one per &lt;spell-app&gt;) track into the same readers; sources are
+                      duck-typed across copies. bridgeSolid({ enableExternalSource, flush }) in $/util is called by the
+                      host, packages/app/src/solid/cellsBridge.ts, imported by index.tsx, runner/main.tsx,
+                      SpellAppElement, SpellEditorElement and tracked(): util / core never import Solid, so
+                      spell-runtime.js holds none (element.build.test.ts still passes). Bridged once per Solid
+                      (remembered in the context): Solid pipes every enableExternalSource() call, so a second would wrap
+                      every computation twice. Pinned: app src/solid/cellsBridge.browser.test.tsx (incl. a second copy
+                      of cells.ts loaded with ?copy).
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d26" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q26" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d26">D26</a>
+                  ><a class="plan-id" href="#q26">Q26</a>
                   <span class="plan-title">P11: React bridge = view() in $/util, on cells</span> </ui-title
                 ><ui-content
-                  ><p>
-                    packages/util/src/spell/view.ts: a class component becomes a subclass whose instances render inside
-                    a Reaction (forceUpdate() on a change); a function component a wrapper holding one (useState). Same
-                    API as easy-state's view(), so Thing.Component, List and the forms (F) only changed their import.
-                    The only file in util importing react; util is sideEffects:false, so bundles that never call view()
-                    drop it. Spell's forms keep a local store, honestly: FormStore is now an Observable class (@prop
-                    value, errors replaced on each change). Pinned: app src/ui/reactView.browser.test.tsx.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d26">
+                    <div class="plan-answer-title"><b>D26</b> · P11: React bridge = view() in $/util, on cells</div>
+                    <p>
+                      packages/util/src/spell/view.ts: a class component becomes a subclass whose instances render
+                      inside a Reaction (forceUpdate() on a change); a function component a wrapper holding one
+                      (useState). Same API as easy-state's view(), so Thing.Component, List and the forms (F) only
+                      changed their import. The only file in util importing react; util is sideEffects:false, so bundles
+                      that never call view() drop it. Spell's forms keep a local store, honestly: FormStore is now an
+                      Observable class (@prop value, errors replaced on each change). Pinned: app
+                      src/ui/reactView.browser.test.tsx.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d27" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q27" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d27">D27</a>
+                  ><a class="plan-id" href="#q27">Q27</a>
                   <span class="plan-title"
                     >P11: compiled props declare type / default in the class schema</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    ASTReactiveProperty now emits static { this.declareProp('suit', { oneOf: Card.Suits }) } in the
-                    class (Card.declareProp(...) when patched on from outside), and getProp('x') / setProp('x', value)
-                    with nothing else; a new List() default becomes { init: () =&gt; new List() }. Same runtime shape as
-                    @prop({...}) accessor: both land in schemaOf(Class) (decorators through Symbol.metadata,
-                    polyfilled). Thing / List check a declared type on the program's console (spellCore.checkProp, as
-                    before) when a value CHANGES; undeclared props are observed per class and widened with a dev
-                    warning. The old 3-argument setProp(name, value, check) still works, for programs compiled before.
-                    Fixtures blessed (only these lines changed), examples + library recompiled with spell compile.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d27">
+                    <div class="plan-answer-title">
+                      <b>D27</b> · P11: compiled props declare type / default in the class schema
+                    </div>
+                    <p>
+                      ASTReactiveProperty now emits static { this.declareProp('suit', { oneOf: Card.Suits }) } in the
+                      class (Card.declareProp(...) when patched on from outside), and getProp('x') / setProp('x', value)
+                      with nothing else; a new List() default becomes { init: () =&gt; new List() }. Same runtime shape
+                      as @prop({...}) accessor: both land in schemaOf(Class) (decorators through Symbol.metadata,
+                      polyfilled). Thing / List check a declared type on the program's console (spellCore.checkProp, as
+                      before) when a value CHANGES; undeclared props are observed per class and widened with a dev
+                      warning. The old 3-argument setProp(name, value, check) still works, for programs compiled before.
+                      Fixtures blessed (only these lines changed), examples + library recompiled with spell compile.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d28" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q28" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d28">D28</a>
+                  ><a class="plan-id" href="#q28">Q28</a>
                   <span class="plan-title"
                     >P11: tracked() kept, as a Solid memo over the bridge; deferred gone</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    With the bridge every Solid computation follows the cells it reads, so a plain read in JSX is
-                    reactive. tracked(read) stays (57 call sites, unchanged) as createMemo(() =&gt; ({ value: read() }),
-                    { equals: false }) -- boxed, so a function or Promise is a value -- owned by the caller, or its own
-                    root with dispose(). Solid re-runs it on its schedule, never mid-write and once for ten writes, so {
-                    deferred: true } (the Thing Explorer's) is what everything does now: the option is gone. A read that
-                    writes what it read doesn't loop (the Reaction ignores its own run): plan doc I3 can't recur.
-                    Pinned: tracked.browser.test.ts.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d28">
+                    <div class="plan-answer-title">
+                      <b>D28</b> · P11: tracked() kept, as a Solid memo over the bridge; deferred gone
+                    </div>
+                    <p>
+                      With the bridge every Solid computation follows the cells it reads, so a plain read in JSX is
+                      reactive. tracked(read) stays (57 call sites, unchanged) as createMemo(() =&gt; ({ value: read()
+                      }), { equals: false }) -- boxed, so a function or Promise is a value -- owned by the caller, or
+                      its own root with dispose(). Solid re-runs it on its schedule, never mid-write and once for ten
+                      writes, so { deferred: true } (the Thing Explorer's) is what everything does now: the option is
+                      gone. A read that writes what it read doesn't loop (the Reaction ignores its own run): plan doc I3
+                      can't recur. Pinned: tracked.browser.test.ts.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d29" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q29" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d29">D29</a>
+                  ><a class="plan-id" href="#q29">Q29</a>
                   <span class="plan-title"
                     >P11: editor store is EditorStore, an Observable with @prop accessors</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    packages/app/src/editor.ts: EDITOR_DEFAULTS became class EditorStore extends Observable, its state
-                    @prop accessors (projectRoot, project, file, projectPage, runtimeLoaded, selection,
-                    showingMatchRuleNames, notice, error), methods unchanged (they say editor.x, handed around unbound),
-                    editor = new EditorStore({}). Call sites unchanged. compileAppSoonTimer and the last...For...()
-                    helpers are plain fields. SpellConsole / SpellConsoleGroup lines and collapsed are @prop too.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d29">
+                    <div class="plan-answer-title">
+                      <b>D29</b> · P11: editor store is EditorStore, an Observable with @prop accessors
+                    </div>
+                    <p>
+                      packages/app/src/editor.ts: EDITOR_DEFAULTS became class EditorStore extends Observable, its state
+                      @prop accessors (projectRoot, project, file, projectPage, runtimeLoaded, selection,
+                      showingMatchRuleNames, notice, error), methods unchanged (they say editor.x, handed around
+                      unbound), editor = new EditorStore({}). Call sites unchanged. compileAppSoonTimer and the
+                      last...For...() helpers are plain fields. SpellConsole / SpellConsoleGroup lines and collapsed are
+                      @prop too.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d30" data-status="decided"
+            ><ui-item data-state="old" data-answered id="q30" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#d30">D30</a>
+                  ><a class="plan-id" href="#q30">Q30</a>
                   <span class="plan-title"
                     >P9: React stays only for spell programs; view() stays in $/util; the CLI's Ink UI is out of
                     scope</span
                   > </ui-title
                 ><ui-content
-                  ><p>
-                    The app's own chunks hold no React (pinned in
-                    <a href="../../../app/src/build.test.ts" target="src-packages-app-src-build-test-ts"
-                      ><code>packages/app/src/build.test.ts</code></a
-                    >, checked to fail on a leak): the last import was
-                    <a href="../../../app/src/debug.ts" target="src-packages-app-src-debug-ts"><code>debug.ts</code></a
-                    >'s <code>SUI</code> global, dropped. React remains in <code>spell-runtime.js</code> for compiled
-                    spell (D9): <code>core</code>'s classes, <code>src/ui/forms/</code>, <code>SUIPassThroughs</code>,
-                    and <code>$/util</code>'s <code>view()</code> bridge (T4 left for the Core + JSX thread).
-                    <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a
-                    >'s terminal UI uses React through Ink: not the web app, kept.
-                  </p></ui-content
+                  ><div class="plan-answer-block" id="d30">
+                    <div class="plan-answer-title">
+                      <b>D30</b> · P9: React stays only for spell programs; view() stays in $/util; the CLI's Ink UI is
+                      out of scope
+                    </div>
+                    <p>
+                      The app's own chunks hold no React (pinned in
+                      <a href="../../../app/src/build.test.ts" target="src-packages-app-src-build-test-ts"
+                        ><code>packages/app/src/build.test.ts</code></a
+                      >, checked to fail on a leak): the last import was
+                      <a href="../../../app/src/debug.ts" target="src-packages-app-src-debug-ts"
+                        ><code>debug.ts</code></a
+                      >'s <code>SUI</code> global, dropped. React remains in <code>spell-runtime.js</code> for compiled
+                      spell (D9): <code>core</code>'s classes, <code>src/ui/forms/</code>, <code>SUIPassThroughs</code>,
+                      and <code>$/util</code>'s <code>view()</code> bridge (T4 left for the Core + JSX thread).
+                      <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a
+                      >'s terminal UI uses React through Ink: not the web app, kept.
+                    </p>
+                  </div></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
           >
         </ui-section>
 
-        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+        <ui-section
+          data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
+          id="judgements"
+          header="4. Judgement calls"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed
-            ><ui-item id="c1" data-status="open"
+            ><ui-item data-state="open" id="c1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#c1">C1</a> <span class="plan-title">ui bugs we'll hit</span></ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title"
+                    >We'll hit bugs in
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                    along the way</span
+                  ></ui-title
                 ><ui-content
                   ><p>
-                    Known ones in
-                    <a
-                      href="../../spell-docs/spell-ui-findings.md"
-                      target="src-packages-docs-spell-docs-spell-ui-findings-md"
-                      ><code>packages/docs/spell-docs/spell-ui-findings.md</code></a
-                    >. Fix in <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> when real,
-                    record there either way.
-                  </p></ui-content
+                    The app is moving onto the <code>ui-*</code> elements, which are new, so the migration will find
+                    bugs in them.
+                  </p>
+                  <ul>
+                    <li>
+                      The known ones:
+                      <a
+                        href="../../spell-docs/spell-ui-findings.md"
+                        target="src-packages-docs-spell-docs-spell-ui-findings-md"
+                        ><code>packages/docs/spell-docs/spell-ui-findings.md</code></a
+                      >.
+                    </li>
+                    <li>
+                      When one is real, fix it in
+                      <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                      >.
+                    </li>
+                    <li>Either way, record it in that file.</li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c2" data-status="open"
+            ><ui-item data-state="open" id="c2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c2">C2</a>
-                  <span class="plan-title">RC churn: re-run experiments on every Solid bump</span></ui-title
+                  <span class="plan-title"
+                    >Re-run the Solid experiments on every Solid release candidate</span
+                  ></ui-title
                 ><ui-content
                   ><p>
-                    <code>packages/docs/solid/experiments/*</code>, <code>SOLID_NODE_MODULES=&lt;dir&gt;</code> picks
-                    the version; diff the output, update
-                    <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
-                      ><code>solid-2.md</code></a
-                    >.
-                  </p></ui-content
+                    Solid 2 is still a release candidate, so behaviour can change between bumps. The experiments that
+                    back our Solid rules must be re-run on each one.
+                  </p>
+                  <ul>
+                    <li>The experiments: <code>packages/docs/solid/experiments/*</code>.</li>
+                    <li>
+                      <code>SOLID_NODE_MODULES=&lt;dir&gt;</code> picks the Solid version they run against; without it,
+                      the repo root's.
+                    </li>
+                    <li>Diff the output against the last run.</li>
+                    <li>
+                      Update
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >
+                      with anything that changed.
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c3" data-status="done"
+            ><ui-item data-state="old" id="c3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c3">C3</a>
@@ -1730,7 +2044,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c4" data-status="done"
+            ><ui-item data-state="old" id="c4" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c4">C4</a> <span class="plan-title">Estimates are rough</span> </ui-title
@@ -1740,38 +2054,66 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c5" data-status="open"
+            ><ui-item data-state="open" id="c5" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c5">C5</a>
-                  <span class="plan-title">React and Solid both on the page for spell output</span> </ui-title
+                  <span class="plan-title"
+                    >React and Solid both run on a page that shows a spell program</span
+                  > </ui-title
                 ><ui-content
                   ><p>
-                    With P5 gone, <code>&lt;spell-app&gt;</code> and the runner mount compiled spell's React tree inside
-                    Solid-rendered UI. P7 must keep React's root mount (<code>App.start()</code>) working inside a Solid
-                    host and shadow DOM.
+                    The app's own UI is Solid now, but a compiled spell program still draws with React, so a page
+                    showing one runs both. This is the case since the Core + JSX Emit phase (P5) was dropped.
                   </p>
-                  <p>
-                    P10: done (P7, P8): the program draws with React into <code>&lt;AppRoot&gt;</code>'s element
-                    (<code>editor.setAppRoot()</code>) or <code>&lt;spell-app&gt;</code>'s shadow root, on its own
-                    <code>spell-runtime.js</code>. What stays: two renderers per page, React only in
-                    <code>spell-runtime.js</code> -- CODE-DEBT "app: React for spell programs, beside the app's Solid".
-                  </p></ui-content
+                  <ul>
+                    <li>
+                      Where: <code>&lt;spell-app&gt;</code> and the runner mount the program's React tree inside UI that
+                      Solid draws.
+                    </li>
+                    <li>
+                      The Web Components + Runner phase (<a href="#p7">P7</a>) had to keep React's root mount
+                      (<code>App.start()</code>) working inside a Solid host and a shadow DOM.
+                    </li>
+                    <li>
+                      Done since (noted in the Doc Review phase, <a href="#p10">P10</a>; built in
+                      <a href="#p7">P7</a> and <a href="#p8">P8</a>): the program draws with React into
+                      <code>&lt;AppRoot&gt;</code>'s element (<code>editor.setAppRoot()</code>), or into
+                      <code>&lt;spell-app&gt;</code>'s shadow root, from its own <code>spell-runtime.js</code>.
+                    </li>
+                    <li>
+                      What stays: two renderers per page, React only in <code>spell-runtime.js</code>. Tracked in
+                      <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a
+                      >, "app", "React for spell programs, beside the app's Solid".
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c6" data-status="open"
+            ><ui-item data-state="open" id="c6" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c6">C6</a>
-                  <span class="plan-title">P2 visual tests: local (macOS) only</span> </ui-title
+                  <span class="plan-title">The rc.13 screenshot tests ran on macOS only</span> </ui-title
                 ><ui-content
                   ><p>
-                    <code>yarn test:visual --os local</code>: 582 passed on rc.13. The Linux (Docker) run wasn't done:
-                    Docker isn't running here, same as the ui plan's open item.
-                  </p></ui-content
+                    After the bump to Solid rc.13 (<a href="#p2">P2</a>), the screenshot tests were run on this Mac, but
+                    not on Linux.
+                  </p>
+                  <ul>
+                    <li><code>yarn test:visual --os local</code>: 582 passed on rc.13.</li>
+                    <li>The Linux run (in Docker) wasn't done: Docker isn't running here.</li>
+                    <li>
+                      Same as the ui epic's open item (ui-component-creation's "no Linux screenshot baselines", C1).
+                      Still true on 2026-10-04:
+                      <a href="../../../ui/test/visual/baselines/" target="src-packages-ui-test-visual-baselines"
+                        ><code>packages/ui/test/visual/baselines/</code></a
+                      >
+                      has only <code>local-darwin</code>.
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c7" data-status="done"
+            ><ui-item data-state="old" id="c7" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c7">C7</a>
@@ -1789,105 +2131,183 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c8" data-status="open"
+            ><ui-item data-state="open" id="c8" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c8">C8</a>
-                  <span class="plan-title">Two vite copies: ui has its own</span> </ui-title
+                  <span class="plan-title">Two copies of Vite: <code>ui</code> has its own</span> </ui-title
                 ><ui-content
                   ><p>
+                    <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> has its own copy of
+                    Vite,
                     <a href="../../../ui/node_modules/vite/" target="src-packages-ui-node-modules-vite"
                       ><code>packages/ui/node_modules/vite</code></a
-                    >
-                    differs from the root's, so ui's plugin types don't match app's (<code>emitIconPacks()</code> needs
-                    <code>as unknown as Plugin</code> in <code>vite.shared.ts</code>). Harmless at runtime so far.
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="c9" data-status="open"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#c9">C9</a>
-                  <span class="plan-title"
-                    >Solid ConsoleLines must stay editor-free: imports ./tracked directly, never the $/app/solid
-                    barrel</span
-                  > </ui-title
-                ><ui-content
-                  ><p>
-                    The barrel pulls in <code>Actions</code>, hence <code>$/app/editor</code>; the VS Code runner's
-                    <code>RunnerConsole</code> (P7) imports <code>src/solid/ConsoleLines.tsx</code> directly, as React's
-                    did. <code>ConsoleLines</code>' <code>lines</code> is a value: the caller tracks the top level
-                    (<code>tracked(() =&gt; console.lines)</code>); groups track their own <code>lines</code> /
-                    <code>collapsed</code>.
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="c10" data-status="open"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#c10">C10</a>
-                  <span class="plan-title">P6c: Solid effects' compute errors don't reach Errored</span> </ui-title
-                ><ui-content
-                  ><p>
-                    In rc.13 a <code>createEffect</code> whose compute throws is NOT caught by an enclosing
-                    <code>&lt;Errored&gt;</code> / <code>&lt;ErrorBoundary&gt;</code> (it went to the console, fallback
-                    never shown). Read a value that may throw in RENDER (a JSX expression or a memo JSX reads) so the
-                    boundary sees it, and give the effect an <code>{ effect, error }</code> bundle. Seen in
-                    <code>src/solid/ASTViewer.tsx</code> <code>&lt;ReactHost&gt;</code> (gone since P8:
-                    <code>ASTViewer</code> draws <code>P.Markup</code> in render, <a href="#d24">D24</a>); the rule
-                    stands, in
-                    <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
-                      ><code>solid-2.md</code></a
-                    >
-                    "Errors".
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="c11" data-status="open"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#c11">C11</a>
-                  <span class="plan-title">P6c: MatchView has no collapsing</span> </ui-title
-                ><ui-content
-                  ><p>
-                    The P6c brief asked for a 'collapsing a node' test, but React's <code>MatchView</code> has no
-                    collapse (only the rule-names toggle, <code>compact</code>). The Solid port keeps that; its tests
-                    pin the toggle instead. Collapsing would be a new feature.
-                  </p></ui-content
-                ></ui-accordion
-              ></ui-item
-            ><ui-item id="c12" data-status="open"
-              ><ui-accordion class="plan-item"
-                ><ui-title
-                  ><a class="plan-id" href="#c12">C12</a>
-                  <span class="plan-title">P6f dialogs: what changed from the React modals</span> </ui-title
-                ><ui-content
-                  ><ul>
+                    >, separate from the repo root's. So <code>ui</code>'s Vite plugin types don't match the app's.
+                  </p>
+                  <ul>
                     <li>
-                      Text only: <code>message</code> / <code>header</code> / <code>ok</code> / <code>cancel</code> are
-                      strings (no <code>ReactNode</code>, no <code>SUI.ButtonProps</code>); extra props no longer reach
-                      a modal.
+                      Where it shows: <code>emitIconPacks()</code> needs a cast (<code>as unknown as Plugin</code> when
+                      written) in <code>vite.shared.ts</code>.
                     </li>
-                    <li>A dimmer click no longer cancels (<code>closedby=closerequest</code>); Escape does.</li>
-                    <li><code>confirm()</code> focuses Cancel first (ui's choice), not OK.</li>
+                    <li>Harmless at run time, so far.</li>
                     <li>
-                      <code>prompt()</code> resolves <code>undefined</code> when empty (its doc said so; React resolved
-                      <code>""</code> after clearing).
-                    </li>
-                    <li>
-                      <code>promptForNumber()</code> resolves the string, as its signature says (React resolved a number
-                      once typed: SUSPECTED-BUGS).
-                    </li>
-                    <li>
-                      <code>choose()</code> is a list of <code>&lt;ui-radio&gt;</code> /
-                      <code>&lt;ui-checkbox&gt;</code>, not a searchable dropdown; <code>inputProps</code> /
-                      <code>allowAdditions</code> are gone (unused, ignored before). Multiple + OK with nothing chosen
-                      resolves <code>[]</code>.
+                      Checked 2026-10-04: both copies are Vite 8.3.1 now, and
+                      <a href="../../../app/vite.shared.ts" target="src-packages-app-vite-shared-ts"
+                        ><code>packages/app/vite.shared.ts</code></a
+                      >
+                      still casts it (<code>emitIconPacks(dir) as unknown as { generateBundle(...) }</code>). Whether
+                      the types still clash: not checked.
                     </li>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c13" data-status="done"
+            ><ui-item data-state="open" id="c9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title"><code>ConsoleLines</code> must stay free of the editor</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The Solid console view (<code>src/solid/ConsoleLines.tsx</code>) is also used by the VS Code runner,
+                    which must not load the editor. So it imports <code>./tracked</code> directly, never the
+                    <code>$/app/solid</code> barrel.
+                  </p>
+                  <ul>
+                    <li>Why: the barrel pulls in <code>Actions</code>, and through it <code>$/app/editor</code>.</li>
+                    <li>
+                      The runner's <code>RunnerConsole</code> (<a href="#p7">P7</a>) imports
+                      <a
+                        href="../../../app/src/solid/ConsoleLines.tsx"
+                        target="src-packages-app-src-solid-consolelines-tsx"
+                        ><code>ConsoleLines.tsx</code></a
+                      >
+                      directly, as React's version did.
+                    </li>
+                    <li>
+                      <code>ConsoleLines</code>' <code>lines</code> is a plain value, not a signal:
+                      <ul>
+                        <li>the caller tracks the top level: <code>tracked(() =&gt; console.lines)</code></li>
+                        <li>each group tracks its own <code>lines</code> and <code>collapsed</code></li>
+                      </ul>
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c10">C10</a>
+                  <span class="plan-title"
+                    >An error inside a Solid effect doesn't reach the error boundary</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Found while porting the viewers (P6c, part of <a href="#p6">P6</a>): in Solid rc.13, when a
+                    <code>createEffect</code>'s compute function throws, an enclosing <code>&lt;Errored&gt;</code> (or
+                    <code>&lt;ErrorBoundary&gt;</code>) doesn't catch it. The error goes to the console, and the
+                    fallback never shows.
+                  </p>
+                  <ul>
+                    <li>
+                      The rule:
+                      <ul>
+                        <li>
+                          read a value that may throw during RENDER (a JSX expression, or a memo that JSX reads), so the
+                          boundary sees it
+                        </li>
+                        <li>give the effect an <code>{ effect, error }</code> bundle</li>
+                      </ul>
+                    </li>
+                    <li>
+                      Seen in <code>src/solid/ASTViewer.tsx</code>'s <code>&lt;ReactHost&gt;</code>. That's gone since
+                      the Editor Shell phase (<a href="#p8">P8</a>): <code>ASTViewer</code> draws
+                      <code>P.Markup</code> in render (<a href="#d24">D24</a>).
+                    </li>
+                    <li>
+                      The rule still stands, in
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >, "Errors".
+                    </li>
+                  </ul>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>packages/docs/solid/solid-2.md · "Errors" · 4 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-markdown">- NOTE: an error thrown by a `createEffect` COMPUTE is NOT caught by an enclosing `&lt;Errored&gt;`:  it goes to the
+  console, and the fallback never shows (measured, P6:  `app`'s `ASTViewer` / `MatchViewer`).  Read the value in
+  JSX (a render expression) where a throw must show the fallback, or give the effect an `{ effect, error }`
+  bundle.</code></pre>
+                    </ui-content></ui-accordion
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c11">C11</a>
+                  <span class="plan-title"><code>MatchView</code> can't collapse a node</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The brief for porting the viewers (P6c, part of <a href="#p6">P6</a>) asked for a "collapsing a
+                    node" test, but React's <code>MatchView</code> never had collapsing.
+                  </p>
+                  <ul>
+                    <li>It has only the rule-names toggle (<code>compact</code>).</li>
+                    <li>The Solid port keeps exactly that, and its tests pin the toggle instead.</li>
+                    <li>Collapsing would be a new feature.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c12">C12</a>
+                  <span class="plan-title">How the Solid dialogs differ from the React modals</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The app's dialogs were rebuilt on <code>&lt;ui-modal&gt;</code> (P6f, part of <a href="#p6">P6</a>),
+                    and behave a little differently from the React ones. You'd notice it when clicking outside a dialog,
+                    or in which button a confirm focuses first.
+                  </p>
+                  <ul>
+                    <li>
+                      Text only: <code>message</code>, <code>header</code>, <code>ok</code> and <code>cancel</code> are
+                      strings.
+                      <ul>
+                        <li>no <code>ReactNode</code>, no <code>SUI.ButtonProps</code></li>
+                        <li>extra props no longer reach a modal</li>
+                      </ul>
+                    </li>
+                    <li>
+                      A click on the dimmed background no longer cancels (<code>closedby=closerequest</code>); Escape
+                      still does.
+                    </li>
+                    <li><code>confirm()</code> focuses Cancel first (ui's choice), not OK.</li>
+                    <li>
+                      <code>prompt()</code> resolves <code>undefined</code> when the field is empty, as its doc said.
+                      React resolved <code>""</code> after clearing.
+                    </li>
+                    <li>
+                      <code>promptForNumber()</code> resolves the string, as its signature says. React resolved a number
+                      once one was typed (logged in
+                      <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                        ><code>SUSPECTED-BUGS.md</code></a
+                      >).
+                    </li>
+                    <li>
+                      <code>choose()</code> is a list of <code>&lt;ui-radio&gt;</code> or
+                      <code>&lt;ui-checkbox&gt;</code>, not a searchable dropdown.
+                      <ul>
+                        <li>
+                          <code>inputProps</code> and <code>allowAdditions</code> are gone: unused, and ignored before
+                        </li>
+                        <li>with several allowed, OK with nothing chosen resolves <code>[]</code></li>
+                      </ul>
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" id="c13" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c13">C13</a>
@@ -1903,7 +2323,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c14" data-status="done"
+            ><ui-item data-state="old" id="c14" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c14">C14</a>
@@ -1924,29 +2344,42 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c15" data-status="open"
+            ><ui-item data-state="open" id="c15" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c15">C15</a>
-                  <span class="plan-title">P6d explorers don't load the ui-* tags themselves</span> </ui-title
+                  <span class="plan-title"
+                    >The explorers don't load the <code>ui-*</code> elements themselves</span
+                  > </ui-title
                 ><ui-content
                   ><p>
-                    <code>src/solid/TypeExplorer.tsx</code> /
-                    <a
-                      href="../../../app/src/solid/ThingExplorer.tsx"
-                      target="src-packages-app-src-solid-thingexplorer-tsx"
-                      ><code>ThingExplorer.tsx</code></a
-                    >
-                    import peers directly, not the <code>$/app/solid</code> barrel (it pulls
-                    <code>$/app/editor</code> into the runners' bundles via
-                    <a href="../../../app/src/solid/Actions.tsx" target="src-packages-app-src-solid-actions-tsx"
-                      ><code>Actions.tsx</code></a
-                    >), and not <code>./loadUI</code> (throws under node, where their tests render). Whoever mounts them
-                    in a runner must import <code>./loadUI</code>.
-                  </p></ui-content
+                    The Type and Thing explorers (ported in P6d, part of <a href="#p6">P6</a>) use
+                    <code>ui-*</code> tags but don't load them. Whoever mounts one in a runner must import
+                    <code>./loadUI</code> first, or the tags never draw.
+                  </p>
+                  <ul>
+                    <li>
+                      The files: <code>src/solid/TypeExplorer.tsx</code> and
+                      <a
+                        href="../../../app/src/solid/ThingExplorer.tsx"
+                        target="src-packages-app-src-solid-thingexplorer-tsx"
+                        ><code>ThingExplorer.tsx</code></a
+                      >.
+                    </li>
+                    <li>
+                      They import their peers directly, not the <code>$/app/solid</code> barrel: the barrel would pull
+                      <code>$/app/editor</code> into the runners' bundles, through
+                      <a href="../../../app/src/solid/Actions.tsx" target="src-packages-app-src-solid-actions-tsx"
+                        ><code>Actions.tsx</code></a
+                      >.
+                    </li>
+                    <li>
+                      They don't import <code>./loadUI</code> either: it throws under node, where their tests render.
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c16" data-status="done"
+            ><ui-item data-state="old" id="c16" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c16">C16</a>
@@ -1965,85 +2398,192 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c17" data-status="open"
+            ><ui-item data-state="open" id="c17" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c17">C17</a>
-                  <span class="plan-title">P11: a value changed IN PLACE inside a prop notifies nobody</span> </ui-title
+                  <span class="plan-title">Changing a value in place inside a property doesn't redraw</span> </ui-title
                 ><ui-content
                   ><p>
-                    Cells follow props, not what they hold: no proxies (=== holds everywhere, raw() is gone). easy-state
-                    made nested objects reactive, so editor.file.someArray.push() redrew; now only setting the prop
-                    does. Audited: spell's List copies on write; Loadable's loadState uses dotted setState (notifies
-                    loadState); compiled examples hold only primitives and Lists. A plain array a PROGRAM keeps in a
-                    prop and changes with spellCore.append() won't redraw -- none of the examples do. The design's Proxy
-                    for class-less data isn't built (solid-2.md).
-                  </p></ui-content
+                    Since the Spell Cells phase (<a href="#p11">P11</a>), a spell object notices when one of its
+                    properties is SET, but not when something inside a property's value changes. You'd notice a list
+                    that doesn't redraw after an item is pushed onto it.
+                  </p>
+                  <ul>
+                    <li>
+                      Cells follow properties, not what they hold: no proxies.
+                      <ul>
+                        <li>so <code>===</code> holds everywhere</li>
+                        <li>and <code>raw()</code> is gone</li>
+                      </ul>
+                    </li>
+                    <li>
+                      Before: easy-state made nested objects reactive, so
+                      <code>editor.file.someArray.push()</code> redrew. Now only setting the property does.
+                    </li>
+                    <li>
+                      Audited:
+                      <ul>
+                        <li>spell's <code>List</code> copies on write</li>
+                        <li>
+                          <code>Loadable</code>'s <code>loadState</code> uses a dotted <code>setState</code>, which
+                          notifies <code>loadState</code>
+                        </li>
+                        <li>the compiled examples hold only primitives and Lists</li>
+                      </ul>
+                    </li>
+                    <li>
+                      The gap: a plain array that a PROGRAM keeps in a property and changes with
+                      <code>spellCore.append()</code> won't redraw. None of the examples do that.
+                    </li>
+                    <li>
+                      The design's Proxy for data with no class isn't built (<a
+                        href="../../solid/solid-2.md"
+                        target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >).
+                    </li>
+                  </ul>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>what redraws (an illustration) · 4 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">// no redraw now
+editor.file.someArray.push(x)
+// redraws:  the property is set
+editor.file.someArray = [...editor.file.someArray, x]</code></pre>
+                    </ui-content></ui-accordion
+                  ></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c18" data-status="open"
+            ><ui-item data-state="open" id="c18" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c18">C18</a>
-                  <span class="plan-title">P11: Solid dev warnings unchanged (seen on HEAD too)</span> </ui-title
+                  <span class="plan-title"
+                    >Solid's dev warnings are the same as before the Spell Cells phase</span
+                  > </ui-title
                 ><ui-content
                   ><p>
-                    Live, the editor pages log STRICT_READ_UNTRACKED, WIDE_SCOPE_DEPS (a router memo with 31 sources)
-                    and HOT_SCOPE_TIME -- before P11 too (checked side by side on the commit before). HOT_SCOPE_TIME now
-                    names tracked()'s memo (memoOf.box) as the latest cause. Calculator's validateDOMNesting and
-                    Solitaire-import's createRoot() warnings are React's, from the programs, also before.
-                  </p></ui-content
+                    The editor pages log some Solid development warnings, but they were there before the Spell Cells
+                    phase (<a href="#p11">P11</a>) too: checked side by side on the commit before it.
+                  </p>
+                  <ul>
+                    <li>
+                      The warnings:
+                      <ul>
+                        <li><code>STRICT_READ_UNTRACKED</code></li>
+                        <li><code>WIDE_SCOPE_DEPS</code>: a router memo with 31 sources</li>
+                        <li>
+                          <code>HOT_SCOPE_TIME</code>: it now names <code>tracked()</code>'s memo
+                          (<code>memoOf.box</code>) as the latest cause
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      React's own warnings come from the programs, and were there before too:
+                      <ul>
+                        <li>Calculator: <code>validateDOMNesting</code></li>
+                        <li>Solitaire-import: <code>createRoot()</code></li>
+                      </ul>
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
           >
         </ui-section>
 
-        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+        <ui-section
+          data-tip="For later: not caveats, not issues."
+          id="todos"
+          header="6. Todos"
+          sticky
+          collapsible
+          dividing
+        >
           <ui-icon slot="icon" name="list check"></ui-icon>
-          <p class="meta">For later: not caveats, not issues.</p>
+
           <ui-list class="plan-items" data-kind="todo" divided relaxed
-            ><ui-item id="t1" data-status="open"
+            ><ui-item data-state="open" id="t1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t1">T1</a>
                   <span class="plan-title"
-                    >Compiled output: consider decorator helpers' plain-function form</span
+                    >Compiled output: try the decorator helpers' plain-function form</span
                   ></ui-title
                 ><ui-content
-                  ><p><code>static { defineProps(...) }</code> instead of hand-written accessor pairs.</p></ui-content
+                  ><p>
+                    Compiled spell classes write their property accessors out by hand, in pairs. Consider the decorator
+                    helpers' plain-function form instead.
+                  </p>
+                  <ul>
+                    <li>That is: <code>static { defineProps(...) }</code>, instead of hand-written accessor pairs.</li>
+                    <li>
+                      Not checked: where <code>defineProps</code> lives today, or what the compiled output looks like
+                      now.
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t2" data-status="open"
+            ><ui-item data-state="open" id="t2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t2">T2</a>
-                  <span class="plan-title">Core + JSX Emit (was P5): its own thread</span> </ui-title
+                  <span class="plan-title"
+                    >Move compiled spell to Solid (the old Core + JSX Emit phase)</span
+                  > </ui-title
                 ><ui-content
                   ><p>
-                    <a href="../../../core/src/ui.ts" target="src-packages-core-src-ui-ts"
-                      ><code>packages/core/src/ui.ts</code></a
-                    >
-                    <code>element()</code> on <code>@solidjs/h</code>; <code>Thing.Component</code>,
-                    <code>List.drawItems()</code> → <code>&lt;For&gt;</code>, <code>App.start()</code> →
-                    <code>render()</code> + dispose;
-                    <a
-                      href="../../../app/src/runner/spellRuntime.ts"
-                      target="src-packages-app-src-runner-spellruntime-ts"
-                      ><code>spellRuntime.ts</code></a
-                    >,
-                    <a href="../../../app/src/runner/runCompiled.ts" target="src-packages-app-src-runner-runcompiled-ts"
-                      ><code>runCompiled.ts</code></a
-                    >;
-                    <a href="../../../spell/src/rules/JSX.ts" target="src-packages-spell-src-rules-jsx-ts"
-                      ><code>packages/spell/src/rules/JSX.ts</code></a
-                    >
-                    + <code>ASTJSXElement</code> emit thunks; spell projects to <code>&lt;ui-*&gt;</code> /
-                    <code>class=</code>; <code>PARSING.md</code>. Was estimated 3-5h wall.
-                  </p></ui-content
+                    The phase that would move compiled spell programs from React to Solid (P5) was taken out of this
+                    epic, to run as its own thread. Until then, programs draw with React (<a href="#c5">C5</a>). It was
+                    estimated at 3-5h of wall-clock time.
+                  </p>
+                  <ul>
+                    <li>
+                      Core:
+                      <a href="../../../core/src/ui.ts" target="src-packages-core-src-ui-ts"
+                        ><code>packages/core/src/ui.ts</code></a
+                      >
+                      <ul>
+                        <li><code>element()</code> on <code>@solidjs/h</code></li>
+                        <li><code>Thing.Component</code></li>
+                        <li><code>List.drawItems()</code> → <code>&lt;For&gt;</code></li>
+                        <li><code>App.start()</code> → <code>render()</code>, plus dispose</li>
+                      </ul>
+                    </li>
+                    <li>
+                      The runner:
+                      <a
+                        href="../../../app/src/runner/spellRuntime.ts"
+                        target="src-packages-app-src-runner-spellruntime-ts"
+                        ><code>spellRuntime.ts</code></a
+                      >
+                      and
+                      <a
+                        href="../../../app/src/runner/runCompiled.ts"
+                        target="src-packages-app-src-runner-runcompiled-ts"
+                        ><code>runCompiled.ts</code></a
+                      >.
+                    </li>
+                    <li>
+                      The parser:
+                      <a href="../../../spell/src/rules/JSX.ts" target="src-packages-spell-src-rules-jsx-ts"
+                        ><code>packages/spell/src/rules/JSX.ts</code></a
+                      >, and the <code>ASTJSXElement</code> emit thunks.
+                    </li>
+                    <li>The spell projects: to <code>&lt;ui-*&gt;</code> and <code>class=</code>.</li>
+                    <li><code>PARSING.md</code>.</li>
+                    <li>
+                      Still to do on 2026-10-04:
+                      <a href="../../../core/src/ui.ts" target="src-packages-core-src-ui-ts"
+                        ><code>packages/core/src/ui.ts</code></a
+                      >
+                      still imports React.
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t3" data-status="done"
+            ><ui-item data-state="old" id="t3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t3">T3</a>
@@ -2058,114 +2598,231 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t4" data-status="open"
+            ><ui-item data-state="open" id="t4" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t4">T4</a>
-                  <span class="plan-title">P9: move view() out of $/util</span> </ui-title
+                  <span class="plan-title">Move <code>view()</code> out of <code>$/util</code></span> </ui-title
                 ><ui-content
                   ><p>
-                    Only core (Thing / List) and spell's React kit (F) use it; with P9 it could live beside them, and
-                    util would have no React at all.
-                  </p></ui-content
+                    <code>view()</code> is the one React piece left in <code>$/util</code> (<a
+                      href="../../../util/src/spell/view.ts"
+                      target="src-packages-util-src-spell-view-ts"
+                      ><code>packages/util/src/spell/view.ts</code></a
+                    >). Moving it out would leave <code>util</code> with no React at all.
+                  </p>
+                  <ul>
+                    <li>
+                      Only two places use it: core (<code>Thing</code>, <code>List</code>) and spell's React kit
+                      (<code>F</code>).
+                    </li>
+                    <li>With the Remove React phase (<a href="#p9">P9</a>) done, it could live beside them.</li>
+                    <li>Still in <code>$/util</code> on 2026-10-04.</li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t5" data-status="open"
+            ><ui-item data-state="open" id="t5" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t5">T5</a>
-                  <span class="plan-title">Import-map &lt;spell-app&gt; variant: designed, not shipped</span> </ui-title
+                  <span class="plan-title"
+                    >The import-map variant of <code>&lt;spell-app&gt;</code>: designed, not shipped</span
+                  > </ui-title
                 ><ui-content
                   ><p>
-                    P7's Files and <a href="#d21">D21</a> name an import-map variant of the elements (bare
-                    <code>solid-js</code> / <code>@solidjs/web</code> /
-                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> /
-                    <a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
-                      ><code>@spell-app/solid-element</code></a
-                    >
-                    specifiers) for host pages that already run Solid or
-                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
-                    >. No build script or config emits it: it would be <code>vite.element.config.ts</code> /
-                    <code>vite.editor.config.ts</code> without <code>sharedSolid()</code>'s <code>output.paths</code>.
-                    Until then such a host loads a second Solid, which fails silently (<a
-                      href="../../solid/solid-2.md"
-                      target="src-packages-docs-solid-solid-2-md"
-                      ><code>solid-2.md</code></a
-                    >, One Solid per page).
-                  </p></ui-content
+                    A host page that already runs Solid or
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                    needs a build of our elements that shares its copy. That build was designed but never made, so today
+                    such a page loads a second Solid, which fails silently.
+                  </p>
+                  <ul>
+                    <li>
+                      Designed in the Web Components + Runner phase's Files (<a href="#p7">P7</a>) and the
+                      one-Solid-per-page decision (<a href="#d21">D21</a>).
+                    </li>
+                    <li>
+                      It would leave these imports bare, for the page's import map to fill:
+                      <ul>
+                        <li><code>solid-js</code></li>
+                        <li><code>@solidjs/web</code></li>
+                        <li>
+                          <a href="../../../ui/README.md" target="src-packages-ui-readme-md"
+                            ><code>@spell-app/ui</code></a
+                          >
+                        </li>
+                        <li>
+                          <a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
+                            ><code>@spell-app/solid-element</code></a
+                          >
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      No build script or config makes it. It would be <code>vite.element.config.ts</code> or
+                      <code>vite.editor.config.ts</code> without <code>sharedSolid()</code>'s <code>output.paths</code>.
+                    </li>
+                    <li>
+                      Why a second Solid fails:
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >, "One Solid per page".
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t6" data-status="open"
+            ><ui-item data-state="open" id="t6" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t6">T6</a>
                   <span class="plan-title"
-                    >Parser: emit this.derive() for pure, worth-it derived properties</span
+                    >Have the parser memoize derived properties that are worth it</span
                   > </ui-title
                 ><ui-content
                   ><p>
-                    <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
-                      ><code>solid-2.md</code></a
-                    >
-                    /
-                    <a href="../../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html"
-                      ><code>solid-2.html</code></a
-                    >
-                    §5 plan a pure / worth-it analysis so the parser emits <code>this.derive(name, fn)</code> (memoized,
-                    equality cutoff) for derived properties that loop or aggregate lists. Cells support it
-                    (<code>Derived</code>, <code>derive()</code>, P11), but the parser emits no
-                    <code>derive()</code> yet: every compiled derived property is a plain getter. Belongs with the Core
-                    + JSX thread (<a href="#t2">T2</a>).
-                  </p></ui-content
+                    Every compiled derived property is a plain getter today, re-computed on every read. The plan is for
+                    the parser to memoize the pure, costly ones.
+                  </p>
+                  <ul>
+                    <li>
+                      The plan:
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >
+                      and
+                      <a href="../../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html"
+                        ><code>solid-2.html</code></a
+                      >, §5.
+                    </li>
+                    <li>
+                      A "pure / worth-it" analysis would pick derived properties that loop over or aggregate lists, and
+                      the parser would emit
+                      <code>this.derive(name, fn)</code> for them: memoized, with an equality cutoff.
+                    </li>
+                    <li>
+                      Cells already support it: <code>Derived</code> and <code>derive()</code>, from the Spell Cells
+                      phase (<a href="#p11">P11</a>).
+                    </li>
+                    <li>But the parser emits no <code>derive()</code> yet.</li>
+                    <li>It belongs with the Core + JSX thread (<a href="#t2">T2</a>).</li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
           >
         </ui-section>
 
-        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
-            ><ui-item id="i1" data-status="open"
+            ><ui-item data-state="attention" id="i1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
-                  <span class="plan-title">ui-menu item icon shorthand draws 0x0</span> </ui-title
+                  <span class="plan-title">A menu item's <code>icon</code> shorthand draws nothing</span> </ui-title
                 ><ui-content
                   ><p>
-                    <code>&lt;ui-item icon&gt;</code> in any <code>&lt;ui-menu&gt;</code> renders its svg at 0 x 0 (ui's
-                    own baseline <code>ui-menu/content-light.png</code> shows it: Inbox has no icon). Workaround:
-                    <code>&lt;Action&gt;</code> and <code>&lt;MoreMenu stub&gt;</code> slot a
-                    <code>&lt;ui-icon&gt;</code> (HACK in
-                    <a href="../../../app/src/solid/Actions.tsx" target="src-packages-app-src-solid-actions-tsx"
-                      ><code>packages/app/src/solid/Actions.tsx</code></a
-                    >). Also seen: an inverted coloured menu draws dark item text; a host <code>aria-label</code> never
-                    reaches <code>&lt;ui-dropdown&gt;</code>'s combobox. All in
-                    <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
-                      ><code>SUSPECTED-BUGS.md</code></a
-                    >
-                    ui; not fixed in ui here.
-                  </p></ui-content
+                    In any <code>&lt;ui-menu&gt;</code>, <code>&lt;ui-item icon&gt;</code> drew its icon at 0 x 0, so
+                    the menu showed no icon. ui's own baseline <code>ui-menu/content-light.png</code> shows it: Inbox
+                    has no icon.
+                  </p>
+                  <ul>
+                    <li>
+                      The workaround: <code>&lt;Action&gt;</code> and <code>&lt;MoreMenu stub&gt;</code> slotted a
+                      <code>&lt;ui-icon&gt;</code> instead (a HACK in
+                      <a href="../../../app/src/solid/Actions.tsx" target="src-packages-app-src-solid-actions-tsx"
+                        ><code>packages/app/src/solid/Actions.tsx</code></a
+                      >).
+                    </li>
+                    <li>
+                      Also seen:
+                      <ul>
+                        <li>an inverted, coloured menu draws dark item text</li>
+                        <li>
+                          a host <code>aria-label</code> never reaches <code>&lt;ui-dropdown&gt;</code>'s combobox
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      All three are in
+                      <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                        ><code>SUSPECTED-BUGS.md</code></a
+                      >
+                      ("ui"); none was fixed in ui by this epic.
+                    </li>
+                    <li>
+                      Looks done or obsolete, for the icon:
+                      <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                        ><code>SUSPECTED-BUGS.md</code></a
+                      >
+                      records the item <code>icon</code> shorthand fixed on 2026-10-02 (epic seo: "menu 0 x 0"), and
+                      <a href="../../../app/src/solid/Actions.tsx" target="src-packages-app-src-solid-actions-tsx"
+                        ><code>Actions.tsx</code></a
+                      >
+                      now passes <code>icon</code> straight to <code>&lt;ui-item&gt;</code>, with no HACK left. The
+                      other two are still listed there (checked 2026-10-04).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      once all three are fixed: menu icons, inverted coloured menus and icon-only dropdowns work without
+                      app-side workarounds
+                    </li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i2" data-status="open"
+            ><ui-item data-state="attention" id="i2" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i2">I2</a>
-                  <span class="plan-title">UI.modals.prompt() takes no input type or attributes</span> </ui-title
+                  <span class="plan-title"
+                    ><code>UI.modals.prompt()</code> can't set the input's type or attributes</span
+                  > </ui-title
                 ><ui-content
                   ><p>
-                    <code>promptForNumber()</code> needs <code>type=number</code> and <code>min</code> /
-                    <code>max</code> / <code>step</code> / <code>placeholder</code>; <code>ModalOptions</code> has only
-                    <code>title</code>, <code>message</code>, <code>okText</code>, <code>cancelText</code>,
-                    <code>value</code>. HACK in <code>src/solid/modals/dialogs.ts</code> <code>fitInput()</code>: sets
-                    them on the input of the dialog ui just appended to <code>&lt;body&gt;</code>, and vetoes
-                    <code>ui-approve</code> while the input is invalid. Fix: an <code>input</code> option (type +
-                    attributes) on ui's <code>ModalOptions</code>, then drop the hack.
-                  </p></ui-content
+                    The app's <code>promptForNumber()</code> needs a number field, but ui's prompt dialog only takes
+                    text options. So the app patches the dialog's input after ui builds it.
+                  </p>
+                  <ul>
+                    <li>
+                      It needs: <code>type=number</code>, and <code>min</code>, <code>max</code>, <code>step</code>,
+                      <code>placeholder</code>.
+                    </li>
+                    <li>
+                      ui's <code>ModalOptions</code> has only:
+                      <ul>
+                        <li><code>title</code></li>
+                        <li><code>message</code></li>
+                        <li><code>okText</code></li>
+                        <li><code>cancelText</code></li>
+                        <li><code>value</code></li>
+                      </ul>
+                    </li>
+                    <li>
+                      The HACK: <code>fitInput()</code> in <code>src/solid/modals/dialogs.ts</code> sets them on the
+                      input of the dialog ui just appended to <code>&lt;body&gt;</code>, and vetoes
+                      <code>ui-approve</code> while the input is invalid.
+                    </li>
+                    <li>
+                      The fix: an <code>input</code> option (type plus attributes) on ui's <code>ModalOptions</code>,
+                      then drop the hack.
+                    </li>
+                    <li>
+                      Still so on 2026-10-04: <code>ModalOptions</code> (<a
+                        href="../../../ui/src/runtime/runtime.types.ts"
+                        target="src-packages-ui-src-runtime-runtime-types-ts"
+                        ><code>packages/ui/src/runtime/runtime.types.ts</code></a
+                      >) has no <code>input</code>.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li><code>ModalOptions</code> gains an <code>input</code> option</li>
+                    <li><code>fitInput()</code> goes away</li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i3" data-status="done"
+            ><ui-item data-state="old" id="i3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i3">I3</a>
@@ -2193,9 +2850,29 @@
           >
         </ui-section>
 
-        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+        <ui-section
+          data-tip="What to check by hand before merging: each a step, and what should happen. Struck through once it passes."
+          id="tests"
+          header="8. To test"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="flask"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section
+          data-tip="Plan changes, oldest first, local time."
+          id="log"
+          header="9. Log"
+          sticky
+          collapsible
+          dividing
+        >
           <ui-icon slot="icon" name="clock rotate left"></ui-icon>
-          <p class="meta">Plan changes, oldest first, local time.</p>
+
           <ui-feed class="plan-log" size="small">
             <ui-event icon="pen to square">
               <ui-content>

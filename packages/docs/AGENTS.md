@@ -14,7 +14,9 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - `<topic>/experiments/` -- runnable scripts backing the doc's claims (see "Experiments").
   - `<topic>/<topic>.md` -- a distilled version for agents, when agents need the doc's rules (see "Agent rules").
 - `templates/` -- starting points, one per kind of doc (see "Templates").
-- `epics/<name>/<name>.html` -- plan docs, one per `/epic` session (see "Plan docs").
+- `epics/<name>/<name>.plan.html` -- plan docs, one per `/epic` session (see "Plan docs").  `<name>.html` before
+  2026-10-04:  the tools find either (`scripts/pages.js` `planDocIn()`), a worktree cut before keeps the old name
+  until it merges `main`, and the page server redirects the old URL;  `scripts/plan-rename.js` did the rename.
 - `details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page (`/details`, see
   "Details pages").  Scratch:  ignored by version control, swept after 14 days.  An epic's go in
   `epics/<name>/details/`, committed.
@@ -71,7 +73,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - the rail:  a strip of the top-level sections' icons at the right edge, the contents button (bars) on top, shown
     while the contents column isn't (narrow screens, or hidden by its button:  remembered for every page).  Give
     every top-level section an icon:  without one, the rail shows its number.  Hover widens it to show the names;
-    the current section is the accent;  at 400px and under, only the bars button shows
+    the current section is the accent;  at 480px and under, only the bars button shows
   - sticky titles:  each top-level section's title sticks below the page header, nested ones stack below their
     parents' (the runtime sets the top-level `offset`s)
   - folding:  folds are remembered per page;  a link's unfold isn't.  A plan doc (`body.plan-doc`) starts EVERY
@@ -171,7 +173,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 ## Plan docs
 
-- `/epic <name>` (`.claude/skills/epic/`) runs a planning session against `epics/<name>/<name>.html`.
+- `/epic <name>` (`.claude/skills/epic/`) runs a planning session against `epics/<name>/<name>.plan.html`.
 - How to write one, its sections, ids and markers:  `templates/epics/plan-doc.md`.
 - Edit through `yarn plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.

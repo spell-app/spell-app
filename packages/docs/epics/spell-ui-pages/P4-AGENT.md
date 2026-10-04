@@ -10,7 +10,7 @@ Read IN FULL first, in this order:
    examples, gaps, checks).  Follow it exactly.
 3. The pilot `packages/ui/site/components/ui-button.html` -- the model page.  Match its structure and quality.
 4. `packages/ui/AGENTS.md` (component rules), and skim the plan doc's issues I1-I27 (known gaps + workarounds) in
-   `packages/docs/epics/spell-ui-pages/spell-ui-pages.html`, so you don't re-record them.
+   `packages/docs/epics/spell-ui-pages/spell-ui-pages.plan.html`, so you don't re-record them.
 
 Per page:
 - `yarn site:new <tag>` (in `packages/ui`) makes it from the template.
