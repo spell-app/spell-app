@@ -20,707 +20,686 @@
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Items">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-items.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-items%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/views/item.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Items
+            <ui-header
+              >A group of items presents a set of site content for display, each an image beside its
+              text.</ui-header
+            >
+          </ui-header>
+          <ui-docs-themes for="ui-items" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's item page, section by section, in its order (Types, Content, States, Variations).
+              Fomantic's `.item` is the generic `<ui-item>`;  its `.image` + `<img>` the `image` shorthand (or a `<ui-image size>`);
+              `.middle aligned content` is `<ui-content vertical-align="middle">`;  `ui wireframe image`s are plain `<ui-image>`s.
+            -->
 
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-items.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-items%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/views/item.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Items
-                <ui-header
-                  >A group of items presents a set of site content for display, each an image beside its
-                  text.</ui-header
-                >
-              </ui-header>
-              <ui-docs-themes for="ui-items" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
+            <ui-header level="2" dividing id="types">Types</ui-header>
 
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Items"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
+            <ui-docs-example header="Items">
+              <p slot="description">A group of items.</p>
+              <ui-message slot="description" state="positive" size="small"
+                >Item views are designed to be responsive, with images stacking at mobile widths. By default ours
+                stack by the width of the GROUP (<code>stack-with="container"</code>);  this site sets
+                <code>stack-with="page"</code>, so here they stack by the window, as in Fomantic.</ui-message
+              >
+              <ui-items>
+                <ui-item image="../images/wireframe/image.png">
+                  <ui-content>
+                    <ui-header href="#">Header</ui-header>
+                    <ui-meta><span>Description</span></ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra>Additional Details</ui-extra>
+                  </ui-content>
+                </ui-item>
+                <ui-item image="../images/wireframe/image.png">
+                  <ui-content>
+                    <ui-header href="#">Header</ui-header>
+                    <ui-meta><span>Description</span></ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra>Additional Details</ui-extra>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's item page, section by section, in its order (Types, Content, States, Variations).
-                  Fomantic's `.item` is the generic `<ui-item>`;  its `.image` + `<img>` the `image` shorthand (or a `<ui-image size>`);
-                  `.middle aligned content` is `<ui-content vertical-align="middle">`;  `ui wireframe image`s are plain `<ui-image>`s.
-                -->
+            <ui-header level="2" dividing id="content">Content</ui-header>
 
-                <ui-header level="2" dividing id="types">Types</ui-header>
+            <ui-docs-example
+              header="Image"
+              description="An item can contain an image:  `image` is the shorthand, at the item's image width."
+            >
+              <ui-items divided>
+                <ui-item image="../images/wireframe/image.png"> </ui-item>
+                <ui-item image="../images/wireframe/image.png"> </ui-item>
+                <ui-item image="../images/wireframe/image.png"> </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-docs-example header="Items">
-                  <p slot="description">A group of items.</p>
-                  <ui-message slot="description" state="positive" size="small"
-                    >Item views are designed to be responsive, with images stacking at mobile widths. By default ours
-                    stack by the width of the GROUP (<code>stack-with="container"</code>);  this site sets
-                    <code>stack-with="page"</code>, so here they stack by the window, as in Fomantic.</ui-message
+            <ui-docs-example header="Content" description="An item can contain content.">
+              <ui-items divided>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle">Content A</ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle">Content B</ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle">Content C</ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
+
+            <ui-docs-example header="Header" description="An item can contain a header.">
+              <ui-items>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"><ui-header href="#">12 Years a Slave</ui-header></ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"
+                    ><ui-header href="#">My Neighbor Totoro</ui-header></ui-content
                   >
-                  <ui-items>
-                    <ui-item image="../images/wireframe/image.png">
-                      <ui-content>
-                        <ui-header href="#">Header</ui-header>
-                        <ui-meta><span>Description</span></ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra>Additional Details</ui-extra>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item image="../images/wireframe/image.png">
-                      <ui-content>
-                        <ui-header href="#">Header</ui-header>
-                        <ui-meta><span>Description</span></ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra>Additional Details</ui-extra>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"><ui-header href="#">Watchmen</ui-header></ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-header level="2" dividing id="content">Content</ui-header>
+            <ui-docs-example header="Metadata">
+              <p slot="description">An item can contain content metadata.</p>
+              <ui-message slot="description" state="info" size="small"
+                >You can include an arbitrary amount of metadata in <code>&lt;ui-meta&gt;</code>: every child is
+                spaced automatically.</ui-message
+              >
+              <ui-items>
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header>Arrowhead Valley Camp</ui-header>
+                    <ui-meta>
+                      <span>$1200</span>
+                      <span>1 Month</span>
+                    </ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                  </ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header>Buck's Homebrew Stayaway</ui-header>
+                    <ui-meta>
+                      <span>$1000</span>
+                      <span>2 Weeks</span>
+                    </ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                  </ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header>Astrology Camp</ui-header>
+                    <ui-meta>
+                      <span>$1600</span>
+                      <span>6 Weeks</span>
+                    </ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-docs-example
-                  header="Image"
-                  description="An item can contain an image:  `image` is the shorthand, at the item's image width."
-                >
-                  <ui-items divided>
-                    <ui-item image="../images/wireframe/image.png"> </ui-item>
-                    <ui-item image="../images/wireframe/image.png"> </ui-item>
-                    <ui-item image="../images/wireframe/image.png"> </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-docs-example header="Link">
+              <p slot="description">An item can contain links as images, headers, or inside content.</p>
+              <ui-message slot="description" state="warning" size="small"
+                >To make the entire content of an item a link, see the Link Item variation below.</ui-message
+              >
+              <ui-items>
+                <ui-item>
+                  <ui-image size="tiny" href="#" src="../images/avatar/large/stevie.jpg" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header href="#">Stevie Feliciano</ui-header>
+                    <ui-description>
+                      <p>
+                        Stevie Feliciano is a <a href="#">library scientist</a> living in New York City. She likes
+                        to spend her time reading, running, and writing.
+                      </p>
+                    </ui-description>
+                  </ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" href="#" src="../images/avatar/large/veronika.jpg" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header href="#">Veronika Ossi</ui-header>
+                    <ui-description>
+                      <p>
+                        Veronika Ossi is a set designer living in New York who <a href="#">enjoys</a> kittens,
+                        music, and partying.
+                      </p>
+                    </ui-description>
+                  </ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" href="#" src="../images/avatar/large/jenny.jpg" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header href="#">Jenny Hess</ui-header>
+                    <ui-description>
+                      <p>Jenny is a student studying Media Management at <a href="#">the New School</a>.</p>
+                    </ui-description>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-docs-example header="Content" description="An item can contain content.">
-                  <ui-items divided>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle">Content A</ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle">Content B</ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle">Content C</ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-docs-example
+              header="Description"
+              description="An item can contain a description with a single or multiple paragraphs."
+            >
+              <ui-items>
+                <ui-item>
+                  <ui-image size="small" href="#" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header href="#">Cute Dog</ui-header>
+                    <ui-description>
+                      <p>
+                        Cute dogs come in a variety of shapes and sizes. Some cute dogs are cute for their adorable
+                        faces, others for their tiny stature, and even others for their massive size.
+                      </p>
+                      <p>Many people also have their own barometers for what makes a cute dog.</p>
+                    </ui-description>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-docs-example header="Header" description="An item can contain a header.">
-                  <ui-items>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"><ui-header href="#">12 Years a Slave</ui-header></ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"
-                        ><ui-header href="#">My Neighbor Totoro</ui-header></ui-content
-                      >
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"><ui-header href="#">Watchmen</ui-header></ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-docs-example
+              header="Extra Content"
+              description="An item can contain extra content meant to be formatted separately from the main content."
+            >
+              <ui-items>
+                <ui-item>
+                  <ui-content>
+                    <ui-header href="#">Cute Dog</ui-header>
+                    <ui-description>
+                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                      <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                    </ui-description>
+                    <ui-extra><ui-icon name="check" color="green"></ui-icon> 121 Votes</ui-extra>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-docs-example header="Metadata">
-                  <p slot="description">An item can contain content metadata.</p>
-                  <ui-message slot="description" state="info" size="small"
-                    >You can include an arbitrary amount of metadata in <code>&lt;ui-meta&gt;</code>: every child is
-                    spaced automatically.</ui-message
+            <ui-docs-example header="Rating">
+              <p slot="description">An item can contain icons signifying a 'like' or 'favorite' action.</p>
+              <ui-message slot="description" state="info" size="small"
+                >Use <code>&lt;ui-rating&gt;</code> to attach events to like and favorite icons.</ui-message
+              >
+              <ui-items>
+                <ui-item>
+                  <ui-image size="tiny" href="#" src="../images/avatar/large/jenny.jpg" alt=""></ui-image>
+                  <ui-content vertical-align="middle">
+                    <ui-header><ui-icon name="like"></ui-icon> Veronika Ossi</ui-header>
+                  </ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" href="#" src="../images/avatar/large/justen.jpg" alt=""></ui-image>
+                  <ui-content vertical-align="middle">
+                    <ui-header><ui-icon name="favorite"></ui-icon> Justen Kitsune</ui-header>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
+
+            <ui-header level="2" dividing id="states">States</ui-header>
+
+            <ui-docs-example header="Disabled" description="An item can be disabled.">
+              <ui-items>
+                <ui-item disabled>
+                  <ui-image size="tiny" href="#" src="../images/avatar/large/veronika.jpg" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header href="#">Veronika Ossi</ui-header>
+                    <ui-description>
+                      <p>
+                        Veronika Ossi is a set designer living in New York who <a href="#">enjoys</a> kittens,
+                        music, and partying.
+                      </p>
+                    </ui-description>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
+
+            <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+            <ui-docs-example
+              header="Stacking"
+              description="A group of items can specify how it stacks responsively:  `unstackable` keeps the image beside the content in a narrow group."
+            >
+              <ui-items unstackable>
+                <ui-item image="../images/wireframe/image.png">
+                  <ui-content>
+                    <ui-header href="#">Header</ui-header>
+                    <ui-meta><span>Description</span></ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra>Additional Details</ui-extra>
+                  </ui-content>
+                </ui-item>
+                <ui-item image="../images/wireframe/image.png">
+                  <ui-content>
+                    <ui-header href="#">Header</ui-header>
+                    <ui-meta><span>Description</span></ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra>Additional Details</ui-extra>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Divided"
+              description="Items can be divided to better distinguish between grouped content."
+            >
+              <ui-items divided>
+                <ui-item image="../images/wireframe/image.png">
+                  <ui-content>
+                    <ui-header href="#">12 Years a Slave</ui-header>
+                    <ui-meta><span>Union Square 14</span></ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra>
+                      <ui-label>IMAX</ui-label>
+                      <ui-label icon="globe">Additional Languages</ui-label>
+                    </ui-extra>
+                  </ui-content>
+                </ui-item>
+                <ui-item image="../images/wireframe/image.png">
+                  <ui-content>
+                    <ui-header href="#">My Neighbor Totoro</ui-header>
+                    <ui-meta><span>IFC Cinema</span></ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra>
+                      <ui-button primary floated="right"
+                        >Buy tickets <ui-icon name="chevron right"></ui-icon
+                      ></ui-button>
+                      <ui-label>Limited</ui-label>
+                    </ui-extra>
+                  </ui-content>
+                </ui-item>
+                <ui-item image="../images/wireframe/image.png">
+                  <ui-content>
+                    <ui-header href="#">Watchmen</ui-header>
+                    <ui-meta><span>IFC</span></ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra>
+                      <ui-button primary floated="right"
+                        >Buy tickets <ui-icon name="chevron right"></ui-icon
+                      ></ui-button>
+                    </ui-extra>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
+
+            <ui-docs-example
+              header="Relaxed"
+              description="A group of items can relax its padding to provide more negative space."
+            >
+              <ui-items relaxed>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"><ui-header href="#">12 Years a Slave</ui-header></ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"
+                    ><ui-header href="#">My Neighbor Totoro</ui-header></ui-content
                   >
-                  <ui-items>
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header>Arrowhead Valley Camp</ui-header>
-                        <ui-meta>
-                          <span>$1200</span>
-                          <span>1 Month</span>
-                        </ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header>Buck's Homebrew Stayaway</ui-header>
-                        <ui-meta>
-                          <span>$1000</span>
-                          <span>2 Weeks</span>
-                        </ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header>Astrology Camp</ui-header>
-                        <ui-meta>
-                          <span>$1600</span>
-                          <span>6 Weeks</span>
-                        </ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"><ui-header href="#">Watchmen</ui-header></ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-docs-example header="Link">
-                  <p slot="description">An item can contain links as images, headers, or inside content.</p>
-                  <ui-message slot="description" state="warning" size="small"
-                    >To make the entire content of an item a link, see the Link Item variation below.</ui-message
+            <ui-docs-example description='Even more with `relaxed="very"`.'>
+              <ui-items relaxed="very">
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"><ui-header href="#">12 Years a Slave</ui-header></ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"
+                    ><ui-header href="#">My Neighbor Totoro</ui-header></ui-content
                   >
-                  <ui-items>
-                    <ui-item>
-                      <ui-image size="tiny" href="#" src="../images/avatar/large/stevie.jpg" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header href="#">Stevie Feliciano</ui-header>
-                        <ui-description>
-                          <p>
-                            Stevie Feliciano is a <a href="#">library scientist</a> living in New York City. She likes
-                            to spend her time reading, running, and writing.
-                          </p>
-                        </ui-description>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" href="#" src="../images/avatar/large/veronika.jpg" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header href="#">Veronika Ossi</ui-header>
-                        <ui-description>
-                          <p>
-                            Veronika Ossi is a set designer living in New York who <a href="#">enjoys</a> kittens,
-                            music, and partying.
-                          </p>
-                        </ui-description>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" href="#" src="../images/avatar/large/jenny.jpg" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header href="#">Jenny Hess</ui-header>
-                        <ui-description>
-                          <p>Jenny is a student studying Media Management at <a href="#">the New School</a>.</p>
-                        </ui-description>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"><ui-header href="#">Watchmen</ui-header></ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-docs-example
-                  header="Description"
-                  description="An item can contain a description with a single or multiple paragraphs."
-                >
-                  <ui-items>
-                    <ui-item>
-                      <ui-image size="small" href="#" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header href="#">Cute Dog</ui-header>
-                        <ui-description>
-                          <p>
-                            Cute dogs come in a variety of shapes and sizes. Some cute dogs are cute for their adorable
-                            faces, others for their tiny stature, and even others for their massive size.
-                          </p>
-                          <p>Many people also have their own barometers for what makes a cute dog.</p>
-                        </ui-description>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-docs-example
+              header="Link Item"
+              description="An item can be formatted so that the entire contents link to another page:  `link` on the group is the hover look, `href` on an item the link."
+            >
+              <ui-items link>
+                <ui-item href="#">
+                  <ui-image size="tiny" src="../images/avatar/large/stevie.jpg" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header>Stevie Feliciano</ui-header>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                  </ui-content>
+                </ui-item>
+                <ui-item href="#">
+                  <ui-image size="tiny" src="../images/avatar/large/veronika.jpg" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header>Veronika Ossi</ui-header>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                  </ui-content>
+                </ui-item>
+                <ui-item href="#">
+                  <ui-image size="tiny" src="../images/avatar/large/jenny.jpg" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header>Jenny Hess</ui-header>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-docs-example
-                  header="Extra Content"
-                  description="An item can contain extra content meant to be formatted separately from the main content."
-                >
-                  <ui-items>
-                    <ui-item>
-                      <ui-content>
-                        <ui-header href="#">Cute Dog</ui-header>
-                        <ui-description>
-                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-                        </ui-description>
-                        <ui-extra><ui-icon name="check" color="green"></ui-icon> 121 Votes</ui-extra>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-docs-example
+              header="Vertical Alignment"
+              description="Content can specify its vertical alignment:  `vertical-align` on the `<ui-content>`."
+            >
+              <ui-items unstackable>
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content><ui-header>Top Aligned</ui-header></ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle"><ui-header>Middle Aligned</ui-header></ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="bottom"><ui-header>Bottom Aligned</ui-header></ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-docs-example header="Rating">
-                  <p slot="description">An item can contain icons signifying a 'like' or 'favorite' action.</p>
-                  <ui-message slot="description" state="info" size="small"
-                    >Use <code>&lt;ui-rating&gt;</code> to attach events to like and favorite icons.</ui-message
-                  >
-                  <ui-items>
-                    <ui-item>
-                      <ui-image size="tiny" href="#" src="../images/avatar/large/jenny.jpg" alt=""></ui-image>
-                      <ui-content vertical-align="middle">
-                        <ui-header><ui-icon name="like"></ui-icon> Veronika Ossi</ui-header>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" href="#" src="../images/avatar/large/justen.jpg" alt=""></ui-image>
-                      <ui-content vertical-align="middle">
-                        <ui-header><ui-icon name="favorite"></ui-icon> Justen Kitsune</ui-header>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-docs-example
+              header="Floated Content"
+              description="Any content element can be floated left or right."
+            >
+              <ui-items>
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle">
+                    <ui-header>Content A</ui-header>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra><ui-button floated="right">Action</ui-button></ui-extra>
+                  </ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle">
+                    <ui-header>Content B</ui-header>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra><ui-button floated="right">Action</ui-button></ui-extra>
+                  </ui-content>
+                </ui-item>
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content vertical-align="middle">
+                    <ui-header>Content C</ui-header>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                    <ui-extra><ui-button floated="right">Action</ui-button></ui-extra>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
+            <ui-docs-example header="Inverted">
+              <p slot="description">An item can be inverted to appear on a dark background.</p>
+              <ui-message slot="description" state="info" size="small"
+                >Set a dark background yourself, or wrap the items in an
+                <code>&lt;ui-segment inverted&gt;</code>.</ui-message
+              >
+              <ui-segment inverted>
+                <ui-items inverted>
+                  <ui-item>
+                    <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                    <ui-content>
+                      <ui-header>Arrowhead Valley Camp</ui-header>
+                      <ui-meta>
+                        <span>$1200</span>
+                        <span>1 Month</span>
+                      </ui-meta>
+                      <ui-description
+                        ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                      ></ui-description>
+                    </ui-content>
+                  </ui-item>
+                  <ui-item>
+                    <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                    <ui-content>
+                      <ui-header>Buck's Homebrew Stayaway</ui-header>
+                      <ui-meta>
+                        <span>$1000</span>
+                        <span>2 Weeks</span>
+                      </ui-meta>
+                      <ui-description
+                        ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                      ></ui-description>
+                    </ui-content>
+                  </ui-item>
+                </ui-items>
+              </ui-segment>
+            </ui-docs-example>
 
-                <ui-docs-example header="Disabled" description="An item can be disabled.">
-                  <ui-items>
-                    <ui-item disabled>
-                      <ui-image size="tiny" href="#" src="../images/avatar/large/veronika.jpg" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header href="#">Veronika Ossi</ui-header>
-                        <ui-description>
-                          <p>
-                            Veronika Ossi is a set designer living in New York who <a href="#">enjoys</a> kittens,
-                            music, and partying.
-                          </p>
-                        </ui-description>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-docs-example header="Size" description="Items can have different text sizes, `mini` ... `massive`.">
+              <ui-items size="small">
+                <ui-item>
+                  <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
+                  <ui-content>
+                    <ui-header>Arrowhead Valley Camp</ui-header>
+                    <ui-meta>
+                      <span>$1200</span>
+                      <span>1 Month</span>
+                    </ui-meta>
+                    <ui-description
+                      ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
+                    ></ui-description>
+                  </ui-content>
+                </ui-item>
+              </ui-items>
+            </ui-docs-example>
+          </ui-tab>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  from the old Astro page (Behaviour, Accessibility), tightened. -->
+            <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                An item here is the same `<ui-item>` that dropdowns, lists and menus use: there is no separate "items item".
+                Inside `<ui-items>` it becomes a block with its image on one side and a `<ui-content>` on the other, and it styles
+                the content parts inside it (`<ui-header>`, `<ui-meta>`, `<ui-description>`, `<ui-extra>`) as Fomantic's item
+                header, meta and so on. The same parts inside a list item still look like list parts.
 
-                <ui-docs-example
-                  header="Stacking"
-                  description="A group of items can specify how it stacks responsively:  `unstackable` keeps the image beside the content in a narrow group."
-                >
-                  <ui-items unstackable>
-                    <ui-item image="../images/wireframe/image.png">
-                      <ui-content>
-                        <ui-header href="#">Header</ui-header>
-                        <ui-meta><span>Description</span></ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra>Additional Details</ui-extra>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item image="../images/wireframe/image.png">
-                      <ui-content>
-                        <ui-header href="#">Header</ui-header>
-                        <ui-meta><span>Description</span></ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra>Additional Details</ui-extra>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+                - The image: the `image` shorthand, a slotted `<img>` (both at the item's image width), or a `<ui-image size>`
+                  (its own size).
+                - `href` makes the whole item one link; `link` on the group is only the hover look.
+                - `<ui-content vertical-align="middle|bottom">` aligns the content against the image; `floated` on a part
+                  (a `<ui-button floated="right">` in `<ui-extra>`) floats it.
+                - Items stack, image above content, below 768px:  of the GROUP's width by default, of the window's with
+                  `stack-with="page"` (here, or on a `<ui-root>`);  `unstackable` keeps them side by side. A stacked
+                  image takes its natural width, up to 250px tall.
+              </script>
+            </ui-markdown>
+            <ui-code language="html">
+              <script type="text/plain">
+                <ui-items divided>
+                  <ui-item image="/covers/totoro.jpg">
+                    <ui-content>
+                      <ui-header href="/films/totoro">My Neighbor Totoro</ui-header>
+                      <ui-meta><span>IFC Cinema</span></ui-meta>
+                      <ui-description><p>Two sisters move to the country ...</p></ui-description>
+                      <ui-extra><ui-label>Limited</ui-label></ui-extra>
+                    </ui-content>
+                  </ui-item>
+                </ui-items>
+              </script>
+            </ui-code>
 
-                <ui-docs-example
-                  header="Divided"
-                  description="Items can be divided to better distinguish between grouped content."
-                >
-                  <ui-items divided>
-                    <ui-item image="../images/wireframe/image.png">
-                      <ui-content>
-                        <ui-header href="#">12 Years a Slave</ui-header>
-                        <ui-meta><span>Union Square 14</span></ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra>
-                          <ui-label>IMAX</ui-label>
-                          <ui-label icon="globe">Additional Languages</ui-label>
-                        </ui-extra>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item image="../images/wireframe/image.png">
-                      <ui-content>
-                        <ui-header href="#">My Neighbor Totoro</ui-header>
-                        <ui-meta><span>IFC Cinema</span></ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra>
-                          <ui-button primary floated="right"
-                            >Buy tickets <ui-icon name="chevron right"></ui-icon
-                          ></ui-button>
-                          <ui-label>Limited</ui-label>
-                        </ui-extra>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item image="../images/wireframe/image.png">
-                      <ui-content>
-                        <ui-header href="#">Watchmen</ui-header>
-                        <ui-meta><span>IFC</span></ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra>
-                          <ui-button primary floated="right"
-                            >Buy tickets <ui-icon name="chevron right"></ui-icon
-                          ></ui-button>
-                        </ui-extra>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-header level="2" dividing id="events">Events</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                A group has no events of its own. A link item is a normal link (`click`, then navigation); buttons and links
+                inside an item's content fire their native events.
+              </script>
+            </ui-markdown>
 
-                <ui-docs-example
-                  header="Relaxed"
-                  description="A group of items can relax its padding to provide more negative space."
-                >
-                  <ui-items relaxed>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"><ui-header href="#">12 Years a Slave</ui-header></ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"
-                        ><ui-header href="#">My Neighbor Totoro</ui-header></ui-content
-                      >
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"><ui-header href="#">Watchmen</ui-header></ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                The group is never a tab stop. **Tab** reaches each link item (one stop per item) or the links and buttons inside
+                an item's content, in reading order; **Enter** follows a link.
+              </script>
+            </ui-markdown>
 
-                <ui-docs-example description='Even more with `relaxed="very"`.'>
-                  <ui-items relaxed="very">
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"><ui-header href="#">12 Years a Slave</ui-header></ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"
-                        ><ui-header href="#">My Neighbor Totoro</ui-header></ui-content
-                      >
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"><ui-header href="#">Watchmen</ui-header></ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                - The group is a `role="list"` and each item a `listitem`, so a screen reader hears how many there are.
+                - A link item is one `<a>` whose name is all of its text. Keep other links and buttons out of it, and don't give a
+                  linked header its own `href` inside one.
+                - Give a `<ui-header>` a `level` when an item's title should be a heading in the page outline.
+                - A slotted image needs its own `alt`; the `image` shorthand is decorative (`alt=""`), so put what matters in
+                  the text.
+                - `disabled` fades the item and sets `aria-disabled`.
+                - If the element can't render, its native fallback keeps the list and class words, so the items still read as a
+                  list; they no longer stack in a narrow group, and their headers, metas and descriptions lose the item look.
+              </script>
+            </ui-markdown>
+          </ui-tab>
 
-                <ui-docs-example
-                  header="Link Item"
-                  description="An item can be formatted so that the entire contents link to another page:  `link` on the group is the hover look, `href` on an item the link."
-                >
-                  <ui-items link>
-                    <ui-item href="#">
-                      <ui-image size="tiny" src="../images/avatar/large/stevie.jpg" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header>Stevie Feliciano</ui-header>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item href="#">
-                      <ui-image size="tiny" src="../images/avatar/large/veronika.jpg" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header>Veronika Ossi</ui-header>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item href="#">
-                      <ui-image size="tiny" src="../images/avatar/large/jenny.jpg" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header>Jenny Hess</ui-header>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-items"></ui-docs-api>
+          </ui-tab>
 
-                <ui-docs-example
-                  header="Vertical Alignment"
-                  description="Content can specify its vertical alignment:  `vertical-align` on the `<ui-content>`."
-                >
-                  <ui-items unstackable>
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content><ui-header>Top Aligned</ui-header></ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle"><ui-header>Middle Aligned</ui-header></ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="bottom"><ui-header>Bottom Aligned</ui-header></ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                Theme with the public `--ui-items-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
+                the group's box through `::part(items)`. The items inside read them from the group, so set them there or above,
+                not on one item.
+              </script>
+            </ui-markdown>
+            <ui-code language="css">
+              <script type="text/plain">
+                ui-items {
+                  --ui-items-image-width: 8em;
+                  --ui-items-divided-border: 2px solid var(--ui-border-color);
+                }
+              </script>
+            </ui-code>
+            <ui-message state="info" size="small">
+              <ui-markdown>
+                <script type="text/markdown">
+                  `divided`, `relaxed`, `link` and `unstackable` switch private tokens the items read; use the attributes, and
+                  never set the `--_ui-*` / `--_items-*` names: they're the sheet's private plumbing.
+                </script>
+              </ui-markdown>
+            </ui-message>
+            <ui-markdown>Edit a value below to try it.</ui-markdown>
+            <ui-docs-tokens family="ui-items" playground></ui-docs-tokens>
 
-                <ui-docs-example
-                  header="Floated Content"
-                  description="Any content element can be floated left or right."
-                >
-                  <ui-items>
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle">
-                        <ui-header>Content A</ui-header>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra><ui-button floated="right">Action</ui-button></ui-extra>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle">
-                        <ui-header>Content B</ui-header>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra><ui-button floated="right">Action</ui-button></ui-extra>
-                      </ui-content>
-                    </ui-item>
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content vertical-align="middle">
-                        <ui-header>Content C</ui-header>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                        <ui-extra><ui-button floated="right">Action</ui-button></ui-extra>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
+            <ui-header level="2" dividing id="themes">Themes</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                theme to the whole site.
 
-                <ui-docs-example header="Inverted">
-                  <p slot="description">An item can be inverted to appear on a dark background.</p>
-                  <ui-message slot="description" state="info" size="small"
-                    >Set a dark background yourself, or wrap the items in an
-                    <code>&lt;ui-segment inverted&gt;</code>.</ui-message
-                  >
-                  <ui-segment inverted>
-                    <ui-items inverted>
-                      <ui-item>
-                        <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                        <ui-content>
-                          <ui-header>Arrowhead Valley Camp</ui-header>
-                          <ui-meta>
-                            <span>$1200</span>
-                            <span>1 Month</span>
-                          </ui-meta>
-                          <ui-description
-                            ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                          ></ui-description>
-                        </ui-content>
-                      </ui-item>
-                      <ui-item>
-                        <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                        <ui-content>
-                          <ui-header>Buck's Homebrew Stayaway</ui-header>
-                          <ui-meta>
-                            <span>$1000</span>
-                            <span>2 Weeks</span>
-                          </ui-meta>
-                          <ui-description
-                            ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                          ></ui-description>
-                        </ui-content>
-                      </ui-item>
-                    </ui-items>
-                  </ui-segment>
-                </ui-docs-example>
-
-                <ui-docs-example header="Size" description="Items can have different text sizes, `mini` ... `massive`.">
-                  <ui-items size="small">
-                    <ui-item>
-                      <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
-                      <ui-content>
-                        <ui-header>Arrowhead Valley Camp</ui-header>
-                        <ui-meta>
-                          <span>$1200</span>
-                          <span>1 Month</span>
-                        </ui-meta>
-                        <ui-description
-                          ><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image
-                        ></ui-description>
-                      </ui-content>
-                    </ui-item>
-                  </ui-items>
-                </ui-docs-example>
-              </ui-tab>
-
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  from the old Astro page (Behaviour, Accessibility), tightened. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    An item here is the same `<ui-item>` that dropdowns, lists and menus use: there is no separate "items item".
-                    Inside `<ui-items>` it becomes a block with its image on one side and a `<ui-content>` on the other, and it styles
-                    the content parts inside it (`<ui-header>`, `<ui-meta>`, `<ui-description>`, `<ui-extra>`) as Fomantic's item
-                    header, meta and so on. The same parts inside a list item still look like list parts.
-
-                    - The image: the `image` shorthand, a slotted `<img>` (both at the item's image width), or a `<ui-image size>`
-                      (its own size).
-                    - `href` makes the whole item one link; `link` on the group is only the hover look.
-                    - `<ui-content vertical-align="middle|bottom">` aligns the content against the image; `floated` on a part
-                      (a `<ui-button floated="right">` in `<ui-extra>`) floats it.
-                    - Items stack, image above content, below 768px:  of the GROUP's width by default, of the window's with
-                      `stack-with="page"` (here, or on a `<ui-root>`);  `unstackable` keeps them side by side. A stacked
-                      image takes its natural width, up to 250px tall.
-                  </script>
-                </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <ui-items divided>
-                      <ui-item image="/covers/totoro.jpg">
-                        <ui-content>
-                          <ui-header href="/films/totoro">My Neighbor Totoro</ui-header>
-                          <ui-meta><span>IFC Cinema</span></ui-meta>
-                          <ui-description><p>Two sisters move to the country ...</p></ui-description>
-                          <ui-extra><ui-label>Limited</ui-label></ui-extra>
-                        </ui-content>
-                      </ui-item>
-                    </ui-items>
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A group has no events of its own. A link item is a normal link (`click`, then navigation); buttons and links
-                    inside an item's content fire their native events.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The group is never a tab stop. **Tab** reaches each link item (one stop per item) or the links and buttons inside
-                    an item's content, in reading order; **Enter** follows a link.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - The group is a `role="list"` and each item a `listitem`, so a screen reader hears how many there are.
-                    - A link item is one `<a>` whose name is all of its text. Keep other links and buttons out of it, and don't give a
-                      linked header its own `href` inside one.
-                    - Give a `<ui-header>` a `level` when an item's title should be a heading in the page outline.
-                    - A slotted image needs its own `alt`; the `image` shorthand is decorative (`alt=""`), so put what matters in
-                      the text.
-                    - `disabled` fades the item and sets `aria-disabled`.
-                    - If the element can't render, its native fallback keeps the list and class words, so the items still read as a
-                      list; they no longer stack in a narrow group, and their headers, metas and descriptions lose the item look.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-items"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-items-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
-                    the group's box through `::part(items)`. The items inside read them from the group, so set them there or above,
-                    not on one item.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    ui-items {
-                      --ui-items-image-width: 8em;
-                      --ui-items-divided-border: 2px solid var(--ui-border-color);
-                    }
-                  </script>
-                </ui-code>
-                <ui-message state="info" size="small">
-                  <ui-markdown>
-                    <script type="text/markdown">
-                      `divided`, `relaxed`, `link` and `unstackable` switch private tokens the items read; use the attributes, and
-                      never set the `--_ui-*` / `--_items-*` names: they're the sheet's private plumbing.
-                    </script>
-                  </ui-markdown>
-                </ui-message>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-items" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                    theme to the whole site.
-
-                    No theme restyles items on their own -- the same as Fomantic's own item page (Default only). Site-wide themes
-                    still reach them through the foundation tokens.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+                No theme restyles items on their own -- the same as Fomantic's own item page (Default only). Site-wide themes
+                still reach them through the foundation tokens.
+              </script>
+            </ui-markdown>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

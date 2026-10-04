@@ -6,8 +6,12 @@
     `../../ui/site/` paths for the page's depth.  This file opens as it is too (from the page server), with the
     placeholders showing, so a layout change can be checked here first.
   - How to write a page:  `packages/docs/epics/spell-ui-pages/PAGES.md`.  Check it:  `yarn site:check <page>`.
-  - Layout:  `site/_src/site.css` (glue only:  grid areas, widths, sticky offsets).  Shared chrome:  `_parts/header.html`
-    (top menu, theme picker, the narrow-screen nav flyout) and `_parts/footer.html`, both through `<ui-include>`.
+  - A page is its `<head>` and ONE `<main id="main" class="site-main" data-toc-header>`, nothing else:  the chrome (top bar, nav,
+    footer, `<ui-root>`) is `site/_parts/layout.html`, written once;  the site bundle wraps the `main` in it on first
+    load, and its router swaps only the `main` after that (`site/_src/SiteShell.ts`, `SiteRouter.ts`).  So inline
+    scripts in `main` re-run on every visit, and `<head>` styles don't follow a swap:  put styles in `main` or
+    `site/_src/site.css`.
+  - Layout:  `site/_src/site.css` (glue only:  grid areas, widths, sticky offsets).
 -->
 <html lang="en">
   <head>
@@ -30,153 +34,127 @@
     <script type="module" src="../../ui/site/_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../../ui/site/_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="{{title}}">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/{{source}}"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title={{bugTitle}}"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <!-- site:fomantic:start -->
+            <ui-item
+              href="{{fomantic}}"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+            <!-- site:fomantic:end -->
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            {{title}}
+            <!-- site:status:start -->
+            <ui-label color="yellow" size="small">{{status}}</ui-label>
+            <!-- site:status:end -->
+            <ui-header>{{summary}}</ui-header>
+          </ui-header>
+          <!-- site:component:start -->
+          <ui-docs-themes for="{{tag}}" show="theme" class="site-themes"></ui-docs-themes>
+          <!-- site:component:end -->
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
+      <ui-container class="site-body">
+        <!-- site:component:start -->
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
+              Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/epics/spell-ui-pages/PAGES.md.
+              - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
+              - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
+                IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
+              - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
+            -->
+            <ui-header level="2" dividing id="types">Types</ui-header>
+            <ui-docs-example header="{{title}}" description="A standard {{title}}.">
+              <!-- the live example -->
+            </ui-docs-example>
+          </ui-tab>
 
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/{{source}}"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title={{bugTitle}}"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <!-- site:fomantic:start -->
-                <ui-item
-                  href="{{fomantic}}"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-                <!-- site:fomantic:end -->
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                {{title}}
-                <!-- site:status:start -->
-                <ui-label color="yellow" size="small">{{status}}</ui-label>
-                <!-- site:status:end -->
-                <ui-header>{{summary}}</ui-header>
-              </ui-header>
-              <!-- site:component:start -->
-              <ui-docs-themes for="{{tag}}" show="theme" class="site-themes"></ui-docs-themes>
-              <!-- site:component:end -->
-            </ui-container>
-          </ui-segment>
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
+            <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                Short how-to: what to write, which attributes matter, the events to listen for.
+              </script>
+            </ui-markdown>
+            <ui-code language="js">
+              <script type="text/plain">
+                document.querySelector("{{tag}}").addEventListener("ui-change", (event) => console.log(event.detail))
+              </script>
+            </ui-code>
+            <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                Which keys do what.
+              </script>
+            </ui-markdown>
+            <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                What the shadow markup exposes, and what an author must add (`aria-label` ...).
+              </script>
+            </ui-markdown>
+          </ui-tab>
 
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="{{title}}"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="{{family}}"></ui-docs-api>
+          </ui-tab>
 
-            <!-- site:component:start -->
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
-                  Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/epics/spell-ui-pages/PAGES.md.
-                  - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
-                  - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
-                    IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
-                  - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
-                <ui-docs-example header="{{title}}" description="A standard {{title}}.">
-                  <!-- the live example -->
-                </ui-docs-example>
-              </ui-tab>
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                Set a public `--ui-*` token on the element, any ancestor or `:root`; it inherits into the shadow
+                root. Edit a value below to try it.
+              </script>
+            </ui-markdown>
+            <ui-docs-tokens family="{{family}}" playground></ui-docs-tokens>
+            <ui-header level="2" dividing id="themes">Themes</ui-header>
+            <ui-markdown>
+              <script type="text/markdown">
+                The theme picker above lists the Fomantic themes that restyle this component; the one in the
+                header applies a theme to the whole site.
+              </script>
+            </ui-markdown>
+          </ui-tab>
+        </ui-tabs>
+        <!-- site:component:end -->
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Short how-to: what to write, which attributes matter, the events to listen for.
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    document.querySelector("{{tag}}").addEventListener("ui-change", (event) => console.log(event.detail))
-                  </script>
-                </ui-code>
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Which keys do what.
-                  </script>
-                </ui-markdown>
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    What the shadow markup exposes, and what an author must add (`aria-label` ...).
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="{{family}}"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Set a public `--ui-*` token on the element, any ancestor or `:root`; it inherits into the shadow
-                    root. Edit a value below to try it.
-                  </script>
-                </ui-markdown>
-                <ui-docs-tokens family="{{family}}" playground></ui-docs-tokens>
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The theme picker above lists the Fomantic themes that restyle this component; the one in the
-                    header applies a theme to the whole site.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-            <!-- site:component:end -->
-
-            <!-- site:page:start -->
-            <article class="site-article">
-              <!-- PAGE:  sections of `<ui-header level="2" dividing id>` + `<ui-markdown>` / widgets;  no tabs. -->
-              <ui-header level="2" dividing id="overview">Overview</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  What this page is about.
-                </script>
-              </ui-markdown>
-            </article>
-            <!-- site:page:end -->
-          </ui-container>
-
-          <ui-include
-            class="site-footer"
-            source="../../ui/site/_parts/footer.html"
-            page-styles
-            load="visible"
-          ></ui-include>
-        </main>
-      </div>
-    </ui-root>
+        <!-- site:page:start -->
+        <article class="site-article">
+          <!-- PAGE:  sections of `<ui-header level="2" dividing id>` + `<ui-markdown>` / widgets;  no tabs. -->
+          <ui-header level="2" dividing id="overview">Overview</ui-header>
+          <ui-markdown>
+            <script type="text/markdown">
+              What this page is about.
+            </script>
+          </ui-markdown>
+        </article>
+        <!-- site:page:end -->
+      </ui-container>
+    </main>
   </body>
 </html>

@@ -736,9 +736,10 @@ describe("spell", () => {
     expect(style.borderTopLeftRadius).toBe("9999px")
     expect(style.fontWeight).toBe("500")
     expect(style.transitionProperty).toContain("scale")
+    // no colour transition:  under a loaded test run a waitFor can time out mid-way (an `oklch(...)` in between)
+    box.style.transition = "none"
     document.documentElement.classList.add("ui-dark")
     onTestFinished(() => document.documentElement.classList.remove("ui-dark"))
-    // after the button's own colour transition
     await vi.waitFor(() => expect(getComputedStyle(box).backgroundColor).toBe("rgb(184, 180, 255)")) // violet-300
     expect(T3.color("--ui-background")).toBe("rgb(26, 16, 64)") // violet-950:  aubergine, not black
   })

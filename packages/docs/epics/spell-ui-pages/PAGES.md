@@ -18,13 +18,15 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
 - It refuses to overwrite;  `--force` regenerates (and loses your content:  don't).
 - What you get (DON'T change it;  it is the template's, `packages/docs/templates/spell-ui-docs.html`):
   - `<head>`:  the scheme script, `../_assets/site.css`, `../_assets/site.js`
-  - `<spell-site-header>`, `<ui-root class="site" stack-with="page" icons="fa7-brands, fomantic"
-    display="immediately">`:  `stack-with="page"` makes every `stackable` / `doubling` example inside (grid, cards,
-    steps, form rows, items, statistics, token tables) stack by the SCREEN, as on fomantic-ui.com, not by the
-    ~755px docs column (D40).  So keep Fomantic's markup:  no `unstackable` to stop a desktop stack, and no
+  - `<body>`:  ONE `<main id="main" class="site-main">`, nothing else.  The chrome -- `<spell-site-header>`, top bar,
+    nav column, footer and `<ui-root class="site" stack-with="page" icons="fa7-brands, fomantic"
+    display="when-ready">` -- is `site/_parts/layout.html`, written once, which the bundle wraps around the `main`
+    (epic ui-docs-rework, `site/README.md`).  `stack-with="page"` makes every `stackable` / `doubling` example
+    (grid, cards, steps, form rows, items, statistics, token tables) stack by the SCREEN, as on fomantic-ui.com, not
+    by the ~755px docs column (D40).  So keep Fomantic's markup:  no `unstackable` to stop a desktop stack, and no
     `stack-with` on an example unless it is ABOUT `stack-with`
-  - header + footer as `<ui-include page-styles>` of `_parts/header.html` / `_parts/footer.html`
-  - the nav column, the masthead (title, summary, status label unless done, source / bug / Fomantic links, the
+  - inline scripts in `main` run on every visit;  styles go in `main` (never `<head>`:  a page swap drops it)
+  - in the `main`:  the masthead (title, summary, status label unless done, source / bug / Fomantic links, the
     family's `<ui-docs-themes for>`)
   - `<ui-rail>` + `<ui-sticky>` + `<ui-docs-toc for="site-tabs">` ("On this page", built at runtime)
   - `<ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>` (a

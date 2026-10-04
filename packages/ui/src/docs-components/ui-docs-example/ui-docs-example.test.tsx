@@ -171,6 +171,23 @@ describe("<ui-docs-example> source capture", () => {
     await ElementFixture.settle(holder)
     expect(codeOf(host)!.content).toBe("<ui-button>Save</ui-button>")
   })
+
+  it("keep():  a fragment's examples, defined or not, with an include's rewritten URLs put back", async () => {
+    const fragment = document
+      .createRange()
+      .createContextualFragment(
+        `<ui-docs-example code><ui-image src="/ui/images/a.png" data-ui-include-src="../images/a.png"></ui-image></ui-docs-example>`
+      )
+    expect(ExampleSource.keep(fragment)).toBe(1)
+    expect(ExampleSource.keep(fragment)).toBe(0)
+    const host = fragment.firstElementChild!
+    const holder = document.createElement("div")
+    document.body.append(holder)
+    onTestFinished(() => holder.remove())
+    holder.append(fragment)
+    await ElementFixture.settle(holder)
+    expect(codeOf(host)!.content).toBe(`<ui-image src="../images/a.png"></ui-image>`)
+  })
 })
 
 describe("HtmlFormatter", () => {

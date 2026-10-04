@@ -36,6 +36,14 @@ export const MAX_DEPTH = 8
 export const BODY_OPEN = /<body\b[^>]*>/i
 export const BODY_CLOSE = /<\/body\s*>/i
 
+/** `detail` of `ui-insert`. */
+export type IncludeInsertDetail = {
+  /** the markup about to go in:  parsed, `select`ed, URLs rewritten;  not yet in the page */
+  fragment: DocumentFragment
+  /** `source` as written */
+  source?: string
+}
+
 /** What the host asks of its controller (`UIInclude`). */
 export type IncludeController = {
   /** where the included markup lives */

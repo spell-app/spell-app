@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Docs Rework</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Layout Shell</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Nav Panel</ui-label></span
             >
           </header></ui-sticky
         >
@@ -79,7 +79,7 @@
               icon which shows the current state, clicking it switches it.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 16h-22h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 13h-18h left</p>
           <ui-section id="o1" header="1.1 Today" sticky collapsible dividing>
             <p>Where the site stands, so the rest reads against it.</p>
             <ui-table celled compact striped unstackable>
@@ -438,11 +438,20 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
-          <ui-section id="p1" data-phase="1" data-status="done" header="P1 · Spell Theme" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Spell Theme"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -455,11 +464,16 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> yarn ts + yarn test (ui, server); kitchen sink light + dark screenshots; yarn
                 docs:update; favicon on docs, goals, plan doc, /ui/, /editor/</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j1">J1</a> <a href="#j2">J2</a> <a href="#j3">J3</a>
+                <a href="#j4">J4</a> <a href="#j5">J5</a> <a href="#j6">J6</a> <a href="#j7">J7</a> <a href="#j8">J8</a>
+                <a href="#j9">J9</a> <a href="#j10">J10</a> <a href="#j11">J11</a></ui-item
+              ></ui-list
             >
           </ui-section>
-          <ui-section id="p2" data-phase="2" data-status="todo" header="P2 · Layout Shell" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p2" data-phase="2" data-status="done" header="P2 · Layout Shell" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> one layout written once; pages hold only main; router swaps content via ui-include +
@@ -470,7 +484,11 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> yarn site:check; Playwright: no layout shift on first load, chrome kept across clicks,
                 back / forward, deep-link reload</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j12">J12</a> <a href="#j13">J13</a> <a href="#j14">J14</a>
+                <a href="#j15">J15</a> <a href="#j16">J16</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Nav Panel" sticky collapsible dividing>
@@ -1192,6 +1210,87 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j12">J12</a>
+                  <span class="plan-title"
+                    >New public event on &lt;ui-include&gt;: ui-insert, with the fragment before it goes in</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose a generic event over router-only code because the router must keep each example's authored
+                    markup BEFORE it upgrades, and fix links, and only the include sees the fragment. Options: (a)
+                    ui-insert event (chosen, small, reusable); (b) router fetches and inserts itself, no ui-include
+                    (against the prompt); (c) examples always wrapped in &lt;template&gt; (touches every page).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j13">J13</a>
+                  <span class="plan-title"
+                    >Page swaps go through a ui-include the router creates on the first swap, not one in the
+                    layout</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    An include with no <code>source</code> empties itself on connect, and giving it the current page's
+                    URL at load would fetch and re-render the page just shown. So the first page's main sits bare in
+                    <code>.site-content</code>; the first swap wraps it in
+                    <code>&lt;ui-include select="main#main" page-styles&gt;</code> with the new source set before it
+                    connects.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j14">J14</a>
+                  <span class="plan-title"
+                    >Router makes every relative URL absolute in anything an include brings in (footer too)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    ui-include rewrites a relative URL only when it would point elsewhere from the current page; after a
+                    pushState to another folder those left relative break (the footer's <code>../index.html</code>). The
+                    router absolutizes on <code>ui-insert</code>. Examples' shown code keeps the authored URLs (<code
+                      >ExampleSource.keep()</code
+                    >
+                    restores the originals).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j15">J15</a>
+                  <span class="plan-title"
+                    >"On this page" moved into the layout's right column already in P2 (planned for P4)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Doing it now kept later phases from editing all 66 pages again. The page says its toc title as
+                    <code>&lt;main data-toc-header&gt;</code>; the router points a fresh toc at each page. The column
+                    stays on the API tab (the page width doesn't jump).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j16" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j16">J16</a>
+                  <span class="plan-title"
+                    >The page waits for the theme's sheet too, not just the layout and the elements</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Otherwise the stored / default theme (Spell) restyled the page after first paint: a 0.03 layout
+                    shift. Now 0.0002, page shown at ~250ms locally.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1303,6 +1402,27 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c8">C8</a>
+                  <span class="plan-title"
+                    >A page's &lt;head&gt; styles and scripts don't follow a swap; inline scripts in main re-run on each
+                    visit</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Written into the template,
+                    <a href="../../../ui/site/README.md" target="src-packages-ui-site-readme-md"
+                      ><code>site/README.md</code></a
+                    >
+                    and
+                    <a href="../spell-ui-pages/PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+                      ><code>PAGES.md</code></a
+                    >. Today no page has head styles beyond the shared ones.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1333,6 +1453,19 @@
                       ><code>site/_src/site.ts</code></a
                     >'s header says <code>$/ui/styles</code> loads only if a theme is set, which is now always (Spell is
                     the default).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title"
+                    >P4: spell-site-header shows the FIRST page's title and VS Code link after a swap</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    It reads <code>document.title</code> once. P4 docks it; it should re-render on the router's swap.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1518,6 +1651,29 @@
                   ><ui-date><time datetime="2026-10-04T03:00-04:00">2026-10-04 03:00</time></ui-date> P1 done: spell
                   theme (default on every doc site), favicon on every site; checks: ui review passed (4480 browser
                   tests), server 84 tests, docs:update passed</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:00-04:00">2026-10-04 03:00</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:12-04:00">2026-10-04 03:12</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:12-04:00">2026-10-04 03:12</time></ui-date> P2 done:
+                  layout.html written once, SiteShell + SiteRouter (ui-include swaps, pushState), ui-root when-ready
+                  after layout + theme; checks: ui review (one flaky theme test fixed), Playwright: CLS 0.0002, swap
+                  keeps chrome, back / forward, deep link</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

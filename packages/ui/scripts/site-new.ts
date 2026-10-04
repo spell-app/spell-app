@@ -8,7 +8,8 @@
  *   Title Case) and `--summary`.
  * - Fills the template's `{{...}}` placeholders, keeps the `site:component` OR `site:page` blocks (and drops the
  *   status label for a `done` family, the Fomantic link when Fomantic has no such page), and rewrites the
- *   template's `../../ui/site/` paths and `<spell-site-header root>` for the page's depth.
+ *   template's `../../ui/site/` paths for the page's depth.  The page is its `<head>` and `main` alone:  the chrome
+ *   is `site/_parts/layout.html`.
  * - Refuses to overwrite an existing page without `--force`.  Prints the path and the page server URL hint.
  * - The Fomantic link:  `reference/Fomantic-UI-Docs/server/documents/<group>/<name>.html.eco` (git-ignored clone,
  *   plan doc P1), by the family name, or `FOMANTIC_PAGES` for the families whose page has another name.
@@ -24,9 +25,6 @@ const TEMPLATE = path.resolve(UI, "../docs/templates/spell-ui-docs.html")
 
 /** The template's own path prefix to the site (it lives in `packages/docs/templates/`). */
 const TEMPLATE_SITE = "../../ui/site/"
-
-/** The template's `<spell-site-header root>`:  from `packages/docs/templates/` to the repo root. */
-const TEMPLATE_ROOT = 'root="../../.."'
 
 /** Fomantic's docs pages, by group folder. */
 const FOMANTIC_DOCS = path.join(UI, "reference/Fomantic-UI-Docs/server/documents")
@@ -112,12 +110,10 @@ class SitePageWriter {
     html = SitePageWriter.block(html, "page", !component)
     html = SitePageWriter.block(html, "status", facts.status !== "done")
     html = SitePageWriter.block(html, "fomantic", !!facts.fomantic)
-    if (!component) html = html.replace(' for="site-tabs"', "")
     html = html
       .replace(/<title>[^<]*<\/title>/, `<title>${SitePageWriter.escape(`${facts.title} | Spell UI`)}</title>`)
       .replace(/(<meta\s+name="description"\s+content=")[^"]*(")/, `$1${SitePageWriter.escape(facts.summary)}$2`)
       .replaceAll(TEMPLATE_SITE, rel)
-      .replace(TEMPLATE_ROOT, `root="${Array.from({ length: depth + 3 }, () => "..").join("/")}"`)
     const values: Record<string, string> = {
       title: facts.title,
       summary: facts.summary,

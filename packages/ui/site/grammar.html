@@ -20,333 +20,312 @@
     <script type="module" src="_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Grammar">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/grammar.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=Grammar%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Grammar
+            <ui-header
+              >How a component's attributes become Fomantic's class string inside its shadow root.</ui-header
+            >
+          </ui-header>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
+      <ui-container class="site-body">
+        <article class="site-article">
+          <!--
+            GRAMMAR:  the old Astro page (`grammar.mdx`, deleted in P7), brought up to date from `docs/grammar.md`
+            (the design doc:  every kind, value set and rule).  The old page drew the shadow markup by hand;  here
+            every example is a LIVE element, and its description names the class string it renders.
+          -->
+          <ui-markdown>
+            <script type="text/markdown">
+              Every `ui-*` element renders SEMANTIC shadow markup that carries Fomantic's class grammar:
+              `<ui-button size="small" primary basic>` renders `<button class="ui small basic primary button">`
+              inside its shadow root. `ClassBuilder` writes the class string, driven by each component's
+              vocabulary file, which lists every attribute, its kind and its values.
 
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/grammar.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=Grammar%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Grammar
-                <ui-header
-                  >How a component's attributes become Fomantic's class string inside its shadow root.</ui-header
-                >
-              </ui-header>
-            </ui-container>
-          </ui-segment>
+              Every example on this page is a live element. Its description says the class string it renders;
+              open your browser's inspector to see it on the shadow element.
+            </script>
+          </ui-markdown>
 
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc header="Grammar"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
+          <ui-header level="2" dividing id="why">Why Keep the Grammar</ui-header>
+          <ui-markdown>
+            <script type="text/markdown">
+              - Shadow markup keeps Fomantic's classes on semantic elements: `<button class="ui small primary button">`.
+              - The CSS is then a mechanical port of Fomantic's `.less`, and the override language for the app
+                stylesheet and `::part()` is the vocabulary people already know.
+              - Fomantic matches multi-word phrases with substring selectors (`[class*="four wide"]`), so words come
+                out in a fixed order. Attributes are therefore enumerated per kind, never free text.
+              - Class words are ALWAYS canonical English. Translated attribute names and values map back to
+                canonical before they reach `ClassBuilder`.
+            </script>
+          </ui-markdown>
 
-            <article class="site-article">
-              <!--
-                GRAMMAR:  the old Astro page (`grammar.mdx`, deleted in P7), brought up to date from `docs/grammar.md`
-                (the design doc:  every kind, value set and rule).  The old page drew the shadow markup by hand;  here
-                every example is a LIVE element, and its description names the class string it renders.
-              -->
-              <ui-markdown>
-                <script type="text/markdown">
-                  Every `ui-*` element renders SEMANTIC shadow markup that carries Fomantic's class grammar:
-                  `<ui-button size="small" primary basic>` renders `<button class="ui small basic primary button">`
-                  inside its shadow root. `ClassBuilder` writes the class string, driven by each component's
-                  vocabulary file, which lists every attribute, its kind and its values.
+          <ui-header level="2" dividing id="shape">Shape</ui-header>
+          <ui-code language="text">
+            <script type="text/plain">
+              ui  <size>  <color>  <keyOnly...>  <valueAndKey / keyOrValueAndKey...>  <multiple...>  <width...>  <textAlign>  <verticalAlign>  <noun>  <extra>
+            </script>
+          </ui-code>
+          <ui-markdown>
+            <script type="text/markdown">
+              - `ui` always, unless the vocabulary says `ui: false` (context-only parts such as `column`).
+              - Size, then colour: the value only.
+              - Key-only words ALPHABETICAL by attribute name, so the output doesn't depend on vocabulary order.
+              - Value-and-key words in vocabulary order; then multiple, width, text and vertical alignment.
+              - The noun (`button`, `card`, `column`), then any extra classes (a state such as `active`).
+            </script>
+          </ui-markdown>
+          <ui-docs-example
+            header="All at Once"
+            description="`size`, two key-only words and the noun:  `ui small basic primary button`."
+          >
+            <ui-button size="small" primary basic>Save</ui-button>
+          </ui-docs-example>
+          <ui-docs-example>
+            <p slot="description">
+              Attributes in any order render the same words in the same order: both buttons are
+              <code>ui left labeled right floated button icon</code> (<code>icon</code> is an extra class, after the
+              noun). Fomantic needs <code>left labeled right floated</code> spelled exactly so.
+            </p>
+            <ui-segment basic clearing>
+              <ui-button labeled="left" floated="right" icon="pause">Pause</ui-button>
+            </ui-segment>
+            <ui-segment basic clearing>
+              <ui-button floated="right" icon="pause" labeled="left">Pause</ui-button>
+            </ui-segment>
+          </ui-docs-example>
 
-                  Every example on this page is a live element. Its description says the class string it renders;
-                  open your browser's inspector to see it on the shadow element.
-                </script>
-              </ui-markdown>
+          <ui-header level="2" dividing id="attribute-kinds">Attribute Kinds</ui-header>
+          <ui-markdown>
+            <script type="text/markdown">
+              Semantics are copied from Semantic UI React's `classNameBuilders`. The class word ("key") defaults
+              to the attribute name with `-` replaced by a space (`very-short` => `very short`); a vocabulary can
+              set it explicitly.
 
-              <ui-header level="2" dividing id="why">Why Keep the Grammar</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  - Shadow markup keeps Fomantic's classes on semantic elements: `<button class="ui small primary button">`.
-                  - The CSS is then a mechanical port of Fomantic's `.less`, and the override language for the app
-                    stylesheet and `::part()` is the vocabulary people already know.
-                  - Fomantic matches multi-word phrases with substring selectors (`[class*="four wide"]`), so words come
-                    out in a fixed order. Attributes are therefore enumerated per kind, never free text.
-                  - Class words are ALWAYS canonical English. Translated attribute names and values map back to
-                    canonical before they reach `ClassBuilder`.
-                </script>
-              </ui-markdown>
+              | Kind                                          | Attribute                      | Class                     |
+              | --------------------------------------------- | ------------------------------ | ------------------------- |
+              | `size`                                        | `size="small"`                 | `small`                   |
+              |                                               | `size="medium"`                | nothing: the default size |
+              | `color`                                       | `color="red"`                  | `red`                     |
+              | `valueOnly`                                   | `state="warning"`              | `warning`                 |
+              | `icon`                                        | `icon="user"`                  | nothing: a glyph name     |
+              | `keyOnly`                                     | `basic`                        | `basic`                   |
+              |                                               | `very-short`                   | `very short`              |
+              | `valueAndKey`                                 | `floated="left"`               | `left floated`            |
+              |                                               | `floated` (bare)               | nothing                   |
+              | `keyOrValueAndKey`                            | `pointing`                     | `pointing`                |
+              |                                               | `pointing="left"`              | `left pointing`           |
+              | `multiple`                                    | `only="mobile tablet"`         | `mobile only tablet only` |
+              | `width`                                       | `width="4"`                    | `four wide`               |
+              |                                               | `columns="equal"`              | `equal width`             |
+              | `textAlign`                                   | `text-align="left"`            | `left aligned`            |
+              |                                               | `text-align="justified"`       | `justified`               |
+              | `verticalAlign`                               | `vertical-align="middle"`      | `middle aligned`          |
+              | `boolean`, `enum`, `string`, `number`, `json` | `href`, `value`, `options` ... | nothing: a typed property |
+            </script>
+          </ui-markdown>
 
-              <ui-header level="2" dividing id="shape">Shape</ui-header>
-              <ui-code language="text">
-                <script type="text/plain">
-                  ui  <size>  <color>  <keyOnly...>  <valueAndKey / keyOrValueAndKey...>  <multiple...>  <width...>  <textAlign>  <verticalAlign>  <noun>  <extra>
-                </script>
-              </ui-code>
-              <ui-markdown>
-                <script type="text/markdown">
-                  - `ui` always, unless the vocabulary says `ui: false` (context-only parts such as `column`).
-                  - Size, then colour: the value only.
-                  - Key-only words ALPHABETICAL by attribute name, so the output doesn't depend on vocabulary order.
-                  - Value-and-key words in vocabulary order; then multiple, width, text and vertical alignment.
-                  - The noun (`button`, `card`, `column`), then any extra classes (a state such as `active`).
-                </script>
-              </ui-markdown>
-              <ui-docs-example
-                header="All at Once"
-                description="`size`, two key-only words and the noun:  `ui small basic primary button`."
+          <ui-docs-example
+            header="Size"
+            description='`size="small"` emits its value;  `size="medium"` is the default and emits nothing.'
+          >
+            <ui-button size="small">size="small"</ui-button>
+            <ui-button size="medium">size="medium"</ui-button>
+            <ui-button size="large">size="large"</ui-button>
+          </ui-docs-example>
+          <ui-docs-example header="Colour" description='`color="red"` emits its value:  `ui red button`.'>
+            <ui-button color="red">color="red"</ui-button>
+            <ui-button color="primary">color="primary"</ui-button>
+          </ui-docs-example>
+          <ui-docs-example
+            header="Value Only"
+            description='Where a colour would go, a value of its own:  `state="warning"` => `ui warning message`.'
+          >
+            <ui-message state="warning">state="warning"</ui-message>
+          </ui-docs-example>
+          <ui-docs-example
+            header="Key Only"
+            description="A bare boolean emits its key:  `basic` => `ui basic button`, `raised` => `ui raised segment`."
+          >
+            <ui-button basic>basic</ui-button>
+            <ui-segment raised>raised</ui-segment>
+          </ui-docs-example>
+          <ui-docs-example
+            header="Value and Key"
+            description='`floated="left"` => `ui left floated segment`;  a bare `floated` emits nothing.'
+          >
+            <ui-segment floated="left">floated="left"</ui-segment>
+            <ui-segment floated="right">floated="right"</ui-segment>
+          </ui-docs-example>
+          <ui-docs-example
+            header="Key or Value and Key"
+            description='`pointing` => `ui pointing label`;  `pointing="left"` => `ui left pointing label`.'
+          >
+            <ui-label pointing>pointing</ui-label>
+            <ui-label pointing="left">pointing="left"</ui-label>
+          </ui-docs-example>
+          <ui-docs-example
+            header="Multiple"
+            description='`only="mobile tablet"` => `mobile only tablet only row`.  Narrow your window to swap the rows.'
+          >
+            <ui-grid>
+              <ui-row only="computer">
+                <ui-column><ui-segment>only="computer": you're on a computer</ui-segment></ui-column>
+              </ui-row>
+              <ui-row only="mobile tablet">
+                <ui-column><ui-segment>only="mobile tablet": you're on a phone or tablet</ui-segment></ui-column>
+              </ui-row>
+            </ui-grid>
+          </ui-docs-example>
+          <ui-docs-example
+            header="Alignment"
+            description='`text-align="center"` => `center aligned`;  `vertical-align="middle"` => `middle aligned`.'
+          >
+            <ui-segment text-align="center">text-align="center"</ui-segment>
+            <ui-grid columns="2" vertical-align="middle">
+              <ui-column
+                ><ui-segment>vertical-align="middle"<br />on the grid</ui-segment></ui-column
               >
-                <ui-button size="small" primary basic>Save</ui-button>
-              </ui-docs-example>
-              <ui-docs-example>
-                <p slot="description">
-                  Attributes in any order render the same words in the same order: both buttons are
-                  <code>ui left labeled right floated button icon</code> (<code>icon</code> is an extra class, after the
-                  noun). Fomantic needs <code>left labeled right floated</code> spelled exactly so.
-                </p>
-                <ui-segment basic clearing>
-                  <ui-button labeled="left" floated="right" icon="pause">Pause</ui-button>
-                </ui-segment>
-                <ui-segment basic clearing>
-                  <ui-button floated="right" icon="pause" labeled="left">Pause</ui-button>
-                </ui-segment>
-              </ui-docs-example>
+              <ui-column><ui-segment>sits in the middle</ui-segment></ui-column>
+            </ui-grid>
+          </ui-docs-example>
+          <ui-docs-example
+            header="Icon"
+            description='`icon="user"` names a glyph:  no class word, an icon in the shadow root.'
+          >
+            <ui-button icon="user">icon="user"</ui-button>
+          </ui-docs-example>
 
-              <ui-header level="2" dividing id="attribute-kinds">Attribute Kinds</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Semantics are copied from Semantic UI React's `classNameBuilders`. The class word ("key") defaults
-                  to the attribute name with `-` replaced by a space (`very-short` => `very short`); a vocabulary can
-                  set it explicitly.
+          <ui-header level="2" dividing id="widths">Widths</ui-header>
+          <ui-markdown>
+            <script type="text/markdown">
+              The attribute is `width`, NEVER `wide`. It accepts:
 
-                  | Kind                                          | Attribute                      | Class                     |
-                  | --------------------------------------------- | ------------------------------ | ------------------------- |
-                  | `size`                                        | `size="small"`                 | `small`                   |
-                  |                                               | `size="medium"`                | nothing: the default size |
-                  | `color`                                       | `color="red"`                  | `red`                     |
-                  | `valueOnly`                                   | `state="warning"`              | `warning`                 |
-                  | `icon`                                        | `icon="user"`                  | nothing: a glyph name     |
-                  | `keyOnly`                                     | `basic`                        | `basic`                   |
-                  |                                               | `very-short`                   | `very short`              |
-                  | `valueAndKey`                                 | `floated="left"`               | `left floated`            |
-                  |                                               | `floated` (bare)               | nothing                   |
-                  | `keyOrValueAndKey`                            | `pointing`                     | `pointing`                |
-                  |                                               | `pointing="left"`              | `left pointing`           |
-                  | `multiple`                                    | `only="mobile tablet"`         | `mobile only tablet only` |
-                  | `width`                                       | `width="4"`                    | `four wide`               |
-                  |                                               | `columns="equal"`              | `equal width`             |
-                  | `textAlign`                                   | `text-align="left"`            | `left aligned`            |
-                  |                                               | `text-align="justified"`       | `justified`               |
-                  | `verticalAlign`                               | `vertical-align="middle"`      | `middle aligned`          |
-                  | `boolean`, `enum`, `string`, `number`, `json` | `href`, `value`, `options` ... | nothing: a typed property |
-                </script>
-              </ui-markdown>
+              | Form       | Example                 | Columns (of 16) | Class                              |
+              | ---------- | ----------------------- | --------------- | ---------------------------------- |
+              | number     | `width="4"`             | 4               | `four wide`                        |
+              | word       | `width="four"`          | 4               | `four wide`                        |
+              | fraction   | `width="1/4"`, `"3/4"`  | 4, 12           | `four wide`, `twelve wide`         |
+              | percentage | `width="25%"`, `"100%"` | 4, 16           | `four wide`, `sixteen wide`        |
+              | equal      | `columns="equal"`       | --              | `equal width` (only where allowed) |
 
-              <ui-docs-example
-                header="Size"
-                description='`size="small"` emits its value;  `size="medium"` is the default and emits nothing.'
-              >
-                <ui-button size="small">size="small"</ui-button>
-                <ui-button size="medium">size="medium"</ui-button>
-                <ui-button size="large">size="large"</ui-button>
-              </ui-docs-example>
-              <ui-docs-example header="Colour" description='`color="red"` emits its value:  `ui red button`.'>
-                <ui-button color="red">color="red"</ui-button>
-                <ui-button color="primary">color="primary"</ui-button>
-              </ui-docs-example>
-              <ui-docs-example
-                header="Value Only"
-                description='Where a colour would go, a value of its own:  `state="warning"` => `ui warning message`.'
-              >
-                <ui-message state="warning">state="warning"</ui-message>
-              </ui-docs-example>
-              <ui-docs-example
-                header="Key Only"
-                description="A bare boolean emits its key:  `basic` => `ui basic button`, `raised` => `ui raised segment`."
-              >
-                <ui-button basic>basic</ui-button>
-                <ui-segment raised>raised</ui-segment>
-              </ui-docs-example>
-              <ui-docs-example
-                header="Value and Key"
-                description='`floated="left"` => `ui left floated segment`;  a bare `floated` emits nothing.'
-              >
-                <ui-segment floated="left">floated="left"</ui-segment>
-                <ui-segment floated="right">floated="right"</ui-segment>
-              </ui-docs-example>
-              <ui-docs-example
-                header="Key or Value and Key"
-                description='`pointing` => `ui pointing label`;  `pointing="left"` => `ui left pointing label`.'
-              >
-                <ui-label pointing>pointing</ui-label>
-                <ui-label pointing="left">pointing="left"</ui-label>
-              </ui-docs-example>
-              <ui-docs-example
-                header="Multiple"
-                description='`only="mobile tablet"` => `mobile only tablet only row`.  Narrow your window to swap the rows.'
-              >
-                <ui-grid>
-                  <ui-row only="computer">
-                    <ui-column><ui-segment>only="computer": you're on a computer</ui-segment></ui-column>
-                  </ui-row>
-                  <ui-row only="mobile tablet">
-                    <ui-column><ui-segment>only="mobile tablet": you're on a phone or tablet</ui-segment></ui-column>
-                  </ui-row>
-                </ui-grid>
-              </ui-docs-example>
-              <ui-docs-example
-                header="Alignment"
-                description='`text-align="center"` => `center aligned`;  `vertical-align="middle"` => `middle aligned`.'
-              >
-                <ui-segment text-align="center">text-align="center"</ui-segment>
-                <ui-grid columns="2" vertical-align="middle">
-                  <ui-column
-                    ><ui-segment>vertical-align="middle"<br />on the grid</ui-segment></ui-column
-                  >
-                  <ui-column><ui-segment>sits in the middle</ui-segment></ui-column>
-                </ui-grid>
-              </ui-docs-example>
-              <ui-docs-example
-                header="Icon"
-                description='`icon="user"` names a glyph:  no class word, an icon in the shadow root.'
-              >
-                <ui-button icon="user">icon="user"</ui-button>
-              </ui-docs-example>
+              - Inexact values (`1/3`, `33%` => 5.33) snap to the nearest column, with a dev-time warning.
+              - Out of range (`0`, `17`, `2/1`) emits nothing, with a dev-time warning.
+              - A group's count uses its own word: `columns="3"` => `three column` on a grid, `width="3"` =>
+                `three buttons` on `<ui-buttons>`.
+            </script>
+          </ui-markdown>
+          <ui-docs-example
+            header="Widths"
+            description='`width="4"`, `width="1/4"` and `width="25%"` all emit `four wide`;  the rest of each row is `twelve wide`.'
+          >
+            <ui-grid celled>
+              <ui-row>
+                <ui-column width="4">width="4"</ui-column>
+                <ui-column width="12">width="12"</ui-column>
+              </ui-row>
+              <ui-row>
+                <ui-column width="1/4">width="1/4"</ui-column>
+                <ui-column width="3/4">width="3/4"</ui-column>
+              </ui-row>
+              <ui-row>
+                <ui-column width="25%">width="25%"</ui-column>
+                <ui-column width="75%">width="75%"</ui-column>
+              </ui-row>
+            </ui-grid>
+          </ui-docs-example>
+          <ui-docs-example
+            header="Equal Width"
+            description='`columns="equal"` => `equal width`:  the columns share each line.'
+          >
+            <ui-grid columns="equal" celled>
+              <ui-column>One</ui-column>
+              <ui-column>Two</ui-column>
+              <ui-column>Three</ui-column>
+            </ui-grid>
+          </ui-docs-example>
 
-              <ui-header level="2" dividing id="widths">Widths</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  The attribute is `width`, NEVER `wide`. It accepts:
+          <ui-header level="2" dividing id="booleans">Booleans</ui-header>
+          <ui-markdown>
+            <script type="text/markdown">
+              - absent => false
+              - `""`, `"true"`, `"yes"`, or the attribute's own name (`disabled="disabled"`) => true
+              - `"false"`, `"no"`, `"0"` => false: Vue sends `open="false"` when it can't find a property
+              - any other present value => true (HTML presence semantics)
+              - reflection: true => `""`, false => attribute removed; NEVER `"false"`
+            </script>
+          </ui-markdown>
+          <ui-docs-example
+            header="Booleans"
+            description='Unlike a native attribute, `basic="false"` and `basic="no"` mean NOT basic.'
+          >
+            <ui-button basic>basic</ui-button>
+            <ui-button basic="yes">basic="yes"</ui-button>
+            <ui-button basic="false">basic="false"</ui-button>
+            <ui-button basic="no">basic="no"</ui-button>
+          </ui-docs-example>
+          <ui-message size="small"
+            >Except <code>disabled</code> on a form control (<code>&lt;ui-button&gt;</code>,
+            <code>&lt;ui-input&gt;</code>, <code>&lt;ui-checkbox&gt;</code> ...): the browser disables a
+            form-associated element whenever the attribute is PRESENT, so <code>disabled="false"</code> still
+            disables it. Remove the attribute instead.</ui-message
+          >
 
-                  | Form       | Example                 | Columns (of 16) | Class                              |
-                  | ---------- | ----------------------- | --------------- | ---------------------------------- |
-                  | number     | `width="4"`             | 4               | `four wide`                        |
-                  | word       | `width="four"`          | 4               | `four wide`                        |
-                  | fraction   | `width="1/4"`, `"3/4"`  | 4, 12           | `four wide`, `twelve wide`         |
-                  | percentage | `width="25%"`, `"100%"` | 4, 16           | `four wide`, `sixteen wide`        |
-                  | equal      | `columns="equal"`       | --              | `equal width` (only where allowed) |
+          <ui-header level="2" dividing id="medium">Medium</ui-header>
+          <ui-markdown>
+            <script type="text/markdown">
+              `medium` is a real size meaning "default". It is accepted, validated and reflected like any other
+              size, but emits NO class, so `size="medium"` and no `size` render identically, and CSS never needs a
+              `.medium` rule.
+            </script>
+          </ui-markdown>
+          <ui-docs-example header="Medium" description="Both render `ui button`.">
+            <ui-button size="medium">size="medium"</ui-button>
+            <ui-button>no size</ui-button>
+          </ui-docs-example>
 
-                  - Inexact values (`1/3`, `33%` => 5.33) snap to the nearest column, with a dev-time warning.
-                  - Out of range (`0`, `17`, `2/1`) emits nothing, with a dev-time warning.
-                  - A group's count uses its own word: `columns="3"` => `three column` on a grid, `width="3"` =>
-                    `three buttons` on `<ui-buttons>`.
-                </script>
-              </ui-markdown>
-              <ui-docs-example
-                header="Widths"
-                description='`width="4"`, `width="1/4"` and `width="25%"` all emit `four wide`;  the rest of each row is `twelve wide`.'
-              >
-                <ui-grid celled>
-                  <ui-row>
-                    <ui-column width="4">width="4"</ui-column>
-                    <ui-column width="12">width="12"</ui-column>
-                  </ui-row>
-                  <ui-row>
-                    <ui-column width="1/4">width="1/4"</ui-column>
-                    <ui-column width="3/4">width="3/4"</ui-column>
-                  </ui-row>
-                  <ui-row>
-                    <ui-column width="25%">width="25%"</ui-column>
-                    <ui-column width="75%">width="75%"</ui-column>
-                  </ui-row>
-                </ui-grid>
-              </ui-docs-example>
-              <ui-docs-example
-                header="Equal Width"
-                description='`columns="equal"` => `equal width`:  the columns share each line.'
-              >
-                <ui-grid columns="equal" celled>
-                  <ui-column>One</ui-column>
-                  <ui-column>Two</ui-column>
-                  <ui-column>Three</ui-column>
-                </ui-grid>
-              </ui-docs-example>
+          <ui-header level="2" dividing id="value-sets">Value Sets</ui-header>
+          <ui-markdown>
+            <script type="text/markdown">
+              Enumerated values are validated against shared sets (`ValueSets`), or a list in the vocabulary:
 
-              <ui-header level="2" dividing id="booleans">Booleans</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  - absent => false
-                  - `""`, `"true"`, `"yes"`, or the attribute's own name (`disabled="disabled"`) => true
-                  - `"false"`, `"no"`, `"0"` => false: Vue sends `open="false"` when it can't find a property
-                  - any other present value => true (HTML presence semantics)
-                  - reflection: true => `""`, false => attribute removed; NEVER `"false"`
-                </script>
-              </ui-markdown>
-              <ui-docs-example
-                header="Booleans"
-                description='Unlike a native attribute, `basic="false"` and `basic="no"` mean NOT basic.'
-              >
-                <ui-button basic>basic</ui-button>
-                <ui-button basic="yes">basic="yes"</ui-button>
-                <ui-button basic="false">basic="false"</ui-button>
-                <ui-button basic="no">basic="no"</ui-button>
-              </ui-docs-example>
-              <ui-message size="small"
-                >Except <code>disabled</code> on a form control (<code>&lt;ui-button&gt;</code>,
-                <code>&lt;ui-input&gt;</code>, <code>&lt;ui-checkbox&gt;</code> ...): the browser disables a
-                form-associated element whenever the attribute is PRESENT, so <code>disabled="false"</code> still
-                disables it. Remove the attribute instead.</ui-message
-              >
+              - `hues`: `primary secondary red orange yellow olive green teal blue violet purple pink brown grey black`
+                (extensible)
+              - `sizes`: `mini tiny small medium large big huge massive`
+              - `positions`: `top left`, `top center`, `top right`, `bottom left`, `bottom center`, `bottom right`,
+                `left center`, `right center`; plus ours, `left top`, `left bottom`, `right top`, `right bottom`
+                (beside the target, lined up with its top or bottom edge: word order matters)
+              - `attachments`: `top`, `bottom`, `left`, `right`, `top left`, `top right`, `bottom left`,
+                `bottom right`
+              - `alignments`: `left center right justified`; `verticalAlignments`: `top middle bottom`
+              - `floats`: `left right`; `devices`: `mobile tablet computer`, `large screen`, `widescreen`
+              - `widths`: `1` to `16` (plus words, fractions, percentages)
+              - `booleans`: `true false yes no`
 
-              <ui-header level="2" dividing id="medium">Medium</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  `medium` is a real size meaning "default". It is accepted, validated and reflected like any other
-                  size, but emits NO class, so `size="medium"` and no `size` render identically, and CSS never needs a
-                  `.medium` rule.
-                </script>
-              </ui-markdown>
-              <ui-docs-example header="Medium" description="Both render `ui button`.">
-                <ui-button size="medium">size="medium"</ui-button>
-                <ui-button>no size</ui-button>
-              </ui-docs-example>
-
-              <ui-header level="2" dividing id="value-sets">Value Sets</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Enumerated values are validated against shared sets (`ValueSets`), or a list in the vocabulary:
-
-                  - `hues`: `primary secondary red orange yellow olive green teal blue violet purple pink brown grey black`
-                    (extensible)
-                  - `sizes`: `mini tiny small medium large big huge massive`
-                  - `positions`: `top left`, `top center`, `top right`, `bottom left`, `bottom center`, `bottom right`,
-                    `left center`, `right center`; plus ours, `left top`, `left bottom`, `right top`, `right bottom`
-                    (beside the target, lined up with its top or bottom edge: word order matters)
-                  - `attachments`: `top`, `bottom`, `left`, `right`, `top left`, `top right`, `bottom left`,
-                    `bottom right`
-                  - `alignments`: `left center right justified`; `verticalAlignments`: `top middle bottom`
-                  - `floats`: `left right`; `devices`: `mobile tablet computer`, `large screen`, `widescreen`
-                  - `widths`: `1` to `16` (plus words, fractions, percentages)
-                  - `booleans`: `true false yes no`
-
-                  Unknown values are dropped with a dev-time "did you mean" warning: `color="gren"` draws a plain
-                  button and suggests `green`. Each component's API tab lists the values its attributes take.
-                </script>
-              </ui-markdown>
-            </article>
-          </ui-container>
-
-          <ui-include class="site-footer" source="_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+              Unknown values are dropped with a dev-time "did you mean" warning: `color="gren"` draws a plain
+              button and suggests `green`. Each component's API tab lists the values its attributes take.
+            </script>
+          </ui-markdown>
+        </article>
+      </ui-container>
+    </main>
   </body>
 </html>
