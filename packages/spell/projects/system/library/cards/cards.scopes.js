@@ -220,19 +220,20 @@
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:move a card to a pile", line: [15, 19],
+      path: "project:cards/file:Card.spell/type:Card/property:pile", line: 2,
+      detail: "Pile",
       section: "Pile of playing cards",
       uri: "spell:/@system:library:cards/Pile.spell",
-      description: "\"move\" a card\nNOTE: use this rather than `add` to make sure card is only in one pile at a time\nif you `wait for: move the card to the pile` the move will be animated",
+      description: "## Pile of playing cards"
+    },
+    {
+      path: "project:cards/file:Card.spell/type:Card/method:move a card to a pile", line: [14, 16],
+      section: "Pile of playing cards",
+      uri: "spell:/@system:library:cards/Pile.spell",
+      description: "\"move\" a card:  piles are exclusive, so adding it takes it out of its old pile -- then pause a moment\nif you `wait for: move the card to the pile` the move will be animated",
       rules: [
         { name: "move_to_$pile", syntax: "move {thisArg:expression} to {callArgs:expression}" }
       ]
-    },
-    {
-      path: "project:cards/file:Card.spell/type:Card/property:pile", line: 17,
-      detail: "Pile",
-      section: "Pile of playing cards",
-      uri: "spell:/@system:library:cards/Pile.spell"
     },
     {
       path: "project:cards/file:Card.spell/type:Joker", line: 84,
@@ -347,7 +348,7 @@
       section: "Pile of playing cards"
     },
     {
-      path: "project:cards/file:Pile.spell/type:Pile/property:state", line: [22, 26],
+      path: "project:cards/file:Pile.spell/type:Pile/property:state", line: [19, 23],
       detail: "text",
       section: "Pile of playing cards"
     }

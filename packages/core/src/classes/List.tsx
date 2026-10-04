@@ -5,7 +5,7 @@
 import React from "react"
 import _ from "lodash"
 
-import { Observable, runsCreate, view, type PropInfo } from "$/util"
+import { Cell, isTrackingCells, Observable, runsCreate, view, type PropInfo } from "$/util"
 import { spellCore } from "$/core/core"
 import type { PropCheck } from "$/core/spellCore.types"
 
@@ -17,8 +17,31 @@ import type { PropCheck } from "$/core/spellCore.types"
  *   change made in place.
  * - Delegates JS collection duck-typing (`itemCount`, `getKeys`, `getItem`, ...) to `spellCore`'s
  *   generic collection methods -- see `CollectionLike` in `collection-core.ts`.
+ * - EXCLUSIVE lists (`static exclusive = true`, from `a pile is an exclusive list of cards`):  an item is in at most
+ *   ONE list of a FAMILY -- the exclusive class and its sub-classes, e.g. every `Pile`, `Tableau`, `Foundation`
+ *   (plan doc D7, D8):
+ *   - adding an item takes it out of the list of its family holding it;  adding one we hold moves it
+ *   - removing it leaves it with no owner
+ *   - `Pile.ownerOf(card)` is who holds it, tracked -- what `the pile of a card` compiles to
+ *   - a collection helper's result, e.g. `filter()`'s, owns nothing:  see `asScratch()`
+ *   - every change to `items` goes through `writeItems()`, which keeps the owners
  */
 export class List extends Observable<Record<string, unknown>, { items: unknown[] }> {
+  /**
+   * `true` on an exclusive list class, e.g. `Pile`:  the ROOT of its family -- see class docs.
+   * - Compiled from `a pile is an exclusive list of cards` as `static exclusive = true`;  sub-classes inherit it.
+   */
+  static exclusive = false
+
+  /**
+   * The list of our family holding `item`, if any -- tracked:  a reader re-runs when it changes.
+   * - Compiled spell's `the pile of a card`:  `Card.prototype.pile` is `get() { return Pile.ownerOf(this) }`.
+   * - `undefined` if we're not exclusive, or `item` can't be owned (not an object).
+   */
+  static ownerOf(item: unknown): List | undefined {
+    return ListFamily.of(this)?.ownerOf(item)
+  }
+
   /** SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`. */
   constructor(props: Record<string, unknown>) {
     super(props)
@@ -31,7 +54,17 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
     return this.getState<unknown[]>("items", () => [])
   }
   set items(items: unknown[]) {
-    this.setState<unknown[]>("items", items)
+    this.writeItems(items)
+  }
+
+  /**
+   * SIDE EFFECT:  we own nothing, even if we're exclusive -- a SCRATCH result, e.g. what `filter()`, `map()`,
+   * `a copy of` make (plan doc D8):  filtering a pile mustn't take its cards.  Returns us.
+   * - Call it before adding anything:  what we hold already stays owned.
+   */
+  asScratch(): this {
+    SCRATCH_LISTS.add(this)
+    return this
   }
 
   /**
@@ -166,32 +199,83 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   getItem(oneIndex: number): unknown {
     return this.items[this._getZeroIndex(oneIndex)]
   }
-  /** Set item at `oneIndex` to `value`.  Replaces whatever was there. */
+  /**
+   * Set item at `oneIndex` to `value`.  Replaces whatever was there.
+   * - NOTE: an exclusive list may hold an item twice for a moment, e.g. while `reverse()` sets each position in turn.
+   */
   setItem(oneIndex: number, value: unknown): void {
     const items = [...this.items]
     const zeroIndex = this._getZeroIndex(oneIndex)
     items[zeroIndex] = value
-    this.setState("items", items)
+    this.writeItems(items)
   }
   /**
    * Add one or more `things` to our items starting at oneIndex `start`.
    * - Pushes any items after `start` over to make room.
+   * - Exclusive:  one we hold already MOVES here -- we hold each item once.
    */
   addAtPosition(start: number, ...things: unknown[]): void {
-    const items = [...this.items]
-    const itemStart = this._getZeroIndex(start)
+    let items = [...this.items]
+    let itemStart = this._getZeroIndex(start)
+    if (this.family) {
+      const moving = new Set<unknown>(things.filter(isOwnable))
+      itemStart -= items.slice(0, itemStart).filter((item) => moving.has(item)).length
+      items = items.filter((item) => !moving.has(item))
+    }
     items.splice(itemStart, 0, ...things)
-    this.setState("items", items)
+    this.writeItems(items)
   }
   /** Remove item at `oneIndex`, pulling in other objects to fill the gap. */
   removeItem(oneIndex: number): void {
     const items = [...this.items]
     items.splice(this._getZeroIndex(oneIndex), 1)
-    this.setState("items", items)
+    this.writeItems(items)
   }
   /** Clear all `items` from our list. */
   clear(): void {
-    this.setState("items", [])
+    this.writeItems([])
+  }
+
+  ////////////////
+  // ## Exclusive lists
+  ////////////////
+
+  /** Our family's owners, if we're an exclusive list that isn't scratch -- see class docs. */
+  private get family(): ListFamily | undefined {
+    if (SCRATCH_LISTS.has(this)) return undefined
+    return ListFamily.of(this.constructor as typeof List)
+  }
+
+  /**
+   * Make `next` our items -- EVERY change to them comes here, so an exclusive list keeps its family's owners:
+   * - an item going out, no longer anywhere in `next`, has no owner (plan doc D8)
+   * - an item coming in is ours, THEN leaves the list of our family that held it -- in that order, so its owner
+   *   changes once:  a reader never sees it ownerless mid-move
+   * - SIDE EFFECT:  the list it left changes too, and readers of each item's owner re-run
+   */
+  private writeItems(next: unknown[]): void {
+    const { family } = this
+    if (!family) {
+      this.setState("items", next)
+      return
+    }
+    const previous = this.items
+    this.setState("items", next)
+    const kept = new Set(next)
+    for (const item of previous) {
+      if (!kept.has(item) && family.ownerOf(item, "UNTRACKED") === this) family.setOwner(item, undefined)
+    }
+    for (const item of next) {
+      const owner = family.ownerOf(item, "UNTRACKED")
+      if (owner === this) continue
+      family.setOwner(item, this)
+      owner?.release(item)
+    }
+  }
+
+  /** SIDE EFFECT:  `item` leaves us, wherever it is -- it's joining another list of our family. */
+  private release(item: unknown): void {
+    this.writeItems(this.items.filter((it) => it !== item))
   }
 
   /** Convert to string by joining with comma. */
@@ -206,4 +290,58 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   [Symbol.iterator](): Iterator<unknown> {
     return [...this.items][Symbol.iterator]()
   }
+}
+
+/** Lists that own nothing -- see `List.asScratch()`.  A `WeakSet`, as `items` may be set before our fields are. */
+const SCRATCH_LISTS = new WeakSet<List>()
+
+/** Each exclusive family's owners, by its root class -- see `ListFamily.of()`. */
+const FAMILIES = new WeakMap<typeof List, ListFamily>()
+
+/**
+ * Who holds each item, for ONE family of exclusive lists, e.g. every `Pile` -- see `List`'s class docs.
+ * - Plain `WeakMap`s:  an item, or a list, that's gone is forgotten.
+ * - Each item's owner is tracked with its own `Cell`, made when someone reads it.
+ */
+class ListFamily {
+  /** Each item's list. */
+  owners = new WeakMap<object, List>()
+  /** Each item's cell, once someone has read its owner. */
+  cells = new WeakMap<object, Cell>()
+
+  /** Family of `listClass`, if it's exclusive:  rooted at the HIGHEST class up its chain that says so. */
+  static of(listClass: typeof List): ListFamily | undefined {
+    if (!listClass.exclusive) return undefined
+    let root = listClass
+    for (let at = listClass; at && at !== List; at = Object.getPrototypeOf(at) as typeof List) {
+      if (Object.hasOwn(at, "exclusive") && at.exclusive) root = at
+    }
+    let family = FAMILIES.get(root)
+    if (!family) FAMILIES.set(root, (family = new ListFamily()))
+    return family
+  }
+
+  /** `item`'s list -- tracked, unless `UNTRACKED`. */
+  ownerOf(item: unknown, untracked?: "UNTRACKED"): List | undefined {
+    if (!isOwnable(item)) return undefined
+    if (!untracked && isTrackingCells()) {
+      let cell = this.cells.get(item)
+      if (!cell) this.cells.set(item, (cell = new Cell()))
+      cell.read()
+    }
+    return this.owners.get(item)
+  }
+
+  /** SIDE EFFECT:  `owner` holds `item` now -- `undefined`:  nothing does.  Readers re-run if it changed. */
+  setOwner(item: unknown, owner: List | undefined): void {
+    if (!isOwnable(item) || this.owners.get(item) === owner) return
+    if (owner) this.owners.set(item, owner)
+    else this.owners.delete(item)
+    this.cells.get(item)?.changed()
+  }
+}
+
+/** Can a list own `item`:  an object -- a `WeakMap` key.  A number or text can't be. */
+function isOwnable(item: unknown): item is object {
+  return (typeof item === "object" && item !== null) || typeof item === "function"
 }

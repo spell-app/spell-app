@@ -352,6 +352,12 @@ export type SpellDeclaration = {
   superType?: string
   /** What `type` holds, if it's a list type, e.g. `Card` for `a deck is a list of cards` -- see `P.TypeScope.itemType`. */
   itemType?: string
+  /**
+   * `true` if `type` is an exclusive list type, e.g. `a pile is an exclusive list of cards` -- see
+   * `P.TypeScope.exclusive`.
+   * - Loading also gives `itemType` the member naming `type`, e.g. `pile` on `Card`:  NOT written on its own.
+   */
+  exclusive?: boolean
   /** Instance property it declares, e.g. `suit`. */
   property?: string
   /**

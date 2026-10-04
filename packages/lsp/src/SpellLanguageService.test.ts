@@ -353,10 +353,11 @@ describe("SpellLanguageService", () => {
         await typed("set y t", (items) => expect(labels(items)).toContain("to"))
       })
 
-      test("`a thingy is a ` => types, and ONLY types", async () => {
+      test("`a thingy is a ` => types, and ONLY types -- or the words of a list type", async () => {
         await typed("a thingy is a ", (items) => {
           expect(labels(items)).toEqual(expect.arrayContaining(["card", "deck", "pile"]))
-          expect(items.every(({ kind }) => kind === CompletionItemKind.Class)).toBe(true)
+          const others = items.filter(({ kind }) => kind !== CompletionItemKind.Class)
+          expect(labels(others)).toEqual(["exclusive", "list"])
         })
       })
 
@@ -728,6 +729,39 @@ describe("SpellLanguageService", () => {
     await workspace.close(cardUri)
     expect(card.contents).toBe(cardText)
     expect(service.diagnostics(card)).toEqual([])
+  })
+
+  describe("exclusive lists", () => {
+    // the fixture's piles made exclusive, the way the live examples are:  `the pile of a card` comes from that line
+    const pileUri = pathToFileURL(resolve(dir, "Solitaire/Pile.spell")).href
+    const pileText = readFileSync(resolve(dir, "Solitaire/Pile.spell"), "utf8")
+    const exclusive = pileText
+      .replace("a pile is a list of cards", "a pile is an exclusive list of cards")
+      .replace(/\n\tif the pile of the card is defined: .*\n\tset the pile of the card to the pile/, "")
+    const readLine = solitaireLineOf("\t\tset start-pile to the pile of the card")
+
+    test("hover on `the pile of the card`:  the pile holding it, from the exclusive list's line", async () => {
+      await withText(pileUri, pileText, exclusive, () => {
+        for (const file of card.project.spellFiles) expect(service.diagnostics(file), file.path).toEqual([])
+        const markdown = (service.hover(solitaire, at(solitaire, readLine, "pile", 1))!.contents as { value: string })
+          .value
+        expect(markdown).toContain("property **pile** of Card · a Pile · the Pile holding it, read-only")
+        expect(markdown).toMatch(/declared in \[Pile\.spell:2\]/)
+      })
+    })
+
+    test("go to definition:  the exclusive list's line", async () => {
+      await withText(pileUri, pileText, exclusive, () => {
+        const [location] = service.definition(solitaire, at(solitaire, readLine, "pile", 1))
+        expect(location?.uri).toBe(pileUri)
+        expect(location?.range.start.line).toBe(1)
+      })
+    })
+
+    /** 1-based line of `line` in Solitaire.spell. */
+    function solitaireLineOf(line: string): number {
+      return readFileSync(resolve(dir, "Solitaire/Solitaire.spell"), "utf8").split("\n").indexOf(line) + 1
+    }
   })
 
   /** Run `check` with `to deal a card onto a pile` added to the end of Solitaire.spell, then ALWAYS take it out. */

@@ -7,7 +7,7 @@
  * - `the_property_of_a_thing` / `a_things_property` are the two `type_property` spellings shared by
  *   `property_value_either` / `property_value_getter`.
  */
-import { NONE, pluralize, proto, singularize, upperFirst } from "$/util"
+import { NONE, instanceCase, pluralize, proto, singularize, upperFirst } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 // Import directly to avoid circular import
@@ -99,7 +99,7 @@ classes.addRule(create_type, {
 
 ////////////////
 // ## `create_list_type` rule
-//    e.g. "a deck is a list of cards"
+//    e.g. "a deck is a list of cards", "a pile is an exclusive list of cards"
 ////////////////
 
 /**
@@ -110,49 +110,90 @@ classes.addRule(create_type, {
  *   `itemType`, e.g. `Card`, so `the first card of the deck` knows it's a card.
  * - Compiles to a class declaration extending `List` with a static `instanceType`, e.g.
  *   `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
+ * - `exclusive` (`a pile is an exclusive list of cards`):  a card is in at most ONE list of its FAMILY -- piles and
+ *   every sub-type of pile -- at a time;  adding it to one takes it out of the other (plan doc D7, D8).
+ *   - SIDE EFFECT:  the item type gains a READ-ONLY member naming us, `the pile of a card` -- the pile holding it,
+ *     or nothing.  Declared by THIS line, see `P.TypeScope.declareOwnerMember()`.
+ *   - Compiles `static exclusive = true` -- the runtime `List` keeps who owns each item -- then that member, patched
+ *     on:  `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) } ... })`.
+ *   - A built-in item type, e.g. `an exclusive list of things`, gets NO member:  it would go on a type every project
+ *     shares.  Its list is still exclusive at runtime -- for objects:  a number or text can't be owned.
  */
-class create_list_type extends SpellStatement<"type|instanceType"> {
+class create_list_type extends SpellStatement<"type|exclusive?|instanceType"> {
   @proto static priority = 10
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
 
+  /** SIDE EFFECT:  declares our type -- and, if `exclusive`, its owner member on the item type.  See class docs. */
   mutateScope(match: P.MatchFor<this>) {
     const { type, instanceType } = match.groups
     const itemType = P.typeName(`${instanceType.value}`)
+    const exclusive = match.groups.exclusive ? true : undefined
     // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
     // TODO: complain if existing type is set up differently!
     // An IMPORTED one is declared again anyway, so `SP.SpellDeclarations.checkImportClashes()` can report it.
     const existing = match.scope.types?.get(type.value)
+    let declared: P.TypeScope | undefined
     if (existing && !(existing.parentScope instanceof P.ImportScope)) {
       // a stub, or left by an earlier parse of this statement -- see `P.TypeScope.sameStatement()`
       if (existing.stub || P.TypeScope.sameStatement(existing.declaredBy, match)) {
-        existing.claim(match, "list", itemType)
+        existing.claim(match, "list", { itemType, exclusive })
+        declared = existing
       }
-      return
+    } else {
+      const props = { name: type.value, superType: "list", itemType, exclusive, declaredBy: match }
+      declared = match.scope.types?.add(props)[0]
     }
-    match.scope.types?.add({ name: type.value, superType: "list", itemType, declaredBy: match })
+    // `the pile of a card` -- NOT on a built-in type, which every project shares
+    if (declared && exclusive && !P.isBuiltInType(itemType)) {
+      declared.declareOwnerMember(P.TypeScope.getOrStub(match.scope, itemType, match), { declaredBy: match })
+    }
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
-    const { type, instanceType } = match.groups
-    return new P.ASTStatementGroup(match, {
-      statements: [
-        new P.ASTClassDeclaration(match, {
-          type: P.matchAST<P.ASTTypeExpression>(type),
-          superType: new P.ASTTypeExpression(match, { raw: "list", name: "List" }),
-          members: [
-            new P.ASTStaticDefinition(match, {
-              type: P.matchAST<P.ASTTypeExpression>(type),
-              name: "instanceType",
-              value: P.matchAST<P.ASTTypeExpression>(instanceType)
-            })
-          ]
-        })
-      ]
+    const { type, instanceType, exclusive } = match.groups
+    const typeAST = P.matchAST<P.ASTTypeExpression>(type)
+    const members: P.ASTClassMember[] = [
+      new P.ASTStaticDefinition(match, {
+        type: typeAST,
+        name: "instanceType",
+        value: P.matchAST<P.ASTTypeExpression>(instanceType)
+      })
+    ]
+    if (exclusive) {
+      const value = new P.ASTBooleanLiteral(match, true)
+      members.push(new P.ASTStaticDefinition(match, { type: typeAST, name: "exclusive", value }))
+    }
+    const superType = new P.ASTTypeExpression(match, { raw: "list", name: "List" })
+    const statements: P.ASTStatement[] = [new P.ASTClassDeclaration(match, { type: typeAST, superType, members })]
+    const itemType = P.typeName(`${instanceType.value}`)
+    if (exclusive && !P.isBuiltInType(itemType)) statements.push(create_list_type.ownerMemberAST(match, typeAST))
+    return new P.ASTStatementGroup(match, { statements })
+  }
+
+  /**
+   * Our item type's member naming us, patched on -- `Object.defineProperty(Card.prototype, 'pile', { get() { return
+   * Pile.ownerOf(this) }, ... })`.
+   * - Patched, NEVER hoisted into the item type's class:  it runs AFTER that class, and after any accessor a
+   *   property declaration gave it, so ours wins -- see `P.TypeScope.declareOwnerMember()`.
+   * - Named as `declareOwnerMember()` names it, e.g. `stock_pile` for `a stock-pile`.
+   */
+  static ownerMemberAST(match: P.MatchFor<create_list_type>, typeAST: P.ASTTypeExpression): P.ASTPatchedMember {
+    const owner = new P.ASTScopedMethodInvocation(match, {
+      thing: typeAST,
+      methodName: "ownerOf",
+      args: [new P.ASTThisLiteral(match)]
+    })
+    return new P.ASTPatchedMember(match, {
+      member: new P.ASTPropertyDefinition(match, {
+        type: P.matchAST<P.ASTTypeExpression>(match.groups.instanceType),
+        property: instanceCase(typeAST.name),
+        get: new P.ASTMethodDefinition(match, { body: new P.ASTReturnStatement(match, { value: owner }) })
+      })
     })
   }
 }
 classes.addRule(create_list_type, {
-  syntax: "create a type (named|called) {type} as a list of {instanceType:type}",
+  syntax: "create a type (named|called) {type} as (a|an) (exclusive:exclusive)? list of {instanceType:type}",
   tests: [
     {
       compileAs: "statement",
@@ -160,6 +201,21 @@ classes.addRule(create_list_type, {
         [
           "create a type named hand as a list of cards",
           ["export class Hand extends List {", "  static instanceType = Card", "}"]
+        ],
+        [
+          "create a type called hand as an exclusive list of cards",
+          [
+            "export class Hand extends List {",
+            "  static instanceType = Card",
+            "  static exclusive = true",
+            "}",
+            "Object.defineProperty(Card.prototype, 'hand', {",
+            "  get() {",
+            "    return Hand.ownerOf(this)",
+            "  },",
+            "  configurable: true",
+            "})"
+          ]
         ]
       ]
     }
@@ -167,11 +223,33 @@ classes.addRule(create_list_type, {
 })
 // TODO: "{plural_type} are a list of ..."
 classes.addRule(create_list_type, {
-  syntax: "(a|an) {type} is a list of {instanceType:type}",
+  syntax: "(a|an) {type} is (a|an) (exclusive:exclusive)? list of {instanceType:type}",
   tests: [
     {
       compileAs: "statement",
-      tests: [["a deck is a list of cards", ["export class Deck extends List {", "  static instanceType = Card", "}"]]]
+      tests: [
+        ["a deck is a list of cards", ["export class Deck extends List {", "  static instanceType = Card", "}"]],
+        [
+          "a pile is an exclusive list of cards",
+          [
+            "export class Pile extends List {",
+            "  static instanceType = Card",
+            "  static exclusive = true",
+            "}",
+            "Object.defineProperty(Card.prototype, 'pile', {",
+            "  get() {",
+            "    return Pile.ownerOf(this)",
+            "  },",
+            "  configurable: true",
+            "})"
+          ]
+        ],
+        {
+          title: "an exclusive list of a built-in type:  no member, it'd go on a type every project shares",
+          input: "a bag is an exclusive list of things",
+          output: ["export class Bag extends List {", "  static instanceType = Thing", "  static exclusive = true", "}"]
+        }
+      ]
     }
   ]
 })
