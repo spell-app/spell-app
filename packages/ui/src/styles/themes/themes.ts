@@ -14,8 +14,9 @@ import type { Styles } from "$/ui/runtime"
  *   - `classic`:  the base every Fomantic theme sits on;  `apply("classic")` applies it alone
  *   - `dark`:  a colour SCHEME, not a look;  switch it with `color-scheme` / `ui-dark` / `<ui-root theme>`, on top
  *     of any theme.  `apply("dark")` throws.
- *   - `spell`:  OUR OWN theme (`OWN`), the Spell brand;  applied exactly like a Fomantic theme (on `classic`), but
- *     a picker lists it apart from them
+ *   - `spell` and `spell-brand`:  OUR OWN themes (`OWN`), the Spell brand (`spell-brand`:  a copy converging on
+ *     Claude Design's pages, epic `design-system`);  applied exactly like a Fomantic theme (on `classic`), but a
+ *     picker lists them apart
  * - Registry names in `UI.styles`:  `classic` (the base;  the same name the Astro site's toggle used) and `theme`
  *   (the current Fomantic theme).  ONE `theme` slot, so switching themes replaces its text in place.
  */
@@ -25,7 +26,7 @@ export class ThemeSheets {
   /** sheets in this folder that are not themes you pick from a list */
   static readonly NOT_THEMES: readonly string[] = [ThemeSheets.BASE, "dark"]
   /** our own themes (not Fomantic ports):  applied like one, listed apart from `names` */
-  static readonly OWN: readonly string[] = ["spell"]
+  static readonly OWN: readonly string[] = ["spell", "spell-brand"]
   /** `UI.styles` names:  base slot and theme slot */
   static readonly SLOTS = { base: "classic", theme: "theme" } as const
 

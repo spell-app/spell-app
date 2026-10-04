@@ -725,7 +725,7 @@ describe("twitter", () => {
 describe("spell", () => {
   it("is our own theme:  a sheet, listed in OWN, not among the Fomantic names", () => {
     expect(ThemeSheets.sheets).toContain("spell")
-    expect(ThemeSheets.OWN).toEqual(["spell"])
+    expect(ThemeSheets.OWN).toEqual(["spell", "spell-brand"])
     expect(ThemeSheets.names).not.toContain("spell")
   })
 
@@ -756,5 +756,31 @@ describe("spell", () => {
     expect(card.style.borderTopLeftRadius).toBe("16px")
     // no font files ship:  an installed Palatino-family face, else the stack ends in the generic `serif`
     expect(style.fontFamily).toMatch(/, serif$/)
+  })
+})
+
+describe("spell-brand", () => {
+  it("is our own theme too:  a sheet, listed in OWN, not among the Fomantic names", () => {
+    expect(ThemeSheets.sheets).toContain("spell-brand")
+    expect(ThemeSheets.names).not.toContain("spell-brand")
+  })
+
+  it("spell's look, plus the brand roles:  ivory warm surface, aubergine inverse, lilac in dark", async () => {
+    await T3.use("spell-brand")
+    const { style } = await ThemeHarness.inner(`<ui-button primary>Build</ui-button>`, ".ui.button")
+    expect(style.backgroundColor).toBe("rgb(101, 80, 202)") // violet-600, as spell
+    expect(T3.color("--spell-surface-warm")).toBe("rgb(250, 245, 234)") // accent-75
+    expect(T3.color("--spell-surface-inverse")).toBe("rgb(42, 29, 96)") // violet-900:  aubergine
+    document.documentElement.classList.add("ui-dark")
+    onTestFinished(() => document.documentElement.classList.remove("ui-dark"))
+    await vi.waitFor(() => expect(T3.color("--spell-accent")).toBe("rgb(184, 180, 255)")) // violet-300:  lilac
+  })
+
+  it("a ticked checkbox is the brand's done to-do:  a filled purple circle, white check", async () => {
+    await T3.use("spell-brand")
+    const { box } = await ThemeHarness.inner(`<ui-checkbox selected>Drink water</ui-checkbox>`, ".ui.checkbox > label")
+    await vi.waitFor(() => expect(getComputedStyle(box, "::before").backgroundColor).toBe("rgb(101, 80, 202)"))
+    expect(getComputedStyle(box, "::before").borderTopLeftRadius).toBe("50%")
+    expect(getComputedStyle(box, "::after").backgroundColor).toMatch(/^(rgb\(255, 255, 255\)|oklch\(1 0 0\))$/) // white
   })
 })

@@ -15275,6 +15275,11 @@
           "description": "Under `Spell` in the list:  the default."
         },
         {
+          "key": "spellBrandDescription",
+          "text": "The brand as Claude Design drew it",
+          "description": "Under `Spell Brand` in the list:  the theme the brand pages converge on."
+        },
+        {
           "key": "classicDescription",
           "text": "Fomantic's look",
           "description": "Under `Classic` in the list."
@@ -16521,6 +16526,21 @@
           "name": "--ui-checkbox-mark-size",
           "default": "0.8em",
           "type": "length"
+        },
+        {
+          "name": "--ui-checkbox-checked-background",
+          "default": "var(--ui-checkbox-background)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-checkbox-checked-border-color",
+          "default": "var(--ui-checkbox-border-color-hover)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-checkbox-checked-mark-color",
+          "default": "var(--ui-checkbox-mark-color)",
+          "type": "color"
         },
         {
           "name": "--ui-checkbox-label-color",
@@ -25792,6 +25812,31 @@
     {
       "name": "spell",
       "title": "Spell",
+      "families": [
+        "ui-button",
+        "ui-card",
+        "ui-checkbox",
+        "ui-code",
+        "ui-dimmer",
+        "ui-label",
+        "ui-menu",
+        "ui-message",
+        "ui-modal",
+        "ui-nag",
+        "ui-parts",
+        "ui-popup",
+        "ui-progress",
+        "ui-section",
+        "ui-segment",
+        "ui-statistic",
+        "ui-table",
+        "ui-toast"
+      ],
+      "global": true
+    },
+    {
+      "name": "spell-brand",
+      "title": "Spell Brand",
       "families": [
         "ui-button",
         "ui-card",

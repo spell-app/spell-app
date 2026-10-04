@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Design System</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2"
-                >next: P2 · Theme &amp; Bundle</ui-label
+              ><ui-label basic color="grey" icon="circle outline" href="#p3"
+                >next: P3 · Panel &amp; Field</ui-label
               ></span
             >
           </header></ui-sticky
@@ -85,7 +85,7 @@
               </blockquote></ui-content
             >
           </ui-accordion>
-          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 33h-44h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 30h-40h left</p>
           <ui-section id="o1" header="1.1 What Claude Design made" sticky collapsible dividing>
             <p>
               <a href="../../../brand/spell-design-system/" target="src-packages-brand-spell-design-system"
@@ -245,9 +245,14 @@
               <li>a 3px focus ring and buttons that press to 97%</li>
             </ul>
             <p>
-              So the new theme, <code>spell-brand.css</code>, starts as a full copy of this one, and the convergence
-              work changes only the copy (<a href="#d1">D1</a>). Docs pages stay on <code>spell</code> until the Docs
-              Restyle phase (<a href="#p9">P9</a>) moves them over.
+              So the new theme,
+              <a
+                href="../../../ui/src/styles/themes/spell-brand.css"
+                target="src-packages-ui-src-styles-themes-spell-brand-css"
+                ><code>spell-brand.css</code></a
+              >, starts as a full copy of this one, and the convergence work changes only the copy (<a href="#d1">D1</a
+              >). Docs pages stay on <code>spell</code> until the Docs Restyle phase (<a href="#p9">P9</a>) moves them
+              over.
             </p>
           </ui-section>
 
@@ -429,8 +434,11 @@
                 the outer panel is the box and header band, and each nested panel is a sub-head band.
               </li>
               <li>
-                It lives in <code>packages/brand/components</code> for now, like every new element (<a href="#d2">D2</a
-                >).
+                It lives in
+                <a href="../../../brand/components/" target="src-packages-brand-components"
+                  ><code>packages/brand/components</code></a
+                >
+                for now, like every new element (<a href="#d2">D2</a>).
               </li>
             </ul>
             <ui-accordion class="spell-code" styled open="0"
@@ -452,7 +460,10 @@
           <ui-section id="o7" header="1.7 Color elements" sticky collapsible dividing>
             <p>
               Four new elements, from the Color Palette and Color Set Chooser pages, in
-              <code>packages/brand/components</code> for now (<a href="#d2">D2</a>):
+              <a href="../../../brand/components/" target="src-packages-brand-components"
+                ><code>packages/brand/components</code></a
+              >
+              for now (<a href="#d2">D2</a>):
             </p>
             <ul>
               <li>
@@ -522,11 +533,12 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
+            collapsed
             id="p1"
             data-phase="1"
             data-status="done"
@@ -585,7 +597,9 @@
                   </li>
                   <li>
                     not yet tried by hand: scroll sync (no copy exists yet to scroll against); the
-                    <code>$/brand</code> alias waits for P2, when <code>packages/brand/src</code> exists
+                    <code>$/brand</code> alias waits for P2, when
+                    <a href="../../../brand/src/" target="src-packages-brand-src"><code>packages/brand/src</code></a>
+                    exists
                   </li>
                   <li>
                     both bundles with the header rebuilt (<a
@@ -629,14 +643,14 @@
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="todo"
+            data-status="done"
             header="P2 · Theme & Bundle"
             badge="3-4h"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -654,16 +668,86 @@
                     apart they are (a diff %)
                   </li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    where to see it: the specimen page
+                    <a
+                      href="../../../brand/components/components.spell.html"
+                      target="src-packages-brand-components-components-spell-html"
+                      ><code>packages/brand/components/components.spell.html</code></a
+                    >
+                    (Brand tab; page server only), and Spell UI's theme picker, where <b>Spell Brand</b> sits second,
+                    under Spell
+                  </li>
+                  <li>
+                    <code>spell-brand</code> theme (<a
+                      href="../../../ui/src/styles/themes/spell-brand.css"
+                      target="src-packages-ui-src-styles-themes-spell-brand-css"
+                      ><code>packages/ui/src/styles/themes/spell-brand.css</code></a
+                    >): a full copy of <code>spell</code> plus "Brand roles", the brand's own tokens as
+                    <code>--spell-*</code> (warm and tint surfaces, accent soft and ring, blob and flourish colours,
+                    shadow steps, eyebrow / lede / spell type), each light and dark; in <code>ThemeSheets.OWN</code>;
+                    documented in
+                    <a href="../../../ui/docs/theming.md" target="src-packages-ui-docs-theming-md"
+                      ><code>packages/ui/docs/theming.md</code></a
+                    >
+                  </li>
+                  <li>
+                    the copies' bundle,
+                    <a href="../../../brand/_assets/ui/brand-ui.js" target="src-packages-brand-assets-ui-brand-ui-js"
+                      ><code>packages/brand/_assets/ui/brand-ui.js</code></a
+                    >: <code>yarn build</code> in
+                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
+                    >; an ES module, not a classic script (<a href="#j4">J4</a>); 84 KB entry, one Solid (checked at
+                    build), every Font Awesome icon from disk
+                  </li>
+                  <li>
+                    <code>yarn compare [page...]</code> in
+                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
+                    >: screenshots each original and copy at the same size, writes <code>side.png</code> /
+                    <code>diff.png</code> and a diff % per page to <code>.compare/</code>; a rough guide (<a href="#c3"
+                      >C3</a
+                    >); tried on two pages against 404s (no copy exists yet)
+                  </li>
+                  <li>
+                    first gap found: a ticked checkbox isn't the brand's filled purple circle (<a href="#i1">I1</a>)
+                  </li>
+                  <li>
+                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> now has
+                    <a href="../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a>
+                    (<code>$/brand</code>), <code>components/</code> (<code>$/brand/components</code>, empty until P3),
+                    <a href="../../tsconfig.json" target="src-packages-docs-tsconfig-json"><code>tsconfig.json</code></a
+                    >, <code>yarn ts</code> / <code>format</code>; both scripts on the commands page (<code
+                      >commands:check</code
+                    >
+                    passes)
+                  </li>
+                  <li>
+                    checks: every <code>ui</code> test passes (4,552 browser, 218 SSR, 145 fork); <code>ui</code> and
+                    <code>brand</code> types pass; Spell UI site data and bundle rebuilt
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> <code>packages/ui/src/styles/themes/spell-brand.css</code>;
-                <code>packages/brand/vite.config.ts</code>; <code>packages/brand/src/brand-ui.entry.ts</code>;
-                <code>packages/brand/scripts/compare.ts</code>; yarn scripts <code>brand:build</code>,
-                <code>brand:compare</code> (+ <code>commands.json</code>, <code>yarn commands:check</code>)</ui-item
+                ><b>Files:</b>
+                <a
+                  href="../../../ui/src/styles/themes/spell-brand.css"
+                  target="src-packages-ui-src-styles-themes-spell-brand-css"
+                  ><code>packages/ui/src/styles/themes/spell-brand.css</code></a
+                >;
+                <a href="../../../brand/vite.config.ts" target="src-packages-brand-vite-config-ts"
+                  ><code>packages/brand/vite.config.ts</code></a
+                >; <code>packages/brand/src/brand-ui.entry.ts</code>;
+                <a href="../../../brand/scripts/compare.ts" target="src-packages-brand-scripts-compare-ts"
+                  ><code>packages/brand/scripts/compare.ts</code></a
+                >; yarn scripts <code>brand:build</code>, <code>brand:compare</code> (+ <code>commands.json</code>,
+                <code>yarn commands:check</code>)</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> <code>yarn brand:build</code> bundles one Solid; a smoke
                 <code>.spell.html</code> renders themed <code>&lt;ui-*&gt;</code> from the page server;
                 <code>brand:compare</code> writes its images</ui-item
-              ></ui-list
+              ><ui-item icon="compass"><b>Judgement calls:</b> <a href="#j4">J4</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -695,7 +779,11 @@
                 ><b>Files:</b> <code>packages/brand/components/ui-brand-panel/*</code>,
                 <code>.../ui-brand-field/*</code> (tsx, css, vocabulary, tests);
                 <code>packages/brand/vitest.config.ts</code>;
-                <code>packages/brand/components/components.spell.html</code></ui-item
+                <a
+                  href="../../../brand/components/components.spell.html"
+                  target="src-packages-brand-components-components-spell-html"
+                  ><code>packages/brand/components/components.spell.html</code></a
+                ></ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> vitest: render, collapse, slots, <code>showErrors()</code>, form validation; the
                 specimen page by eye</ui-item
@@ -854,7 +942,12 @@
                   <li>each page's diff % recorded in this doc</li>
                 </ul></ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> <code>spell-brand.css</code>; brand components; this plan doc</ui-item
+                ><b>Files:</b>
+                <a
+                  href="../../../ui/src/styles/themes/spell-brand.css"
+                  target="src-packages-ui-src-styles-themes-spell-brand-css"
+                  ><code>spell-brand.css</code></a
+                >; brand components; this plan doc</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> <code>brand:compare</code> numbers before and after; Owen looks at the Compare
                 views</ui-item
@@ -989,7 +1082,14 @@
                   >
                   <p><b>Net effect (A):</b></p>
                   <ul>
-                    <li>new <code>packages/ui/src/styles/themes/spell-brand.css</code>, only the differences</li>
+                    <li>
+                      new
+                      <a
+                        href="../../../ui/src/styles/themes/spell-brand.css"
+                        target="src-packages-ui-src-styles-themes-spell-brand-css"
+                        ><code>packages/ui/src/styles/themes/spell-brand.css</code></a
+                      >, only the differences
+                    </li>
                     <li>themes can say which theme they build on</li>
                     <li>docs pages keep today's <code>spell</code> look until you choose to fold the overlay in</li>
                   </ul>
@@ -1007,8 +1107,12 @@
                   <p><b>Net effect:</b></p>
                   <ul>
                     <li>
-                      new <code>packages/ui/src/styles/themes/spell-brand.css</code>, a full copy of
-                      <code>spell.css</code> to start
+                      new
+                      <a
+                        href="../../../ui/src/styles/themes/spell-brand.css"
+                        target="src-packages-ui-src-styles-themes-spell-brand-css"
+                        ><code>packages/ui/src/styles/themes/spell-brand.css</code></a
+                      >, a full copy of <code>spell.css</code> to start
                     </li>
                     <li>
                       docs pages stay on <code>spell</code> until the Docs Restyle phase (<a href="#p9">P9</a>) moves
@@ -1033,8 +1137,11 @@
                   ><p>
                     Where do the new GENERIC elements live: <code>&lt;ui-panel&gt;</code>, the extended
                     <code>&lt;ui-field&gt;</code>, and the four color elements? Your prompt says
-                    <code>&lt;ui-brand-xxx&gt;</code> in <code>packages/brand/components</code> "for now", but also
-                    calls these generic, to merge back into Spell UI.
+                    <code>&lt;ui-brand-xxx&gt;</code> in
+                    <a href="../../../brand/components/" target="src-packages-brand-components"
+                      ><code>packages/brand/components</code></a
+                    >
+                    "for now", but also calls these generic, to merge back into Spell UI.
                   </p>
                   <p>
                     An element written outside
@@ -1055,7 +1162,9 @@
                           >, with tests and a docs page. Page art that only the brand needs
                           (<code>&lt;ui-brand-flourish&gt;</code>, <code>&lt;ui-brand-logo&gt;</code>,
                           <code>&lt;ui-brand-checklist&gt;</code>, <code>&lt;ui-brand-composer&gt;</code> ...) goes in
-                          <code>packages/brand/components</code>.
+                          <a href="../../../brand/components/" target="src-packages-brand-components"
+                            ><code>packages/brand/components</code></a
+                          >.
                         </p>
                         <p>
                           Why recommended: no merge step later, and the generic ones are tested like every other ui
@@ -1066,8 +1175,11 @@
                       ><ui-segment
                         ><ui-label attached="top">B. Everything in brand first</ui-label>
                         <p>
-                          All new elements in <code>packages/brand/components</code> as
-                          <code>&lt;ui-brand-panel&gt;</code>, <code>&lt;ui-brand-color&gt;</code> ...; a later epic
+                          All new elements in
+                          <a href="../../../brand/components/" target="src-packages-brand-components"
+                            ><code>packages/brand/components</code></a
+                          >
+                          as <code>&lt;ui-brand-panel&gt;</code>, <code>&lt;ui-brand-color&gt;</code> ...; a later epic
                           moves the good ones into ui and renames them.
                         </p>
                         <p>
@@ -1109,7 +1221,9 @@
                       <code>&lt;ui-brand-panel&gt;</code>, <code>&lt;ui-brand-field&gt;</code>,
                       <code>&lt;ui-brand-color&gt;</code>, <code>-color-set</code>, <code>-color-picker</code>,
                       <code>-color-range</code>, and the page-art elements, all in
-                      <code>packages/brand/components/</code>
+                      <a href="../../../brand/components/" target="src-packages-brand-components"
+                        ><code>packages/brand/components/</code></a
+                      >
                     </li>
                     <li>a later epic moves the good ones into Spell UI and drops the <code>brand-</code></li>
                     <li>accepted cost: caveat <a href="#c1">C1</a></li>
@@ -1357,8 +1471,17 @@
                 ><ui-title
                   ><a class="plan-id" href="#d7">D7</a>
                   <span class="plan-title">Brand pages load one script, brand-ui.js</span></ui-title
-                ><ui-content
-                  ><p>
+                ><ui-content>
+                  <p>
+                    <b>Changed in P2:</b> built as an ES module with lazy chunks, not one classic script, and icons from
+                    Spell UI's own packs, not jsDelivr (judgement <a href="#j4">J4</a>). The bundle is
+                    <a href="../../../brand/_assets/ui/brand-ui.js" target="src-packages-brand-assets-ui-brand-ui-js"
+                      ><code>packages/brand/_assets/ui/brand-ui.js</code></a
+                    >, built by <code>yarn build</code> in
+                    <a href="../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
+                    >. The rest below is the plan as first written.
+                  </p>
+                  <p>
                     Every <code>.spell.html</code> page loads <code>packages/brand/_assets/brand-ui.js</code>: Solid,
                     Spell UI, the <code>&lt;ui-brand-*&gt;</code> elements, the site header and the
                     <code>spell-brand</code> theme, in one classic script.
@@ -1553,6 +1676,43 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item data-deferred="2026-10-04" id="j4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j4">J4</a>
+                  <ui-label class="plan-review" size="mini" basic color="grey" title="deferred 2026-10-04"
+                    >deferred</ui-label
+                  >
+                  <span class="plan-title">The copies' bundle is an ES module, not one classic script</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The plan (<a href="#d7">D7</a>) said the <code>.spell.html</code> pages would load ONE classic
+                    script, like the docs. Built that way, it would have to inline every theme sheet (27), both code
+                    engines, every emoji chunk and spell's highlighter: several megabytes on every page. So
+                    <code>brand-ui.js</code> is an ES module, split into lazy chunks, built the way Spell UI's own site
+                    bundle is.
+                  </p>
+                  <ul>
+                    <li>Gain: an 84 KB entry (28 KB gzipped); themes and engines load only when used.</li>
+                    <li>
+                      Gain: icons come from Spell UI's own packs on disk (a symlink), not jsDelivr, so they draw offline
+                      and every Font Awesome 7 icon works.
+                    </li>
+                    <li>
+                      Cost: the copies open only from the page server, not from <code>file://</code>. The originals
+                      already need it (four fetch local files), and so does Compare.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      a copy loads <code>&lt;script type="module" src="../_assets/ui/brand-ui.js"&gt;</code> and
+                      <code>brand-ui.css</code>
+                    </li>
+                    <li>caveat <a href="#c2">C2</a> no longer needs the internet for icons</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1586,12 +1746,41 @@
                 ><ui-title
                   ><a class="plan-id" href="#c2">C2</a>
                   <span class="plan-title">Brand pages need the internet and the page server</span></ui-title
-                ><ui-content
-                  ><ul>
-                    <li>Internet: icons come from jsDelivr; the originals load React from unpkg.</li>
+                ><ui-content>
+                  <ul>
+                    <li>Internet: the originals load React from unpkg and Font Awesome from jsDelivr.</li>
                     <li>
                       Page server: the Compare view, and four originals that fetch local files (Color Palette, Color Set
                       Chooser, Theme Creator, Design Guide), don't work from <code>file://</code>.
+                    </li>
+                    <li>
+                      Page server: every <code>.spell.html</code> copy too, since its bundle is an ES module (<a
+                        href="#j4"
+                        >J4</a
+                      >); its icons come from disk, so it needs no internet.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">The compare tool's diff % is a rough guide</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn compare</code> counts the share of pixels whose colour differs (R + G + B by more than
+                    12, low enough that the faint lavender and ivory tints count). But one line of text wrapping
+                    differently moves everything below it, so a page can be nearly right and still score high.
+                  </p>
+                  <ul>
+                    <li>
+                      Example: Spell Docs against a blank 404 page scored only 5% at first (threshold 48): mostly white
+                      against white. Lowered to 12.
+                    </li>
+                    <li>
+                      Use the number to see a page get better or worse between runs; judge by <code>side.png</code> or
+                      the Compare view.
                     </li>
                   </ul></ui-content
                 ></ui-accordion
@@ -1650,7 +1839,31 @@
 
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item data-reviewed="2026-10-04" id="i1" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title"
+                    >A ticked checkbox shows a bare checkmark, not the brand's filled purple circle</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    On the specimen page (<a
+                      href="../../../brand/components/components.spell.html"
+                      target="src-packages-brand-components-components-spell-html"
+                      ><code>packages/brand/components/components.spell.html</code></a
+                    >), <code>&lt;ui-checkbox selected&gt;</code> in <code>spell-brand</code> draws a round box with a
+                    thin checkmark inside. The brand's to-do circle, when done, is a FILLED purple circle with a white
+                    check (Spell App's build checklist, the habit tracker). For the Convergence phase (<a href="#p8"
+                      >P8</a
+                    >): a theme rule, or a checkbox token for the checked fill.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section
@@ -1687,6 +1900,39 @@
                     right says "Not built yet". Try each mode and width: Overlay shows the slider; Original or Spell
                     alone fill the width; 1600 shrinks the page, 390 shows its phone layout. Reload: the same view comes
                     back.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v3">V3</a>
+                  <span class="plan-title">See Spell UI in the Spell Brand theme</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Open the Spell UI tab, open the theme picker (palette button). "Spell Brand" is second, under Spell.
+                    Pick it: the components look the same as Spell for now (it's a copy), and the choice survives a
+                    reload.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v4">V4</a>
+                  <span class="plan-title">Open the brand specimen page, light and dark</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Open
+                    <a
+                      href="../../../brand/components/components.spell.html"
+                      target="src-packages-brand-components-components-spell-html"
+                      ><code>packages/brand/components/components.spell.html</code></a
+                    >
+                    from the page server. Buttons are pills, the h1 is serif with an italic lede, eyebrows are small
+                    mono capitals, and eight brand-role swatches show (tint, warm, selected, inverse, accent, accent
+                    soft, blob, code). Switch to dark with the sun button in the header: the canvas turns aubergine, the
+                    swatches change.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1822,6 +2068,50 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T14:40-04:00">2026-10-04 14:40</time></ui-date> P1
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T15:02-04:00">2026-10-04 15:02</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T15:12-04:00">2026-10-04 15:12</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:09-04:00">2026-10-04 16:09</time></ui-date> J4 deferred: The
+                  copies' bundle is an ES module, not one classic script</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:11-04:00">2026-10-04 16:11</time></ui-date> I1 closed: A
+                  ticked checkbox shows a bare checkmark, not the brand's filled purple circle</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:11-04:00">2026-10-04 16:11</time></ui-date> I1 reviewed:
+                  fixed: new ui-checkbox tokens --ui-checkbox-checked-background / -border-color / -mark-color;
+                  spell-brand sets them to primary + white</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:11-04:00">2026-10-04 16:11</time></ui-date> I1 fixed: three
+                  checked-state tokens on ui-checkbox (defaults unchanged); spell-brand fills a ticked box purple with a
+                  white check</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

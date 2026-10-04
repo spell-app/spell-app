@@ -1,0 +1,668 @@
+/*
+ * Spell Brand theme:  the Spell brand as Claude Design drew it (`packages/brand/spell-design-system/`), converging
+ * on its pages, `@layer ui.theme`.  Epic `design-system` (`packages/docs/epics/design-system/design-system.html`).
+ * - Started 2026-10-04 as a FULL COPY of `spell.css` (decision D1):  the two may drift;  whether this one replaces
+ *   `spell` is a later call.  Everything below "Brand roles" is `spell.css`'s, then changed only where a brand page
+ *   (`packages/brand/compare.html`) shows the copy differs from the original.
+ * - OUR OWN theme (`ThemeSheets.OWN`), applied like `spell`:  on top of `classic.css`.
+ * - What it adds to `spell`:  "Brand roles", the brand's own semantic tokens (`tokens/theme.css`) that no `--ui-*`
+ *   token covers, as `--spell-*`, each a `light-dark()` pair:
+ *   - surfaces:  `--spell-surface-tint` (lavender wash:  asides, sidebars), `-warm` (ivory:  anything "alive"),
+ *     `-selected`, `-code`, `-inverse` (aubergine panels)
+ *   - text:  `--spell-text-strong` ... `-inverse`;  accent:  `--spell-accent`, `-hover`, `-press`, `-soft`, `-ring`
+ *   - borders, status (`--spell-success` / `-soft` ...), art (`--spell-blob`, `-blob-2`, `--spell-line-flourish`)
+ *   - shadows `--spell-shadow-xs` ... `-lg`, and the type roles (`--spell-type-eyebrow`, `-lede`, `-spell` ...)
+ *   - the Polished Ivory ladder (`--spell-accent-25` ... `-800`) beside `spell`'s violet and brand primitives
+ *   `<ui-brand-*>` elements (`packages/brand/components/`) and the `.spell.html` pages read these;  plain `<ui-*>`
+ *   elements never do.
+ * - Gaps (what no token reaches):  the plan doc's "What the theme can't do today" table (Overview 1.4).
+ *
+ * `spell.css`'s own notes, kept as they were:
+ */
+/*
+ * Spell theme:  the Spell brand (`packages/brand/spell-design-system/`) as a `@spell-app/ui` theme, `@layer ui.theme`.
+ * - OUR OWN theme, not a Fomantic port:  `ThemeSheets.OWN`, listed apart from `ThemeSheets.names`.  Applied like
+ *   one, ON TOP of `classic.css`, so every classic token a brand value replaces is restated here:  type, the size
+ *   ladder, radii, ink, borders, shadows, the whole palette, the message colours, links, focus, highlight.
+ * - The default look of every doc site:  the Spell UI docs (`ThemePreference`) and `packages/docs` pages
+ *   (`spell-ui.entry.js`).
+ * - Source of each value:  the brand's `tokens/palette.css` (17-step OKLCH ladders, as hex), `tokens/theme.css`
+ *   (what each step MEANS, light and dark), `tokens/typography.css`, `tokens/spacing.css`, `components.css`.
+ *   - primary:  Spell Purple, `violet-600` light / lilac `violet-300` dark, aubergine text on lilac
+ *   - secondary and grey:  the "brand" ladder (House of Owen grey-blue);  neutrals, borders and text too
+ *   - accent:  Polished Ivory, as the `brown` hue (the brand's Theme Creator mapping)
+ *   - dark:  AUBERGINE, never black:  `violet-950` canvas, `violet-925` cards, lilac glows on raised surfaces
+ *   - every other hue:  the brand ladder of the same name, `600` light (`700` where white needs it for 4.5:1),
+ *     `400` dark;  `--ui-<hue>-on` re-checked (ink where white fails 4.5:1)
+ * - Primitives:  the palette steps used more than once, as `--spell-<ladder>-<step>` on `:root`.  Components only
+ *   ever read the semantic `--ui-*` tokens below.
+ * - Fonts:  `'Spell Serif'` is the INSTALLED Palatino family only (macOS / iOS `Palatino`, Windows
+ *   `Palatino Linotype` / `Book Antiqua`, Linux `P052` / `TeX Gyre Pagella`), as the brand's `tokens/fonts.css` lists
+ *   them;  nowhere installed (some Linux, Android):  the stack's generic `serif`.  NO font files ship with the theme
+ *   (Owen, 2026-10-04:  the brand's P052 `.otf` fallback was ~540 KB, and AGPL).  Body:  the system sans;  code:
+ *   the system mono.
+ *   - The `@font-face` rules sit OUTSIDE the layer (they can't be layered) and work from the PAGE copy;  shadow
+ *     roots use the page's fonts
+ *   - headings:  serif, bold `h1` / `h2`, regular `h3` and content headers, sans semibold `h4`-`h6`;  a header's
+ *     sub header is the brand's italic serif LEDE;  a `sub` header the brand's mono EYEBROW
+ * - Shape:  pill buttons, labels and progress bars, 12px inputs and menus, 16px cards / segments / messages /
+ *   toasts, 22px modals, 8px popups;  round checkboxes (the brand's to-do circle).  Soft layered, violet-tinted
+ *   shadows (`tokens/theme.css` `--shadow-xs` ... `-lg`), each ONE list whose layers are `light-dark()` colours, so
+ *   the dark glows switch with the scheme like every other token.
+ * - Rules beyond tokens (interfaces.dev's checklist, all page-safe):
+ *   - focus:  a 3px violet ring, 2px off the box (the tokens `reset.css` / `native.css` draw it with)
+ *   - buttons press to `scale: 0.97` (200ms ease-out), only with `prefers-reduced-motion: no-preference`
+ *   - `text-wrap: balance` on headings, `pretty` on ledes;  `tabular-nums` in tables and statistics
+ *   - links:  `text-underline-position: from-font`, `text-decoration-skip-ink: auto`;  the underline softens to
+ *     40% and comes back on hover, only where the device hovers
+ *   - images:  a 1px 8% black / white outline inside the edge, so a white picture doesn't melt into the page
+ *   - the page root:  font smoothing;  headings and sections land below a sticky header (`scroll-margin-top`)
+ *   - `html.ui-scheme-switching` (set for one frame by `ThemePreference.applyScheme()`):  no transitions, so a
+ *     scheme switch doesn't animate every colour on the page
+ * - NOT taken from the brand (no `ui` token, or a component change):  the modal scrim's 4px blur;  the
+ *   switch knob's spring;  coloured backgrounds' lavender blobs and flourish lines (page art, not a theme);  a
+ *   white-with-hairline DEFAULT button (ours stays a quiet tinted fill:  a button has no border token)
+ */
+
+@font-face {
+  font-family: "Spell Serif";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local("Palatino"),
+    local("Palatino-Roman"),
+    local("Palatino Linotype"),
+    local("PalatinoLinotype-Roman"),
+    local("Book Antiqua"),
+    local("P052 Roman"),
+    local("P052-Roman"),
+    local("TeX Gyre Pagella");
+}
+@font-face {
+  font-family: "Spell Serif";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local("Palatino Bold"),
+    local("Palatino-Bold"),
+    local("Palatino Linotype Bold"),
+    local("PalatinoLinotype-Bold"),
+    local("Book Antiqua Bold"),
+    local("P052 Bold"),
+    local("P052-Bold"),
+    local("TeX Gyre Pagella Bold");
+}
+@font-face {
+  font-family: "Spell Serif";
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+  src:
+    local("Palatino Italic"),
+    local("Palatino-Italic"),
+    local("Palatino Linotype Italic"),
+    local("PalatinoLinotype-Italic"),
+    local("Book Antiqua Italic"),
+    local("P052 Italic"),
+    local("P052-Italic"),
+    local("TeX Gyre Pagella Italic");
+}
+@font-face {
+  font-family: "Spell Serif";
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+  src:
+    local("Palatino Bold Italic"),
+    local("Palatino-BoldItalic"),
+    local("Palatino Linotype Bold Italic"),
+    local("PalatinoLinotype-BoldItalic"),
+    local("Book Antiqua Bold Italic"),
+    local("P052 Bold Italic"),
+    local("P052-BoldItalic"),
+    local("TeX Gyre Pagella Bold Italic");
+}
+
+@layer ui.theme {
+  :root {
+    /*******************************
+          Primitives (brand palette)
+    *******************************/
+
+    /* Violet:  Spell Purple (600), lilac (300), lavender (150), aubergine (900 / 950) */
+    --spell-violet-25: #fcfcff;
+    --spell-violet-50: #f7f7ff;
+    --spell-violet-100: #eaeaff;
+    --spell-violet-150: #e0dfff;
+    --spell-violet-200: #d4d3ff;
+    --spell-violet-300: #b8b4ff;
+    --spell-violet-400: #968aff;
+    --spell-violet-500: #7b68e9;
+    --spell-violet-600: #6550ca;
+    --spell-violet-700: #503ca8;
+    --spell-violet-800: #3e2d86;
+    --spell-violet-850: #342572;
+    --spell-violet-900: #2a1d60;
+    --spell-violet-925: #221750;
+    --spell-violet-950: #1a1040;
+    --spell-violet-975: #0f092b;
+    /* Brand:  House of Owen grey-blue, the neutrals */
+    --spell-brand-25: #fcfdff;
+    --spell-brand-50: #f7f9ff;
+    --spell-brand-75: #f3f5fd;
+    --spell-brand-100: #eef0fa;
+    --spell-brand-150: #e6eaf7;
+    --spell-brand-200: #dde2f4;
+    --spell-brand-300: #c8cee7;
+    --spell-brand-400: #a9b1cf;
+    --spell-brand-600: #767d9a;
+    --spell-brand-700: #5d637d;
+    --spell-brand-900: #2b2f3f;
+    /* Dark-mode hairlines and tints:  `brand-300` / lilac at an alpha (`tokens/theme.css`) */
+    --spell-hairline-subtle: rgb(200 206 231 / 0.16);
+    --spell-hairline: rgb(200 206 231 / 0.22);
+    --spell-hairline-strong: rgb(200 206 231 / 0.34);
+    --spell-lilac-soft: rgb(184 180 255 / 0.16);
+
+    /*******************************
+         Brand roles (spell-brand)
+    *******************************/
+
+    /* Polished Ivory:  the warm accent ladder (`palette.css` `accent-*`) */
+    --spell-accent-25: #fffdf8;
+    --spell-accent-50: #fdf9f1;
+    --spell-accent-75: #faf5ea;
+    --spell-accent-100: #f7efe2;
+    --spell-accent-150: #f1e7d4;
+    --spell-accent-200: #eaddc4;
+    --spell-accent-300: #d7c5a2;
+    --spell-accent-800: #534323;
+    --spell-violet-75: #f1f1ff;
+    --spell-brand-500: #8e96b5;
+    --spell-brand-800: #454a5f;
+
+    /* Surfaces (`tokens/theme.css`):  tint = lavender wash, warm = ivory, inverse = aubergine panels */
+    --spell-surface-tint: light-dark(var(--spell-brand-50), rgb(200 206 231 / 0.07));
+    --spell-surface-selected: light-dark(var(--spell-violet-100), var(--spell-lilac-soft));
+    --spell-surface-warm: light-dark(var(--spell-accent-75), #2c2152);
+    --spell-surface-code: light-dark(var(--spell-brand-75), var(--spell-violet-975));
+    --spell-surface-inverse: light-dark(var(--spell-violet-900), var(--spell-violet-50));
+
+    /* Text */
+    --spell-text-strong: light-dark(var(--spell-violet-900), var(--spell-violet-25));
+    --spell-text-body: light-dark(var(--spell-brand-900), var(--spell-brand-100));
+    --spell-text-muted: light-dark(var(--spell-brand-700), var(--spell-brand-300));
+    --spell-text-subtle: light-dark(var(--spell-brand-500), var(--spell-brand-400));
+    --spell-text-accent: light-dark(var(--spell-violet-600), var(--spell-violet-300));
+    --spell-text-on-accent: light-dark(#fff, var(--spell-violet-950));
+    --spell-text-inverse: light-dark(#fff, var(--spell-violet-900));
+
+    /* Accent:  Spell Purple light, lilac dark */
+    --spell-accent: light-dark(var(--spell-violet-600), var(--spell-violet-300));
+    --spell-accent-hover: light-dark(var(--spell-violet-700), var(--spell-violet-200));
+    --spell-accent-press: light-dark(var(--spell-violet-800), var(--spell-violet-400));
+    --spell-accent-soft: light-dark(var(--spell-violet-100), var(--spell-lilac-soft));
+    --spell-accent-soft-hover: light-dark(var(--spell-violet-150), rgb(184 180 255 / 0.26));
+    --spell-accent-ring: light-dark(rgb(101 80 202 / 0.28), rgb(184 180 255 / 0.4));
+
+    /* Borders */
+    --spell-border-subtle: light-dark(var(--spell-brand-100), var(--spell-hairline-subtle));
+    --spell-border-default: light-dark(var(--spell-brand-150), var(--spell-hairline));
+    --spell-border-strong: light-dark(var(--spell-brand-300), var(--spell-hairline-strong));
+    --spell-border-accent: var(--spell-violet-400);
+
+    /* Status */
+    --spell-success: light-dark(#00853a, #8ef6a5);
+    --spell-success-soft: light-dark(#e7ffea, rgb(110 231 160 / 0.14));
+    --spell-warning: light-dark(#a66900, #ffe0bd);
+    --spell-warning-soft: light-dark(#fff8f1, rgb(252 200 90 / 0.14));
+    --spell-danger: light-dark(#d90021, #ffada6);
+    --spell-danger-soft: light-dark(#fff0ee, rgb(255 140 150 / 0.14));
+    --spell-spark: #ffc075;
+
+    /* Art:  blobs and flourish lines (page art, `<ui-brand-blob>` / `<ui-brand-flourish>`) */
+    --spell-blob: light-dark(var(--spell-violet-150), var(--spell-lilac-soft));
+    --spell-blob-2: light-dark(var(--spell-brand-100), rgb(200 206 231 / 0.08));
+    --spell-line-flourish: var(--spell-violet-400);
+
+    /* Shadows `xs` ... `lg`:  the brand's steps, both schemes in one list (as `--ui-shadow-*` below) */
+    --spell-shadow-xs: var(--ui-shadow-subtle);
+    --spell-shadow-sm: var(--ui-shadow-raised);
+    --spell-shadow-md: var(--ui-shadow-floating);
+    --spell-shadow-lg: var(--ui-shadow-floating-hover);
+    --spell-shadow-focus: 0 0 0 3px var(--spell-accent-ring);
+
+    /* Type roles (`typography.css`):  serif headlines and spells, sans UI, mono eyebrows and code */
+    --spell-font-serif: var(--ui-font-family-heading);
+    --spell-font-sans: var(--ui-font-family);
+    --spell-font-mono: var(--ui-font-family-mono);
+    --spell-tracking-display: -0.022em;
+    --spell-tracking-heading: -0.012em;
+    --spell-tracking-eyebrow: 0.14em;
+    --spell-type-display: 700 64px/1.08 var(--spell-font-serif);
+    --spell-type-h1: 700 48px/1.08 var(--spell-font-serif);
+    --spell-type-h2: 700 30px/1.25 var(--spell-font-serif);
+    --spell-type-h3: 400 24px/1.25 var(--spell-font-serif);
+    --spell-type-h4: 600 17px/1.25 var(--spell-font-sans);
+    --spell-type-lede: italic 400 20px/1.25 var(--spell-font-serif);
+    --spell-type-body: 400 15px/1.5 var(--spell-font-sans);
+    --spell-type-ui: 500 13px/1.3 var(--spell-font-sans);
+    --spell-type-spell: 400 17px/1.5 var(--spell-font-serif);
+    --spell-type-code: 400 13px/1.6 var(--spell-font-mono);
+    --spell-type-eyebrow: 500 12px/1 var(--spell-font-mono);
+
+    /* Shape and motion (`spacing.css`) */
+    --spell-radius-xl: 22px;
+    --spell-radius-2xl: 28px;
+    --spell-control-h-sm: 30px;
+    --spell-control-h-md: 36px;
+    --spell-control-h-lg: 44px;
+    --spell-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --spell-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+    --spell-dur-fast: 120ms;
+    --spell-dur-base: 200ms;
+    --spell-dur-slow: 360ms;
+
+    /*******************************
+                 Type
+    *******************************/
+
+    --ui-font-size: 16px;
+    --ui-font-family:
+      system-ui, -apple-system, "Segoe UI", "Noto Sans", Cantarell, Ubuntu, "Helvetica Neue", Arial, sans-serif,
+      "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --ui-font-family-heading:
+      "Spell Serif", Palatino, "Palatino Linotype", "Book Antiqua", P052, "TeX Gyre Pagella", "URW Palladio L", serif;
+    --ui-font-family-mono:
+      ui-monospace, "SF Mono", Menlo, Consolas, "Cascadia Mono", "DejaVu Sans Mono", "Liberation Mono", monospace;
+    --ui-line-height: 1.5;
+    --ui-line-height-heading: 1.25;
+
+    /* Sizes:  our own ladder again (classic's is Fomantic's px ladder at 14px) */
+    --ui-size-mini: 0.625;
+    --ui-size-tiny: 0.75;
+    --ui-size-small: 0.875;
+    --ui-size-large: 1.125;
+    --ui-size-big: 1.25;
+    --ui-size-huge: 1.5;
+    --ui-size-massive: 2;
+
+    /*******************************
+                 Shape
+    *******************************/
+
+    --ui-radius-s: 8px;
+    --ui-radius-m: 12px;
+    --ui-radius-l: 16px;
+    --ui-button-radius: var(--ui-radius-pill);
+    --ui-label-radius: var(--ui-radius-pill);
+    --ui-progress-radius: var(--ui-radius-pill);
+    --ui-checkbox-radius: var(--ui-radius-circle);
+    /* spell-brand:  the brand's done to-do, a FILLED purple circle with a white check (issue I1) */
+    --ui-checkbox-checked-background: var(--ui-primary);
+    --ui-checkbox-checked-border-color: var(--ui-primary);
+    --ui-checkbox-checked-mark-color: var(--ui-primary-on);
+    --ui-card-radius: var(--ui-radius-l);
+    --ui-segment-radius: var(--ui-radius-l);
+    --ui-message-radius: var(--ui-radius-l);
+    --ui-toast-radius: var(--ui-radius-l);
+    --ui-modal-radius: 22px;
+    --ui-popup-radius: var(--ui-radius-s);
+
+    /*******************************
+            Ink, text, surfaces
+    *******************************/
+
+    /* Ink:  aubergine-black on light, violet-white on dark;  the text roles below are the brand's own steps */
+    --ui-ink-on-light: var(--spell-violet-950);
+    --ui-ink-on-dark: var(--spell-violet-25);
+    --ui-text-color: light-dark(var(--spell-brand-900), var(--spell-brand-100));
+    --ui-text-dark: light-dark(var(--spell-violet-900), var(--spell-violet-25));
+    --ui-text-muted: light-dark(var(--spell-brand-700), var(--spell-brand-300));
+    /* between `brand-600` (3.99:1, too faint for text) and `brand-700`:  4.5:1 on the canvas */
+    --ui-text-light: light-dark(
+      color-mix(in oklab, var(--spell-brand-600) 60%, var(--spell-brand-700)),
+      var(--spell-brand-400)
+    );
+
+    --ui-background: light-dark(var(--spell-brand-25), var(--spell-violet-950));
+    --ui-surface: light-dark(oklch(1 0 0), var(--spell-violet-925));
+    --ui-surface-muted: light-dark(var(--spell-brand-50), var(--spell-violet-900));
+    --ui-surface-strong: light-dark(var(--spell-brand-100), var(--spell-violet-850));
+    /* selection and highlighted rows:  lavender */
+    --ui-highlight: light-dark(var(--spell-violet-150), var(--spell-violet-800));
+
+    /* Borders:  hairlines, a step stronger on hover, violet on focus */
+    --ui-border-color: light-dark(var(--spell-brand-150), var(--spell-hairline));
+    --ui-border-color-internal: light-dark(var(--spell-brand-100), var(--spell-hairline-subtle));
+    --ui-border-color-strong: light-dark(var(--spell-brand-300), var(--spell-hairline-strong));
+    --ui-border-color-selected: light-dark(var(--spell-brand-300), var(--spell-hairline-strong));
+    --ui-border-color-selected-strong: light-dark(var(--spell-brand-400), rgb(200 206 231 / 0.5));
+
+    /* Code wells:  the brand's `--surface-code` (also `packages/docs`' inline code and `pre`) */
+    --ui-code-background: light-dark(var(--spell-brand-75), var(--spell-violet-975));
+
+    /*******************************
+                Shadows
+    *******************************/
+
+    /*
+     * `tokens/theme.css` `--shadow-xs` ... `-lg`:  grey-blue and soft in light;  near-black plus a lilac ring, glow
+     * and top highlight in dark.  Both schemes' layers in ONE list, the other scheme's `transparent`.
+     */
+    --ui-shadow-ink: light-dark(var(--spell-brand-900), var(--spell-violet-975));
+    --ui-shadow-subtle:
+      0 1px 2px light-dark(rgb(43 47 63 / 0.06), rgb(6 3 20 / 0.4)),
+      inset 0 1px 0 light-dark(transparent, rgb(255 255 255 / 0.04));
+    --ui-shadow-raised:
+      0 1px 2px light-dark(rgb(43 47 63 / 0.05), rgb(6 3 20 / 0.4)),
+      0 2px 8px -2px light-dark(rgb(43 47 63 / 0.08), transparent),
+      0 0 0 1px light-dark(transparent, rgb(184 180 255 / 0.05)),
+      0 0 22px -6px light-dark(transparent, rgb(150 138 255 / 0.28)),
+      inset 0 1px 0 light-dark(transparent, rgb(255 255 255 / 0.05));
+    --ui-shadow-floating:
+      0 1px 2px light-dark(rgb(43 47 63 / 0.05), transparent),
+      0 10px 28px -10px light-dark(rgb(43 47 63 / 0.18), transparent),
+      0 2px 4px light-dark(transparent, rgb(6 3 20 / 0.45)), 0 0 0 1px light-dark(transparent, rgb(184 180 255 / 0.06)),
+      0 0 32px -6px light-dark(transparent, rgb(150 138 255 / 0.34)),
+      inset 0 1px 0 light-dark(transparent, rgb(255 255 255 / 0.06));
+    --ui-shadow-floating-hover:
+      0 2px 4px light-dark(rgb(43 47 63 / 0.06), rgb(6 3 20 / 0.5)),
+      0 24px 56px -16px light-dark(rgb(43 47 63 / 0.26), rgb(6 3 20 / 0.7)),
+      0 0 40px -8px light-dark(transparent, rgb(150 138 255 / 0.3));
+    --ui-shadow-overlay: var(--ui-shadow-floating-hover);
+
+    /* Surfaces wear a hairline AND a soft shadow (brand cards) */
+    --ui-card-border-color: light-dark(var(--spell-brand-100), var(--spell-hairline-subtle));
+    --ui-card-hover-border-color: var(--ui-border-color);
+    --ui-card-shadow: var(--ui-shadow-raised);
+    --ui-card-hover-shadow: var(--ui-shadow-floating);
+    --ui-segment-border-color: light-dark(var(--spell-brand-100), var(--spell-hairline-subtle));
+    --ui-segment-shadow: var(--ui-shadow-raised);
+    --ui-segment-raised-shadow: var(--ui-shadow-floating);
+    --ui-modal-shadow: var(--ui-shadow-floating-hover);
+    /* the scrim:  aubergine at 36% (the brand's 4px blur has no token) */
+    --ui-dimmer-background: light-dark(rgb(26 15 63 / 0.36), rgb(6 3 20 / 0.6));
+
+    /*******************************
+                Palette
+    *******************************/
+
+    /* `onLight` / `onDark` bases, from the brand ladders;  `-on` where it differs from `colors.css`' pick */
+    --ui-red-on-light: #d90021; /* red-600 */
+    --ui-red-on-dark: #ff766e; /* red-400 */
+    --ui-orange-on-light: #fc7100; /* orange-500:  white fails at 600 too, ink reads */
+    --ui-orange-on-dark: #ff9f6d; /* orange-400 */
+    --ui-yellow-on-light: #eab300; /* yellow-500 */
+    --ui-yellow-on-dark: #ffce59; /* yellow-400 */
+    --ui-olive-on-light: #6dad00; /* lime-600 */
+    --ui-olive-on-dark: #9fe54d; /* lime-400 */
+    --ui-green-on-light: #00853a; /* green-700:  the brand's success */
+    --ui-green-on-dark: #51e07b; /* green-400 */
+    --ui-teal-on-light: #007c6f; /* teal-700:  white reads (5.1:1) */
+    --ui-teal-on-dark: #50d3c0; /* teal-400 */
+    --ui-teal-on: light-dark(oklch(1 0 0), var(--ui-ink-on-light));
+    --ui-blue-on-light: #1a67e0; /* blue-600 */
+    --ui-blue-on-dark: #69a1ff; /* blue-400 */
+    --ui-violet-on-light: var(--spell-violet-600);
+    --ui-violet-on-dark: var(--spell-violet-300);
+    --ui-purple-on-light: #9233e0; /* purple-600 */
+    --ui-purple-on-dark: #bd82ff; /* purple-400 */
+    --ui-pink-on-light: #d60981; /* pink-600 */
+    --ui-pink-on-dark: #ff76b3; /* pink-400 */
+    --ui-brown-on-light: #867044; /* accent-600:  Polished Ivory's ladder */
+    --ui-brown-on-dark: #baa479; /* accent-400 */
+    --ui-grey-on-light: var(--spell-brand-700); /* white fails on `brand-600` (4.1:1) */
+    --ui-grey-on-dark: var(--spell-brand-400);
+    --ui-black-on-light: var(--spell-violet-900); /* aubergine:  the brand's inverse panels */
+    --ui-black-on-dark: var(--spell-violet-850);
+    --ui-info-on-light: var(--spell-violet-400);
+    --ui-info-on-dark: var(--spell-violet-300);
+    --ui-warning-on-light: #f69e00; /* amber-500 */
+    --ui-warning-on-dark: #ffc075; /* amber-400 */
+
+    /* Hue text:  `colors.css`' recipe again (classic hand-picks yellow / olive / green / teal) */
+    --ui-yellow-text: light-dark(
+      oklch(from var(--ui-yellow) min(l, 0.5) c h),
+      oklch(from var(--ui-yellow) max(l, 0.78) c h)
+    );
+    --ui-olive-text: light-dark(
+      oklch(from var(--ui-olive) min(l, 0.5) c h),
+      oklch(from var(--ui-olive) max(l, 0.78) c h)
+    );
+    --ui-green-text: light-dark(
+      oklch(from var(--ui-green) min(l, 0.5) c h),
+      oklch(from var(--ui-green) max(l, 0.78) c h)
+    );
+    --ui-teal-text: light-dark(oklch(from var(--ui-teal) min(l, 0.5) c h), oklch(from var(--ui-teal) max(l, 0.78) c h));
+
+    /* Hue tints:  the ladders' `100` steps light;  dark keeps `colors.css`' recipe */
+    --ui-red-background: light-dark(#ffe8e6, oklch(from var(--ui-red) 0.28 calc(c * 0.35) h));
+    --ui-orange-background: light-dark(#ffefe7, oklch(from var(--ui-orange) 0.28 calc(c * 0.35) h));
+    --ui-yellow-background: light-dark(#fff8e8, oklch(from var(--ui-yellow) 0.28 calc(c * 0.35) h));
+    --ui-olive-background: light-dark(#eaffd8, oklch(from var(--ui-olive) 0.28 calc(c * 0.35) h));
+    --ui-green-background: light-dark(#daffe0, oklch(from var(--ui-green) 0.28 calc(c * 0.35) h));
+    --ui-teal-background: light-dark(#d9fbf4, oklch(from var(--ui-teal) 0.28 calc(c * 0.35) h));
+    --ui-blue-background: light-dark(#e4eeff, oklch(from var(--ui-blue) 0.28 calc(c * 0.35) h));
+    --ui-violet-background: light-dark(var(--spell-violet-100), var(--spell-lilac-soft));
+    --ui-purple-background: light-dark(#f2e9ff, oklch(from var(--ui-purple) 0.28 calc(c * 0.35) h));
+    --ui-pink-background: light-dark(#ffe9f0, oklch(from var(--ui-pink) 0.28 calc(c * 0.35) h));
+    --ui-brown-background: light-dark(#f7efe2, #2c2152); /* ivory;  dark:  the brand's warm surface */
+    --ui-brown-text: light-dark(#534323, #eaddc4); /* accent-800 / accent-200 */
+    --ui-grey-background: light-dark(var(--spell-brand-100), rgb(200 206 231 / 0.07));
+    --ui-black-background: light-dark(var(--spell-brand-100), rgb(200 206 231 / 0.07));
+
+    /* Primary:  Spell Purple;  hover / press step the ladder (lighter in dark), as the brand's buttons do */
+    --ui-primary: var(--ui-violet);
+    --ui-primary-inverted: var(--ui-violet-inverted);
+    --ui-primary-on: var(--ui-violet-on);
+    --ui-primary-inverted-on: var(--ui-violet-inverted-on);
+    --ui-primary-hover: light-dark(var(--spell-violet-700), var(--spell-violet-200));
+    --ui-primary-focus: light-dark(var(--spell-violet-700), var(--spell-violet-200));
+    --ui-primary-down: light-dark(var(--spell-violet-800), var(--spell-violet-400));
+    --ui-primary-active: light-dark(var(--spell-violet-700), var(--spell-violet-200));
+    --ui-primary-text: light-dark(var(--spell-violet-600), var(--spell-violet-300));
+    --ui-primary-header: light-dark(var(--spell-violet-800), var(--spell-violet-200));
+    --ui-primary-border: var(--spell-violet-400);
+    --ui-primary-background: light-dark(var(--spell-violet-100), var(--spell-lilac-soft));
+
+    /* Secondary:  the brand's grey-blue */
+    --ui-secondary: var(--ui-grey);
+    --ui-secondary-inverted: var(--ui-grey-inverted);
+    --ui-secondary-on: var(--ui-grey-on);
+    --ui-secondary-inverted-on: var(--ui-grey-inverted-on);
+
+    /* Messages:  each ladder's palest tint, its 200 hairline, its 700-850 text;  dark:  the colour at 14% */
+    --ui-positive-text: light-dark(#006229, #8ef6a5);
+    --ui-positive-header: light-dark(#005020, #b8fec5);
+    --ui-positive-border: light-dark(#b8fec5, rgb(110 231 160 / 0.3));
+    --ui-positive-background: light-dark(#f0fff2, rgb(110 231 160 / 0.12));
+    --ui-negative-text: light-dark(#b00018, #ffada6);
+    --ui-negative-header: light-dark(#880010, #ffcfca);
+    --ui-negative-border: light-dark(#ffcfca, rgb(255 140 150 / 0.3));
+    --ui-negative-background: light-dark(#fff6f5, rgb(255 140 150 / 0.12));
+    --ui-warning-text: light-dark(#794b00, #ffe0bd);
+    --ui-warning-header: light-dark(#623c00, #ffeedc);
+    --ui-warning-border: light-dark(#ffe0bd, rgb(252 200 90 / 0.3));
+    --ui-warning-background: light-dark(#fffbf6, rgb(252 200 90 / 0.12));
+    /* info:  lavender, the brand's tint for asides */
+    --ui-info-text: light-dark(var(--spell-violet-800), var(--spell-violet-200));
+    --ui-info-header: light-dark(var(--spell-violet-900), var(--spell-violet-100));
+    --ui-info-border: light-dark(var(--spell-violet-200), rgb(184 180 255 / 0.3));
+    --ui-info-background: light-dark(var(--spell-violet-50), rgb(184 180 255 / 0.12));
+
+    /* Page accents */
+    --ui-link: light-dark(var(--spell-violet-600), var(--spell-violet-300));
+    --ui-link-hover: light-dark(var(--spell-violet-700), var(--spell-violet-200));
+    /* focus:  a 3px violet ring off the box;  `violet-500` (4.3:1) where the brand's 28% halo would be 1.5:1 */
+    --ui-focus-width: 3px;
+    --ui-focus-color: light-dark(var(--spell-violet-500), var(--spell-violet-300));
+    --ui-focus-border: var(--spell-violet-400);
+
+    /*******************************
+              Components
+    *******************************/
+
+    /* Buttons:  the brand's UI weight (500);  the default button a quiet grey-blue fill, aubergine text */
+    --ui-button-font-weight: 500;
+    --ui-button-background: light-dark(var(--spell-brand-100), rgb(200 206 231 / 0.1));
+    --ui-button-background-hover: light-dark(var(--spell-brand-150), rgb(200 206 231 / 0.16));
+    --ui-button-background-down: light-dark(var(--spell-brand-200), rgb(200 206 231 / 0.22));
+    --ui-button-background-active: light-dark(var(--spell-brand-200), rgb(200 206 231 / 0.2));
+    --ui-button-color: var(--ui-text-dark);
+    --ui-button-color-hover: var(--ui-text-dark);
+    --ui-label-font-weight: 500;
+
+    /* Progress:  a purple bar on a grey-blue track (the brand's build checklist colours) */
+    --ui-progress-background: light-dark(var(--spell-brand-100), rgb(200 206 231 / 0.1));
+    --ui-progress-bar-background: var(--ui-primary);
+    --ui-progress-text-color: var(--ui-primary-on);
+    /* Nags:  the brand's inverse panel, aubergine */
+    --ui-nag-background: light-dark(var(--spell-violet-900), var(--spell-violet-850));
+
+    /* Menus:  the brand's selected nav item, a lavender fill with purple text;  a faint tint on hover */
+    --ui-menu-hover-background: light-dark(var(--spell-brand-50), rgb(200 206 231 / 0.07));
+    --ui-menu-active-background: light-dark(var(--spell-violet-100), var(--spell-lilac-soft));
+    --ui-menu-active-color: light-dark(var(--spell-violet-700), var(--spell-violet-200));
+
+    /* Headers:  regular serif by default (h1 / h2 bold, below);  the brand's display sizes;  aubergine ledes */
+    --ui-header-font-weight: var(--ui-font-weight-normal);
+    --ui-header-h1: 2.5;
+    --ui-header-h2: 1.875;
+    --ui-header-h3: 1.375;
+    --ui-header-h4: 1.0625;
+    --ui-header-sub-color: light-dark(var(--spell-violet-800), var(--spell-violet-200));
+
+    /* Motion:  the brand's ease-out */
+    --ui-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Page:  smooth glyphs (the brand renders antialiased) */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /*******************************
+        Headings, ledes, eyebrows
+  *******************************/
+
+  .ui.header,
+  :where(h1, h2, h3, h4, h5, h6) {
+    text-wrap: balance;
+  }
+  :is(h1, h2).ui.header,
+  .ui.header:is(.huge, .massive) {
+    font-weight: var(--ui-font-weight-bold);
+    letter-spacing: -0.012em;
+  }
+  :is(h4, h5, h6).ui.header {
+    font-family: var(--ui-font-family);
+    font-weight: var(--ui-font-weight-semibold);
+  }
+  /* a header's sub header:  the italic serif lede */
+  :host(:state(in-header)) > .header,
+  .in-header.header {
+    font-style: italic;
+    text-wrap: pretty;
+  }
+  /* a `sub` header:  the mono eyebrow */
+  .ui.sub.header {
+    color: var(--ui-color-header, var(--ui-primary-text));
+    font-family: var(--ui-font-family-mono);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+  }
+
+  /* a statistic's label:  the eyebrow too (Fomantic set it in the header face, bold) */
+  :host(:state(in-statistic)) > .label,
+  .in-statistic.label {
+    color: var(--ui-statistic-label-color, var(--ui-text-muted));
+    font-family: var(--ui-font-family-mono);
+    font-size: 0.75em;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+  }
+
+  /* Page typography (`ui-typography`):  the same ranks */
+  :where(.ui-typography) :where(h1, h2) {
+    color: var(--ui-text-dark);
+    letter-spacing: -0.012em;
+  }
+  :where(.ui-typography) :where(h3) {
+    color: var(--ui-text-dark);
+    font-weight: var(--ui-font-weight-normal);
+  }
+  :where(.ui-typography) :where(h4, h5, h6) {
+    font-family: var(--ui-font-family);
+    font-weight: var(--ui-font-weight-semibold);
+  }
+
+  /* Anchors land below a sticky site header (page only:  `:root` matches nothing in a shadow root) */
+  :root :where(h1, h2, h3, h4, h5, h6, section, ui-section) {
+    scroll-margin-top: calc(var(--spell-site-header-height, 0px) + 1em);
+  }
+
+  /*******************************
+           Numbers, links, images
+  *******************************/
+
+  :is(.ui.table, :where(ui-table) > table),
+  .ui.statistic,
+  .ui.statistics {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :where(a) {
+    text-underline-position: from-font;
+    text-decoration-skip-ink: auto;
+  }
+  @media (hover: hover) {
+    :where(.ui-typography) :where(a) {
+      text-decoration-color: color-mix(in oklab, currentColor 40%, transparent);
+    }
+    :where(.ui-typography) :where(a:hover) {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  :where(img) {
+    outline: 1px solid light-dark(rgb(0 0 0 / 0.08), rgb(255 255 255 / 0.08));
+    outline-offset: -1px;
+  }
+
+  /*******************************
+             Motion
+  *******************************/
+
+  /* Buttons press in;  the property list restates the button's own (`ui-button.css`) plus `scale` */
+  @media (prefers-reduced-motion: no-preference) {
+    .ui.button:not(.loading) {
+      transition-property: opacity, background-color, color, box-shadow, scale;
+      transition-duration:
+        var(--ui-button-duration, var(--ui-duration-fast)), var(--ui-button-duration, var(--ui-duration-fast)),
+        var(--ui-button-duration, var(--ui-duration-fast)), var(--ui-button-duration, var(--ui-duration-fast)), 200ms;
+      transition-timing-function: var(--ui-ease), var(--ui-ease), var(--ui-ease), var(--ui-ease), ease-out;
+    }
+    .ui.button:not(.disabled, :disabled, .loading):active {
+      scale: 0.97;
+    }
+  }
+
+  /*
+   * Switching scheme:  `ThemePreference.applyScheme()` puts `ui-scheme-switching` on `<html>` for one frame;  the
+   * flag inherits into every shadow root, where the style query finds it.
+   * - `!important`:  a transition set by ANY component layer must lose for that frame (`ui.theme` beats them all,
+   *   but a later `ui.app` rule wouldn't).
+   */
+  :root.ui-scheme-switching {
+    --spell-scheme-switching: on;
+  }
+  @container style(--spell-scheme-switching: on) {
+    *,
+    ::before,
+    ::after {
+      transition: none !important;
+    }
+  }
+}
