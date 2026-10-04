@@ -7,8 +7,8 @@ import { MD, type InlineNode } from "$/markdown"
  * - A `strong` straight inside a `strong` draws no tag of its own, as cmark-gfm does:  `****foo****` is ONE bold.
  * - An image's `alt` is its children's plain text.
  */
-export function renderInlines(node: InlineNode, options: { tagfilter?: boolean } = {}): P.Markup {
-  const { tagfilter = true } = options
+export function renderInlines(node: InlineNode, options: { tagfilter?: boolean; breaks?: boolean } = {}): P.Markup {
+  const { tagfilter = true, breaks = false } = options
   return children(node)
 
   /** `node`'s children as markup. */
@@ -22,7 +22,7 @@ export function renderInlines(node: InlineNode, options: { tagfilter?: boolean }
       case "text":
         return node.text
       case "softbreak":
-        return "\n"
+        return breaks ? [P.render.h("br", {}), "\n"] : "\n"
       case "linebreak":
         return [P.render.h("br", {}), "\n"]
       case "code":

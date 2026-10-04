@@ -1,5 +1,5 @@
 import type { P } from "$/parser"
-import { MD, type MarkdownOptions } from "$/markdown"
+import { MD, type MarkdownHeading, type MarkdownOptions, type RenderOptions } from "$/markdown"
 
 /**
  * `MD.toHTML(markdown)` -- markdown to PLAIN HTML, as the GFM spec spells it.
@@ -13,13 +13,41 @@ export function toHTML(markdown: string, options: MarkdownOptions = {}): string 
 
 /** `markdown` as plain-HTML `P.Markup`. */
 export function toMarkup(markdown: string, options: MarkdownOptions = {}): P.Markup {
-  const { autolinks = true, tagfilter = true } = options
+  return render(markdown, { ...options, ui: false, headingIds: false }).markup
+}
+
+/**
+ * `markdown` drawn for a page:  `ui-*` elements (unless `ui: false`), GitHub heading ids, and the heading outline --
+ * what `<ui-markdown>`'s engine returns (`{ fragment, headings }`), minus the DOM, which the caller makes from
+ * `html` (and sanitizes).
+ */
+export function render(markdown: string, options: RenderOptions = {}): MarkdownRender {
+  const {
+    autolinks = true,
+    tagfilter = true,
+    ui = true,
+    headingIds = true,
+    headingOffset = 0,
+    breaks = false
+  } = options
   const doc = MD.BlockScanner.parse(markdown)
   const refmap = MD.extractReferences(doc)
+  const headings: MarkdownHeading[] = []
   const inline = (text: string) => {
     const root = MD.InlineParser.parse(text, refmap)
     if (autolinks) MD.autolinkText(root)
-    return MD.renderInlines(root, { tagfilter })
+    return MD.renderInlines(root, { tagfilter, breaks })
   }
-  return MD.renderBlocks(doc, inline, { tagfilter })
+  const markup = MD.renderBlocks(doc, inline, { tagfilter, ui, headingIds, headingOffset, headings })
+  return { markup, html: MD.markupToHTML(markup), headings }
+}
+
+/** What `MD.render()` returns. */
+export type MarkdownRender = {
+  /** The document as `P.Markup`. */
+  markup: P.Markup
+  /** ... written as HTML. */
+  html: string
+  /** Every heading, in order. */
+  headings: MarkdownHeading[]
 }

@@ -364,7 +364,9 @@ export class BlockScanner {
   parseListMarker(container: Block): ListData | undefined {
     if (this.indent >= CODE_INDENT) return undefined
     const rest = this.line.slice(this.nextNonspace)
-    const tokens = lineRules.tokenizeLine(rest)
+    // a marker is at most 9 digits + `.`, then a space:  no need to tokenize the whole line
+    if (!/^(?:[-+*]|[0-9]{1,9}[.)])/.test(rest)) return undefined
+    const tokens = lineRules.tokenizeLine(rest.slice(0, 12))
     let data: ListData
     let markerLength: number
     if (lineRules.parse(tokens, "bullet_marker")?.length === 1) {
@@ -521,10 +523,35 @@ export class BlockScanner {
     return this.line.charAt(offset)
   }
 
-  /** Does the rest of the line (from the next non-space) WHOLLY match rulex line rule `ruleName`? */
+  /**
+   * Does the rest of the line (from the next non-space) WHOLLY match rulex line rule `ruleName`?
+   * - Only asks the rule when `LINE_GUARDS` says the line could be one:  tokenizing and parsing every line for
+   *   every rule cost 6x marked's time (`packages/docs/markdown/experiments/profile.mts`).  The rule still decides.
+   * - The line's tokens are kept for the next rule asked about the same line.
+   */
   isLine(ruleName: string) {
-    return !!lineRules.matchWhole(lineRules.tokenizeLine(this.line.slice(this.nextNonspace)), ruleName)
+    const rest = this.line.slice(this.nextNonspace)
+    if (!LINE_GUARDS[ruleName]!.test(rest)) return false
+    if (this.lineTokens?.line !== this.lineNumber || this.lineTokens.offset !== this.nextNonspace) {
+      this.lineTokens = { line: this.lineNumber, offset: this.nextNonspace, tokens: lineRules.tokenizeLine(rest) }
+    }
+    return !!lineRules.matchWhole(this.lineTokens.tokens, ruleName)
   }
+
+  /** `isLine()`'s tokens for the line it last tokenized. */
+  lineTokens?: { line: number; offset: number; tokens: ReturnType<typeof lineRules.tokenizeLine> }
+}
+
+/**
+ * Cheap character checks before each rulex line rule:  a line that fails one can't be that kind, so the rule isn't
+ * asked.  NEVER stricter than the rule itself -- a guard only filters out lines the rule would refuse anyway.
+ */
+const LINE_GUARDS: Record<string, RegExp> = {
+  atx_heading: /^#/,
+  fence_open: /^(?:```|~~~)/,
+  table_delimiter_row: /^[|:-][|:\- \t]*$/,
+  setext_underline: /^(?:=+|-+)[ \t]*$/,
+  thematic_break: /^[-*_][-*_ \t]*$/
 }
 
 ////////////////
