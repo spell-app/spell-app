@@ -66,7 +66,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
     every top-level section an icon:  without one, the rail shows its number
   - sticky titles:  each top-level section's title sticks below the page header, nested ones stack below their
     parents' (the runtime sets the top-level `offset`s)
-  - folding:  folds are remembered per page;  a link's unfold isn't
+  - folding:  folds are remembered per page;  a link's unfold isn't.  A plan doc (`body.plan-doc`) starts EVERY
+    section folded that the reader hasn't opened or closed:  Owen opens what he wants (2026-10-03)
   - counts:  a top-level section holding `[data-status]` items shows `open/all` on its title (its `badge`) and the
     open count as a badge in the contents and the rail (open:  any status but `done` or `decided`);  nested
     sections get no count of their own
