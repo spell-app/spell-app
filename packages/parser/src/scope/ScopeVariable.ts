@@ -38,6 +38,16 @@ export class ScopeVariable {
   declare declaredBy: P.Match | undefined
   /** Where it was declared, if IMPORTED -- so there's no `declaredBy`.  See `P.DeclaredAt`. */
   declare declaredAt: P.DeclaredAt | undefined
+  /**
+   * A member's words as written, if not its `name` -- e.g. `short rank` for property `short_rank`.
+   * - For editors:  `name` is how it compiles, and how scope finds it (either spelling normalizes to it).
+   */
+  declare words: string | undefined
+  /**
+   * `true` for a property its type never declared, which a `set the X of Y to ...` declared at its first set --
+   * see spell's `assignment_statement`.
+   */
+  declare auto: boolean | undefined
 
   /** Create with a string name or `ScopeVariableProps` object. */
   constructor(input: string | ScopeVariableProps) {
@@ -72,4 +82,8 @@ export type ScopeVariableProps = {
   declaredBy?: P.Match
   /** See `ScopeVariable.declaredAt`. */
   declaredAt?: P.DeclaredAt
+  /** See `ScopeVariable.words`. */
+  words?: string
+  /** See `ScopeVariable.auto`. */
+  auto?: boolean
 }

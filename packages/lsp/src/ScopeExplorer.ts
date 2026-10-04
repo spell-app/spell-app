@@ -198,8 +198,13 @@ export class ScopeExplorer {
       const path = tree.typePaths.get(type)!
       const entries = documented.filter((entry) => entry.path === path || entry.path.startsWith(`${path}/`))
       if (!entries.length) this.addType(type, tree)
-      for (const { path, super: superPath, detail, uri: _uri, ...details } of entries) {
-        tree.entries.push({ path, ...(superPath ? { super: superPath } : {}), ...(detail ? { detail } : {}) })
+      for (const { path, name, super: superPath, detail, uri: _uri, ...details } of entries) {
+        tree.entries.push({
+          path,
+          ...(name ? { name } : {}),
+          ...(superPath ? { super: superPath } : {}),
+          ...(detail ? { detail } : {})
+        })
         tree.details.set(path, () => details)
       }
     }
@@ -290,10 +295,10 @@ export class ScopeExplorer {
     const members: DeclaredEntries[] = []
     for (const record of ScopeExplorer.alphabetical(LSP.SpellLanguageService.propertiesOf(type))) {
       const subject = { kind: "property", name: record.name, owner: type, record } as const
+      const propertyPath = LSP.scopePath(path, "property", record.name)
       members.push({
         at: record.declaredBy,
-        add: () =>
-          this.addLeaf(LSP.scopePath(path, "property", record.name), subject, record.declaredBy, tree, record.datatype)
+        add: () => this.addLeaf(propertyPath, subject, record.declaredBy, tree, record.datatype, record.words)
       })
     }
     // a compiled import's type -- not swapped for its source, see `sourceType()` -- has just its imported rules
@@ -405,9 +410,12 @@ export class ScopeExplorer {
     subject: LSP.ScopeRecord,
     declaredBy: P.Match | undefined,
     tree: Tree,
-    detail?: string
+    detail?: string,
+    written?: string
   ) {
     const entry: LSP.ScopeEntry = detail ? { path, detail } : { path }
+    // its name as written, if `path` doesn't say it, e.g. `short rank` -- see `LSP.ScopeEntry.name`
+    if (written && written !== LSP.scopeSegment(path).name) entry.name = written
     const section = this.sectionOf(declaredBy)
     if (section) entry.section = section
     tree.entries.push(entry)
@@ -588,6 +596,7 @@ export class ScopeExplorer {
 /** Keys of a pack's entries, in the order they're written -- see `ScopeExplorer.packEntry()`. */
 const PACK_KEYS: Array<keyof LSP.ScopeEntry> = [
   "path",
+  "name",
   "super",
   "detail",
   "section",

@@ -71,7 +71,12 @@ describe("ScopeExplorer", () => {
   test("paths are unique -- and say what each node is", () => {
     const nodes = [...all(tree)].filter((node) => node.kind !== "root")
     expect(new Set(nodes.map((node) => node.path)).size).toBe(nodes.length)
-    for (const node of nodes) expect(LSP.scopeSegment(node.path)).toEqual({ kind: node.kind, name: node.name })
+    for (const node of nodes) {
+      const { kind, name } = LSP.scopeSegment(node.path)
+      expect(kind).toBe(node.kind)
+      // a node may say its name as written, e.g. `short-suit` for `property:short_suit`
+      expect(LSP.SpellLanguageService.sameName(name, node.name), node.path).toBe(true)
+    }
   })
 
   test("a declaration's details:  its docstring, spell source and compiled javascript", () => {
@@ -106,7 +111,10 @@ describe("ScopeExplorer", () => {
   })
 
   test("a node lists the rules its statement made", () => {
-    expect({ Suits: details("Suits").rules, "draw (a card)": details("draw (a card)").rules }).toMatchSnapshot()
+    expect({
+      "is a (suit)": details("is a (suit)").rules,
+      "draw (a card)": details("draw (a card)").rules
+    }).toMatchSnapshot()
   })
 
   describe("`descriptionEdits()`", () => {

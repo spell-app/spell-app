@@ -511,7 +511,7 @@ export class SpellLanguageService {
       const { name, superType, stub, classVariables } = subject.record
       lines.push(`type **${name}**${superType ? ` is a ${superType}` : ""}${stub ? " (stub)" : ""}`)
       const properties = SpellLanguageService.propertiesOf(subject.record).map((it) =>
-        SpellLanguageService.asWritten(it.name)
+        SpellLanguageService.memberWords(it.name, it)
       )
       if (properties.length) lines.push(`properties:  ${properties.join(", ")}`)
       const enumerations = classVariables.get().map((variable) => variable.name)
@@ -528,8 +528,10 @@ export class SpellLanguageService {
     } else {
       const { record, owner } = subject
       const type = record?.scope instanceof P.TypeScope ? record.scope : owner
-      const bits = [`property **${SpellLanguageService.asWritten(subject.name)}**${type ? ` of ${type.name}` : ""}`]
+      const words = SpellLanguageService.memberWords(subject.name, record)
+      const bits = [`property **${words}**${type ? ` of ${type.name}` : ""}`]
       if (record?.datatype) bits.push(`a ${record.datatype}`)
+      if (record?.auto) bits.push("declared where it's first set")
       lines.push(bits.join(" · "))
     }
     const declared = this.declarationsOf(subject)
@@ -1176,7 +1178,9 @@ export class SpellLanguageService {
             ? this.variableItems(file, scope, offset)
             : kind === "enumMember"
               ? this.constantItems(file, scope, offset)
-              : this.methodItems(file, scope, offset, "expression")
+              : kind === "property"
+                ? this.propertyItems(scope)
+                : this.methodItems(file, scope, offset, "expression")
       for (const name of names) items.push([1, name])
     }
     // Words from categories too, e.g. `{expression}` => `the`, `a`, `its`... -- NOT `Card` when there's `card`
@@ -1487,6 +1491,27 @@ export class SpellLanguageService {
       const documentation = this.markdown(this.docsOfRecord(type))
       return [{ label, kind: CompletionItemKind.Class, detail: `type ${type.name}`, documentation }]
     })
+  }
+
+  /**
+   * Properties of every type visible in `scope`, as written, e.g. `short rank` -- once each, with the types
+   * declaring it.
+   * - Every type's:  what's being typed, e.g. `the short`, doesn't know yet what it'll be read from.
+   * - NOT an enumeration's values, e.g. `suits`:  `card suits` reads those.
+   */
+  private propertyItems(scope: P.Scope): CompletionItem[] {
+    const owners = new Map<string, string[]>()
+    for (const type of SpellLanguageService.visible(scope.types)) {
+      for (const property of SpellLanguageService.propertiesOf(type)) {
+        const words = SpellLanguageService.memberWords(property.name, property)
+        owners.set(words, [...(owners.get(words) ?? []), type.name])
+      }
+    }
+    return [...owners].map(([label, types]) => ({
+      label,
+      kind: CompletionItemKind.Property,
+      detail: `property of ${types.join(", ")}`
+    }))
   }
 
   /** Constants visible in `scope`, declared before `offset`. */
@@ -1904,7 +1929,7 @@ export class SpellLanguageService {
   }
 
   /** Kinds of NAME a completion can offer, by the `highlightAs` of the rule that matches them -- see `firstKinds()`. */
-  static NAME_KINDS: P.HighlightKind[] = ["type", "variable", "enumMember", "function"]
+  static NAME_KINDS: P.HighlightKind[] = ["type", "variable", "enumMember", "function", "property"]
 
   /**
    * Kinds of name `rule` can start with, e.g. `{type}` => `type`, `{expression}` => `variable`, `enumMember`...
@@ -2002,9 +2027,20 @@ export class SpellLanguageService {
     return name.replace(/_/g, "-")
   }
 
-  /** `name` normalized for comparing:  lower case, dashes as underscores, e.g. `short-suit` => `short_suit`. */
+  /**
+   * `name` normalized for comparing:  lower case, dashes and spaces as underscores, e.g. `short-suit` or
+   * `short suit` => `short_suit`.
+   */
   static propertyKey(name: string): string {
-    return name.toLowerCase().replace(/-/g, "_")
+    return name.toLowerCase().replace(/[-\s]+/g, "_")
+  }
+
+  /**
+   * Member `name` as it's written in spell, e.g. `short rank` for `short_rank` -- its record's `words`, if it has
+   * some, else `asWritten()`.
+   */
+  static memberWords(name: string, record?: P.ScopeVariable): string {
+    return record?.words ?? SpellLanguageService.asWritten(record?.name ?? name)
   }
 }
 

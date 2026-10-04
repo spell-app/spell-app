@@ -2278,6 +2278,30 @@ export class ASTStaticDefinition extends ASTClassMember {
   }
 }
 
+/**
+ * PatchedMember -- a class member ALWAYS patched onto its class from outside, wherever that class is compiled,
+ * e.g. `Card.declareProp('pile', ...)` + `Object.defineProperty(Card.prototype, 'pile', ...)`.
+ * - `member` (required) is the ClassMember, compiled with its `compile()`.
+ * - NOT a ClassMember itself, so `SP.hoistClassMembers()` leaves it where it is.  Why:  spell declares a property
+ *   at its first `set` in the file which sets it (see spell's `assignment_statement`), and that must never change
+ *   another file's output.
+ */
+export type ASTPatchedMemberProps = Prettify<{ member: ASTClassMember }>
+
+export class ASTPatchedMember extends ASTStatement {
+  declare member: ASTClassMember
+  constructor(match: P.AnyMatch, props: ASTPatchedMemberProps) {
+    super(match, props)
+    this.assertType("member", ASTClassMember)
+  }
+  compile(): unknown {
+    return this.member.compile()
+  }
+  renderChildren(): P.Markup {
+    return this.member.markup
+  }
+}
+
 /** `'name'`:  `property`'s name as a JS string, e.g. for `getProp()` or `Object.defineProperty()`. */
 function quoted(property: ASTPropertyLiteral): string {
   return `'${property.value.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`

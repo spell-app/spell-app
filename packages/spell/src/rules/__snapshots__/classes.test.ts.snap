@@ -3,6 +3,7 @@
 exports[`testing spell module classes > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
 {
   "a_things_property": "type|property",
+  "class_member": "type|member",
   "create_list_type": "type|instanceType",
   "create_thing": "type|props?",
   "create_type": "type|superType",

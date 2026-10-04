@@ -78,7 +78,7 @@ export class SpellDeclarations {
   /**
    * What `statement` declared, as ONE flat object -- from the scope records it noted while parsing
    * (`match.data.declared`, see `P.ScopeList.noteDeclared()`).  `undefined` if nothing another project could see.
-   * - Records share keys, e.g. a property's `of` is also its enumeration rule's.  Throws if two disagree.
+   * - Records share keys, e.g. a method's `of` is also its rule's owner.  Throws if two disagree.
    * - Leaves out what loading works out again -- see `SP.SpellDeclaration`.
    * - Its `kind` and `name` are what its rule's `getDeclaration()` says -- unless a key already says, e.g. `type`.
    * - Skips what it no longer declares, e.g. a type it stubbed which a later `a card is a thing` claimed,
@@ -225,7 +225,11 @@ export class SpellDeclarations {
       }
       SpellDeclarations.loadVariables(scope, names, declaration, declaredAt)
       SpellDeclarations.loadConstants(scope, from, names, declaration, declaredAt)
-      if (declaration.rule) SpellDeclarations.loadRule(scope, from, names, declaration.rule, declaration, declaredAt)
+      // an enumeration's rule, from before `class_member` read every type's class variables:  nothing to load
+      const { rule } = declaration
+      if (rule && rule !== LEGACY_ENUMERATION_RULE) {
+        SpellDeclarations.loadRule(scope, from, names, rule, declaration, declaredAt)
+      }
       SpellDeclarations.loadMethod(scope, names, declaration, declaredAt)
     }
   }
@@ -280,10 +284,10 @@ export class SpellDeclarations {
     declaration: SP.SpellDeclaration,
     declaredAt: P.DeclaredAt | undefined
   ) {
-    const { property, classVariable, of, datatype, initializer, enumeration } = declaration
+    const { property, classVariable, of, datatype, initializer, enumeration, auto } = declaration
     const typeScope = of && names.has(of) ? scope.types.get(of, "LOCAL_ONLY") : undefined
     if (!typeScope) return
-    if (property) typeScope.variables.add(definedOnly({ name: property, datatype, initializer, declaredAt }))
+    if (property) typeScope.variables.add(definedOnly({ name: property, datatype, initializer, auto, declaredAt }))
     if (classVariable) {
       const variable = definedOnly({
         name: classVariable,
@@ -454,7 +458,7 @@ export class SpellDeclarations {
   /**
    * `declaration` with each type it names renamed by `renames`, e.g. `of: "Card"` => `of: "Playingcard"`.
    * - Its `type`, `superType`, `of`, `datatype`, `itemType`, `returns` and its `params`' datatypes -- a rule built
-   *   from it takes the new name from `of`, e.g. `EnumerationRule` matches `playingcard suits`.
+   *   from it takes the new name from `of`, e.g. a quoted alias `playingcard is a queen`.
    * - NOT method names, syntax or constants:  those don't hold type names.
    */
   private static renamed(declaration: SP.SpellDeclaration, renames: Map<string, string>): SP.SpellDeclaration {
@@ -498,7 +502,7 @@ export class SpellDeclarations {
     typeScope: P.TypeScope,
     declared: unknown[]
   ): SP.SpellDeclaration {
-    const { name, datatype, enumeration, initializer } = variable
+    const { name, datatype, enumeration, initializer, auto } = variable
     const of = typeScope.name
     const derived = enumerationInitializer(enumeration)
     const ownInitializer = initializer === derived ? undefined : initializer
@@ -506,7 +510,7 @@ export class SpellDeclarations {
     const isTwin = declared.some(
       (it) => it instanceof P.ScopeVariable && it !== variable && it.kind === "static" && it.name === name
     )
-    return isTwin ? {} : { property: name, of, datatype, initializer: ownInitializer }
+    return isTwin ? {} : { property: name, of, datatype, auto, initializer: ownInitializer }
   }
 
   /**
@@ -570,6 +574,13 @@ export class SpellDeclarations {
 /** Starts the one-line header comment of a project's compiled JS -- see `header()`. */
 const PROJECT_MARKER = "SPELL: PROJECT"
 
+/**
+ * `rule` of an enumerated property's declaration from before `class_member`, which compiled `card suits` with a rule
+ * per enumeration.  Loading skips it:  `class_member` reads any type's class variables.
+ * - Plan doc D37:  no version bump, so an old compiled library still loads.
+ */
+const LEGACY_ENUMERATION_RULE = "enumeration"
+
 /** Starts each declaring statement's comment -- see `commentFor()`. */
 const DECLARES_MARKER = "SPELL: DECLARES"
 
@@ -599,6 +610,7 @@ const PROP_ORDER = [
   "kind",
   "name",
   "datatype",
+  "auto",
   "itemType",
   "params",
   "returns",

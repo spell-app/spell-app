@@ -64,7 +64,7 @@ export class Todos_App extends App {
   set newTaskName(value) { this.setProp('newTaskName', value) }
 
   /*! SPELL: DECLARES {
-    property: "filter", classVariable: "Filters", rule: "enumeration", of: "Todos_App",
+    property: "filter", classVariable: "Filters", of: "Todos_App",
     enumeration: ["'all'", "'active'", "'completed'"],
     defined: "/todo.spell:306-365",
   } */

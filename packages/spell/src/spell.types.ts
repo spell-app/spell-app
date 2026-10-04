@@ -225,6 +225,23 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
   nested_expression: { nestedAs: "expression" }
 }
 
+/**
+ * A property `set the X of Y to ...` declared at its first set, as `Y`'s type never did -- noted on that `set`'s
+ * match as `data.autoDeclared` (see `assignment_statement`), for its FILE to compile once:
+ * `Card.declareProp('pile', { type: 'Pile' })` + `Object.defineProperty(Card.prototype, 'pile', ...)` -- see
+ * `SP.Block.autoDeclarations()`.
+ */
+export type AutoDeclaredProperty = {
+  /** Its type's name, e.g. `Card`. */
+  typeName: string
+  /** Its name as it compiles, e.g. `pile`. */
+  property: string
+  /** What its setter checks values against, e.g. `Pile` -- see `SC.PropCheck.type`.  None if unknown. */
+  checkType?: string
+  /** Statement declaring its type:  if that's in the same file, the property goes right after it. */
+  typeDeclaredBy: P.Match
+}
+
 // ## Declarations
 
 /**
@@ -259,7 +276,7 @@ export type SpellDeclarationsData = {
 
 /**
  * What ONE statement declared, flat -- a `/*! SPELL: DECLARES {...} *\/` comment, e.g.
- * `{ property: "suit", of: "Card", classVariable: "Suits", rule: "enumeration", enumeration: [...] }`.
+ * `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`.
  * - Only what can't be worked out from the rest, e.g. `constants` are left out when they're just
  *   `enumeration`'s strings.
  * - Keys are shared by what it declared:  `of` is both a property's type and its rules' owner.
@@ -282,6 +299,8 @@ export type SpellDeclaration = {
   of?: string
   /** `property`'s datatype, e.g. `text`. */
   datatype?: string
+  /** `property` was declared by its first `set`, as its type never declared it -- see `P.ScopeVariable.auto`. */
+  auto?: boolean
   /** A method's parameters, with their datatypes where known -- see `P.ScopeMethod.params`. */
   params?: P.ScopeParam[]
   /** What a method returns, if known -- see `P.ScopeMethod.returns`. */
@@ -300,7 +319,10 @@ export type SpellDeclaration = {
    * - Its OTHER keys here are what that class's `specialize()` takes, e.g. `output` + `alias`.
    */
   rule?: string
-  /** Its rule's syntax -- none for `"enumeration"`, which matches its `literals`. */
+  /**
+   * Its rule's syntax.
+   * - None in an OLD `rule: "enumeration"` declaration, from before `class_member` -- which loading skips.
+   */
   syntax?: string
   /** Name of the generated method its rule calls, in compiled JS, e.g. `play_fizzbuzz`. */
   output?: string

@@ -88,9 +88,9 @@ export type RuleMap = Record<string, P.Rule>
  * What committing a rule's match changes in scope -- see `Rule.getScopeChanges()`.  `undefined` => nothing.
  * - `"internal"`:  nothing parsed AFTER it can see the change:
  *   - its OWN `match.scope`, e.g. `set x to 1` adds a variable there, so a method body's changes stay in that body
- *   - or a record only editors read, e.g. a getter's property on its type -- see `property_value_getter`
- * - `"global"`:  reaches the project, e.g. types, constants or rules, so re-parsing it can change how
- *   anything after it parses -- even in other files.
+ *   - or a record only editors read
+ * - `"global"`:  reaches the project, e.g. types, properties, constants or rules, so re-parsing it can change how
+ *   anything after it parses -- even in other files.  e.g. spell's `set the X of Y to ...` when it declares `X`.
  */
 export type ScopeChanges = "internal" | "global"
 

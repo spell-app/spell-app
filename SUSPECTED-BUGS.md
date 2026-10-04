@@ -12,6 +12,12 @@ fixed, or disproven, delete it (note a disproof in a line at the top if the reas
   `declareProp('done', { type: 'boolean' })`, which the runtime's `isOfType()` (`typesOf(true)` is `["choice"]`)
   warned about on every set -- now `{ type: 'choice' }`, as are `as a boolean` and `is a boolean`;  `as a string`
   is `text`.  One normaliser, `P.typeName()`, replaced `types.ts`' `TYPE_VALUE_MAP`.  Probe `T2` pins it.
+- Fixed 2026-10-04 (precedence-and-types P6, multi-word members):  an ad-hoc property wasn't reactive --
+  `set the pile of the card to the pile` compiled to a plain `this.pile = pile`, never through `setProp()`.  Now the
+  first `set the X of Y to V`, `Y` a type the project declares, declares `X` there (`auto: true`), and the setting
+  file compiles `Card.declareProp('pile', { type: 'Pile' })` + the accessor at its top.  Probe `M5` pins it.  NOT
+  for a built-in or IMPORTED type, e.g. Solitaire-import's `set the name of cards-to-move ...`:  still a plain field
+  (plan doc caveat).
 `[V]` = checked against the code by hand.  Everything else is unverified.
 
 Entry format:  `` - `path/to/file.ts` `symbol()`: what looks wrong, why, and how to prove it. ``
@@ -193,12 +199,6 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   "where the card is red";  `the cards in the deck where its color is red` alone works.  Found 2026-09-30.
   FIXED 2026-10-04 (epic `precedence-and-types` P3, probe P1f):  `list_length` has a second syntax ending
   `where {inline_expression}?`, compiling to `itemCountOf(filter(deck, ...))`.
-
-- An ad-hoc property is not reactive:  `set the pile of the card to the pile` compiles to a plain `this.pile = pile`
-  (`Card.move_to_$pile` in the Solitaire snapshot), never through `setProp()` -- so nothing drawn from
-  `the pile of the card` redraws when it changes.  Since solid-migration P11, a DECLARED property's setter is
-  `setProp()` (reactive) and an undeclared one a plain field, with no warning.  Epic `precedence-and-types` decided
-  (D10) to auto-declare a property at its first `set`, reactive + typed.  Found 2026-09-30.
 
 - `packages/parser/src/scope/TypeScope.ts` `declareProperty()` (and `define_property_has` / getters in `classes.ts`):
   a property declared on a BUILT-IN type (`the size of a thing is: ...`, `things have a tag as text`) or an IMPORTED

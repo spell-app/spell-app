@@ -2,9 +2,11 @@
 
 import { proto } from "$/util"
 import { P } from "$/parser"
+import type { SP } from "$/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement } from "./Statement"
+import { memberRead } from "./properties"
 
 /** Rule module for assignment / return rules (`assignment`, `get`, `return_statement`). */
 export const assignment = new SpellParser({ module: "assignment" })
@@ -28,13 +30,21 @@ export const assignment = new SpellParser({ module: "assignment" })
  *   identifiers remember what they named when PARSED -- see `SpellIdentifier`.
  * - A new variable holds what `value` is, its `datatype`, e.g. `Card` for `the card is a new card`.  An existing
  *   one keeps its own:  the first datatype wins.
+ * - SIDE EFFECT: `set the X of Y to V` declares property `X` if `Y`'s type doesn't -- see `declareProperty()`.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
 class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
   static ruleName = "assignment"
   @proto static alias = "statement"
-  @proto static changesScope: P.ScopeChanges = "internal"
   @proto static declares: P.DeclaresSpec = { kind: "variable", name: "thing" }
+
+  /**
+   * PER MATCH:  `"global"` if it declared a property (`data.autoDeclared`), which later lines -- and files -- read;
+   * else `"internal"`:  a variable goes in our own `match.scope`, so `set x to 1` stays cheap to re-parse.
+   */
+  getScopeChanges(match?: P.MatchFor<this>): P.ScopeChanges {
+    return match?.data.autoDeclared ? "global" : "internal"
+  }
 
   /**
    * Declares a new scope variable for `thing` (if it's a `{variable}` and not already declared,
@@ -69,7 +79,54 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
       else if (scopeVar.isAlias) variables.replace({ name: scopeVar.name, datatype, declaredBy: match })
       // Remember the original scopeVar for `getAST()` below
       match.data.originalVar = scopeVar
+    } else {
+      this.declareProperty(match)
     }
+  }
+
+  /**
+   * SIDE EFFECT:  `set the X of Y to V`, where `Y`'s type is one this project declares (not a stub, an import or a
+   * built-in) and `X` isn't on it:  declares `X` there, holding `V`'s datatype, marked `auto` -- journaled, as any
+   * record -- and notes it as `match.data.autoDeclared` (plan doc D10).
+   * - Why:  only a declared property is reactive -- its accessor goes through the instance's spell cells.
+   * - Its FILE compiles `Card.declareProp('pile', ...)` + the accessor, once, at its top (or after its class) --
+   *   under our `SPELL: DECLARES` comment, NOT on our own line.  See `SP.Block.autoDeclarationAST()`.
+   * - Later lines read it as declared, e.g. `the pile of the card` is a `Pile`.  Earlier ones read it loose.
+   * - A property an earlier parse of this statement declared is ours again -- see `P.TypeScope.sameStatement()`.
+   */
+  private declareProperty(match: P.MatchFor<this>) {
+    const { thing, value } = match.groups
+    const read = memberRead(thing)
+    const type = read?.type
+    if (!read || !type || type.stub || !type.declaredBy) return
+    const { member, property } = read
+    const isOurs =
+      member instanceof P.ScopeVariable && !!member.auto && P.TypeScope.sameStatement(member.declaredBy, match)
+    if (member && !isOurs) return
+    // `nothing` says nothing about what it'll hold
+    const datatype = value.datatype === "nothing" ? undefined : value.datatype
+    const name = `${property.value}`
+    type.declareProperty(name, match, { words: property.raw, datatype, auto: true })
+    match.data.autoDeclared = {
+      typeName: type.name,
+      property: name,
+      checkType: assignment_statement.checkTypeFor(match.scope, datatype),
+      typeDeclaredBy: type.declaredBy
+    }
+  }
+
+  /**
+   * What a property holding `datatype` checks its values against, as `SC.PropCheck.type` -- `undefined` if we can't
+   * say, e.g. a type nobody declared yet.
+   * - a value type as is, e.g. `text`;  any list `list`;  a class by its name when the code runs, e.g. `Card`.
+   */
+  private static checkTypeFor(scope: P.Scope, datatype: P.Datatype | undefined): string | undefined {
+    if (!datatype) return undefined
+    if (P.isValueType(datatype)) return datatype
+    if (P.itemTypeOf(datatype)) return "list"
+    const type = scope.getType(datatype)
+    if (!type || type.stub) return undefined
+    return type.runtimeName ?? type.name
   }
   /** Only a NEW variable is a declaration, and not `it`:  every `get` makes a fresh one. */
   getDeclaration(match: P.MatchFor<this>): P.Declaration | undefined {
@@ -216,6 +273,8 @@ type AssignmentMatchData = {
   originalVar?: P.ScopeVariable
   /** When `thing` is `it`:  the NEW `it` variable we declared -- see `assignment_statement.declareIt()`. */
   newIt?: P.ScopeVariable
+  /** When `thing` is a property its type never declared:  what we declared -- see `declareProperty()`. */
+  autoDeclared?: SP.AutoDeclaredProperty
 }
 
 ////////////////
