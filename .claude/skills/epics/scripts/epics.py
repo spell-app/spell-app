@@ -10,11 +10,11 @@ Looks at:
 - the plan docs on `main`, and in each worktree `.claude/worktrees/<name>` the one named for it (its live copy:  an
   epic plans and works in its own worktree, so `main` may have an older copy, or none yet)
 - each doc's phases and open items (`yarn plan-doc summaries`, one run for all)
-- the worktree / branch `<name>`:  commits not in `main`, uncommitted files, `/park` and `/bedtime` notes
+- the worktree / branch `<name>`:  commits not in `main`, uncommitted files, `/park` notes
 - the running sessions in that worktree, or titled `<name>`
 
 Each epic ~== `{name, title, file, state, open, phases[], done, active, next, estimate, waiting{<kind>: n},
-worktree, branch, unique, dirty, parked, morning, sessions[], error}`:
+worktree, branch, unique, dirty, parked, overnight, sessions[], error}`:
 - `state`:
   - `planning` -- no phases yet
   - `working` -- a phase active, or phases left and a session on it busy or waiting
@@ -105,7 +105,7 @@ def epic(name, file, summary, worktree, sessions):
         "unique": unique,
         "dirty": dirty,
         "parked": wt.note(path, "PARKED", name),
-        "morning": wt.note(path, "MORNING", name),
+        "overnight": summary.get("overnight"),
         "sessions": [{k: s[k] for k in ("id", "name", "agent", "state", "lastActive", "this")} for s in here],
         "error": summary.get("error"),
     }
@@ -162,8 +162,10 @@ def describe(epic):
         bits.append("waiting:  " + ", ".join(f"{n} {k}{'s' if n > 1 else ''}" for k, n in epic["waiting"].items()))
     if epic["parked"] and epic["parked"]["state"] != "resumed":
         bits.append(f"parked ({epic['parked']['state']})")
-    if epic["morning"]:
-        bits.append("morning report not gone through")
+    if epic["overnight"] == "active":
+        bits.append("running overnight (/bedtime)")
+    elif epic["overnight"] == "done":
+        bits.append("overnight report not gone through")
     if epic["error"]:
         bits.append(epic["error"])
     return ";  ".join(bits)

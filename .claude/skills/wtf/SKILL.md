@@ -35,7 +35,8 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
   - `yarn plan-doc summary <name> --json`:  phases with status, next phase, open questions / issues / caveats / todos
   - its links:  `yarn docs:link <ABSOLUTE path> --hash <id>`, run in the checkout the doc is in:  the side bar
     link, then `(_browser_)`
-- `/bedtime` run:  `MORNING-<name>.md` in the worktree.
+- `/bedtime` run:  the plan doc's "Overnight" section (`yarn plan-doc summary <name> --json`, `overnight`:
+  `active` running, `done` not gone through yet);  `/epic review <name>` goes through it.
 - In flight:  `ListAgents` (agents this session started;  for `<name>`, whether its session is running),
   background shells, scheduled wakeups.
 

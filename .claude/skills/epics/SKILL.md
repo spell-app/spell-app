@@ -29,13 +29,13 @@ Owen runs several epics at once:  one screen saying where each stands.  Read-onl
      - **phase**:  `P3 · Name` active, or `next P3 · Name`, with `2/5`;  "planning" when there are no phases
      - **where**:  worktree / branch `<name>`, or `main`;  commits not in `main`, uncommitted files
      - **session**:  its title and state (`waiting`, `idle` ...), or "none"
-     - **waiting on you**:  open questions, judgement calls, tests (issues only when nothing else);  parked, morning
-       report not gone through
+     - **waiting on you**:  open questions, judgement calls, tests (issues only when nothing else);  parked, an
+       overnight report not gone through (or a `/bedtime` run still going)
    - then one line per epic worth acting on, numbered (Owen refers to them by number), with the command for it:
      - a `stalled` one:  `/wtf <name>`, or `/epic <name>` in a new session to pick it up
      - questions or judgement calls waiting:  its session (`/session <id>`), or `/wtf <name>?` to answer here
      - `unmerged`:  `/isolate done` in its session, or `/worktrees` to merge it
-     - parked:  `/unpark <name>`;  a morning report:  `/wakeup` in its session
+     - parked:  `/unpark <name>`;  an overnight report:  `/epic review <name>`
    - then the "Done, but still waiting on you" lines, if any
 4. Stop there.  Don't act on any of it unless Owen asks.
 

@@ -248,6 +248,13 @@ Every modal:
 
 ### 7.2 Start
 
+- A `/bedtime` night to go through (`yarn plan-doc summary <name> --json`, `overnight`;  the plan doc's
+  "Overnight" section on top):
+  - `"done"`:  FIRST, in chat, the night from that section:  its summary line, each phase's line, the problems.
+    Then the Start modal puts "Judgement calls" first, recommended, whatever the counts.  This replaces `/wakeup`.
+  - `"active"`:  the run is still going, in another session:  say so in one line;  review anyway, and never remove
+    the section.
+  - Running in the bedtime session itself:  bedtime mode ends here (`.claude/skills/bedtime/SKILL.md`, step 4).
 - `yarn plan-doc items <name> --json`:  `status` (`last` review date, `reviewedThen`, `deferred`, `queued[]` with
   each `work`), and every section's `notReviewed` / `total`.  Read the plan doc's summary too, for what the epic is.
 - First, in chat, where things stand, for someone who remembers nothing:
@@ -338,6 +345,9 @@ Per picked item, in order:
 
 ### 7.6 Finish Review
 
+- An Overnight section (`"done"`) with every judgement call from the night reviewed:  modal "Remove the overnight
+  report from the plan doc?":  "Remove it (Recommended)" ("Its calls, problems and todos stay as items and log
+  lines") -> `yarn plan-doc overnight <name> remove`;  "Keep it".  Calls not reviewed yet:  keep it, and say so.
 - A log line in the doc:  `yarn plan-doc log <name> "Review:  7 items, 3 decisions, 2 deferred, 1 to do"`.
 - Reply:  what was decided, deferred, put on the to-do list (in words, ids after, linked:  `yarn docs:link`), and
   the to-do list, which stays for next time.
@@ -358,6 +368,7 @@ add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details
 decide <name> <Q id> "decision" [--details html]   answer a question:  prints the decision's id (D7)
 close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
 log <name> "text"                                   timestamped line in the doc's log
+overnight <name> start|phase|problem|done|remove    a /bedtime run's report, on top of the doc (`/bedtime`)
 prompt <name> "text" | --file f                     set the prompt quoted in the Overview
 migrate <name>                                      an older doc (any layout) into the current one
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
