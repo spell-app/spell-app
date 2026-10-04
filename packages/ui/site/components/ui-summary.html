@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Summary | Spell UI</title>
+    <meta
+      name="description"
+      content="A summary is a feed event's main line:  who did what, and when."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Summary">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-summary.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-summary%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Summary
+            <ui-header>A summary is a feed event's main line:  who did what, and when.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-summary" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  `<ui-summary>` in each owner that gives it a look (from the owners' own pages and
+              `src/components/ui-parts/examples/elements/`), then its attributes.  The Content parts page
+              (`ui-header.html`) shows every part together.
+            -->
+            <ui-section id="examples-owners" header="Owners" sticky collapsible dividing>
+              <ui-section id="examples-owners-feed" header="Feed" sticky collapsible dividing>
+                <ui-docs-example description="A feed event's summary:  who did what, with an inline date.">
+                  <ui-feed>
+                    <ui-event image="../images/avatar/small/elliot.jpg">
+                      <ui-content>
+                        <ui-summary>
+                          <ui-author href="#elliot">Elliot Fu</ui-author> added you as a friend
+                          <ui-date datetime="PT1H">1 Hour Ago</ui-date>
+                        </ui-summary>
+                      </ui-content>
+                    </ui-event>
+                    <ui-event icon="pencil">
+                      <ui-content>
+                        <ui-date datetime="P3D">3 days ago</ui-date>
+                        <ui-summary>You submitted a new post to the page</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-summary>` is a feed event's main line: who did what, with an inline `<ui-author>` and `<ui-date>`.
+
+                  - No attributes: it takes the feed's bold-ish line style.
+                  - Put a `<ui-date>` inside it to show the date inline at its end, or before it to show it above.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-owners" header="Owners" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-summary>` finds its nearest owner and sets `:state(in-<owner>)` on itself; `ui-parts.css` styles it by that
+                  state. Its owners, and what each makes of it:
+
+                  - [Feed](ui-feed.html) (`:state(in-feed)`): the event's main line, the author bold and the date inline
+
+                  Anywhere else it is an unstyled block. More on how parts find their owners: [Content parts](ui-header.html#usage-owners).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A neutral block with no role; the event around it is a list item of the feed's list.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api tag="ui-summary"></ui-docs-api>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

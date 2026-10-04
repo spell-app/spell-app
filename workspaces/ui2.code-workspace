@@ -1,0 +1,26 @@
+{
+  "folders": [
+    {
+      "path": "..",
+      "name": "spell-app"
+    },
+    {
+      "path": "../packages/ui",
+      "name": "ui"
+    }
+  ],
+  "settings": {
+    "workbench.colorTheme": "Tomorrow Night Blue",
+    "git.detectWorktrees": true,
+    "workbench.colorCustomizations": {
+      "titleBar.activeBackground": "#0000cd",
+      "titleBar.activeForeground": "#ffffff",
+      "titleBar.inactiveBackground": "#4a4ab8",
+      "titleBar.inactiveForeground": "#d0d0f0"
+    },
+    "files.exclude": {
+      "packages": true,
+      ".claude/worktrees": true
+    }
+  }
+}

@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Select | Spell UI</title>
+    <meta
+      name="description"
+      content="A select lets a user choose a value from a list, with the platform's own picker."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Select">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-select.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-select%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/dropdown.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Select
+            <ui-header>A select lets a user choose a value from a list, with the platform's own picker.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-select" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  ours (no Fomantic page of its own):  the selection variants of Fomantic's dropdown page that a native
+              `<select>` can draw, in that page's order (Types, Content, States, Variations), with the old page's facts.
+              - In browsers with the customizable select (Chrome 135+) the open picker is styled too, with icons;  elsewhere it's
+                the browser's own list.  A search, additions, labels or rich content:  `<ui-dropdown>`.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-select" header="Select" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A select lets the user choose one option, in the closed look of a selection dropdown. Options are
+                    <code>&lt;ui-item&gt;</code>s, as in a dropdown; <code>placeholder</code> stands while nothing is
+                    chosen.
+                  </p>
+                  <ui-select name="pet" placeholder="Pet">
+                    <ui-item value="0">Cat</ui-item>
+                    <ui-item value="1">Dog</ui-item>
+                    <ui-item value="2">Bird</ui-item>
+                    <ui-item value="3">Rabbit</ui-item>
+                    <ui-item value="4">Squirrel</ui-item>
+                    <ui-item value="5">Horse</ui-item>
+                    <ui-item value="6">Turtle</ui-item>
+                    <ui-item value="7">Parrot</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+                <ui-docs-example description="Options can lead with an image (customizable select only).">
+                  <ui-select fluid name="user" placeholder="Select Friend">
+                    <ui-item value="jenny" image="../images/avatar/small/jenny.jpg">Jenny Hess</ui-item>
+                    <ui-item value="elliot" image="../images/avatar/small/elliot.jpg">Elliot Fu</ui-item>
+                    <ui-item value="stevie" image="../images/avatar/small/stevie.jpg">Stevie Feliciano</ui-item>
+                    <ui-item value="christian" image="../images/avatar/small/christian.jpg">Christian</ui-item>
+                    <ui-item value="matt" image="../images/avatar/small/matt.jpg">Matt</ui-item>
+                    <ui-item value="justen" image="../images/avatar/small/justen.jpg">Justen Kitsune</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-chosen-value" header="Chosen value" sticky collapsible dividing>
+                <ui-docs-example description="`value` picks the starting option.">
+                  <ui-select aria-label="Fruit" value="banana">
+                    <ui-item value="apple">Apple</ui-item>
+                    <ui-item value="banana">Banana</ui-item>
+                    <ui-item value="cherry">Cherry</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-types-multiple-selection"
+                header="Multiple Selection"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    A select can allow several choices: <code>multiple</code>, a native list box in every browser.
+                    <code>value</code>
+                    is a comma list.
+                  </p>
+                  <ui-select multiple name="skills" aria-label="Skills" value="angular,css">
+                    <ui-item value="angular">Angular</ui-item>
+                    <ui-item value="css">CSS</ui-item>
+                    <ui-item value="design">Graphic Design</ui-item>
+                    <ui-item value="ember">Ember</ui-item>
+                    <ui-item value="html">HTML</ui-item>
+                    <ui-item value="javascript">Javascript</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+              </ui-section>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported here, on purpose: Search Selection, Clearable, labels for a multiple, user additions and
+                every menu-only look (inline, button, pointing ...) -- a native <code>&lt;select&gt;</code> can't; use
+                <code>&lt;ui-dropdown&gt;</code>.</ui-message
+              >
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section
+                id="examples-content-groups-and-dividers"
+                header="Groups and dividers"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description="A `header` item starts a group of options (an `<optgroup>`);  a `divider` item draws a rule."
+                >
+                  <ui-select placeholder="Choose food">
+                    <ui-item type="header">Fruit</ui-item>
+                    <ui-item value="apple">Apple</ui-item>
+                    <ui-item value="pear">Pear</ui-item>
+                    <ui-item type="header">Vegetables</ui-item>
+                    <ui-item value="leek">Leek</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item value="none">Nothing</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-content-flags-icons-and-descriptions"
+                header="Flags, icons and descriptions"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    Options can carry a flag, an icon and a description. Browsers without the customizable select show
+                    the flag and description as text, and drop the icon.
+                  </p>
+                  <ui-select placeholder="Select Country">
+                    <ui-item value="fr" flag="fr" description="EU">France</ui-item>
+                    <ui-item value="gh" flag="gh" description="AU">Ghana</ui-item>
+                    <ui-item value="jp" icon="sun">Japan</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-error" header="Error" sticky collapsible dividing>
+                <ui-docs-example description='An errored select can alert a user to a problem:  `state="error"`.'>
+                  <ui-select state="error" placeholder="Gender">
+                    <ui-item value="male">Male</ui-item>
+                    <ui-item value="female">Female</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+                <ui-docs-example description="The other form states tint the box too:  `info`, `success`, `warning`.">
+                  <ui-select state="info" aria-label="Info" value="a"><ui-item value="a">Info</ui-item></ui-select>
+                  <ui-select state="success" aria-label="Success" value="a"
+                    ><ui-item value="a">Success</ui-item></ui-select
+                  >
+                  <ui-select state="warning" aria-label="Warning" value="a"
+                    ><ui-item value="a">Warning</ui-item></ui-select
+                  >
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A disabled select does not allow user interaction, and isn't submitted.  A disabled item can't be chosen."
+                >
+                  <ui-select disabled placeholder="Gender">
+                    <ui-item value="male">Male</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-select required placeholder="Size" name="size">
+                    <ui-item value="s">Small</ui-item>
+                    <ui-item value="m" disabled>Medium (sold out)</ui-item>
+                    <ui-item value="l">Large</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A select can have different sizes.">
+                  <ui-select size="mini" name="gender" placeholder="Mini">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-select>
+                  <ui-select size="tiny" name="gender" placeholder="Tiny">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-select>
+                  <ui-select size="small" name="gender" placeholder="Small">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-select>
+                  <ui-select size="medium" name="gender" placeholder="Medium">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-select>
+                  <ui-select size="large" name="gender" placeholder="Large">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-select size="big" name="gender" placeholder="Big">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-select>
+                  <ui-select size="huge" name="gender" placeholder="Huge">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-select>
+                  <ui-select size="massive" name="gender" placeholder="Massive">
+                    <ui-item value="1">Male</ui-item>
+                    <ui-item value="0">Female</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A select can be inverted.">
+                  <ui-segment inverted>
+                    <ui-select inverted name="choices" placeholder="Select choice">
+                      <ui-item>Choice 1</ui-item>
+                      <ui-item>Choice 2</ui-item>
+                      <ui-item>Choice 3</ui-item>
+                    </ui-select>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A compact select has no minimum width:  it is as wide as its longest option."
+                >
+                  <ui-select compact aria-label="Compact" value="a">
+                    <ui-item value="a">Or</ui-item>
+                    <ui-item value="b">And</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+                <ui-docs-example description="A select can take the full width of its parent.">
+                  <ui-select fluid placeholder="Fills its container">
+                    <ui-item value="a">A</ui-item>
+                    <ui-item value="b">B</ui-item>
+                  </ui-select>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
+              <ui-section id="examples-examples-form" header="Form" sticky collapsible dividing>
+                <ui-docs-example description="A select is a form control:  in a field, with a label.">
+                  <ui-form>
+                    <form>
+                      <ui-field required>
+                        <label for="select-form-gender">Gender</label>
+                        <ui-select id="select-form-gender" required name="gender" placeholder="Gender">
+                          <ui-item value="male">Male</ui-item>
+                          <ui-item value="female">Female</ui-item>
+                        </ui-select>
+                      </ui-field>
+                      <ui-button type="submit">Submit</ui-button>
+                      <ui-button type="reset" basic>Reset</ui-button>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  native select, options, forms, events, select vs dropdown, accessibility, frameworks. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The element is a real `<select>` in Fomantic's look, so the keyboard, type-ahead, the phone's picker wheel or
+                  sheet, and screen-reader support are all the browser's.
+
+                  - Options come from slotted `<ui-item>`s (`value`, `icon`, `image`, `flag`, `description`, `disabled`; `header`
+                    and `divider` items), then the `options` property (the same shape as a dropdown's).
+                  - `placeholder` is the text of an empty first option, shown while nothing is chosen.
+                  - In browsers with the customizable select (`appearance: base-select`, Chrome 135+) the open picker is styled
+                    and shows icons and images (`:state(customizable)`); elsewhere it's the browser's own list.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  It is a form control: `name` and `value` submit with the form (`multiple` sends one entry per value), `required`
+                  validates, `disabled` leaves it out, and a form reset puts back the starting `value`.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `ui-change` fires when the user picks, with `{ value }` (a `string[]` with `multiple`). Setting `value` from code
+                  fires nothing.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const select = document.querySelector("ui-select")
+                  select.options = [{ value: "xl", text: "Extra large" }]
+                  select.addEventListener("ui-change", (event) => console.log(event.detail.value))
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-select-or-dropdown" header="Select or dropdown?" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Use `<ui-select>` when:
+
+                  - a form field picks from a fixed list
+                  - the platform picker matters: phones' wheels and sheets, native type-ahead, a no-script fallback
+                  - icons and flags in options are nice to have, not essential
+
+                  Use `<ui-dropdown>` when:
+
+                  - the user types to filter (`search`), adds values or clears them
+                  - chosen values show as labels (`multiple`), or the menu holds rich content
+                  - it isn't a form field: an action menu, `inline`, `button`, `pointing`
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The browser's own select keyboard: **Space** / **Enter** / **Alt+Arrow Down** open the picker, the arrows move,
+                  typing jumps to a matching option, **Escape** closes. A `multiple` list box takes **Shift** / **Ctrl** (**Cmd**)
+
+                  - click or arrows to extend the choice.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The shadow root holds one native `<select>`: its role, keyboard and announcements are the browser's.
+                  - Name it with `aria-label` on the host, or a `<label for>` pointing at the host. The `placeholder` alone is not
+                    a name.
+                  - While nothing is chosen, an empty first option shows the placeholder, so the browser never quietly picks the
+                    first real option; `required` makes that empty option unselectable.
+                  - `state="error"` is only a look; `aria-invalid` follows the select's own validation (`required`).
+                  - If the element can't render, its native fallback is the same `<select>` with the same options and value, so it
+                    still works and submits; option icons and images are dropped, and a `<label for>` on the host no longer names
+                    it (use `aria-label`).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set `options` as a property, not an attribute, and listen for `ui-change`.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-select name="size" options={sizes} value={size} onui-change={(e) => setSize(e.detail.value)} />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-select name="size" :options="sizes" :value="size" @ui-change="(e) => (size = e.detail.value)" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref;  `prop:` for the property
+                  <ui-select
+                    name="size"
+                    prop:options={sizes}
+                    value={size()}
+                    ref={(el) => el.addEventListener("ui-change", (e) => setSize(e.detail.value))}
+                  />
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-select"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-select-*` tokens: set one on the element, on any ancestor (a form, `:root`), or on
+                  the select's box through `::part(select)`. They inherit into the shadow root, where the sheet reads each through
+                  a private alias, so nothing inside blocks them. Style the rest with `::part()`: `button`, `option`,
+                  `placeholder` and `group`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-select {
+                    --ui-select-radius: 0;
+                  }
+                  ui-select::part(option) {
+                    padding-block: 0.75em;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The open picker is styled only where the browser has the customizable select; elsewhere `option` and `group`
+                    reach as far as the platform's list lets them. Never set the `--_ui-select-*` names: they're the sheet's
+                    private plumbing.
+                  </script>
+                </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-select" playground></ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
+
+                  No Fomantic theme restyles selects yet: the themes' dropdown rules target `<ui-dropdown>`.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

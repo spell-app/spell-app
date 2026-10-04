@@ -101,6 +101,58 @@ describe("Styles", () => {
     expect(root.adoptedStyleSheets[0]).toBe(replacement)
   })
 
+  it("shadow: true adopts into existing AND later roots, after utilities, before the app sheet", async () => {
+    const utilities = styles.register("utilities", ".ui-bold { font-weight: bold }")
+    const button = styles.register("button", ".probe { color: red }")
+    const early = shadowHost()
+    styles.adoptInto(early.root, ["button"])
+    await styles.appSheetReady
+    const base = styles.register("theme-base", ".probe { color: rgb(1, 1, 1) }", { shadow: true })
+    const theme = styles.register("theme", ".probe { color: rgb(2, 2, 2) }", { shadow: true })
+    expect([...early.root.adoptedStyleSheets]).toEqual([button, utilities, base, theme, styles.appSheet])
+    // registration order is cascade order:  the later sheet wins inside the same layer
+    expect(getComputedStyle(early.probe).color).toBe("rgb(2, 2, 2)")
+    const late = shadowHost()
+    styles.adoptInto(late.root, [])
+    expect([...late.root.adoptedStyleSheets]).toEqual([utilities, base, theme, styles.appSheet])
+    expect(document.adoptedStyleSheets).not.toContain(theme)
+  })
+
+  it("re-registering without shadow keeps it in shadow roots", () => {
+    const { root } = shadowHost()
+    styles.adoptInto(root, [])
+    const theme = styles.register("theme", ".probe { color: rgb(3, 3, 3) }", { shadow: true })
+    styles.register("theme", ".probe { color: rgb(4, 4, 4) }")
+    expect(root.adoptedStyleSheets).toContain(theme)
+  })
+
+  it('register(name, "") removes a page + shadow sheet everywhere, and it can come back', () => {
+    const { root, probe } = shadowHost()
+    styles.adoptInto(root, [])
+    const page = Fixture.render(`<p class="probe">page</p>`)
+    const before = getComputedStyle(probe).color
+    const theme = styles.register("theme", ".probe { color: rgb(5, 6, 7) }", { page: true, shadow: true })
+    expect(getComputedStyle(probe).color).toBe("rgb(5, 6, 7)")
+    expect(getComputedStyle(page).color).toBe("rgb(5, 6, 7)")
+
+    styles.register("theme", "", { page: true, shadow: true })
+    expect(styles.has("theme")).toBe(false)
+    expect(document.adoptedStyleSheets).not.toContain(theme)
+    expect(root.adoptedStyleSheets).not.toContain(theme)
+    expect(getComputedStyle(probe).color).toBe(before)
+
+    const again = styles.register("theme", ".probe { color: rgb(7, 6, 5) }", { page: true, shadow: true })
+    expect(root.adoptedStyleSheets).toContain(again)
+    expect(getComputedStyle(page).color).toBe("rgb(7, 6, 5)")
+    styles.register("theme", "")
+    expect(document.adoptedStyleSheets).not.toContain(again)
+  })
+
+  it('register(name, "") on an unknown name is a no-op', () => {
+    expect(() => styles.register("never-registered", "")).not.toThrow()
+    expect(styles.has("never-registered")).toBe(false)
+  })
+
   it("page sheets go onto the document once", () => {
     const sheet = styles.register("native-test", "[data-native-test] { color: rgb(9, 9, 9) }", { page: true })
     styles.register("native-test", "[data-native-test] { color: rgb(9, 9, 9) }", { page: true })

@@ -1,5 +1,5 @@
 import { Cell } from "$/ui/core"
-import type { RadioMember } from "./ui-checkbox.types"
+import { DOCUMENT_POSITION_FOLLOWING, type RadioMember } from "./ui-checkbox.types"
 
 /****************
  * ### `RadioGroup`
@@ -70,7 +70,7 @@ export class RadioGroup {
   /** Members in document order;  tracked. */
   ordered(): RadioMember[] {
     return this.members().sort((a, b) =>
-      a.host.compareDocumentPosition(b.host) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+      a.host.compareDocumentPosition(b.host) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1
     )
   }
 
@@ -97,7 +97,7 @@ export class RadioGroup {
   /** The enabled member `delta` steps from `from` in document order, wrapping;  reads the live set, untracked. */
   step(from: RadioMember, delta: number): RadioMember | undefined {
     const ordered = [...this.current].sort((a, b) =>
-      a.host.compareDocumentPosition(b.host) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+      a.host.compareDocumentPosition(b.host) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1
     )
     const enabled = ordered.filter((member) => member === from || !member.isDisabled())
     if (enabled.length < 2) return undefined

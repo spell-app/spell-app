@@ -1,0 +1,19 @@
+<!-- `<ui-docs-themes>`:  the site header's look controls, and a component page's per-family theme dropdown. -->
+<div class="ui-stack">
+  <section>
+    <h4>Site header</h4>
+    <ui-segment inverted>
+      <ui-docs-themes inverted size="small"></ui-docs-themes>
+    </ui-segment>
+  </section>
+
+  <section>
+    <h4>On a component page: the themes touching buttons</h4>
+    <ui-docs-themes for="ui-button" show="theme"></ui-docs-themes>
+  </section>
+
+  <section>
+    <h4>Scheme only</h4>
+    <ui-docs-themes show="scheme"></ui-docs-themes>
+  </section>
+</div>

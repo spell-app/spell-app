@@ -87,6 +87,18 @@ describe("<ui-ad> units and test", () => {
     expect(root.className).toBe("ui small rectangle ad")
   })
 
+  it("keeps its margin between siblings, and drops it as first / last child", async () => {
+    const holder = await ElementFixture.render(
+      `<div><ui-ad unit="button"></ui-ad><ui-ad unit="button"></ui-ad><ui-ad unit="button"></ui-ad></div>`
+    )
+    const [first, middle, last] = [...holder.querySelectorAll<UIHost>("ui-ad")].map(
+      (ad) => getComputedStyle(ad.shadowRoot!.firstElementChild!).marginTop
+    )
+    expect(first).toBe("0px")
+    expect(parseFloat(middle)).toBeGreaterThan(0)
+    expect(last).toBe("0px")
+  })
+
   it("centres a centered ad", async () => {
     const holder = await ElementFixture.render(
       `<div style="width: 600px"><p>x</p><ui-ad unit="small rectangle" centered></ui-ad><p>y</p></div>`
@@ -141,6 +153,19 @@ describe("<ui-ad> tokens from outside", () => {
     const host = await ElementFixture.render(MARKUP)
     const probe = await ElementFixture.render(`<span style="background-color: oklch(0.4 0 0)"></span>`)
     expect(measure(host)).toBe(getComputedStyle(probe).backgroundColor)
+  })
+})
+
+describe("<ui-ad> outer margin", () => {
+  it("keeps 1em vertical margins between siblings:  the HOST's position decides (the root is an only child)", async () => {
+    const holder = await ElementFixture.render(
+      `<div><h4>Heading</h4><ui-ad unit="small square"></ui-ad><ui-ad unit="small square"></ui-ad></div>`
+    )
+    const [middle, last] = [...holder.querySelectorAll<UIHost>("ui-ad")].map((host) =>
+      getComputedStyle(host.shadowRoot!.firstElementChild!)
+    )
+    expect([middle!.marginTop, middle!.marginBottom]).toEqual(["16px", "16px"])
+    expect([last!.marginTop, last!.marginBottom]).toEqual(["0px", "0px"])
   })
 })
 

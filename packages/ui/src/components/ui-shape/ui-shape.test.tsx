@@ -193,6 +193,21 @@ describe("<ui-shape> flipping", () => {
     expect(shown(sides)).toEqual([true, false, false])
   })
 
+  it("invoker commands:  --flip-<direction> turns to the next side that way", async () => {
+    const { host, wrapper, sides } = await shape(
+      `<button id="u" commandfor="s" command="--flip-up">Up</button>` +
+        `<button id="x" commandfor="s" command="--flip-sideways">Nothing</button><ui-shape id="s">${SIDES}</ui-shape>`
+    )
+    const details = changes(host)
+    await userEvent.click(wrapper.querySelector("#u")!)
+    await expect.poll(() => details.length).toBe(1)
+    expect(details[0]!.flip).toBe("up")
+    expect(shown(sides)).toEqual([false, true, false])
+    await userEvent.click(wrapper.querySelector("#x")!)
+    await ElementFixture.settle()
+    expect(details).toHaveLength(1)
+  })
+
   it("keeps a slotted side's own inline styles", async () => {
     const { host, sides } = await shape(
       `<ui-shape><ui-side style="color: red">A</ui-side><ui-side>B</ui-side></ui-shape>`

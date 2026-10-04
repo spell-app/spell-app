@@ -57,8 +57,8 @@ end tell`
 
 /**
  * Show `url` in Chrome, in ONE tab per `key`, IN THE BACKGROUND.  Returns how:  `reused`, `new tab`, `launched`.
- * - `key`:  a stable part of the URL, e.g. the repo path `/packages/docs/epics/x/x.html`, so the same page from
- *   another checkout or port reuses the tab:  re-pointed if the URL differs, else reloaded
+ * - `key`:  a stable part of the URL, e.g. the repo path `/packages/docs/epics/x/x.plan.html`, so the same page
+ *   from another checkout or port reuses the tab:  re-pointed if the URL differs, else reloaded
  * - never brings Chrome forward:  the tab is made active in ITS window only;  a new tab goes in the front window
  * - Chrome not running, or AppleScript refused:  `open -g -a "Google Chrome"`, which can't reuse a tab
  * - NOTE: `key` is an AppleScript keyword:  the variable is `pageKey`

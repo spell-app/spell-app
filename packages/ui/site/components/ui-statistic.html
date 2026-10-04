@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Statistic | Spell UI</title>
+    <meta name="description" content="A statistic emphasizes the current value of an attribute." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Statistic">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-statistic.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-statistic%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/views/statistic.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Statistic
+            <ui-header>A statistic emphasizes the current value of an attribute.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-statistic" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's statistic page, section by section, in its order (Types, Content, Variations).
+              Fomantic's `.value` / `.label` are the `value` / `label` shorthands, or slotted `<ui-value>` / `<ui-label>` parts
+              (slotted parts keep their order:  a label first is Fomantic's top label);  `four statistics` is `widths="4"`.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-statistic" header="Statistic" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A statistic can display a value with a label above or below it:  `value` and `label` are the shorthands."
+                >
+                  <ui-statistic value="5,550" label="Downloads"></ui-statistic>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  description="Slotted `<ui-label>` and `<ui-value>` parts keep their order, so a label written first sits on top."
+                >
+                  <ui-statistic>
+                    <ui-label>Views</ui-label>
+                    <ui-value>40,509</ui-value>
+                  </ui-statistic>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-statistic-group" header="Statistic Group" sticky collapsible dividing>
+                <ui-docs-example description="A group of statistics.">
+                  <ui-statistics>
+                    <ui-statistic value="22" label="Faves"></ui-statistic>
+                    <ui-statistic value="31,200" label="Views"></ui-statistic>
+                    <ui-statistic value="22" label="Members"></ui-statistic>
+                  </ui-statistics>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-value" header="Value" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A statistic can contain a numeric, icon, image, or text value:  `<ui-value text>` is a word value."
+                >
+                  <ui-statistics>
+                    <ui-statistic value="22" label="Saves"></ui-statistic>
+                    <ui-statistic label="Signups">
+                      <ui-value text>Three<br />Thousand</ui-value>
+                    </ui-statistic>
+                    <ui-statistic label="Flights">
+                      <ui-value><ui-icon name="plane"></ui-icon> 5</ui-value>
+                    </ui-statistic>
+                    <ui-statistic label="Team Members">
+                      <ui-value
+                        ><ui-image circular inline src="../images/avatar/small/joe.jpg" alt=""></ui-image> 42</ui-value
+                      >
+                    </ui-statistic>
+                  </ui-statistics>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-label" header="Label" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A statistic can contain a label to help provide context for the presented value."
+                >
+                  <ui-statistic value="2,204" label="Views"></ui-statistic>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section
+                id="examples-variations-horizontal-statistic"
+                header="Horizontal Statistic"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="A statistic can present its measurement horizontally.">
+                  <ui-statistic horizontal value="2,204" label="Views"></ui-statistic>
+                </ui-docs-example>
+
+                <ui-docs-example>
+                  <ui-statistics horizontal>
+                    <ui-statistic value="2,204" label="Views"></ui-statistic>
+                    <ui-statistic value="3,322" label="Downloads"></ui-statistic>
+                    <ui-statistic value="22" label="Tasks"></ui-statistic>
+                  </ui-statistics>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+                <ui-docs-example description="A statistic can be formatted to be different colors.">
+                  <ui-statistics>
+                    <ui-statistic color="red" value="27" label="Red"></ui-statistic>
+                    <ui-statistic color="orange" value="8" label="Orange"></ui-statistic>
+                    <ui-statistic color="yellow" value="28" label="Yellow"></ui-statistic>
+                    <ui-statistic color="olive" value="7" label="Olive"></ui-statistic>
+                    <ui-statistic color="green" value="14" label="Green"></ui-statistic>
+                    <ui-statistic color="teal" value="82" label="Teal"></ui-statistic>
+                    <ui-statistic color="blue" value="1" label="Blue"></ui-statistic>
+                    <ui-statistic color="violet" value="22" label="Violet"></ui-statistic>
+                    <ui-statistic color="purple" value="23" label="Purple"></ui-statistic>
+                    <ui-statistic color="pink" value="15" label="Pink"></ui-statistic>
+                    <ui-statistic color="brown" value="36" label="Brown"></ui-statistic>
+                    <ui-statistic color="grey" value="49" label="Grey"></ui-statistic>
+                  </ui-statistics>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A statistic can be formatted to fit on a dark background.">
+                  <ui-segment inverted>
+                    <ui-statistic inverted value="54" label="Inverted"></ui-statistic>
+                    <ui-statistic color="red" inverted value="27" label="Red"></ui-statistic>
+                    <ui-statistic color="orange" inverted value="8" label="Orange"></ui-statistic>
+                    <ui-statistic color="yellow" inverted value="28" label="Yellow"></ui-statistic>
+                    <ui-statistic color="olive" inverted value="7" label="Olive"></ui-statistic>
+                    <ui-statistic color="green" inverted value="14" label="Green"></ui-statistic>
+                    <ui-statistic color="teal" inverted value="82" label="Teal"></ui-statistic>
+                    <ui-statistic color="blue" inverted value="1" label="Blue"></ui-statistic>
+                    <ui-statistic color="violet" inverted value="22" label="Violet"></ui-statistic>
+                    <ui-statistic color="purple" inverted value="23" label="Purple"></ui-statistic>
+                    <ui-statistic color="pink" inverted value="15" label="Pink"></ui-statistic>
+                    <ui-statistic color="brown" inverted value="36" label="Brown"></ui-statistic>
+                    <ui-statistic color="grey" inverted value="49" label="Grey"></ui-statistic>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-stackable" header="Stackable" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A statistic group can automatically stack rows to a single column on mobile devices.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    ><code>stackable</code> answers to the GROUP's width (below 768px), not the window's. This page's
+                    example column is narrower than that, so the group shows stacked here even on a wide
+                    screen.</ui-message
+                  >
+                  <ui-statistics stackable>
+                    <ui-statistic color="red" value="27" label="Red"></ui-statistic>
+                    <ui-statistic color="orange" value="8" label="Orange"></ui-statistic>
+                    <ui-statistic color="yellow" value="28" label="Yellow"></ui-statistic>
+                    <ui-statistic color="olive" value="7" label="Olive"></ui-statistic>
+                    <ui-statistic color="green" value="14" label="Green"></ui-statistic>
+                    <ui-statistic color="teal" value="82" label="Teal"></ui-statistic>
+                    <ui-statistic color="blue" value="1" label="Blue"></ui-statistic>
+                    <ui-statistic color="violet" value="22" label="Violet"></ui-statistic>
+                    <ui-statistic color="purple" value="23" label="Purple"></ui-statistic>
+                    <ui-statistic color="pink" value="15" label="Pink"></ui-statistic>
+                    <ui-statistic color="brown" value="36" label="Brown"></ui-statistic>
+                    <ui-statistic color="grey" value="49" label="Grey"></ui-statistic>
+                  </ui-statistics>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-evenly-divided" header="Evenly Divided" sticky collapsible dividing>
+                <ui-docs-example
+                  description='A statistic group can have its items divided evenly:  `widths="4"` is Fomantic&apos;s `four statistics`.'
+                >
+                  <ui-statistics widths="4">
+                    <ui-statistic value="22" label="Saves"></ui-statistic>
+                    <ui-statistic label="Signups">
+                      <ui-value text>Three<br />Thousand</ui-value>
+                    </ui-statistic>
+                    <ui-statistic label="Flights">
+                      <ui-value><ui-icon name="plane"></ui-icon> 5</ui-value>
+                    </ui-statistic>
+                    <ui-statistic label="Team Members">
+                      <ui-value
+                        ><ui-image circular inline src="../images/avatar/small/joe.jpg" alt=""></ui-image> 42</ui-value
+                      >
+                    </ui-statistic>
+                  </ui-statistics>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-equal" header="Equal" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`equal` divides the row evenly without a count:  one row, an equal share of it per statistic.  `widths="4"` above is the older, count-based spelling (which wraps after four).'
+                >
+                  <ui-statistics equal>
+                    <ui-statistic value="22" label="Saves"></ui-statistic>
+                    <ui-statistic value="31,200" label="Views"></ui-statistic>
+                    <ui-statistic value="5" label="Teams"></ui-statistic>
+                  </ui-statistics>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+                <ui-docs-example
+                  description='A fluid statistic occupies the whole container width. It&apos;s a simpler alternative to a `widths="1"` group.'
+                >
+                  <ui-statistic fluid value="2,204" label="Views"></ui-statistic>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-floated" header="Floated" sticky collapsible dividing>
+                <ui-docs-example description="A statistic can sit to the left or right of other content.">
+                  <ui-segment>
+                    <ui-statistic floated="right" value="2,204" label="Views"></ui-statistic>
+                    <p>
+                      Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
+                      autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
+                      laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
+                      natum rebum iisque.
+                    </p>
+                    <p>
+                      Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
+                      ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
+                      oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
+                    </p>
+                    <ui-statistic floated="left" value="2,204" label="Views"></ui-statistic>
+                    <p>
+                      Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
+                      adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
+                      quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
+                      mnesarchum eu per, quas minimum postulant per id.
+                    </p>
+                    <p>
+                      Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
+                      ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
+                      oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A statistic can vary in size.">
+                  <ui-statistic size="mini" value="2,204" label="Views"></ui-statistic>
+                  <ui-statistic size="tiny" value="2,204" label="Views"></ui-statistic>
+                  <ui-statistic size="small" value="2,204" label="Views"></ui-statistic>
+                  <ui-statistic value="2,204" label="Views"></ui-statistic>
+                  <ui-statistic size="large" value="2,204" label="Views"></ui-statistic>
+                  <ui-statistic size="huge" value="2,204" label="Views"></ui-statistic>
+                </ui-docs-example>
+
+                <!-- GAP I90:  a statistic after a (hidden) divider still takes the sibling margin (Fomantic's is adjacent-only). -->
+                <ui-docs-example>
+                  <ui-statistic size="mini" horizontal value="2,204" label="Views"></ui-statistic>
+                  <ui-divider hidden></ui-divider>
+                  <ui-statistic size="tiny" horizontal value="2,204" label="Views"></ui-statistic>
+                  <ui-divider hidden></ui-divider>
+                  <ui-statistic size="small" horizontal value="2,204" label="Views"></ui-statistic>
+                  <ui-divider hidden></ui-divider>
+                  <ui-statistic horizontal value="2,204" label="Views"></ui-statistic>
+                  <ui-divider hidden></ui-divider>
+                  <ui-statistic size="large" horizontal value="2,204" label="Views"></ui-statistic>
+                  <ui-divider hidden></ui-divider>
+                  <ui-statistic size="huge" horizontal value="2,204" label="Views"></ui-statistic>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  from the old Astro page (Behaviour, Accessibility), tightened. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A statistic is a value over a label. Write it with the `value` and `label` shorthands, or slot the generic
+                  `<ui-value>` and `<ui-label>` content parts: inside a statistic they take its look (size, colour, horizontal,
+                  inverted), so there is no separate statistic-label tag.
+
+                  - Slotted parts keep their order: a `<ui-label>` before the `<ui-value>` is Fomantic's top label.
+                  - The `value` shorthand always comes before the slotted parts and the `label` shorthand after, so either shorthand
+                    pairs with a slotted part.
+                  - A word value is `<ui-value text>` (or `text` with the `value` shorthand): smaller, bold, at least two lines tall.
+                  - A `<ui-statistics>` group shares its `size`, `color`, `horizontal` and `inverted` with every statistic in it; a
+                    statistic's own attribute still wins.
+                  - `widths="N"` divides each row of a group evenly (Fomantic's `four statistics`).
+                  - `stackable` answers to the group's own width, not the window's, so a group in a narrow sidebar stacks even on a
+                    wide screen.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-statistics widths="3" size="small">
+                    <ui-statistic value="22" label="Faves"></ui-statistic>
+                    <ui-statistic color="green" label="Flights">
+                      <ui-value><ui-icon name="plane"></ui-icon> 5</ui-value>
+                    </ui-statistic>
+                    <ui-statistic label="Signups"><ui-value text>Three<br />Thousand</ui-value></ui-statistic>
+                  </ui-statistics>
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Statistics have no events. To update one, set its `value` (or the text of its `<ui-value>`).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const downloads = document.querySelector("ui-statistic#downloads")
+                  downloads.setAttribute("value", count.toLocaleString())
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A statistic is text: it is never a tab stop and takes no keys.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A statistic is plain text with no role: it reads as its value, then its label. Name a group of statistics where
+                    it matters, with a heading before it or an `aria-label` on a region around it.
+                  - Write numbers the way they should be read: a screen reader says "5,550", not the size or colour around it.
+                  - An icon inside a value is decorative unless given a `label`; an image needs its own `alt` (empty when the label
+                    already says it all).
+                  - `color` is never the only signal: say what a red or green value means in the label.
+                  - Without JavaScript the native fallback renders the same markup, shorthands included, so the value and label
+                    still show and style. It drops the spacing between neighbouring statistics; a failed group keeps its statistics
+                    visible.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-statistic"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-statistic-*` tokens: set one on the element, on any ancestor (a `<ui-statistics>`
+                  group, `:root`), or on the box through `::part(statistic)` (the group's box is `::part(group)`). They inherit into
+                  the shadow root, where the sheet reads each through a private alias, so nothing inside blocks them.
+
+                  - `--ui-statistic-value-size` and `--ui-statistic-text-value-size` replace the size ladder's value sizes;
+                    `horizontal` swaps in its own ladder.
+                  - The `value` and `label` parts style the shorthands.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-statistics {
+                    --ui-statistic-horizontal-spacing: 2.5em;
+                    --ui-statistic-row-spacing: 2em;
+                  }
+                  ui-statistic::part(label) {
+                    text-transform: none;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `color` remaps `--ui-color` for the value; `size` picks a step of the value-size ladder. Never set the
+                    `--_ui-*` / `--_statistic-*` names: they're the sheet's private plumbing.
+                  </script>
+                </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-statistic" playground></ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
+
+                  No theme restyles statistics on their own -- the same as Fomantic's own statistic page (Default only). Site-wide
+                  themes still reach them through the foundation tokens.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

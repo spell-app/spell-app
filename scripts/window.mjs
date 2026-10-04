@@ -10,6 +10,11 @@
  * - The root folder hides `packages/` and `.claude/worktrees/`:  the package folder is the window's focus.
  * - A saved workspace can gain and lose folders (a worktree, while a session works in it) without restarting
  *   extensions;  a one-folder window can't, and its Claude panel restarts.
+ *   - NEVER add one any more:  VS Code writes the folder into the window file, where it outlives the worktree,
+ *     unseen:  the files are `skip-worktree` in the main checkout (so Owen's theme changes never show either)
+ * - `git.detectWorktrees` on:  Source Control lists every worktree as its own repo, changes and diffs included,
+ *   so a session that STAYS in its window when it isolates (below) is still reviewable there.
+ *   - every package window lists every worktree;  takes a window reload
  *
  * ## The window a session runs in
  * - The spell extension (`packages/vscode/src/WindowBridge.ts`) runs a small server in EVERY window and writes
@@ -26,16 +31,20 @@
  * - `/isolate` and `/epic` open a worktree in a NEW window (`open <name>`).
  * - Then the session MOVES there (`handoff <name>`):  when its turn ends, the worktree's window opens it in an
  *   editor tab (never the sidebar), and the old window closes its tab.
- * - On leaving, it moves BACK (`handoff <name> --back`):  its package's window opens it, and the worktree's window
- *   closes (its file deleted).  `close <name>` just closes the window:  for a session that never moved there.
+ *   - So `/isolate` ends its turn RIGHT AFTER `handoff`, and does the rest (`yarn install` ...) in the new window.
+ *   - `--prompt <text>`:  typed into the new tab's input, so Owen only presses enter to carry on.
+ * - On leaving (`/isolate done`), it does NOT move back:  it stays in the worktree's window, which Owen closes
+ *   (`close <name>` closes it and deletes its file).  `handoff <name> --back` still moves a session back to its
+ *   package's window, but no skill uses it any more (Owen, 2026-10-03:  "just confusing things").
  *   - A session can't move processes:  the new tab RESUMES it (same session id), and closing the old tab ends the
  *     old `claude` process.  The resumed session goes back into its worktree by itself (Claude records
  *     `worktree-state` in the transcript).
  *   - Why wait for the turn to end:  until then the old process is still writing the transcript, and the new tab
  *     would load it half-written.  The repo's `Stop` hook (`.claude/hooks/handoff.mjs`) starts `resume`, detached,
  *     since closing the old tab kills the hook's own `claude`.
- *   - The old tab is found by its label, the session's title.  No single match (two sessions with one title):  it
- *     stays open, idle;  close it by hand.
+ *   - The old tab is found by its label, the session's title:  its `/rename` title (the prompt hook,
+ *     `.claude/hooks/prompt-gate.mjs`, sets it on `/isolate <name>`), else Claude's own.  No single match (two
+ *     sessions with one title):  it stays open, idle;  close it by hand.
  *   - Log:  `<registry>/handoffs/<session id>.log`.
  * - Docs shown while the move is pending (`show`, `yarn plan-doc open`) wait for it, then show in the window the
  *   session moved to:  the window it's leaving is about to close its tab.
@@ -46,21 +55,32 @@
  * - The package window's theme, title bar tinted in a colour of the worktree's own (from its name):  told apart at a
  *   glance from the package window, and from other worktrees.
  *
+ * ## Staying put
+ * - Instead of moving, a session may STAY in its window:  same tab, only its folder is the worktree.  Owen picks,
+ *   each time, in `/isolate`'s, `/epic`'s or `/unpark`'s modal;  `stay-check` recommends one and says why.
+ * - Its changes show in Source Control (`git.detectWorktrees`), not in Explorer, and the title bar isn't tinted.
+ * - Fine when it's the window's ONLY session.  Else the others share its doc preview (one doc at a time) and its
+ *   Source Control, and a second worktree there is easy to mix up with the first.
+ * - Later, it can still move:  `open <name>`, `handoff <name>`.
+ *
  * ## Commands
  * - `init`:  write the window file of every package that lacks one;  never overwrites (themes are Owen's to change)
  * - `which`:  this session's window:  pid, workspace file, folders
  * - `add <path> [--name <name>]`:  add a folder (a worktree) to the window;  needs a window opened from its
  *   `.code-workspace` (else the change would restart its extensions, Claude panel included)
  * - `remove <path>`:  remove that folder again;  never the window's first
- * - `show <file>`:  show an `.html` doc in the window's doc preview (the right side bar's "Spell Docs" view);  in the window this session
- *   is moving to, once it has, while a `handoff` is pending
+ * - `show <file> [--hash <id>] [--review]`:  show an `.html` doc in the window's doc preview (the right side bar's
+ *   "Spell Docs" tab;  `--review`:  its "Review" tab), at id `<id>`;  in the window this session is moving to, once
+ *   it has, while a `handoff` is pending
  * - `open <name> [--pkg <pkg>]`:  write worktree `<name>`'s window file and open it in a new window;  `<pkg>`
  *   defaults to this session's window's package.  `close <name>`:  close that window, delete the file.
- * - `handoff <name> [--back]`:  move this session to worktree `<name>`'s window when its turn ends;  `--back`:
- *   from it to its package's window, closing it after.  Needs `$CLAUDE_CODE_SESSION_ID` (Claude sets it in a
- *   session's commands).
- * - `resume <record> [--title <title>]`:  the move itself, run by the `Stop` hook:  `<record>` the handoff's file
- *   (deleted once read), `<title>` the session's tab's label
+ * - `handoff <name> [--back] [--prompt <text>]`:  move this session to worktree `<name>`'s window when its turn
+ *   ends;  `--back`:  from it to its package's window, closing it after;  `--prompt`:  typed into the new tab.
+ *   Needs `$CLAUDE_CODE_SESSION_ID` (Claude sets it in a session's commands).
+ * - `resume <record> [--title <title>]...`:  the move itself, run by the `Stop` hook:  `<record>` the handoff's
+ *   file (deleted once read), each `<title>` a label the session's tab may show, tried in order
+ * - `stay-check [--epic] [--json]`:  should this session stay in its window when it isolates, or move?  Prints
+ *   `recommend stay|window`, then a `- <reason>` line each
  * - No window (the extension isn't installed, or the window wasn't reloaded since):  exits 1, saying so.
  */
 import { spawnSync } from "node:child_process"
@@ -130,6 +150,7 @@ export class Window {
       ],
       settings: {
         "workbench.colorTheme": THEMES[pkg] ?? FALLBACK_THEME,
+        "git.detectWorktrees": true,
         "files.exclude": { packages: true, ".claude/worktrees": true }
       }
     }
@@ -249,21 +270,21 @@ export class Window {
    * - to worktree `name`'s window;  then this window closes the session's TAB
    * - `back`:  from worktree `name`'s window to its package's window;  then the worktree's window CLOSES and its
    *   file goes.  Not in that window (an older session, or the move there failed):  `null`, nothing to move.
-   * - the record ~== `{ sessionId, to, from, close, remove, show }`:  `to` the target window's file, `from` this
-   *   window's pid, `close` `"tab"` or `"window"`, `remove` a file to delete after, `show` a doc to show there,
-   *   `{ file, hash }` (`Window.show()` sets it)
+   * - the record ~== `{ sessionId, to, from, close, remove, show, prompt }`:  `to` the target window's file, `from`
+   *   this window's pid, `close` `"tab"` or `"window"`, `remove` a file to delete after, `show` a doc to show
+   *   there, `{ file, hash?, view? }` (`Window.show()` sets it), `prompt` text typed into the new tab (or `null`)
    */
-  static handoff(name, sessionId, { back = false } = {}) {
+  static handoff(name, sessionId, { back = false, prompt = null } = {}) {
     if (!SESSION_ID.test(sessionId ?? "")) throw new Error("no session:  $CLAUDE_CODE_SESSION_ID isn't set")
     const file = Window.worktreeFile(name)
     if (!existsSync(file)) throw new Error(`no window file for ${name}:  \`open ${name}\` first`)
     const from = Window.current()
-    let handoff = { sessionId, to: file, from: from?.pid ?? null, close: "tab", remove: null, show: null }
+    let handoff = { sessionId, to: file, from: from?.pid ?? null, close: "tab", remove: null, show: null, prompt }
     if (back) {
       if (!from?.workspaceFile || real(from.workspaceFile) !== real(file)) return null
       const pkg = worktreePackage(file)
       const to = join(MAIN_ROOT, "workspaces", `${pkg}.code-workspace`)
-      handoff = { sessionId, to, from: from.pid, close: "window", remove: file, show: null }
+      handoff = { sessionId, to, from: from.pid, close: "window", remove: file, show: null, prompt }
     }
     mkdirSync(Window.handoffs, { recursive: true, mode: 0o700 })
     writeFileSync(Window.handoffFile(sessionId), `${JSON.stringify(handoff, null, 2)}\n`, { mode: 0o600 })
@@ -271,15 +292,17 @@ export class Window {
   }
 
   /**
-   * `resume`:  carry out `handoff` (a record), `title` being the session's tab's label;  returns what happened.
+   * `resume`:  carry out `handoff` (a record), `titles` being the labels the session's tab may show (one string
+   *   or several, in order);  returns what happened.
    * - opens window `to` (`code`, which just focuses it when open) and waits up to `WINDOW_START_TIMEOUT` for it
-   * - opens the session there, then its `show` doc beside it, then closes its tab (`close: "tab"`, by `title`) or
-   *   the whole window (`"window"`) in window `from`
-   * - `from` gone, or no `title` for a tab:  closes nothing
+   * - opens the session there (its `prompt` typed in), then its `show` doc beside it, then closes its tab
+   *   (`close: "tab"`, by `titles`) or the whole window (`"window"`) in window `from`
+   * - `from` gone, or no title for a tab:  closes nothing;  `matches`:  how many tabs showed each title
    * - the doc failing to show never stops the move:  `shown` is `false` (no doc:  `undefined`)
    */
-  static async resume(handoff, title) {
-    const { sessionId, to, from, close, remove, show } = handoff
+  static async resume(handoff, titles) {
+    const { sessionId, to, from, close, remove, show, prompt } = handoff
+    titles = [titles ?? []].flat().filter(Boolean)
     if (!SESSION_ID.test(sessionId ?? "")) throw new Error(`bad session id '${sessionId}'`)
     let window = Window.windowOf(to)
     if (!window) spawnSync("code", [to], { encoding: "utf8" })
@@ -289,7 +312,7 @@ export class Window {
       window = Window.windowOf(to)
     }
     if (!window) throw new Error(`${to} didn't open within ${WINDOW_START_TIMEOUT / 1000}s`)
-    await Window.request("open-session", { sessionId }, window)
+    await Window.request("open-session", prompt ? { sessionId, prompt } : { sessionId }, window)
     let shown
     if (show) {
       shown = await Window.request("show-doc", show, window).then(
@@ -303,8 +326,8 @@ export class Window {
     if (old && close === "window") {
       await Window.request("close-window", {}, old)
       closed = true
-    } else if (old && title) {
-      ;({ closed, matches } = await Window.request("close-session-tab", { title }, old))
+    } else if (old && titles.length) {
+      ;({ closed, matches } = await Window.request("close-session-tab", { titles }, old))
     }
     if (remove) rmSync(remove, { force: true })
     return { opened: true, closed, matches, shown }
@@ -313,12 +336,14 @@ export class Window {
   /**
    * Show `file` (an `.html` doc) in this session's window's doc preview, at id `hash` if given;  resolves to
    * `{ window }` (the registry entry it showed in) or `{ later }` (the window file it will show in).
+   * - `view`:  the side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review");  sent only when
+   *   given, so an extension from before the tabs still shows the doc
    * - a `handoff` pending for `sessionId`:  NOT here, where the session's tab is about to close, but in the window
-   *   it moves to, once it has (`resume`).  The preview shows one doc, so the last asked for wins.
+   *   it moves to, once it has (`resume`).  The handoff keeps ONE doc, so the last asked for wins, whichever tab.
    * - throws as `request()` does:  no window, or it failed
    */
-  static async show(file, { hash, sessionId = process.env.CLAUDE_CODE_SESSION_ID } = {}) {
-    const show = hash ? { file, hash } : { file }
+  static async show(file, { hash, view, sessionId = process.env.CLAUDE_CODE_SESSION_ID } = {}) {
+    const show = { file, ...(hash && { hash }), ...(view && { view }) }
     const pending = SESSION_ID.test(sessionId ?? "") ? Window.handoffFile(sessionId) : null
     if (pending && existsSync(pending)) {
       const handoff = { ...JSON.parse(readFileSync(pending, "utf8")), show }
@@ -343,6 +368,24 @@ export class Window {
   /** The package of `window` (a registry entry):  its workspace file's `workspaces/<pkg>.code-workspace`. */
   static packageOf(window) {
     return window?.workspaceFile?.match(/workspaces[\\/]([^\\/]+)\.code-workspace$/)?.[1] ?? null
+  }
+
+  ////////////////
+  // ## Staying put
+  ////////////////
+
+  /**
+   * `stay-check`:  the live facts for `stayAdvice()`, and its answer.
+   * - `epic`:  for `/epic`, whose plan doc takes the window's doc preview
+   */
+  static stayCheck({ epic = false } = {}) {
+    const window = Window.current()
+    const processes = window ? processTable() : new Map()
+    const sessions = window ? claudeSessions(processes, window.pid) : []
+    const self = sessions.find((pid) => isAncestor(pid, process.pid, processes)) ?? null
+    const others = sessions.filter((pid) => pid !== self)
+    const cwds = cwdsOf(others)
+    return stayAdvice({ window, others: others.map((pid) => ({ pid, cwd: cwds.get(pid) ?? null })), epic })
   }
 
   ////////////////
@@ -435,9 +478,15 @@ export class Window {
       console.log(written.length ? `wrote ${written.join(", ")}` : "every package has its window file")
       return 0
     }
-    if (!COMMANDS.includes(command) || (command !== "which" && !target)) {
+    if (!COMMANDS.includes(command) || (!["which", "stay-check"].includes(command) && !target)) {
       console.error(USAGE)
       return 1
+    }
+    if (command === "stay-check") {
+      const advice = Window.stayCheck({ epic: Boolean(flags.epic) })
+      if (flags.json) console.log(JSON.stringify(advice, null, 2))
+      else console.log([`recommend ${advice.recommend}`, ...advice.reasons.map((reason) => `- ${reason}`)].join("\n"))
+      return 0
     }
     if (["open", "close", "handoff", "resume"].includes(command)) return Window.worktreeCommand(command, target, flags)
     const window = Window.current()
@@ -461,7 +510,8 @@ export class Window {
         const { removed } = await Window.request("remove-folder", { path }, window)
         console.log(removed ? `removed ${path} from window ${window.pid}` : `${path} isn't in window ${window.pid}`)
       } else {
-        const { later } = await Window.show(path)
+        const hash = typeof flags.hash === "string" ? flags.hash : undefined
+        const { later } = await Window.show(path, { hash, view: flags.review ? "review" : undefined })
         console.log(
           later
             ? `${path} shows in ${relative(MAIN_ROOT, later)}'s window once this session moves there`
@@ -482,7 +532,8 @@ export class Window {
   static async worktreeCommand(command, name, flags) {
     try {
       if (command === "handoff") {
-        const handoff = Window.handoff(name, process.env.CLAUDE_CODE_SESSION_ID, { back: Boolean(flags.back) })
+        const prompt = typeof flags.prompt === "string" ? flags.prompt : null
+        const handoff = Window.handoff(name, process.env.CLAUDE_CODE_SESSION_ID, { back: Boolean(flags.back), prompt })
         if (!handoff) {
           const closed = await Window.close(name)
           console.log(
@@ -501,7 +552,7 @@ export class Window {
         console.log(`${new Date().toISOString()}  opened session ${handoff.sessionId} in ${handoff.to}`)
         if (shown !== undefined) console.log(`  ${shown ? "showed" : "couldn't show"} ${handoff.show.file}`)
         if (!closed)
-          console.log(`  left its old ${handoff.close} open (${matches ?? "no"} tabs titled '${flags.title ?? ""}')`)
+          console.log(`  left its old ${handoff.close} open (tabs per title:  ${JSON.stringify(matches ?? {})})`)
         return 0
       }
       if (command === "close") {
@@ -521,7 +572,7 @@ export class Window {
 }
 
 /** Every command. */
-const COMMANDS = ["init", "which", "add", "remove", "show", "open", "close", "handoff", "resume"]
+const COMMANDS = ["init", "which", "add", "remove", "show", "open", "close", "handoff", "resume", "stay-check"]
 
 /** Usage, printed for a bad command. */
 const USAGE = `usage:  yarn window <command>
@@ -529,14 +580,19 @@ const USAGE = `usage:  yarn window <command>
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window
   remove <path>                remove it again
-  show <file>                  show an .html doc in the window's doc preview (right side bar)
+  show <file> [--hash <id>] [--review]
+                               show an .html doc in the window's doc preview (right side bar's
+                               "Spell Docs" tab;  --review:  its "Review" tab), at id <id>
                                (moving:  in the window this session moves to)
   open <name> [--pkg <pkg>]    open worktree <name> in a new window (default package:  this window's)
   close <name>                 close that window, delete its file
-  handoff <name> [--back]      move this session to <name>'s window when this turn ends
-                               (--back:  from it to its package's window, then close it)
-  resume <record> [--title <title>]
-                               the move itself (the Stop hook runs it)`
+  handoff <name> [--back] [--prompt <text>]
+                               move this session to <name>'s window when this turn ends
+                               (--back:  from it to its package's window, then close it;
+                               --prompt:  typed into the new tab)
+  resume <record> [--title <title>]...
+                               the move itself (the Stop hook runs it)
+  stay-check [--epic] [--json] stay in this window when isolating, or move?  recommend stay|window, and why`
 
 /** The package worktree window file `file` focuses on:  its second folder, `<name>/packages/<pkg>`. */
 function worktreePackage(file) {
@@ -596,14 +652,111 @@ function hslHex(hue, saturation, lightness) {
 
 /** Every process's parent pid, by pid:  ONE `ps` call (empty if `ps` fails). */
 function parentPids() {
-  const parents = new Map()
-  const run = spawnSync("ps", ["-axo", "pid=,ppid="], { encoding: "utf8" })
-  if (run.status !== 0) return parents
-  for (const line of run.stdout.split("\n")) {
-    const [pid, ppid] = line.trim().split(/\s+/).map(Number)
-    if (pid) parents.set(pid, ppid)
+  return new Map([...processTable()].map(([pid, { ppid }]) => [pid, ppid]))
+}
+
+/**
+ * Every process, by pid:  `{ ppid, command }`, from ONE `ps` call, or from `text` (its output, for tests);  empty
+ * if `ps` fails.
+ * - `command`:  the executable's path, spaces and all
+ */
+export function processTable(text) {
+  const processes = new Map()
+  if (text === undefined) {
+    const run = spawnSync("ps", ["-axo", "pid=,ppid=,comm="], { encoding: "utf8" })
+    if (run.status !== 0) return processes
+    text = run.stdout
   }
-  return parents
+  for (const line of text.split("\n")) {
+    const match = /^\s*(\d+)\s+(\d+)\s+(.*)$/.exec(line)
+    if (match) processes.set(Number(match[1]), { ppid: Number(match[2]), command: match[3].trim() })
+  }
+  return processes
+}
+
+/**
+ * The pids of the Claude Code sessions in the window whose extension host is `hostPid`:  its `claude` children.
+ * - one per session, in a tab or the side bar.  NOT a `claude` in the window's terminal:  that's a child of the
+ *   pty host.
+ */
+export function claudeSessions(processes, hostPid) {
+  return [...processes]
+    .filter(([, { ppid, command }]) => ppid === hostPid && /(^|\/)claude$/.test(command))
+    .map(([pid]) => pid)
+}
+
+/** Whether `ancestor` is `pid` or one of its ancestors in `processes`. */
+function isAncestor(ancestor, pid, processes) {
+  const seen = new Set()
+  for (; pid > 1 && !seen.has(pid); pid = processes.get(pid)?.ppid ?? 0) {
+    if (pid === ancestor) return true
+    seen.add(pid)
+  }
+  return false
+}
+
+/** Each of `pids`' working folder, by pid:  ONE `lsof` call;  missing when `lsof` can't tell. */
+function cwdsOf(pids) {
+  if (!pids.length) return new Map()
+  const run = spawnSync("lsof", ["-a", "-d", "cwd", "-p", pids.join(","), "-Fpn"], { encoding: "utf8" })
+  return parseLsof(run.stdout ?? "")
+}
+
+/**
+ * `lsof -Fpn` output -> each pid's file, by pid:  `p<pid>` starts a process, `n<path>` is its file.
+ * - other lines (`fcwd` ...) skipped
+ */
+export function parseLsof(text) {
+  const cwds = new Map()
+  let pid = 0
+  for (const line of text.split("\n")) {
+    if (line.startsWith("p")) pid = Number(line.slice(1))
+    else if (line.startsWith("n") && pid) cwds.set(pid, line.slice(1))
+  }
+  return cwds
+}
+
+/** The worktree `cwd` is in (`.../.claude/worktrees/<name>/...`), else `null`. */
+export function worktreeOf(cwd) {
+  const marker = `${sep}.claude${sep}worktrees${sep}`
+  const at = (cwd ?? "").indexOf(marker)
+  return at < 0 ? null : cwd.slice(at + marker.length).split(sep)[0] || null
+}
+
+/**
+ * Should a session isolating itself STAY in its window, or move to a worktree's window of its own?
+ * - `window`:  its registry entry (`null`:  no bridge here)
+ * - `others`:  the window's OTHER sessions, `{ pid, cwd }` each (`cwd` `null` when unknown)
+ * - `epic`:  for `/epic`:  its plan doc takes the window's doc preview
+ * - returns `{ recommend, others, reasons }`:  `recommend` `"stay"` or `"window"`;  `others` `{ pid, worktree }`
+ *   each (`worktree` `null`:  in the main checkout);  `reasons` sentences for the modal
+ */
+export function stayAdvice({ window, others = [], epic = false }) {
+  const listed = others.map(({ pid, cwd }) => ({ pid, worktree: worktreeOf(cwd) }))
+  if (!window) {
+    const reasons = ["no window bridge in this session's window:  a new window can't be opened from here anyway"]
+    return { recommend: "stay", others: listed, reasons }
+  }
+  if (!listed.length) {
+    const reasons = ["this session is the window's only one:  staying touches nothing else"]
+    if (epic) reasons.push("the plan doc shows in this window's side bar")
+    return { recommend: "stay", others: listed, reasons }
+  }
+  const where = listed.map(({ worktree }) => (worktree ? `worktree \`${worktree}\`` : "the main checkout"))
+  const reasons = [
+    `${listed.length > 1 ? `${listed.length} other sessions share` : "another session shares"} this window ` +
+      `(${where.join(", ")})`
+  ]
+  const worktrees = listed.filter(({ worktree }) => worktree)
+  if (worktrees.length) {
+    reasons.push("another worktree's changes are already in this window's Source Control:  easy to mix the two up")
+  }
+  reasons.push(
+    epic
+      ? "the side bar's doc preview shows one doc:  the plan doc and the other sessions' docs would replace each other"
+      : "they share its doc preview (one doc at a time)"
+  )
+  return { recommend: "window", others: listed, reasons }
 }
 
 /** `path` with symlinks resolved (`/tmp` -> `/private/tmp`), as `process.cwd()` reports it;  as is if missing. */
@@ -615,14 +768,24 @@ function real(path) {
   }
 }
 
-/** `--key value` flags, plus everything else in order. */
+/**
+ * `--key value` flags, plus everything else in order.
+ * - a flag given twice is an array (`--title a --title b`)
+ * - NOTE:  a value can't start with `--`
+ */
 function parseArgs(argv) {
   const positional = []
   const flags = {}
   for (let i = 0; i < argv.length; i++) {
     const match = argv[i].match(/^--([\w-]+)$/)
-    if (!match) positional.push(argv[i])
-    else flags[match[1]] = i + 1 < argv.length ? argv[++i] : true
+    if (!match) {
+      positional.push(argv[i])
+      continue
+    }
+    // a bare flag (`--back`) before another flag takes no value
+    const value = i + 1 < argv.length && !argv[i + 1].startsWith("--") ? argv[++i] : true
+    const key = match[1]
+    flags[key] = key in flags ? [flags[key], value].flat() : value
   }
   return { positional, flags }
 }

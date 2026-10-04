@@ -24,13 +24,19 @@
           server per checkout built on it, and everything that plugs into it.
         </p>
         <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="epics/unified-server/unified-server.plan.html" target="unified-server"
+              >epic unified-server</a
+            ></ui-item
+          >
           <ui-item icon="user"
             >Written for: anyone opening, editing or serving a page, or adding routes to the page server</ui-item
           >
           <ui-item icon="flag">Status: <ui-label size="mini" color="green">built</ui-label> (P1-P7)</ui-item>
           <ui-item icon="code branch"
             >Checked on: branch <code>unified-server</code>, 2026-10-02, against the code (not just the plan:
-            <a href="epics/unified-server/unified-server.html" target="unified-server">epics/unified-server</a
+            <a href="epics/unified-server/unified-server.plan.html" target="unified-server">epics/unified-server</a
             >)</ui-item
           >
         </ui-list>
@@ -100,7 +106,11 @@
                     <td>Spell UI</td>
                     <td><code>/ui/</code></td>
                     <td class="no negative">no</td>
-                    <td><code>astro dev</code>, proxied (<code>AstroProxy</code>)</td>
+                    <td>
+                      static pages,
+                      <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a> mounted at
+                      <code>/ui/</code>
+                    </td>
                   </tr>
                   <tr>
                     <td>Epics</td>
@@ -150,6 +160,17 @@
                   <tr>
                     <td><code>yarn server url &lt;file&gt;</code></td>
                     <td><code>ensure</code>, then print the URL serving <code>file</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn serve</code></td>
+                    <td>
+                      every server of the checkout, started if need be: <code>ensure</code>, wait for the editor, check
+                      Spell UI's bundle answers (<code>/ui/_assets/site.js</code>); prints each one's port and URL (<a
+                        href="../../scripts/serve.mjs"
+                        target="src-scripts-serve-mjs"
+                        ><code>scripts/serve.mjs</code></a
+                      >, <code>/spell-serve</code>)
+                    </td>
                   </tr>
                   <tr>
                     <td><code>spell serve [target]</code></td>
@@ -381,6 +402,18 @@
                   </tr>
                   <tr>
                     <td>
+                      <a href="../server/src/mainServer.ts" target="src-packages-server-src-mainserver-ts"
+                        ><code>mainServer.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <code>mainServerUrl(file)</code>: a worktree's file on the MAIN checkout's server
+                      (<code>/worktrees/&lt;w&gt;/...</code>), when it runs and serves worktrees;
+                      <code>worktreePath(file)</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
                       <a href="../server/src/WebServer.ts" target="src-packages-server-src-webserver-ts"
                         ><code>WebServer.ts</code></a
                       >
@@ -422,10 +455,14 @@
                 -- <code>/_server/page</code>: read, replace or patch a page's source
               </li>
               <li>
-                <a href="../server/src/page/AstroProxy.ts" target="src-packages-server-src-page-astroproxy-ts"
-                  ><code>AstroProxy.ts</code></a
+                <a href="../server/src/page/RunningEpics.ts" target="src-packages-server-src-page-runningepics-ts"
+                  ><code>RunningEpics.ts</code></a
                 >
-                -- Spell UI's docs at <code>/ui/</code>, <code>astro dev</code> started on demand
+                -- running epics' plan docs on the main checkout's server: <code>/worktrees/&lt;w&gt;/</code>,
+                <code>/_server/epics</code>, and their cards in the docs index's Epics section (<a
+                  href="#running-epics-flow"
+                  >Running epics</a
+                >)
               </li>
               <li>
                 <a href="../server/src/page/cli.ts" target="src-packages-server-src-page-cli-ts"><code>cli.ts</code></a>
@@ -444,7 +481,11 @@
             <p>
               Browser code, <code>$/server/site</code>: bundled into the docs'
               <a href="_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"><code>spell-ui.js</code></a>
-              and Spell UI's Astro layout.
+              and Spell UI's site bundle (<a
+                href="../ui/site/_assets/site.js"
+                target="src-packages-ui-site-assets-site-js"
+                ><code>packages/ui/site/_assets/site.js</code></a
+              >).
             </p>
             <ul>
               <li>
@@ -527,7 +568,18 @@
               </li>
               <li>
                 Every <code>.html</code> page it serves gets <code>window.SPELL_SERVER</code> (port, token, file,
-                <code>ETag</code>, branch) and <code>/_server/live.js</code> before <code>&lt;/head&gt;</code>.
+                <code>ETag</code>, branch), <code>/_server/live.js</code> and Spell's favicon links (unless its
+                <code>&lt;head&gt;</code> links its own icon) before <code>&lt;/head&gt;</code>.
+              </li>
+              <li>
+                Spell's favicon, on every <code>WebServer</code>, live or not: <code>/_server/favicon.svg</code>,
+                <code>/_server/favicon-32.png</code>, <code>/_server/apple-touch-icon.png</code>, and
+                <code>/favicon.ico</code> (the 32px PNG, after the static folders). Made by <code>yarn favicon</code> in
+                <a href="../server/" target="src-packages-server"><code>packages/server</code></a> (<a
+                  href="../server/scripts/favicon.ts"
+                  target="src-packages-server-scripts-favicon-ts"
+                  ><code>scripts/favicon.ts</code></a
+                >) into <code>src/site/favicon.ts</code>; pages opened from disk get it from the site header.
               </li>
             </ol>
           </ui-section>
@@ -632,38 +684,31 @@
             </ol>
           </ui-section>
 
-          <ui-section id="spell-ui-via-astro-dev" header="Spell UI via astro dev" sticky collapsible dividing>
+          <ui-section id="spell-ui-static" header="Spell UI at /ui/" sticky collapsible dividing>
             <ol>
               <li>
-                The first request under <code>/ui</code> starts
-                <code>yarn astro dev --port &lt;free&gt; --host 127.0.0.1 --ignore-lock</code> in
-                <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site</code></a
-                >, logging to
-                <a href="../../.spell-server.astro.log" target="src-spell-server-astro-log"
-                  ><code>.spell-server.astro.log</code></a
-                >; no answer in 60s: 502.
+                <code>/ui/</code> is a second static mount:
+                <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a
+                >, plain <code>.html</code> pages (<code>UI_SITE</code> in
+                <a href="../server/src/page/page.types.ts" target="src-packages-server-src-page-page-types-ts"
+                  ><code>page.types.ts</code></a
+                >). <code>/ui</code> redirects to <code>/ui/</code>, so the pages' relative links resolve.
               </li>
               <li>
-                Requests pass through with the path unchanged (the site's <code>base</code> is <code>/ui</code>) and
-                <code>Host</code> rewritten, so Vite's host check accepts them.
+                The pages load ONE committed bundle, <code>_assets/site.js</code> + <code>site.css</code>, built by
+                <code>yarn site:build</code> in <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                >: no dev server, no build step to view a page.
               </li>
               <li>
-                While it runs, Vite's ROOT dev paths go to it too: in dev, Astro serves modules from the root whatever
-                the <code>base</code> (<code>/@vite/client</code>, <code>/@fs/...</code>, <code>/src/...</code>,
-                <code>/node_modules/.vite/...</code>). None exists at the repo root.
+                Live like the docs: the folder is watched (not <code>_src/</code>, the bundle's entry); a page reloads
+                when it or any CSS / JS changes, so a rebuilt bundle reloads every page. <code>yarn site:dev</code> in
+                <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a> rebuilds the bundle on every
+                source edit, so a library change shows up live. The section editor works on them too: their
+                <code>SPELL_SERVER.file</code> is <code>/packages/ui/site/...</code>.
               </li>
               <li>
-                Websockets: any upgrade under <code>/ui</code>, or carrying the <code>vite-hmr</code> subprotocol, is
-                piped to <code>astro dev</code> -- hot reload works.
-              </li>
-              <li>
-                It stops with the page server (its whole process group).
-                <ul>
-                  <li>
-                    <code>--ignore-lock</code>: otherwise Astro 7, seeing an agent (<code>CLAUDECODE</code>),
-                    backgrounds itself and exits at once
-                  </li>
-                </ul>
+                Until 2026-10-02 this proxied <code>astro dev</code> (<code>AstroProxy</code>); the Astro site was
+                deleted on 2026-10-03 (epic <code>spell-ui-pages</code>, P7).
               </li>
             </ol>
           </ui-section>
@@ -684,7 +729,11 @@
                 </ul>
               </li>
               <li>
-                <code>DocPreview</code> finds the file's checkout: the folder holding
+                A worktree's file: the MAIN checkout's page server first, when it runs and serves worktrees
+                (<code>SRV.mainServerUrl()</code>), so a running epic's plan doc shows on the one port every link uses.
+              </li>
+              <li>
+                Else <code>DocPreview</code> finds the file's checkout: the folder holding
                 <a href="../../.git" target="src-git"><code>.git</code></a> above it. Pages are served from the root,
                 since docs link all over the repo.
               </li>
@@ -705,6 +754,44 @@
                 scripts that open docs start it first.
               </li>
             </ul>
+          </ui-section>
+
+          <ui-section id="running-epics-flow" header="Running epics" sticky collapsible dividing>
+            <p>
+              An epic's plan doc lives in its worktree until it merges, and each worktree has its own page server. The
+              main checkout's server shows them all anyway:
+            </p>
+            <ol>
+              <li>
+                <code>/worktrees/&lt;w&gt;/...</code> serves worktree <code>&lt;w&gt;</code>'s files (a
+                <code>StaticHandler</code> mount on <code>.claude/worktrees</code>; dot files still 403). A plan doc's
+                relative assets resolve inside its own worktree.
+              </li>
+              <li>
+                <code>/_server/epics</code> lists them, as JSON: each worktree's own epic (named like the worktree), and
+                any epic the main checkout lacks. Copies of epics merged before the worktree was cut are skipped.
+              </li>
+              <li>
+                The docs index's <code>&lt;!-- running-epics --&gt;</code> marker, first in its Epics card list (<code
+                  >yarn docs:index</code
+                >
+                puts it there), becomes the running epics' cards on each request: running and merged epics in one list,
+                each title after its state (planning, <code>3/6</code>, done, stalled), and a merged epic's card dropped
+                when it runs in a worktree too. None running, or opened from disk: nothing.
+              </li>
+              <li>
+                A worktree's plan doc changing reloads its page and the index (one recursive watch on
+                <code>.claude/worktrees</code>).
+              </li>
+              <li>
+                <code>yarn server url</code> and the VS Code preview hand out these URLs for a worktree's file
+                (<code>SRV.mainServerUrl()</code>), so every link is on port 4747.
+              </li>
+              <li>
+                <code>yarn plan-doc</code> doesn't rewrite the committed index inside a worktree: two worktrees doing so
+                conflicted on merge. The epic's card comes with Doc Review's <code>yarn docs:index</code>.
+              </li>
+            </ol>
           </ui-section>
 
           <ui-section id="spell-serve" header="spell serve" sticky collapsible dividing>
@@ -731,8 +818,10 @@
                 >.
               </li>
               <li>
-                Once vite answers, the module records it in <code>.spell-server.editor.json</code>: the page server's
-                <code>/editor</code> redirects there.
+                Once vite answers, the module records it in
+                <a href="../../.spell-server.editor.json" target="src-spell-server-editor-json"
+                  ><code>.spell-server.editor.json</code></a
+                >: the page server's <code>/editor</code> redirects there.
               </li>
               <li>
                 <code>spell serve</code> waits (up to 90s) for that record to answer; opens the editor, unless
@@ -785,11 +874,16 @@
               </li>
             </ul>
             <ui-accordion class="spell-code" styled open="0">
-              <ui-title>The root package.json's pageServer field · 6 lines</ui-title>
+              <ui-title>The root package.json's pageServer field · 11 lines</ui-title>
               <ui-content>
                 <pre><code class="language-json">{
   "pageServer": {
-    "routes": ["goals/_tools/goalsRoutes.ts", "packages/app/src/server/appRoutes.ts"],
+    "routes": [
+      "goals/_tools/goalsRoutes.ts",
+      "packages/docs/scripts/detailsRoutes.ts",
+      "packages/docs/scripts/showRoutes.ts",
+      "packages/app/src/server/appRoutes.ts"
+    ],
     "watch": ["packages/docs"]
   }
 }</code></pre>
@@ -805,6 +899,30 @@
                 >
                 -- <code>/api/goals/*</code>, the goals folder watched, and <code>window.GOALS_SERVER</code> on goals
                 pages. It was <code>server.js</code>, the goals server.
+              </li>
+              <li>
+                <a href="scripts/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
+                  ><code>packages/docs/scripts/detailsRoutes.ts</code></a
+                >
+                -- <code>/api/details/answer</code>: a details page's answer, written beside it (<a
+                  href="details.html"
+                  target="src-packages-docs-details-html"
+                  >Details Pages</a
+                >).
+              </li>
+              <li>
+                <a href="scripts/showRoutes.ts" target="src-packages-docs-scripts-showroutes-ts"
+                  ><code>packages/docs/scripts/showRoutes.ts</code></a
+                >
+                -- <code>/api/docs/show</code>: a link clicked in the Claude panel shows a page in VS Code's side bar,
+                or in Chrome (<code>yarn docs:link</code>).
+              </li>
+              <li>
+                ORDER matters: the app's <code>/api</code> router ends in a catch-all 404, so a module adding
+                <code>/api/...</code> routes MUST be listed before
+                <a href="../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                  ><code>appRoutes.ts</code></a
+                >.
               </li>
               <li>
                 <a href="../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
@@ -959,8 +1077,8 @@ export default goalsRoutes</code></pre>
         <ui-section id="6-why" header="6. Why" sticky collapsible dividing>
           <p>
             The decisions behind it, condensed from the plan doc's
-            <a href="epics/unified-server/unified-server.html#decisions" target="unified-server">Decisions</a> and
-            "Review:" <a href="epics/unified-server/unified-server.html#todos" target="unified-server">todos</a>.
+            <a href="epics/unified-server/unified-server.plan.html#decisions" target="unified-server">Decisions</a> and
+            "Review:" <a href="epics/unified-server/unified-server.plan.html#todos" target="unified-server">todos</a>.
           </p>
 
           <ui-section id="why-shape" header="Shape" sticky collapsible dividing>
@@ -1057,16 +1175,16 @@ export default goalsRoutes</code></pre>
                     <th>why</th>
                   </tr>
                   <tr>
-                    <td>proxy <code>astro dev</code> at <code>/ui/</code>, site <code>base: "/ui"</code></td>
-                    <td>live hot reload, no rebuild lag; cost: a second process</td>
-                  </tr>
-                  <tr>
-                    <td>Vite's root paths and <code>vite-hmr</code> websocket go to it</td>
-                    <td>over running Astro on its own port in an iframe, or a redirect</td>
-                  </tr>
-                  <tr>
-                    <td><code>--ignore-lock</code></td>
-                    <td>keeps <code>astro dev</code> in the foreground, the page server's to stop</td>
+                    <td>
+                      <code>/ui/</code> serves
+                      <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a> as static
+                      pages
+                    </td>
+                    <td>
+                      over proxying <code>astro dev</code> (until 2026-10-02): no second process, no build step to view;
+                      cost: <code>yarn site:build</code> after a library change (or <code>yarn site:dev</code> while
+                      working)
+                    </td>
                   </tr>
                   <tr>
                     <td>two theme toggles on Spell UI pages</td>
@@ -1127,7 +1245,7 @@ export default goalsRoutes</code></pre>
         <ui-section id="7-limits" header="7. Limits" sticky collapsible dividing>
           <p>
             Known costs and open caveats, from the plan doc's
-            <a href="epics/unified-server/unified-server.html#caveats" target="unified-server">Caveats</a>.
+            <a href="epics/unified-server/unified-server.plan.html#caveats" target="unified-server">Caveats</a>.
           </p>
 
           <ui-section id="limits-goals" header="Goals" sticky collapsible dividing>
@@ -1155,24 +1273,40 @@ export default goalsRoutes</code></pre>
                 no goals buttons and no <code>/ui/</code> until <code>yarn server start</code>.
               </li>
               <li>"Open in VS Code" opens in the LAST FOCUSED VS Code window, not this session's.</li>
-              <li>The header's theme toggle and the Astro site's can disagree.</li>
+              <li>The header's theme toggle and the Spell UI site's can disagree.</li>
               <li>The editor has no site header, and the Editor tab leaves the page server's origin.</li>
             </ul>
           </ui-section>
 
-          <ui-section id="limits-astro" header="astro dev" sticky collapsible dividing>
+          <ui-section id="limits-epics" header="Running epics" sticky collapsible dividing>
             <ul>
-              <li>A second process, started by the first <code>/ui/</code> request.</li>
               <li>
-                A page server killed with <code>kill -9</code> leaves it running: find it with
-                <code>ps aux | grep "astro dev"</code>.
+                No edit mode on a worktree's page through the main server: <code>PageEditor</code> refuses dot paths
+                too. The worktree's own server edits it.
               </li>
               <li>
-                No Astro lock file (<code>--ignore-lock</code>): <code>yarn site:dev</code> beside it won't notice it.
+                A main server started before this code (an old checkout, not restarted) has no
+                <code>/worktrees/</code>: <code>mainServerUrl()</code> checks <code>/_server/epics</code> first, and
+                links fall back to the worktree's own server.
               </li>
               <li>
-                Pre-existing, not from this work: <code>yarn site:check</code> crashes in <code>@volar/kit</code>, and
-                the site's own header row overflows at 390px.
+                Phases are read by pattern (the server is a leaf: no HTML parser): a plan doc whose phase tags lose
+                <code>data-phase</code> / <code>data-status</code> shows as "planning".
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="limits-ui" header="Spell UI" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>/ui/</code> shows the COMMITTED bundle: a library change shows only after
+                <code>yarn site:build</code> in <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                >.
+              </li>
+              <li>
+                <code>_assets/icon-packs</code> is a symlink into
+                <a href="../ui/src/icons/" target="src-packages-ui-src-icons"><code>packages/ui/src/icons/</code></a
+                >: served fine, but a static deploy must copy through it.
               </li>
             </ul>
           </ui-section>

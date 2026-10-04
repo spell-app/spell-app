@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Description | Spell UI</title>
+    <meta
+      name="description"
+      content="A description is the text of a card, item, modal, list item, step or comment."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Description">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-description.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-description%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Description
+            <ui-header>A description is the text of a card, item, modal, list item, step or comment.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-description" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  `<ui-description>` in each owner that gives it a look (from the owners' own pages and
+              `src/components/ui-parts/examples/elements/`), then its attributes.  The Content parts page
+              (`ui-header.html`) shows every part together.
+            -->
+            <ui-section id="examples-owners" header="Owners" sticky collapsible dividing>
+              <ui-section id="examples-owners-card" header="Card" sticky collapsible dividing>
+                <ui-docs-example description="A card's description:  muted text under its header and meta.">
+                  <ui-card>
+                    <ui-content>
+                      <ui-header>Elliot</ui-header>
+                      <ui-meta><span>Joined in 2013</span></ui-meta>
+                      <ui-description>Elliot is a sound engineer living in Nashville who enjoys playing guitar.</ui-description>
+                    </ui-content>
+                  </ui-card>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-owners-item" header="Item" sticky collapsible dividing>
+                <ui-docs-example description="An item's description:  its body text.">
+                  <ui-items>
+                    <ui-item image="../images/wireframe/image.png">
+                      <ui-content>
+                        <ui-header>Cute Dog</ui-header>
+                        <ui-description>
+                          <p>Many people also have their own barometers for what makes a cute dog.</p>
+                        </ui-description>
+                      </ui-content>
+                    </ui-item>
+                  </ui-items>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-owners-comment" header="Comment" sticky collapsible dividing>
+                <ui-docs-example description="A comment's text (Fomantic's comment `text`).">
+                  <ui-comments>
+                    <ui-comment>
+                      <ui-avatar src="../images/avatar/small/elliot.jpg"></ui-avatar>
+                      <ui-content>
+                        <ui-author href="#elliot">Elliot Fu</ui-author>
+                        <ui-description>This has been very useful for my research. Thanks as well!</ui-description>
+                      </ui-content>
+                    </ui-comment>
+                  </ui-comments>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-owners-list" header="List" sticky collapsible dividing>
+                <ui-docs-example description="A list item's description:  a second line under its header.">
+                  <ui-list>
+                    <ui-item icon="map marker">
+                      <ui-content>
+                        <ui-header href="#krolewskie">Krolewskie Jadlo</ui-header>
+                        <ui-description>An excellent polish restaurant, quick delivery and hearty, filling meals.</ui-description>
+                      </ui-content>
+                    </ui-item>
+                  </ui-list>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-owners-step" header="Step" sticky collapsible dividing>
+                <ui-docs-example description="A step's description:  a smaller line under its title.">
+                  <ui-steps>
+                    <ui-step icon="payment">
+                      <ui-content>
+                        <ui-title>Billing</ui-title>
+                        <ui-description>Enter billing information</ui-description>
+                      </ui-content>
+                    </ui-step>
+                  </ui-steps>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-description>` describes its owner's content: a card's or an item's text, a comment's text (Fomantic's comment
+                  `text`), a list item's or a step's second line, a modal's text beside an image.
+
+                  - No attributes: the owner decides the look (a card's muted text, a comment's body, a step's smaller line).
+                  - Put paragraphs, links or other parts inside it.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-owners" header="Owners" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-description>` finds its nearest owner and sets `:state(in-<owner>)` on itself; `ui-parts.css` styles it by that
+                  state. Its owners, and what each makes of it:
+
+                  - [Card](ui-card.html) (`:state(in-card)`): muted body text under the header and meta
+                  - [Item](ui-items.html) (`:state(in-item)`): body text, with space above
+                  - [Comment](ui-comment.html) (`:state(in-comment)`): the comment's text
+                  - [Modal](ui-modal.html) (`:state(in-modal)`): the text beside an `image` content's image
+                  - [Flyout](ui-flyout.html) (`:state(in-flyout)`): body text
+                  - [List](ui-list.html) (`:state(in-list)`): a second, muted line under the item's header
+                  - [Step](ui-step.html) (`:state(in-step)`): a smaller line under the step's title
+                  - [Search](ui-search.html) (`:state(in-search)`): a search result's second line
+
+                  Anywhere else it is an unstyled block. More on how parts find their owners: [Content parts](ui-header.html#usage-owners).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A neutral block with no role. Use real elements inside it (`<p>`, `<a>`, lists) for structure.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api tag="ui-description"></ui-docs-api>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

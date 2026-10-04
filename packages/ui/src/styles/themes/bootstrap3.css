@@ -1,0 +1,139 @@
+/*
+ * Bootstrap 3 theme:  port of Fomantic's `themes/bootstrap3` (Bootstrap 3's `.btn`:  white, a grey hairline,
+ *   small radius, Bootstrap's palette), `@layer ui.theme`.
+ * - A DELTA on `classic.css`:  the loader (`ThemeSheets`) registers `classic` + this sheet, on the page and in every
+ *   component shadow root (`shadow: true`), so the class-grammar half reaches the button's inner box.
+ * - Touches:  button only.
+ * - Two halves:  `:root` tokens (`--ui-button-*`), then class-grammar overrides for what has no token (font, ring,
+ *   the button-only palette, the 1px group overlap).
+ * - Bootstrap's colours are BUTTON-scoped in Fomantic (`button.variables`), so they re-point the colour remap on
+ *   the button's (or group's) box, never the global palette;  the generic remap derives hover / down states from
+ *   `--ui-color` on that same box.
+ * - The ring is held in theme-private tokens (`--_bootstrap3-*`), declared on `:root` so they INHERIT:  a
+ *   variation that owns its look (basic, inverted, tertiary) or a colour resets them on the button OR its group.
+ *   The ring rules still read the button's own `--_button-edge*` first, so `attached` keeps its edge.
+ * - Dark scheme:  Fomantic had none.  Fills are `light-dark()` pairs whose dark half is the surface / default
+ *   recipe;  the palette keeps the default `onDark` hues.
+ */
+
+@layer ui.theme {
+  /*******************************
+              Tokens
+  *******************************/
+
+  :root {
+    --ui-button-font-weight: var(--ui-font-weight-normal);
+    --ui-button-color: light-dark(oklch(0.321 0 0), var(--ui-text-color));
+    --ui-button-radius: 0.28571em;
+    --ui-button-line-height: 1.42857;
+    --ui-button-padding-block: 0.8571em;
+    --ui-button-padding-inline: 0.8571em;
+    --ui-button-background: light-dark(oklch(1 0 0), var(--ui-surface));
+    --ui-button-background-hover: light-dark(oklch(0.925 0 0), var(--ui-surface-strong));
+    --ui-button-background-down: light-dark(oklch(0.925 0 0), var(--ui-surface-strong));
+    --ui-button-background-active: light-dark(oklch(0.925 0 0), var(--ui-surface-strong));
+    --ui-button-labeled-icon-background: transparent;
+    --ui-button-basic-border-width: 0;
+    --ui-button-basic-background-hover: transparent;
+    --ui-button-basic-background-active: transparent;
+    --ui-button-inverted-border-width: 0;
+    --ui-button-disabled-opacity: 0.65;
+
+    /* Theme-private:  the plain look */
+    --_bootstrap3-ring: 0 0 0 1px light-dark(oklch(0 0 0 / 0.14), oklch(from var(--ui-ink) l c h / 0.2)) inset;
+    --_bootstrap3-ring-hover: 0 0 0 1px light-dark(oklch(0.748 0 0), oklch(from var(--ui-ink) l c h / 0.35)) inset;
+    --_bootstrap3-pressed: 0 3px 5px oklch(0 0 0 / 0.125) inset;
+  }
+
+  /*******************************
+             Overrides
+  *******************************/
+
+  .ui.button,
+  .ui.buttons,
+  .or {
+    --ui-font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  /* Bootstrap's palette, buttons only. */
+  .ui:is(.primary, .blue):is(.button, .buttons) {
+    --ui-color: light-dark(oklch(0.564 0.118 247.7), var(--ui-blue-on-dark));
+  }
+  .ui:is(.secondary, .green):is(.button, .buttons) {
+    --ui-color: light-dark(oklch(0.683 0.164 138.5), var(--ui-green-on-dark));
+    --ui-color-on: light-dark(oklch(1 0 0), var(--ui-ink-on-light));
+  }
+  .ui.red:is(.button, .buttons) {
+    --ui-color: light-dark(oklch(0.619 0.169 25), var(--ui-red-on-dark));
+  }
+  .ui.orange:is(.button, .buttons) {
+    --ui-color: light-dark(oklch(0.794 0.135 73), var(--ui-orange-on-dark));
+  }
+  .ui:is(.primary, .blue, .secondary, .green, .red, .orange):is(.button, .buttons) {
+    --ui-color-text: light-dark(
+      oklch(from var(--ui-color) min(l, 0.5) c h),
+      oklch(from var(--ui-color) max(l, 0.78) c h)
+    );
+    --ui-color-border: var(--ui-color);
+  }
+
+  /* No ring on coloured buttons, nor on variations with a look of their own. */
+  .ui:is(
+      .primary,
+      .secondary,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black,
+      .positive,
+      .negative,
+      .info,
+      .warning,
+      .success,
+      .error,
+      .basic,
+      .inverted,
+      .tertiary
+    ):is(.button, .buttons) {
+    --_bootstrap3-ring: 0 0 #0000;
+    --_bootstrap3-ring-hover: 0 0 #0000;
+    --_bootstrap3-pressed: 0 0 #0000;
+  }
+  /* Basic:  borderless, but pressed like a plain button (`@basicDownBoxShadow`). */
+  .ui.basic:is(.button, .buttons) {
+    --_bootstrap3-ring-hover: 0 0 0 1px light-dark(oklch(0.748 0 0), oklch(from var(--ui-ink) l c h / 0.35)) inset;
+    --_bootstrap3-pressed: 0 3px 5px oklch(0 0 0 / 0.125) inset;
+  }
+
+  .ui.button:not(.labeled:not(.icon), :disabled, .disabled) {
+    box-shadow: var(--_button-edge, var(--_bootstrap3-ring)), var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  .ui.button:not(.labeled:not(.icon), :disabled, .disabled):is(:hover, :focus-visible) {
+    box-shadow:
+      var(--_button-edge-hover, var(--_button-edge, var(--_bootstrap3-ring-hover))),
+      var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  /* Down:  Bootstrap's pressed inset (tertiary and attached keep their own edges). */
+  .ui.button:not(.labeled:not(.icon), .tertiary, .attached, :disabled, .disabled):active {
+    box-shadow: var(--_bootstrap3-ring-hover), var(--_bootstrap3-pressed), var(--_ui-buttons-divider, 0 0 #0000);
+  }
+
+  /* Groups:  neighbours overlap by 1px, so their rings don't double. */
+  .ui.buttons:not(.basic, .vertical) > :not(:first-child),
+  .ui.buttons:not(.basic, .vertical) > ::slotted(:not(:first-child)) {
+    --_ui-buttons-margin: 0 0 0 -1px;
+  }
+  .ui.vertical.buttons:not(.basic) > :not(:first-child),
+  .ui.vertical.buttons:not(.basic) > ::slotted(:not(:first-child)) {
+    --_ui-buttons-margin: -1px 0 0 0;
+  }
+}

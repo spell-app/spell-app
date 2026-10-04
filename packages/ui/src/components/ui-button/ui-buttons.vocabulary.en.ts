@@ -39,6 +39,13 @@ export const buttonsVocabulary = {
     { name: "toggle", kind: "keyOnly", description: "`active` buttons show in the positive colour." },
     { name: "vertical", kind: "keyOnly", description: "Stacks the buttons vertically." },
     { name: "fluid", kind: "keyOnly", description: "Takes the full width of its container." },
+    {
+      name: "equal",
+      kind: "keyOnly",
+      description:
+        "Every button the same width, from the buttons themselves (no count):  each as wide as the widest;  with " +
+        "`fluid`, an equal share of the row each."
+    },
     { name: "wrapping", kind: "keyOnly", description: "Buttons wrap onto more rows." },
     { name: "spaced", kind: "keyOnly", description: "Separate buttons with gaps between them." },
     { name: "stackable", kind: "keyOnly", description: "Stacks vertically on mobile." },
@@ -55,7 +62,9 @@ export const buttonsVocabulary = {
       widthClass: "",
       canEqual: true,
       values: "widths",
-      description: 'Equal-width buttons filling the row:  a count (`width="3"` => `three`) or `"equal"`.'
+      description:
+        'Older, count-based alias of `equal fluid`:  equal-width buttons filling the row, a count (`width="3"` => ' +
+        '`three`) or `"equal"` (`equal width`).'
     }
   ],
   events: [],

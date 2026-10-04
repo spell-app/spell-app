@@ -1,7 +1,7 @@
 import { For, Show } from "solid-js"
 
 import { editor } from "$/app/editor"
-import { Actions, DropdownLabel, FILE_ICON, InDropdown, on, tracked } from "$/app/solid"
+import { Actions, DropdownLabel, FILE_ICON, on, tracked } from "$/app/solid"
 
 import "./FileDropdown.css"
 
@@ -13,7 +13,7 @@ import "./FileDropdown.css"
  * - Loading (spinning caret, no items) until the project's loaded and has a file.
  * - The dropdown's value is ALWAYS `editor.file`'s path:  choosing sets it back during the event, and shows the file
  *   chosen, which then becomes `editor.file` (see `choose()`).
- * - `showActions`:  `Actions.FILE_DROPDOWN_ACTIONS` after a divider, as dropdown items (`InDropdown`);  choosing
+ * - `showActions`:  `Actions.FILE_DROPDOWN_ACTIONS` after a divider, as dropdown items;  choosing
  *   one clicks it, as `<MoreMenu>` does.
  * - Sits in a menu:  wrapped in a `<ui-item class="FileDropdown">`.  Look:  `FileDropdown.css`.
  ****************/
@@ -55,9 +55,7 @@ export function FileDropdown(props: FileDropdownProps) {
           </For>
           <Show when={props.showActions && state().ready}>
             <ui-item type="divider" />
-            <InDropdown value={true}>
-              <Actions.FILE_DROPDOWN_ACTIONS />
-            </InDropdown>
+            <Actions.FILE_DROPDOWN_ACTIONS />
           </Show>
         </ui-dropdown>
       </ui-item>

@@ -5,6 +5,7 @@ import { Keys } from "$/ui/test/keys"
 import { expectAccessible } from "$/ui/test/a11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Viewport } from "$/ui/test/viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-card"
@@ -362,6 +363,26 @@ describe("<ui-cards>", () => {
     const stacked = cardsOf(stackable!).map((card) => rootOf(card).getBoundingClientRect())
     expect(stacked[1]!.top).toBeGreaterThan(stacked[0]!.top)
     expect(stacked[0]!.width).toBeCloseTo(600, 0)
+  })
+
+  it('`stack-with="page"` doubles and stacks by the SCREEN;  the token too, and the attribute beats it', async () => {
+    const four = `${THREE}<ui-card header="D"></ui-card>`
+    const wrapper = await ElementFixture.render(
+      `<div style="width: 600px"><ui-cards columns="4" stackable stack-with="page">${four}</ui-cards>` +
+        `<div style="--ui-stack-with: page"><ui-cards columns="4" stackable>${four}</ui-cards>` +
+        `<ui-cards columns="4" stackable stack-with="container">${four}</ui-cards></div></div>`
+    )
+    const [own, token, container] = [...wrapper.querySelectorAll("ui-cards")]
+    expect(rootOf(own!).className).toBe("ui stackable four cards stack-with-page")
+    /** Whether the first two cards of `group` sit in one row. */
+    const oneRow = (group: Element) => {
+      const [a, b] = cardsOf(group).map((card) => rootOf(card).getBoundingClientRect())
+      return a!.top === b!.top
+    }
+    await Viewport.resize(1200)
+    await expect.poll(() => [oneRow(own!), oneRow(token!), oneRow(container!)]).toEqual([true, true, false])
+    await Viewport.resize(500)
+    await expect.poll(() => [oneRow(own!), oneRow(token!)]).toEqual([false, false])
   })
 
   it("centres its rows", async () => {

@@ -64,11 +64,11 @@ describe("chrome + Actions", () => {
     expect(left.classList.contains("third")).toBe(true)
     expect(right.getAttribute("position")).toBe("right")
     expect([...left.querySelectorAll("ui-item")].map(text)).toEqual(["About Spell", "Save"])
-    // in a menu, the icon is a slotted `<ui-icon>` (see `<Action>`), and it draws
-    const icon = left.querySelector("ui-item > ui-icon")!
-    expect(icon.getAttribute("name")).toBe("wizard")
+    // the item's `icon` attribute, and it draws (menu item icons drew 0 x 0 before the seo plan's fix)
+    const item = left.querySelector("ui-item")!
+    expect(item.getAttribute("icon")).toBe("wizard")
     await expect
-      .poll(() => icon.shadowRoot?.querySelector("svg")?.getBoundingClientRect().width ?? 0)
+      .poll(() => item.shadowRoot?.querySelector(".icon svg")?.getBoundingClientRect().width ?? 0)
       .toBeGreaterThan(0)
     // `spring` on a right section:  a `<Spring>` before its items
     expect(right.firstElementChild!.matches("ui-item.spring")).toBe(true)
@@ -124,7 +124,7 @@ describe("chrome + Actions", () => {
     const host = await mount(() => <Actions.confirm message="Sure?" title="Ask" callback={callback} />)
     const item = host.querySelector<HTMLElement>("ui-item")!
     expect(text(item)).toBe("Ask")
-    expect(item.querySelector("ui-icon")!.getAttribute("name")).toBe("question circle")
+    expect(item.getAttribute("icon")).toBe("question circle")
     item.click()
     expect(confirm).toHaveBeenCalledWith({ message: "Sure?" })
     await Promise.resolve()

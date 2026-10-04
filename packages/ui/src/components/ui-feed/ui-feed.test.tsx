@@ -102,6 +102,16 @@ describe("<ui-feed> classes and markup", () => {
     // the date sits inline in the summary
     expect(style(partRoot(events[0]!.querySelector("ui-date")!)).display).toBe("inline-block")
   })
+
+  it("colours a linked author with the link colour, not the browser's default blue", async () => {
+    const { events } = await feed("", `<ui-event>${CONTENT}</ui-event>`)
+    const author = partRoot(events[0]!.querySelector("ui-author")!)
+    expect(author.localName).toBe("a")
+    expect(style(author).color).not.toBe("rgb(0, 0, 238)")
+    const red = "rgb(255, 0, 0)"
+    const { events: tinted } = await feed(`style="--ui-feed-author-color: ${red}"`)
+    expect(style(partRoot(tinted[0]!.querySelector("ui-author")!)).color).toBe(red)
+  })
 })
 
 describe("<ui-event> labels", () => {

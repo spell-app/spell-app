@@ -61,9 +61,10 @@ class AliasTokensCommand {
     console.log("\nOther files naming a converted token (reads of the PUBLIC name, not through the alias):")
     const own = new Set(Object.keys(sheets))
     const pattern = new RegExp(`(?<!var\\(--_ui-[a-z0-9-]+, var\\()(${[...declared].join("|")})(?![a-z0-9-])`, "g")
-    for (const directory of ["src", "test", "site/src", "docs"]) {
-      for (const path of this.files(directory, /\.(css|ts|tsx|html|mdx?|astro)$/)) {
-        if (own.has(path) || path.endsWith("docs/report.md") || declared.size === 0) continue
+    for (const directory of ["src", "test", "site", "docs"]) {
+      for (const path of this.files(directory, /\.(css|ts|tsx|html|md)$/)) {
+        if (own.has(path) || path.endsWith("docs/report.md") || GENERATED_SITE.test(path) || declared.size === 0)
+          continue
         const lines = readFileSync(`${this.root}${path}`, "utf8").split("\n")
         lines.forEach((line, index) => {
           if (line.match(pattern)) console.log(`  ${path}:${index + 1}:  ${line.trim().slice(0, 140)}`)
@@ -85,5 +86,8 @@ class AliasTokensCommand {
     return Object.fromEntries(paths.map((path) => [path, readFileSync(`${this.root}${path}`, "utf8")]))
   }
 }
+
+/** The site's generated files:  the minified bundle and its data, never hand-edited. */
+const GENERATED_SITE = /^site\/_(assets|data)\//
 
 await new AliasTokensCommand().run(process.argv.slice(2))

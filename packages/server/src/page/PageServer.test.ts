@@ -5,7 +5,7 @@ import { join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
-import { PageServer, findById, replaceById } from "$/server/page"
+import { PageServer, findById, renamedPlanDoc, replaceById } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
 /** A page whose formatting an edit must keep, byte for byte. */
@@ -66,6 +66,9 @@ describe("PageServer", () => {
 
   beforeAll(async () => {
     mkdirSync(join(root, "docs"))
+    mkdirSync(join(root, "packages", "ui", "site", "_assets"), { recursive: true })
+    writeFileSync(join(root, "packages", "ui", "site", "button.html"), "<!doctype html><head></head><p>UI</p>\n")
+    writeFileSync(join(root, "packages", "ui", "site", "_assets", "site.js"), "export {}\n")
     writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["docs"] } }))
     writeFileSync(page, PAGE)
     server = await new PageServer({ root }).start({ port: 0, routes: false })
@@ -106,6 +109,43 @@ describe("PageServer", () => {
     const answer = await ask(port, "GET", "/packages/docs/plans/x/x.html?a=1")
     expect(answer.status).toBe(302)
     expect(answer.headers.location).toBe("/packages/docs/epics/x/x.html?a=1")
+  })
+
+  it("redirects an old plan doc name, epics/x/x.html, to x.plan.html, but only while the old file is gone", async () => {
+    const plan = join(root, "packages/docs/epics/x")
+    mkdirSync(plan, { recursive: true })
+    writeFileSync(join(plan, "x.plan.html"), "<p>plan</p>")
+    const answer = await ask(port, "GET", "/packages/docs/epics/x/x.html?a=1")
+    expect(answer.status).toBe(302)
+    expect(answer.headers.location).toBe("/packages/docs/epics/x/x.plan.html?a=1")
+    // a worktree not yet merged:  its old name is still there, and served
+    writeFileSync(join(plan, "x.html"), "<p>old</p>")
+    expect((await ask(port, "GET", "/packages/docs/epics/x/x.html")).status).toBe(200)
+    expect(renamedPlanDoc("/worktrees/w/packages/docs/epics/x/x.html", root)).toBeUndefined()
+  })
+
+  it("serves Spell UI's docs, packages/ui/site/, at /ui/:  live pages, assets as is", async () => {
+    const page = await ask(port, "GET", "/ui/button.html")
+    expect(page.status).toBe(200)
+    expect(page.text).toContain("<p>UI</p>")
+    expect(page.text).toContain(`<script src="/_server/live.js" defer></script>`)
+    expect(page.text).toContain(SRV.FAVICON_LINKS)
+    const served = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(page.text)![1]!) as SRV.ServerConfig
+    expect(served.file).toBe("/packages/ui/site/button.html")
+    const script = await ask(port, "GET", "/ui/_assets/site.js")
+    expect(script.status).toBe(200)
+    expect(script.headers["content-type"]).toMatch(/javascript/)
+    expect((await ask(port, "GET", "/ui")).status).toBe(301)
+    expect((await ask(port, "GET", "/ui/missing.html")).status).toBe(404)
+  })
+
+  it("reloads /ui/ pages when their files change", async () => {
+    const events = await listen(port)
+    const changed = events.next("change", "/packages/ui/site/button.html")
+    await new Promise((done) => setTimeout(done, 100))
+    writeFileSync(join(root, "packages", "ui", "site", "button.html"), "<!doctype html><head></head><p>UI 2</p>\n")
+    expect(await changed).toEqual({ path: "/packages/ui/site/button.html" })
+    events.close()
   })
 
   it("refuses foreign hosts", async () => {
@@ -163,6 +203,43 @@ describe("PageServer", () => {
     expect(readFileSync(page, "utf8")).toBe("<!doctype html><p id=x>new</p>\n")
     expect(await events.next("change", "/docs/page.html")).toEqual({ path: "/docs/page.html" })
     events.close()
+  })
+
+  it("serves a script's fetch() the file AS IS:  no injected tags", async () => {
+    const fetched = await ask(port, "GET", "/docs/page.html", { headers: { "sec-fetch-dest": "empty" } })
+    expect(fetched.text).toBe(readFileSync(page, "utf8"))
+    expect(fetched.headers.etag).toBeTruthy()
+  })
+
+  it("puts a whole TEXT file (what <ui-code> / <ui-markdown> save);  never .json or a binary", async () => {
+    const notes = join(root, "docs", "notes.md")
+    writeFileSync(notes, "# Notes\n")
+    const etag = (await ask(port, "GET", "/docs/notes.md")).headers.etag as string
+    const answer = await ask(port, "PUT", "/_server/page?path=/docs/notes.md", {
+      headers: writeHeaders(etag, "text/plain; charset=utf-8"),
+      body: "# Notes\n\nSaved.\n"
+    })
+    expect(answer.status).toBe(200)
+    expect(readFileSync(notes, "utf8")).toBe("# Notes\n\nSaved.\n")
+    expect(JSON.parse(answer.text).etag).not.toBe(etag)
+    const stale = await ask(port, "PUT", "/_server/page?path=/docs/notes.md", {
+      headers: writeHeaders(etag, "text/plain"),
+      body: "lost"
+    })
+    expect(stale.status).toBe(409)
+    writeFileSync(join(root, "docs", "logo.png"), "x")
+    const binary = await ask(port, "PUT", "/_server/page?path=/docs/logo.png", {
+      headers: writeHeaders(etag, "text/plain"),
+      body: "x"
+    })
+    expect(binary.status).toBe(400)
+  })
+
+  it("patches pages only:  a text file has no elements to replace", async () => {
+    const etag = (await ask(port, "GET", "/docs/notes.md")).headers.etag as string
+    const body = JSON.stringify({ id: "x", html: "<p>x</p>" })
+    const answer = await ask(port, "PATCH", "/_server/page?path=/docs/notes.md", { headers: writeHeaders(etag), body })
+    expect(answer.status).toBe(400)
   })
 
   it("on stop, removes its own pid file, never another server's", async () => {

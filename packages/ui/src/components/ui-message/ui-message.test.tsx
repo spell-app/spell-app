@@ -82,6 +82,8 @@ describe("<ui-message> content", () => {
     expect(icon.className).toBe("icon")
     expect(icon.querySelector("slot")!.name).toBe("icon")
     await expect.poll(() => icon.querySelector("svg")).not.toBeNull()
+    // the shorthand glyph sits inside the slot (a grandchild):  it must still be sized, not 0 x 0
+    await expect.poll(() => icon.querySelector("svg")!.getBoundingClientRect().height).toBeGreaterThan(0)
   })
 
   it("ALWAYS renders the content block;  no icon box, header or close button unless asked", async () => {

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Icons | Spell UI</title>
+    <meta
+      name="description"
+      content="Every icon in the packs Spell UI ships:  Font Awesome 7 Free by default, brands and Fomantic's names when a page adds them."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Icons">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/icons.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=Icons%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Icons
+            <ui-header
+              >Every icon in the packs Spell UI ships: Font Awesome 7 Free by default, brands and Fomantic's names
+              when a page adds them.</ui-header
+            >
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <!--
+            ICONS:  the old `icons.astro`, deleted in P7 (the icon browser), on `<ui-*>` widgets:  a segmented pack switcher,
+            a search input, a wrapping labeled-icon menu of every icon (click to copy its name), "Show more" in steps of 300.
+            - Behaviour:  the page script at the bottom (`IconBrowser`);  the pack lists come from the packs' own indexes
+              through `UI.icons`, Font Awesome's search terms from `_data/icons.json` (`yarn site:data`), fetched on first search.
+          -->
+          <ui-section id="icon-packs-2" header="Icon packs" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                An icon is a name: `<ui-icon name="bell">`, or the `icon` attribute most components take. Names come from icon
+                PACKS, each a folder of SVGs plus an index (`pack.js`); a pack's SVG is fetched the first time a page draws it.
+
+                - **FA7 Free**, Font Awesome 7 Free's solid and regular icons (`bell`, `bell outline`), is the default: every page
+                  has it.
+                - **FA7 Brands** adds Font Awesome's brand logos (`github`, `apple`).
+                - **Fomantic** answers Fomantic-UI's own names, so a ported page keeps working (`right arrow`, `setting`).
+                - A pack added later wins a name the earlier ones share; `fa7-free:bell` asks one pack.
+              </script>
+            </ui-markdown>
+            <ui-code language="html">
+              <script type="text/plain">
+                <ui-root icons="fa7-brands, fomantic">
+                  <ui-icon name="github"></ui-icon>
+                  <ui-button icon="setting">Settings</ui-button>
+                </ui-root>
+              </script>
+            </ui-code>
+            <ui-markdown>
+              <script type="text/markdown">
+                Or from script: `UI.icons.use("fa7-brands")`. Your own pack: `yarn icons:pack <folder> --id <id>` writes its
+                `pack.js`, then `<ui-root icons="/icons/lucide/pack.js">` (see `packages/ui/docs/icons.md`).
+              </script>
+            </ui-markdown>
+          </ui-section>
+
+          <ui-section id="browse" header="Browse" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                Pick a pack, type to search (Font Awesome's search terms too: `mail` finds `envelope`), click an icon to copy the
+                name `name` takes. Each tile is labelled with that name; its other names are listed in its tooltip.
+              </script>
+            </ui-markdown>
+
+            <!-- GAP I17:  no single-choice button group:  the page script moves `primary` / `active` between the pack buttons.
+                 Not `<ui-menu appearance="segmented">`:  a menu is navigation (links) or a menubar, not a choice. -->
+            <ui-buttons id="icon-packs" equal aria-label="Icon pack">
+              <ui-button primary active data-pack="fa7-free">FA7 Free</ui-button>
+              <ui-button data-pack="fa7-brands">FA7 Brands</ui-button>
+              <ui-button data-pack="fomantic">Fomantic</ui-button>
+            </ui-buttons>
+            <ui-segment basic fitted="horizontally">
+              <ui-input
+                id="icon-search"
+                type="search"
+                icon="magnifying glass"
+                fluid
+                placeholder="Search icons, e.g. arrow, mail, heart"
+                aria-label="Search icons"
+                autocomplete="off"
+              ></ui-input>
+            </ui-segment>
+            <ui-message id="icon-usage" size="small">The default pack: every page has it.</ui-message>
+            <ui-labels>
+              <ui-label id="icon-count" basic role="status">Loading icons...</ui-label>
+              <ui-label id="icon-copied" basic color="green" role="status" hidden></ui-label>
+            </ui-labels>
+            <ui-menu id="icon-grid" size="small" icon labeled wrapping aria-label="Icons"></ui-menu>
+            <ui-segment basic text-align="center">
+              <ui-button id="icon-more" basic circular icon="chevron down" hidden>Show more</ui-button>
+            </ui-segment>
+            <ui-markdown>
+              <script type="text/markdown">
+                Icons: [Font Awesome 7 Free](https://fontawesome.com) (CC BY 4.0). Names in the Fomantic pack from
+                [Fomantic-UI](https://github.com/fomantic/Fomantic-UI) (MIT).
+              </script>
+            </ui-markdown>
+
+            <script type="module">
+              /****************
+               * ### `IconBrowser`
+               * The icon browser:  every icon of one built-in pack, searchable, click to copy its name.
+               * - Each pack loads into its OWN `IconPacks` (a `UI.icons.scope([])` child, `use(id, { only })`), never the page's,
+               *   so browsing Fomantic names doesn't change what the page's other icons mean.  The tiles draw through the
+               *   page's `<ui-root>` packs by a `pack:name` prefix, which asks exactly one pack.
+               * - A tile's label is exactly what `name` takes (`bell`, `bell outline`, `setting`);  its other names are in its
+               *   tooltip.  An icon whose name another entry took is labelled by its first alias.
+               * - Sorted by Font Awesome file name, so an outline tile follows its solid icon;  Fomantic:  one tile per Fomantic
+               *   name, alphabetically.
+               * - Search also matches Font Awesome's search terms (`_data/icons.json`, fetched on the first search), keyed by FA
+               *   file name, so an outline or Fomantic tile matches its solid icon's terms.
+               * - Renders the first 300 matches, then "Show more" in steps of 300:  cheap enough without a virtual list.
+               * - A render "generation" drops stale async results when the pack or query changes mid-load.
+               ****************/
+              class IconBrowser {
+                /** How many tiles each page of results adds. */
+                static PAGE_SIZE = 300
+
+                /** What a page adds to use each pack;  the default needs nothing. */
+                static USAGE = {
+                  "fa7-free": "The default pack:  every page has it.",
+                  "fa7-brands":
+                    'Add it to a page with <code>&lt;ui-root icons="fa7-brands"&gt;</code> or <code>UI.icons.use("fa7-brands")</code>.',
+                  fomantic:
+                    'Add it to a page with <code>&lt;ui-root icons="fomantic"&gt;</code>;  added after the default, Fomantic\'s ' +
+                    "meaning wins where the two differ (<code>x</code>, <code>warning</code>)."
+                }
+
+                /** The pack whose tiles are its aliases. */
+                static FOMANTIC = "fomantic"
+
+                /** current pack id */
+                pack = "fa7-free"
+                /** current query, lowercased */
+                query = ""
+                /** loaded packs by id */
+                loaded = new Map()
+                /** the current pack's tiles, the filtered ones, and how many are drawn */
+                icons = []
+                matches = []
+                shown = 0
+                /** bumped on every pack / query change */
+                generation = 0
+                /** Font Awesome search terms by file name, once fetched */
+                terms = undefined
+
+                constructor(root) {
+                  this.root = root
+                  this.packButtons = [...document.querySelectorAll("#icon-packs > ui-button")]
+                  this.grid = document.getElementById("icon-grid")
+                  this.more = document.getElementById("icon-more")
+                  this.count = document.getElementById("icon-count")
+                  this.copied = document.getElementById("icon-copied")
+                }
+
+                /** Wire the controls and show the default pack. */
+                async start() {
+                  for (const button of this.packButtons) {
+                    button.addEventListener("click", () => void this.setPack(button.dataset.pack))
+                  }
+                  document.getElementById("icon-search").addEventListener("ui-input", (event) => {
+                    this.query = String(event.detail.value ?? "")
+                      .trim()
+                      .toLowerCase()
+                    void this.filter()
+                  })
+                  this.more.addEventListener("click", () => void this.renderMore())
+                  this.grid.addEventListener("click", (event) => {
+                    const item = event.target.closest?.("ui-item[data-name]")
+                    if (item) void this.copy(item.dataset.name)
+                  })
+                  await this.setPack(this.pack)
+                }
+
+                /** Switch pack:  its button chosen, its index loaded (once), then re-filter. */
+                async setPack(pack) {
+                  this.pack = pack
+                  for (const button of this.packButtons) {
+                    const chosen = button.dataset.pack === pack
+                    button.toggleAttribute("primary", chosen)
+                    button.toggleAttribute("active", chosen)
+                  }
+                  document.getElementById("icon-usage").innerHTML = IconBrowser.USAGE[pack]
+                  const generation = ++this.generation
+                  this.count.textContent = "Loading icons..."
+                  const loaded = await this.packOf(pack)
+                  if (generation !== this.generation) return
+                  this.icons = loaded ? IconBrowser.tiles(loaded) : []
+                  await this.filter()
+                }
+
+                /** Pack `id`, loaded into a private child set of `UI.icons` (once). */
+                async packOf(id) {
+                  if (!this.loaded.has(id)) {
+                    await UI.load()
+                    this.loaded.set(id, UI.icons.scope([]).use(id, { only: true }))
+                  }
+                  return this.loaded.get(id)
+                }
+
+                /** Apply the query and draw the first page of matches. */
+                async filter() {
+                  const generation = ++this.generation
+                  const query = this.query
+                  if (query && !this.terms) this.terms = await IconBrowser.loadTerms()
+                  if (generation !== this.generation) return
+                  const terms = this.terms ?? {}
+                  this.matches = query
+                    ? this.icons.filter(
+                        (icon) =>
+                          icon.names.some((name) => name.includes(query)) ||
+                          (terms[icon.file] ?? []).some((term) => term.toLowerCase().includes(query))
+                      )
+                    : this.icons
+                  this.grid.replaceChildren()
+                  this.shown = 0
+                  this.renderMore()
+                }
+
+                /** Draw the next `PAGE_SIZE` matches as labeled icon items. */
+                renderMore() {
+                  const batch = this.matches.slice(this.shown, this.shown + IconBrowser.PAGE_SIZE)
+                  const items = batch.map((icon) => {
+                    const [name, ...aliases] = icon.names
+                    const item = document.createElement("ui-item")
+                    item.setAttribute("link", "")
+                    item.setAttribute("icon", `${this.pack}:${name}`)
+                    item.dataset.name = name
+                    item.title = aliases.length ? `Copy "${name}" (also:  ${aliases.join(", ")})` : `Copy "${name}"`
+                    item.textContent = name
+                    return item
+                  })
+                  this.grid.append(...items)
+                  this.shown += batch.length
+                  const left = this.matches.length - this.shown
+                  this.more.hidden = left <= 0
+                  this.more.textContent = `Show more (${left} left)`
+                  this.count.textContent =
+                    `${this.matches.length} of ${this.icons.length} icons` +
+                    (this.shown < this.matches.length ? `, showing ${this.shown}` : "")
+                }
+
+                /** Copy `name` to the clipboard and say so. */
+                async copy(name) {
+                  try {
+                    await navigator.clipboard.writeText(name)
+                    this.copied.textContent = `Copied "${name}"`
+                  } catch {
+                    this.copied.textContent = `Couldn't copy "${name}"`
+                  }
+                  this.copied.hidden = false
+                }
+
+                /** Font Awesome's search terms by file name (`SiteIconsFile.terms`);  `{}` if they won't load. */
+                static async loadTerms() {
+                  try {
+                    const response = await fetch(new URL("_data/icons.json", document.baseURI))
+                    return (await response.json()).terms
+                  } catch {
+                    return {}
+                  }
+                }
+
+                /**
+                 * `pack`'s tiles, sorted.
+                 * - Fomantic:  one per Fomantic name (an entry's `alias`es it kept), by name.
+                 * - Others:  one per icon a name reaches, labelled by its file name when it kept it, else its first alias;  by
+                 *   file name, index order breaking ties (so solid `bell` before regular `bell outline`).
+                 */
+                static tiles(pack) {
+                  const tiles = []
+                  for (const icon of pack.icons()) {
+                    const file = IconBrowser.normalize(icon.key.slice(icon.key.lastIndexOf("/") + 1))
+                    const slug = file.replaceAll(" ", "-")
+                    if (pack.id === IconBrowser.FOMANTIC) {
+                      const alias = pack.index.icons[icon.key].alias
+                      const aliases = (Array.isArray(alias) ? alias : alias ? [alias] : []).map(IconBrowser.normalize)
+                      for (const name of icon.names)
+                        if (aliases.includes(name)) tiles.push({ names: [name], file: slug, sort: name })
+                    } else if (icon.names.length) {
+                      const names = icon.names.includes(file)
+                        ? [file, ...icon.names.filter((name) => name !== file)]
+                        : icon.names
+                      tiles.push({ names, file: slug, sort: file })
+                    }
+                  }
+                  return tiles.sort((a, b) => (a.sort < b.sort ? -1 : a.sort > b.sort ? 1 : 0))
+                }
+
+                /** A name as `IconName.normalize()` spells it:  lowercase, dashes / underscores => spaces. */
+                static normalize(name) {
+                  return name
+                    .toLowerCase()
+                    .replace(/[\s_-]+/g, " ")
+                    .trim()
+                }
+              }
+
+              void new IconBrowser(document.getElementById("main")).start()
+            </script>
+          </ui-section>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

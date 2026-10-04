@@ -1,0 +1,61 @@
+/*
+ * `<ui-docs-toc>`:  Fomantic's docs "On this page" rail menu (`server/files/stylesheets/docs.css` of Fomantic-UI-Docs,
+ * `.following.menu`), built from `<ui-*>` widgets:  this sheet only LAYS THEM OUT (and bolds the entry in view, as
+ * docs.css does).
+ * - Shadow markup contract:  `<div class="ui [size] toc" part="toc">` holding an optional `<ui-header part="header">`
+ *   and `<ui-menu vertical text fluid part="menu">` of `<ui-item class="section" part="section">` links;  under the
+ *   open section an `<ui-item class="entries" fitted="vertically">` holding `<ui-menu part="entries">` of
+ *   `<ui-item part="entry">` links;  an open entry with entries of its own (nested `<ui-section>`s) is followed by
+ *   the same pair again, one indent further.
+ * - Public tokens (`--ui-docs-toc-*`) are never declared:  each is read through a private alias
+ *   (`docs/theming.md` "Component tokens").
+ */
+
+@layer ui.components.docs-toc.types, ui.components.docs-toc.content, ui.components.docs-toc.variations, ui.components.docs-toc.states;
+
+@layer ui.components.docs-toc.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  Fomantic's docs measures. */
+  .ui.toc {
+    /* Indent of a section's entries under its title. */
+    --_ui-docs-toc-indent: var(--ui-docs-toc-indent, 0.5em);
+    /* Weight of a section's title. */
+    --_ui-docs-toc-section-weight: var(--ui-docs-toc-section-weight, bold);
+    /* Weight of the entry in view (docs.css `.following.menu .menu .active.item`). */
+    --_ui-docs-toc-current-weight: var(--ui-docs-toc-current-weight, bold);
+
+    display: block;
+  }
+}
+
+@layer ui.components.docs-toc.content {
+  [part~="header"] {
+    --ui-header-margin-top: 0;
+  }
+  [part~="menu"] {
+    --ui-menu-margin: 0;
+  }
+  /* weights go on the item's own box:  its text is drawn in its shadow root */
+  .section::part(item) {
+    font-weight: var(--_ui-docs-toc-section-weight);
+  }
+  /* The entries' holder:  no gap of its own;  its menu indents under the title. */
+  .entries {
+    padding-inline-start: var(--_ui-docs-toc-indent);
+  }
+  [part~="entries"] {
+    --ui-menu-margin: 0;
+  }
+}
+
+@layer ui.components.docs-toc.states {
+  [part~="entry"]:state(selected)::part(item) {
+    font-weight: var(--_ui-docs-toc-current-weight);
+  }
+}

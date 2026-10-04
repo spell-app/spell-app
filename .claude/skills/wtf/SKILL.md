@@ -22,10 +22,10 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
 
 - The story so far:
   - this session:  the conversation itself
-  - `<name>`:  `python3 .claude/skills/wtf/scripts/transcript.py --find <name>` (from the repo root) lists its
-    sessions, newest first;  `transcript.py <id>` digests one:  Owen's prompts, its last reply, a question still
+  - `<name>`:  `spell dev session find <name>` lists its
+    sessions, newest first;  `spell dev session transcript <id>` digests one:  Owen's prompts, its last reply, a question still
     waiting for an answer.  Several sessions:  digest the newest, mention the others.  Running or not:
-    `python3 ~/.claude/skills/worktrees/scripts/worktrees.py`.
+    `spell dev worktree list`.
   - either way:  Owen's LAST stated intent (his words, not the plan's), what's been done, what was asked and not
     yet answered.
 - Where:  in the session's checkout (`git -C .claude/worktrees/<name>` for `<name>`):  `git branch --show-current`,
@@ -33,9 +33,10 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
 - Plan doc, if any:  the session's `/epic <name>`, else a worktree name with `packages/docs/epics/<name>/`, else
   one the session wrote to.  A branch from before 2026-10-02 still has it under `plans/<name>/`.
   - `yarn plan-doc summary <name> --json`:  phases with status, next phase, open questions / issues / caveats / todos
-  - its URL:  `yarn server url <ABSOLUTE path>`, run in the checkout the doc is in (a relative path resolves
-    wrongly:  `SUSPECTED-BUGS.md`, "server")
-- `/bedtime` run:  `MORNING-<name>.md` in the worktree.
+  - its links:  `yarn docs:link <ABSOLUTE path> --hash <id>`, run in the checkout the doc is in:  the side bar
+    link, then `(_browser_)`
+- `/bedtime` run:  the plan doc's "Overnight" section (`yarn plan-doc summary <name> --json`, `overnight`:
+  `active` running, `done` not gone through yet);  `/epic review <name>` goes through it.
 - In flight:  `ListAgents` (agents this session started;  for `<name>`, whether its session is running),
   background shells, scheduled wakeups.
 

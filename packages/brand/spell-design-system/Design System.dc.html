@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="styles.css">
+<style>body{margin:0}</style>
+</helmet>
+<div style="min-height:100vh;background:var(--bg-canvas);color:var(--text-body);font-family:var(--font-sans);padding:44px 40px 64px;box-sizing:border-box">
+  <div style="max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:32px">
+    <header style="display:flex;flex-direction:column;gap:14px">
+      <img src="assets/logo/spell-lockup-tagline-aubergine.svg" alt="Spell — All magic, no fuss." style="height:64px;align-self:flex-start">
+      <h1 style="margin:0;font:700 40px/1.05 var(--font-serif);letter-spacing:-0.02em;color:var(--text-strong)">Everything in the Spell design system.</h1>
+      <p style="margin:0;font:italic 400 19px/1.3 var(--font-serif);color:var(--text-strong)">Every mockup and tool, one click away.</p>
+    </header>
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+      <section style="display:flex;flex-direction:column;gap:12px">
+        <div style="font:500 12px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">{{ g.title }}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+            <a href="{{ it.href }}" style="display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:var(--surface-card);border:1px solid var(--border-subtle);box-shadow:var(--shadow-sm);color:inherit;text-decoration:none;transition:box-shadow .2s,transform .2s" style-hover="box-shadow:var(--shadow-md);transform:translateY(-2px);text-decoration:none">
+              <span style="position:relative;display:block;aspect-ratio:16/10;overflow:hidden;background:{{ it.thumbBg }};border-bottom:1px solid var(--border-subtle)">
+                <sc-if value="{{ it.isFrame }}" hint-placeholder-val="{{ true }}">
+                  <iframe src="{{ it.thumb }}" loading="lazy" tabindex="-1" aria-hidden="true" scrolling="no" style="position:absolute;top:0;left:0;width:{{ it.frameSize }};height:{{ it.frameSize }};transform:scale({{ it.frameScale }});transform-origin:0 0;border:0;pointer-events:none;background:var(--bg-canvas)"></iframe>
+                </sc-if>
+                <sc-if value="{{ it.isImage }}" hint-placeholder-val="{{ false }}">
+                  <img src="assets/logo/spell-lockup-tagline-aubergine.svg" alt="" style="position:absolute;inset:18% 12%;width:76%;height:64%;object-fit:contain">
+                </sc-if>
+              </span>
+              <span style="display:flex;gap:14px;align-items:flex-start;padding:14px 16px 16px">
+              <span style="width:34px;height:34px;flex:none;border-radius:10px;background:var(--accent-soft);color:var(--text-accent);display:grid;place-items:center;font-size:15px"><i class="{{ it.icon }}"></i></span>
+              <span style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                <span style="font:700 17px/1.2 var(--font-serif);color:var(--text-strong)">{{ it.name }}</span>
+                <span style="font:400 13px/1.45 var(--font-sans);color:var(--text-muted)">{{ it.desc }}</span>
+                <span style="font:400 11px/1.3 var(--font-mono);color:var(--text-subtle)">{{ it.href }}</span>
+              </span>
+              </span>
+            </a>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    // Thumbnails are live, scaled-down renders of the target file — they stay in sync automatically.
+    const G = (title, items) => ({ title, items: items.map(([name, href, desc, icon, kind]) => {
+      const img = kind === 'image', doc = kind === 'doc';
+      const scale = doc ? 0.5 : 0.25;
+      return { name, href, desc, icon, thumb: img ? href.replace(/\.svg$/, '-tagline-aubergine.svg') : href, isImage: img, isFrame: !img,
+        frameScale: String(scale), frameSize: (100 / scale) + '%', thumbBg: img ? 'var(--surface-warm)' : 'var(--bg-canvas)' };
+    }) });
+    return { groups: [
+      G('Brand', [
+        ['Brand montage', 'Brand%20Montage.dc.html', 'Logo, light and dark app, palette and brand tiles in one view.', 'fa-solid fa-table-cells'],
+        ['Logo', 'Logo.dc.html', 'Lockups, mark and app icon, with downloads and usage rules.', 'fa-solid fa-hat-wizard'],
+        ['Design guide', 'Design%20Guide.dc.html', 'Voice, visual foundations, iconography, file index.', 'fa-regular fa-file-lines']
+      ]),
+      G('Color & theming', [
+        ['Brand palette', 'Brand%20Palette.dc.html', 'Exploring alternatives to the brand purple.', 'fa-solid fa-droplet'],
+        ['Color palette', 'Color%20Palette.dc.html', 'Brand, accent, every hue and one grey on the 17-step ladder.', 'fa-solid fa-swatchbook'],
+        ['Swoops & blobs', 'Flourishes.dc.html', 'Five directions for the <spell-flourish> component.', 'fa-solid fa-wand-sparkles']
+      ]),
+      G('Mockups', [
+        ['Spell App', 'Spell%20App.dc.html', 'The builder: Build, Your Apps, Templates, Settings. Light/dark.', 'fa-solid fa-wand-magic-sparkles'],
+        ['Docs site', 'Spell%20Docs.dc.html', 'Guide pages with sidebar, tips and spell/compiled examples.', 'fa-solid fa-book-open'],
+        ['Marketing site', 'Spell%20Marketing.dc.html', 'Home page with try-a-spell hero.', 'fa-solid fa-bullhorn'],
+        ['Theme creator', 'Theme%20Creator.dc.html', 'Builds a @spell-app/ui theme sheet with live light/dark preview.', 'fa-solid fa-sliders'],
+        ['Color set chooser', 'Color%20Set%20Chooser.dc.html', 'One seed colour in, a 17-step set and CSS out.', 'fa-solid fa-palette']
+      ])
+    ] };
+  }
+}
+</script>
+</body>
+</html>

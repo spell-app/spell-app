@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Slider | Spell UI</title>
+    <meta name="description" content="A slider allows users to select values within a range." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Slider">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-slider.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-slider%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/slider.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Slider
+            <ui-header>A slider allows users to select values within a range.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-slider" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's slider page, its Definition tab section by section (Types, Variations), then its Examples tab
+              (More Examples).  A slider is a form control:  every example is named (`aria-label`, or a `<label for>`).
+              Fomantic's settings are attributes here (`min`, `max`, `step`, `value` for `start`, `end`);  its letter and
+              interpreted labels are one list, `step-labels`.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-slider" header="Slider" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A standard slider:  `min` 0, `max` 20 and `step` 1 by default, as Fomantic's."
+                >
+                  <ui-slider aria-label="Slider"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-labeled-slider" header="Labeled slider" sticky collapsible dividing>
+                <ui-docs-example description="A slider that shows its labels:  `labeled`.">
+                  <ui-slider labeled aria-label="Labeled"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-types-labeled-ticked-slider"
+                header="Labeled ticked slider"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="A slider that shows its labels and ticks:  `labeled ticked`.">
+                  <ui-slider labeled ticked aria-label="Labeled ticked"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-types-bottom-aligned-labeled"
+                header="Bottom aligned labeled"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description='A slider can display the labels below the track:  `aligned="bottom"`.'>
+                  <ui-slider labeled aligned="bottom" aria-label="Bottom aligned"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I84:  no restricted labels (0, 10, 15, 35, 80, 90, 100);  the labels auto-adjust. -->
+              <ui-section id="examples-types-restricted-labels" header="Restricted Labels" sticky collapsible dividing>
+                <ui-docs-example
+                  description="You can restrict the display of labels to only the ones you want.  Not yet:  ours always pick evenly spaced labels."
+                >
+                  <ui-slider labeled ticked max="100" step="0" aria-label="Restricted labels"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-letters" header="Letters" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Instead of numeric values, you can show letters:  one `step-labels` entry per step, from `min`.  The thumb speaks them too."
+                >
+                  <ui-slider
+                    labeled
+                    max="15"
+                    step-labels='["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P"]'
+                    aria-label="Letters"
+                  ></ui-slider>
+                </ui-docs-example>
+                <ui-docs-example description="You may provide a different alphabetical set of letters.">
+                  <ui-slider
+                    labeled
+                    max="15"
+                    step-labels='["α","β","γ","δ","ε","ζ","η","θ","ι","κ","λ","μ","ν","ξ","ο","π"]'
+                    aria-label="Greek letters"
+                  ></ui-slider>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="Letters can repeat once the end of the letter set is reached, like the columns of a spreadsheet:  write them out."
+                >
+                  <ui-slider
+                    labeled
+                    max="15"
+                    step-labels='["A","B","C","AA","AB","AC","BA","BB","BC","CA","CB","CC","AAA","AAB","AAC","ABA"]'
+                    aria-label="Repeating letters"
+                  ></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-letter-words" header="Letter Words" sticky collapsible dividing>
+                <ui-docs-example
+                  description="By providing words to `step-labels` you can predefine text for each label value."
+                >
+                  <ui-slider
+                    labeled
+                    max="3"
+                    step-labels='["Beginner","Advanced","Pro","Genius"]'
+                    aria-label="Level"
+                  ></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-types-custom-interpreted-labels"
+                header="Custom interpreted labels"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description="Fomantic's `interpretLabel` function returns a custom label per value;  ours is the same list, computed once (here hex values)."
+                >
+                  <ui-slider
+                    labeled
+                    ticked
+                    step-labels='["00","01","02","03","04","05","06","07","08","09","0A","0B","0C","0D","0E","0F","10","11","12","13","14"]'
+                    aria-label="Hex"
+                  ></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-range-slider" header="Range slider" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A range slider allows you to select a range between two values:  `range`, with `value` and `end`."
+                >
+                  <ui-slider
+                    range
+                    labeled
+                    ticked
+                    min="5"
+                    max="100"
+                    value="10"
+                    end="90"
+                    step="5"
+                    aria-label="Range"
+                  ></ui-slider>
+                </ui-docs-example>
+                <!-- GAP I85:  no minimum / maximum distance between the thumbs (Fomantic's minRange 10, maxRange 40). -->
+                <ui-docs-example
+                  description="A range slider can be limited in how far apart the two thumbs can be.  Not yet:  ours only stop at each other."
+                >
+                  <ui-slider
+                    range
+                    labeled
+                    ticked
+                    min="5"
+                    max="100"
+                    value="10"
+                    end="50"
+                    step="0"
+                    aria-label="Limited range"
+                  ></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A slider can appear disabled:  dimmed, not focusable, left out of the form."
+                >
+                  <ui-slider disabled aria-label="Disabled"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-read-only" header="Read-only" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A `readonly` slider shows its value and can't be changed, but is still focusable and submitted."
+                >
+                  <ui-slider readonly value="12" aria-label="Read-only"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A slider can be inverted, for dark backgrounds.">
+                  <ui-segment inverted>
+                    <ui-slider inverted aria-label="Inverted"></ui-slider>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-reversed" header="Reversed" sticky collapsible dividing>
+                <ui-docs-example description="A slider can be reversed:  it runs from the right.">
+                  <ui-slider reversed aria-label="Reversed"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I86:  no thumb tooltips (showThumbTooltip / tooltipConfig). -->
+              <ui-section id="examples-variations-thumb-tooltips" header="Thumb Tooltips" sticky collapsible dividing>
+                <ui-docs-example
+                  description="The slider thumbs can show a tooltip on hover containing the current value.  Not yet."
+                >
+                  <ui-slider aria-label="Tooltips"></ui-slider>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="The tooltips can stay visible all the time, in any popup variation.  Not yet."
+                >
+                  <ui-slider range aria-label="Range tooltips"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I83:  a vertical slider fills its host's height:  only an inline style sets it (as in Fomantic's own markup). -->
+              <ui-section id="examples-variations-vertical" header="Vertical" sticky collapsible dividing>
+                <ui-docs-example description="A slider can be vertical, filling the host's height;  min at the top.">
+                  <ui-slider vertical style="height: 200px" aria-label="Vertical"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I83:  the host's height is an inline style. -->
+              <ui-section
+                id="examples-variations-vertical-right-aligned"
+                header="Vertical right aligned"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description='A vertical slider can have its ticks and labels right aligned:  `aligned="right"`.'
+                >
+                  <ui-slider
+                    vertical
+                    labeled
+                    ticked
+                    aligned="right"
+                    style="height: 200px"
+                    aria-label="Right aligned"
+                  ></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+                <ui-docs-example description="A slider can be different colors.">
+                  <ui-slider color="red" value="4" aria-label="Red"></ui-slider>
+                  <ui-slider color="orange" value="5" aria-label="Orange"></ui-slider>
+                  <ui-slider color="yellow" value="6" aria-label="Yellow"></ui-slider>
+                  <ui-slider color="olive" value="7" aria-label="Olive"></ui-slider>
+                  <ui-slider color="green" value="8" aria-label="Green"></ui-slider>
+                  <ui-slider color="teal" value="9" aria-label="Teal"></ui-slider>
+                  <ui-slider color="blue" value="10" aria-label="Blue"></ui-slider>
+                  <ui-slider color="violet" value="11" aria-label="Violet"></ui-slider>
+                  <ui-slider color="purple" value="12" aria-label="Purple"></ui-slider>
+                  <ui-slider color="pink" value="13" aria-label="Pink"></ui-slider>
+                  <ui-slider color="brown" value="14" aria-label="Brown"></ui-slider>
+                  <ui-slider color="grey" value="15" aria-label="Grey"></ui-slider>
+                  <ui-slider color="black" value="16" aria-label="Black"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-variations-inverted-colored"
+                header="Inverted Colored"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="A slider can be different colors while inverted.">
+                  <ui-segment inverted>
+                    <ui-slider inverted color="red" value="4" aria-label="Red"></ui-slider>
+                    <ui-slider inverted color="orange" value="5" aria-label="Orange"></ui-slider>
+                    <ui-slider inverted color="yellow" value="6" aria-label="Yellow"></ui-slider>
+                    <ui-slider inverted color="olive" value="7" aria-label="Olive"></ui-slider>
+                    <ui-slider inverted color="green" value="8" aria-label="Green"></ui-slider>
+                    <ui-slider inverted color="teal" value="9" aria-label="Teal"></ui-slider>
+                    <ui-slider inverted color="blue" value="10" aria-label="Blue"></ui-slider>
+                    <ui-slider inverted color="violet" value="11" aria-label="Violet"></ui-slider>
+                    <ui-slider inverted color="purple" value="12" aria-label="Purple"></ui-slider>
+                    <ui-slider inverted color="pink" value="13" aria-label="Pink"></ui-slider>
+                    <ui-slider inverted color="brown" value="14" aria-label="Brown"></ui-slider>
+                    <ui-slider inverted color="grey" value="15" aria-label="Grey"></ui-slider>
+                    <ui-slider inverted color="black" value="16" aria-label="Black"></ui-slider>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-basic" header="Basic" sticky collapsible dividing>
+                <ui-docs-example description="A `basic` slider's thumbs take the fill colour instead of white.">
+                  <ui-slider basic color="blue" value="10" aria-label="Basic"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-hover" header="Hover" sticky collapsible dividing>
+                <ui-docs-example
+                  description="With `hover`, the thumbs show only while the slider is hovered or focused."
+                >
+                  <ui-slider hover value="10" aria-label="Hover"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A slider can have different sizes.">
+                  <ui-slider color="red" size="small" value="4" aria-label="Small"></ui-slider>
+                  <ui-slider color="orange" value="8" aria-label="Medium"></ui-slider>
+                  <ui-slider color="yellow" size="large" value="12" aria-label="Large"></ui-slider>
+                  <ui-slider color="olive" size="big" value="16" aria-label="Big"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-more-examples" header="More Examples" sticky collapsible dividing>
+              <ui-section id="examples-more-examples-step" header="Step" sticky collapsible dividing>
+                <ui-docs-example description="A slider can have a custom step...">
+                  <ui-slider labeled max="10" value="4" step="2" aria-label="Even steps"></ui-slider>
+                </ui-docs-example>
+                <ui-docs-example description='...or no step at all:  `step="0"` allows any value.'>
+                  <ui-slider max="10" value="3.82" step="0" aria-label="Any value"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-more-examples-smooth-slide" header="Smooth slide" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A slider can have a smooth slide:  the thumb glides under the pointer, the value still snaps."
+                >
+                  <ui-slider smooth labeled ticked max="10" value="4" step="2" aria-label="Smooth"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I84:  no highlighted range labels (Fomantic's highlightRange). -->
+              <ui-section
+                id="examples-more-examples-highlight-range"
+                header="Highlight Range"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example
+                  description="A slider can highlight the selected range values only.  Not yet:  the track fill shows the range, the labels don't."
+                >
+                  <ui-slider
+                    color="green"
+                    range
+                    labeled
+                    ticked
+                    max="50"
+                    value="5"
+                    end="25"
+                    aria-label="Highlighted range"
+                  ></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I84:  no `ui label` look for the tick labels. -->
+              <ui-section id="examples-more-examples-ui-labels" header="UI Labels" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A slider can use `<ui-label>`s for its tick values.  Not yet:  the labels are plain text."
+                >
+                  <ui-slider color="green" range labeled ticked max="50" aria-label="Labels"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I84:  labels always auto-adjust;  no `fixed` or off. -->
+              <ui-section
+                id="examples-more-examples-autoadjust-labels"
+                header="Autoadjust Labels"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    On different window sizes, a large scale slider can't show every value: it shows evenly spaced
+                    labels, the rest as half ticks. Fomantic's <code>autoAdjustLabels: false</code> and
+                    <code>fixed</code> (with <code>labelDistance</code>) aren't settable yet.
+                  </p>
+                  <ui-slider color="green" range labeled ticked max="97" aria-label="Auto-adjusted"></ui-slider>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (values, labels, events, forms), keyboard, accessibility, framework snippets. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write `<ui-slider>` and name it with `aria-label` or a `<label for>`. Fomantic's settings are attributes:
+
+                  - `min` / `max` / `step` default to Fomantic's 0, 20 and 1; `step="0"` allows any value.
+                  - `value` is Fomantic's `start`; a `range` adds `end`. The attributes are the starting (and reset) values; the
+                    `value` / `end` properties are the live ones.
+                  - `labeled` shows a label per step (thinned out on a short track), `ticked` adds ticks, `aligned` moves them
+                    (`bottom`; `right` on a `vertical` slider).
+                  - `step-labels` replaces the numbers: one label per step, from `min` (Fomantic's `labelType: 'letter'`,
+                    `letters` and `interpretLabel`, written out). It's also what the thumb speaks.
+                  - `smooth` lets the thumb glide under the pointer while the value still snaps.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `ui-input` fires on every move (Fomantic's `onMove`) and `ui-change` when a key press or a drag ends (its
+                  `onChange`), both with `{ value, end }`. Setting `value` inside a `ui-input` handler wins, so you can clamp or
+                  reject a move. `step-labels` is also a property:
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const size = document.querySelector("#size") // <ui-slider id="size" labeled max="4" aria-label="Size">
+                  size.stepLabels = ["XS", "S", "M", "L", "XL"]
+                  size.addEventListener("ui-change", (event) => console.log(event.detail.value))
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A slider is a form-associated element.
+
+                  - With a `name`, it submits `value`; a `range` submits two entries under that name (start, then end):
+                    `formData.getAll(name)`.
+                  - A form reset puts back the starting `value` / `end` (the attributes).
+                  - `disabled` leaves it out of the form; `readonly` still submits.
+                </script>
+              </ui-markdown>
+              <ui-section id="usage-forms-in-a-form" header="In a form" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A price range, submitted as two `price` entries.  Move it, then reset the form."
+                >
+                  <ui-form>
+                    <form>
+                      <label for="slider-price">Price</label>
+                      <ui-slider
+                        id="slider-price"
+                        name="price"
+                        range
+                        labeled
+                        max="100"
+                        step="10"
+                        value="20"
+                        end="60"
+                      ></ui-slider>
+                      <ui-button type="reset" basic icon="undo">Reset</ui-button>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  | Key                 | Action                                               |
+                  | ------------------- | ---------------------------------------------------- |
+                  | Arrow keys          | Move the thumb one step the way the arrow points     |
+                  | Page Up / Page Down | Move two steps                                       |
+                  | Home / End          | Move to the thumb's lowest / highest position        |
+                  | Tab                 | Move to the next thumb (a `range` has two), then out |
+
+                  On a `vertical` slider the minimum is at the top, so Arrow Down increases; on a `reversed` one Arrow Left does.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Each thumb is an ARIA `slider` (the APG pattern) with `aria-valuemin`, `aria-valuemax` and `aria-valuenow`, and
+                  `aria-orientation` when `vertical`.
+
+                  - A single slider's thumb is named by the host's `aria-label` or a `<label for>`. A `range` is a group named
+                    that way, with two thumbs, "Minimum" and "Maximum" (translatable); each stops at the other.
+                  - Step labels are hidden from assistive tech: the thumb's value is what's announced.
+                  - `readonly` stays focusable and announced but can't change; `disabled` leaves the tab order.
+                  - If the element can't render, its native fallback is the browser's range input (two for a `range`), so the
+                    value can still be set and submitted; Fomantic's track and thumbs, labels, `vertical` / `reversed` and
+                    `step-labels` are dropped.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `value` / `end` are plain attributes and `stepLabels` a property; listen for `ui-input` or `ui-change`.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-slider name="volume" max={10} value={volume} onui-input={(event) => setVolume(event.detail.value)} />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-slider name="volume" max="10" :value="volume" :stepLabels="labels" @ui-input="(event) => (volume = event.detail.value)" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref;  `prop:` for the property
+                  <ui-slider
+                    name="volume"
+                    max="10"
+                    value={volume()}
+                    prop:stepLabels={labels}
+                    ref={(el) => el.addEventListener("ui-input", (event) => setVolume(event.detail.value))}
+                  />
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-slider"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-slider-*` tokens: set one on the element, on any ancestor (`:root` included), or on
+                  the slider's box through `::part(slider)`. They inherit into the shadow root, where the sheet reads each through
+                  a private alias, so nothing inside blocks them. Style the pieces with `::part()`: `track`, `track-fill`,
+                  `thumb`, `labels` and `label`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-slider {
+                    --ui-slider-track-height: 0.25em;
+                  }
+                  ui-slider::part(thumb) {
+                    box-shadow: none;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `inverted` swaps in its own `--ui-slider-inverted-*` colours; `color` replaces `--ui-slider-fill-color`; a size
+                    scales the whole slider (every length is `em`). Never set the `--_ui-*` / `--_slider-*` names: they're the sheet's private
+                    plumbing (the element writes the thumb and label positions there).
+                  </script>
+                </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-slider" playground></ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles the slider itself: Fomantic's own slider page lists only the default theme. The
+                  site-wide themes in the header (Material, GitHub, Dark ...) still change the colours it inherits.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

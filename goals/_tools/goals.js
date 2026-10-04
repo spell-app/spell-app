@@ -505,7 +505,7 @@ function check(text, prefs, { noBrowser }) {
   let failed = false
   for (const file of files.filter((it) => existsSync(it))) {
     const problems = readPage(file).check()
-    const links = spawnSync("python3", ["scripts/doc-links.py", "--check", file], { cwd: DOCS, encoding: "utf8" })
+    const links = spawnSync("node", ["scripts/doc-links.js", "--check", file], { cwd: DOCS, encoding: "utf8" })
     if (links.status !== 0)
       problems.push(
         ...links.stdout

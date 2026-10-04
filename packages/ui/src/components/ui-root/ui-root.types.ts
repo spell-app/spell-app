@@ -11,7 +11,7 @@ export type RootVocabulary = typeof rootVocabulary
 
 /** What `<ui-root>` knows about a tag before its family loads (`ui-root.catalog.ts`, generated). */
 export type RootCatalogEntry = {
-  /** Its folder under `src/components/`:  its family, imported to define it. */
+  /** Its folder under `src/components/` (or `src/docs-components/`):  its family, imported to define it. */
   readonly folder: string
   /** What `display="skeleton"` draws in its place;  none:  hidden until ready (or covered by its owner's). */
   readonly skeleton?: SkeletonSpec
@@ -47,6 +47,15 @@ export const PACK_SEPARATOR = ","
 
 /** `width` / `height` value meaning "the viewport's". */
 export const WINDOW = "window"
+
+/**
+ * A length a static server render accepts for `width` / `height` (node has no `CSS.supports()`):  numbers, units,
+ * `%`, `calc()` / `var()` / `min()` ... -- never `;`, `:`, braces or quotes, which could inject other declarations.
+ */
+export const SERVER_LENGTH = /^[\w.%+\-*/(), ]+$/
+
+/** The static server render's wrapper when it isn't a box:  no box of its own, as the browser's host. */
+export const SERVER_CONTENTS = "display: contents"
 
 /** Fallback `timeout`, ms:  `rootVocabulary`'s default, `5s`. */
 export const DEFAULT_TIMEOUT = 5000

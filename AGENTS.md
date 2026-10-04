@@ -7,6 +7,9 @@ when working with code in this repository.
 reactivity, `@spell-app/ui` elements, or any React-to-Solid step:  READ `packages/docs/solid/solid-2.md` IN FULL
 FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produces wrong code.
 
+**If asked for a new skill or `spell` command, or about to add, rename or remove a yarn script:  READ
+`packages/docs/dev/commands/commands.md` FIRST,** and suggest where it belongs before building it (see "Commands").
+
 ## Overview
 
 - Spell:  the parser, the spell language and its tools, and `@spell-app/ui` -- one yarn workspace per folder in
@@ -49,6 +52,9 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
   `@spell-app/ui` lives on its own.
   - `server` is a LEAF (node built-ins only, imports no package):  ANY package may import it, `ui`'s tools too.
+  - The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED, `packages/ui/src/languages/spell.<lang>.js`, a
+    committed bundle `yarn gen:spell` (in `packages/ui`) builds from `packages/spell/src/highlight/browser.ts`.  `ui`'s
+    source never imports `$/spell`;  regenerate after changing spell's grammar.
   - The direction is by convention, not enforced:  every alias works from every package.
 - ONE alias table, `tsconfig.base.json` at the repo root, read its header comment.  Every package's `tsconfig.json`
   extends it, so `$/parser` means the same file wherever it's compiled from.
@@ -67,9 +73,27 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Enter a worktree with `/isolate <name>` (`/epic` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
-- Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
-  `... close <name>` on leaving.  Then `... handoff <name>`:  when the turn ends, the session moves to that window,
-  in an editor tab (never the sidebar), and its old tab closes (the `Stop` hook, `.claude/hooks/handoff.mjs`).
+- New window, or stay?  `node scripts/window.mjs stay-check` recommends one, with reasons, and Owen picks in a
+  modal (`.claude/skills/isolate/SKILL.md`, "Start", step 2b).  Staying is fine when the session is its window's
+  only one.
+  - A session that stays:  same tab, only its folder changes;  its changes show in Source Control, since every
+    package window has `git.detectWorktrees` on (each worktree its own repo there).
+  - NEVER add a worktree's folders to a package window (`window.mjs add`):  VS Code writes them into
+    `workspaces/<pkg>.code-workspace`, and they stay there after the worktree is gone (three did, by 2026-10-03).
+    Nobody sees them:  those files are `skip-worktree` in the main checkout, so Owen's theme changes never show
+    as changes either.
+  - A branch that changes those files merges onto `main` only once the flag is off:  back up the local files,
+    `git update-index --no-skip-worktree`, `git checkout --` them, merge, write the local edits back on top, set the
+    flag again (`PAPERCUTS.md`, "claude-code").
+- A new window:  open it at once, from the worktree's root:  `node scripts/window.mjs open <name>`.
+  On leaving (`/isolate done`), the session does NOT move back:  it stays in that window, which Owen closes
+  (`... close <name>` closes it and deletes its file).  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
+  moves to that window, in an editor tab (never the sidebar), `continue` typed into it, and its old tab closes
+  (the `Stop` hook, `.claude/hooks/handoff.mjs`).
+  - So END THE TURN right after `handoff`:  the rest (`yarn install` ...) happens in the new window.
+  - The old tab is found by the session's title.  The `UserPromptSubmit` hook `.claude/hooks/prompt-gate.mjs`
+    renames the session on `/isolate <name>`, `/epic <name>` and `/unpark <name>`.  It also blocks those prompts in
+    plan mode or inside another worktree, saving their text to `~/.spell/prompts/<name>.md` first.
   - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), the package window's theme with a title
     bar tinted per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
     worktree's `packages/<pkg>` (`<pkg> ⎇ <name>`) and root (`spell-app ⎇ <name>`).
@@ -77,13 +101,48 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
   - A doc shown while the move is pending (`yarn plan-doc open`, `window.mjs show`) waits, then shows beside the
     session in the window it moved to.
+  - A running epic's plan doc is on the MAIN checkout's page server too (`/worktrees/<w>/...`), listed in the docs
+    index's Epics section, with the merged ones;  `yarn server url` gives that URL (`packages/docs/server.html`,
+    "Running epics").
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
   included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `window.mjs open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
 - Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
   worktree, plus a `PARKED-<name>.md` note), `/unpark` to pick it back up, or `/wait-for <other>` to wait for
   that session to finish, then merge `main` in and carry on by itself.
-- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>").
+- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>", or
+  "..., staying in this window").
+
+## Changelog
+
+- `packages/docs/changelog.html` -- what the repo shipped, newest first.  MUST be kept up to date by every `/isolate`
+  and `/epic`:
+  - `/epic`:  at its Doc Review, add the entry to "2. In worktrees";  when it merges into `main`, move it under
+    its month in "3. Merged into main"
+  - `/isolate done`:  before merging into `main`, add an entry for what the branch shipped (skip a branch with
+    nothing worth a reader's time:  typo fixes, a papercut)
+- An entry:  one nested `<ui-section id="<epic or worktree name>" header="YYYY-MM-DD · Title">` under its month,
+  newest first (the page's header comment has the markup):
+  - a `spell-meta` list with LINKS:  the plan doc (`epics/<name>/<name>.plan.html`, `target="<name>"`), the durable
+    doc, the branch
+  - EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary
+- Then finish the page as `packages/docs/AGENTS.md` says ("Finishing a page"), and bump its footer's date and
+  commit.
+
+## Commands
+
+- Three ways to make the repo do something:  the `spell` CLI, Claude skills, yarn scripts.  Their map, one row
+  per operation:  `packages/docs/dev/commands/commands.html` (data:  `commands.json` beside it;  shown by the page
+  server:  `yarn docs:open dev/commands/commands.html`).
+- Target:  the CLI drives everything.  Repo tools are `spell dev <noun> <verb>`;  skills keep judgement and dialog
+  and call it;  yarn keeps each package's own scripts and aliases the rest.
+- Owen asks for a new skill or `spell` command, or you add a yarn script to solve a problem:  READ
+  `packages/docs/dev/commands/commands.md`, then SUGGEST, before building:  where it belongs, its name, what it
+  replaces, which roadmap move it advances.
+- MUST keep the page true in the same change:  `commands.json`, then `yarn commands:check`.
+- Tools are TypeScript (or node JS in `packages/docs/scripts`), never python:  one language.  Skills reach them as
+  `spell dev ...`:  `spell` is `yarn cli:install`'s link, made once per machine;  without it,
+  `node packages/cli/bin/spell.mjs dev ...` from a checkout's root.
 
 ## Solid 2
 

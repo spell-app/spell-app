@@ -190,6 +190,16 @@ program
   .option("--open", "show them as pictures in a browser, until Ctrl-C")
   .action((query: string[], _options, command) => run(CLI.iconsCommand, query, command.optsWithGlobals()))
 
+program
+  .command("static")
+  .description("ui-* pages as plain HTML for crawlers and no-JS readers:  page.static.html + ui.static.css")
+  .argument("<pages...>", "html pages, or folders of them -- writes each as <page>.static.html beside it")
+  .option("-o, --output <path>", "write the page here -- or, for several, into this folder")
+  .option("--inline-css", "put each page's stylesheet in a <style> in the page, not the folder's ui.static.css")
+  .option("--css <file>", "write ONE stylesheet, for every page, here (default:  ui.static.css per folder)")
+  .option("--no-minify", "leave the stylesheet readable")
+  .action((pages: string[], _options, command) => run(CLI.staticCommand, pages, command.optsWithGlobals()))
+
 // our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help
 program.helpCommand(false)
 program
@@ -222,6 +232,76 @@ program
   .helpOption(false)
   // everything after `plan-doc`, raw:  its `--goal` / `--estimate` ... are the tool's, not ours
   .action(() => run(CLI.planDocCommand, process.argv.slice(process.argv.indexOf("plan-doc") + 1), {}))
+
+/**
+ * `spell dev <noun> <verb>`:  the repo's OWN tools (worktrees, docs, servers ...), as opposed to the spell language.
+ * - The plan for them, and every command the repo has:  `packages/docs/dev/commands/commands.html`
+ * - Each finds the nearest checkout from the current folder (`CLI.findCheckout()`), so it works in a worktree
+ * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
+ */
+const dev = program
+  .command("dev")
+  .description("the repo's own tools -- worktrees, docs, servers ...:  packages/docs/dev/commands")
+
+dev
+  .command("commands")
+  .description("every yarn script, spell command and skill, against the commands page -- check exits 1 on a gap")
+  .argument("[verb]", "list (default):  each command, ✓ if the page names it;  check:  only the gaps")
+  .option("--json", "print every command, and the gaps, as JSON")
+  .action((verb: string | undefined, _options, command) =>
+    run(CLI.commandsCommand, verb ? [verb] : [], command.optsWithGlobals())
+  )
+
+dev
+  .command("session")
+  .description("Claude Code sessions:  list, find, open in VS Code, title this one, digest another's transcript")
+  .argument(
+    "[verb]",
+    "list (default) [words...] | find <name> | open <id|title> | title [title] | window [pid] | transcript <id>"
+  )
+  .argument("[args...]", "the verb's arguments")
+  .option("--limit <n>", "list:  at most this many (default 15)")
+  .option("--json", "list, find, transcript:  print the data as JSON")
+  .action((verb: string | undefined, args: string[], _options, command) =>
+    run(CLI.sessionCommand, verb ? [verb, ...args] : [], command.optsWithGlobals())
+  )
+
+dev
+  .command("worktree")
+  .description(
+    "git worktrees:  list the live sessions and where they work, or where a worktree / plan / session stands"
+  )
+  .argument("[verb]", "list (default) | status <name>")
+  .argument("[name]", "status:  a worktree, branch, plan doc or session name")
+  .option("--json", "list:  print the data as JSON")
+  .action((verb: string | undefined, name: string | undefined, _options, command) =>
+    run(
+      CLI.worktreeCommand,
+      [verb, name].filter((it) => it !== undefined),
+      command.optsWithGlobals()
+    )
+  )
+
+dev
+  .command("park")
+  .description("parked work:  list the PARKED notes, what /wait-for could wait on, or wait for a name to finish")
+  .argument("<verb>", "list | candidates | wait <name>")
+  .argument("[name]", "wait:  a worktree, branch, plan doc or session name")
+  .option("--every <seconds>", "wait:  poll this often (default 60)")
+  .option("--max <seconds>", "wait:  give up after this long, exiting 2 (default 7140)")
+  .action((verb: string, name: string | undefined, _options, command) =>
+    run(
+      CLI.parkCommand,
+      [verb, name].filter((it) => it !== undefined),
+      command.optsWithGlobals()
+    )
+  )
+
+dev
+  .command("stock")
+  .description("take stock:  worktrees, branches, sessions, parked work, plans -- in process, hung or parked, dead")
+  .option("--json", "print the report as JSON, with each action's shell lines")
+  .action((_options, command) => run(CLI.stockCommand, [], command.optsWithGlobals()))
 
 await program.parseAsync()
 

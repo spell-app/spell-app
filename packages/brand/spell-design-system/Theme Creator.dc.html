@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="styles.css">
+<style>body{margin:0} @keyframes sp-open{from{grid-template-rows:0fr}to{grid-template-rows:1fr}} @keyframes sp-slide{from{transform:translateY(-10px);opacity:0;clip-path:inset(0 0 0 0)}to{transform:none;opacity:1;clip-path:inset(0 0 0 0)}} @keyframes sp-close{from{grid-template-rows:1fr}to{grid-template-rows:0fr}} @keyframes sp-slide-out{from{transform:none;opacity:1;clip-path:inset(0 0 0 0)}to{transform:translateY(-10px);opacity:0;clip-path:inset(0 0 0 0)}}</style>
+</helmet>
+<div style="min-height:100vh;background:var(--bg-canvas);color:var(--text-body);font-family:var(--font-sans);padding:36px 40px 56px;box-sizing:border-box">
+  <a data-backlink="1" href="Design%20System.dc.html" target="_top" style="position:fixed;right:16px;bottom:16px;z-index:100;display:flex;align-items:center;gap:8px;height:34px;padding:0 16px 0 12px;border-radius:999px;background:var(--surface-inverse);color:var(--text-inverse);box-shadow:var(--shadow-lg);font:500 13px/1 var(--font-sans);text-decoration:none;white-space:nowrap" style-hover="text-decoration:none;filter:brightness(1.1)"><i class="fa-solid fa-arrow-left"></i>Design System</a>
+  {{ themeStyle }}
+  <div style="max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+    <header style="display:flex;flex-direction:column;gap:8px">
+      <div style="font:500 12px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">Tools</div>
+      <h1 style="margin:0;font:700 40px/1.05 var(--font-serif);letter-spacing:-0.02em;color:var(--text-strong)">Make a theme.</h1>
+    </header>
+
+    <div style="display:grid;grid-template-columns:380px minmax(0,1fr);gap:24px;align-items:start">
+      <div style="background:var(--accent-25);border:1px solid var(--accent-150);border-radius:16px;box-shadow:var(--shadow-sm);padding:16px;display:flex;flex-direction:column;gap:8px">
+
+        <div class="sp-tooltip-wrap" onClick="{{ toggleTheme }}" role="button" aria-expanded="{{ themeOpen }}" style="display:flex;align-items:center;gap:8px;margin-left:-16px;margin-right:-16px;margin-top:-16px;margin-bottom:{{ sp.themeBottom }};padding:12px 16px;background:var(--accent-100);cursor:pointer;user-select:none;align-self:stretch;border-radius:15px 15px 0 0"><span style="font:700 17px/1 var(--font-sans);letter-spacing:-0.01em;color:var(--text-strong);text-box:trim-both cap alphabetic">Theme</span><i class="{{ chev.theme }}" style="margin-left:auto;font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:260px;left:0;right:auto;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);text-align:left">A <b>theme</b> is the look of an app made with Spell: its colours, fonts and shapes.<span style="display:block;height:8px"></span>Give it a <b>name</b>, then adjust the sections below.</span></div>
+        <sc-if value="{{ themeOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.themeOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:inherit;animation:{{ anim.themeInner }}">
+          <input value="{{ name }}" onChange="{{ onName }}" spellcheck="false" placeholder="Name, e.g. Spell" aria-label="Theme name" title="Used for the file name, e.g. themes/spell.css" style="height:30px;box-sizing:border-box;border-radius:6px;border:1px solid var(--border-default);background:var(--surface-card);padding:0 12px;font:500 14px/1 var(--font-sans);color:var(--text-strong);outline:none" style-hover="border-color:var(--border-strong)" style-focus="border-color:var(--border-accent);box-shadow:var(--shadow-focus)">
+        </div></div></sc-if>
+
+        <div class="sp-tooltip-wrap" onClick="{{ toggleColor }}" role="button" aria-expanded="{{ colorOpen }}" style="display:flex;align-items:center;gap:8px;margin-left:-16px;margin-right:-16px;margin-top:{{ sp.colorTop }};margin-bottom:{{ sp.colorBottom }};padding:4px 16px;background:var(--accent-75);border-top:1px solid var(--accent-150);cursor:pointer;user-select:none;align-self:stretch"><span style="font:700 12px/1 var(--font-sans);letter-spacing:0.01em;text-transform:uppercase;color:var(--accent-800);text-box:trim-both cap alphabetic">Color</span><i class="{{ chev.color }}" style="margin-left:auto;font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:260px;left:0;right:auto;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);text-align:left">Pick a <b>colour set</b> for each job in the app.<span style="display:block;height:8px"></span>Spell chooses the right <b>shade</b> of each set for light and dark mode.</span></div>
+        <sc-if value="{{ colorOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.colorOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:16px;animation:{{ anim.colorInner }}">
+          <sc-for list="{{ colorPickers }}" as="cp" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <span style="display:flex;align-items:center;gap:8px;min-height:20px;font:500 13px/1 var(--font-sans);color:var(--text-strong)"><span>{{ cp.label }}</span><span style="margin-left:auto;font:400 12px/1 var(--font-mono);color:var(--text-muted)">{{ cp.value }}</span><span class="sp-tooltip-wrap" tabindex="0" style="outline:none;flex:none;display:inline-flex;width:16px;justify-content:center"><i class="fa-solid fa-circle-info" style="font-size:13px;color:var(--text-subtle);opacity:0.4;cursor:help;transition:opacity .15s" style-hover="opacity:1"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:250px;left:auto;right:-6px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans)">{{ cp.tip }}</span></span></span>
+              <div style="display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:3px">
+                <sc-for list="{{ cp.options }}" as="o" hint-placeholder-count="20">
+                  <button type="button" onClick="{{ o.pick }}" title="{{ o.label }}" aria-label="{{ o.label }}" aria-pressed="{{ o.on }}" style="aspect-ratio:1;border-radius:3px;border:0;padding:0;background:{{ o.hex }};box-shadow:{{ o.ring }};cursor:pointer;transition:transform .12s" style-hover="transform:scale(1.15)"></button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="display:flex;align-items:center;gap:8px;min-height:20px;font:500 13px/1 var(--font-sans);color:var(--text-strong)"><span>Dark mode surfaces</span><span style="margin-left:auto"></span><span class="sp-tooltip-wrap" tabindex="0" style="outline:none;flex:none;display:inline-flex;width:16px;justify-content:center"><i class="fa-solid fa-circle-info" style="font-size:13px;color:var(--text-subtle);opacity:0.4;cursor:help;transition:opacity .15s" style-hover="opacity:1"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:250px;left:auto;right:-6px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans)">Which colour the <b>dark backgrounds</b> are made from.<span style="display:block;height:8px"></span><b>Primary</b> feels richer.<br><b>Neutral</b> feels calmer.</span></span></span>
+            <div style="display:flex;padding:3px;gap:3px;border-radius:9px;background:var(--accent-100);box-shadow:inset 0 0 0 1px var(--accent-150)">
+              <sc-for list="{{ darkFrom }}" as="d" hint-placeholder-count="2">
+                <button type="button" onClick="{{ d.pick }}" aria-pressed="{{ d.on }}" style="flex:1;height:26px;padding:0 8px;border:0;border-radius:6px;background:{{ d.bg }};color:{{ d.fg }};box-shadow:{{ d.shadow }};font:500 12px/1 var(--font-sans);cursor:pointer;transition:background .12s, color .12s" style-hover="color:var(--text-strong);background:{{ d.hoverBg }}">{{ d.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </div></div></sc-if>
+
+        <div class="sp-tooltip-wrap" onClick="{{ toggleType }}" role="button" aria-expanded="{{ typeOpen }}" style="display:flex;align-items:center;gap:8px;margin-left:-16px;margin-right:-16px;margin-top:{{ sp.typeTop }};margin-bottom:{{ sp.typeBottom }};padding:4px 16px;background:var(--accent-75);border-top:1px solid var(--accent-150);cursor:pointer;user-select:none;align-self:stretch"><span style="font:700 12px/1 var(--font-sans);letter-spacing:0.01em;text-transform:uppercase;color:var(--accent-800);text-box:trim-both cap alphabetic">Type</span><i class="{{ chev.type }}" style="margin-left:auto;font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:260px;left:0;right:auto;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);text-align:left">The <b>fonts</b> and <b>text size</b> the app uses.<span style="display:block;height:8px"></span>All choices are already installed on people’s computers, so nothing downloads.</span></div>
+        <sc-if value="{{ typeOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.typeOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:16px;animation:{{ anim.typeInner }}">
+          <sc-for list="{{ fontSelects }}" as="fs" hint-placeholder-count="2">
+            <label style="display:flex;flex-direction:column;gap:4px">
+              <span style="display:flex;align-items:center;gap:8px;min-height:20px;font:500 13px/1 var(--font-sans);color:var(--text-strong)"><span>{{ fs.label }}</span><span style="margin-left:auto"></span><span class="sp-tooltip-wrap" tabindex="0" style="outline:none;flex:none;display:inline-flex;width:16px;justify-content:center"><i class="fa-solid fa-circle-info" style="font-size:13px;color:var(--text-subtle);opacity:0.4;cursor:help;transition:opacity .15s" style-hover="opacity:1"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:250px;left:auto;right:-6px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans)">{{ fs.tip }}</span></span></span>
+              <select value="{{ fs.value }}" onChange="{{ fs.change }}" style="height:30px;box-sizing:border-box;border-radius:6px;border:1px solid var(--border-default);background:var(--surface-card) url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236B7192' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;) no-repeat right 12px center / 10px 6px;-webkit-appearance:none;appearance:none;color:var(--text-strong);padding:0 32px 0 12px;font:500 14px/1 var(--font-sans);cursor:pointer" style-hover="border-color:var(--border-strong)">
+                <sc-for list="{{ fs.options }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+              </select>
+            </label>
+          </sc-for>
+          <label style="display:flex;flex-direction:column;gap:0">
+            <span style="display:flex;align-items:center;gap:8px;min-height:20px;font:500 13px/1 var(--font-sans);color:var(--text-strong)"><span>Text size</span><span style="margin-left:auto;display:flex;align-items:center;gap:8px"><sc-if value="{{ sizeChanged }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetSize }}" title="Back to default" style="height:22px;padding:0 8px;border-radius:999px;border:0;background:var(--accent-soft);color:var(--text-accent);font:500 11px/1 var(--font-sans);cursor:pointer;display:inline-flex;align-items:center;gap:4px" style-hover="background:var(--accent-soft-hover)"><i class="fa-solid fa-rotate-left" style="font-size:10px"></i>Reset</button></sc-if><span style="font:400 12px/1 var(--font-mono);color:var(--text-muted)">{{ size }}px</span></span><span class="sp-tooltip-wrap" tabindex="0" style="outline:none;flex:none;display:inline-flex;width:16px;justify-content:center"><i class="fa-solid fa-circle-info" style="font-size:13px;color:var(--text-subtle);opacity:0.4;cursor:help;transition:opacity .15s" style-hover="opacity:1"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:250px;left:auto;right:-6px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans)">The size of <b>everyday text</b>.<span style="display:block;height:8px"></span>Everything else, headings and buttons included, grows and shrinks with it.</span></span></span>
+            <input type="range" min="13" max="19" step="1" list="size-ticks" value="{{ size }}" onChange="{{ onSize }}" aria-label="Text size" style="width:100%;margin:0;accent-color:var(--accent);cursor:pointer">
+            <datalist id="size-ticks"><option value="13"></option><option value="14"></option><option value="15"></option><option value="16"></option><option value="17"></option><option value="18"></option><option value="19"></option></datalist>
+          </label>
+        </div></div></sc-if>
+
+        <div class="sp-tooltip-wrap" onClick="{{ toggleShape }}" role="button" aria-expanded="{{ shapeOpen }}" style="display:flex;align-items:center;gap:8px;margin-left:-16px;margin-right:-16px;margin-top:{{ sp.shapeTop }};margin-bottom:{{ sp.shapeBottom }};padding:4px 16px;background:var(--accent-75);border-top:1px solid var(--accent-150);cursor:pointer;user-select:none;align-self:stretch"><span style="font:700 12px/1 var(--font-sans);letter-spacing:0.01em;text-transform:uppercase;color:var(--accent-800);text-box:trim-both cap alphabetic">Shape</span><i class="{{ chev.shape }}" style="margin-left:auto;font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:260px;left:0;right:auto;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);text-align:left">How <b>rounded</b> things are, and how much they <b>lift</b> off the page.</span></div>
+        <sc-if value="{{ shapeOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.shapeOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:16px;animation:{{ anim.shapeInner }}">
+          <sc-for list="{{ segs }}" as="sg" hint-placeholder-count="2">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <span style="display:flex;align-items:center;gap:8px;min-height:20px;font:500 13px/1 var(--font-sans);color:var(--text-strong)"><span>{{ sg.label }}</span><span style="margin-left:auto"></span><span class="sp-tooltip-wrap" tabindex="0" style="outline:none;flex:none;display:inline-flex;width:16px;justify-content:center"><i class="fa-solid fa-circle-info" style="font-size:13px;color:var(--text-subtle);opacity:0.4;cursor:help;transition:opacity .15s" style-hover="opacity:1"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:250px;left:auto;right:-6px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans)">{{ sg.tip }}</span></span></span>
+              <div style="display:flex;padding:3px;gap:3px;border-radius:9px;background:var(--accent-100);box-shadow:inset 0 0 0 1px var(--accent-150)">
+                <sc-for list="{{ sg.options }}" as="o" hint-placeholder-count="4">
+                  <button type="button" onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="flex:1;height:26px;padding:0 8px;border:0;border-radius:6px;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.shadow }};font:500 12px/1 var(--font-sans);cursor:pointer;transition:background .12s, color .12s" style-hover="color:var(--text-strong);background:{{ o.hoverBg }}">{{ o.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div></div></sc-if>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div onClick="{{ togglePreview }}" role="button" aria-expanded="{{ previewOpen }}" style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border-subtle);cursor:pointer;user-select:none"><span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">Preview</span>
+            <div onClick="{{ stop }}" role="group" aria-label="Preview mode" style="margin-left:auto;display:inline-flex;padding:3px;gap:3px;border-radius:9px;background:var(--brand-100);box-shadow:inset 0 0 0 1px var(--brand-150)">
+              <sc-for list="{{ views }}" as="v" hint-placeholder-count="3">
+                <button type="button" onClick="{{ v.pick }}" aria-pressed="{{ v.on }}" style="height:26px;padding:0 10px;border:0;border-radius:6px;background:{{ v.bg }};box-shadow:{{ v.shadow }};color:{{ v.fg }};font:600 11px/1 var(--font-sans);letter-spacing:0.04em;cursor:pointer;white-space:nowrap;transition:background .12s, color .12s" style-hover="color:var(--text-strong);background:{{ v.hoverBg }}">{{ v.label }}</button>
+              </sc-for>
+            </div>
+            <i class="{{ chev.preview }}" style="margin-left:8px;font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i>
+          </div>
+          <sc-if value="{{ previewOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.previewOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:inherit;animation:{{ anim.previewInner }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+              <sc-for list="{{ schemes }}" as="sch" hint-placeholder-count="2">
+                <div data-tp="{{ sch.tp }}" style="font-size:var(--ui-font-size);font-family:var(--ui-font-family);background:var(--ui-background);color:var(--ui-text-color);border-radius:16px;padding:1.25em;display:flex;flex-direction:column;gap:1em;box-shadow:0 0 0 1px var(--ui-border-color)">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75em">
+                    <div style="display:flex;flex-direction:column;gap:0.2em">
+                      <span style="font:500 0.7em/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--ui-text-muted)">{{ sch.label }}</span>
+                      <span style="font-family:var(--ui-header-font-family);font-weight:700;font-size:1.6em;line-height:1.1;color:var(--ui-text-dark)">Habit Tracker</span>
+                    </div>
+                    <span style="width:2.4em;height:2.4em;border-radius:var(--ui-radius);background:var(--ui-primary-background);color:var(--ui-primary-text);display:grid;place-items:center"><i class="fa-solid fa-seedling"></i></span>
+                  </div>
+                  <div style="background:var(--ui-surface);border-radius:calc(var(--ui-radius) * 1.4);padding:1em;display:flex;flex-direction:column;gap:0.7em;box-shadow:var(--ui-shadow-raised)">
+                    <span style="font-family:var(--ui-header-font-family);font-size:1.15em;color:var(--ui-text-dark)">Today</span>
+                    <sc-for list="{{ habits }}" as="h" hint-placeholder-count="3">
+                      <div style="display:flex;align-items:center;gap:0.65em;color:{{ h.color }};text-decoration:{{ h.deco }}">
+                        <span style="width:1.15em;height:1.15em;border-radius:50%;display:grid;place-items:center;font-size:1em;background:{{ h.bg }};box-shadow:{{ h.ring }};color:var(--ui-primary-on)"><i class="{{ h.icon }}" style="font-size:0.6em"></i></span>{{ h.name }}
+                      </div>
+                    </sc-for>
+                    <div style="display:flex;gap:0.5em;margin-top:0.2em">
+                      <span style="flex:1;height:2.3em;border-radius:var(--ui-radius);border:1px solid var(--ui-border-color);background:var(--ui-surface-muted);display:flex;align-items:center;padding:0 0.8em;color:var(--ui-text-muted);font-size:0.9em">New habit…</span>
+                      <span style="height:2.3em;padding:0 1.1em;border-radius:var(--ui-radius);background:var(--ui-primary);color:var(--ui-primary-on);display:inline-flex;align-items:center;font-weight:600;font-size:0.9em;white-space:nowrap">+ Add</span>
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:0.5em;flex-wrap:wrap">
+                    <span style="height:2.2em;padding:0 1em;border-radius:var(--ui-radius);background:var(--ui-secondary);color:var(--ui-secondary-on);display:inline-flex;align-items:center;font-size:0.85em;font-weight:600">Secondary</span>
+                    <span style="height:2.2em;padding:0 1em;border-radius:var(--ui-radius);box-shadow:inset 0 0 0 1px var(--ui-border-color);background:var(--ui-surface);color:var(--ui-text-color);display:inline-flex;align-items:center;font-size:0.85em">Basic</span>
+                    <span style="height:1.7em;padding:0 0.7em;border-radius:999px;background:var(--ui-primary-background);color:var(--ui-primary-text);display:inline-flex;align-items:center;font-size:0.75em;font-weight:600">Live</span>
+                    <span style="height:1.7em;padding:0 0.7em;border-radius:999px;background:var(--ui-accent-background);color:var(--ui-accent-text);display:inline-flex;align-items:center;font-size:0.75em;font-weight:600">Accent</span>
+                  </div>
+                  <div style="border-radius:var(--ui-radius);background:var(--ui-accent-background);color:var(--ui-text-color);padding:0.8em 1em;display:flex;gap:0.7em;align-items:flex-start;font-size:0.9em"><i class="fa-solid fa-bolt" style="color:var(--ui-accent-text);margin-top:0.2em"></i><span><b style="color:var(--ui-text-dark)">7-day streak.</b> Keep it going — one habit left today.</span></div>
+                  <div style="height:0.45em;border-radius:999px;background:var(--ui-surface-strong);overflow:hidden"><div style="width:66%;height:100%;background:var(--ui-primary)"></div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div></div></sc-if>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:{{ sp.cssTop }}">
+          <div onClick="{{ toggleCss }}" role="button" aria-expanded="{{ cssOpen }}" style="display:flex;align-items:center;gap:8px;padding-top:8px;padding-bottom:{{ sp.cssPadBottom }};border-top:1px solid var(--border-subtle);border-bottom:{{ sp.cssRule }};cursor:pointer;user-select:none"><span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">CSS</span><span style="margin-left:auto;font:400 12px/1 var(--font-mono);color:var(--text-muted);white-space:nowrap">themes/{{ fileName }}.css</span>
+            <span class="sp-tooltip-wrap" style="margin-left:4px"><button type="button" onClick="{{ copyCss }}" aria-label="Copy CSS" style="width:26px;height:26px;margin:-4px 0;padding:0;border:0;border-radius:6px;background:transparent;color:var(--text-muted);display:grid;place-items:center;cursor:pointer;font-size:13px" style-hover="background:var(--accent-soft);color:var(--text-accent)"><i class="{{ copyIcon }}"></i></button><span class="sp-tooltip" role="tooltip" style="left:auto;right:-6px;transform:none;padding:8px 12px;border-radius:10px;font:400 13px/1.35 var(--font-sans)">{{ copyTip }}</span></span>
+            <i class="{{ chev.css }}" style="margin-left:4px;font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i>
+          </div>
+          <sc-if value="{{ cssOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.cssOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:inherit;animation:{{ anim.cssInner }}">
+            <pre style="margin:0;padding:16px;border-radius:14px;background:var(--surface-code);font:400 12px/1.6 var(--font-mono);color:var(--text-body);white-space:pre;overflow-x:auto">{{ css }}</pre>
+          </div></div></sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { sets: [], name: 'Spell', primary: 'violet', secondary: 'brand', accent: 'accent', neutral: 'brand', darkFrom: 'primary', head: 'palatino', body: 'system', size: 16, radius: 'l', shadow: 'soft', view: 'both', copied: false,
+    themeOpen: true, colorOpen: true, typeOpen: true, shapeOpen: true, previewOpen: true, cssOpen: true, closing: {} };
+  componentDidMount() {
+    fetch(new URL('lib/palette.json', location.href)).then(r => r.json()).then(sets => this.setState({ sets }));
+    import(new URL('lib/palette.mjs', location.href).href).then(m => { this.P = m; this.forceUpdate(); });
+  }
+  toggleSection(k) {
+    const open = this.state[k + 'Open'], closing = (this.state.closing || {})[k];
+    if (open && !closing) {
+      this.setState(x => ({ closing: { ...x.closing, [k]: true } }));
+      clearTimeout((this._ct = this._ct || {})[k]);
+      this._ct[k] = setTimeout(() => this.setState(x => ({ [k + 'Open']: false, closing: { ...x.closing, [k]: false } })), 140);
+    } else if (!open) this.setState({ [k + 'Open']: true });
+  }
+  renderVals() {
+    const s = this.state, P = this.P;
+    const by = n => s.sets.find(x => x.name === n);
+    const ink = '#1A1C27', white = '#FFFFFF';
+    const g = (n, st) => (by(n) ? by(n).scale[st] : '#cccccc');
+    const on = hex => (P && P.contrast(white, hex) >= 4.5) ? white : ink;
+    const LIB = { red: 'red', orange: 'orange', amber: 'yellow', yellow: 'yellow', lime: 'olive', green: 'green', emerald: 'green', teal: 'teal', cyan: 'teal', sky: 'blue', blue: 'blue', indigo: 'violet', violet: 'violet', purple: 'purple', fuchsia: 'pink', pink: 'pink', rose: 'red', brand: 'grey', accent: 'brown', grey: 'grey' };
+    const HEAD = { palatino: ["'Palatino', 'Palatino Linotype', 'Book Antiqua', 'P052', serif", 'Palatino (Spell)'], system: ["system-ui, 'Segoe UI', 'Noto Sans', sans-serif", 'System UI'], georgia: ["Georgia, 'DejaVu Serif', serif", 'Georgia'] };
+    const BODY = { system: ["system-ui, -apple-system, 'Segoe UI', 'Noto Sans', Cantarell, Ubuntu, sans-serif", 'System UI (recommended)'], optima: ["Optima, Candara, 'Noto Sans', sans-serif", 'Optima · Candara'], verdana: ["Verdana, 'DejaVu Sans', sans-serif", 'Verdana · DejaVu Sans'] };
+    const RAD = { s: '0.25em', m: '0.5em', l: '0.75em', pill: '9999px' };
+    const pr = s.primary, se = s.secondary, ac = s.accent, ne = s.neutral, dk = s.darkFrom === 'primary' ? pr : ne;
+    const light = {
+      bg: g(ne, 25), surface: '#FFFFFF', muted: g(ne, 50), strong: g(ne, 100), highlight: g(pr, 100),
+      text: g(ne, 900), textMuted: g(ne, 700), textDark: g(pr, 900), border: g(ne, 150),
+      primary: g(pr, 600), primaryOn: on(g(pr, 600)), primaryBg: g(pr, 100), primaryText: g(pr, 700),
+      secondary: g(se, 600), secondaryOn: on(g(se, 600)), accentBg: g(ac, 100), accentText: g(ac, 800)
+    };
+    const darkV = {
+      bg: g(dk, 950), surface: g(dk, 925), muted: g(dk, 900), strong: g(dk, 850), highlight: g(pr, 800),
+      text: g(ne, 100), textMuted: g(ne, 300), textDark: g(pr, 25), border: 'rgba(200,206,231,0.2)',
+      primary: g(pr, 300), primaryOn: on(g(pr, 300)), primaryBg: g(pr, 850), primaryText: g(pr, 200),
+      secondary: g(se, 300), secondaryOn: on(g(se, 300)), accentBg: g(ac, 900), accentText: g(ac, 200)
+    };
+    const SH = {
+      flat: ['none', '0 0 0 1px rgba(200,206,231,0.16)'],
+      soft: ['0 1px 2px rgba(43,47,63,.06), 0 8px 24px -10px rgba(43,47,63,.2)', '0 1px 2px rgba(0,0,0,.4), 0 0 0 1px rgba(200,206,231,.14)'],
+      glow: ['0 1px 2px rgba(43,47,63,.06), 0 10px 30px -10px rgba(43,47,63,.24)', '0 0 0 1px rgba(184,180,255,.12), 0 0 26px -6px rgba(150,138,255,.4)']
+    }[s.shadow];
+    const vars = (v, shadow) => `--ui-font-size:${s.size}px;--ui-font-family:${BODY[s.body][0]};--ui-header-font-family:${HEAD[s.head][0]};--ui-radius:${RAD[s.radius]};--ui-background:${v.bg};--ui-surface:${v.surface};--ui-surface-muted:${v.muted};--ui-surface-strong:${v.strong};--ui-highlight:${v.highlight};--ui-text-color:${v.text};--ui-text-muted:${v.textMuted};--ui-text-dark:${v.textDark};--ui-border-color:${v.border};--ui-primary:${v.primary};--ui-primary-on:${v.primaryOn};--ui-primary-background:${v.primaryBg};--ui-primary-text:${v.primaryText};--ui-secondary:${v.secondary};--ui-secondary-on:${v.secondaryOn};--ui-accent-background:${v.accentBg};--ui-accent-text:${v.accentText};--ui-shadow-raised:${shadow};`;
+    const themeStyle = React.createElement('style', null, `[data-tp="light"]{${vars(light, SH[0])}color-scheme:light}[data-tp="dark"]{${vars(darkV, SH[1])}color-scheme:dark}`);
+    const fileName = (s.name || 'theme').toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+    const hue = n => LIB[n];
+    const css = `/* themes/${fileName}.css — generated by Spell Theme Creator.
+   Load after the foundation;  tokens inherit into every shadow root. */
+@layer ui.theme {
+  :root {
+    --ui-font-size: ${s.size}px;
+    --ui-font-family: ${BODY[s.body][0]};
+    --ui-header-font-family: ${HEAD[s.head][0]};   /* Spell extension */
+    --ui-radius: ${RAD[s.radius]};
+
+    /* Hue bases (${pr} → ${hue(pr)}, ${se} → ${hue(se)}, ${ac} → ${hue(ac)}) */
+    --ui-${hue(pr)}-on-light: ${light.primary};
+    --ui-${hue(pr)}-on-dark: ${darkV.primary};
+    --ui-${hue(pr)}-on: light-dark(${light.primaryOn}, ${darkV.primaryOn});
+    --ui-${hue(se)}-on-light: ${light.secondary};
+    --ui-${hue(se)}-on-dark: ${darkV.secondary};
+    --ui-${hue(se)}-on: light-dark(${light.secondaryOn}, ${darkV.secondaryOn});
+    --ui-${hue(ac)}-background: light-dark(${light.accentBg}, ${darkV.accentBg});
+    --ui-${hue(ac)}-text: light-dark(${light.accentText}, ${darkV.accentText});
+
+    --ui-primary: var(--ui-${hue(pr)});
+    --ui-primary-inverted: var(--ui-${hue(pr)}-inverted);
+    --ui-secondary: var(--ui-${hue(se)});
+    --ui-secondary-inverted: var(--ui-${hue(se)}-inverted);
+
+    /* Neutrals (${ne}; dark surfaces from ${dk}) */
+    --ui-background: light-dark(${light.bg}, ${darkV.bg});
+    --ui-surface: light-dark(${light.surface}, ${darkV.surface});
+    --ui-surface-muted: light-dark(${light.muted}, ${darkV.muted});
+    --ui-surface-strong: light-dark(${light.strong}, ${darkV.strong});
+    --ui-highlight: light-dark(${light.highlight}, ${darkV.highlight});
+
+    --ui-shadow-raised: ${SH[0]};
+  }
+  .ui-dark, :root:has(> body.ui-dark) { --ui-shadow-raised: ${SH[1]}; }
+}`;
+    const ring = onSel => onSel ? '0 0 0 2px var(--accent-25), 0 0 0 3.5px var(--text-strong)' : 'inset 0 0 0 1px rgba(0,0,0,.08)';
+    const swatchOpts = key => s.sets.map(set => ({ hex: set.scale[600], label: set.label, on: set.name === s[key], ring: ring(set.name === s[key]), pick: () => this.setState({ [key]: set.name }) }));
+    const TIPS = {
+      primary: 'The <b>main action</b> colour: buttons, checkmarks, progress.',
+      secondary: 'For <b>second-choice</b> buttons and quieter highlights.',
+      accent: 'A <b>warm touch</b> for tips, streaks and badges.',
+      neutral: 'Tints the <b>backgrounds, borders and text</b>.'
+    };
+    const colorPickers = [['primary', 'Primary'], ['secondary', 'Secondary'], ['accent', 'Accent'], ['neutral', 'Neutral']].map(([k, label]) => ({ label, value: by(s[k]) ? by(s[k]).label : s[k], tip: React.createElement('span', { dangerouslySetInnerHTML: { __html: TIPS[k] } }), options: swatchOpts(k) }));
+    const seg = (key, opts) => opts.map(([v, label]) => { const onSel = s[key] === v; return { label, on: onSel, pick: () => this.setState({ [key]: v }), bg: onSel ? '#FFFFFF' : 'rgba(255,255,255,0.35)', fg: onSel ? 'var(--text-strong)' : 'var(--text-body)', shadow: onSel ? '0 1px 2px rgba(43,47,63,.12), 0 0 0 1px rgba(43,47,63,.06)' : 'none', hoverBg: onSel ? '#FFFFFF' : 'rgba(255,255,255,0.75)' }; });
+    const habits = [['Drink water', true], ['Read', false], ['Move body', false]].map(([name, done]) => ({ name, icon: done ? 'fa-solid fa-check' : '', bg: done ? 'var(--ui-primary)' : 'transparent', ring: done ? 'none' : 'inset 0 0 0 1.5px var(--ui-border-color)', color: done ? 'var(--ui-text-muted)' : 'var(--ui-text-color)', deco: done ? 'line-through' : 'none' }));
+    const schemes = s.view === 'light' ? [{ tp: 'light', label: 'Light' }] : s.view === 'dark' ? [{ tp: 'dark', label: 'Dark' }] : [{ tp: 'light', label: 'Light' }, { tp: 'dark', label: 'Dark' }];
+    const keys = ['theme', 'color', 'type', 'shape', 'preview', 'css'];
+    const anim = {}, chev = {};
+    keys.forEach(k => { const c = (s.closing || {})[k]; anim[k + 'Outer'] = c ? 'sp-close .14s cubic-bezier(.4,0,1,1) forwards' : 'sp-open .32s cubic-bezier(.22,1,.36,1)'; anim[k + 'Inner'] = c ? 'sp-slide-out .14s cubic-bezier(.4,0,1,1) forwards' : 'sp-slide .32s cubic-bezier(.22,1,.36,1)'; chev[k] = s[k + 'Open'] ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'; });
+    const sp = {
+      themeBottom: s.themeOpen ? '4px' : '0',
+      colorTop: s.themeOpen ? '12px' : '-8px', colorBottom: s.colorOpen ? '2px' : '0',
+      typeTop: s.colorOpen ? '12px' : '-8px', typeBottom: s.typeOpen ? '2px' : '0',
+      shapeTop: s.typeOpen ? '12px' : '-8px', shapeBottom: s.shapeOpen ? '2px' : '-16px',
+      cssTop: s.previewOpen ? '12px' : '-12px', cssPadBottom: s.cssOpen ? '0' : '8px', cssRule: s.cssOpen ? '0' : '1px solid var(--border-subtle)'
+    };
+    const tg = k => () => this.toggleSection(k);
+    const FTIPS = { head: 'The font for <b>titles and headings</b>.<span style="display:block;height:8px"></span>Palatino is Spell’s signature.', body: 'The font for <b>everything else</b>: labels, buttons, paragraphs.' };
+    const fontSelects = [['head', 'Headings', HEAD], ['body', 'Body', BODY]].map(([k, label, M]) => ({ label, value: s[k], tip: React.createElement('span', { dangerouslySetInnerHTML: { __html: FTIPS[k] } }), options: Object.entries(M).map(([v, [, l]]) => ({ v, label: l })), change: e => this.setState({ [k]: e.target.value }) }));
+    const copy = e => { e && e.stopPropagation && e.stopPropagation(); try { navigator.clipboard.writeText(css); } catch (err) {} this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1200); };
+    return {
+      themeStyle, name: s.name, onName: e => this.setState({ name: e.target.value }), fileName,
+      themeOpen: s.themeOpen, colorOpen: s.colorOpen, typeOpen: s.typeOpen, shapeOpen: s.shapeOpen, previewOpen: s.previewOpen, cssOpen: s.cssOpen,
+      toggleTheme: tg('theme'), toggleColor: tg('color'), toggleType: tg('type'), toggleShape: tg('shape'), togglePreview: tg('preview'), toggleCss: tg('css'),
+      anim, chev, sp, stop: e => e.stopPropagation(),
+      colorPickers, darkFrom: seg('darkFrom', [['primary', 'Primary'], ['neutral', 'Neutral']]),
+      fontSelects, size: s.size, onSize: e => this.setState({ size: +e.target.value }), sizeChanged: s.size !== 16, resetSize: () => this.setState({ size: 16 }),
+      segs: [
+        { label: 'Corners', tip: React.createElement('span', { dangerouslySetInnerHTML: { __html: 'How <b>rounded</b> buttons, cards and fields are.' } }), options: seg('radius', [['s', 'Sharp'], ['m', 'Soft'], ['l', 'Round'], ['pill', 'Pill']]) },
+        { label: 'Depth', tip: React.createElement('span', { dangerouslySetInnerHTML: { __html: 'How much cards <b>lift off</b> the page.<span style="display:block;height:8px"></span><b>Glow</b> adds a soft halo in dark mode.' } }), options: seg('shadow', [['flat', 'Flat'], ['soft', 'Soft'], ['glow', 'Glow']]) }
+      ],
+      views: seg('view', [['both', 'Both'], ['light', 'Light'], ['dark', 'Dark']]),
+      schemes, habits, css, copyCss: copy, copyIcon: s.copied ? 'fa-solid fa-check' : 'fa-regular fa-copy', copyTip: s.copied ? 'Copied' : 'Copy CSS'
+    };
+  }
+}
+</script>
+</body>
+</html>

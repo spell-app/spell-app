@@ -380,7 +380,10 @@
     border-radius: var(--_ui-label-owner-radius, var(--ui-label-owner-radius, var(--_ui-label-attached-corner-radius)))
       var(--_ui-label-owner-radius, var(--ui-label-owner-radius, var(--_ui-label-attached-corner-radius))) 0 0;
   }
-  .ui[class*="bottom attached"].label {
+  /* NOTE:  `[class*="bottom attached"]` misses `bottom left attached`:  the corners need their own selectors here. */
+  .ui[class*="bottom attached"].label,
+  .ui[class*="bottom left attached"].label,
+  .ui[class*="bottom right attached"].label {
     top: auto;
     bottom: calc(var(--_ui-label-owner-edge, var(--ui-label-owner-edge, 0px)) * -1);
     border-radius: 0 0

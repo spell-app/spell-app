@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Checkbox | Spell UI</title>
+    <meta
+      name="description"
+      content="A checkbox allows a user to select a value from a small set of options, often binary."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Checkbox">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-checkbox.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-checkbox%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/checkbox.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Checkbox
+            <ui-header
+              >A checkbox allows a user to select a value from a small set of options, often binary.</ui-header
+            >
+          </ui-header>
+          <p class="site-own-pages"><code>&lt;ui-radio&gt;</code> has its own page: <a href="ui-radio.html">Radio</a>.</p>
+          <ui-docs-themes for="ui-checkbox" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's checkbox page, section by section, in its order (Types, States, Variations, then its
+              Examples tab), plus our own extra (Colored).  `<ui-checkbox>` and `<ui-radio>` are one family, but the radio
+              examples are on `ui-radio.html` (epic ui-docs-rework P7):  here only a pointer to it.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-checkbox" header="Checkbox" sticky collapsible dividing>
+                <ui-docs-example description="A standard checkbox.">
+                  <ui-checkbox name="example">Make my profile visible</ui-checkbox>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-radio" header="Radio" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A checkbox can be formatted as a radio element: <code>&lt;ui-radio&gt;</code>, an exclusive option.
+                    Groups, sliders, toggles and the rest are on the <a href="ui-radio.html">Radio</a> page.
+                  </p>
+                  <ui-radio name="radio" selected>Radio choice</ui-radio>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-slider" header="Slider" sticky collapsible dividing>
+                <ui-docs-example
+                  description='A checkbox can be formatted to emphasize the current selection state:  `type="slider"`.'
+                >
+                  <ui-checkbox type="slider" name="newsletter">Accept terms and conditions</ui-checkbox>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-toggle" header="Toggle" sticky collapsible dividing>
+                <ui-docs-example
+                  description='A checkbox can be formatted to show an on or off choice:  `type="toggle"`.'
+                >
+                  <ui-checkbox type="toggle" name="public">Subscribe to weekly newsletter</ui-checkbox>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP:  Fomantic styles an invisible checkbox's LABEL as any component (button, message, segment);  ours is a bordered label tinted when chosen. -->
+              <ui-section id="examples-types-invisible" header="Invisible" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    An invisible checkbox has no box: the label itself is the control, bordered while unchosen and
+                    tinted when chosen. Its content can be any markup.
+                  </p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: styling the label as another component (Fomantic's
+                    <code>label class="ui purple button"</code>, <code>ui orange message</code>,
+                    <code>ui teal segment</code>) and <code>compact invisible</code> -- the label is in the shadow root,
+                    so it can't take another component's classes.</ui-message
+                  >
+                  <ui-form>
+                    <form>
+                      <ui-fields grouped>
+                        <ui-checkbox invisible name="invisible-one"
+                          ><b>Option One</b><br />I am a checkbox styled as a bordered label</ui-checkbox
+                        >
+                        <ui-checkbox invisible name="invisible-two"
+                          ><b>Option Two</b><br />I am tinted when chosen</ui-checkbox
+                        >
+                        <ui-checkbox invisible name="invisible-three" selected
+                          ><b>Option Three</b><br />I am chosen</ui-checkbox
+                        >
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+                <ui-docs-example description="Icons, emojis, flags or images can be the whole label.">
+                  <ui-form>
+                    <form>
+                      <ui-fields inline>
+                        <ui-checkbox invisible selected aria-label="Germany"
+                          ><ui-flag country="de" size="large"></ui-flag
+                        ></ui-checkbox>
+                        <ui-checkbox invisible selected aria-label="Toilet paper"
+                          ><ui-icon name="toilet paper" size="huge"></ui-icon
+                        ></ui-checkbox>
+                        <ui-checkbox invisible aria-label="Wink"
+                          ><ui-emoji name="winking_face" size="small"></ui-emoji
+                        ></ui-checkbox>
+                        <ui-checkbox invisible aria-label="Ade"
+                          ><ui-image size="small" src="../images/avatar/large/ade.jpg" alt=""></ui-image
+                        ></ui-checkbox>
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-read-only" header="Read-only" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A checkbox can be read-only and unable to change states.  It is still submitted."
+                >
+                  <ui-checkbox readonly>Read Only</ui-checkbox>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-checked" header="Checked" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A checkbox can be checked. <code>selected</code> is the canonical name; <code>checked</code> is
+                    accepted as an alias, as on a native checkbox.
+                  </p>
+                  <ui-checkbox checked>Active</ui-checkbox>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-indeterminate" header="Indeterminate" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A checkbox can be indeterminate: neither on nor off. A click clears it, as natively.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Unlike Fomantic's, which needs JavaScript, <code>indeterminate</code> is an attribute.</ui-message
+                  >
+                  <ui-segment basic>
+                    <ui-checkbox indeterminate>Indeterminate</ui-checkbox>
+                  </ui-segment>
+                  <ui-segment basic>
+                    <ui-checkbox type="toggle" indeterminate>Indeterminate</ui-checkbox>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A checkbox can show it is currently unable to be interacted with. It is left out of the form.
+                  </p>
+                  <ui-segment basic>
+                    <ui-checkbox disabled>Disabled</ui-checkbox>
+                  </ui-segment>
+                  <ui-segment basic>
+                    <ui-checkbox type="toggle" disabled>Disabled</ui-checkbox>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-fitted" header="Fitted" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A fitted checkbox does not leave padding for a label. Give it an <code>aria-label</code>.
+                  </p>
+                  <ui-segment floated="left" compact>
+                    <ui-checkbox fitted aria-label="Fitted"></ui-checkbox>
+                  </ui-segment>
+                  <ui-segment floated="left" compact>
+                    <ui-checkbox fitted type="slider" aria-label="Fitted slider"></ui-checkbox>
+                  </ui-segment>
+                  <ui-segment floated="left" compact>
+                    <ui-checkbox fitted type="toggle" aria-label="Fitted toggle"></ui-checkbox>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A checkbox can be formatted to appear on dark backgrounds.">
+                  <ui-segment compact inverted>
+                    <ui-checkbox inverted>Inverted</ui-checkbox>
+                  </ui-segment>
+                  <ui-segment compact inverted>
+                    <ui-checkbox inverted type="slider">Inverted</ui-checkbox>
+                  </ui-segment>
+                  <ui-segment compact inverted>
+                    <ui-checkbox inverted type="toggle">Inverted</ui-checkbox>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-right-aligned" header="Right aligned" sticky collapsible dividing>
+                <ui-docs-example description="A checkbox can be aligned to the right of the label:  `right-aligned`.">
+                  <ui-form>
+                    <form>
+                      <ui-fields grouped>
+                        <ui-field><ui-checkbox right-aligned selected>Checkbox</ui-checkbox></ui-field>
+                        <ui-field><ui-checkbox right-aligned type="slider" selected>Slider</ui-checkbox></ui-field>
+                        <ui-field><ui-checkbox right-aligned type="toggle" selected>Toggle</ui-checkbox></ui-field>
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A checkbox can have different colors:  `color` tints the chosen box, bullet, lane or line."
+                >
+                  <ui-checkbox color="red" selected>Red</ui-checkbox>
+                  <ui-checkbox color="green" type="toggle" selected>Green</ui-checkbox>
+                  <ui-checkbox color="blue" type="slider" selected>Blue</ui-checkbox>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A checkbox can have different sizes.">
+                  <ui-checkbox size="mini">Checkbox</ui-checkbox>
+                  <ui-checkbox size="mini" type="toggle">Toggle</ui-checkbox>
+                  <ui-checkbox size="mini" type="slider">Slider</ui-checkbox>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-checkbox size="tiny">Checkbox</ui-checkbox>
+                  <ui-checkbox size="tiny" type="toggle">Toggle</ui-checkbox>
+                  <ui-checkbox size="tiny" type="slider">Slider</ui-checkbox>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-checkbox size="small">Checkbox</ui-checkbox>
+                  <ui-checkbox size="small" type="toggle">Toggle</ui-checkbox>
+                  <ui-checkbox size="small" type="slider">Slider</ui-checkbox>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-checkbox size="large">Checkbox</ui-checkbox>
+                  <ui-checkbox size="large" type="toggle">Toggle</ui-checkbox>
+                  <ui-checkbox size="large" type="slider">Slider</ui-checkbox>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-checkbox size="big">Checkbox</ui-checkbox>
+                  <ui-checkbox size="big" type="toggle">Toggle</ui-checkbox>
+                  <ui-checkbox size="big" type="slider">Slider</ui-checkbox>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-checkbox size="huge">Checkbox</ui-checkbox>
+                  <ui-checkbox size="huge" type="toggle">Toggle</ui-checkbox>
+                  <ui-checkbox size="huge" type="slider">Slider</ui-checkbox>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-checkbox size="massive">Checkbox</ui-checkbox>
+                  <ui-checkbox size="massive" type="toggle">Toggle</ui-checkbox>
+                  <ui-checkbox size="massive" type="slider">Slider</ui-checkbox>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
+              <ui-section
+                id="examples-examples-grouped-checkboxes"
+                header="Grouped Checkboxes"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
+                  <p slot="description">
+                    The <code>indeterminate</code> state can be used to represent a value that is neither checked or
+                    unchecked. This can be useful with groups where a "master" checkbox should display the selections of
+                    several other checkboxes.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >The wiring (children set the master, the master sets the children) is a few lines on
+                    <code>ui-change</code>: see "Grouped checkboxes" on the Usage tab. Here the states are set in
+                    markup.</ui-message
+                  >
+                  <ui-list celled relaxed>
+                    <ui-item>
+                      <ui-checkbox name="fruits" indeterminate>Fruits</ui-checkbox>
+                      <ui-list>
+                        <ui-item><ui-checkbox name="apple" selected>Apple</ui-checkbox></ui-item>
+                        <ui-item><ui-checkbox name="orange">Orange</ui-checkbox></ui-item>
+                        <ui-item><ui-checkbox name="pear">Pear</ui-checkbox></ui-item>
+                      </ui-list>
+                    </ui-item>
+                    <ui-item>
+                      <ui-checkbox name="vegetables" selected>Vegetables</ui-checkbox>
+                      <ui-list>
+                        <ui-item><ui-checkbox name="lettuce" selected>Lettuce</ui-checkbox></ui-item>
+                        <ui-item><ui-checkbox name="carrot" selected>Carrot</ui-checkbox></ui-item>
+                        <ui-item><ui-checkbox name="spinach" selected>Spinach</ui-checkbox></ui-item>
+                      </ui-list>
+                    </ui-item>
+                  </ui-list>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-examples-one-way-choices" header="One-Way Choices" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A disabled checkbox can't be used at all; a read-only one shows its state but can't change it.
+                  </p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: Fomantic's <code>uncheckable: false</code> setting (check once, never uncheck) -- veto
+                    the change in a <code>ui-change</code> listener instead (Usage tab, "Vetoing a change").</ui-message
+                  >
+                  <ui-form>
+                    <form>
+                      <ui-field><ui-checkbox disabled>Disabled</ui-checkbox></ui-field>
+                      <ui-field><ui-checkbox readonly>Read-only</ui-checkbox></ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Using Callbacks, Checking Conditions and Attaching Events to other Elements -- they are
+                jQuery behaviours (<code>check</code>, <code>set checked</code>, <code>beforeChecked</code>,
+                <code>attach events</code>). Set the <code>selected</code> property, listen for
+                <code>ui-change</code>, and wire other controls with a click listener (Usage tab).</ui-message
+              >
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  forms, `selected` / `checked`, events, keyboard, accessibility, frameworks;  radios:  ui-radio.html. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write `<ui-checkbox>` with its label inside. No JavaScript to call: it works as soon as the element is defined,
+                  like Fomantic's checkbox without its module. For an exclusive option, `<ui-radio>` (same family, sheet and tokens)
+                  has its own page: [Radio](ui-radio.html).
+
+                  - `type="toggle"` / `type="slider"` changes the look.
+                  - `selected` is the chosen state, as an attribute and a property. `checked` is an alias: the `checked`
+                    attribute in markup selects the box, and `el.checked` reads and writes `el.selected`.
+                  - `indeterminate` is an attribute (Fomantic needs JavaScript for it); a click clears it, as natively.
+                  - The label is the slotted content, or `label` for plain text; a `fitted` box has none.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A checkbox is a real form control.
+
+                  - While chosen, it submits `name=value` with its form (`value` defaults to `on`, as natively); unchosen, it
+                    submits nothing.
+                  - `form.reset()` restores the starting state, and a disabled `<fieldset>` disables it.
+                  - `required` asks for it to be chosen.
+                  - `disabled` leaves it out of the form; `readonly` keeps it in but cancels clicks.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `ui-change` fires when the user chooses or unchooses, with `{ selected, value, originalEvent }`. Setting
+                  `selected` from code fires nothing -- Fomantic's `set checked`.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const news = document.querySelector("ui-checkbox[name=news]")
+                  news.addEventListener("ui-change", (event) => console.log(event.detail.selected, event.detail.value))
+                  document.querySelector("ui-checkbox[name=terms]").checked = true // same as .selected = true;  no event
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-vetoing-a-change" header="Vetoing a change" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `ui-change` fires BEFORE the state changes; a handler that sets `selected` back vetoes the change. That covers
+                  Fomantic's `beforeChecked` / `beforeUnchecked` and its `uncheckable: false` (check once, never uncheck).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const terms = document.querySelector("ui-checkbox[name=terms]")
+                  terms.addEventListener("ui-change", (event) => {
+                    if (!event.detail.selected && !confirm("Really opt out?")) terms.selected = true
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-grouped-checkboxes" header="Grouped checkboxes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Fomantic's master / child example, on `ui-change`: the master sets every child, and each child sets the master
+                  to chosen, unchosen or `indeterminate`.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  for (const item of document.querySelectorAll("ui-list[celled] > ui-item")) {
+                    const master = item.querySelector(":scope > ui-checkbox")
+                    const children = [...item.querySelectorAll("ui-list ui-checkbox")]
+                    master.addEventListener("ui-change", (event) => {
+                      for (const child of children) child.selected = event.detail.selected
+                    })
+                    item.addEventListener("ui-change", (event) => {
+                      if (event.target === master) return
+                      queueMicrotask(() => {
+                        const chosen = children.filter((child) => child.selected).length
+                        master.selected = chosen === children.length
+                        master.indeterminate = chosen > 0 && chosen < children.length
+                      })
+                    })
+                  }
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - **Space** toggles the checkbox.
+                  - **Tab** moves to the next checkbox: each is a tab stop of its own.
+                  - Radios' arrow keys: the [Radio](ui-radio.html#usage-keyboard) page.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The shadow root holds a real `<input type="checkbox">` tied to a `<label>`, so clicking the label,
+                    Space, and the checked state come from the browser. `delegatesFocus` keeps the host out of the tab order and
+                    draws the focus ring on the box.
+                  - Toggles and sliders are `role="switch"` (on / off); an `indeterminate` checkbox reports `aria-checked="mixed"`;
+                    `readonly` sets `aria-readonly` and cancels clicks.
+                  - The accessible name is the label text. A `fitted` box (or an `invisible` one holding only an image) has none,
+                    so give it an `aria-label` or a `<label for>` pointing at the host.
+                  - A box that fails `required` after the user has interacted gets `aria-invalid="true"`.
+                  - Without JavaScript the native fallback keeps the same markup with a plain native input: it still submits,
+                    validates `required` and fires `ui-change`. It drops vetoing `ui-change`, the invalid state, reset to the
+                    starting state, and naming a `fitted` box through `<label for>` (only `aria-label` works).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Bind `selected` as a property to control the box, and listen for `ui-change`.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-checkbox name="news" selected={on} onui-change={(e) => setOn(e.detail.selected)}>Newsletter</ui-checkbox>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-checkbox name="news" :selected="on" @ui-change="(e) => (on = e.detail.selected)">Newsletter</ui-checkbox>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-checkbox
+                    name="news"
+                    prop:selected={on()}
+                    ref={(el) => el.addEventListener("ui-change", (e) => setOn(e.detail.selected))}
+                  >
+                    Newsletter
+                  </ui-checkbox>
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-checkbox"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-checkbox-*` tokens: set one on the element, on any ancestor (a form, `:root`), or on
+                  the root box through `::part(checkbox)`. They inherit into the shadow root, where the sheet reads each through a
+                  private alias, so nothing inside blocks them; radios, sliders and toggles read the same set. Style the other
+                  pieces with `::part()`: `control` and `label`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-checkbox,
+                  ui-radio {
+                    --ui-checkbox-toggle-lane-on: var(--ui-positive);
+                    --ui-checkbox-radius: 0;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `inverted` swaps in its own `--ui-checkbox-inverted-*` colours, and `color` re-points the chosen colours at the
+                    hue. Never set the `--_ui-checkbox-*` names: they're the sheet's private plumbing.
+                  </script>
+                </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-checkbox" playground></ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
+
+                  Themes that restyle checkboxes: Colored -- the same list as Fomantic's own checkbox page.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

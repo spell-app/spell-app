@@ -1,0 +1,17 @@
+:root {
+  /* 4px base; compact by default */
+  --space-0: 0;    --space-px: 1px; --space-0-5: 2px; --space-1: 4px;  --space-1-5: 6px;
+  --space-2: 8px;  --space-3: 12px; --space-4: 16px;  --space-5: 20px; --space-6: 24px;
+  --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
+
+  --radius-xs: 4px; --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 22px; --radius-2xl: 28px;
+  --radius-pill: 999px; --radius-app-icon: 22.5%;
+
+  --control-h-sm: 30px; --control-h-md: 36px; --control-h-lg: 44px;
+  --sidebar-w: 232px; --content-max: 1120px; --prose-max: 680px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 360ms;
+}

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>spell static fixture</title>
+    <link rel="stylesheet" href="site.css" />
+    <style>
+      ui-card::part(header) {
+        letter-spacing: 0.02em;
+      }
+    </style>
+  </head>
+  <body>
+    <ui-segment raised>
+      <h1>Static fixture</h1>
+      <p>Text crawlers must see.</p>
+    </ui-segment>
+    <ui-card>
+      <ui-content>
+        <ui-header>Card header</ui-header>
+        <ui-meta>Card meta</ui-meta>
+        <ui-description>Card description</ui-description>
+      </ui-content>
+      <ui-extra>Card extra</ui-extra>
+    </ui-card>
+    <ui-button primary icon="bell">Notify me</ui-button>
+    <ui-modal header="Modal header">
+      <p>Modal body</p>
+    </ui-modal>
+    <script>
+      document.documentElement.dataset.plain = "kept"
+    </script>
+    <script type="module">
+      import "@spell-app/ui"
+    </script>
+    <script type="module" src="/node_modules/@spell-app/ui/dist/ui-button.js"></script>
+  </body>
+</html>

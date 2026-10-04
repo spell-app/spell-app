@@ -1,0 +1,41 @@
+<!--
+  Equal steps with no count:  ours (`equal`), not Fomantic's docs.  Each step as wide as the widest (a grid);  with
+  `fluid`, an equal share of the row.  Light-DOM class grammar, the generic parts with the static `in-step` class.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Equal</h4>
+    <div class="ui equal steps">
+      <div class="step">
+        <div class="content in-step"><div class="title in-step">Shipping</div></div>
+      </div>
+      <div class="active step">
+        <div class="content in-step">
+          <div class="title in-step">Billing</div>
+          <div class="description in-step">Enter billing information</div>
+        </div>
+      </div>
+      <div class="disabled step">
+        <div class="content in-step"><div class="title in-step">Confirm</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Equal and fluid</h4>
+    <div class="ui ordered equal fluid steps">
+      <div class="completed step">
+        <div class="content in-step"><div class="title in-step">Shipping</div></div>
+      </div>
+      <div class="active step">
+        <div class="content in-step">
+          <div class="title in-step">Billing</div>
+          <div class="description in-step">Enter billing information</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="content in-step"><div class="title in-step">Confirm</div></div>
+      </div>
+    </div>
+  </section>
+</div>

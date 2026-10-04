@@ -1,5 +1,5 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import { Cell, proto, UI, UIElement, type AttributeName, type OverlayEntry, UIT } from "$/ui/core"
 
@@ -24,7 +24,8 @@ import {
   ARIA_HASPOPUP,
   CLOSED,
   CONTENTS,
-  ANCHOR_NAME
+  ANCHOR_NAME,
+  ELEMENT_NODE
 } from "./ui-popup.types"
 import type { PopupVocabulary, ShowPopoverOptions, AriaRelation } from "./ui-popup.types"
 import { HEADER, CONTENT, MANUAL, AUTO, NONE, POPOVER_OPEN } from "$/ui/components/components.types"
@@ -78,7 +79,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   readonly target = createMemo((): Element | null => {
     if (!this.connected.get()) return null
     const property = this.attrs.target
-    if (property instanceof Element) return property
+    if (UIPopup.isElement(property)) return property
     const id = this.attrs.for
     if (id) return (this.host.getRootNode() as Document | ShadowRoot).getElementById?.(id) ?? null
     return this.host.previousElementSibling
@@ -149,6 +150,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   }
 
   render(): JSX.Element {
+    if (isServer) return this.renderServer()
     return (
       <div class={this.classes()} part={this.part("popup")}>
         <Show when={this.attrs.header}>
@@ -166,6 +168,30 @@ export class UIPopup extends UIElement<PopupVocabulary> {
     )
   }
 
+  /**
+   * The static markup of a server render (`$/ui/server`), where the root replaces the host:
+   * - a popover itself (`serverPopover()`):  hidden until opened, in the HTML
+   * - PHRASING content (`<span>`s):  a popup often sits in running text, after a `<dfn>` or a button in a `<p>`,
+   *   where its host was valid;  a `<div>` would close the `<p>` when a browser parses the page
+   */
+  private renderServer(): JSX.Element {
+    return (
+      <span class={this.classes()} part={this.part("popup")} popover={this.serverPopover()}>
+        <Show when={this.attrs.header}>
+          <span class={HEADER} part={this.part("header")}>
+            {this.attrs.header}
+          </span>
+        </Show>
+        <Show when={this.attrs.content}>
+          <span class={CONTENT} part={this.part("content")}>
+            {this.attrs.content}
+          </span>
+        </Show>
+        <slot />
+      </span>
+    )
+  }
+
   ////////////////
   // ## Effects
   ////////////////
@@ -173,25 +199,30 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   /**
    * Role / name, popover mode, position, target binding, and showing -- all once the runtime is loaded (`UI`).
    * - Created in `mount()`:  they read overridable methods and every field.
+   * - Role, name and position are host effects:  a static render (`$/ui/server`) writes them out;  it binds the
+   *   target's ARIA once (`serverBind()`) instead of the rest.
    */
   private effects() {
     const { host } = this
-    createEffect(
+    this.hostEffect(
       () => (this.interactive() ? DIALOG : TOOLTIP),
       (role) => {
         host.internals.role = role
       }
     )
-    createEffect(
+    this.hostEffect(
       () => (this.interactive() ? (this.attrs.header ?? null) : null),
       (label) => {
         host.internals.ariaLabel = label
       }
     )
-    createEffect(
+    this.hostEffect(
       () => POSITION_AREAS[this.attrs.position ?? DEFAULT_POSITION],
-      (area) => host.style.setProperty(POSITION_AREA, area)
+      (area) => {
+        host.style.setProperty(POSITION_AREA, area)
+      }
     )
+    if (isServer) return this.serverBind()
     createEffect(
       () => (this.loaded() ? this.popoverMode() : undefined),
       (mode) => {
@@ -223,6 +254,32 @@ export class UIPopup extends UIElement<PopupVocabulary> {
         }
       }
     )
+  }
+
+  /**
+   * `popover` of the ROOT in a server render (`$/ui/server`), where the root replaces the host:  hidden until
+   * opened, in the HTML.
+   * - `auto` for a click popup:  light dismiss and Escape without JS, once something opens it (`popovertarget`);
+   *   `manual` for the rest (`hint` isn't everywhere, and an unknown value means `manual`).
+   */
+  private serverPopover(): "auto" | "manual" {
+    return this.interactive() ? AUTO : MANUAL
+  }
+
+  /**
+   * A server render's binding:  the target's ARIA, as `bind()` adds it, without listeners.
+   * - SIDE EFFECTS:  gives the host (the render's parsed copy) an id, which its root keeps, and sets the target's
+   *   `aria-describedby` / `aria-controls` and `aria-haspopup`.  No `aria-expanded`:  a native invoker reports its
+   *   popover's state itself.
+   */
+  private serverBind() {
+    const target = this.target()
+    if (!target) return
+    const interactive = this.interactive()
+    UI.ids.ensure(this.host, ID_PREFIX)
+    const element = UIPopup.ariaTarget(target)
+    AriaRefs.add(element, interactive ? CONTROLS : DESCRIBED_BY, this.host)
+    if (interactive) element.setAttribute(ARIA_HASPOPUP, DIALOG)
   }
 
   /**
@@ -390,6 +447,11 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   ////////////////
   // ## Targets
   ////////////////
+
+  /** `value` is an element:  by node type, since a server render (`$/ui/server`) has no `Element` global. */
+  private static isElement(value: unknown): value is Element {
+    return typeof value === "object" && value !== null && (value as Node).nodeType === ELEMENT_NODE
+  }
 
   /**
    * The box to anchor to:  `target`, or -- when it has none (`display: contents`) -- the first element of its

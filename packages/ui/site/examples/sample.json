@@ -1,0 +1,6 @@
+{
+  "name": "release-notes",
+  "version": 2,
+  "elements": ["include", "code", "markdown"],
+  "lazy": true
+}

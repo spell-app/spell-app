@@ -1,0 +1,133 @@
+/*
+ * `<ui-docs-tokens>`:  token tables (and the playground), built from `<ui-*>` widgets (`<ui-table>`, `<ui-label>`,
+ * `<ui-input>`, `<ui-segment>`, `<ui-button>`, `<ui-header>`, `<ui-message>`):  this sheet only LAYS THEM OUT, plus the
+ * look of inline `<code>` (no widget draws one:  the same plan-doc gap as `<ui-docs-api>`).
+ * - Shadow markup contract:  `<section class="ui [global] [playground] tokens" part="tokens">` holding, in order:
+ *   - with `playground`:  `<ui-segment class="playground" part="playground">` around `<div class="bar">` holding
+ *     `<div class="preview" part="preview">` (the default slot) and the `<ui-button part="reset">`
+ *   - the filter:  `<ui-input class="search" part="search">`
+ *   - a `<ui-message part="message">`, if any
+ *   - the tables:  `<ui-table part="table">` around a native `<table>`;  with `global`, each inside
+ *     `<section class="group" part="group">` under its `<ui-header part="header">` and
+ *     `<p class="description" part="description">`
+ * - A row:  `th[scope=row] > code.name`, then `td > span.default` (the `<ui-label part="swatch">` and the default's
+ *   `<code>`), the description, and with `playground` `td > ui-input.value[part="input"]`.
+ * - Public tokens (`--ui-docs-tokens-*`) are never declared:  each is read through a private alias
+ *   (`docs/theming.md` "Component tokens").  The swatch's size and ring go through `<ui-label>`'s own public tokens
+ *   (`--ui-label-empty-size`) and its `::part(label)`, as a page would.
+ */
+
+@layer ui.components.docs-tokens.types, ui.components.docs-tokens.content, ui.components.docs-tokens.variations, ui.components.docs-tokens.states;
+
+@layer ui.components.docs-tokens.types {
+  :host {
+    display: block;
+    /*
+     * Its tables stack by their OWN width (a narrow docs column), unless the page says `page`
+     * (`<ui-root stack-with="page">`):  the table's own region token, as a page would set it.
+     */
+    --ui-table-stack-by: var(--ui-stack-with, container);
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  .ui.tokens {
+    /* Space between the playground, the filter, the message and the tables. */
+    --_ui-docs-tokens-gap: var(--ui-docs-tokens-gap, 1em);
+    /* Space between one group of `global` and the next. */
+    --_ui-docs-tokens-group-gap: var(--ui-docs-tokens-group-gap, 2em);
+    /* Diameter of a colour swatch. */
+    --_ui-docs-tokens-swatch-size: var(--ui-docs-tokens-swatch-size, 1.15em);
+    /* Ring around a swatch, so a white or transparent colour still shows. */
+    --_ui-docs-tokens-swatch-ring: var(--ui-docs-tokens-swatch-ring, var(--ui-border-color-strong));
+    /* Background of inline code. */
+    --_ui-docs-tokens-code-background: var(--ui-docs-tokens-code-background, var(--ui-surface-strong));
+    /* Widest the filter input grows. */
+    --_ui-docs-tokens-search-width: var(--ui-docs-tokens-search-width, 20em);
+    display: flex;
+    flex-direction: column;
+    gap: var(--_ui-docs-tokens-gap);
+  }
+}
+
+@layer ui.components.docs-tokens.content {
+  /* Playground:  the preview fills the bar, the reset button sits at its end (wrapping below on a narrow column). */
+  .playground {
+    --ui-segment-margin: 0;
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75em;
+  }
+  .preview {
+    display: flex;
+    flex: 1 1 12em;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 0;
+  }
+  [part~="reset"] {
+    flex: none;
+    margin-inline-start: auto;
+  }
+
+  .search {
+    display: block;
+    max-width: var(--_ui-docs-tokens-search-width);
+  }
+
+  .group > [part~="header"] {
+    --ui-header-margin-top: 0;
+    --ui-header-margin-bottom: 0.5em;
+  }
+  .group + .group {
+    margin-block-start: calc(var(--_ui-docs-tokens-group-gap) - var(--_ui-docs-tokens-gap));
+  }
+  .group > .description {
+    margin-block: 0 0.75em;
+    line-height: var(--ui-line-height);
+  }
+
+  /* Default cell:  the swatch beside the value;  long values wrap anywhere (`light-dark(oklch(...), ...)`). */
+  .default {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    max-width: 100%;
+  }
+  /* No fade:  a swatch follows a colour picker as it's dragged. */
+  [part~="swatch"] {
+    --ui-label-empty-size: var(--_ui-docs-tokens-swatch-size);
+    --ui-label-duration: 0s;
+  }
+  [part~="swatch"]::part(label) {
+    flex: none;
+    margin: 0;
+    box-shadow: inset 0 0 0 1px var(--_ui-docs-tokens-swatch-ring);
+  }
+
+  code {
+    font-family: var(--ui-font-family-mono, monospace);
+    font-size: 0.9em;
+    padding: 0.1em 0.3em;
+    border-radius: var(--ui-radius-s);
+    background: var(--_ui-docs-tokens-code-background);
+    overflow-wrap: anywhere;
+  }
+  /* Names stay whole:  a break at every hyphen made a 3-line name of a narrow first column. */
+  code.name {
+    background: none;
+    padding: 0;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+
+  .value {
+    display: block;
+    min-width: 8em;
+  }
+}

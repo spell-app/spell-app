@@ -38,8 +38,10 @@ export async function serveCommand(
   if (options.port !== undefined) {
     const port = options.port
     if (!Number.isInteger(port) || port < 1 || port > 65_534) throw new CLI.CliError(`--port must be a port number`)
-    // the port is ours to choose only for a page server we're about to start;  `::`:  vite listens on 0.0.0.0
-    if (!(await new SRV.PidFile(REPO_ROOT).status()) && !(await SRV.isFree(port, "::"))) {
+    // the port is ours to choose only for a page server we're about to start;  free on IPv4 AND IPv6:  on macOS `::`
+    // binds even while another process holds `0.0.0.0:<port>`
+    const free = (await SRV.isFree(port, "0.0.0.0")) && (await SRV.isFree(port, "::"))
+    if (!(await new SRV.PidFile(REPO_ROOT).status()) && !free) {
       throw new CLI.CliError(`Port ${port} is in use -- \`spell serve --port <another>\``)
     }
     // a page server started below inherits it:  `PageServer.ensure()` passes our environment on

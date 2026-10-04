@@ -39,6 +39,7 @@ import {
   FLUID,
   FOCUS,
   FOCUSED_CELL,
+  HIDDEN,
   ID_PREFIX,
   INPUT,
   LINK,
@@ -93,6 +94,17 @@ export class UICalendar extends FormElement<Vocabulary> {
   @proto static vocabulary = calendarVocabulary
   @proto static styles = { input: inputCSS, calendar: calendarCSS }
   @proto static Fallback = CalendarFallback
+
+  /**
+   * Load `Temporal` before a static server render, so its pickers render in full (header, grid, cells):  the render
+   * is synchronous, and node has no `Temporal`, so `UI.i18n` loads `temporal-polyfill` (`loadTemporal()`).
+   * - Called by `StaticRender.prepare(html)` (`$/ui/server`) for a page with this tag;  NEVER in a browser, where
+   *   the constructor loads it after first paint, as before.
+   * - NOTE: "today" (highlight, starting page) is then the RENDER's day.
+   */
+  static preload(): Promise<unknown> {
+    return UI.i18n.loadTemporal()
+  }
 
   ////////////////
   // ## State
@@ -239,7 +251,11 @@ export class UICalendar extends FormElement<Vocabulary> {
     const typed = this.typed.get()
     if (typed !== null) return typed
     const value = this.value()
-    return value ? this.words().value(value, this.type()) : ""
+    if (value) return this.words().value(value, this.type())
+    if (!isServer) return ""
+    // server render:  no `Temporal`, so the value's fields read by hand, formatted as a browser would
+    const fields = CalendarDates.isoFields(String(this.valueState.get() ?? ""), this.type())
+    return fields ? this.words().value(fields, this.type()) : String(this.valueState.get() ?? "")
   }
 
   /** What `CalendarView` needs, or `undefined` before `Temporal`;  tracked. */
@@ -350,8 +366,25 @@ export class UICalendar extends FormElement<Vocabulary> {
             {this.picker()}
           </div>
         </Show>
+        {isServer && this.staticValue()}
       </div>
     )
+  }
+
+  /** Server render only (`$/ui/server`):  the field's `STATIC_CONTROL` mark;  `{}` in a browser. */
+  private staticControl(): Record<string, unknown> {
+    return isServer ? { [UIT.STATIC_CONTROL]: "" } : {}
+  }
+
+  /**
+   * Server render only:  the ISO value as a hidden input, so a static form submits it as the HOST would
+   * (`ElementInternals`) -- the field shows it formatted.
+   */
+  private staticValue(): JSX.Element {
+    const name = this.attrs.name
+    const value = this.formValue()
+    if (!name || value === null) return undefined
+    return <input type={HIDDEN} name={name} value={String(value)} disabled={this.isDisabled()} />
   }
 
   /** Field + icon button + popover. */
@@ -374,6 +407,7 @@ export class UICalendar extends FormElement<Vocabulary> {
             aria-label={this.labels.name() ?? this.attrs.placeholder}
             aria-required={this.attrs.required ? "true" : undefined}
             aria-invalid={this.validation().valid ? undefined : "true"}
+            {...this.staticControl()}
             onInput={this.onInput}
             onChange={this.onChange}
             onClick={this.onFieldClick}

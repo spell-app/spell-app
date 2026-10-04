@@ -97,6 +97,9 @@ export const CHECKBOX = "checkbox"
 /** `UI.ids` prefix. */
 export const ID_PREFIX = "ui-checkbox"
 
+/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global:  node has none (static server render). */
+export const DOCUMENT_POSITION_FOLLOWING = 4
+
 /** What a group needs from each member (`UIRadio`);  structural, so this file never imports the element. */
 export type RadioMember = {
   /** The member's host element, for document order and focus. */

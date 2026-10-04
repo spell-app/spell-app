@@ -4,6 +4,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
+import { Viewport } from "$/ui/test/viewport"
 
 import { gridVocabulary } from "./ui-grid.vocabulary.en"
 import { columnVocabulary } from "./ui-column.vocabulary.en"
@@ -241,6 +242,19 @@ describe("ui-grid.css examples", () => {
       0.25,
       3
     )
+  })
+
+  it("follows the SCREEN under `--ui-stack-with: page` (static markup)", async () => {
+    Sheets.adopt([...foundationCSS, gridCSS])
+    const root = Fixture.render(EXAMPLES["./examples/responsive.html"]!)
+    root.style.width = "1100px"
+    root.style.setProperty("--ui-stack-with", "page")
+    await Viewport.resize(1200)
+    const stacked = root.querySelectorAll<HTMLElement>(".ui.stackable.grid > .column")
+    const stackWidth = stacked[0]!.parentElement!.getBoundingClientRect().width
+    expect(stacked[0]!.getBoundingClientRect().width).toBeLessThan(stackWidth / 2)
+    const [narrow] = root.querySelectorAll<HTMLElement>(".sixteen.wide.mobile.column")
+    expect(narrow!.getBoundingClientRect().width).toBeLessThan(narrow!.parentElement!.getBoundingClientRect().width)
   })
 
   it("shows `only` rows and columns by the viewport", () => {

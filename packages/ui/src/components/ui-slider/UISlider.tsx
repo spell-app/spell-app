@@ -1,8 +1,8 @@
-import { Repeat, Show, createEffect, createMemo, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { For, Repeat, Show, createEffect, createMemo, untrack } from "solid-js"
+import { isServer, type JSX } from "@solidjs/web"
 import { onFormStateRestore } from "@spell-app/solid-element"
 
-import { Cell, Converters, proto, UI, type AttributeName, type FieldValue } from "$/ui/core"
+import { Cell, Converters, proto, UI, UIT, type AttributeName, type FieldValue } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
 
 import { sliderVocabulary } from "./ui-slider.vocabulary.en"
@@ -34,7 +34,8 @@ import {
   PAGE_UP,
   PAGE_MULTIPLIER,
   PAGE_DOWN,
-  SECOND_CLASS
+  SECOND_CLASS,
+  HIDDEN
 } from "./ui-slider.types"
 import type { Thumb } from "./ui-slider.types"
 import { VERTICAL, TRUE, GROUP, LABEL, HOME, END, ARROW_DOWN } from "$/ui/components/components.types"
@@ -241,6 +242,15 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
     this.trackLength.set(length)
   }
 
+  /**
+   * The inner box's inline tokens:  the selected range's two ends, as ratios.
+   * - A method, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
+   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   */
+  private innerStyle(): Record<string, string> {
+    return { [FROM]: String(this.ratio(FIRST, true)), [TO]: String(this.ratio(SECOND, true)) }
+  }
+
   render(): JSX.Element {
     return (
       <div class={this.classes()} part={this.part("slider")}>
@@ -249,7 +259,8 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
           class={INNER}
           role={this.isRange() ? GROUP : undefined}
           aria-label={this.isRange() ? this.labels.name() : undefined}
-          style={{ [FROM]: String(this.ratio(FIRST, true)), [TO]: String(this.ratio(SECOND, true)) }}
+          style={this.innerStyle()}
+          {...this.staticMark(this.isRange())}
           onPointerDown={this.onPointerDown}
           onPointerMove={this.onPointerMove}
           onPointerUp={this.onPointerUp}
@@ -265,6 +276,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
             <Repeat count={this.scale().intervals + 1}>{(index) => this.label(index)}</Repeat>
           </ul>
         </Show>
+        {isServer && this.staticValues()}
       </div>
     )
   }
@@ -298,8 +310,32 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
         aria-orientation={this.attrs.vertical ? VERTICAL : undefined}
         aria-disabled={this.isDisabled() ? TRUE : undefined}
         aria-readonly={this.attrs.readonly ? TRUE : undefined}
+        {...this.staticMark(thumb === FIRST && !this.isRange())}
         onKeyDown={(event) => this.onKeyDown(thumb, event)}
       />
+    )
+  }
+
+  /**
+   * Server render only (`$/ui/server`):  the `STATIC_CONTROL` mark when `on` -- a single thumb, else a range's
+   * group, whichever the host's name belongs to;  `{}` in a browser.
+   */
+  private staticMark(on: boolean): Record<string, unknown> {
+    return isServer && on ? { [UIT.STATIC_CONTROL]: "" } : {}
+  }
+
+  /**
+   * Server render only (`$/ui/server`):  the value as hidden inputs (two for a `range`), so a static form submits
+   * it without JS;  in a browser the HOST submits (`ElementInternals`).
+   */
+  private staticValues(): JSX.Element {
+    const name = this.attrs.name
+    if (!name) return undefined
+    const value = this.formValue()
+    return (
+      <For each={Array.isArray(value) ? value : [value]} keyed={false}>
+        {(each) => <input type={HIDDEN} name={name} value={String(each())} disabled={this.isDisabled()} />}
+      </For>
     )
   }
 

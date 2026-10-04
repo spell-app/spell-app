@@ -7,8 +7,10 @@
       "Bash(git restore *)",
       "Bash(yarn *)",
       "Bash(npx *)",
-      "Bash(git *)"
-    ]
+      "Bash(git *)",
+      "Edit(//Users/owen/www/spell-app/spell-app-dev/**)"
+    ],
+    "additionalDirectories": ["/Users/owen/www/spell-app/spell-app-dev"]
   },
   "hooks": {
     "WorktreeCreate": [
@@ -16,6 +18,9 @@
     ],
     "WorktreeRemove": [
       { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree.mjs\" remove" }] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/prompt-gate.mjs\"" }] }
     ],
     "Stop": [
       { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/handoff.mjs\"" }] }

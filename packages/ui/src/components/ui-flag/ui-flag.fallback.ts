@@ -5,7 +5,7 @@ import { FlagCountry } from "./FlagCountry"
 
 /****************
  * ### `FlagFallback`
- * The same `<span part="flag" class="ui ... flag" role="img" aria-label>` + emoji as the element.
+ * The same `<span part="flag" class="ui ... flag <code>" role="img" aria-label>` + emoji as the element.
  * - Names a country with `Intl.DisplayNames` in the page language (`<html lang>`, else the browser's), and the
  *   non-country flags with the vocabulary's ENGLISH texts:  the runtime's translations may not be there.
  ****************/
@@ -18,7 +18,7 @@ export class FlagFallback extends NativeFallback<typeof flagVocabulary> {
     const label = this.label(country)
     const flag = this.create(
       "span",
-      { class: this.classes(), role: label ? "img" : null, "aria-label": label },
+      { class: this.classes(country.code || undefined), role: label ? "img" : null, "aria-label": label },
       country.emoji
     )
     return [this.decorate(flag, "flag")]

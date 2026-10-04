@@ -7,6 +7,8 @@
  *   - `spell-ui:icons` FIRST:  a module the bundler writes, registering the icons our widgets and pages draw
  *     with `UI.icons` before any element asks for one (a classic script can't load UI's icon packs)
  *   - then UI, which defines -- and so upgrades -- every `ui-*` already in the page
+ *   - then `spell-ui:lazy`, pointing `<ui-code>` / `<ui-markdown>`'s engine loaders at their lazy scripts (before
+ *     any element highlights:  that waits for `UI.load()`), and the source elements' saver (`spell-ui-sources.js`)
  *   - then the page runtime, with every tag defined
  *   - then the site header (`$/server/site`):  `defineSite()` runs once every import has, so `<spell-site-header>`
  *     upgrades -- and sets `--spell-site-header-height` -- before the runtime first measures its sticky offsets
@@ -14,14 +16,20 @@
  * - `$/...` aliases resolve through esbuild's own tsconfig `paths` support:  `packages/docs/tsconfig.json` extends
  *   the root's `tsconfig.base.json`.
  * - Exports become `window.SpellUI` (`UI`), for the page runtime's checks and for poking in DevTools.
+ * - The look:  UI's `spell` theme (the Spell brand), on every page, applied as soon as the bundle runs.  Its sheet
+ *   is inlined like every other `import()`, so it registers a few microtasks after the bundle runs, not a
+ *   network round trip later.  It ships no font files:  its serif is an installed Palatino, else `serif`.
  */
 
 import "spell-ui:icons"
 import "spell-ui:emoji"
-import "@spell-app/ui"
+import { ThemeSheets } from "@spell-app/ui"
+import "spell-ui:lazy"
+import "./spell-ui-sources.js"
 import "./spell-doc-runtime.js"
 import { defineSite } from "$/server/site"
 
 export { UI } from "@spell-app/ui"
 
+void ThemeSheets.apply("spell")
 defineSite()

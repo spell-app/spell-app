@@ -44,18 +44,34 @@ export type VisualExample = {
 // ## Parity
 ////////////////
 
-/** One `--parity` comparison, written by the spec as JSON and collected by `ParityReport`. */
+/**
+ * What a parity comparison sets against the ELEMENT render of an example:
+ * - `parity` -- the class-grammar original (`--parity`)
+ * - `static` -- the element example rendered statically (`--static`:  `StaticRender`, no scripts)
+ */
+export type ParityKind = "parity" | "static"
+
+/** CSS pixel size of a capture. */
+export type ParitySize = { width: number; height: number }
+
+/** One `--parity` / `--static` comparison, written by the spec as JSON and collected by `ParityReport`. */
 export type ParityResult = {
   /** `<family>/<name>` */
   id: string
   browser: VisualBrowser
-  /** CSS pixel sizes of the two captures */
-  classes: { width: number; height: number }
-  elements: { width: number; height: number }
+  scheme: VisualScheme
+  /** size of the capture set against the elements:  class grammar (`parity`) or static (`static`) */
+  other: ParitySize
+  /** size of the element render */
+  elements: ParitySize
   /** differing pixels over the overlapping area */
   diffPixels: number
-  /** `diffPixels` / pixels of the LARGER capture (a size change counts as difference) */
+  /** `diffPixels` / pixels of the LARGER capture (a size change counts as difference);  `1` when `error` */
   ratio: number
-  /** diff image, relative to the parity report */
+  /** diff image, relative to the report */
   diff?: string
+  /** `--static`:  `ui-*` tags the static page still has (families `StaticFamilies` doesn't define yet) */
+  leftover?: string[]
+  /** `--static`:  the static page failed to render or to be captured;  its first error line */
+  error?: string
 }

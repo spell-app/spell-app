@@ -1,0 +1,24 @@
+<!-- `<ui-code>` in class grammar:  the box, the `<pre><code>` and its lines, as the element renders them. -->
+<div class="ui-stack">
+  <section>
+    <h4>Code</h4>
+    <div class="ui code">
+      <pre
+        tabindex="0"
+        aria-label="typescript code"
+      ><code class="hljs language-typescript"><span class="line"><span class="hljs-keyword">const</span> greeting = <span class="hljs-string">"hello"</span></span><span class="line"><span class="hljs-comment">// one line each</span></span></code></pre>
+    </div>
+  </section>
+
+  <section>
+    <h4>Line numbers, wrapping, a copy button</h4>
+    <div class="ui numbered wrapping code">
+      <button class="copy" type="button">Copy</button>
+      <pre
+        tabindex="0"
+        aria-label="bash code"
+        style="counter-reset: line 9"
+      ><code class="hljs language-bash"><span class="line"><span class="hljs-built_in">echo</span> <span class="hljs-string">"line ten"</span></span><span class="line"><span class="hljs-built_in">echo</span> <span class="hljs-string">"a long line that wraps once the box is too narrow to hold it, hanging past the line number"</span></span></code></pre>
+    </div>
+  </section>
+</div>

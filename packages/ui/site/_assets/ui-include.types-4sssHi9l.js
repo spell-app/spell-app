@@ -1,0 +1,1 @@
+import"./rolldown-runtime-CM1DJQSe.js";var e=[`href`,`src`,`action`,`poster`,`source`],t=e.map(e=>`[${e}]`).join(`,`),n=`data-ui-include-`,r=`eager`,i=`loading`,a=/<body\b[^>]*>/i,o=/<\/body\s*>/i;export{n as a,i,a as n,e as o,r,t as s,o as t};

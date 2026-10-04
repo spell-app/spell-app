@@ -70,7 +70,8 @@
   /* Host:  a block and the size container `stackable` answers to;  the flag that says "hosted". */
   :host {
     --_table-hosted: 1;
-    --_table-stack-by: var(--ui-table-stack-by, viewport);
+    /* the table's own token, else the page-wide `stack-with` one (`page` ~== `viewport`), else the viewport */
+    --_table-stack-by: var(--ui-table-stack-by, var(--ui-stack-with, viewport));
   }
   :host {
     /* a colour or size from outside never reaches the table:  its own classes remap them again */
@@ -88,9 +89,25 @@
   :host([hidden]) {
     display: none;
   }
+  /*
+   * The table's outer margin sits on the HOST:  a size container is its own formatting context, so a margin on
+   * the scroller inside it never collapses with the heading above, as class grammar's does.  Attached:  see
+   * "Attached" (variations).
+   */
+  :host {
+    margin-block: 1em;
+  }
+  :host(:first-child) {
+    margin-block-start: 0;
+  }
+  :host(:last-child) {
+    margin-block-end: 0;
+  }
 
   /*
    * Scroller:  around the slot;  spaced by the host's position, since the table is always an only child.
+   * - In the shadow root the host carries that spacing (above), so the scroller has none:  `:not([data-ui])`, a
+   *   static server render's scroller (`$/ui/server`) REPLACES the host and keeps it.
    * - `--_ui-table-row-height` here too:  the scroller's scrolling heights read it (the table's alias is below it).
    */
   .scroller {
@@ -106,6 +123,9 @@
   }
   :host(:last-child) > .scroller {
     margin-block-end: 0;
+  }
+  :host > .scroller:not([data-ui]) {
+    margin-block: 0;
   }
 
   /*
@@ -482,7 +502,7 @@
   .ui[class*="bottom attached"].table:last-child {
     margin-block-end: 0;
   }
-  /* In an element:  the scroller carries the table's spacing. */
+  /* In an element:  the scroller carries the table's spacing (a static render's;  in a shadow root, the host's). */
   .attached.scroller {
     margin-block: 0;
   }
@@ -497,6 +517,19 @@
   }
   :host(:last-child) > [class*="bottom attached"].scroller {
     margin-block-end: 0;
+  }
+  /* Shadow DOM:  the host carries the outer margin, so it mirrors the attached scroller's (`UITable` states). */
+  :host(:state(attached)) {
+    margin-block: 0;
+  }
+  :host(:state(attached-top):not(:first-child)) {
+    margin-block-start: 1em;
+  }
+  :host(:state(attached-bottom):not(:last-child)) {
+    margin-block-end: 1em;
+  }
+  :host > .scroller:not([data-ui]) {
+    margin-block: 0;
   }
 
   /* Striped */
@@ -1009,6 +1042,8 @@
    * - By the HOST's width (`@container`) only when an element opts in:  `stack-by="container"`, or
    *   `--ui-table-stack-by: container` on the host, an ancestor or the page (a table in a narrow sidebar of a wide
    *   screen);  the attribute wins.
+   * - Without either, the page-wide `--ui-stack-with` (`<ui-root stack-with>`, the token every stacking element
+   *   follows) decides:  `container` stacks by the host's width, `page` by the viewport.
    */
   /*
    * Order matters below (same layer, equal specificity:  the later rule wins):

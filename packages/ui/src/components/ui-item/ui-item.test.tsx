@@ -123,6 +123,16 @@ describe("<ui-item> owned", () => {
     expect(boxOf(items[1]!).getAttribute("aria-current")).toBe("true")
   })
 
+  it("forwards the host's aria-expanded to a button box only, and follows it", async () => {
+    const { items } = await owned(
+      `<ui-item link aria-expanded="false">A</ui-item><ui-item href="#b" aria-expanded="true">B</ui-item>`
+    )
+    expect(boxOf(items[0]!).getAttribute("aria-expanded")).toBe("false")
+    expect(boxOf(items[1]!).hasAttribute("aria-expanded")).toBe(false)
+    items[0]!.setAttribute("aria-expanded", "true")
+    await expect.poll(() => boxOf(items[0]!).getAttribute("aria-expanded")).toBe("true")
+  })
+
   it("disables:  no href, aria-disabled;  a disabled button", async () => {
     const { items } = await owned(`<ui-item href="#a" disabled>A</ui-item><ui-item link disabled>B</ui-item>`)
     expect(boxOf(items[0]!).hasAttribute("href")).toBe(false)
@@ -147,6 +157,8 @@ describe("<ui-item> owned", () => {
     expect(image.getAttribute("alt")).toBe("")
     await (await UI.load()).icons.get("house")
     await expect.poll(() => box.querySelector("[part~=icon] svg")).not.toBeNull()
+    // the shorthand's glyph is the slot's fallback:  sized all the same
+    expect(box.querySelector("[part~=icon] svg")!.getBoundingClientRect().height).toBeGreaterThan(0)
     expect(getComputedStyle(box).getPropertyValue("--_ui-item-media").trim()).toBe("1")
   })
 
