@@ -23,6 +23,8 @@
  *   get a round filter button stepping through the items' states (`wireItemFilters()`)
  * - plan docs' commits:  a git button in the page header shows or hides them all, a git icon on an item's line
  *   shows its own (`wireCommits()`)
+ * - plan docs' review actions, served by the page server:  an ellipsis menu on every item, Revisit notes, "Choose"
+ *   on option cards, and the header's "Send to Claude", all saved in the doc's inbox file (`wireReview()`)
  * - scroll-follow:  the current section's (heading's) contents link is highlighted and its panels open;  panels the
  *   scroll opened close again, panels the USER opened stay open
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
@@ -2243,6 +2245,8 @@ function buildChrome() {
   wirePhaseToggles(main)
   wireCommits(main)
   void wireTips(main)
+  // after the git button:  the send button goes left of it
+  void wireReview(main)
   addEventListener("spell-doc:updated", () => {
     wirePhaseToggles(main)
     wireCommits(main)
@@ -2469,6 +2473,570 @@ async function copyText(value) {
     area.remove()
     return copied
   }
+}
+
+////////////////
+// ## Review actions
+////////////////
+
+/** The review store's routes (`tools/reviewRoutes.ts`):  every reply is the page's whole inbox. */
+const REVIEW_API = "/api/review"
+
+/** How often a VISIBLE plan doc re-reads its inbox, so what Claude does to it (P6 of `review-review`) shows. */
+const REVIEW_POLL_MS = 4000
+
+/** localStorage key prefix of a plan doc's unsaved Revisit notes:  `spell-revisit:<path>`, `{ [item id]: text }`. */
+const REVISIT_KEY_PREFIX = "spell-revisit:"
+
+/** How long a review notice (`notify()`) stays up. */
+const NOTICE_MS = 6000
+
+/**
+ * What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6):  `listening` null,
+ * which the routes also answer once a session's heartbeat stops (`tools/inbox.js` `forPage()`).
+ */
+const NOBODY_LISTENING = "No Claude session is reviewing this doc:  this waits for the next /epic review"
+
+/**
+ * The item menu's actions, in its order:  `[action, UI color, icon, label, what it does]`.
+ * - colors:  Owen's (2026-10-04);  violet for "Add to todo" is ours
+ * - the menu adds "Clear" under them while the item has a mark
+ */
+const REVIEW_ACTIONS = [
+  ["approve", "green", "check", "Approve", "Fine as it is"],
+  ["todo", "violet", "list check", "Add to todo", "Follow it up later, as a todo"],
+  ["details", "blue", "magic", "Add Details", "Claude writes a fuller explanation into the item, in the background"],
+  ["revisit", "orange", "history", "Revisit", "A note box:  talk it over in the next batch, or now"]
+]
+
+/** Every plan item a review mark can go on:  the items of every list, open or closed (not the phases). */
+const REVIEW_ITEMS = ".plan-items > [data-status][id]"
+
+/** An item's option cards' labels (`A · ...`), as `wireOptions()` folds them, from the item down. */
+const ITEM_OPTION_LABELS = ":scope ui-grid.spell-pros-cons > ui-column ui-label[attached]"
+
+/**
+ * Review a plan doc ON the page (plan doc `review-review`, P5):  marks wait in the doc's INBOX FILE
+ * (`<name>.inbox.json`, through the page server's `tools/reviewRoutes.ts`) until "Send to Claude" hands them over.
+ * - only a plan doc (`body.plan-doc`) served by the page server (`SPELL_SERVER.token`), and only once its inbox
+ *   answers:  from `file://`, or a server without the review routes, nothing is added
+ * - every item's line ends in a round grey ellipsis (`span.plan-act` > `button.plan-act-button`, at the far right,
+ *   `plan-doc.css`):  its menu (`div.plan-act-menu`, a popover in `body`, opening in place) marks it Approve, Add to
+ *   todo, Add Details or Revisit, or clears its mark;  the button then takes that action's color, filled while
+ *   unsent, outlined once sent
+ * - "Add Details" and Revisit's "revisit now" go in the inbox's `now` queue:  a spinner beside the button while the
+ *   request waits or Claude works on the item (`working[id]`);  queued with nobody listening, a still dashed ring
+ * - Revisit opens a note box under the item's line (`div.plan-revisit`):  a grey check saves it for the next batch
+ *   ("revisit soon"), a blue send asks for it now;  the unsaved note survives reloads (`REVISIT_KEY_PREFIX`)
+ * - an OPEN item's option cards get a "Choose" pill on their label (`button.plan-choose`):  a click marks that
+ *   letter picked (`data-picked` on its `ui-column`, framed orange), a second click clears it
+ *   - a pick and a revisit live together ("pick B, but ..."):  the revisit mark carries `pick` (`markWith()`);
+ *     choosing keeps the note, writing a revisit keeps the pick, a second click on the chosen pill drops just the
+ *     pick, Clear drops both;  the button shows the letter in the revisit's orange
+ * - the page header's round paper plane (`button.plan-send`, left of the git button):  grey with nothing to send,
+ *   blue with unsent marks, outlined blue once sent while marks wait for Claude
+ * - nobody listening (`listening` null:  none, or its heartbeat stopped, as the routes answer it):  the send
+ *   button's tooltip and the "now" actions say so (`NOBODY_LISTENING`, decision D6)
+ * - re-reads the inbox when the page server says its file changed (`SPELL_SERVER.events`), and every
+ *   `REVIEW_POLL_MS` while visible, as a fallback
+ * - NOTE: nothing here scrolls the page:  the menu and notices are fixed, focus moves with `preventScroll`
+ * - SIDE EFFECT:  adds the controls (`data-spell-added` inside `main`), re-adds what an in-place update dropped
+ *   (`spell-doc:updated`)
+ */
+async function wireReview(main) {
+  const server = window.SPELL_SERVER
+  if (!document.body.classList.contains("plan-doc") || !server?.token) return
+  const page = location.pathname
+  const draftsKey = `${REVISIT_KEY_PREFIX}${page}`
+  // the inbox as last read or written;  ids with a "now" request in flight;  ids whose note box is open
+  let inbox = null
+  const asking = new Set()
+  const boxes = new Set(Object.keys(readJSON(draftsKey)))
+  // writes in flight:  a poll's answer can't overwrite what they're about to
+  let writing = 0
+  // the button the menu is open on, and the notice's timer
+  let menuOwner = null
+  let noticeTimer = 0
+  if (!(await load())) return
+  document.body.classList.add("plan-reviewing")
+  const menu = buildMenu()
+  const notice = buildNotice()
+  decorate()
+  addEventListener("spell-doc:updated", decorate)
+  setInterval(() => {
+    if (document.visibilityState === "visible" && !writing) void load().then((read) => read && render())
+  }, REVIEW_POLL_MS)
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void load().then((read) => read && render())
+  })
+  // every inbox write is also a file change the page server announces:  re-read at once (the poll is the fallback)
+  const inboxFile = (server.file ?? page).replace(/(?:\.plan)?\.html$/, ".inbox.json")
+  if (server.events)
+    new EventSource(server.events).addEventListener("change", (event) => {
+      if (writing) return
+      try {
+        if (JSON.parse(event.data).path === inboxFile) void load().then((read) => read && render())
+      } catch {
+        // not ours
+      }
+    })
+
+  /** Read the inbox;  true when it answered (a write in flight wins:  its answer is newer). */
+  async function load() {
+    try {
+      const response = await fetch(`${REVIEW_API}/inbox?page=${encodeURIComponent(page)}`, { cache: "no-store" })
+      if (!response.ok) return false
+      const read = inboxOf(await response.json())
+      if (!writing) inbox = read
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Add what's missing (an in-place update may have replaced an item's line, a label, the page header), then
+   * `render()`.  Callable again.
+   */
+  function decorate() {
+    for (const item of main.querySelectorAll(REVIEW_ITEMS)) {
+      const line = item.querySelector(":scope > ui-accordion.plan-item > ui-title") ?? item
+      if (!line.querySelector(":scope > .plan-act")) line.append(actOf(item))
+      const open = !CLOSED.has(item.dataset.status)
+      for (const label of item.querySelectorAll(ITEM_OPTION_LABELS)) {
+        const pill = label.querySelector(":scope > .plan-choose")
+        if (!open) {
+          pill?.remove()
+          label.closest("ui-column")?.removeAttribute("data-picked")
+        } else if (!pill) {
+          const letter = /^\s*([A-Z])\b/.exec(label.textContent)?.[1]
+          if (letter) label.append(chooseOf(item, letter))
+        }
+      }
+      if (boxes.has(item.id) && !item.querySelector(":scope > .plan-revisit")) item.append(boxOf(item))
+    }
+    const head = main.querySelector(".spell-page-head")
+    if (head && !head.querySelector(":scope > .plan-send")) {
+      const before = head.querySelector(":scope > :is(.plan-git-toggle, .plan-step)")
+      if (before) before.before(sendOf())
+      else head.append(sendOf())
+    }
+    render()
+  }
+
+  /** Show the inbox:  every item's button and spinner, the picked cards, the send button. */
+  function render() {
+    const { marks, sent, working, now, listening } = inbox
+    for (const item of main.querySelectorAll(REVIEW_ITEMS)) {
+      const act = item.querySelector(".plan-act")
+      if (!act) continue
+      const mark = marks[item.id]
+      const button = act.querySelector(".plan-act-button")
+      const [, color, , label] = REVIEW_ACTIONS.find(([action]) => action === mark?.action) ?? []
+      const done = !!mark && isSent(mark, sent)
+      if (mark) button.dataset.color = mark.action === "pick" ? "orange" : color
+      else delete button.dataset.color
+      button.toggleAttribute("data-sent", done)
+      // a pick shows its letter:  a plain pick, or a revisit carrying one ("pick B, but ...")
+      const letter = act.querySelector(".plan-act-letter")
+      letter.textContent = mark?.pick ?? ""
+      act.querySelector("ui-icon").hidden = !!mark?.pick
+      const revisit = `Revisit ${mark?.when === "now" ? "now" : "soon"}${mark?.note ? `:  "${mark.note}"` : ""}`
+      const what =
+        mark?.action === "pick"
+          ? `Picked ${mark.pick}`
+          : mark?.action === "revisit"
+            ? `${mark.pick ? `Picked ${mark.pick}, ` : ""}${revisit}`
+            : label
+      button.title = mark ? `${what}${done ? " · sent" : ""} · click to change` : "Review this item"
+      button.setAttribute("aria-label", button.title)
+      // Claude at it, or asked and waiting
+      const spin = act.querySelector(".plan-act-spin")
+      const work = working[item.id]
+      const busy = asking.has(item.id) || !!work
+      const queued = !busy && !listening && now.some((entry) => entry.id === item.id)
+      spin.hidden = !busy && !queued
+      spin.toggleAttribute("data-waiting", queued)
+      act.toggleAttribute("data-busy", !spin.hidden)
+      spin.title = queued
+        ? NOBODY_LISTENING
+        : (work?.action ?? mark?.action) === "revisit"
+          ? "Claude is looking into this..."
+          : "Claude is adding details..."
+      for (const pill of item.querySelectorAll(".plan-choose")) {
+        const picked = !!mark?.pick && mark.pick === pill.dataset.letter
+        pill.closest("ui-column")?.toggleAttribute("data-picked", picked)
+        pill.setAttribute("aria-pressed", String(picked))
+        pill.textContent = picked ? "Chosen" : "Choose"
+        pill.title = picked ? `${pill.dataset.letter} is picked:  click to un-pick` : `Pick ${pill.dataset.letter}`
+      }
+    }
+    const send = main.querySelector(".plan-send")
+    if (!send) return
+    const all = Object.values(marks)
+    const unsent = all.filter((mark) => !isSent(mark, sent)).length
+    send.dataset.state = unsent ? "unsent" : all.length ? "sent" : "idle"
+    const tip = unsent
+      ? `Send ${unsent} mark${unsent === 1 ? "" : "s"} to Claude`
+      : send.dataset.state === "sent"
+        ? "Sent:  waiting for Claude"
+        : "Nothing to send:  mark an item first (its ... button)"
+    send.title = listening || !all.length ? tip : `${tip}.  ${NOBODY_LISTENING}`
+    send.setAttribute("aria-label", tip)
+  }
+
+  ////////////////
+  // ## Controls
+  ////////////////
+
+  /** An item's ellipsis button and the spinner beside it:  `span.plan-act`. */
+  function actOf(item) {
+    const act = document.createElement("span")
+    act.className = "plan-act"
+    act.dataset.spellAdded = ""
+    act.innerHTML =
+      `<span class="plan-act-spin" hidden></span>` +
+      `<button type="button" class="plan-act-button" aria-haspopup="menu">` +
+      `<ui-icon name="ellipsis"></ui-icon><span class="plan-act-letter"></span></button>`
+    const button = act.querySelector("button")
+    // open when the press began:  the popover's light dismiss shuts it before this click arrives
+    let wasOpen = false
+    button.addEventListener("pointerdown", () => (wasOpen = isOpenFor(item)))
+    button.addEventListener("click", (event) => {
+      // the line's own click would fold the item
+      event.preventDefault()
+      event.stopPropagation()
+      if (wasOpen || isOpenFor(item)) menu.hidePopover()
+      else openMenu(item, button, event.detail === 0)
+      wasOpen = false
+    })
+    return act
+  }
+
+  /** An option card's "Choose" pill, for `letter`, on its label (the label's own click still folds the card). */
+  function chooseOf(item, letter) {
+    const pill = document.createElement("button")
+    pill.type = "button"
+    pill.className = "plan-choose"
+    pill.dataset.spellAdded = ""
+    pill.dataset.letter = letter
+    pill.textContent = "Choose"
+    pill.addEventListener("click", (event) => {
+      event.preventDefault()
+      event.stopPropagation()
+      const mark = inbox.marks[item.id]
+      void save(item.id, markWith(mark, mark?.pick === letter ? null : letter))
+    })
+    return pill
+  }
+
+  /**
+   * `mark` with its pick set to `letter` (`null`:  dropped), as a "Choose" pill click saves it.
+   * - a revisit keeps its note:  "pick B, but ...";  one asked NOW turns `soon`, so the pick waits for the send
+   *   with it (an immediate mark counts as sent:  Claude would never see the new pick)
+   * - anything else (no mark, a plain pick, approve ...) becomes a plain pick, or none
+   */
+  function markWith(mark, letter) {
+    if (mark?.action !== "revisit") return letter ? { action: "pick", pick: letter } : null
+    return { action: "revisit", when: "soon", note: mark.note ?? "", ...(letter && { pick: letter }) }
+  }
+
+  /**
+   * An item's Revisit box:  `div.plan-revisit`, a note and two round buttons stacked at its right, a grey check
+   * ("revisit soon") over a blue send ("revisit now").  Its text is saved as typed (`draftsKey`) until a button
+   * saves the mark;  Escape closes it, keeping the draft.
+   */
+  function boxOf(item) {
+    const id = item.id
+    const box = document.createElement("div")
+    box.className = "plan-revisit"
+    box.dataset.spellAdded = ""
+    box.innerHTML =
+      `<textarea class="plan-revisit-note" rows="3" placeholder="Your question or comment"></textarea>` +
+      `<span class="plan-revisit-buttons">` +
+      `<button type="button" class="plan-revisit-soon"><ui-icon name="check"></ui-icon></button>` +
+      `<button type="button" class="plan-revisit-now"><ui-icon name="paper plane"></ui-icon></button></span>`
+    const note = box.querySelector("textarea")
+    note.setAttribute("aria-label", `Revisit ${id.toUpperCase()}:  your question or comment`)
+    note.value = readJSON(draftsKey)[id] ?? inbox.marks[id]?.note ?? ""
+    const [soon, now] = box.querySelectorAll("button")
+    label(soon, "Revisit soon:  talk it over in the next batch")
+    label(now, `Revisit now:  Claude looks into it at once${inbox.listening ? "" : `.  ${NOBODY_LISTENING}`}`)
+    note.addEventListener("input", () => {
+      const drafts = readJSON(draftsKey)
+      if (note.value) drafts[id] = note.value
+      else delete drafts[id]
+      writeJSON(draftsKey, drafts)
+    })
+    note.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return
+      event.stopPropagation()
+      closeBox(item, false)
+      item.querySelector(".plan-act-button")?.focus({ preventScroll: true })
+    })
+    soon.addEventListener("click", () => {
+      const text = note.value.trim()
+      // a picked question keeps its pick:  "pick B, but ..."
+      const pick = inbox.marks[id]?.pick
+      closeBox(item, true)
+      void save(id, { action: "revisit", when: "soon", note: text, ...(pick && { pick }) })
+    })
+    now.addEventListener("click", () => {
+      const text = note.value.trim()
+      closeBox(item, true)
+      void askNow(id, "revisit", text)
+    })
+    return box
+
+    /** Give icon-only `button` its tooltip and label. */
+    function label(button, tip) {
+      button.title = tip
+      button.setAttribute("aria-label", tip)
+    }
+  }
+
+  /** The page header's "Send to Claude" button:  `button.plan-send`, a round paper plane. */
+  function sendOf() {
+    const send = document.createElement("button")
+    send.type = "button"
+    send.className = "plan-send"
+    send.dataset.spellAdded = ""
+    send.innerHTML = `<ui-icon name="paper plane"></ui-icon>`
+    send.addEventListener("click", () => void sendMarks())
+    return send
+  }
+
+  /** The item menu:  ONE popover in `body`, filled for the item it opens on (`openMenu()`). */
+  function buildMenu() {
+    const element = document.createElement("div")
+    element.className = "plan-act-menu"
+    element.popover = "auto"
+    element.setAttribute("role", "menu")
+    document.body.append(element)
+    element.addEventListener("keydown", (event) => {
+      const rows = Array.from(element.querySelectorAll("button"))
+      const at = rows.indexOf(document.activeElement)
+      const step = { ArrowDown: 1, ArrowUp: -1 }[event.key]
+      if (!step) return
+      event.preventDefault()
+      rows[(at + step + rows.length) % rows.length]?.focus({ preventScroll: true })
+    })
+    element.addEventListener("toggle", (event) => {
+      if (event.newState === "open") return
+      removeEventListener("scroll", place, true)
+      if (element.contains(document.activeElement)) menuOwner?.focus({ preventScroll: true })
+    })
+    return element
+  }
+
+  /** The notice line at the bottom of the window:  what can't be said on the item (D6, a failed write). */
+  function buildNotice() {
+    const element = document.createElement("div")
+    element.className = "plan-review-notice"
+    element.setAttribute("role", "status")
+    element.hidden = true
+    document.body.append(element)
+    return element
+  }
+
+  ////////////////
+  // ## Menu
+  ////////////////
+
+  /** Is the menu open on `item`? */
+  function isOpenFor(item) {
+    return menu.matches(":popover-open") && menu.dataset.item === item.id
+  }
+
+  /** Open the menu on `item`, under (or above) `button`, its current mark checked;  `keyboard`:  focus its first row. */
+  function openMenu(item, button, keyboard) {
+    const mark = inbox.marks[item.id]
+    menu.dataset.item = item.id
+    menuOwner = button
+    menu.replaceChildren()
+    for (const [action, color, glyph, label, tip] of REVIEW_ACTIONS) {
+      const current = mark?.action === action
+      const row = menuRow(color, glyph, label, current && action === "revisit" ? `${tip} (open the note)` : tip)
+      row.setAttribute("aria-checked", String(current))
+      if (action === "details" && !inbox.listening) row.title = `${tip}.  ${NOBODY_LISTENING}`
+      row.addEventListener("click", () => choose(item, action))
+      menu.append(row)
+    }
+    if (mark) {
+      const tip =
+        mark.action === "revisit" && mark.pick ? "Remove this item's pick and note" : "Remove this item's mark"
+      const row = menuRow("grey", "xmark", "Clear", tip)
+      row.classList.add("plan-act-clear")
+      row.addEventListener("click", () => choose(item, "clear"))
+      menu.append(row)
+    }
+    menu.showPopover()
+    place()
+    addEventListener("scroll", place, { capture: true, passive: true })
+    if (keyboard)
+      (menu.querySelector('[aria-checked="true"]') ?? menu.querySelector("button"))?.focus({ preventScroll: true })
+  }
+
+  /** One menu row:  a round icon in `color`, then `label`;  `tip` as its tooltip. */
+  function menuRow(color, glyph, label, tip) {
+    const row = document.createElement("button")
+    row.type = "button"
+    row.setAttribute("role", "menuitemradio")
+    row.dataset.color = color
+    row.title = tip
+    row.innerHTML = `<span class="plan-act-dot"><ui-icon name="${glyph}"></ui-icon></span><span>${text(label)}</span>`
+    return row
+  }
+
+  /**
+   * Put the open menu under its button, right edges aligned;  above it when there's no room below.  Fixed
+   * coordinates in the window:  nothing scrolls.
+   */
+  function place() {
+    const button = menuOwner
+    if (!button?.isConnected) return menu.hidePopover()
+    const at = button.getBoundingClientRect()
+    const { width, height } = menu.getBoundingClientRect()
+    const below = at.bottom + 4
+    const top = below + height <= innerHeight - 4 ? below : Math.max(4, at.top - height - 4)
+    menu.style.top = `${top}px`
+    menu.style.left = `${Math.max(4, Math.min(at.right - width, innerWidth - width - 4))}px`
+  }
+
+  /** The reader picked `action` in `item`'s menu. */
+  function choose(item, action) {
+    menu.hidePopover()
+    if (action === "clear") {
+      closeBox(item, true)
+      return void save(item.id, null)
+    }
+    if (action === "revisit") return openBox(item)
+    if (action === "details") return void askNow(item.id, "details")
+    void save(item.id, { action })
+  }
+
+  ////////////////
+  // ## Revisit box
+  ////////////////
+
+  /** Open `item`'s Revisit box (or focus it, already open). */
+  function openBox(item) {
+    boxes.add(item.id)
+    let box = item.querySelector(":scope > .plan-revisit")
+    if (!box) item.append((box = boxOf(item)))
+    box.querySelector("textarea").focus({ preventScroll: true })
+  }
+
+  /** Close `item`'s Revisit box;  `saved`:  its draft goes too. */
+  function closeBox(item, saved) {
+    boxes.delete(item.id)
+    item.querySelector(":scope > .plan-revisit")?.remove()
+    if (!saved) return
+    const drafts = readJSON(draftsKey)
+    delete drafts[item.id]
+    writeJSON(draftsKey, drafts)
+  }
+
+  ////////////////
+  // ## Writes
+  ////////////////
+
+  /** Mark item `id` (`mark`:  `{ action, ... }`, or null to clear), shown at once, then saved. */
+  async function save(id, mark) {
+    if (mark) inbox.marks[id] = { ...mark, at: new Date().toISOString() }
+    else delete inbox.marks[id]
+    render()
+    await write("mark", { id, mark })
+  }
+
+  /**
+   * Ask Claude to act on item `id` NOW (`action`:  `details` | `revisit`):  queued in the inbox's `now`.
+   * - a revisit keeps the item's pick (the route does too:  `inbox.js` `requestNow()`)
+   */
+  async function askNow(id, action, note) {
+    const pick = inbox.marks[id]?.pick
+    inbox.marks[id] =
+      action === "revisit"
+        ? { action, when: "now", note: note ?? "", ...(pick && { pick }), at: new Date().toISOString() }
+        : { action, at: new Date().toISOString() }
+    asking.add(id)
+    render()
+    const written = await write("now", note === undefined ? { id, action } : { id, action, note })
+    asking.delete(id)
+    render()
+    if (written && !inbox.listening) notify(NOBODY_LISTENING)
+  }
+
+  /** "Send to Claude":  every unsent mark goes. */
+  async function sendMarks() {
+    const unsent = Object.values(inbox.marks).filter((mark) => !isSent(mark, inbox.sent))
+    if (!unsent.length)
+      return notify(
+        Object.keys(inbox.marks).length ? "Sent already:  waiting for Claude" : "Nothing to send:  mark an item first"
+      )
+    if (!(await write("send", {}))) return
+    render()
+    notify(inbox.listening ? `Sent ${unsent.length} to Claude` : `Saved.  ${NOBODY_LISTENING}`)
+  }
+
+  /**
+   * POST `body` (plus `page`) to `route`;  the reply is the new inbox.  True when written;  else says why
+   * (`notify()`) and re-reads the inbox, undoing what was shown early.
+   */
+  async function write(route, body) {
+    writing++
+    try {
+      const response = await fetch(`${REVIEW_API}/${route}`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-server-token": server.token },
+        body: JSON.stringify({ page, ...body })
+      })
+      const reply = await response.json().catch(() => ({}))
+      if (response.ok) {
+        inbox = inboxOf(reply)
+        return true
+      }
+      if (response.status === 403 && /token/i.test(reply.error ?? ""))
+        notify("The page server restarted since this page loaded:  reload the page, then mark again.")
+      else notify(reply.error ?? `Couldn't save (${response.status}).`)
+    } catch (error) {
+      notify(`Couldn't reach the page server (${error.message}).`)
+    } finally {
+      writing--
+    }
+    await load()
+    render()
+    return false
+  }
+
+  /** Say `message` at the bottom of the window for a few seconds. */
+  function notify(message) {
+    notice.textContent = message
+    notice.hidden = false
+    clearTimeout(noticeTimer)
+    noticeTimer = setTimeout(() => (notice.hidden = true), NOTICE_MS)
+  }
+}
+
+/** A route's reply as an inbox, every field there (`tools/inbox.js` has the file's shape). */
+function inboxOf(reply) {
+  const inbox = reply?.inbox ?? reply ?? {}
+  return {
+    marks: inbox.marks && typeof inbox.marks === "object" ? inbox.marks : {},
+    sent: inbox.sent ?? null,
+    now: Array.isArray(inbox.now) ? inbox.now : [],
+    working: inbox.working && typeof inbox.working === "object" ? inbox.working : {},
+    listening: inbox.listening ?? null
+  }
+}
+
+/**
+ * Has `mark` gone to Claude?  Made before the last "Send to Claude" (`sent`, ISO time or null), or an immediate one
+ * (Add Details, revisit now:  handed over when made), as `tools/inbox.js` `unsentMarks()` counts.
+ */
+function isSent(mark, sent) {
+  if (mark.action === "details" || (mark.action === "revisit" && mark.when === "now")) return true
+  return !!sent && Date.parse(mark.at) <= Date.parse(sent)
 }
 
 ////////////////

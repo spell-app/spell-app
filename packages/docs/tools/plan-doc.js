@@ -2,8 +2,11 @@
  * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic` skill and its agents.
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
- *   `commits`, `log`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate` (`node scripts/plan-doc.js` with
- *   no command lists them).
+ *   `commits`, `log`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate`, `inbox`, `details`
+ *   (`node scripts/plan-doc.js` with no command lists them).
+ * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`inbox.js`):  printed,
+ *   waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`), cleared;
+ *   `details` writes an agent's details or reply into one item
  * - a doc is FOUND under either name (`pages.js` `planDocIn()`):  `<name>.plan.html` since 2026-10-04, else the old
  *   `<name>.html`, which worktrees cut before then still have
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
@@ -16,12 +19,36 @@
 import { spawnSync } from "node:child_process"
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, relative, resolve, sep } from "node:path"
+import { setTimeout as sleep } from "node:timers/promises"
 import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
 import { SRV } from "$/server"
 
+import {
+  ACTIONS,
+  InboxError,
+  LISTEN_HEARTBEAT_MS,
+  LISTEN_STALE_MS,
+  clearApplied,
+  clearMarks,
+  finishMarks,
+  hasWork,
+  inboxPath,
+  isImmediate,
+  liveListener,
+  markList,
+  readInbox,
+  sentMarks,
+  setListening,
+  setWorking,
+  takeWork,
+  toItemId,
+  touchListening,
+  unsentMarks,
+  updateInbox
+} from "./inbox.js"
 import { DOCS, PACKAGE, ROOT, TOOLS, openInVSCode, planDocIn, serialize, tidy } from "./pages.js"
 import { findEvidence, sessionsOf } from "./review-backfill.js"
 import { convertSections, createElement } from "./to-ui-section.js"
@@ -968,6 +995,148 @@ ${list}`
     const title = tip ? ` title="${escapeAll(tip)}"` : ""
     const html = `<ui-label class="plan-review" size="mini" basic color="${color}"${title}>${text(words)}</ui-label>`
     line.querySelector(":scope > .plan-id").after(this.fragment(` ${html}`))
+  }
+
+  ////////////////
+  // ## Review inbox
+  ////////////////
+
+  /**
+   * Item `id`, as `plan-doc inbox` shows it:  `{ id, kind, status, title }` (`id` upper-case), or `null` when the
+   * doc has no such item.
+   * - `kind`:  `itemKind()`'s, e.g. `judgement`
+   */
+  describeItem(id) {
+    const item = this.findItem(id)
+    if (!item) return null
+    return {
+      id: item.id.toUpperCase(),
+      kind: itemKind(item),
+      status: item.getAttribute("data-status") ?? "open",
+      title: titleOf(item)
+    }
+  }
+
+  /**
+   * Question `item`'s option cards (`ui-grid.spell-pros-cons > ui-column`):  `[{ letter, title, recommended }]`.
+   * - `title`:  the card's label after its letter, "(recommended)" left out:  `A · Inbox file (recommended)` ->
+   *   `Inbox file`
+   * - cards whose label has no letter are skipped
+   */
+  optionCards(item) {
+    const cards = []
+    for (const column of item.querySelectorAll("ui-grid.spell-pros-cons > ui-column")) {
+      const label = column.querySelector(":scope > ui-segment > ui-label[attached], ui-label[attached]")
+      const match = label?.textContent.trim().match(/^([A-Z])\s*(?:[·.:)]\s*|\s+)(.*)$/s)
+      if (!match) continue
+      const title = match[2].replace(RECOMMENDED, "").replace(/\s+/g, " ").trim()
+      cards.push({ letter: match[1], title, recommended: RECOMMENDED.test(match[2]) })
+    }
+    return cards
+  }
+
+  /**
+   * Apply one mark Owen SENT from the page (`inbox.js`), when it's mechanical:  returns `{ applied: true, did }`, or
+   * `{ applied: false, left }` (why it's left for Claude), plus `gone: true` for an item the doc no longer has (the
+   * caller drops its mark).
+   * - `approve`:
+   *   - an open question:  answered with its recommended option (`decide()`, that card chosen), and reviewed;  no
+   *     card marked "(recommended)":  left, "needs talk"
+   *   - an open judgement call:  closed (accepted);  an open test:  closed (it passed);  both reviewed
+   *   - anything else (an open caveat, issue or todo;  a closed or answered item):  reviewed
+   * - `pick`:  the question answered with that option card (its title the answer), and reviewed
+   * - `todo`:  a new todo, "Follow up:  <title>", linking back;  the item reviewed
+   * - `revisit` soon:  left, for Claude to talk over in the chat;  `details`, revisit `now`:  left, an agent's
+   *   (`plan-doc inbox done`)
+   *   - a revisit carrying a `pick` ("pick B, but ..."):  left too, NOT answered:  the note may change the pick
+   *     (`picks B · <card title>, asks:  "<note>"`)
+   * - an applied mark adds ONE log line (`J9 approved:  closed (accepted)`);  the methods it calls stamp the item
+   */
+  applyMark(mark) {
+    const item = this.findItem(mark.id)
+    if (!item) return { applied: false, gone: true, left: "no such item:  mark dropped" }
+    const result = this.applyAction(item, mark)
+    if (result.applied) this.log(`${item.id.toUpperCase()} ${result.did}`)
+    return result
+  }
+
+  /** `applyMark()`'s work on `item`, the log line aside. */
+  applyAction(item, { action, pick, when, note }) {
+    const kind = itemKind(item)
+    const open = item.getAttribute("data-status") === "open"
+    switch (action) {
+      case "approve": {
+        if (kind === "question" && open) {
+          const option = this.optionCards(item).find((card) => card.recommended)
+          if (!option) return { applied: false, left: "needs talk:  no option is marked (recommended)" }
+          this.answerWith(item, option)
+          return { applied: true, did: `approved:  answered ${option.letter} · ${option.title} (recommended)` }
+        }
+        if (open && (kind === "judgement" || kind === "test")) {
+          this.setItem(item.id, "done")
+          this.review(item.id)
+          return { applied: true, did: `approved:  closed (${kind === "test" ? "passed" : "accepted"})` }
+        }
+        this.review(item.id)
+        return { applied: true, did: "approved:  reviewed" }
+      }
+      case "pick": {
+        if (kind !== "question") return { applied: false, left: `not a question:  can't pick ${pick}` }
+        const option = this.optionCards(item).find((card) => card.letter === pick)
+        if (!option) return { applied: false, left: `no option ${pick}` }
+        this.answerWith(item, option)
+        return { applied: true, did: `picked ${option.letter}:  ${option.title}` }
+      }
+      case "todo": {
+        const id = item.id.toUpperCase()
+        const title = titleOf(item)
+        const details = `<p>From <a href="#${item.id}">${id}</a> (${kind}), marked "Add to todo" on the page:  ${text(title)}</p>`
+        const todo = this.addItem("todo", `Follow up:  ${title}`, { details })
+        this.review(item.id)
+        return { applied: true, did: `to todo ${todo.toUpperCase()}` }
+      }
+      case "revisit": {
+        if (when === "now") return { applied: false, left: "revisit now:  an agent's (`inbox done` once answered)" }
+        if (!pick) return { applied: false, left: `to talk over${note ? `:  "${note}"` : ""}` }
+        // "pick B, but ...":  never applied, the remark may change the pick
+        const option = this.optionCards(item).find((card) => card.letter === pick)
+        return { applied: false, left: `to talk over:  ${pickAsks(pick, option, note)}` }
+      }
+      case "details":
+        return { applied: false, left: "Add Details:  an agent's (`inbox done` once written)" }
+      default:
+        return { applied: false, left: `no such action:  ${action}` }
+    }
+  }
+
+  /** Answer question `item` with option card `option` (`optionCards()`'s):  `decide()`, the card chosen;  reviewed. */
+  answerWith(item, option) {
+    this.decide(item.id, option.title, { option: option.letter })
+    this.review(item.id)
+  }
+
+  /**
+   * Replace item `id`'s details with `html`, or (`append`) add `html` after them;  returns its title.
+   * - for Claude's background agents during `/epic review`:  fuller details (Add Details), or a reply to Owen's
+   *   revisit note (a `div.plan-reply`, appended)
+   * - the answer card (`.plan-answer-block`) stays first and the commits (`.plan-commits`) last:  the new HTML goes
+   *   between them
+   * - an item without details gets a panel (`detailsOf()`);  stamped (`data-changed`) and flagged UPDATE
+   */
+  setDetails(id, html, { append = false } = {}) {
+    const item = this.item(id)
+    const content = this.detailsOf(item)
+    const answer = content.querySelector(":scope > .plan-answer-block")
+    const commits = content.querySelector(":scope > .plan-commits")
+    if (!append) {
+      for (const node of Array.from(content.childNodes)) if (node !== answer && node !== commits) node.remove()
+    }
+    const fragment = this.fragment(html)
+    if (commits) commits.before(fragment)
+    else content.append(fragment)
+    this.stamp(item)
+    this.markUpdate(item)
+    return titleOf(item)
   }
 
   ////////////////
@@ -1926,6 +2095,17 @@ function titleOf(item) {
 }
 
 /**
+ * An item's (element's) kind, from its id:  `question`, `judgement`, `caveat`, `issue`, `todo`, `test`;  an old
+ * doc's `d7`:  `decision`.
+ * - an answered question is still a `question` (its status says `decided`)
+ */
+function itemKind(item) {
+  if (OLD_DECISION.test(item.id)) return "decision"
+  const prefix = item.id.match(/^[a-z]+/)?.[0]
+  return Object.keys(KINDS).find((kind) => kind !== "decision" && KINDS[kind].prefix === prefix) ?? "item"
+}
+
+/**
  * The option an item's details mark "(recommended)", without the mark;  `null` when none.
  * - the innermost element saying it (a pros-cons label, a bold lead, a list item), so the text stays short
  * - `details`:  the item's `ui-content`, or `null`
@@ -2424,6 +2604,25 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   open <name>                                      show in VS Code's doc preview (right side bar)
   migrate <name>                                   bring an older doc (any layout) into the current one;
                                                    its decisions (D items) merge into its questions
+  inbox <name> [--json]                            the marks Owen left on the page (<name>.inbox.json), by
+                                                   action, sent or not;  requests for now, agents at work,
+                                                   the session listening
+  inbox <name> listen [--session <id>]  /  unlisten
+                                                   a session waits on the inbox (default:  this one,
+                                                   $CLAUDE_CODE_SESSION_ID) / stopped:  the page says which
+  inbox <name> wait [--timeout <s>] [--json]       block (default 3300s) until there's work, print it, exit 0:
+                                                   requests for now (taken;  their items marked working) and a
+                                                   send not yet handed over (its marks by action);  timeout:  exit 2;
+                                                   stamps the session's heartbeat every ${LISTEN_HEARTBEAT_MS / 1000}s (silent ${LISTEN_STALE_MS / 1000}s:  gone)
+  inbox <name> apply [ids...]                      apply the sent approve / pick / todo marks to the doc, clear
+                                                   them;  prints each, and what it left (revisits, a pick with a
+                                                   revisit:  to talk over)
+  inbox <name> working <id> on|off                 the page's spinner on an item
+  inbox <name> done <id>...                        an agent finished an item:  its mark and spinner go (a mark
+                                                   Owen changed meanwhile stays)
+  inbox <name> clear <id>...                       drop marks (a revisit talked over)
+  details <name> <id> --file <html> [--append]     replace an item's details with the file's HTML, or (--append)
+                                                   add it, e.g. a reply:  between the answer card and commits
 Every command but \`new\` edits the epic's LIVE doc:  its own worktree's, else main's, else any worktree's.
 --here:  THIS checkout's copy instead, for a sweep over every doc on this branch (never an epic's own edits).`
 
@@ -2546,6 +2745,16 @@ function main(argv) {
       return check(file, flags)
     case "open":
       return open(file)
+    case "inbox":
+      return inbox(name, file, rest, flags)
+    case "details": {
+      const id = need(rest[0], "an item id")
+      const html = readFileSync(need(flags.file, "--file <html file>"), "utf8")
+      return edit(file, (plan) => {
+        plan.setDetails(id, html, { append: Boolean(flags.append) })
+        plan.log(`${id.toUpperCase()} ${flags.append ? "reply added" : "details rewritten"}`)
+      })
+    }
     default:
       return usage()
   }
@@ -3062,6 +3271,299 @@ function printSummaries(files) {
     }
   }
   console.log(JSON.stringify(found, null, 2))
+}
+
+/**
+ * `inbox`:  the doc's review inbox (`inbox.js`), for a reply or (`json`) a script.
+ * - marks grouped by action (`ACTIONS`' order), oldest first, each with its item's title and whether it's sent
+ *   (`sent: false`:  newer than the last "send to Claude";  an immediate one, `details` or revisit `now`, counts
+ *   as sent:  `unsentMarks()`)
+ * - an item gone from the doc since it was marked:  title `null`, "(no such item)"
+ */
+function printInbox(plan, file, json) {
+  const path = inboxPath(file)
+  const inbox = readInbox(path)
+  const unsent = new Set(unsentMarks(inbox).map((mark) => mark.id))
+  const marks = Object.fromEntries(ACTIONS.map((action) => [action, []]))
+  for (const mark of markList(inbox)) {
+    const item = plan.findItem(mark.id)
+    marks[mark.action]?.push({ ...mark, title: item ? titleOf(item) : null, sent: !unsent.has(mark.id) })
+  }
+  const report = {
+    file: path,
+    sent: inbox.sent,
+    unsent: unsent.size,
+    marks,
+    now: inbox.now,
+    working: inbox.working,
+    // `live:  false`:  its heartbeat stopped (`liveListener()`):  the session is gone, the page says nobody
+    listening: inbox.listening && { ...inbox.listening, live: !!liveListener(inbox) }
+  }
+  if (json) return console.log(JSON.stringify(report, null, 2))
+  const lines = [`inbox:  ${relative(DOCS, path)}${existsSync(path) ? "" : "  (none:  no marks)"}`]
+  const { listening } = inbox
+  lines.push(
+    !listening
+      ? "listening:  nobody (no Claude session is reviewing this doc)"
+      : liveListener(inbox)
+        ? `listening:  session ${listening.session}, since ${listening.since}`
+        : `listening:  nobody (session ${listening.session} last seen ${listening.seen ?? listening.since}, over ${LISTEN_STALE_MS / 1000}s ago:  gone without \`unlisten\`)`
+  )
+  lines.push(`sent:  ${inbox.sent ?? "never"};  ${unsent.size} unsent`)
+  for (const action of ACTIONS) {
+    if (!marks[action].length) continue
+    lines.push(`${action} (${marks[action].length}):`)
+    for (const mark of marks[action])
+      lines.push(`  - ${mark.id.toUpperCase()}  ${mark.title ?? "(no such item)"}${extra(mark)}`)
+  }
+  if (inbox.now.length) lines.push(`now (${inbox.now.length}):`)
+  for (const each of inbox.now)
+    lines.push(`  - ${each.id.toUpperCase()}  ${each.action}${each.note ? `  "${each.note}"` : ""}  (${each.at})`)
+  const working = Object.entries(inbox.working)
+  if (working.length) lines.push(`working (${working.length}):`)
+  for (const [id, { action, since }] of working) lines.push(`  - ${id.toUpperCase()}  ${action}  (since ${since})`)
+  console.log(lines.join("\n"))
+
+  /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
+  function extra(mark) {
+    const parts = []
+    if (mark.pick) parts.push(`picks ${mark.pick}`)
+    if (mark.when) parts.push(mark.when)
+    if (mark.note) parts.push(`"${mark.note}"`)
+    if (!mark.sent) parts.push("unsent")
+    else if (isImmediate(mark)) parts.push("requested now")
+    return parts.length ? `  · ${parts.join(" · ")}` : ""
+  }
+}
+
+/**
+ * `inbox <name> [<what> ...]`:  the review inbox of epic `name`'s doc at `file`;  `what` none prints it.
+ * - every write goes through `updateInbox()` (the inbox's lock);  doc edits through `edit()` (the doc's)
+ * - the session's commands (`wait`, `apply`, `working`, `done`, `clear`) stamp its heartbeat (`touchListening()`):
+ *   a session busy between `wait`s still counts as listening
+ */
+function inbox(name, file, [what, ...args], flags) {
+  const path = inboxPath(file)
+  switch (what) {
+    case undefined:
+      return printInbox(read(file), file, flags.json)
+    case "listen": {
+      const session = typeof flags.session === "string" ? flags.session : process.env.CLAUDE_CODE_SESSION_ID
+      if (!session) throw new PlanDocError("listen as which session?  --session <id> (no $CLAUDE_CODE_SESSION_ID)")
+      updateInbox(path, (box) => setListening(box, session))
+      return console.log(`listening:  session ${session}`)
+    }
+    case "unlisten":
+      updateInbox(path, (box) => setListening(box, null))
+      return console.log("listening:  nobody")
+    case "wait":
+      return waitForWork(name, file, flags)
+    case "apply":
+      return applyInbox(name, file, args)
+    case "working": {
+      const id = toItemId(need(args[0], "an item id"))
+      const on = need(args[1], "on | off")
+      if (!["on", "off"].includes(on)) throw new PlanDocError(`working ${id} on | off, not '${on}'`)
+      updateInbox(path, (box) => {
+        setWorking(box, id, on === "on" ? workOf(box.marks[id]) : null)
+        touchListening(box)
+      })
+      return console.log(`${id.toUpperCase()} working:  ${on}`)
+    }
+    case "done":
+    case "clear": {
+      if (!args.length) throw new PlanDocError(`${what} which items?  ids`)
+      const ids = args.map(toItemId)
+      // `done` keeps a mark Owen changed while the agent worked (`finishMarks()`);  `clear` drops it
+      let had = []
+      let kept = []
+      updateInbox(path, (box) => {
+        if (what === "done") ({ had, kept } = finishMarks(box, ids))
+        else had = clearMarks(box, ids)
+        for (const id of ids) setWorking(box, id, null)
+        touchListening(box)
+      })
+      const none = ids.filter((id) => !had.includes(id) && !kept.includes(id))
+      const label = what === "done" ? "done" : "cleared"
+      const notes = [
+        none.length ? `no mark:  ${upper(none)}` : "",
+        kept.length ? `changed since, kept for the next send:  ${upper(kept)}` : ""
+      ].filter(Boolean)
+      return console.log(`${label}:  ${upper(ids)}${notes.length ? `  (${notes.join(";  ")})` : ""}`)
+    }
+    default:
+      throw new PlanDocError(`inbox what?  listen | unlisten | wait | apply | working | done | clear (not '${what}')`)
+  }
+
+  /** What an agent works on for a mark:  a revisit's answer, else details. */
+  function workOf(mark) {
+    return mark?.action === "revisit" ? "revisit" : "details"
+  }
+
+  /** `["q7", "i2"]` -> `Q7, I2` */
+  function upper(ids) {
+    return ids.map((id) => id.toUpperCase()).join(", ")
+  }
+}
+
+/**
+ * `inbox <name> wait`:  poll the inbox every second until there's work (`hasWork()`), TAKE it under the lock
+ * (`takeWork()`) and print it (`printWork()`);  none by `timeout` seconds (default 3300, 55 minutes):  exit code 2.
+ * - how a `/epic review` session hears the page:  run in the background, its EXIT wakes the session
+ * - the poll reads without the lock (atomic writes:  never half a file);  only taking locks
+ * - the session's HEARTBEAT:  stamps `listening.seen` at the start and every `LISTEN_HEARTBEAT_MS`
+ *   (`touchListening()`, one locked write), so a session killed mid-wait goes stale on the page (`liveListener()`)
+ */
+async function waitForWork(name, file, { timeout = 3300, json }) {
+  const path = inboxPath(file)
+  const seconds = Number(timeout)
+  if (!(seconds > 0)) throw new PlanDocError(`--timeout in seconds, not '${timeout}'`)
+  const end = Date.now() + seconds * 1000
+  let beat = 0
+  for (;;) {
+    let work = null
+    if (hasWork(peek(path))) updateInbox(path, (box) => (work = takeWork(box)))
+    if (work) return printWork(name, read(file), work, json)
+    if (Date.now() >= end) break
+    if (Date.now() - beat >= LISTEN_HEARTBEAT_MS) {
+      beat = Date.now()
+      heartbeat()
+    }
+    await sleep(1000)
+  }
+  if (json) console.log(JSON.stringify({ timeout: seconds, now: [], sent: null }))
+  else console.log(`nothing to do:  no send and no request in ${seconds}s`)
+  process.exitCode = 2
+
+  /** The inbox, or an empty one while it can't be read (hand-edited mid-poll):  the next poll tries again. */
+  function peek(path) {
+    try {
+      return readInbox(path)
+    } catch (error) {
+      if (error instanceof InboxError) return { now: [], sent: null }
+      throw error
+    }
+  }
+
+  /**
+   * Stamp the listening session's heartbeat;  nobody listening:  no write at all.  A file that can't be read
+   * (hand-edited mid-poll) is skipped:  the next beat tries again.
+   */
+  function heartbeat() {
+    if (!peek(path).listening) return
+    try {
+      updateInbox(path, (box) => touchListening(box))
+    } catch (error) {
+      if (!(error instanceof InboxError)) throw error
+    }
+  }
+}
+
+/**
+ * Print the work `wait` took (`takeWork()`'s `{ now, sent }`), each mark with its item (`describeItem()`):  id,
+ * kind, status, title, the mark, the note, a pick's option card.
+ * - plain lines for Claude to read, then what to run next;  `json`:  `{ now, sent }` with `item` (and `option`) on
+ *   each
+ */
+function printWork(name, plan, work, json) {
+  const now = work.now.map((each) => withItem(each))
+  const sent = work.sent && { at: work.sent.at, marks: work.sent.marks.map((mark) => withItem(mark)) }
+  if (json) return console.log(JSON.stringify({ now, sent }, null, 2))
+  const lines = []
+  if (now.length) {
+    lines.push(
+      `now (${now.length}):  start a background agent for each;  \`yarn plan-doc inbox ${name} done <id>\` after`
+    )
+    for (const each of now) {
+      lines.push(`  - ${line(each)}`)
+      if (each.action === "details") lines.push("      Add Details")
+      else if (each.pick) lines.push(`      revisit now:  ${pickAsks(each.pick, each.option, each.note)}`)
+      else lines.push(`      revisit now${each.note ? `:  "${each.note}"` : ""}`)
+    }
+  }
+  if (sent) {
+    lines.push(`sent ${sent.at} (${sent.marks.length} mark${sent.marks.length === 1 ? "" : "s"}):`)
+    for (const action of ACTIONS) {
+      const marks = sent.marks.filter((mark) => mark.action === action)
+      if (!marks.length) continue
+      lines.push(`  ${action === "revisit" ? "revisit, to talk over" : action} (${marks.length}):`)
+      for (const mark of marks) {
+        lines.push(`    - ${line(mark)}${mark.again ? "  (sent before)" : ""}`)
+        // a revisit with a pick:  "pick B, but ...", one line
+        if (mark.action === "revisit" && mark.pick) lines.push(`        ${pickAsks(mark.pick, mark.option, mark.note)}`)
+        else {
+          if (mark.option) lines.push(`        picks ${mark.pick} · ${mark.option.title}`)
+          else if (mark.pick) lines.push(`        picks ${mark.pick} (no such option card)`)
+          if (mark.note) lines.push(`        note:  "${mark.note}"`)
+        }
+      }
+    }
+    const talk = sent.marks.filter((mark) => mark.action === "revisit")
+    lines.push(`next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo)`)
+    if (talk.length)
+      lines.push(
+        `then talk over ${talk.map((mark) => mark.id).join(", ")} in the chat;  \`yarn plan-doc inbox ${name} clear <id>\` after each`
+      )
+  }
+  console.log(lines.join("\n"))
+
+  /** `mark` (or a `now` request) with its item, upper-case id, and a pick's option card. */
+  function withItem(mark) {
+    const item = plan.describeItem(mark.id)
+    const element = item && plan.findItem(mark.id)
+    const option =
+      mark.pick && element ? (plan.optionCards(element).find((card) => card.letter === mark.pick) ?? null) : undefined
+    return { ...mark, id: mark.id.toUpperCase(), item, ...(option !== undefined && { option }) }
+  }
+
+  /** `Q7  question, open · <title>` */
+  function line(mark) {
+    if (!mark.item) return `${mark.id}  (no such item)`
+    return `${mark.id}  ${mark.item.kind}, ${mark.item.status} · ${mark.item.title}`
+  }
+}
+
+/**
+ * "Pick B, but ...":  a revisit's pick and note as one phrase, `picks B · <card title>, asks:  "<note>"`.
+ * - `option`:  the card (`PlanDoc.optionCards()`'s);  none with that letter:  "(no such option card)"
+ * - `printWork()` (under "revisit, to talk over") and `PlanDoc.applyMark()` (what it left) say it the same way
+ */
+export function pickAsks(pick, option, note) {
+  const card = option ? `picks ${pick} · ${option.title}` : `picks ${pick} (no such option card)`
+  return note ? `${card}, asks:  "${note}"` : `${card}, no note`
+}
+
+/**
+ * `inbox <name> apply [ids...]`:  apply the SENT mechanical marks (`PlanDoc.applyMark()`:  approve, pick, todo),
+ * all or those of `ids`, then clear them;  prints a line per item, and what it left.
+ * - a dry run on a parsed copy first:  the doc is written (`edit()`, its lock) only when something applies
+ * - marks cleared under the inbox's lock, only while still the ones applied (`clearApplied()`);  marks of items gone
+ *   from the doc are dropped too
+ * - `ids` without a sent mark:  named, left alone (unsent marks wait for Owen's send)
+ */
+function applyInbox(name, file, ids) {
+  const path = inboxPath(file)
+  const want = ids.length ? new Set(ids.map(toItemId)) : null
+  const marks = sentMarks(readInbox(path)).filter((mark) => !want || want.has(mark.id))
+  const dry = read(file)
+  const planned = marks.map((mark) => ({ mark, ...dry.applyMark(mark) }))
+  const results = planned.some((each) => each.applied)
+    ? edit(file, (plan) => marks.map((mark) => ({ mark, ...plan.applyMark(mark) })))
+    : planned
+  const cleared = results.filter((each) => each.applied || each.gone).map((each) => each.mark)
+  updateInbox(path, (box) => {
+    clearApplied(box, cleared)
+    touchListening(box)
+  })
+  const lines = []
+  for (const each of results.filter((result) => result.applied))
+    lines.push(`${each.mark.id.toUpperCase()}  ${each.did}`)
+  const left = results.filter((result) => !result.applied)
+  if (left.length) lines.push("left:")
+  for (const each of left) lines.push(`  ${each.mark.id.toUpperCase()}  ${each.mark.action}:  ${each.left}`)
+  for (const id of want ?? [])
+    if (!marks.some((mark) => mark.id === id)) lines.push(`  ${id.toUpperCase()}:  no sent mark`)
+  console.log(lines.length ? lines.join("\n") : `nothing to apply:  no sent marks (\`yarn plan-doc inbox ${name}\`)`)
 }
 
 /**

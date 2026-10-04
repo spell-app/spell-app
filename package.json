@@ -64,6 +64,7 @@
     "routes": [
       "packages/docs/tools/goals/goalsRoutes.ts",
       "packages/docs/tools/detailsRoutes.ts",
+      "packages/docs/tools/reviewRoutes.ts",
       "packages/docs/tools/showRoutes.ts",
       "packages/app/src/server/appRoutes.ts"
     ],

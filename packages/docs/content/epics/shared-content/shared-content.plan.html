@@ -13,12 +13,8 @@
     <div class="spell-doc">
       <main class="spell-doc-main">
         <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
-          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
-            >Docs</ui-breadcrumb-section
-          >
-          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
-            >Epics</ui-breadcrumb-section
-          >
+          <ui-breadcrumb-section href="../../index.html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section href="../../index.html#epics">Epics</ui-breadcrumb-section>
           <ui-breadcrumb-section active>Shared Content</ui-breadcrumb-section>
         </ui-breadcrumb>
         <ui-sticky class="spell-h1"
@@ -78,9 +74,11 @@
                 has the copy it was cut with)
               </li>
               <li>
-                <a href="../../changelog.html" target="src-packages-docs-changelog-html"><code>changelog.html</code></a
-                >, <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a> and
-                <a href="../../../../../agents/PAPERCUTS.md" target="src-papercuts-md"
+                <a href="../../changelog.html" target="src-packages-docs-content-changelog-html"
+                  ><code>changelog.html</code></a
+                >,
+                <a href="../../index.html" target="src-packages-docs-content-index-html"><code>index.html</code></a> and
+                <a href="../../../../../agents/PAPERCUTS.md" target="src-agents-papercuts-md"
                   ><code>agents/PAPERCUTS.md</code></a
                 >
                 conflict on most merges: 7 of the last 50 commits were "Merge main into X", these files the repeat
@@ -108,16 +106,21 @@
                     </td>
                     <td>
                       ALL docs content, at the paths it has today under
-                      <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
-                      >: <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      <a href="../../" target="src-packages-docs-content"><code>packages/docs</code></a
+                      >:
+                      <a href="../../index.html" target="src-packages-docs-content-index-html"
+                        ><code>index.html</code></a
                       >,
-                      <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                      <a href="../../changelog.html" target="src-packages-docs-content-changelog-html"
                         ><code>changelog.html</code></a
-                      >, guide pages, <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
-                      >, <a href="../../solid/" target="src-packages-docs-solid"><code>solid/</code></a
-                      >, <a href="../../dev/" target="src-packages-docs-dev"><code>dev/</code></a
+                      >, guide pages, <a href="../" target="src-packages-docs-content-epics"><code>epics/</code></a
+                      >, <a href="../../solid/" target="src-packages-docs-content-solid"><code>solid/</code></a
+                      >, <a href="../../dev/" target="src-packages-docs-content-dev"><code>dev/</code></a
                       >,
-                      <a href="../../templates/" target="src-packages-docs-templates"><code>templates/</code></a> ...;
+                      <a href="../../templates/" target="src-packages-docs-content-templates"
+                        ><code>templates/</code></a
+                      >
+                      ...;
                       <code>details/</code>
                       (scratch, not committed)
                     </td>
@@ -126,20 +129,21 @@
                     <td><code>goals</code></td>
                     <td>
                       goal sets, the goals
-                      <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      <a href="../../index.html" target="src-packages-docs-content-index-html"
+                        ><code>index.html</code></a
                       >, <code>goals.preferences.json5</code>
                     </td>
                   </tr>
                   <tr>
                     <td><code>agents</code></td>
                     <td>
-                      <a href="../../../../../agents/PAPERCUTS.md" target="src-papercuts-md"
+                      <a href="../../../../../agents/PAPERCUTS.md" target="src-agents-papercuts-md"
                         ><code>agents/PAPERCUTS.md</code></a
                       >,
-                      <a href="../../../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      <a href="../../../../../agents/SUSPECTED-BUGS.md" target="src-agents-suspected-bugs-md"
                         ><code>agents/SUSPECTED-BUGS.md</code></a
                       >,
-                      <a href="../../../../../agents/CODE-DEBT.md" target="src-code-debt-md"
+                      <a href="../../../../../agents/CODE-DEBT.md" target="src-agents-code-debt-md"
                         ><code>agents/CODE-DEBT.md</code></a
                       >
                       (moved from the repo root)
@@ -286,7 +290,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                     <a href="../../../../../.claude/settings.json" target="src-claude-settings-json"
                       ><code>.claude/settings.json</code></a
                     >, committed on main (<code>eb96ac3c</code>), with a
-                    <a href="../../../../../agents/PAPERCUTS.md" target="src-papercuts-md"
+                    <a href="../../../../../agents/PAPERCUTS.md" target="src-agents-papercuts-md"
                       ><code>agents/PAPERCUTS.md</code></a
                     >
                     entry
@@ -399,8 +403,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 >; root logs into <a href="../../../../../agents/" target="src-agents"><code>agents/</code></a
                 >; every <code>_assets</code> path in the pages; root
                 <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a
-                >,
-                <a href="../../../tools/pages.js" target="src-packages-docs-scripts-pages-js"><code>pages.js</code></a
+                >, <a href="../../../tools/pages.js" target="src-packages-docs-tools-pages-js"><code>pages.js</code></a
                 >, <code>.claude/skills/goals*</code> links,
                 <a href="../../../../../CLAUDE.md" target="src-claude-md"><code>CLAUDE.md</code></a> /
                 <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> / skills /
@@ -502,9 +505,9 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
-                <a href="../../../tools/pages.js" target="src-packages-docs-scripts-pages-js"><code>pages.js</code></a>
+                <a href="../../../tools/pages.js" target="src-packages-docs-tools-pages-js"><code>pages.js</code></a>
                 <code>findPages</code>,
-                <a href="../../../tools/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                <a href="../../../tools/doc-links.js" target="src-packages-docs-tools-doc-links-js"
                   ><code>doc-links.js</code></a
                 >
                 <code>walk</code>,
@@ -517,10 +520,10 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 <a href="../../../../server/src/page/PageEditor.ts" target="src-packages-server-src-page-pageeditor-ts"
                   ><code>PageEditor.ts</code></a
                 >,
-                <a href="../../../tools/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
+                <a href="../../../tools/detailsRoutes.ts" target="src-packages-docs-tools-detailsroutes-ts"
                   ><code>detailsRoutes.ts</code></a
                 >,
-                <a href="../../../tools/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                <a href="../../../tools/plan-doc.js" target="src-packages-docs-tools-plan-doc-js"
                   ><code>plan-doc.js</code></a
                 >
                 (findDoc / listEpics / reindex guard),
@@ -703,7 +706,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> plan doc, durable doc,
-                <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                <a href="../../changelog.html" target="src-packages-docs-content-changelog-html"
                   ><code>changelog.html</code></a
                 ></ui-item
               ><ui-item icon="flask"><b>Verify:</b> <code>plan-doc check</code></ui-item></ui-list
@@ -776,7 +779,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                     <li>all docs and goals tooling moves to <code>packages/doc-tools</code> (<a href="#p2">P2</a>)</li>
                     <li>
                       the peer's
-                      <a href="../../../tools/_assets/" target="src-packages-docs-assets"
+                      <a href="../../../tools/_assets/" target="src-packages-docs-tools-assets"
                         ><code>packages/docs/tools/_assets</code></a
                       >
                       is a link back to <code>spell-app/packages/doc-tools/_assets</code>, so pages still open from
@@ -800,28 +803,32 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   </p>
                   <ul>
                     <li>
-                      <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
-                      >: every docs page as today, <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
+                      <a href="../../" target="src-packages-docs-content"><code>packages/docs</code></a
+                      >: every docs page as today,
+                      <a href="../" target="src-packages-docs-content-epics"><code>epics/</code></a
                       >,
-                      <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                      <a href="../../changelog.html" target="src-packages-docs-content-changelog-html"
                         ><code>changelog.html</code></a
-                      >, <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      >,
+                      <a href="../../index.html" target="src-packages-docs-content-index-html"
+                        ><code>index.html</code></a
                       >, guide pages, <code>details/</code> (scratch)
                     </li>
                     <li>
                       <code>goals</code>: the goal sets,
-                      <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      <a href="../../index.html" target="src-packages-docs-content-index-html"
+                        ><code>index.html</code></a
                       >, <code>goals.preferences.json5</code>
                     </li>
                     <li>
                       <code>agents</code>:
-                      <a href="../../../../../agents/PAPERCUTS.md" target="src-papercuts-md"
+                      <a href="../../../../../agents/PAPERCUTS.md" target="src-agents-papercuts-md"
                         ><code>agents/PAPERCUTS.md</code></a
                       >,
-                      <a href="../../../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      <a href="../../../../../agents/SUSPECTED-BUGS.md" target="src-agents-suspected-bugs-md"
                         ><code>agents/SUSPECTED-BUGS.md</code></a
                       >,
-                      <a href="../../../../../agents/CODE-DEBT.md" target="src-code-debt-md"
+                      <a href="../../../../../agents/CODE-DEBT.md" target="src-agents-code-debt-md"
                         ><code>agents/CODE-DEBT.md</code></a
                       >, moved from the repo root (the folder name is Owen's)
                     </li>
@@ -845,9 +852,10 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ><ui-content
                   ><p>
                     One tooling package for docs and goals:
-                    <a href="../../../tools/goals/" target="src-goals-tools"><code>packages/docs/tools/goals</code></a
+                    <a href="../../../tools/goals/" target="src-packages-docs-tools-goals"
+                      ><code>packages/docs/tools/goals</code></a
                     >,
-                    <a href="../../../tools/goals/skills/" target="src-goals-skills"
+                    <a href="../../../tools/goals/skills/" target="src-packages-docs-tools-goals-skills"
                       ><code>packages/docs/tools/goals/skills</code></a
                     >, its
                     <a href="../../../tsconfig.json" target="src-packages-docs-tsconfig-json"
@@ -902,11 +910,13 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   <span class="plan-title">commands.* move too; revisit later</span></ui-title
                 ><ui-content
                   ><p>
-                    <a href="../../dev/commands/commands.json" target="src-packages-docs-dev-commands-commands-json"
+                    <a
+                      href="../../dev/commands/commands.json"
+                      target="src-packages-docs-content-dev-commands-commands-json"
                       ><code>dev/commands/commands.json</code></a
                     >
                     / <code>.md</code> / <code>.html</code> move with the rest of
-                    <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
+                    <a href="../../" target="src-packages-docs-content"><code>packages/docs</code></a
                     >, even though <code>yarn commands:check</code> tests the JSON against the CLI code of the checkout
                     it runs in (Owen: "source lives in spell-app-dev, symlink into spell-app; we will revisit later").
                   </p>
@@ -914,7 +924,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   <ul>
                     <li>
                       see <a href="#c1">C1</a>; logged in
-                      <a href="../../../../../agents/CODE-DEBT.md" target="src-code-debt-md"
+                      <a href="../../../../../agents/CODE-DEBT.md" target="src-agents-code-debt-md"
                         ><code>agents/CODE-DEBT.md</code></a
                       >
                       in
@@ -995,12 +1005,12 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   ><p>
                     Replaces <a href="#q2">Q2</a>, <a href="#q3">Q3</a> and <a href="#q4">Q4</a> (Owen, 2026-10-04). The
                     docs and goals scripts live at <code>spell-app/packages/docs/tools</code>, tracked and versioned per
-                    branch. So <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> stays a real
-                    folder, and its content is linked one level down:
+                    branch. So <a href="../../" target="src-packages-docs-content"><code>packages/docs</code></a> stays
+                    a real folder, and its content is linked one level down:
                   </p>
                   <ul>
                     <li>
-                      <a href="../../" target="src-packages-docs"><code>packages/docs/</code></a> (tracked):
+                      <a href="../../" target="src-packages-docs-content"><code>packages/docs/</code></a> (tracked):
                       <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a
                       >, <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
                       >,
@@ -1010,14 +1020,16 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                     <li>
                       <a href="../../" target="src-packages-docs-content"><code>packages/docs/content</code></a
                       >: a link to <code>spell-app-dev/packages/docs/content</code>, holding ALL docs content:
-                      <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                      <a href="../../index.html" target="src-packages-docs-content-index-html"
+                        ><code>index.html</code></a
                       >,
-                      <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                      <a href="../../changelog.html" target="src-packages-docs-content-changelog-html"
                         ><code>changelog.html</code></a
-                      >, guide pages, <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
-                      >, <a href="../../solid/" target="src-packages-docs-solid"><code>solid/</code></a
-                      >, <a href="../../dev/" target="src-packages-docs-dev"><code>dev/</code></a
-                      >, <a href="../../templates/" target="src-packages-docs-templates"><code>templates/</code></a
+                      >, guide pages, <a href="../" target="src-packages-docs-content-epics"><code>epics/</code></a
+                      >, <a href="../../solid/" target="src-packages-docs-content-solid"><code>solid/</code></a
+                      >, <a href="../../dev/" target="src-packages-docs-content-dev"><code>dev/</code></a
+                      >,
+                      <a href="../../templates/" target="src-packages-docs-content-templates"><code>templates/</code></a
                       >, <code>details/</code>
                     </li>
                     <li><code>goals</code> and <code>agents</code>: whole-folder links, as before</li>
@@ -1068,7 +1080,9 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ><ui-content
                   ><p>
                     Page, plan doc, details and goals templates, and
-                    <a href="../../templates/epics/plan-doc.md" target="src-packages-docs-templates-epics-plan-doc-md"
+                    <a
+                      href="../../templates/epics/plan-doc.md"
+                      target="src-packages-docs-content-templates-epics-plan-doc-md"
                       ><code>plan-doc.md</code></a
                     >'s rules, are content:
                     <a href="../../templates/" target="src-packages-docs-content-templates"
@@ -1259,9 +1273,8 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                     <code>RunningEpics</code> (the docs index's running epics) and the CLI's
                     <code>epicsDir()</code> look in
                     <a href="../" target="src-packages-docs-content-epics"><code>packages/docs/content/epics</code></a
-                    >, else the old
-                    <a href="../../../epics/" target="src-packages-docs-epics"><code>packages/docs/epics</code></a
-                    >, so the 5 open worktrees keep working until <a href="#p6">P6</a> migrates them.
+                    >, else the old <code>packages/docs/epics</code>, so the 5 open worktrees keep working until
+                    <a href="#p6">P6</a> migrates them.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1378,7 +1391,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   <ul>
                     <li>
                       accepted for now (Owen: revisit later); a
-                      <a href="../../../../../agents/CODE-DEBT.md" target="src-code-debt-md"
+                      <a href="../../../../../agents/CODE-DEBT.md" target="src-agents-code-debt-md"
                         ><code>agents/CODE-DEBT.md</code></a
                       >
                       entry
@@ -1404,7 +1417,7 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   <p><b>Net effect:</b></p>
                   <ul>
                     <li>
-                      <a href="../../../tools/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                      <a href="../../../tools/check-spell.js" target="src-packages-docs-tools-check-spell-js"
                         ><code>check-spell.js</code></a
                       >
                       in a worktree should load pages from the page server when assets changed
@@ -1477,18 +1490,18 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                   <ul>
                     <li>
                       <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> files (e.g.
-                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-content-solid-solid-2-md"
                         ><code>packages/docs/content/solid/solid-2.md</code></a
                       >)
                     </li>
                     <li>skills, hooks, <code>commands.json</code>, code comments</li>
                     <li>
                       tools:
-                      <a href="../../../tools/pages.js" target="src-packages-docs-scripts-pages-js"
+                      <a href="../../../tools/pages.js" target="src-packages-docs-tools-pages-js"
                         ><code>pages.js</code></a
                       >
                       <code>DOCS</code>,
-                      <a href="../../../tools/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                      <a href="../../../tools/plan-doc.js" target="src-packages-docs-tools-plan-doc-js"
                         ><code>plan-doc.js</code></a
                       >,
                       <a
@@ -1737,11 +1750,11 @@ URL:  /packages/docs/content/solid/solid-2.html</code></pre>
                 ><ui-content
                   ><p>
                     Edit
-                    <a href="../../changelog.html" target="src-packages-docs-changelog-html"
+                    <a href="../../changelog.html" target="src-packages-docs-content-changelog-html"
                       ><code>changelog.html</code></a
                     >
                     in the page server's edit mode. Should: the change lands in the peer;
-                    <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> is still a link.
+                    <a href="../../" target="src-packages-docs-content"><code>packages/docs</code></a> is still a link.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item

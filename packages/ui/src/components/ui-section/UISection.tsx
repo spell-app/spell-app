@@ -3,6 +3,8 @@ import { Dynamic, type JSX } from "@solidjs/web"
 
 import {
   Cell,
+  Converters,
+  HostAttribute,
   IconGlyph,
   PartContext,
   proto,
@@ -16,6 +18,7 @@ import {
 
 import { sectionVocabulary } from "./ui-section.vocabulary.en"
 import { SectionFallback } from "./ui-section.fallback"
+import { UISections } from "./UISections"
 import {
   ACTIONS,
   BADGE,
@@ -62,6 +65,9 @@ import sectionCSS from "./ui-section.css?inline"
  *   Space go through the cancelable `ui-open` / `ui-close`, then `collapsed` flips (controlled, like accordion's
  *   `open`).  Folded content is `hidden="until-found"`, so find-in-page reveals a match:  `beforematch` unfolds it
  *   and announces `ui-open` after the fact (not cancelable).  Not collapsible:  `collapsed` is ignored.
+ * - Groups:  without its own `collapsible` attribute, a section folds when its nearest `<ui-sections>` (around it,
+ *   or around an enclosing section) is `collapsing` (`group`, `collapsible()`).  The group also owns `section`
+ *   parts, so `parent` climbs through it.
  * - Sticky:  the title bar is `position: sticky` inside the section box, at `top` ~== the top-level `offset`, or
  *   the bottom of the enclosing sticky titles (enclosing section's `stackBottom()`), so nested titles stack.  A
  *   `scrolling` / `height` section's content starts a fresh stack (its own scroll box).  `StickyWatch` reports
@@ -89,8 +95,12 @@ export class UISection extends UIElement<SectionVocabulary> {
   /** Glyph of the `icon` shorthand. */
   readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
-  /** Glyph of the fold button, while `collapsible`. */
-  readonly foldGlyph = new IconGlyph(this, () => (this.attrs.collapsible ? FOLD_ICON : undefined))
+  /**
+   * The host's `collapsible` attribute as written, `null` when absent;  tracked.
+   * - Why raw:  `attrs.collapsible` reads absent and `"false"` alike (false), but only absent takes the group's
+   *   default (`collapsible()`).
+   */
+  readonly collapsibleAttribute = new HostAttribute(this.host, this.definition.attribute("collapsible").attribute)
 
   /** `collapsed`:  the host's (a boolean is always the host's, see `Controlled`). */
   readonly collapsedState = this.controlled("collapsed", false)
@@ -114,11 +124,38 @@ export class UISection extends UIElement<SectionVocabulary> {
   // ## Derived state
   ////////////////
 
-  /** Enclosing section's controller, or `undefined` at the top (or before it has one). */
+  /**
+   * Enclosing section's controller, or `undefined` at the top (or before it has one).
+   * - Climbs through `<ui-sections>` groups (owners of `section` parts too):  a section in a group in a section is
+   *   still nested.
+   */
   readonly parent = createMemo((): UISection | undefined => {
-    const controller = (this.context.owner.get()?.owner as UIHost | undefined)?.controller
-    return controller instanceof UISection ? controller : undefined
+    let owner = UISection.ownerOf(this.context)
+    while (owner instanceof UISections) owner = UISection.ownerOf(owner.context)
+    return owner instanceof UISection ? owner : undefined
   })
+
+  /** Nearest `<ui-sections>` group's controller, directly or through enclosing sections, or `undefined`. */
+  readonly group = createMemo((): UISections | undefined => {
+    const owner = UISection.ownerOf(this.context)
+    if (owner instanceof UISections) return owner
+    return owner instanceof UISection ? owner.group() : undefined
+  })
+
+  /**
+   * Folds:  the host's own `collapsible` when written (`collapsible="false"` opts out), else the nearest group's
+   * `collapsing`.
+   * - NOTE: a PROPERTY write of `false` removes the attribute (booleans never reflect as `"false"`), which brings the
+   *   group's default back;  opt out from code with `setAttribute("collapsible", "false")`.
+   */
+  readonly collapsible = createMemo((): boolean => {
+    const own = this.collapsibleAttribute.get()
+    if (own !== null) return Converters.boolean(own, this.definition.attribute("collapsible").attribute)
+    return !!this.attrs.collapsible || !!this.group()?.attrs.collapsing
+  })
+
+  /** Glyph of the fold button, while `collapsible()`. */
+  readonly foldGlyph = new IconGlyph(this, () => (this.collapsible() ? FOLD_ICON : undefined))
 
   /** Heading level, 1 ... 6. */
   readonly level = createMemo((): number => {
@@ -147,7 +184,7 @@ export class UISection extends UIElement<SectionVocabulary> {
   readonly innerStackTop = createMemo((): number => (this.scrolls() ? 0 : this.stackBottom()))
 
   /** Folded:  `collapsible` and `collapsed`. */
-  readonly folded = createMemo(() => !!this.attrs.collapsible && !!this.collapsedState.get())
+  readonly folded = createMemo(() => this.collapsible() && !!this.collapsedState.get())
 
   /** Has an icon (shorthand or `icon` slot)? */
   readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))
@@ -246,17 +283,17 @@ export class UISection extends UIElement<SectionVocabulary> {
       >
         <Dynamic component={`${HEADING_TAG}${this.level()}`} class={HEADING} part={this.part("heading")}>
           <Dynamic
-            component={this.attrs.collapsible ? UIT.BUTTON : STATIC_TOGGLE_TAG}
-            type={this.attrs.collapsible ? UIT.BUTTON : undefined}
+            component={this.collapsible() ? UIT.BUTTON : STATIC_TOGGLE_TAG}
+            type={this.collapsible() ? UIT.BUTTON : undefined}
             class={TOGGLE}
             part={this.part("toggle")}
-            aria-expanded={this.attrs.collapsible ? (this.folded() ? UIT.FALSE : UIT.TRUE) : undefined}
-            aria-controls={this.attrs.collapsible ? CONTENT_ID : undefined}
-            title={this.attrs.collapsible ? this.text(this.folded() ? "unfold" : "fold") : undefined}
-            disabled={this.attrs.collapsible && this.attrs.disabled ? true : undefined}
+            aria-expanded={this.collapsible() ? (this.folded() ? UIT.FALSE : UIT.TRUE) : undefined}
+            aria-controls={this.collapsible() ? CONTENT_ID : undefined}
+            title={this.collapsible() ? this.text(this.folded() ? "unfold" : "fold") : undefined}
+            disabled={this.collapsible() && this.attrs.disabled ? true : undefined}
             onClick={this.onToggleClick}
           >
-            <Show when={this.attrs.collapsible}>
+            <Show when={this.collapsible()}>
               <span class={FOLD_ICON_CLASS} part={this.part("fold-icon")} aria-hidden={UIT.TRUE}>
                 {this.foldGlyph.svg()}
               </span>
@@ -319,7 +356,7 @@ export class UISection extends UIElement<SectionVocabulary> {
    * - Does nothing unless `collapsible`, or while `disabled`.
    */
   toggle(originalEvent?: Event): boolean {
-    if (!untrack(() => this.attrs.collapsible) || untrack(() => this.isDisabled())) return false
+    if (!untrack(this.collapsible) || untrack(() => this.isDisabled())) return false
     const opening = untrack(this.folded)
     const detail: UIT.SectionToggleDetail = { open: opening, section: this.host, originalEvent }
     return this.collapsedState.request(!opening, () => this.emit(opening ? "ui-open" : "ui-close", detail))
@@ -330,6 +367,11 @@ export class UISection extends UIElement<SectionVocabulary> {
     // a link or control inside a rich `slot="header"` title acts on its own, as in an accordion's title
     if (UISection.fromControl(event)) return
     this.toggle(event)
+  }
+
+  /** Controller of the nearest owner `context` resolved (a section or a group), or `undefined`;  tracked. */
+  private static ownerOf(context: PartContext): unknown {
+    return (context.owner.get()?.owner as UIHost | undefined)?.controller
   }
 
   /** Did the click land on a control inside the title, before reaching the fold button? */

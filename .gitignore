@@ -20,3 +20,7 @@ PARKED-*.md
 # `/details` scratch pages and their answers (`yarn details new`):  never committed;  an epic's go in
 # `packages/docs/content/epics/<name>/details/`, which is
 packages/docs/content/details/
+
+# plan docs' review inboxes (`packages/docs/tools/inbox.js`), with their lock and temp file:  Owen's marks waiting
+# for a Claude session, per machine;  what Claude makes of them goes into the plan doc, which is committed
+packages/docs/content/epics/*/*.inbox.json*

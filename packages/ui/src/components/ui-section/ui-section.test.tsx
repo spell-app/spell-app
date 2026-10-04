@@ -491,6 +491,153 @@ describe("<ui-section> sticky", () => {
   })
 })
 
+describe("<ui-sections>", () => {
+  /** Render a group;  returns it and its sections by id. */
+  async function group(html: string) {
+    const host = await ElementFixture.render<UIHost & { collapsing: boolean }>(html)
+    const byId = (id: string) => host.querySelector<SectionHost>(`#${id}`)!
+    return { host, byId }
+  }
+
+  /** Does `section` fold:  its toggle is a `<button>`? */
+  function foldable(section: Element) {
+    return parts(section).toggle.localName === "button"
+  }
+
+  /** `section`'s box (the shadow `<section>`):  its page rectangle. */
+  function box(section: Element) {
+    return parts(section).root.getBoundingClientRect()
+  }
+
+  it.each([
+    ["", "ui sections"],
+    ["collapsing", "ui collapsing sections"]
+  ])("<ui-sections %s> renders a group box around a slot", async (attributes, classes) => {
+    const { host } = await group(`<ui-sections ${attributes}><ui-section header="A">x</ui-section></ui-sections>`)
+    const root = host.shadowRoot!.querySelector<HTMLElement>("[part~=group]")!
+    expect(root.localName).toBe("div")
+    expect(root.className).toBe(classes)
+    expect(root.querySelector("slot:not([name])")).not.toBeNull()
+  })
+
+  it("`collapsing`:  every section in it folds by default, sub-sections included", async () => {
+    const { byId } = await group(
+      `<ui-sections collapsing>` +
+        `<ui-section id="a" header="A"><ui-section id="b" header="B"><ui-section id="c" header="C">x</ui-section>` +
+        `</ui-section></ui-section><ui-section id="d" header="D" collapsed>y</ui-section></ui-sections>`
+    )
+    for (const id of ["a", "b", "c", "d"]) await expect.poll(() => foldable(byId(id))).toBe(true)
+    expect(folded(parts(byId("d")).content)).toBe(true)
+    await userEvent.click(parts(byId("b")).toggle)
+    await ElementFixture.tick()
+    await expect.poll(() => byId("b").collapsed).toBe(true)
+  })
+
+  it('a section opts out with `collapsible="false"`;  its sub-sections still follow the group', async () => {
+    const { byId } = await group(
+      `<ui-sections collapsing><ui-section id="a" header="A" collapsible="false" collapsed>` +
+        `<ui-section id="b" header="B">x</ui-section></ui-section></ui-sections>`
+    )
+    await expect.poll(() => foldable(byId("b"))).toBe(true)
+    expect(foldable(byId("a"))).toBe(false)
+    expect(folded(parts(byId("a")).content)).toBe(false)
+    expect(byId("a").getAttribute("collapsible")).toBe("false")
+  })
+
+  it("a plain group changes nothing:  sections fold only with their own `collapsible`", async () => {
+    const { byId } = await group(
+      `<ui-sections><ui-section id="a" header="A">x</ui-section>` +
+        `<ui-section id="b" header="B" collapsible>y</ui-section></ui-sections>`
+    )
+    await expect.poll(() => foldable(byId("b"))).toBe(true)
+    expect(foldable(byId("a"))).toBe(false)
+  })
+
+  it("the NEAREST group decides:  a plain group inside a collapsing one turns the default off", async () => {
+    const { byId } = await group(
+      `<ui-sections collapsing><ui-section id="a" header="A">` +
+        `<ui-sections><ui-section id="b" header="B">x</ui-section></ui-sections></ui-section></ui-sections>`
+    )
+    await expect.poll(() => foldable(byId("a"))).toBe(true)
+    expect(foldable(byId("b"))).toBe(false)
+  })
+
+  it("follows `collapsing` set and removed later, and a section moved into the group", async () => {
+    const { host, byId } = await group(`<ui-sections><ui-section id="a" header="A">x</ui-section></ui-sections>`)
+    expect(foldable(byId("a"))).toBe(false)
+    host.toggleAttribute("collapsing", true)
+    await ElementFixture.tick()
+    await expect.poll(() => foldable(byId("a"))).toBe(true)
+    const outside = await ElementFixture.render<SectionHost>(`<ui-section id="moved" header="M">y</ui-section>`)
+    expect(foldable(outside)).toBe(false)
+    host.append(outside)
+    await ElementFixture.tick()
+    await expect.poll(() => foldable(outside)).toBe(true)
+    host.toggleAttribute("collapsing", false)
+    await ElementFixture.tick()
+    await expect.poll(() => foldable(byId("a"))).toBe(false)
+  })
+
+  it("levels and :state(in-sections):  a group is transparent to nesting", async () => {
+    const { host, byId } = await group(
+      `<ui-section id="outer" header="Outer"><ui-sections id="inner-group" collapsing>` +
+        `<ui-section id="a" header="A"><ui-section id="b" header="B">x</ui-section></ui-section>` +
+        `</ui-sections></ui-section>`
+    )
+    await expect.poll(() => parts(byId("a")).heading.localName).toBe("h3")
+    await expect.poll(() => parts(byId("b")).heading.localName).toBe("h4")
+    expect(byId("a").matches(":state(in-sections)")).toBe(true)
+    expect(byId("a").matches(":state(in-section)")).toBe(false)
+    expect(byId("b").matches(":state(in-section)")).toBe(true)
+    expect(host.querySelector("#inner-group")!.matches(":state(in-section)")).toBe(true)
+    expect(foldable(host)).toBe(false)
+  })
+
+  it("stacks folded sections with no space between;  an open one keeps its space below, not above", async () => {
+    const { byId } = await group(
+      `<ui-sections collapsing>` +
+        `<ui-section id="a" header="A" dividing collapsed>x</ui-section>` +
+        `<ui-section id="b" header="B" dividing collapsed>x</ui-section>` +
+        `<ui-section id="c" header="C" dividing>open</ui-section>` +
+        `<ui-section id="d" header="D" dividing collapsed>x</ui-section>` +
+        `</ui-sections>`
+    )
+    await expect.poll(() => folded(parts(byId("a")).content)).toBe(true)
+    const [a, b, c, d] = ["a", "b", "c", "d"].map((id) => box(byId(id)))
+    expect(b!.top - a!.bottom).toBeCloseTo(0, 0)
+    expect(c!.top - b!.bottom).toBeCloseTo(0, 0)
+    expect(d!.top - c!.bottom).toBeCloseTo(24, 0)
+  })
+
+  it("keeps the usual space in a plain group, and a section's space around the group", async () => {
+    const { host, byId } = await group(
+      `<div><p style="margin: 0">Before</p><ui-sections id="g">` +
+        `<ui-section id="a" header="A" collapsible collapsed>x</ui-section>` +
+        `<ui-section id="b" header="B" collapsible collapsed>x</ui-section></ui-sections></div>`
+    )
+    await expect.poll(() => folded(parts(byId("a")).content)).toBe(true)
+    expect(box(byId("b")).top - box(byId("a")).bottom).toBeCloseTo(24, 0)
+    const before = host.querySelector("p")!.getBoundingClientRect()
+    expect(box(byId("a")).top - before.bottom).toBeCloseTo(24, 0)
+  })
+
+  it("overlaps stacked boxes' edges:  no doubled border, and the first box stays inside the group", async () => {
+    const { host, byId } = await group(
+      `<ui-sections collapsing>` +
+        `<ui-section id="a" header="A" styled collapsed>x</ui-section>` +
+        `<ui-section id="b" header="B" styled collapsed>x</ui-section>` +
+        `<ui-section id="c" header="C" styled>open</ui-section>` +
+        `</ui-sections>`
+    )
+    await expect.poll(() => folded(parts(byId("a")).content)).toBe(true)
+    const border = parseFloat(getComputedStyle(parts(byId("a")).root).borderBottomWidth)
+    expect(border).toBeGreaterThan(0)
+    expect(box(byId("a")).bottom - box(byId("b")).top).toBeCloseTo(border, 1)
+    expect(box(byId("b")).bottom - box(byId("c")).top).toBeCloseTo(border, 1)
+    expect(box(byId("a")).top).toBeCloseTo(host.getBoundingClientRect().top, 1)
+  })
+})
+
 describe("<ui-section> native fallback", () => {
   it("renders the same class grammar and pieces when its render throws", async () => {
     const { host } = await section(

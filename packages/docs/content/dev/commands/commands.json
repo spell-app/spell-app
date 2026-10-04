@@ -1254,6 +1254,131 @@
           "target": "(R1) `spell dev plan-doc summary --json`;  /epic /wtf /bedtime read it"
         },
         {
+          "op": "Show a plan doc's review inbox",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`inbox`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "`review`:  the marks Owen left on the page"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`inbox [--json]`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js inbox` (reads `scripts/inbox.js`'s `<name>.inbox.json`)",
+          "notes": "The page writes the inbox through the page server (`scripts/reviewRoutes.ts`).",
+          "target": "(R1) `spell dev plan-doc inbox --json`;  /epic review reads it"
+        },
+        {
+          "op": "Listen on a review inbox",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`inbox <name> listen | unlisten`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "`review`:  on start / on leaving"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`inbox <name> listen [--session <id>]`, `unlisten`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js inbox listen` (`inbox.js` `setListening()`)",
+          "notes": "`--session` defaults to `$CLAUDE_CODE_SESSION_ID`;  while nobody listens, the page says marks wait for the next review (D6).",
+          "target": "(R1) `spell dev plan-doc inbox listen`"
+        },
+        {
+          "op": "Wait for review marks",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`inbox <name> wait`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "`review`:  run in the background;  its exit wakes the session"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`inbox <name> wait [--timeout <s>] [--json]`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js inbox wait` (`inbox.js` `takeWork()`)",
+          "notes": "Polls every 1s;  exits 0 with requests for now (taken, items marked working) and a send not yet handed over (its marks by action);  exits 2 on timeout (default 3300s).",
+          "target": "(R1) `spell dev plan-doc inbox wait`"
+        },
+        {
+          "op": "Apply sent review marks",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`inbox <name> apply`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "`review`:  after a send"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`inbox <name> apply [ids...]`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js inbox apply` (`PlanDoc.applyMark()`)",
+          "notes": "Approve, pick, todo edit the doc and clear their marks;  revisits are left to talk over.",
+          "target": "(R1) `spell dev plan-doc inbox apply`"
+        },
+        {
+          "op": "Finish or drop review marks",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`inbox <name> working | done | clear`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "`review`:  after an agent's work, or a revisit talked over"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`inbox <name> working <id> on|off`, `done <id>...`, `clear <id>...`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js inbox done` (`inbox.js` `setWorking()`, `clearMarks()`)",
+          "target": "(R1) `spell dev plan-doc inbox done`"
+        },
+        {
+          "op": "Write an item's details",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`details`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "`review`:  Add Details and revisit-now agents"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`details <name> <id> --file <html> [--append]`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js details` (`PlanDoc.setDetails()`)",
+          "notes": "Under the doc's lock, so an agent's write doesn't race the session's other edits;  keeps the answer card first and the commits last.",
+          "target": "(R1) `spell dev plan-doc details`"
+        },
+        {
           "op": "Check a plan doc",
           "cli": {
             "mark": "same",
