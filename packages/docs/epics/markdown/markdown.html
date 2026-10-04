@@ -1335,6 +1335,24 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d23" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d23">D23</a>
+                  <span class="plan-title"
+                    >P2.2b diff: unescaped [ { ( only open a list / subrule / choice (fixes I5)</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Owen: fix I5 next. Review gate (<a href="#d7">D7</a>). <code>symbolRule</code>'s unescaped branch
+                    blacklists <code>[ { (</code> as well as <code>| )</code>; a literal one needs
+                    <code>\[ \{ \(</code>. And a syntax rulex can't read at all gets the same "couldn't read" message as
+                    leftovers. Rulex's own symbol tests that took a bare <code>(</code> / <code>[</code> as a literal
+                    change to no match. Spell: its literal parens and brackets are already escaped; the suite confirms.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1546,7 +1564,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i5" data-status="open"
+            ><ui-item id="i5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i5">I5</a>
@@ -1802,6 +1820,20 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T01:39-04:00">2026-10-04 01:39</time></ui-date> I1 closed: Rulex
                   silently drops the rest of a syntax it can't read</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:40-04:00">2026-10-04 01:40</time></ui-date> P2.2b (I5) staged
+                  for review: parser 422 + spell 788 green; speed 70 -&gt; 69 ms</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:08-04:00">2026-10-04 02:08</time></ui-date> I5 closed: Rulex:
+                  an unclosed [ { ( quietly becomes a literal symbol</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

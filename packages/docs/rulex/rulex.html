@@ -248,7 +248,10 @@ math.addRule(plus, {
                   <td>escaped symbol</td>
                   <td><code>\?</code> <code>\(</code> <code>\|</code></td>
                   <td><code>Symbol("?")</code></td>
-                  <td>Any symbol, including the special ones. <code>|</code> and <code>)</code> MUST be escaped</td>
+                  <td>
+                    Any symbol, including the special ones. As literals, <code>| ) ( [ {</code> MUST be escaped: bare,
+                    they close or open a choice / list / subrule
+                  </td>
                 </tr>
                 <tr>
                   <td>subrule</td>
@@ -705,8 +708,9 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
                 <code>|b</code> in <code>(a|b</code>". No spell syntax relied on the drop.
               </li>
               <li>
-                Still open: an unescaped <code>[</code>, <code>{</code> or <code>(</code> that doesn't close becomes a
-                literal symbol, so <code>[{sub}]</code> compiles whole, to literal brackets. Next in P2.
+                And an unescaped <code>[</code>, <code>{</code> or <code>(</code> only ever OPENS a list, subrule or
+                choice. Before, one that didn't close quietly became a literal symbol (<code>[{sub}]</code> compiled to
+                literal brackets); now it throws. A literal one is <code>\[</code>, <code>\{</code>, <code>\(</code>.
               </li>
             </ul>
           </ui-message>

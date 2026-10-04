@@ -28,17 +28,10 @@ export class RulexParser extends Parser {
   compile(input: string | P.Token | P.Token[], ruleName = this.defaultRule, scope = this.getScope()): P.Rule {
     const tokens = this.tokenize(input, ruleName) ?? []
     const match = this.parse(tokens, ruleName, scope)
-    if (!match) {
+    const read = match?.length ?? 0
+    if (!match || read < tokens.length) {
       throw new P.ParserError({
-        message: "Can't parse input",
-        context: this,
-        activity: "compile",
-        params: { input, ruleName, scope }
-      })
-    }
-    if (match.length < tokens.length) {
-      throw new P.ParserError({
-        message: `rulex couldn't read \`${P.Tokenizer.join(tokens, match.length)}\` in \`${P.Tokenizer.join(tokens)}\``,
+        message: `rulex couldn't read \`${P.Tokenizer.join(tokens, read)}\` in \`${P.Tokenizer.join(tokens)}\``,
         context: this,
         activity: "compile",
         params: { input, ruleName }
