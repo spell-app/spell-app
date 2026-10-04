@@ -136,7 +136,16 @@ const ICONS = {
   "solid/paper-plane": ["paper plane"],
   "solid/plug": ["plug"],
   "solid/circle-play": ["circle play"],
-  "solid/circle-pause": ["circle pause"] // the docs index:  a stalled epic
+  "solid/circle-pause": ["circle pause"], // the docs index:  a stalled epic
+  // plan docs' review (epic `review-review`):  section icons, the item action menu and filter, the page header's
+  // send / files / git buttons
+  "solid/file-circle-question": ["file circle question"],
+  "solid/filter": ["filter"],
+  "solid/ellipsis": ["ellipsis", "ellipsis horizontal"],
+  "regular/circle-check": ["circle check outline", "check circle outline"],
+  "regular/paper-plane": ["paper plane outline"],
+  "regular/folder": ["folder outline"],
+  "../fa7-brands/brands/git-alt": ["git", "git alt"] // the brands pack, beside `ICON_PACK`
 }
 
 /** Bare specifiers that MUST resolve from UI's root:  Solid (all subpaths) and the element-layer fork. */

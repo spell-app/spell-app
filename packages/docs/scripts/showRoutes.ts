@@ -4,7 +4,9 @@
  * - Why:  the Claude panel in VS Code follows only http(s) and file links;  a `vscode://...doc-preview` link does
  *   nothing there.  So the link Claude gives goes through the page server, which asks the VS Code window to show the
  *   page in its "Spell Docs" view (the right side bar).
- * - `GET /api/docs/show?path=<url path>[&window=<pid>][&hash=<id>][&in=browser]` -- what `yarn docs:link` prints
+ * - `GET /api/docs/show?path=<url path>[&window=<pid>][&hash=<id>][&view=review][&in=browser]` -- what
+ *   `yarn docs:link` prints
+ *   - `view=review`:  in the side bar's "Review" tab;  else its "Spell Docs" tab
  *   - `path`:  the page's URL path on this server (`/packages/docs/...`, `/worktrees/<w>/...`), mapped to its file
  *     through the server's mounts;  only `.html`
  *   - `window`:  the VS Code window's pid (its registry entry, `scripts/window.mjs`);  gone (reloaded), or not given:
@@ -44,8 +46,11 @@ const showRoutes: RouteModule = {
       }
       const window = pickWindow(Number(request.query.window), file)
       if (!window) throw new SRV.HttpError(404, "no VS Code window with the spell extension is open")
-      await Window.request("show-doc", hash ? { file, hash } : { file }, window)
-      reply.set("Cache-Control", "no-store").send(closingPage(path, "VS Code's side bar"))
+      const review = request.query.view === "review"
+      await Window.request("show-doc", { file, ...(hash && { hash }), ...(review && { view: "review" }) }, window)
+      reply
+        .set("Cache-Control", "no-store")
+        .send(closingPage(path, `VS Code's side bar (${review ? "Review" : "Spell Docs"})`))
       if (process.platform === "darwin") setTimeout(focusVSCode, FOCUS_DELAY)
     })
   }

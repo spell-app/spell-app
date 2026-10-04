@@ -17,7 +17,7 @@ Overnight section once he has.
   log, so removing it loses nothing.
 - Bedtime mode is on while the section says so:  `yarn plan-doc summary <name> --json` has `"overnight": "active"`.
   That's how a compacted session knows it's still running.
-- Style:  caveman lite, as in `/epic`.
+- Style:  as in `/epic`:  the plan doc written for Owen coming back cold (`plan-doc.md`, "Rules").
 
 ## 1. Find the phases
 
@@ -106,7 +106,8 @@ Everything else stands:  `yarn vscode` after each stage, the parser speed test o
    - `add <name> issue ...`, and `overnight <name> problem "P<n> WIP:  <what fails>  (I<k>)"`
    - go on only with later phases that don't build on this one;  skip the rest, saying why:
      `overnight <name> problem "P<m> skipped:  builds on WIP P<n>"`
-5. `yarn plan-doc phase <name> <N> done` (not for a WIP phase:  it stays `active`).
+5. `yarn plan-doc phase <name> <N> done --done "<ul>...</ul>"` (what was built, as `/epic` writes it;  not for a WIP
+   phase:  it stays `active`).
 6. `yarn plan-doc log <name> "P<n> done|WIP:  <what was built>;  checks:  <results>"`, BEFORE the commit so the line
    goes in with it.
 7. Commit:  `P<n>:  <Name> -- <one-line summary>` (`WIP P<n>:  ...` for WIP).

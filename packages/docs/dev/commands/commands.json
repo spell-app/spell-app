@@ -433,7 +433,7 @@
           "yarn": {
             "mark": "same",
             "names": ["root window"],
-            "note": "`show <file>`;  also `root plan-doc` `open`"
+            "note": "`show <file> [--review]`;  also `root plan-doc` `open`"
           },
           "runs": "`scripts/window.mjs show` (`Window.show`), from `packages/docs/scripts/pages.js` `openInVSCode`",
           "notes": "Waits for a pending handoff, then shows in the new window.",
@@ -2038,10 +2038,10 @@
           "yarn": {
             "mark": "other",
             "names": ["root docs:open", "docs docs:open"],
-            "note": "`--vs`"
+            "note": "`--vs`;  `--review`:  the side bar's Review tab"
           },
           "runs": "`scripts/open.js` -> `pages.js` `openInVSCode()` -> extension `DocPreview`",
-          "notes": "One preview shared with `plan-doc open`.  /spell-docs runs `yarn serve` first.",
+          "notes": "Two side bar tabs, each keeping its page:  Spell Docs (shared with `plan-doc open`) and Review (`--review`).  /spell-docs runs `yarn serve` first.",
           "target": "(R2) `spell dev docs open --vs`;  /spell-docs calls it"
         },
         {

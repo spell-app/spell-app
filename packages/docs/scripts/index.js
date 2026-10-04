@@ -86,10 +86,12 @@ console.log(`${INDEX}:  ${GROUPS.map((g) => `${pages.filter((p) => g.has(p.path)
 /**
  * What the index shows for page `path`:  title, description, and a plan's status.
  * - title falls back to the file name, so a page without one still shows up (and looks wrong enough to fix)
+ * - a plan doc's title without its `Epic: ` (`plan-doc.js` `TITLE_PREFIX`):  its card is in Epics already
  */
 function describe(path) {
   const { document } = parseHTML(readFileSync(join(DOCS, path), "utf8"))
-  const title = document.querySelector("title")?.textContent.trim() || path
+  const full = document.querySelector("title")?.textContent.trim() || path
+  const title = path.startsWith("epics/") ? full.replace(/^Epic:\s*/, "") : full
   const description = document.querySelector('meta[name="description"]')?.getAttribute("content")?.trim() ?? ""
   // a plan's phases:  its phase sections in `#phases` (every plan doc has them):  `<ui-section data-phase>`, or
   // `section[data-phase]` in a doc not yet migrated (`plan-doc.js` reads them the same way).  Epics only:  the
