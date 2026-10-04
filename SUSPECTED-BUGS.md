@@ -439,6 +439,10 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- `packages/app/src/runner/RunnerConsole.tsx` `RunnerConsole()`:  `const console = props.console` reads a prop in the
+  component BODY, an untracked scope:  Solid 2's `STRICT_READ_UNTRACKED` should warn in dev, and a later
+  `console` prop change is never seen.  Prove:  dev build, open a runner, look for the diagnostic;  fix with
+  `untrack(() => props.console)` if it's deliberately read once (`solid-2.md` "Reads").  Found by `/epic wwod` P2.
 - `packages/spell/src/node/response-utils.ts` `sendJSFile` / `request_getCompiled` / `request_getScopes` [V]: the content-type is set
   to `text/javascript` BEFORE the existence check, so a not-found 404 carries a JSON `{errors}` body labelled `text/javascript`.
 - `packages/app/src/ui/ConsoleLines.tsx` (and its Solid twin `src/solid/ConsoleLines.tsx`) `<ConsoleObject>`:  a logged `true`,
