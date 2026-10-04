@@ -1712,6 +1712,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@spell-app/brand@workspace:packages/brand":
+  version: 0.0.0-use.local
+  resolution: "@spell-app/brand@workspace:packages/brand"
+  languageName: unknown
+  linkType: soft
+
 "@spell-app/cli@workspace:packages/cli":
   version: 0.0.0-use.local
   resolution: "@spell-app/cli@workspace:packages/cli"

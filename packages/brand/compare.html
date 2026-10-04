@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Compare</title>
+    <meta
+      name="description"
+      content="One of Claude Design's brand pages beside its Spell UI copy, side by side or overlaid, at the same width."
+    />
+    <link rel="stylesheet" href="../docs/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="_assets/brand-pages.css" />
+  </head>
+  <body>
+    <spell-site-header root="../.."></spell-site-header>
+    <!--
+      Compare view:  `compare.html?page=<Name>&mode=side|overlay|dc|spell&width=<px>&mix=<0-100>`.
+      - behaviour:  `_assets/brand-pages.js`, "Compare";  layout:  `_assets/brand-pages.css`
+    -->
+    <div class="brand-compare" data-mode="side">
+      <div class="brand-bar">
+        <ui-select class="brand-page-menu" aria-label="Page"></ui-select>
+        <ui-buttons size="small" basic>
+          <ui-button data-mode="side" icon="table columns">Side by side</ui-button>
+          <ui-button data-mode="overlay" icon="layer group">Overlay</ui-button>
+          <ui-button data-mode="dc">Original</ui-button>
+          <ui-button data-mode="spell">Spell</ui-button>
+        </ui-buttons>
+        <ui-buttons size="small" basic>
+          <ui-button data-width="390">390</ui-button>
+          <ui-button data-width="768">768</ui-button>
+          <ui-button data-width="1280">1280</ui-button>
+          <ui-button data-width="1600">1600</ui-button>
+        </ui-buttons>
+        <label class="brand-mix-field"
+          >Copy on top <ui-slider class="brand-mix" min="0" max="100" step="5" aria-label="Copy opacity"></ui-slider
+        ></label>
+        <span class="brand-open">
+          <ui-button
+            class="brand-open-dc"
+            size="small"
+            basic
+            circular
+            icon="up right from square"
+            target="brand-dc"
+            aria-label="Open the original in a new tab"
+          ></ui-button>
+          <ui-popup inverted size="mini" content="Open the original in a new tab"></ui-popup>
+          <ui-button
+            class="brand-open-spell"
+            size="small"
+            basic
+            circular
+            icon="up right from square"
+            target="brand-spell"
+            aria-label="Open the Spell UI copy in a new tab"
+          ></ui-button>
+          <ui-popup inverted size="mini" content="Open the Spell UI copy in a new tab"></ui-popup>
+        </span>
+      </div>
+      <div class="brand-panes">
+        <figure class="brand-pane" data-version="dc">
+          <figcaption>Original · Claude Design</figcaption>
+          <div class="brand-frame-box"><iframe title="Original"></iframe></div>
+        </figure>
+        <figure class="brand-pane" data-version="spell">
+          <figcaption>Copy · Spell UI</figcaption>
+          <div class="brand-frame-box">
+            <iframe title="Spell UI copy"></iframe>
+            <p class="brand-missing">Not built yet.</p>
+          </div>
+        </figure>
+      </div>
+    </div>
+    <script src="../docs/_assets/spell-ui.js"></script>
+    <script src="_assets/brand-pages.js"></script>
+  </body>
+</html>
