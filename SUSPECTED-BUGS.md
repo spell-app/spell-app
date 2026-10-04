@@ -448,6 +448,11 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- [V] `src/runner/element.build.test.ts` "one Solid per page":  Solid is found in `ui/customElement.js` as well as
+  `spell-solid.js`, so the test fails -- with or without the `markdown` epic's changes (checked 2026-10-04 by
+  reverting `Markdown.tsx`;  likely from `main`'s merge that day).  Prove:  `yarn vitest run --project node
+  src/runner/element.build.test.ts` in `packages/app`.
+
 - `packages/spell/src/node/response-utils.ts` `sendJSFile` / `request_getCompiled` / `request_getScopes` [V]: the content-type is set
   to `text/javascript` BEFORE the existence check, so a not-found 404 carries a JSON `{errors}` body labelled `text/javascript`.
 - `packages/app/src/ui/ConsoleLines.tsx` (and its Solid twin `src/solid/ConsoleLines.tsx`) `<ConsoleObject>`:  a logged `true`,

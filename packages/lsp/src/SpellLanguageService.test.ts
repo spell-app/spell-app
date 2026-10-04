@@ -170,6 +170,32 @@ describe("SpellLanguageService", () => {
       })
     })
 
+    test("markdown in a comment:  bold / italic / link modifiers, code spans as strings", async () => {
+      //                     0123456789012345678901234567890
+      await withCardText(`// a **b** *c* \`d\` [e](f)\n${cardText}`, () => {
+        const pieces = service
+          .highlightSpans(card)
+          .filter((span) => span.start < 26)
+          .map((span) => {
+            const marks = (["bold", "italic", "link"] as const).filter((mark) => span[mark])
+            return `${card.parseText.slice(span.start, span.end)}:${span.kind}${marks.map((mark) => `+${mark}`).join("")}`
+          })
+        expect(pieces).toEqual([
+          "// a :comment",
+          "**b**:comment+bold",
+          " :comment",
+          "*c*:comment+italic",
+          " :comment",
+          "`d`:string",
+          " :comment",
+          "[e](f):comment+link"
+        ])
+        // ...`bold` sent as modifier bit 64
+        const { data } = service.semanticTokens(card)
+        expect(data[5 + 4]).toBe(64)
+      })
+    })
+
     test("a range request only covers that range", () => {
       const range = { start: { line: 1, character: 0 }, end: { line: 2, character: 0 } }
       const lines = new Set(describeTokens(card, undefined, range).map((token) => token.split(":")[0]))

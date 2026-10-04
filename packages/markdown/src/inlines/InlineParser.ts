@@ -71,6 +71,9 @@ export class InlineParser {
     while (this.parseInline(root));
     this.processEmphasis(undefined)
     mergeText(root)
+    // positions are into the trimmed text:  move them back onto `text`
+    const lead = text.length - text.trimStart().length
+    if (lead) shiftPositions(root, lead)
     return root
   }
 
@@ -78,6 +81,8 @@ export class InlineParser {
   parseInline(block: InlineNode): boolean {
     const char = this.peek()
     if (char === "") return false
+    const start = this.pos
+    const before = block.last
     let handled = false
     switch (char) {
       case "\n":
@@ -115,6 +120,12 @@ export class InlineParser {
     if (!handled) {
       this.pos++
       block.append(text(char))
+    }
+    // the node this step added spans what it read (a link sets its own, from its `[`)
+    const added = block.last
+    if (added && added !== before) {
+      added.start ??= start
+      added.end ??= this.pos
     }
     return true
   }
@@ -330,6 +341,13 @@ export class InlineParser {
         opener.node.text = opener.node.text.slice(0, opener.node.text.length - used)
         closer.node.text = closer.node.text.slice(0, closer.node.text.length - used)
         const emph = new InlineNode(kind)
+        // it spans its own delimiters:  the opener's last `used`, the closer's first `used`
+        if (opener.node.start !== undefined && closer.node.start !== undefined) {
+          emph.start = opener.node.start + opener.node.text.length
+          emph.end = closer.node.start + used
+          opener.node.end = emph.start
+          closer.node.start += used
+        }
         for (let node = opener.node.next; node && node !== closer.node;) {
           const next = node.next
           emph.append(node)
@@ -462,6 +480,7 @@ export class InlineParser {
     const node = new InlineNode(opener.image ? "image" : "link")
     node.destination = destination
     node.title = title ?? ""
+    node.start = opener.image ? opener.index - 1 : opener.index
     for (let child = opener.node.next; child;) {
       const next = child.next
       node.append(child)
@@ -618,9 +637,19 @@ function mergeText(node: InlineNode) {
       if (!child.text) child.unlink()
       else if (next?.kind === "text") {
         next.text = child.text + next.text
+        next.start = child.start
         child.unlink()
       }
     } else if (child.first) mergeText(child)
     child = next
+  }
+}
+
+/** Move every position under `node` on by `offset`. */
+function shiftPositions(node: InlineNode, offset: number) {
+  for (const child of node.children()) {
+    if (child.start !== undefined) child.start += offset
+    if (child.end !== undefined) child.end += offset
+    shiftPositions(child, offset)
   }
 }

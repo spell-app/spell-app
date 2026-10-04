@@ -1675,6 +1675,7 @@ __metadata:
     "@solidjs/web": "npm:2.0.0-rc.13"
     "@spell-app/core": "workspace:*"
     "@spell-app/lsp": "workspace:*"
+    "@spell-app/markdown": "workspace:*"
     "@spell-app/parser": "workspace:*"
     "@spell-app/server": "workspace:*"
     "@spell-app/solid-element": "workspace:*"
@@ -1694,7 +1695,6 @@ __metadata:
     global: "npm:^4.3.2"
     json5: "npm:^2.1.1"
     lodash: "npm:^4.17.21"
-    marked: "npm:^14.0.0"
     monaco-editor: "npm:^0.57.0"
     oxfmt: "npm:^0.71.0"
     oxlint: "npm:^1.86.0"
@@ -1788,6 +1788,7 @@ __metadata:
   resolution: "@spell-app/lsp@workspace:packages/lsp"
   dependencies:
     "@spell-app/core": "workspace:*"
+    "@spell-app/markdown": "workspace:*"
     "@spell-app/parser": "workspace:*"
     "@spell-app/spell": "workspace:*"
     "@spell-app/util": "workspace:*"
@@ -1807,7 +1808,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@spell-app/markdown@workspace:packages/markdown":
+"@spell-app/markdown@workspace:*, @spell-app/markdown@workspace:packages/markdown":
   version: 0.0.0-use.local
   resolution: "@spell-app/markdown@workspace:packages/markdown"
   dependencies:
@@ -4464,15 +4465,6 @@ __metadata:
   bin:
     marked: bin/marked.js
   checksum: 10c0/57a47cb110f7b1a10f398b0a7236f9183aad2dcd5345ee73f2732b6387e585d04cef472bc655d2f84c542296be9728e179aebe3ed7f2f8666b8a0a9dae592876
-  languageName: node
-  linkType: hard
-
-"marked@npm:^14.0.0":
-  version: 14.1.4
-  resolution: "marked@npm:14.1.4"
-  bin:
-    marked: bin/marked.js
-  checksum: 10c0/7ccc4c9b58d430b68eb878133fc284235ef3022b1a465345d2464712bf7d47507203b54639826839b6cb8d8847cf46f2e382588b9e1fc1d98b657520e16bfa62
   languageName: node
   linkType: hard
 
