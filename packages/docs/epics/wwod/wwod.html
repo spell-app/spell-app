@@ -1,0 +1,2472 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WWOD Rules Merge</title>
+    <meta name="description" content="Plan doc:  WWOD Rules Merge." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="wwod">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>WWOD Rules Merge</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>WWOD Rules Merge</h1>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Install</ui-label></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch">Plan doc for <code>/epic wwod</code>, branch <code>wwod</code></ui-item>
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/wwod</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-03</time>, updated
+            <time id="plan-updated">2026-10-04</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            Merge Owen's WWOD house rules (Svelte, from <code>construct-app</code>) into this repo's agent rules: keep
+            what fits, translate Svelte to Solid 2, drop what's construct-only, and put each conflict to Owen. End
+            state: a WWOD-style hub (root
+            <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+            >) and topic spokes, with every existing rule landing somewhere.
+          </p>
+          <blockquote class="plan-prompt">
+            <p>
+              I have an extensive set of agent rules "WWOD" or "What Would Owen Do?" from another project. I want you to
+              read them and figure out what we want to add to this project. Note that this is for Svelte -- figure out
+              what of that applies to Solid. There is a bunch of stuff about project setup/env variables/etc as well --
+              figure out what of that we should adopt here. I like the hub-and-spoke structure of the files.
+            </p>
+            <p>
+              Assume that you will be MERGING those into the current rules we have -- when they conflict, I'll make the
+              call on how to handle things.
+            </p>
+            <p>
+              I'll drop the files into the epic folder as `wwod-original` once you make it.<br />Make a copy as just
+              `wwod` and keep that up to date as you go through the process.
+            </p>
+          </blockquote>
+          <p class="plan-estimate"><b>Estimate:</b> 6h 30m-7h 30m in all, 3h 30m left</p>
+          <ui-section id="o1" header="1.1 What WWOD is" sticky collapsible dividing>
+            <ul>
+              <li>
+                Owen's house rules from <code>construct-app</code> (Svelte 5, Tailwind 4, SvelteKit, Dynamo, PostHog):
+                10 files, 978 lines, in
+                <a href="wwod-original/" target="src-packages-docs-epics-wwod-wwod-original"
+                  ><code>wwod-original/</code></a
+                >
+              </li>
+              <li>
+                HUB + SPOKES:
+                <ul>
+                  <li>
+                    hub <code>WWOD.md</code>: universal rules, §1-7 (process, style, naming, imports, errors, comments,
+                    anti-patterns)
+                  </li>
+                  <li>
+                    a "Touching → Also read" table pointing to 9 topic spokes, §8-22 (architecture, server/env, types,
+                    classes/state, models/actions, svelte, css, events/logging, tests)
+                  </li>
+                  <li>rules cited as <code>WWOD §5 › "Sentinel errors as control flow"</code></li>
+                </ul>
+              </li>
+              <li>
+                <a href="wwod/" target="src-packages-docs-epics-wwod-wwod"><code>wwod/</code></a
+                >: the working copy. Each phase edits it toward the merged ruleset for THIS repo;
+                <a href="wwod-original/" target="src-packages-docs-epics-wwod-wwod-original"
+                  ><code>wwod-original/</code></a
+                >
+                never changes.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o2" header="1.2 How our rules are laid out today" sticky collapsible dividing>
+            <ul>
+              <li>
+                Root <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> (288 lines):
+                package map, worktrees, changelog, Solid pointer, debt ledgers, docs/comments, functions, decorators,
+                types/exports, imports
+              </li>
+              <li>
+                10 package <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> files
+                (38-316 lines), each "as the root's, plus"; a 4-line
+                <a href="../../../../CLAUDE.md" target="src-claude-md"><code>CLAUDE.md</code></a> shim beside each
+              </li>
+              <li>
+                ONE topic spoke already:
+                <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                  ><code>packages/docs/solid/solid-2.md</code></a
+                >
+                (358 lines), pointed to from the root's top line and the <code>solid-2</code> skill
+              </li>
+              <li>no numbering, no citation form, no "touching X → read Y" table</li>
+            </ul>
+          </ui-section>
+          <ui-section id="o3" header="1.3 Triage at a glance" sticky collapsible dividing>
+            <p>
+              Every WWOD rule gets one verdict: <b>HAVE</b> (we already say it), <b>ADOPT</b> (new here, fits as is),
+              <b>ADAPT</b> (fits once translated: Svelte → Solid 2, Tailwind →
+              <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
+              >, Prettier → oxfmt ...), <b>CONFLICT</b> (we say otherwise: Owen calls it), <b>DROP</b>
+              (<code>construct-app</code>-only: Circuit, Dynamo, PostHog, CachedResource ...).
+            </p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>WWOD</th>
+                    <th>Mostly</th>
+                    <th>Highlights</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>§1 Working process</td>
+                    <td>ADOPT</td>
+                    <td>
+                      grep before renaming; record deviations, <code>CORRECTED &lt;date&gt;</code>; finishing-pass
+                      drift-bug sweep; report gates with numbers; <code>CLAUDE TODO</code> sweep. Gates ADAPT to
+                      <code>yarn review</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§2 General style</td>
+                    <td>ADOPT / ADAPT</td>
+                    <td>
+                      DRY, generalize the domain, best-effort <code>catch</code>, guard clauses. Prettier 100 → oxfmt
+                      120; legacy decorators → standard (ours wins)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§3 Naming</td>
+                    <td>ADOPT</td>
+                    <td>
+                      <code>xForY()</code> lookups, <code>is/has/can</code> getters, drop the type word on members,
+                      honest names, magic strings → constants, qualified ids
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§4 Imports</td>
+                    <td>HAVE / CONFLICT</td>
+                    <td>
+                      <code>./</code> only, order: HAVE. Types as a <code>T</code> namespace: <a href="#q4">Q4</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§5 Errors</td>
+                    <td>ADOPT / CONFLICT</td>
+                    <td>almost all new here. Error class placement and <code>name</code>: <a href="#q7">Q7</a></td>
+                  </tr>
+                  <tr>
+                    <td>§6 Comments</td>
+                    <td>HAVE</td>
+                    <td>
+                      ours matches nearly word for word. New: module docstring states its place in the import graph,
+                      record the rejected refactor at the site, log strings prefixed by method, more markers
+                      (<code>DEBUG</code>, <code>CONSIDER</code>, <code>TESTME</code>, <code>SEE</code>,
+                      <code>REFACTOR</code>)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§7 Anti-patterns</td>
+                    <td>ADOPT</td>
+                    <td>
+                      result unions, positional param threading, free functions threading one object → class, dead
+                      fields / exports
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§8 Architecture</td>
+                    <td>HAVE / ADAPT</td>
+                    <td>
+                      <code>.types.ts</code> at the bottom of the import graph: HAVE. Feature-level namespaces vs our
+                      one per package: <a href="#q4">Q4</a>. Promotion path ADAPTs to <code>util</code>'s "2+ packages"
+                      rule
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§9 Server/API</td>
+                    <td>ADAPT / DROP</td>
+                    <td>
+                      uniform route handlers, <code>OrDie</code> twins, user-facing <code>error.message</code>;
+                      <code>APITransaction</code>, Dynamo DROP
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§10 Environment</td>
+                    <td>ADOPT</td>
+                    <td>see <a href="#o5">1.5</a></td>
+                  </tr>
+                  <tr>
+                    <td>§11 Functions &amp; types</td>
+                    <td>ADOPT</td>
+                    <td>
+                      <code>undefined</code> not <code>null</code>, destructured options with defaults, ALL-CAPS
+                      sentinels over booleans, one input type per class, branded / template-literal strings
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§12 Classes</td>
+                    <td>ADOPT / CONFLICT</td>
+                    <td>
+                      class for identity + lifecycle, transitions mutate, one options object, why-static docstrings.
+                      <code>#private</code>: <a href="#q5">Q5</a>. "<code>@memoize</code> every non-trivial getter":
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >
+                      measured it 2x slower (<a href="#q8">Q8</a>)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§13-15 Stateful, CachedResource, value objects</td>
+                    <td>DROP / ADAPT</td>
+                    <td>
+                      Svelte-store <code>Stateful</code> → our <code>Observable</code> + spell cells (already in
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >). Value-object factory triad (<code>orDie</code> / <code>optional</code>) ADAPT
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§16-17 Models, actions</td>
+                    <td>DROP</td>
+                    <td>Circuit records, undo, shortcut maps: nothing like them here yet</td>
+                  </tr>
+                  <tr>
+                    <td>§18 Svelte</td>
+                    <td>ADAPT</td>
+                    <td>see <a href="#o4">1.4</a></td>
+                  </tr>
+                  <tr>
+                    <td>§19 CSS</td>
+                    <td>DROP / HAVE</td>
+                    <td>
+                      Tailwind: none here. Token tiers, re-skin by one var: HAVE (ui). State-class naming:
+                      <a href="#q8">Q8</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>§20-21 Events, logging</td>
+                    <td>DROP / ADOPT</td>
+                    <td>no analytics here. Tagged logger + per-subsystem debug level: see <a href="#o5">1.5</a></td>
+                  </tr>
+                  <tr>
+                    <td>§22 Tests</td>
+                    <td>ADOPT / CONFLICT</td>
+                    <td>
+                      tests follow the logic, renamed with their module, hand-rolled fakes, frozen time.
+                      <code>test</code> vs <code>it</code>: <a href="#q6">Q6</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <h4 id="o3-census">Census (P1)</h4>
+            <p>
+              Tags per file in <a href="wwod/" target="src-packages-docs-epics-wwod-wwod"><code>wwod/</code></a
+              >, from <a href="census.py" target="src-packages-docs-epics-wwod-census-py"><code>census.py</code></a
+              >. <b>SOLID</b>: a Svelte rule Solid 2 makes impossible or inverts. CONFLICT tags cite the decision that
+              settled them (D4-D8).
+            </p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th class="num right aligned">HAVE</th>
+                    <th class="num right aligned">ADOPT</th>
+                    <th class="num right aligned">ADAPT</th>
+                    <th class="num right aligned">CONFLICT</th>
+                    <th class="num right aligned">DROP</th>
+                    <th class="num right aligned">SOLID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>WWOD.md (hub)</td>
+                    <td class="num right aligned">14</td>
+                    <td class="num right aligned">45</td>
+                    <td class="num right aligned">37</td>
+                    <td class="num right aligned">13</td>
+                    <td class="num right aligned">3</td>
+                    <td class="num right aligned">0</td>
+                  </tr>
+                  <tr>
+                    <td>architecture.md</td>
+                    <td class="num right aligned">6</td>
+                    <td class="num right aligned">8</td>
+                    <td class="num right aligned">9</td>
+                    <td class="num right aligned">6</td>
+                    <td class="num right aligned">5</td>
+                    <td class="num right aligned">0</td>
+                  </tr>
+                  <tr>
+                    <td>classes-state.md</td>
+                    <td class="num right aligned">4</td>
+                    <td class="num right aligned">11</td>
+                    <td class="num right aligned">30</td>
+                    <td class="num right aligned">3</td>
+                    <td class="num right aligned">6</td>
+                    <td class="num right aligned">0</td>
+                  </tr>
+                  <tr>
+                    <td>css.md</td>
+                    <td class="num right aligned">7</td>
+                    <td class="num right aligned">3</td>
+                    <td class="num right aligned">9</td>
+                    <td class="num right aligned">2</td>
+                    <td class="num right aligned">5</td>
+                    <td class="num right aligned">0</td>
+                  </tr>
+                  <tr>
+                    <td>events-logging.md</td>
+                    <td class="num right aligned">0</td>
+                    <td class="num right aligned">2</td>
+                    <td class="num right aligned">8</td>
+                    <td class="num right aligned">0</td>
+                    <td class="num right aligned">8</td>
+                    <td class="num right aligned">0</td>
+                  </tr>
+                  <tr>
+                    <td>models-actions.md</td>
+                    <td class="num right aligned">0</td>
+                    <td class="num right aligned">2</td>
+                    <td class="num right aligned">2</td>
+                    <td class="num right aligned">0</td>
+                    <td class="num right aligned">9</td>
+                    <td class="num right aligned">0</td>
+                  </tr>
+                  <tr>
+                    <td>server-api.md</td>
+                    <td class="num right aligned">0</td>
+                    <td class="num right aligned">8</td>
+                    <td class="num right aligned">7</td>
+                    <td class="num right aligned">0</td>
+                    <td class="num right aligned">8</td>
+                    <td class="num right aligned">0</td>
+                  </tr>
+                  <tr>
+                    <td>svelte.md</td>
+                    <td class="num right aligned">5</td>
+                    <td class="num right aligned">3</td>
+                    <td class="num right aligned">15</td>
+                    <td class="num right aligned">1</td>
+                    <td class="num right aligned">4</td>
+                    <td class="num right aligned">5</td>
+                  </tr>
+                  <tr>
+                    <td>tests.md</td>
+                    <td class="num right aligned">0</td>
+                    <td class="num right aligned">5</td>
+                    <td class="num right aligned">5</td>
+                    <td class="num right aligned">1</td>
+                    <td class="num right aligned">0</td>
+                    <td class="num right aligned">0</td>
+                  </tr>
+                  <tr>
+                    <td>types.md</td>
+                    <td class="num right aligned">4</td>
+                    <td class="num right aligned">18</td>
+                    <td class="num right aligned">4</td>
+                    <td class="num right aligned">1</td>
+                    <td class="num right aligned">2</td>
+                    <td class="num right aligned">0</td>
+                  </tr>
+                  <tr>
+                    <td><b>total (353)</b></td>
+                    <td class="num right aligned"><b>40</b></td>
+                    <td class="num right aligned"><b>105</b></td>
+                    <td class="num right aligned"><b>126</b></td>
+                    <td class="num right aligned"><b>27</b></td>
+                    <td class="num right aligned"><b>50</b></td>
+                    <td class="num right aligned"><b>5</b></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <p>
+              Calls the tagging agents weren't sure of: new questions <a href="#q9">Q9</a>-<a href="#q16">Q16</a>
+              (Owen's), judgement calls <a href="#j1">J1</a>-<a href="#j7">J7</a> (to review).
+            </p>
+          </ui-section>
+          <ui-section id="o4" header="1.4 Svelte → Solid 2" sticky collapsible dividing>
+            <ul>
+              <li>
+                <b>HAVE</b> (<a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                  ><code>solid-2.md</code></a
+                >
+                / ui <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> already say it):
+                class array/object form, keyed <code>&lt;For&gt;</code>, cleanup (<code>onSettled</code> / effect apply
+                return), seed with <code>untrack</code>, error boundary (<code>&lt;Errored&gt;</code>), component header
+                banner
+              </li>
+              <li>
+                <b>Opposite in Solid 2</b> (not a choice: the framework decides):
+                <ul>
+                  <li>
+                    WWOD destructures <code>$props()</code>; Solid: NEVER destructure props, read
+                    <code>props.x</code> where used
+                  </li>
+                  <li>
+                    WWOD reads app context at module scope; Solid: <code>useContext</code> needs an owner; our
+                    singletons are plain imports
+                  </li>
+                  <li>
+                    WWOD mutates deep <code>$state</code> slices; here an in-place change notifies nobody: set a new
+                    value
+                  </li>
+                  <li>
+                    WWOD's <code>use:activate</code>; Solid 2 has no <code>use:</code>; activation is the
+                    <code>ui-*</code> element's job
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <b>ADAPT</b> (new rules for
+                <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"><code>solid-2.md</code></a
+                >):
+                <ul>
+                  <li>
+                    <code>{#key}</code> remount → a commented key memo +
+                    <code>&lt;Show when={key()} keyed&gt;</code> (<a
+                      href="../../../app/src/solid/InputEditor.tsx"
+                      target="src-packages-app-src-solid-inputeditor-tsx"
+                      ><code>InputEditor.tsx</code></a
+                    >
+                    does it)
+                  </li>
+                  <li>
+                    load states: <code>error → loading → loaded</code> ladder; <code>&lt;Errored&gt;</code> outside
+                    <code>&lt;Loading&gt;</code>
+                  </li>
+                  <li>every independently failable region in an <code>&lt;ErrorBoundary&gt;</code></li>
+                  <li>
+                    snippets → inner functions returning JSX, at the bottom of the component; a JSX node rendered in two
+                    branches MOVES
+                  </li>
+                  <li><code>showX</code> gating flags as accessors, <code>&lt;Show when={showX()}&gt;</code></li>
+                  <li>
+                    dialogs: a config object when text-only (<code>UI.modals</code>), a component when it has logic
+                  </li>
+                  <li>
+                    gaps found on the way: <code>onCleanup</code>, the <code>ClassBuilder</code> exception to "never
+                    class strings"
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <b>DROP</b>: Circuit SVG descriptors, <code>COMPONENT_LOOKUP</code>, Tailwind class strings,
+                <code>{@const}</code>
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section
+            id="o5"
+            header="1.5 Project setup:  env, logging, errors, debug globals"
+            sticky
+            collapsible
+            dividing
+          >
+            <p>What WWOD's setup rules would mean here, measured against the code today.</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>WWOD</th>
+                    <th>Here today</th>
+                    <th>Proposed rule</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <code>process.env</code> only in an environment module; parse helpers; throw at startup; app
+                      prefix
+                    </td>
+                    <td>
+                      ~30 vars read in ~20 files; one module (<a
+                        href="../../../spell/src/node/environment.ts"
+                        target="src-packages-spell-src-node-environment-ts"
+                        ><code>spell/src/node/environment.ts</code></a
+                      >, 4 vars, logs at import); names mostly <code>SPELL_*</code> already
+                    </td>
+                    <td>
+                      one
+                      <a
+                        href="../../../spell/src/node/environment.ts"
+                        target="src-packages-spell-src-node-environment-ts"
+                        ><code>environment.ts</code></a
+                      >
+                      per node runtime, the ONLY reader; <code>SPELL_*</code> prefix; <code>getNumber</code> /
+                      <code>getBoolean</code> helpers; bad config throws at startup. Browser:
+                      <code>import.meta.env.DEV</code> only
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>tagged logger per subsystem, level from env (<code>CONSTRUCT_DEBUG</code>)</td>
+                    <td>
+                      ~430 bare <code>console.*</code>; <code>util</code>'s <code>Logger</code> used once (Tokenizer);
+                      debug switches are hard-coded statics
+                    </td>
+                    <td>
+                      <code>Logger</code> per subsystem as a class field, level from
+                      <code>SPELL_DEBUG=parser,lsp</code>; messages prefixed <code>method():</code>;
+                      <code>console.error</code> only in best-effort catches
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      house errors, details in <code>cause</code>, <code>prototype.name</code> after the class, never
+                      <code>{ ok: false }</code>
+                    </td>
+                    <td>
+                      20 error classes, <code>name</code> set 3 ways; <code>cause</code> used once (<code
+                        >CustomError</code
+                      >
+                      keeps <code>props.error</code>); 8 <code>{ ok: false }</code>; two server error-body shapes
+                    </td>
+                    <td>see <a href="#q7">Q7</a></td>
+                  </tr>
+                  <tr>
+                    <td><code>setDebugGlobal()</code>, never depend on it in code</td>
+                    <td>
+                      ad hoc <code>window.project =</code>, <code>Object.assign(globalThis, ...)</code> in 6 places
+                    </td>
+                    <td>a <code>setDebugGlobal()</code> in <code>$/util</code>; code never reads it</td>
+                  </tr>
+                  <tr>
+                    <td>analytics funnel (PostHog), Sentry spans</td>
+                    <td>none</td>
+                    <td>DROP</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <p>
+              Rules only: each mismatch becomes a
+              <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a> entry (<a
+                href="#d3"
+                >D3</a
+              >, P4).
+            </p>
+          </ui-section>
+          <ui-section id="o6" header="1.6 Where it lands" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>packages/agents/wwod/</code> (<a href="#d1">D1</a>): hub <code>WWOD.md</code> + topic spokes, §
+                numbered across both, cited <code>WWOD §N › "rule"</code> (<a href="#d2">D2</a>). Not a yarn workspace.
+              </li>
+              <li>
+                Root <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> keeps only what's
+                about THIS repo: package map, dependency direction, aliases, worktrees / windows, changelog, ledgers.
+                Its top line: READ <code>WWOD.md</code>; the hub's table says which spoke to read for what you're
+                touching.
+              </li>
+              <li>
+                Moves from the root
+                <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> into WWOD:
+                Documentation, Functions, Decorators, Types / Exports, Imports, the Solid pointer.
+              </li>
+              <li>
+                <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                  ><code>packages/docs/solid/solid-2.md</code></a
+                >
+                stays put (it has an html twin), listed in the hub's table as the Solid spoke, and gains the additions
+                from <a href="#o4">1.4</a>.
+              </li>
+              <li>
+                Package <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> files: "As
+                WWOD §N, plus" where they extend a spoke.
+              </li>
+              <li>
+                <a href="wwod/" target="src-packages-docs-epics-wwod-wwod"><code>wwod/</code></a> in this folder is the
+                draft, edited every phase; P3 copies it into place.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o7" header="1.7 The draft (P2)" sticky collapsible dividing>
+            <p>
+              <a href="wwod/" target="src-packages-docs-epics-wwod-wwod"><code>wwod/</code></a> as P3 will install it in
+              <code>packages/agents/wwod/</code>. Each spoke opens with a <code>From:</code> line naming the original
+              WWOD §s and root sections it came from.
+            </p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th>§</th>
+                    <th class="num right aligned">Lines</th>
+                    <th>Holds</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>WWOD.md</code></td>
+                    <td>1-7</td>
+                    <td class="num right aligned">476</td>
+                    <td>
+                      hub: "Touching → Also read" table; process, style, naming, imports (root "Imports" in full),
+                      errors, comments &amp; docs (root "Documentation" in full), anti-patterns
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>architecture.md</code></td>
+                    <td>8</td>
+                    <td class="num right aligned">141</td>
+                    <td>
+                      module layout, <code>.types.ts</code>, barrels, ONE namespace, promotion path, file naming,
+                      singletons as classes
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>types.md</code></td>
+                    <td>9</td>
+                    <td class="num right aligned">155</td>
+                    <td>functions (root "Functions" in full) &amp; types</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="wwod/server-env.md" target="src-packages-docs-epics-wwod-wwod-server-env-md"
+                        ><code>server-env.md</code></a
+                      >
+                    </td>
+                    <td>10-11</td>
+                    <td class="num right aligned">133</td>
+                    <td>
+                      routes on <code>SRV.Router</code> / <code>HttpError</code>; one
+                      <a
+                        href="../../../spell/src/node/environment.ts"
+                        target="src-packages-spell-src-node-environment-ts"
+                        ><code>environment.ts</code></a
+                      >
+                      per node package, <code>SPELL_*</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>classes-state.md</code></td>
+                    <td>12-16</td>
+                    <td class="num right aligned">259</td>
+                    <td>
+                      classes (root "Decorators" in full), state on <code>Observable</code> + cells,
+                      <code>Loadable</code>, value objects, records
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="wwod/solid.md" target="src-packages-docs-epics-wwod-wwod-solid-md"
+                        ><code>solid.md</code></a
+                      >
+                    </td>
+                    <td>17</td>
+                    <td class="num right aligned">214</td>
+                    <td>
+                      Solid component house style; mechanics stay in
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>css.md</code></td>
+                    <td>18</td>
+                    <td class="num right aligned">109</td>
+                    <td>plain <code>.css</code>, ui tokens, naming, no <code>rem</code>, phone width</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="wwod/logging.md" target="src-packages-docs-epics-wwod-wwod-logging-md"
+                        ><code>logging.md</code></a
+                      >
+                    </td>
+                    <td>19</td>
+                    <td class="num right aligned">51</td>
+                    <td><code>Logger</code> per subsystem, <code>SPELL_DEBUG</code>, <code>console.*</code> limits</td>
+                  </tr>
+                  <tr>
+                    <td><code>tests.md</code></td>
+                    <td>20</td>
+                    <td class="num right aligned">91</td>
+                    <td><code>test()</code>, tests follow the logic, hand-rolled fakes</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a
+                        href="wwod/_solid-2-additions.md"
+                        target="src-packages-docs-epics-wwod-wwod-solid-2-additions-md"
+                        ><code>_solid-2-additions.md</code></a
+                      >
+                    </td>
+                    <td>--</td>
+                    <td class="num right aligned">83</td>
+                    <td>
+                      6 rules for
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>solid-2.md</code></a
+                      >
+                      itself (P3): <code>&lt;Show keyed&gt;</code> remount, load ladder, <code>onCleanup</code>,
+                      <code>ClassBuilder</code> exception, read-once <code>untrack</code>, <code>useContext</code> needs
+                      an owner
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="2" total="5" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            collapsed
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Triage Copy"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> every bullet in wwod/*.md tagged [HAVE → where] / [ADOPT] / [ADAPT] / [CONFLICT → Qn:
+                verdict] / [DROP: why]; census counts in 1.3</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/docs/epics/wwod/wwod/*.md, plan doc #o3</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> 0 untagged bullets (grep)</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item
+              ><ui-item icon="check"
+                ><b>Done:</b> 353 tags, 0 untagged (<a href="census.py" target="src-packages-docs-epics-wwod-census-py"
+                  ><code>census.py</code></a
+                >); 4 agents, one per file group; tags only: each file still matches
+                <a href="wwod-original/" target="src-packages-docs-epics-wwod-wwod-original"
+                  ><code>wwod-original/</code></a
+                >
+                once its tags are stripped</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j1">J1</a> <a href="#j2">J2</a> <a href="#j3">J3</a>
+                <a href="#j4">J4</a> <a href="#j5">J5</a> <a href="#j6">J6</a> <a href="#j7">J7</a></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section id="p2" data-phase="2" data-status="done" header="P2 · Merged Draft" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> wwod/ rewritten as this repo's WWOD: DROPs gone, ADAPTs translated, Q1-Q8 applied, the
+                root AGENTS.md's general-style sections merged in, solid-2.md additions drafted</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/docs/epics/wwod/wwod/*.md</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> census script: every bullet of today's root AGENTS.md maps to the new root AGENTS.md or
+                wwod/</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
+              ><ui-item icon="check"
+                ><b>Done:</b> 10 files, 1712 lines, 20 sections, 227 cited rules (<a href="#o7">1.7</a>); 5 agents.
+                <a href="moved.py" target="src-packages-docs-epics-wwod-moved-py"><code>moved.py</code></a
+                >: all 79 bullets of the root's Documentation / Functions / Decorators / Types / Imports landed.
+                <a href="cites.py" target="src-packages-docs-epics-wwod-cites-py"><code>cites.py</code></a
+                >: every <code>§N › "title"</code> and repo path resolves. P1's tagged copy kept as
+                <a href="triage/" target="src-packages-docs-epics-wwod-triage"><code>triage/</code></a
+                >; debt found on the way in
+                <a href="debt-candidates.md" target="src-packages-docs-epics-wwod-debt-candidates-md"
+                  ><code>debt-candidates.md</code></a
+                >
+                (P4)</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j8">J8</a> <a href="#j9">J9</a> <a href="#j10">J10</a>
+                <a href="#j11">J11</a> <a href="#j12">J12</a> <a href="#j13">J13</a> <a href="#j14">J14</a></ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Install" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> packages/agents/wwod/ from wwod/; root AGENTS.md slimmed to repo-specific rules + a
+                READ-WWOD line and spoke table; solid-2.md additions; package AGENTS.md pointers</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/agents/, AGENTS.md, packages/*/AGENTS.md, packages/docs/solid/solid-2.md,
+                packages/docs/AGENTS.md</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> census: installed == wwod/; checker: every path and §N citation resolves</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h30m</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Code Debt" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> a CODE-DEBT.md entry for each place code disagrees with an adopted rule</ui-item
+              ><ui-item icon="folder"><b>Files:</b> CODE-DEBT.md</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> each adopted rule with a code mismatch has an entry (listed in the plan doc)</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> prune; durable doc packages/docs/wwod/wwod.html; changelog; /isolate done</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/docs/wwod/wwod.html, packages/docs/changelog.html</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check; Finishing a page</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p class="meta">
+            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
+            settled, don't re-argue without new facts. An answered question sits just above its decision.
+          </p>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="q1" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a>
+                  <span class="plan-title">Where do the hub and spokes live?</span>
+                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                ><ui-content
+                  ><p>
+                    WWOD's hub is one file; its spokes sit in <code>.agents/wwod/</code>. Here, Codex reads every
+                    <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> from the root
+                    down, and Claude loads the root
+                    <a href="../../../../CLAUDE.md" target="src-claude-md"><code>CLAUDE.md</code></a> →
+                    <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                    >. So the HUB must be the root
+                    <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                    >; the choice is where the SPOKES go. Either way the hub gets WWOD's "Touching → Also read" table,
+                    and package <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> files
+                    stay as they are (package-local spokes).
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · .agents/ at the root (recommended)</ui-label>
+                        <p>
+                          <code>.agents/errors.md</code>, <code>.agents/tests.md</code> ...; tool-neutral, one folder,
+                          WWOD's own shape.
+                          <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                            ><code>solid-2.md</code></a
+                          >
+                          stays in
+                          <a href="../../solid/" target="src-packages-docs-solid"><code>packages/docs/solid/</code></a>
+                          beside its html (it already has a home), listed in the table.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · packages/docs/rules/</ui-label>
+                        <p>
+                          Beside the human docs, as
+                          <a href="../../AGENTS.md" target="src-packages-docs-agents-md"
+                            ><code>packages/docs/AGENTS.md</code></a
+                          >
+                          "Agent rules" says for distilled <code>.md</code> files. But most spokes have no html page,
+                          and agent rules then live in a docs package.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title"
+                    >WWOD lives in a new packages/agents/ folder; skills / hooks move there later (<a href="#q1">Q1</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen: get agent sources out of
+                    <a href="../../../../.claude/" target="src-claude"><code>.claude/</code></a> so they're more
+                    visible; <a href="../../../../.claude/" target="src-claude"><code>.claude/</code></a> and
+                    <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> reference files
+                    there. Not a yarn workspace (no
+                    <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                    >, like <code>brand</code>). This epic: <code>packages/agents/wwod/</code> only; moving skills and
+                    hooks is a todo (<a href="#t1">T1</a>).
+                  </p>
+                  <p class="meta">Answers <a href="#q1">Q1</a>: Where do the hub and spokes live?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a>
+                  <span class="plan-title">Keep the WWOD name, § numbers and citations?</span>
+                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                ><ui-content
+                  ><p>
+                    WWOD numbers every section (§1-22) and cites rules as
+                    <code>WWOD §5 › "Sentinel errors as control flow"</code>, so a review comment or a plan doc can
+                    point at one rule exactly. Our rules have no numbers today.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Keep both (recommended)</ui-label>
+                        <p>
+                          Root <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> titled
+                          "WWOD -- What Would Owen Do?"; sections renumbered across hub + spokes; cite
+                          <code>WWOD §11 › "Guard clauses first"</code>. Cost: numbers shift when a section is added in
+                          the middle (add at the end instead).
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Name, no numbers</ui-label>
+                        <p>
+                          Keep the WWOD title; cite by file and heading:
+                          <code>.agents/types.md › "Guard clauses first"</code>. Nothing to renumber; citations are
+                          longer.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title"
+                    >WWOD is its own file set, referenced from the root AGENTS.md; § numbers across hub + spokes (<a
+                      href="#q2"
+                      >Q2</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Cited <code>WWOD §N › "rule"</code>; renumbering is fine. Split: general house style → WWOD;
+                    repo-specific (package map, dependency direction, aliases, worktrees / windows, changelog, ledgers)
+                    stays in the root <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                    >. See <a href="#o6">1.6</a>.
+                  </p>
+                  <p class="meta">
+                    Answers <a href="#q2">Q2</a>: Keep the WWOD name, § numbers and citations?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title">Rules only, or bring the code in line too?</span>
+                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                ><ui-content
+                  ><p>Many adopted rules disagree with today's code, e.g.:</p>
+                  <ul>
+                    <li>
+                      <code>process.env</code> read in ~20 files (rule: one
+                      <a
+                        href="../../../spell/src/node/environment.ts"
+                        target="src-packages-spell-src-node-environment-ts"
+                        ><code>environment.ts</code></a
+                      >)
+                    </li>
+                    <li>~430 bare <code>console.*</code>, a <code>Logger</code> used once (rule: tagged logger)</li>
+                    <li>error <code>name</code> set 3 ways, two server error-body shapes</li>
+                    <li>3114 <code>it(</code> in ui (if <a href="#q6">Q6</a> picks <code>test</code>)</li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Rules + debt entries (recommended)</ui-label>
+                        <p>
+                          This epic writes the rules. Each place the code disagrees gets a
+                          <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a>
+                          entry (mechanism, counts, fix), so later epics can do them one at a time. New code follows the
+                          rules at once.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Rules + small infra</ui-label>
+                        <p>
+                          As A, plus the small pieces new rules need to exist:
+                          <a
+                            href="../../../spell/src/node/environment.ts"
+                            target="src-packages-spell-src-node-environment-ts"
+                            ><code>environment.ts</code></a
+                          >
+                          helpers (<code>getNumber</code> ...), <code>Logger</code> + <code>SPELL_DEBUG</code>,
+                          <code>setDebugGlobal()</code>. No sweeping rewrites. ~+2h.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title"
+                    >Rules + CODE-DEBT.md entries; no code rewrites in this epic (<a href="#q3">Q3</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q3">Q3</a>: Rules only, or bring the code in line too?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q4" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title"
+                    >Types module as a T namespace, or flattened into the package namespace?</span
+                  >
+                  <a class="plan-answer" href="#d4">→ D4</a></ui-title
+                ><ui-content
+                  ><p>
+                    <b>Conflict.</b> WWOD gives a feature's types their OWN namespace; ours flattens every
+                    <code>.types.ts</code> into the package's ONE namespace, and forbids a second one for a sub-folder.
+                  </p>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>WWOD §4 · 6 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">import * as T from "./tours.types"
+const step: T.TourStep = ...
+
+// barrel exports both
+export * from "./tours.types"
+export * as T from "./tours.types"</code></pre>
+                    </ui-content></ui-accordion
+                  ><ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>Ours (root AGENTS.md, Imports) · 6 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">import { P } from "$/parser"
+const match: P.AnyMatch = ...
+
+// barrel:  types flattened, one namespace per package
+export * from "./parser.types"
+export * as P from "."</code></pre>
+                    </ui-content></ui-accordion
+                  ><ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Keep ours (recommended)</ui-label>
+                        <p>
+                          One namespace per package (<code>P</code>, <code>SP</code>, <code>UI</code> ...), already
+                          everywhere and guarded by <code>barrel.test.ts</code>. Adopt WWOD's REASON:
+                          <code>import type { P }</code> erases; <code>.types.ts</code> stays value-free.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · WWOD's T</ui-label>
+                        <p>
+                          A <code>T</code> per feature folder too. Two names for one type (<code>P.AnyMatch</code> and
+                          <code>T.AnyMatch</code>); breaks "NEVER a second namespace".
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title"
+                    >Keep one namespace per package; a types-only leaf import is `PT`, never a bare `T` (<a href="#q4"
+                      >Q4</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen: WWOD's <code>T</code> was only for files that can't load the barrel, and a bare
+                    <code>T</code> confused people. So:
+                    <code>import type * as PT from "./parser.types"</code> (<code>&lt;namespace&gt;T</code>) when, and
+                    only when, the barrel can't be loaded.
+                  </p>
+                  <p class="meta">
+                    Answers <a href="#q4">Q4</a>: Types module as a T namespace, or flattened into the package
+                    namespace?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q5" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q5">Q5</a> <span class="plan-title">#private fields, or TS private?</span>
+                  <a class="plan-answer" href="#d5">→ D5</a></ui-title
+                ><ui-content
+                  ><p>
+                    <b>Conflict with practice.</b> WWOD: <code>#</code> for private FIELDS, TS <code>private</code> for
+                    methods. Code today: ~1730 TS <code>private</code>, ~50 <code>#</code>.
+                    <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                      ><code>solid-2.md</code></a
+                    >
+                    bans <code>#private</code> on Thing subclasses (a Proxy can't reach them).
+                    <code>@proto static</code> and decorators read TS-private fields fine.
+                  </p>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>The difference · 4 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">class Run {
+  #step = 0          // truly private:  not even a Proxy sees it
+  private index = 0  // private to TypeScript only;  plain property at runtime
+}</code></pre>
+                    </ui-content></ui-accordion
+                  ><ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · TS private (recommended)</ui-label>
+                        <p>
+                          Matches 97% of the code; safe under Proxies (Things) and in tests that peek. Record WWOD's
+                          <code>#</code> as the rejected option, with the why.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · # for new fields</ui-label>
+                        <p>
+                          WWOD's rule for new code, except Thing subclasses and ui elements; old code changes as
+                          touched. Two styles side by side for years.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d5">D5</a>
+                  <span class="plan-title"
+                    >TS private; WWOD's # recorded as the rejected option (Proxies, tests) (<a href="#q5">Q5</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">Answers <a href="#q5">Q5</a>: #private fields, or TS private?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q6" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q6">Q6</a> <span class="plan-title">test() or it()?</span>
+                  <a class="plan-answer" href="#d6">→ D6</a></ui-title
+                ><ui-content
+                  ><p>
+                    <b>Conflict with practice.</b> WWOD: <code>test</code>, never <code>it</code>, and
+                    <code>describe("functionName()")</code> with parens. Code today, by package:
+                  </p>
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>Package</th>
+                          <th class="num right aligned">test(</th>
+                          <th class="num right aligned">it(</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>ui</td>
+                          <td class="num right aligned">5</td>
+                          <td class="num right aligned">3114</td>
+                        </tr>
+                        <tr>
+                          <td>core, parser, cli, lsp, spell</td>
+                          <td class="num right aligned">1087</td>
+                          <td class="num right aligned">5</td>
+                        </tr>
+                        <tr>
+                          <td>server</td>
+                          <td class="num right aligned">0</td>
+                          <td class="num right aligned">66</td>
+                        </tr>
+                        <tr>
+                          <td>app, util, solid-element, docs</td>
+                          <td class="num right aligned">262</td>
+                          <td class="num right aligned">162</td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  ><ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · test, codemod later (recommended)</ui-label>
+                        <p>
+                          <code>test</code> for new tests; a file keeps one style; a
+                          <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a>
+                          entry for the mechanical rename (<code>it(</code> → <code>test(</code>, plus imports), done in
+                          one go some day.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · test, codemod now</ui-label>
+                        <p>
+                          Rename all ~3400 in this epic. Touches ~350 test files; conflicts with every running branch
+                          that edits tests (ui has several).
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d6">D6</a>
+                  <span class="plan-title"
+                    >test() for new tests, one style per file; the it() → test() codemod is debt (<a href="#q6">Q6</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">Answers <a href="#q6">Q6</a>: test() or it()?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q7" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q7">Q7</a>
+                  <span class="plan-title">Error classes: where, how named, and cause?</span>
+                  <a class="plan-answer" href="#d7">→ D7</a></ui-title
+                ><ui-content
+                  ><p>
+                    <b>Partly a conflict.</b> WWOD: one error class per file, body usually empty,
+                    <code>X.prototype.name = "X"</code> after the class, details in <code>cause</code>, guard throws
+                    name method + problem + fix. Ours: "small error classes ... live in
+                    <code>&lt;folder&gt;.types.ts</code>". Code: <code>CustomError</code> (util) keeps details in
+                    <code>props.error</code> and gets <code>name</code> from <code>constructor.name</code> (mangled by
+                    minifiers unless <code>keepNames</code>); ui sets <code>this.name</code>; server / cli don't set it.
+                  </p>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>Proposed (A) · 8 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">// in &lt;folder&gt;.types.ts
+/** A `fetch` that failed;  `cause` has the response. */
+export class SourceError extends Error {
+  declare cause: SourceErrorCause | undefined
+}
+SourceError.prototype.name = "SourceError"
+
+throw new SourceError("Sources.resolve():  no source named `x`;  register it first", { cause: { kind, status } })</code></pre>
+                    </ui-content></ui-accordion
+                  ><ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Merge (recommended)</ui-label>
+                        <p>
+                          Small error classes stay in <code>.types.ts</code> (ours); WWOD's <code>prototype.name</code>,
+                          <code>cause</code> with a typed <code>XCause</code>, and self-naming guard messages.
+                          <code>CustomError</code> moves to <code>cause</code> later (debt entry).
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · WWOD as written</ui-label>
+                        <p>One file per error class, named for it. More files; each a few lines.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d7">D7</a>
+                  <span class="plan-title"
+                    >Merge: error classes stay in .types.ts; prototype.name, typed XCause in cause, self-naming guard
+                    messages (<a href="#q7">Q7</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p><code>CustomError</code>'s <code>props.error</code> → <code>cause</code> is a debt entry.</p>
+                  <p class="meta">
+                    Answers <a href="#q7">Q7</a>: Error classes: where, how named, and cause?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q8" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q8">Q8</a>
+                  <span class="plan-title">Minor conflicts: take the recommendations?</span>
+                  <a class="plan-answer" href="#d8">→ D8</a></ui-title
+                ><ui-content
+                  ><p>Smaller clashes, each with a recommended merge. "Yes" takes them all; name any to argue.</p>
+                  <ui-table celled compact striped unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>WWOD says</th>
+                          <th>We say</th>
+                          <th>Recommend</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>a</td>
+                          <td>Prettier, 100 chars</td>
+                          <td>oxfmt, 120</td>
+                          <td>ours: it's the tool's config</td>
+                        </tr>
+                        <tr>
+                          <td>b</td>
+                          <td>legacy 3-arg decorators</td>
+                          <td>standard (TC39) only</td>
+                          <td>ours</td>
+                        </tr>
+                        <tr>
+                          <td>c</td>
+                          <td><code>@memoize</code> every non-trivial getter</td>
+                          <td>
+                            <code>derive()</code> only when worth it: a cheap getter memoized is ~2x slower (measured)
+                          </td>
+                          <td>ours</td>
+                        </tr>
+                        <tr>
+                          <td>d</td>
+                          <td>
+                            a <a href="../../../../README.md" target="src-readme-md"><code>README.md</code></a> per
+                            folder
+                          </td>
+                          <td>
+                            docs are html pages in
+                            <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
+                            >; rules in
+                            <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a>
+                          </td>
+                          <td>
+                            ours; adopt WWOD's README CONTENT (files table, "Adding a new X") for package
+                            <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>e</td>
+                          <td>state classes <code>isSelected</code></td>
+                          <td>Fomantic lowercase (<code>selected</code>, <code>active</code>), in app and ui</td>
+                          <td>ours; keep WWOD's PascalCase root class (the app already does)</td>
+                        </tr>
+                        <tr>
+                          <td>f</td>
+                          <td>hoist anything generic to <code>$lib/util</code></td>
+                          <td><code>util</code> only for code 2+ packages use (keeps ui's bundle small)</td>
+                          <td>
+                            merge: WWOD's promotion path + rename, to <code>util</code> OR the package's own util folder
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>g</td>
+                          <td>no 1:1 test files, no micro-modules</td>
+                          <td>one exported class per file; sibling <code>&lt;module&gt;.test.ts</code></td>
+                          <td>
+                            merge: one class per file stays; helper FAMILIES share a capability-named file; tests follow
+                            the module and are renamed with it
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>h</td>
+                          <td>Svelte component docs <code>&lt;!-- @component --&gt;</code></td>
+                          <td><code>/**** ### `&lt;Name&gt;`</code> banner</td>
+                          <td>ours</td>
+                        </tr>
+                        <tr>
+                          <td>i</td>
+                          <td>"CORRECTED &lt;date&gt;", never a quiet edit</td>
+                          <td>
+                            <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                              ><code>SUSPECTED-BUGS.md</code></a
+                            >: delete an entry once settled
+                          </td>
+                          <td>both: CORRECTED in plan docs and docs; the ledgers keep their own rule</td>
+                        </tr>
+                        <tr>
+                          <td>j</td>
+                          <td>"desktop only"</td>
+                          <td>docs and ui check phone width</td>
+                          <td>ours</td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d8">D8</a>
+                  <span class="plan-title"
+                    >a, b, c, f, g, h, j as recommended; d: a README per package; e: lowercase states; i: no CORRECTED
+                    (<a href="#q8">Q8</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      d: a <a href="../../../../README.md" target="src-readme-md"><code>README.md</code></a> REQUIRED
+                      per package, plus one at folder level where a folder needs it (missing today: app, core, lsp,
+                      parser, server, spell, vscode → <a href="#t2">T2</a>)
+                    </li>
+                    <li>
+                      e: lowercase state classes (<code>.Row.selected</code>), PascalCase root class
+                      (<code>.FileDropdown</code>)
+                    </li>
+                    <li>
+                      i: no <code>CORRECTED &lt;date&gt;</code> markers:
+                      <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                        ><code>SUSPECTED-BUGS.md</code></a
+                      >
+                      and the other ledgers keep their own rules
+                    </li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q8">Q8</a>: Minor conflicts: take the recommendations?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d9">D9</a>
+                  <span class="plan-title">Solid 2 facts beat Svelte rules; they aren't choices</span></ui-title
+                ><ui-content
+                  ><p>
+                    Props destructuring, module-scope context, deep-state mutation, <code>use:</code>: Solid 2 decides
+                    (<a href="#o4">1.4</a>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d10">D10</a>
+                  <span class="plan-title">DROP construct-app-only rules</span></ui-title
+                ><ui-content
+                  ><p>
+                    Circuit records / undo / actions maps, CachedResource, PostHog / Sentry, Tailwind,
+                    <code>APITransaction</code>, Dynamo.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><a class="plan-id" href="#d11">D11</a>
+              <span class="plan-title">Agents: up to 5, per Owen's standing rule</span></ui-item
+            ><ui-item id="q9" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q9">Q9</a>
+                  <span class="plan-title">`x ?? die("msg")`: make util's die() throw?</span>
+                  <a class="plan-answer" href="#d12">→ D12</a> </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §5: <code>x ?? die("message")</code> for a required value. Ours: <code>die()</code> (<a
+                      href="../../../util/src/spell/die.ts"
+                      target="src-packages-util-src-spell-die-ts"
+                      ><code>packages/util/src/spell/die.ts</code></a
+                    >) RETURNS an <code>Error</code> after a <code>console.warn</code>; only <code>getDier()</code>'s
+                    <code>die</code> throws. So WWOD's idiom silently does nothing here.
+                  </p>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>Today vs WWOD · 2 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-ts">const file = files.get(path) ?? die("no file")   // file is an Error, nothing thrown
+const file = files.get(path) ?? die("no file")   // WWOD:  throws, file is never undefined</code></pre>
+                    </ui-content></ui-accordion
+                  ><ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Rule + debt (recommended)</ui-label>
+                        <p>
+                          Adopt the idiom; debt entry: <code>die()</code> becomes <code>never</code>-returning (its
+                          callers checked). Until then the rule says <code>?? getDier(...)(...)</code> or a plain throw.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Drop the idiom</ui-label>
+                        <p>
+                          Keep <code>die()</code> as is; required values use an explicit <code>if (!x) throw</code> or
+                          an <code>OrDie</code> method.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title"
+                    >Deferred: a follow-up (todo); WWOD's `?? die()` idiom stays out until then (<a href="#q9">Q9</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q9">Q9</a>: `x ?? die("msg")`: make util's die() throw?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q10" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q10">Q10</a>
+                  <span class="plan-title">User-facing strings: a MSG.ts per package?</span>
+                  <a class="plan-answer" href="#d13">→ D13</a> </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §6: user-facing strings in one <code>MSG</code> object <code>as const</code>, keys prefixed by
+                    subsystem, values strings or <code>(param) =&gt; string</code>. Here: ui has a real i18n system
+                    (<code>UI.i18n</code>, 103 <code>*.vocabulary.en.ts</code> files); everything else is inline (<code
+                      >ResponseErrors</code
+                    >
+                    messages, <code>CliError</code> texts, app notices).
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · ui keeps i18n; MSG.ts elsewhere (recommended)</ui-label>
+                        <p>
+                          <code>app</code>, <code>cli</code>, <code>spell</code> ... get a <code>MSG.ts</code> as they
+                          grow user-facing text; ui's vocabulary IS its MSG. Existing inline strings: debt.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Drop</ui-label>
+                        <p>Strings stay inline; only ui localizes.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d13">D13</a>
+                  <span class="plan-title"
+                    >Drop MSG.ts: strings stay inline; only ui localizes (<a href="#q10">Q10</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q10">Q10</a>: User-facing strings: a MSG.ts per package?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q11" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q11">Q11</a>
+                  <span class="plan-title">WWOD's helper utilities: adopt (to be built) or drop?</span>
+                  <a class="plan-answer" href="#d14">→ D14</a> </ui-title
+                ><ui-content
+                  ><p>Several WWOD rules lean on helpers we don't have:</p>
+                  <ul>
+                    <li>
+                      <code>setDebugGlobal({ x })</code>: expose state for debugging (ours today:
+                      <code>window.project =</code>, <code>Object.assign(globalThis, ...)</code> in 6 places)
+                    </li>
+                    <li>
+                      <code>safelyCall(predicate, logger?)</code> / <code>safelyCallAll(cleanups)</code>: run caller
+                      callbacks without one throw killing the rest
+                    </li>
+                    <li>
+                      <code>debounce()</code> for <code>xSoon</code> fields (ours: hand-rolled timer ids,
+                      <code>compileAppSoon</code>)
+                    </li>
+                    <li>
+                      <code>makeErrorWrapper()</code> decorator: rethrow with <code>cause: { method, args }</code>
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Adopt the rules; helpers are debt (recommended)</ui-label>
+                        <p>
+                          Rules written as if the helpers exist, each helper a
+                          <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a>
+                          entry (D3). Until built: the hand-written form, with a <code>TODO</code> naming the helper.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Drop</ui-label>
+                        <p>Construct-app utilities; rules about them go.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d14" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d14">D14</a>
+                  <span class="plan-title"
+                    >Adopt the rules; setDebugGlobal / safelyCall / debounce / makeErrorWrapper are debt (<a href="#q11"
+                      >Q11</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Rules written as if the helpers exist; each helper a
+                    <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a> entry
+                    (P4). Until built: the hand-written form, with a <code>TODO</code> naming the helper.
+                  </p>
+                  <p class="meta">
+                    Answers <a href="#q11">Q11</a>: WWOD's helper utilities: adopt (to be built) or drop?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q12" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q12">Q12</a>
+                  <span class="plan-title">Singleton services: object literal or class?</span>
+                  <a class="plan-answer" href="#d15">→ D15</a> </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §15: a stateless service no app class owns is an OBJECT LITERAL with a registry
+                    (<code>Serializer.addClass(...)</code>); one an app class owns becomes <code>static</code> members
+                    on it.
+                    <a href="../../../ui/AGENTS.md" target="src-packages-ui-agents-md"
+                      ><code>packages/ui/AGENTS.md</code></a
+                    >
+                    "UI rules": runtime services are CLASSES (one instance on <code>globalThis.UI</code>).
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Merge (recommended)</ui-label>
+                        <p>
+                          ui keeps classes (its runtime swaps / tests instances); elsewhere WWOD's two cases.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Classes everywhere</ui-label>
+                        <p>ui's rule repo-wide; WWOD §15's object-literal case dropped.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d15" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d15">D15</a>
+                  <span class="plan-title"
+                    >Classes everywhere: singleton services are classes, stateless ones too (<a href="#q12">Q12</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    WWOD's object-literal case dropped. ui's runtime services already comply (<code>UIRuntime</code>'s
+                    <code>readonly icons = new IconPacks()</code> ...). Existing stateless object literals (<code
+                      >assert</code
+                    >
+                    in util, <code>Actions</code> in app): debt (P4).
+                  </p>
+                  <p class="meta">
+                    Answers <a href="#q12">Q12</a>: Singleton services: object literal or class?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q13" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q13">Q13</a>
+                  <span class="plan-title">Config-by-spread or subclassing for pluggable behaviour?</span>
+                  <a class="plan-answer" href="#d16">→ D16</a> </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §12: <code>{ ...BaseFileSpec, extensions, payloadFormat }</code> over a subclass. Spell's rules
+                    subclass on purpose: <code>@proto static</code> defaults, <code>specialize()</code>,
+                    <code>Spell&lt;Thing&gt;</code>; ui elements extend <code>UIElement</code>.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Both, by kind (recommended)</ui-label>
+                        <p>
+                          Classes with behaviour subclass (ours); plain config / spec records spread (WWOD).
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Subclass</ui-label>
+                        <p>Drop WWOD's rule.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d16" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d16">D16</a>
+                  <span class="plan-title"
+                    >Both, by kind: classes with behaviour subclass; plain config / spec records spread (<a href="#q13"
+                      >Q13</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q13">Q13</a>: Config-by-spread or subclassing for pluggable behaviour?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q14" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q14">Q14</a>
+                  <span class="plan-title">File names: kebab-case files in spell/src/node?</span>
+                  <a class="plan-answer" href="#d17">→ D17</a> </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §8: PascalCase when a module IS one class (<code>ToursApp.ts</code>), camelCase for a family
+                    (<code>elements.ts</code>). The repo mostly agrees, but
+                    <a href="../../../spell/src/node/" target="src-packages-spell-src-node"
+                      ><code>packages/spell/src/node/</code></a
+                    >
+                    has
+                    <a
+                      href="../../../spell/src/node/response-utils.ts"
+                      target="src-packages-spell-src-node-response-utils-ts"
+                      ><code>response-utils.ts</code></a
+                    >,
+                    <a href="../../../spell/src/node/file-utils.ts" target="src-packages-spell-src-node-file-utils-ts"
+                      ><code>file-utils.ts</code></a
+                    >,
+                    <a
+                      href="../../../spell/src/node/project-utils.ts"
+                      target="src-packages-spell-src-node-project-utils-ts"
+                      ><code>project-utils.ts</code></a
+                    >.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Adopt; renames are debt (recommended)</ui-label>
+                        <p>
+                          New files follow WWOD; the kebab-case ones get a debt entry (rename when next touched).
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Adopt; rename now</ui-label>
+                        <p>3+ files plus their imports, in P3.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d17" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d17">D17</a>
+                  <span class="plan-title"
+                    >Adopt WWOD's file naming; the kebab-case files in spell/src/node are debt (<a href="#q14">Q14</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q14">Q14</a>: File names: kebab-case files in spell/src/node?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q15" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q15">Q15</a>
+                  <span class="plan-title">CSS sub-parts: .Component-part or nested under the root class?</span>
+                  <a class="plan-answer" href="#d18">→ D18</a> </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §19: sub-parts named <code>.AppDrawer-logoContainer</code>, vars <code>--AppDrawer-w</code>.
+                    The app today nests unprefixed classes under the root class with native CSS nesting:
+                  </p>
+                  <ui-accordion class="spell-code" styled open="0"
+                    ><ui-title>app/src/solid/ThingExplorer.css (today) · 4 lines</ui-title
+                    ><ui-content>
+                      <pre><code class="language-css">.ThingExplorer {
+  .ThingTreeGroup { ... }
+  .label { ... }
+}</code></pre>
+                    </ui-content></ui-accordion
+                  ><ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Nested (recommended)</ui-label>
+                        <p>
+                          Matches the app; native nesting scopes them. Custom properties still prefixed
+                          (<code>--ThingExplorer-w</code>).
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Prefixed (WWOD)</ui-label>
+                        <p>
+                          <code>.ThingExplorer-label</code>: greppable, can't leak; app CSS changes as touched.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d18" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d18">D18</a>
+                  <span class="plan-title"
+                    >CSS sub-parts nest under the root class, unprefixed; custom properties prefixed (<a href="#q15"
+                      >Q15</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q15">Q15</a>: CSS sub-parts: .Component-part or nested under the root class?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q16" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q16">Q16</a>
+                  <span class="plan-title">WWOD's CachedResource rules: map to Loadable or drop?</span>
+                  <a class="plan-answer" href="#d19">→ D19</a> </ui-title
+                ><ui-content
+                  ><p>
+                    D10 drops CachedResource as construct-only. But
+                    <a href="../../../util/src/spell/Loadable.ts" target="src-packages-util-src-spell-loadable-ts"
+                      ><code>packages/util/src/spell/Loadable.ts</code></a
+                    >
+                    is our equivalent (abstract <code>getLoader()</code> / <code>getSaver()</code>, <code>load()</code>,
+                    one <code>loadState</code>), and 4 of WWOD §14's 7 rules fit it: abstract-vs-throwing optional
+                    capability, the verb triple (<code>load()</code> → <code>loadResource()</code> →
+                    <code>onLoaded</code>), one state record, per-instance debug.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Keep the 4 for Loadable (recommended)</ui-label>
+                        <p>They describe how Loadable already works.</p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Drop all</ui-label>
+                        <p>As D10 says.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d19" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d19">D19</a>
+                  <span class="plan-title"
+                    >Keep the 4 CachedResource rules that fit Loadable; the other 3 drop (<a href="#q16">Q16</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q16">Q16</a>: WWOD's CachedResource rules: map to Loadable or drop?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q17" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q17">Q17</a>
+                  <span class="plan-title">ui's env vars: `UI_*` carve-out, or `SPELL_*` like the rest?</span>
+                  <a class="plan-answer" href="#d20">→ D20</a> </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §11: our env vars are prefixed <code>SPELL_*</code>. ui's use
+                    <code>UI_*</code> (<code>UI_TEST_ALL</code>, <code>UI_SOLID_PROD</code>); ui stands alone (it
+                    imports no spell package). Others unprefixed: <code>VITE_PORT</code>, <code>API_SERVER</code>,
+                    <code>GOALS_DIR</code>, <code>FA_PACKAGE_DIR</code>, <code>BENCH</code>,
+                    <code>INCREMENTAL_FULL</code>.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · UI_* for ui (recommended)</ui-label>
+                        <p>
+                          ui keeps its own prefix: it's published on its own. Every other package <code>SPELL_*</code>;
+                          the unprefixed ones are debt.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · SPELL_* everywhere</ui-label>
+                        <p>ui's become <code>SPELL_UI_*</code>; debt too.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d20" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d20">D20</a>
+                  <span class="plan-title"
+                    >SPELL_* everywhere: ui's env vars become SPELL_UI_*; unprefixed ones are debt (<a href="#q17"
+                      >Q17</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q17">Q17</a>: ui's env vars: `UI_*` carve-out, or `SPELL_*` like the rest?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing>
+          <ui-icon slot="icon" name="compass"></ui-icon>
+          <p class="meta">
+            Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open
+            until you review it; struck = accepted. Disagree: say so, and it becomes a question.
+          </p>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed
+            ><ui-item id="j1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j1">J1</a>
+                  <span class="plan-title"
+                    >"Apps are thin adapters" ADAPTed to our hosts (editor, runner, web components)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose ADAPT over DROP: construct-app's "apps" map to our hosts sharing one controller. §8.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j2">J2</a>
+                  <span class="plan-title"
+                    >"Symmetric copy-paste across apps over abstract base classes" DROPped</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Construct-app's sibling apps; we rely on base classes. §8.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j3">J3</a>
+                  <span class="plan-title">`.map((it) =&gt; ...)` anonymous item param ADOPTed</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Root <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> "Functions"
+                    shows <code>(token) =&gt;</code> as an example, not a rule. §11.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j4">J4</a>
+                  <span class="plan-title"
+                    >`static __isX__` HMR guards: only where instanceof crosses bundles</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Nothing uses them today; <code>instanceof</code> stays the default. §12.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j5" data-status="open"
+              ><a class="plan-id" href="#j5">J5</a>
+              <span class="plan-title"
+                >Svelte `$model` reads DROPped; copyright headers DROPped (the repo has none)</span
+              > </ui-item
+            ><ui-item id="j6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j6">J6</a>
+                  <span class="plan-title"
+                    >`interface Props` → a `type &lt;Name&gt;Props` per component</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Root rule "ALWAYS <code>type</code>" wins without a question. §18.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j7" data-status="open"
+              ><a class="plan-id" href="#j7">J7</a>
+              <span class="plan-title"
+                >"`--` as em-dash" stated as a rule (we already write it, never said it)</span
+              > </ui-item
+            ><ui-item id="j8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j8">J8</a>
+                  <span class="plan-title"
+                    >`SPELL_DEBUG=tokenizer,server:INFO`: comma-separated logger prefixes, optional level</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §19. A bare prefix means <code>DEBUG</code>. Read in
+                    <a href="../../../spell/src/node/environment.ts" target="src-packages-spell-src-node-environment-ts"
+                      ><code>environment.ts</code></a
+                    >, never in <code>Logger</code> (it must stay browser-safe). Nothing reads it yet: a target (debt).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j9">J9</a>
+                  <span class="plan-title"
+                    >Env parse helpers getString / getNumber / getBoolean / getPath beside environment.ts</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §11. Promoted to <code>util</code> per §8 once a second package needs them. None exist yet.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j10">J10</a>
+                  <span class="plan-title"
+                    >Env naming: `SPELL_NO_&lt;THING&gt;` for off-switches; importing environment is silent</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §11. Already the pattern (<code>SPELL_NO_BROWSER</code>, <code>SPELL_NO_EDITOR</code>,
+                    <code>SPELL_NO_SERVER</code>). Exempt from "only environment.ts reads process.env": build / test
+                    configs, and forwarding env to child processes (<code>{ ...process.env, X }</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j11">J11</a>
+                  <span class="plan-title"
+                    >A package's extra namespaces are allowed when its own AGENTS.md lists them, with the reason</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §8. ui has <code>E</code>, <code>SSR</code>, <code>UIT</code>; app has <code>UI</code>,
+                    <code>F</code>. Chose this over making them debt: each has a reason in its package's AGENTS.md (<a
+                      href="#d4"
+                      >D4</a
+                    >
+                    is about a types module's namespace).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j12">J12</a>
+                  <span class="plan-title"
+                    >A one-line accessor is a value: `const isRoot = () =&gt; ...` stays an arrow</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §9 / §17. The "inner helpers are not inline arrows" rule covers helpers with a body; real
+                    components (<a
+                      href="../../../app/src/solid/TypeExplorer.tsx"
+                      target="src-packages-app-src-solid-typeexplorer-tsx"
+                      ><code>TypeExplorer.tsx</code></a
+                    >) use one-line accessor arrows everywhere.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j13">J13</a>
+                  <span class="plan-title">"No rem" extended from ui to the app's CSS</span> </ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §18. App sheets ship inside <code>&lt;spell-app&gt;</code> /
+                    <code>&lt;spell-editor&gt;</code> on other people's pages, where <code>rem</code> follows THEIR root
+                    font size.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j14">J14</a>
+                  <span class="plan-title"
+                    >App-wide custom properties keep `--spell-*`; `--Root-x` only for a component's own</span
+                  > </ui-title
+                ><ui-content
+                  ><p>WWOD §18; reads <a href="#d18">D18</a> as covering component properties only.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title">wwod/ files won't line up 1:1 with wwod-original/</span></ui-title
+                ><ui-content
+                  ><p>Spokes get merged, split and renamed; each spoke's header names its source §s.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title"
+                    >Spokes are read on demand from the hub's table, not auto-loaded</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Same as
+                    <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                      ><code>solid-2.md</code></a
+                    >
+                    today: an agent that skips the table misses the spoke.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="todos" header="6. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title"
+                    >Move skills and hooks into packages/agents/; .claude/ points at them</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen (<a href="#q1">Q1</a>). Needs a check first that Claude Code still finds symlinked skills.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title"
+                    >Write the missing package READMEs: app, core, lsp, parser, server, spell, vscode</span
+                  ></ui-title
+                ><ui-content
+                  ><p><a href="#q8">Q8</a> d. Also recorded as debt in P4.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title"
+                    >Follow up Q9: `x ?? die("msg")` vs util's die() that returns an Error</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen (<a href="#q9">Q9</a>): note for follow-up. Options were: make <code>die()</code>
+                    <code>never</code>-returning (debt), or drop the idiom.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title"
+                    >packages/util/src/spell/constants.ts breaks our own "NEVER bare constants.ts"</span
+                  > </ui-title
+                ><ui-content><p>Found by a P1 agent. Debt entry in P4.</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="i2" data-status="open"
+              ><a class="plan-id" href="#i2">I2</a>
+              <span class="plan-title"
+                >server tests also use it() (8 files): the D6 debt entry must count server too</span
+              > </ui-item
+            ><ui-item id="i3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title"
+                    >RunnerConsole reads a prop in its body (`const console = props.console`)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Should trigger <code>STRICT_READ_UNTRACKED</code>. Logged in
+                    <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      ><code>SUSPECTED-BUGS.md</code></a
+                    >
+                    (app). Not this epic's to fix.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="tests" header="8. To test" sticky collapsible dividing>
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <p class="meta">
+            What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
+          </p>
+          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="log" header="9. Log" sticky collapsible dividing>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-03T22:15-04:00">2026-10-03 22:15</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> Q1 answered: D1
+                  WWOD lives in a new packages/agents/ folder; skills / hooks move there later</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> Q2 answered: D2
+                  WWOD is its own file set, referenced from the root AGENTS.md; § numbers across hub +
+                  spokes</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> Q3 answered: D3
+                  Rules + CODE-DEBT.md entries; no code rewrites in this epic</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> Q4 answered: D4
+                  Keep one namespace per package; a types-only leaf import is `PT`, never a bare `T`</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> Q5 answered: D5 TS
+                  private; WWOD's # recorded as the rejected option (Proxies, tests)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> Q6 answered: D6
+                  test() for new tests, one style per file; the it() → test() codemod is debt</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> Q7 answered: D7
+                  Merge: error classes stay in .types.ts; prototype.name, typed XCause in cause, self-naming guard
+                  messages</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> Q8 answered: D8 a,
+                  b, c, f, g, h, j as recommended; d: a README per package; e: lowercase states; i: no
+                  CORRECTED</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> P1 added: Triage
+                  Copy</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> P2 added: Merged
+                  Draft</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> P3 added:
+                  Install</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> P4 added: Code
+                  Debt</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:48-04:00">2026-10-03 23:48</time></ui-date> P5 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:49-04:00">2026-10-03 23:49</time></ui-date> planned: Q1-Q8
+                  answered, 5 phases</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:50-04:00">2026-10-03 23:50</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T23:58-04:00">2026-10-03 23:58</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:29-04:00">2026-10-04 01:29</time></ui-date> Q9 answered: D12
+                  Deferred: a follow-up (todo); WWOD's `?? die()` idiom stays out until then</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:29-04:00">2026-10-04 01:29</time></ui-date> Q10 answered: D13
+                  Drop MSG.ts: strings stay inline; only ui localizes</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:29-04:00">2026-10-04 01:29</time></ui-date> Q11 answered: D14
+                  Adopt the rules; setDebugGlobal / safelyCall / debounce / makeErrorWrapper are debt</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:29-04:00">2026-10-04 01:29</time></ui-date> Q12 answered: D15
+                  Classes everywhere: singleton services are classes, stateless ones too</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:29-04:00">2026-10-04 01:29</time></ui-date> Q13 answered: D16
+                  Both, by kind: classes with behaviour subclass; plain config / spec records spread</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:29-04:00">2026-10-04 01:29</time></ui-date> Q14 answered: D17
+                  Adopt WWOD's file naming; the kebab-case files in spell/src/node are debt</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:29-04:00">2026-10-04 01:29</time></ui-date> Q15 answered: D18
+                  CSS sub-parts nest under the root class, unprefixed; custom properties prefixed</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:36-04:00">2026-10-04 01:36</time></ui-date> Q16 answered: D19
+                  Keep the 4 CachedResource rules that fit Loadable; the other 3 drop</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:36-04:00">2026-10-04 01:36</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:49-04:00">2026-10-04 01:49</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:50-04:00">2026-10-04 01:50</time></ui-date> Q17 answered: D20
+                  SPELL_* everywhere: ui's env vars become SPELL_UI_*; unprefixed ones are debt</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>
