@@ -138,7 +138,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_suit", of: "Card", datatype: "text",
+    property: "short_suit", words: "short-suit", of: "Card", datatype: "text",
     defined: "/Card.spell:1139-1300",
   } */
   get short_suit() {
@@ -150,7 +150,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_rank", of: "Card", datatype: "text",
+    property: "short_rank", words: "short-rank", of: "Card", datatype: "text",
     defined: "/Card.spell:1302-1466",
   } */
   get short_rank() {
@@ -160,7 +160,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_direction", of: "Card", datatype: "text",
+    property: "short_direction", words: "short-direction", of: "Card", datatype: "text",
     defined: "/Card.spell:1468-1548",
   } */
   get short_direction() {
@@ -170,7 +170,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_name", of: "Card", datatype: "text",
+    property: "short_name", words: "short-name", of: "Card", datatype: "text",
     defined: "/Card.spell:1551-1611",
   } */
   get short_name() {
@@ -414,7 +414,7 @@ export class Deck extends List {
   }
 }
 /*! SPELL: DECLARES {
-  property: "is_set_up", of: "Deck", datatype: "choice", auto: true,
+  property: "is_set_up", words: "is-set-up", of: "Deck", datatype: "choice", auto: true,
   defined: "/Deck.spell:277-313",
 } */
 Deck.declareProp('is_set_up', { type: 'choice' })

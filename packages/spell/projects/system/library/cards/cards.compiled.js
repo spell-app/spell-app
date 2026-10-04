@@ -138,7 +138,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_suit", of: "Card", datatype: "text",
+    property: "short_suit", words: "short suit", of: "Card", datatype: "text",
     defined: "/Card.spell:1138-1299",
   } */
   get short_suit() {
@@ -150,7 +150,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_rank", of: "Card", datatype: "text",
+    property: "short_rank", words: "short rank", of: "Card", datatype: "text",
     defined: "/Card.spell:1301-1463",
   } */
   get short_rank() {
@@ -160,7 +160,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_direction", of: "Card", datatype: "text",
+    property: "short_direction", words: "short direction", of: "Card", datatype: "text",
     defined: "/Card.spell:1465-1545",
   } */
   get short_direction() {
@@ -170,7 +170,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_name", of: "Card", datatype: "text",
+    property: "short_name", words: "short name", of: "Card", datatype: "text",
     defined: "/Card.spell:1548-1608",
   } */
   get short_name() {
@@ -316,7 +316,7 @@ export class Joker extends Card {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_name", of: "Joker", datatype: "text",
+    property: "short_name", words: "short name", of: "Joker", datatype: "text",
     defined: "/Card.spell:2964-2998",
   } */
   get short_name() {
@@ -398,8 +398,8 @@ export function test_card_setup() {
 }
 test_card_setup()
 // -----------
-spellCore.heading("Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes")
-//## Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes
+spellCore.heading("Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes")
+//## Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes
 
 /*! SPELL: DECLARES {
   type: "Deck", superType: "List", itemType: "Card",
@@ -408,9 +408,9 @@ spellCore.heading("Deck:   US standard card deck -- with its two jokers too, if 
 export class Deck extends List {
   static instanceType = Card
 
-  /** with-jokers:  yes to add the red and the black joker when it's set up, after the 52 cards */
+  /** with jokers:  yes to add the red and the black joker when it's set up, after the 52 cards */
   /*! SPELL: DECLARES {
-    property: "with_jokers", of: "Deck", datatype: "choice",
+    property: "with_jokers", words: "with jokers", of: "Deck", datatype: "choice",
     defined: "/Deck.spell:208-243",
   } */
   static { this.declareProp('with_jokers', { type: 'choice' }) }
@@ -453,7 +453,7 @@ export class Deck extends List {
   }
 }
 /*! SPELL: DECLARES {
-  property: "is_set_up", of: "Deck", datatype: "choice", auto: true,
+  property: "is_set_up", words: "is-set-up", of: "Deck", datatype: "choice", auto: true,
   defined: "/Deck.spell:578-614",
 } */
 Deck.declareProp('is_set_up', { type: 'choice' })
@@ -510,7 +510,7 @@ test_deck_creation()
 } */
 export function test_deck_with_jokers() {
   return spellCore.test('test deck with jokers', function test_deck_with_jokers() {
-    spellCore.echoTestAction(`the deck is a new deck whose with-jokers is yes`)
+    spellCore.echoTestAction(`the deck is a new deck whose with jokers is yes`)
     let deck = new Deck({ with_jokers: true })
     spellCore.echoTestAction(`set up the deck`)
     deck.set_up()

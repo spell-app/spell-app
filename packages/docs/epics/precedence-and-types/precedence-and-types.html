@@ -886,6 +886,73 @@
             settled, don't re-argue without new facts. An answered question sits just above its decision.
           </p>
           <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="q18" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q18">Q18</a>
+                  <span class="plan-title">Do we still need member_words' stop list?</span></ui-title
+                ><ui-content
+                  ><p>
+                    From the review of J25. The stop list (<code>of the a an is has ... as with whose ...</code>) was a
+                    hedge: it decides where a multi-word member name ENDS when nothing else does.
+                  </p>
+                  <ul>
+                    <li>
+                      Reads may not need it: <code>the … of</code> ends at <code>of</code>, and a read now resolves its
+                      words against the members the type declares (longest declared match).
+                    </li>
+                    <li>
+                      Declarations still need SOME end: <code>a card has short rank as text</code> -- without
+                      <code>as</code> as a stop word, the name would swallow <code>as text</code>;
+                      <code>the short rank of a card is:</code> ends at <code>of</code> anyway.
+                    </li>
+                    <li>
+                      Options: (A) keep it as is; (B) shrink it to the words a declaration's own syntax uses next (<code
+                        >of as is :</code
+                      >), resolving reads by declared members only; (C) no list: declarations end at the next literal
+                      word of their own rule.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q19" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q19">Q19</a>
+                  <span class="plan-title">Does a two-step move give the move animation?</span></ui-title
+                ><ui-content
+                  ><p>
+                    From the review of J40. Today a card moving between exclusive piles changes owner ONCE: the new pile
+                    takes it before the old one lets go, so nothing ever sees it ownerless. Owen: maybe setting it in
+                    two steps -- out of the old pile, then (after a moment) into the new one -- is how the move
+                    animation should work, instead of <code>to move</code>'s <code>pause for 50 msec</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q20" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q20">Q20</a>
+                  <span class="plan-title"
+                    >Make every statement usable as an expression, as in JavaScript?</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    From the
+                    <a
+                      href="details/review-j18-j29-j31.html"
+                      target="src-packages-docs-epics-precedence-and-types-details-review-j18-j29-j31-html"
+                      >review page</a
+                    >
+                    (J18). Owen: "Maybe all statements are implicitly expressions as well? Matches JS syntax." Today
+                    only rules that say so (method calls and <code>wait for</code>, via
+                    <code>operandInExpressions</code>) get an expression twin; others (<code>draw_thing</code>,
+                    <code>repeat</code> ...) are statements only, or aliased both ways by hand. To work out: what a
+                    statement's VALUE would be (a call's return, an assignment's value, a loop's?), and what it costs in
+                    parse time and ambiguity.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ><ui-item id="q1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
@@ -2234,10 +2301,11 @@ the first card of {list:NAME}
             until you review it; struck = accepted. Disagree: say so, and it becomes a question.
           </p>
           <ui-list class="plan-items" data-kind="judgement" divided relaxed
-            ><ui-item id="j1" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j1">J1</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Probe ledger uses inline snapshots, and keeps precedence.html's problem numbers as titles</span
                   > </ui-title
@@ -2252,10 +2320,11 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j2" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j2" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j2">J2</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Skipped the duplicate expect-to-be-yes probe</span> </ui-title
                 ><ui-content
                   ><p>
@@ -2264,10 +2333,11 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j3" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j3">J3</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Ledger declares chip and pot in a file of their own</span> </ui-title
                 ><ui-content
                   ><p>
@@ -2285,10 +2355,11 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j4" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j4" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j4">J4</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Design doc P1 trim: small extras beyond the brief</span> </ui-title
                 ><ui-content
                   ><ul>
@@ -2308,10 +2379,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j5" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j5">J5</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Prototype choices beyond §4.5's sketch</span> </ui-title
                 ><ui-content
                   ><ol>
@@ -2462,10 +2534,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j9" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j9" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j9">J9</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">Parse slowdown: keep going and flag it (Q8 unanswered)</span></ui-title
                 ><ui-content
                   ><p>
@@ -2502,10 +2575,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j11" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j11" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j11">J11</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P4: a method of a type the project doesn't own is recorded in the PROJECT's `methods`, with
                     `of`</span
@@ -2529,10 +2603,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j12" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j12" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j12">J12</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P4: `+` is `number` only when both sides are; `text` when either is; else unknown</span
                   > </ui-title
@@ -2550,10 +2625,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j13" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j13" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j13">J13</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P4: type names a user writes now compile in spell's words -- `as a string` checks `'text'`, `as a
                     boolean` / `is a boolean` `'choice'`</span
@@ -2597,10 +2673,11 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j14" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j14" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j14">J14</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P4: SPELL: DECLARES writes `params` only when a method has some, `returns` / `itemType` only when
                     known</span
@@ -2621,10 +2698,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j15" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j15" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j15">J15</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P4: extras -- every live example recompiled, hover says `card: Card`, probes T1 / T2 and a
                     "datatypes" ledger</span
@@ -2658,10 +2736,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j16" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j16" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j16">J16</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P5: a typed call rejects only when the two types are unrelated</span
                   > </ui-title
@@ -2685,10 +2764,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j17" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j17" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j17">J17</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P5: every call, not just one-argument ones, takes an operand in its LAST slot inside an
                     expression</span
@@ -2710,15 +2790,47 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j18" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j18" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j18">J18</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P5: declarations write ONE call rule; the expression twin is rebuilt on loading</span
                   > </ui-title
                 ><ui-content
-                  ><p>
+                  ><ui-message class="plan-update" state="warning" size="tiny" header="UPDATE"
+                    ><p>Review 2026-10-04: rewritten in plain words; the choice is on the details page.</p></ui-message
+                  >
+                  <p><b>In plain words.</b></p>
+                  <ul>
+                    <li>
+                      Writing <code>to move a card to a pile</code> makes a CALL RULE, so later lines like
+                      <code>move the card to the pile</code> parse.
+                    </li>
+                    <li>
+                      Since P5 each method has TWO: the statement rule (its last argument takes a whole expression) and
+                      an expression twin (inside a bigger expression its last argument stops before an operator:
+                      <code>if double x is 4</code> → <code>double(x) == 4</code>).
+                    </li>
+                    <li>
+                      A compiled library saves its rules in <code>SPELL: DECLARES</code> comments, so a project
+                      importing it can rebuild them. You'd picked "declarations list both rules" (D27).
+                    </li>
+                    <li>
+                      Built: the comment lists ONE rule, the statement one; registering it (in the library, or in an
+                      importer) creates the twin automatically. So the importer still gets both.
+                    </li>
+                    <li>
+                      The choice, with a real saved declaration:
+                      <a
+                        href="details/review-j18-j29-j31.html#q1"
+                        target="src-packages-docs-epics-precedence-and-types-details-review-j18-j29-j31-html"
+                        >details page, Q1</a
+                      >.
+                    </li>
+                  </ul>
+                  <p>
                     D27 said the saved declaration lists BOTH rules. The twin is derived at registration from the one
                     rule (its class says <code>operandInExpressions</code>, its syntax ends in
                     <code>{x:expression}</code>), so loading a declaration through <code>scope.addRule()</code> makes
@@ -2741,10 +2853,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j19" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j19" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j19">J19</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P5: forward types by a line scan; an edit that changes which types a file declares re-parses the
                     project</span
@@ -2769,10 +2882,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j20" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j20" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j20">J20</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P5: return types -- bare `return` is `nothing`, loop bodies don't count, a getter now changes
                     scope</span
@@ -2805,10 +2919,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j21" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j21" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j21">J21</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P5: Todos examples renamed `to create a task` =&gt; `to create a new task`; quoted aliases
                     paren-free too</span
@@ -2829,10 +2944,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j22" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j22" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j22">J22</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P5: language server -- the receiver is named by its type; a bare argument's type word is a
                     parameter</span
@@ -2860,10 +2976,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j23" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j23" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j23">J23</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P6: `the X of Y` is ONE rule, resolved else loose -- not split like known_variable / variable</span
                   > </ui-title
@@ -2888,10 +3005,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j24" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j24" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j24">J24</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P6: a declared member read is priority 1 -- beats the ordinal and loose reads, NOT `the position
                     of` / `the number of` / `the biggest of`</span
@@ -2917,10 +3035,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j25" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j25" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j25">J25</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">P6: member_words' stop list, and any case</span> </ui-title
                 ><ui-content
                   ><p>
@@ -2938,10 +3057,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j26" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j26" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j26">J26</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P6: the enumeration table passes with two readings -- `the suits of the card` =&gt; `Card.Suits`,
                     and a new `list_count`</span
@@ -2967,10 +3087,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j27" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j27" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j27">J27</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P6: the article in a property declaration is optional; with-jokers keeps its dash</span
                   > </ui-title
@@ -2987,10 +3108,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j28" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j28" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j28">J28</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P6: auto-declare only on a type the PROJECT declares -- not a built-in or imported one</span
                   > </ui-title
@@ -3016,10 +3138,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j29" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j29" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j29">J29</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P6: an auto-declared property compiles at its file's top -- or after its class, in the same file --
                     with the set's SPELL: DECLARES comment there, not on the set line</span
@@ -3049,10 +3172,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j30" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j30" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j30">J30</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P6: editors show a member as written -- ScopeVariable.words, and a pack entry's name</span
                   > </ui-title
@@ -3077,10 +3201,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j31" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j31" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j31">J31</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P6: old rule: enumeration declarations are skipped at load; an auto-declared property records V's
                     datatype, not nothing</span
@@ -3101,10 +3226,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j32" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j32" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j32">J32</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P7: built-in members spelled by RULES (shuffle, the first item of) are docs only -- NOT loaded into
                     scope as method records</span
@@ -3129,10 +3255,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j33" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j33" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j33">J33</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P7 (C9): declaring a property on a built-in type is refused, with a parse error saying why --
                     Thing, List, App too</span
@@ -3163,10 +3290,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j34" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j34" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j34">J34</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P7: the Type Explorer reads built-in types straight from the table; the pack file is only for pages
                     with no parser</span
@@ -3200,10 +3328,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j35" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j35" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j35">J35</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title">P7: which members, and the compile template's three forms</span> </ui-title
                 ><ui-content
                   ><p>
@@ -3237,10 +3366,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j36" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j36" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j36">J36</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P8: an exclusive list of a BUILT-IN type (things, numbers) is allowed, with no owner member -- not
                     refused</span
@@ -3263,10 +3393,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j37" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j37" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j37">J37</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P8: adding a card a pile already holds MOVES it there, never twice</span
                   > </ui-title
@@ -3288,10 +3419,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j38" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j38" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j38">J38</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P8: scratch results keep their type but own nothing -- a flag, not plain lists</span
                   > </ui-title
@@ -3316,10 +3448,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j39" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j39" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j39">J39</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P8: the owner member compiles as a getter patched on after the list's class, with no setter</span
                   > </ui-title
@@ -3351,10 +3484,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j40" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j40" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j40">J40</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P8: a moved card's owner changes ONCE -- the new list takes it before the old lets go</span
                   > </ui-title
@@ -3369,10 +3503,11 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="j41" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="j41" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j41">J41</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >P8: completion after `a thingy is a` now offers `exclusive` and `list` beside the types</span
                   > </ui-title
@@ -3877,6 +4012,143 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="t7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t7">T7</a>
+                  <span class="plan-title">Ad-hoc enumerations as named types</span></ui-title
+                ><ui-content
+                  ><p>
+                    From the review of the return-types call (J20). <code>a card has a color: red or black</code> (an
+                    enumeration declared inline with its property) gets a named type, e.g. <code>CardColors</code>, so a
+                    getter returning one, a parameter or a variable can say so, and datatypes are more than
+                    <code>text</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t8">T8</a>
+                  <span class="plan-title">Explore `when creating a task:` as constructor syntax</span></ui-title
+                ><ui-content
+                  ><p>
+                    From the review of the Todos rename (J21). Under D2, <code>to create a task</code> became
+                    <code>Task.create()</code>, so the Todos examples were renamed <code>to create a new task</code>.
+                    Explore instead: <code>when creating a task:</code> (or similar) as the syntax for a class's
+                    constructor.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t9">T9</a>
+                  <span class="plan-title">Follow up: auto-declare on built-in and imported types</span></ui-title
+                ><ui-content
+                  ><p>
+                    From the review of J28. Today the first <code>set the X of Y</code> declares X only when Y's type is
+                    declared by THIS project; on a built-in or imported type it stays a plain, non-reactive field
+                    (caveat C16). Decide what should happen there.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t10">T10</a>
+                  <span class="plan-title">Let projects extend built-in types with new language</span></ui-title
+                ><ui-content
+                  ><p>
+                    From the review of J33: "extending built-in types with new language is a goal". Today declaring a
+                    property on a built-in type (Thing, List, Text ...) is refused (J33), so it can't leak into every
+                    project. Needed: a way to add members / phrases to a built-in type that stays scoped to the project
+                    (or library) that declares it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t11">T11</a>
+                  <span class="plan-title"
+                    >Treat phrases like `the absolute value of a number` as members of Number</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    From the review of J34. Rules like <code>the absolute value of</code>, <code>round</code> could be
+                    member entries in Number's built-in table, as <code>the length of</code> is for text and lists,
+                    instead of rules of their own. Goes with issue I7 (those helpers don't exist in core yet) and todo
+                    T6.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t12">T12</a>
+                  <span class="plan-title">Rethink exclusive list semantics</span></ui-title
+                ><ui-content
+                  ><p>
+                    From the review of J36-J39 (Owen: "rethink exclusive list semantics"). The calls to revisit
+                    together:
+                  </p>
+                  <ul>
+                    <li>J36: an exclusive list of a built-in item type is allowed, with no owner member</li>
+                    <li>J37: adding an item a list already holds moves it, never twice</li>
+                    <li>J38: scratch results (filter, copy, merge) keep their type but own nothing, by a flag</li>
+                    <li>J39: the owner member is a getter patched on after the list's class, with no setter</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t13">T13</a>
+                  <span class="plan-title"
+                    >One `declareProp()` call per auto-declared property, carrying its metadata</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    From the
+                    <a
+                      href="details/review-j18-j29-j31.html"
+                      target="src-packages-docs-epics-precedence-and-types-details-review-j18-j29-j31-html"
+                      >review page</a
+                    >
+                    (J29). Owen: "why not <code>Deck.declareProp(...)</code> which passes the metadata as well?" Today
+                    an auto-declared property compiles to three pieces: a <code>/*! SPELL: DECLARES */</code> comment
+                    (the metadata), <code>Deck.declareProp('is_set_up', { type: 'choice' })</code> (the schema,
+                    <a href="../../../util/src/spell/Schema.ts" target="src-packages-util-src-spell-schema-ts"
+                      ><code>packages/util/src/spell/Schema.ts</code></a
+                    >), and an <code>Object.defineProperty(...)</code> accessor. Fold them into ONE call that also
+                    defines the accessor and carries <code>auto</code> / <code>defined</code>. Catch: importers read
+                    declarations from the compiled TEXT (<code>SpellDeclarations.read()</code> scans the comments), so
+                    either the reader learns to read the call too, or the comment stays beside it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t14">T14</a>
+                  <span class="plan-title"
+                    >Warn when an auto-declaring `set` sets the property to `nothing`</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    From the
+                    <a
+                      href="details/review-j18-j29-j31.html"
+                      target="src-packages-docs-epics-precedence-and-types-details-review-j18-j29-j31-html"
+                      >review page</a
+                    >
+                    (J31). <code>set the X of Y to nothing</code> on an undeclared X declares it with no type
+                    (accepted); Owen: discourage it -- a WARNING, not an error ("declare <code>X</code> with a type,
+                    e.g. <code>a Y has an X as …</code>").
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -4026,6 +4298,49 @@ the first card of {list:NAME}
                     paren-free signatures make it easier to write. Logged in SUSPECTED-BUGS.md (spell). Fix: register
                     such a call as a statement only, or as an <code>expression_suffix</code>. Not fixed in P5: no
                     example does it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i7">I7</a>
+                  <span class="plan-title"
+                    >`the absolute value of` and `round` compile to spellCore helpers that don't exist</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Found in P7.
+                    <a href="../../../spell/src/rules/math.ts" target="src-packages-spell-src-rules-math-ts"
+                      ><code>packages/spell/src/rules/math.ts</code></a
+                    >
+                    compiles them to <code>spellCore.absoluteValue</code>, <code>round</code>, <code>roundUp</code>,
+                    <code>roundDown</code>; none exist in
+                    <a href="../../../core/" target="src-packages-core"><code>packages/core</code></a
+                    >, so the program compiles but throws when it runs. Predates this epic. Also in SUSPECTED-BUGS.md
+                    (spell). Fix: add the helpers to core (then the built-in number table can list them, todo T6).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i8">I8</a>
+                  <span class="plan-title"
+                    >App test `element.build.test` fails: Solid also lands in `ui/customElement.js`</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Seen from P3 on:
+                    <a
+                      href="../../../app/src/runner/element.build.test.ts"
+                      target="src-packages-app-src-runner-element-build-test-ts"
+                      ><code>packages/app/src/runner/element.build.test.ts</code></a
+                    >
+                    "one Solid per page" expects Solid only in <code>spell-solid.js</code>, but
+                    <code>ui/customElement.js</code> holds a copy too. Fails alone, every run. No phase touched app or
+                    ui source (only the regenerated highlighter bundle), so it likely predates the epic; not yet checked
+                    on <code>main</code>. In SUSPECTED-BUGS.md.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -4919,6 +5234,607 @@ the first card of {list:NAME}
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T05:56-04:00">2026-10-04 05:56</time></ui-date> Bedtime done: 6
                   done / 0 WIP / 0 skipped</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J17 closed: P5:
+                  every call, not just one-argument ones, takes an operand in its LAST slot inside an
+                  expression</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J17 reviewed: OK:
+                  any call's last slot is an operand inside an expression</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J18 reviewed:
+                  Unclear: details rewritten with an example; ask again</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J19 closed: P5:
+                  forward types by a line scan; an edit that changes which types a file declares re-parses the
+                  project</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J19 reviewed:
+                  Good</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J20 closed: P5:
+                  return types -- bare `return` is `nothing`, loop bodies don't count, a getter now changes
+                  scope</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J20 reviewed: OK;
+                  idea: ad-hoc enumerations as named types -&gt; T7</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J21 closed: P5:
+                  Todos examples renamed `to create a task` =&gt; `to create a new task`; quoted aliases paren-free
+                  too</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J21 reviewed:
+                  Explore `when creating a task:` as constructor syntax -&gt; T8</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J22 closed: P5:
+                  language server -- the receiver is named by its type; a bare argument's type word is a
+                  parameter</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J22 reviewed:
+                  Good</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J23 closed: P6:
+                  `the X of Y` is ONE rule, resolved else loose -- not split like known_variable / variable</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J23 reviewed: OK:
+                  one rule</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J24 closed: P6: a
+                  declared member read is priority 1 -- beats the ordinal and loose reads, NOT `the position of` / `the
+                  number of` / `the biggest of`</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J24 reviewed:
+                  Yes</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J25 closed: P6:
+                  member_words' stop list, and any case</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J25 reviewed: OK;
+                  asked whether the stop list is still needed -&gt; Q18</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J26 closed: P6:
+                  the enumeration table passes with two readings -- `the suits of the card` =&gt; `Card.Suits`, and a
+                  new `list_count`</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J26 reviewed:
+                  Good</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J27 to do: Make `a
+                  deck has with jokers as yes or no` work: a multi-word property name with no dash (and no
+                  article)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J27 reviewed: Owen
+                  wants `with jokers` (no dash): to do</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J28 closed: P6:
+                  auto-declare only on a type the PROJECT declares -- not a built-in or imported one</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J28 reviewed: OK
+                  for now; follow up -&gt; T9</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J32 closed: P7:
+                  built-in members spelled by RULES (shuffle, the first item of) are docs only -- NOT loaded into scope
+                  as method records</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J32 reviewed:
+                  Looks good</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J33 closed: P7
+                  (C9): declaring a property on a built-in type is refused, with a parse error saying why -- Thing,
+                  List, App too</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J33 reviewed:
+                  Accepted for now; extending built-in types with new language is a goal -&gt; T10</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J34 closed: P7:
+                  the Type Explorer reads built-in types straight from the table; the pack file is only for pages with
+                  no parser</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J34 reviewed: OK;
+                  idea: `the absolute value of a number` as a member of Number -&gt; T11</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J35 closed: P7:
+                  which members, and the compile template's three forms</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J35 reviewed: To
+                  do: the missing members are todo T6</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J36 closed: P8: an
+                  exclusive list of a BUILT-IN type (things, numbers) is allowed, with no owner member -- not
+                  refused</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:06-04:00">2026-10-04 12:06</time></ui-date> J36 reviewed:
+                  Rethink exclusive list semantics -&gt; T12</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J37 closed: P8:
+                  adding a card a pile already holds MOVES it there, never twice</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J37 reviewed:
+                  Rethink exclusive list semantics -&gt; T12</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J38 closed: P8:
+                  scratch results keep their type but own nothing -- a flag, not plain lists</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J38 reviewed:
+                  Rethink exclusive list semantics -&gt; T12</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J39 closed: P8:
+                  the owner member compiles as a getter patched on after the list's class, with no setter</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J39 reviewed:
+                  Rethink exclusive list semantics -&gt; T12</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J40 closed: P8: a
+                  moved card's owner changes ONCE -- the new list takes it before the old lets go</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J40 reviewed:
+                  Question raised: is a two-step move how the animation should work? -&gt; Q19</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J41 closed: P8:
+                  completion after `a thingy is a` now offers `exclusive` and `list` beside the types</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> J41 reviewed:
+                  Good</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:07-04:00">2026-10-04 12:07</time></ui-date> Review: judgement
+                  calls J17-J41: 18 accepted, 1 to do (J27), 3 to explain (J29-J31), 1 to clarify (J18); todos T7, T8,
+                  T9, T10, T11, T12; questions Q18, Q19</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:31-04:00">2026-10-04 12:31</time></ui-date> J18 closed: P5:
+                  declarations write ONE call rule; the expression twin is rebuilt on loading</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:31-04:00">2026-10-04 12:31</time></ui-date> J18 reviewed:
+                  Keep: one rule saved, twin rebuilt; idea: every statement an expression too -&gt; Q20</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:31-04:00">2026-10-04 12:31</time></ui-date> J29 closed: P6: an
+                  auto-declared property compiles at its file's top -- or after its class, in the same file -- with the
+                  set's SPELL: DECLARES comment there, not on the set line</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:31-04:00">2026-10-04 12:31</time></ui-date> J29 reviewed: Keep
+                  the placement; fold the comment, declareProp and accessor into one call -&gt; T13</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:31-04:00">2026-10-04 12:31</time></ui-date> J30 to do: Hover
+                  AND the Type Explorer both show a member as `short rank` (words as written, never `short_rank`): check
+                  both, fix whichever doesn't</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:31-04:00">2026-10-04 12:31</time></ui-date> J30 reviewed: Both
+                  hover and the Type Explorer should show `short rank`: to do</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:31-04:00">2026-10-04 12:31</time></ui-date> J31 closed: P6:
+                  old rule: enumeration declarations are skipped at load; an auto-declared property records V's
+                  datatype, not nothing</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:31-04:00">2026-10-04 12:31</time></ui-date> J31 reviewed: Skip
+                  old enumerations on load; `to nothing` declares with no type, but should warn -&gt; T14</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:31-04:00">2026-10-04 12:31</time></ui-date> Review: J18, J29,
+                  J31 accepted (with Q20, T13, T14); J30 to do</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J1 closed: Probe
+                  ledger uses inline snapshots, and keeps precedence.html's problem numbers as titles</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J1 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J2 closed: Skipped
+                  the duplicate expect-to-be-yes probe</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J2 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J3 closed: Ledger
+                  declares chip and pot in a file of their own</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J3 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J4 closed: Design
+                  doc P1 trim: small extras beyond the brief</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J4 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J5 closed:
+                  Prototype choices beyond §4.5's sketch</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J5 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J9 closed: Parse
+                  slowdown: keep going and flag it (Q8 unanswered)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J9 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J11 closed: P4: a
+                  method of a type the project doesn't own is recorded in the PROJECT's `methods`, with `of`</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J11 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J12 closed: P4:
+                  `+` is `number` only when both sides are; `text` when either is; else unknown</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J12 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J13 closed: P4:
+                  type names a user writes now compile in spell's words -- `as a string` checks `'text'`, `as a boolean`
+                  / `is a boolean` `'choice'`</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J13 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J14 closed: P4:
+                  SPELL: DECLARES writes `params` only when a method has some, `returns` / `itemType` only when
+                  known</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J14 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J15 closed: P4:
+                  extras -- every live example recompiled, hover says `card: Card`, probes T1 / T2 and a "datatypes"
+                  ledger</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J15 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J16 closed: P5: a
+                  typed call rejects only when the two types are unrelated</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> J16 reviewed:
+                  OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:35-04:00">2026-10-04 12:35</time></ui-date> Review: J1-J5, J9,
+                  J11-J16 accepted; every judgement call reviewed</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:41-04:00">2026-10-04 12:41</time></ui-date> J27 off the to-do
+                  list: P6: the article in a property declaration is optional; with-jokers keeps its dash</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:41-04:00">2026-10-04 12:41</time></ui-date> J27 closed: P6:
+                  the article in a property declaration is optional; with-jokers keeps its dash</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:41-04:00">2026-10-04 12:41</time></ui-date> J30 off the to-do
+                  list: P6: editors show a member as written -- ScopeVariable.words, and a pack entry's name</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:41-04:00">2026-10-04 12:41</time></ui-date> J30 closed: P6:
+                  editors show a member as written -- ScopeVariable.words, and a pack entry's name</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:41-04:00">2026-10-04 12:41</time></ui-date> Review fixes: J27
+                  `a deck has with jokers` works (a few prepositions may START a member name); J30 hover + Type Explorer
+                  both show `short rank` (declarations save `words`; one fallback, spaces)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -1,9 +1,9 @@
-## Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes
+## Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes
 
 a deck is a list of cards
 
-// with-jokers:  yes to add the red and the black joker when it's set up, after the 52 cards
-a deck has with-jokers as yes or no
+// with jokers:  yes to add the red and the black joker when it's set up, after the 52 cards
+a deck has with jokers as yes or no
 
 to set up a deck
 	if  the is-set-up of it return
@@ -11,7 +11,7 @@ to set up a deck
 		for each suit in card suits
 			get a new card with rank = the rank, suit = the suit
 			add it to the deck
-	if the with-jokers of the deck
+	if the with jokers of the deck
 		get a new joker with color = red
 		add it to the deck
 		get a new joker with color = black
@@ -47,7 +47,7 @@ to test deck creation
 test deck creation
 
 to test deck with jokers
-	the deck is a new deck whose with-jokers is yes
+	the deck is a new deck whose with jokers is yes
 	set up the deck
 	expect the number of cards in the deck to be 54
 	set the jokers to the cards in the deck where the card is a joker

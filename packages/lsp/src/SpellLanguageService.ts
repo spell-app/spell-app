@@ -2067,10 +2067,11 @@ export class SpellLanguageService {
 
   /**
    * Member `name` as it's written in spell, e.g. `short rank` for `short_rank` -- its record's `words`, if it has
-   * some, else `asWritten()`.
+   * some, else its name with spaces.
+   * - Hover AND the Type Explorer show this, so a member reads the same in both.
    */
   static memberWords(name: string, record?: P.ScopeVariable): string {
-    return record?.words ?? SpellLanguageService.asWritten(record?.name ?? name)
+    return record?.words ?? (record?.name ?? name).replace(/_/g, " ")
   }
 }
 
