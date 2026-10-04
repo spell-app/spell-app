@@ -987,6 +987,11 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   serves `dist-element/`, though the demo's comment says the dev server does.  The app's own pages work. · For a live
   check:  a tiny static server for `/demo/` + `/element/` that proxies `/api/` to the page server -- dropping
   `Origin` / `Referer`, or the page server answers 403. · app
+- 2026-10-04 · After merging `vite-plus`, the page server's editor never started:  `.spell-server.editor.log` said
+  `Cannot find module .../node_modules/vite/bin/vite.js`.  `vite` is aliased to `@voidzero-dev/vite-plus-core`,
+  which ships no bin, and `vp dev` prints no `ready in` line for `EditorServer` to wait on.  The epic's own checks
+  never started the page server, so nothing caught it. · `EditorServer` runs `vite-plus/bin/vp dev` and waits for
+  `Local:`;  `yarn stop` matches `vp dev`. · app
 
 ## cli
 
@@ -1304,6 +1309,14 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   permission prompt. · File links:  no setting helps, so share whole FOLDERS only (Edit / Write through a folder link
   work).  Prompts:  `permissions.additionalDirectories` + `Edit(//<abs path>/**)` for the target, in
   `~/.claude/settings.json` (every session, worktrees too) and `.claude/settings.json`. · claude-code
+
+- 2026-10-04 · `/epics` failed at once:  `epics.py` dies with "No module named 'worktrees'".  It imports
+  `.claude/skills/worktrees/scripts/worktrees.py`, which the `commands` epic ported to `spell dev stock` and deleted;
+  `epics.py` was never ported (`commands.json`'s target:  `spell dev plan-doc list`).  Also, worktrees branched
+  before review-review P4 still hold `<name>.html`, not `<name>.plan.html`. · By hand:  `spell dev stock --json` for
+  worktrees and sessions, plus each doc's `tsx scripts/plan-doc.js summary <name> --json`, run in its OWN checkout's
+  `packages/docs` (an old-format doc needs its own branch's script).  Fix:  port `epics.py` to `spell dev plan-doc
+  list`. · claude-code
 
 ## vscode
 
