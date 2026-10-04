@@ -1,5 +1,14 @@
 import type { ServerConfig, ServerInfo } from "$/server"
-import { EDIT_KEY, FAVICON_SVG, LOGO_MARK, PROPERTIES, THEME_KEY, type SiteProperty } from "$/server/site"
+import {
+  DARK_QUERY,
+  EDIT_KEY,
+  FAVICON_SVG,
+  LEGACY_SCHEME_KEYS,
+  LOGO_MARK,
+  PROPERTIES,
+  SCHEME_KEY,
+  type SiteProperty
+} from "$/server/site"
 
 /****************
  * ### `<spell-site-header>`
@@ -14,7 +23,12 @@ import { EDIT_KEY, FAVICON_SVG, LOGO_MARK, PROPERTIES, THEME_KEY, type SitePrope
  *   - the checkout serving it:  `⎇ <worktree or branch>` (served pages only)
  *   - "open in VS Code":  a `vscode://file/...` link to the page's source
  *   - edit mode (pages the page server serves):  hover a section, edit its source in place -- `<spell-section-editor>`
- *   - light / dark / OS:  sets `color-scheme` on `<html>`, which UI's `light-dark()` tokens follow;  remembered
+ *   - light / dark:  ONE button showing the scheme the page shows (sun / moon);  a click flips it.  Until the first
+ *     click it follows the OS;  flipping BACK to the OS's own scheme follows the OS again (so two clicks always
+ *     undo one), see `flipTheme()`.  Stored under `SCHEME_KEY`, the one key every doc site shares (Spell UI's
+ *     `ThemePreference` too);  applied as `ui-light` / `ui-dark` on `<html>` (UI's tokens, `--ui-scheme`) AND inline
+ *     `color-scheme` (pages without UI's sheets, and this bar's own `light-dark()`).  Follows the OS while it
+ *     changes, and other tabs' switches (`storage`)
  * - Self-contained:  its own shadow DOM and CSS, no UI elements, so it looks the same on every property.
  * - `docked`:  no fixed bar:  a compact row in place, inside the page's own chrome (the Spell UI site's side
  *   column and top bar);  no crumbs (the page shows its own title), no light / dark button (the page has its own),
@@ -45,6 +59,19 @@ export class SiteHeader extends HTMLElement {
   /** re-draw on `PAGE_EVENT` */
   private readonly onPage = () => this.render()
 
+  /** the OS's scheme, watched while connected:  the button shows it while following the OS */
+  private readonly osDark = matchMedia(DARK_QUERY)
+
+  /** the OS switched scheme:  re-draw (the button shows the scheme the page shows) */
+  private readonly onOsScheme = () => this.render()
+
+  /** another tab switched the scheme:  apply it here too, and re-draw */
+  private readonly onStorage = (event: StorageEvent) => {
+    if (event.key !== SCHEME_KEY && event.key !== null) return
+    applyTheme(readTheme())
+    this.render()
+  }
+
   connectedCallback(): void {
     applyTheme(readTheme())
     installPageStyle(this.docked)
@@ -53,11 +80,15 @@ export class SiteHeader extends HTMLElement {
     this.info = serverConfig()
     this.render()
     document.addEventListener(SiteHeader.PAGE_EVENT, this.onPage)
+    this.osDark.addEventListener("change", this.onOsScheme)
+    window.addEventListener("storage", this.onStorage)
     if (!this.info && location.protocol.startsWith("http")) void this.ping()
   }
 
   disconnectedCallback(): void {
     document.removeEventListener(SiteHeader.PAGE_EVENT, this.onPage)
+    this.osDark.removeEventListener("change", this.onOsScheme)
+    window.removeEventListener("storage", this.onStorage)
   }
 
   /** a compact row inside the page's own chrome, not the fixed bar (the `docked` attribute) */
@@ -123,37 +154,59 @@ export class SiteHeader extends HTMLElement {
     const edit = canEdit
       ? `<button class="tool${editing ? " on" : ""}" data-action="edit" aria-pressed="${editing}" title="Edit sections in place" aria-label="Edit sections in place">${ICONS.pencil}</button>`
       : ""
-    const theme = readTheme()
-    const themeLabel =
-      theme === "dark"
-        ? "Dark (click:  follow the OS)"
-        : theme === "light"
-          ? "Light (click:  dark)"
-          : "Following the OS (click:  light)"
+    const shown = readTheme() ?? this.osTheme()
+    const themeLabel = this.themeLabel()
     shadow.innerHTML = `<style>${STYLE}</style>
 <header part="bar">
   <a class="brand" href="${escape(this.href(PROPERTIES[0]!) ?? "#")}" title="Spell docs" aria-label="Spell docs">${LOGO_MARK}</a>
   <nav aria-label="Site">${tabs}</nav>
   <div class="crumbs">${crumbs}</div>
   ${badge}${edit}${vscode}
-  ${this.docked ? "" : `<button class="tool" data-action="theme" title="${themeLabel}" aria-label="${themeLabel}">${ICONS[theme ?? "auto"]}</button>`}
+  ${this.docked ? "" : `<button class="tool" data-action="theme" title="${themeLabel}" aria-label="${themeLabel}">${ICONS[shown]}</button>`}
 </header>`
     const themeButton = shadow.querySelector<HTMLButtonElement>(`[data-action="theme"]`)
-    if (themeButton) themeButton.onclick = () => this.cycleTheme()
+    if (themeButton) themeButton.onclick = () => this.flipTheme()
     const editButton = shadow.querySelector<HTMLButtonElement>(`[data-action="edit"]`)
     if (editButton) editButton.onclick = () => this.toggleEdit()
   }
 
-  /** OS -> light -> dark -> OS */
-  private cycleTheme(): void {
-    const next = { auto: "light", light: "dark", dark: undefined }[readTheme() ?? "auto"] as Theme | undefined
+  /** the scheme the OS asks for */
+  private osTheme(): Theme {
+    return this.osDark.matches ? "dark" : "light"
+  }
+
+  /**
+   * The theme button's name:  what the page shows, and what a click does.
+   * - `Dark, as the OS (click:  light)` while following the OS
+   * - `Light (click:  dark, as the OS)` when a click goes back to following it
+   */
+  private themeLabel(): string {
+    const chosen = readTheme()
+    const os = this.osTheme()
+    const shown = chosen ?? os
+    const next = shown === "dark" ? "light" : "dark"
+    const name = { light: "Light", dark: "Dark" }[shown]
+    if (!chosen) return `${name}, as the OS (click:  ${next})`
+    return `${name} (click:  ${next}${next === os ? ", as the OS" : ""})`
+  }
+
+  /**
+   * Flip the scheme the page shows:  light <-> dark.
+   * - Landing on the OS's own scheme FORGETS the choice:  the page follows the OS again.  The one way back to the OS
+   *   without an extra state:  a bar has no room for Spell UI's "Match system" switch, and a third "auto" state on
+   *   one button makes every other click look like it did nothing.
+   */
+  private flipTheme(): void {
+    const next: Theme = (readTheme() ?? this.osTheme()) === "dark" ? "light" : "dark"
+    const stored = next === this.osTheme() ? undefined : next
+    themeFallback = stored
     try {
-      if (next) localStorage.setItem(THEME_KEY, next)
-      else localStorage.removeItem(THEME_KEY)
+      if (stored) localStorage.setItem(SCHEME_KEY, stored)
+      else localStorage.removeItem(SCHEME_KEY)
     } catch {
-      // storage blocked:  this page only
+      // storage blocked:  this page only (`themeFallback`)
     }
-    applyTheme(next)
+    applyTheme(stored)
     this.render()
   }
 
@@ -187,6 +240,9 @@ export class SiteHeader extends HTMLElement {
 /** A chosen color scheme;  `undefined` follows the OS. */
 type Theme = "light" | "dark"
 
+/** The chosen scheme when storage is blocked:  this page only. */
+let themeFallback: Theme | undefined
+
 /** Edit mode when storage is blocked. */
 let editFallback = false
 
@@ -204,20 +260,44 @@ export function readEdit(): boolean {
   }
 }
 
-/** The remembered color scheme. */
+/**
+ * The remembered color scheme;  `undefined`:  follow the OS.
+ * - SIDE EFFECT:  while `SCHEME_KEY` is absent, moves an old key's scheme over (`migrateTheme()`).
+ */
 function readTheme(): Theme | undefined {
   try {
-    const theme = localStorage.getItem(THEME_KEY)
+    const theme = localStorage.getItem(SCHEME_KEY) ?? migrateTheme(localStorage)
     return theme === "light" || theme === "dark" ? theme : undefined
   } catch {
-    return undefined
+    return themeFallback
   }
 }
 
-/** Set `color-scheme` on `<html>`;  `undefined`:  back to the page's own (the OS). */
+/**
+ * Move the scheme from the keys it lived under before `SCHEME_KEY` (`LEGACY_SCHEME_KEYS`):  the first valid one is
+ * copied to `SCHEME_KEY`, and every old key removed, so this runs once.  Returns the scheme, else `null`.
+ * - The same steps as Spell UI's `ThemePreference`:  whichever site the viewer opens first moves it.
+ */
+function migrateTheme(storage: Storage): string | null {
+  const found = LEGACY_SCHEME_KEYS.map((key) => storage.getItem(key)).find(
+    (value) => value === "light" || value === "dark"
+  )
+  if (found) storage.setItem(SCHEME_KEY, found)
+  for (const key of LEGACY_SCHEME_KEYS) storage.removeItem(key)
+  return found ?? null
+}
+
+/**
+ * Show `theme` on the page;  `undefined`:  back to the page's own (the OS).
+ * - `ui-light` / `ui-dark` on `<html>`, as Spell UI's `ThemePreference` does:  UI's tokens and `--ui-scheme` follow
+ * - AND inline `color-scheme`:  pages without UI's sheets (goals), and this bar's `light-dark()`
+ */
 function applyTheme(theme: Theme | undefined): void {
-  if (theme) document.documentElement.style.colorScheme = theme
-  else document.documentElement.style.removeProperty("color-scheme")
+  const root = document.documentElement
+  root.classList.toggle("ui-light", theme === "light")
+  root.classList.toggle("ui-dark", theme === "dark")
+  if (theme) root.style.colorScheme = theme
+  else root.style.removeProperty("color-scheme")
 }
 
 /**
@@ -257,8 +337,7 @@ const ICONS: Record<string, string> = {
   light: svg(
     `<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>`
   ),
-  dark: svg(`<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>`),
-  auto: svg(`<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/>`)
+  dark: svg(`<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>`)
 }
 
 /** An icon from SVG `body`. */
@@ -308,6 +387,7 @@ nav { display: flex; gap: 2px; }
   font-size: 13px; background: none; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 :host([docked]) .crumbs { display: none; }
+:host([docked]) nav { flex-wrap: wrap; }
 :host([docked]) .brand svg { height: 20px; }
 :host([docked]) .tab { padding: 5px 8px; }
 :host([docked]) .tool { width: 26px; height: 26px; }

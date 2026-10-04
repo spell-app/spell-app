@@ -416,7 +416,9 @@ every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks an
 - Beyond tokens:  a 3px focus ring, buttons that press to `scale: 0.97` (reduced motion:  none), balanced
   headings, tabular numbers in tables and statistics, link underlines from the font, an 8% outline on images,
   font smoothing, `scroll-margin-top` under the site header, and no transitions during a scheme switch
-  (`html.ui-scheme-switching`, set for one frame by `ThemePreference.applyScheme()`).
+  (`html.ui-scheme-switching`, set for one frame by `ThemePreference.applyScheme()`).  A transition that must
+  run in that very frame (`<ui-docs-themes>`' sun / moon swap) declares itself `!important` in its component layer:
+  an earlier layer's `!important` wins.
 
 ### Fomantic themes
 
@@ -455,8 +457,9 @@ await ThemeSheets.apply(undefined) // our own look
   - `classic`:  the base, applied with every Fomantic theme, or alone with `apply("classic")`
   - `dark`:  a colour SCHEME, not a look:  switch it with `color-scheme`, `ui-dark` or `<ui-root theme="dark">`,
     on top of any theme.  `apply("dark")` throws.  A theme picker offers `OWN` (`spell`), "plain" (`undefined`),
-    `classic`, then `names`;  a separate light / dark / system switch.  The docs site's is `<ui-docs-themes>`
-    (`src/docs-components/`), remembering both per viewer through `ThemePreference`;  `for="ui-button"` lists the
+    `classic`, then `names`;  a separate light / dark switch.  The docs site's is `<ui-docs-themes>`
+    (`src/docs-components/`:  a sun / moon flip and a palette overlay with the list and "Match system"),
+    remembering both per viewer through `ThemePreference`, the scheme under the one key every doc site shares;  `for="ui-button"` lists the
     themes touching one family, from the site data's `themes` (`tools/ThemeFamilies.ts` reads each sheet's class
     grammar and tokens at build time).
 - `apply()` loads the runtime if needed (dynamic import) and registers two `UI.styles` names:  `classic` (the

@@ -51,6 +51,7 @@ export type DocsJSXTags = {
   "ui-markdown": DocsJSXAttributes
   "ui-menu": DocsJSXAttributes
   "ui-message": DocsJSXAttributes
+  "ui-popup": DocsJSXAttributes
   "ui-segment": DocsJSXAttributes
   "ui-table": DocsJSXAttributes
 }
@@ -324,10 +325,13 @@ export const SITE_DATA_META = "ui-docs-data"
 ////////////////
 
 /**
- * A docs page's colour scheme (`ThemePreference`):  `light` / `dark` put `ui-light` / `ui-dark` on `<html>`;
- * `system` neither, so `color-scheme: light dark` follows the OS.
+ * A docs page's colour scheme (`ThemePreference`):  `light` / `dark` put `ui-light` / `ui-dark` on `<html>`, and the
+ * same `color-scheme` inline;  `system` neither, so `color-scheme: light dark` follows the OS.
  */
 export type DocsScheme = "light" | "dark" | "system"
+
+/** The scheme the page SHOWS:  `system` resolved through the OS (`prefers-color-scheme`). */
+export type DocsShownScheme = "light" | "dark"
 
 /** The viewer's look:  theme and colour scheme (`ThemePreference.look`). */
 export type DocsLook = {
@@ -353,8 +357,23 @@ export const DOCS_SCHEME_SWITCHING = "ui-scheme-switching"
 
 /**
  * `localStorage` keys of the viewer's look (`ThemePreference`).
- * - `scheme`:  the Astro site's key, kept:  `light` / `dark`, absent for `system`.
+ * - `scheme`:  ONE key for every doc site:  `light` / `dark`, absent for `system` (follow the OS).  `<spell-site-header>`
+ *   on the docs, plan docs and goals reads and writes it too.
+ *   - MUST equal `SCHEME_KEY` in `packages/server/src/site/site.types.ts`:  `ui` can't import it (the server package
+ *     is a leaf `ui` stays clear of in shipped code);  `ui-docs-themes.test.tsx` pins the two equal
  * - `theme`:  a `ThemeSheets` name (`github`, `classic`), `DOCS_PLAIN_THEME` for our own look, absent for
- *   `DOCS_DEFAULT_THEME`.
+ *   `DOCS_DEFAULT_THEME`.  Spell UI's site only.
  */
-export const DOCS_LOOK_KEYS = { scheme: "spell-ui-site:scheme", theme: "spell-ui-site:theme" } as const
+export const DOCS_LOOK_KEYS = { scheme: "spell-site:scheme", theme: "spell-ui-site:theme" } as const
+
+/**
+ * The scheme keys used before there was one (2026-10-04):  read once when `DOCS_LOOK_KEYS.scheme` is absent, copied
+ * to it, then removed.  First valid one wins.
+ * - `spell-site:theme`:  `<spell-site-header>`'s (docs, plan docs, goals)
+ * - `spell-ui-site:scheme`:  Spell UI's site (and the Astro site before it)
+ * - MUST equal `LEGACY_SCHEME_KEYS` in `packages/server/src/site/site.types.ts`
+ */
+export const DOCS_LEGACY_SCHEME_KEYS = ["spell-site:theme", "spell-ui-site:scheme"] as const
+
+/** Media query of the OS's dark scheme:  what `system` follows. */
+export const DOCS_DARK_QUERY = "(prefers-color-scheme: dark)"

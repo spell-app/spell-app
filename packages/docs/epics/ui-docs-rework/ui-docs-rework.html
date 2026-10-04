@@ -81,7 +81,7 @@
               icon which shows the current state, clicking it switches it.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 9h-13h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 8h-11h left</p>
           <ui-section id="o1" header="1.1 Today" sticky collapsible dividing>
             <p>Where the site stands, so the rest reads against it.</p>
             <ui-table celled compact striped unstackable>
@@ -440,7 +440,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="4" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -502,7 +502,16 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Nav Panel" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · Nav Panel"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -544,8 +553,8 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · Theme Overlay" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p5" data-phase="5" data-status="done" header="P5 · Theme Overlay" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> one scheme icon (cross-fade) + palette button popup (themes, Spell first, Match system);
@@ -554,7 +563,11 @@
                 ><b>Files:</b> ui-docs-themes/, ThemePreference.ts, server site.types.ts / SiteHeader.ts</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> flip on a docs page shows on Spell UI and back; first visit follows OS</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j26">J26</a> <a href="#j27">J27</a> <a href="#j28">J28</a>
+                <a href="#j29">J29</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -2093,6 +2106,13 @@
                   ui-docs-nav as the brand panel (lockup + search header band, folding group bands, .sp-nav rows);
                   router closes the flyout after a swap, no focus ring on main, docked header wraps; checks: ui review
                   passed (4502 browser tests), site:check ui-divider index OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:39-04:00">2026-10-04 03:39</time></ui-date> P5
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
