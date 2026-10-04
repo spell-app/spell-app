@@ -50,7 +50,7 @@
           <ui-statistics class="spell-stats" size="mini">
             <ui-statistic value="670/670" label="GFM spec examples"></ui-statistic>
             <ui-statistic value="1.8×" label="marked's time"></ui-statistic>
-            <ui-statistic value="88 kB" label="bundle, gzipped"></ui-statistic>
+            <ui-statistic value="59 kB" label="bundle, gzipped"></ui-statistic>
           </ui-statistics>
           <ul>
             <li>
@@ -71,9 +71,10 @@
               (32 kB). Fast enough to re-render on every keystroke.
             </li>
             <li>
-              Too big to replace marked everywhere yet: the browser bundle is 88 kB gzipped vs marked + DOMPurify's ~25
-              kB. So plain <code>&lt;ui-markdown&gt;</code> keeps marked, and only
-              <code>&lt;ui-markdown editable&gt;</code> loads <code>MD</code>.
+              Too big to replace marked everywhere yet: the browser bundle is 59 kB gzipped (88 kB before its
+              bundle-time cuts) vs marked's 14 kB, DOMPurify now loading only for <code>sanitized</code>. So plain
+              <code>&lt;ui-markdown&gt;</code> keeps marked, and only <code>&lt;ui-markdown editable&gt;</code> loads
+              <code>MD</code>.
             </li>
             <li>
               In use: the app's docstrings (<code>&lt;Markdown&gt;</code>), the LSP's colouring of markdown in comments,
@@ -400,8 +401,8 @@ lineRules.addRule(fence_open, { syntax: "(`{3,}|~{3,}) {any}+" })</code></pre>
                   </tr>
                   <tr>
                     <td>browser bundle, gzipped</td>
-                    <td class="num right aligned">88.2 kB</td>
-                    <td class="num right aligned">~25 kB (+ DOMPurify)</td>
+                    <td class="num right aligned">59.4 kB</td>
+                    <td class="num right aligned">14.2 kB</td>
                   </tr>
                 </tbody>
               </table>

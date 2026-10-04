@@ -15,10 +15,10 @@ import "$/ui/components/ui-table"
  * - Draws with `ui-*` elements (`ui-header`, `ui-list`, `ui-table`, `ui-message` alerts, `ui-checkbox` tasks ...),
  *   so this chunk defines those families;  `ui-code` and `ui-message` come with the element's barrel.
  * - The engine is the PRE-COMPILED bundle (`MDBundle`, `yarn gen:markdown`):  `ui` never imports `$/markdown`.
- * - Returns MARKUP, never sanitized, as marked's engine does:  the element sanitizes it when `sanitized` (`MarkdownSanitizer`), keeping
- *   `ui-*` tags.
- * - Why not plain `<ui-markdown>` too:  the bundle is ~3.5x marked + DOMPurify (plan doc, P7;  I6);  until it's slimmer,
- *   only the editable one pays for it.
+ * - Returns MARKUP, never sanitized, as marked's engine does:  the element sanitizes it when `sanitized`
+ *   (`MarkdownSanitizer`), keeping `ui-*` tags.
+ * - Why not plain `<ui-markdown>` too:  the bundle is ~4x marked (59 vs 14 kB gzipped:  plan doc, P7 and I6);
+ *   until it's slimmer, only the editable one pays for it.
  ****************/
 export class MDEngine implements MarkdownRendering {
   /** The one engine. */
