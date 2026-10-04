@@ -11,7 +11,8 @@
  *   text, exit 0.  Run it in the BACKGROUND:  its exit wakes the session.  Timeout:  exit 2, saying so.
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
  * - `list` -- every details page, answered or waiting
- * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's
+ * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's.  `new` sweeps
+ *   first, by itself
  * - `<page>`:  a slug (`pick-layout`), a path (from where `yarn` was run), or `<epic>/<slug>`
  * - paths print absolute:  they mean the same in whichever checkout Claude reads them
  * - The answer itself is written by the page server's route module (`scripts/detailsRoutes.ts`) into
@@ -46,6 +47,8 @@ async function main(argv) {
   const [command, target] = positional
   try {
     if (command === "new") {
+      // scratch pages sweep themselves:  nobody has to remember to
+      for (const file of sweep(DOCS, SWEEP_DAYS)) console.error(`swept ${relative(DOCS, file)}`)
       console.log(shown(createPage(DOCS, target, flags)))
       return 0
     }
