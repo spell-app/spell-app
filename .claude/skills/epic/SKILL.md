@@ -20,14 +20,15 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 - Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
   OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
   order or reference matters.
-- Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  link it on the page server,
-  `[<name>](<url>)`, `<url>` from `yarn server url <ABSOLUTE path>` run in the checkout the doc is in (a relative
-  path resolves wrongly).  A worktree's doc gets the MAIN server's URL (`/worktrees/<name>/...`) when that one runs;
-  else the worktree's own server's.
+- Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  paste what
+  `yarn docs:link <ABSOLUTE path> --hash <id> [--text "..."]`, run in the checkout the doc is in:  it prints
+  the side bar link, then `(_browser_)` (`.claude/skills/details/SKILL.md`, "Links to pages").
+  `--hash`:  the id of what you mean (`p2`, `q3`, `t4`).  A worktree's doc goes on the MAIN server when that one
+  has the route, else the worktree's own.
 - Phase complete:  the LAST line of that reply's text says where we are, each phase linked to its heading in the
-  plan doc (`<url>#p1`):
-  - "[P1 · Short Name](<url>#p1) complete.  Next is [P2 · Short Name](<url>#p2)."
-  - after the last phase:  "All done:  [P<N> · Doc Review](<url>#p<N>) complete."
+  plan doc (`yarn docs:link <plan doc> --hash p1 --text "P1 · Short Name"`):
+  - "<P1 link pair> complete.  Next is <P2 link pair>."
+  - after the last phase:  "All done:  <P<N> · Doc Review link pair> complete."
 
 ## 1. Name
 
@@ -66,6 +67,7 @@ When the session already has work under way ("make this a plan doc"), carry it o
 
 All in the FIRST turn, in this order, then the turn ends.  Why:  the move to the worktree's window waits for the
 turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to this session.
+0. Where:  isolate's "Start", step 2b, with `stay-check --epic`:  a new window, or stay in this one.
 1. Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", step 3 (and step 0 mid-session), with this
    `<name>` (a skill can't invoke another):  `EnterWorktree`.
 2. `yarn install` in the worktree (a few seconds:  `yarn plan-doc` needs it).
@@ -75,13 +77,19 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
    - Reusing a doc:  its prompt missing:  `yarn plan-doc prompt <name> --file <file>`;  an older doc (before
      2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.  No phases yet:  a restart after
      a hang.  Plan again from its prompt ("3. Plan");  explore only what the doc doesn't say.
-4. `yarn plan-doc open <name>`:  shown in VS Code's doc preview (the right side bar's "Spell Docs" view) of the
-   window the session moves to, once it has (`yarn window`;  one tab, reloaded on every later `open`).  Needs the
-   spell extension (`yarn vscode`).
-5. Isolate "Start", steps 4-6:  the worktree's own window, `handoff <name> --prompt continue` (name alone, no plan
-   yet:  no `--prompt`), END THE TURN.  Last line:  "moving to `<pkg> ⎇ <name>`:  press enter on `continue`
+4. Isolate "Start", steps 4-5:  the worktree's own window, then `handoff <name> --prompt continue` (name alone, no
+   plan yet:  no `--prompt`).
+5. `yarn plan-doc open <name>`, AFTER the handoff:  shown in VS Code's doc preview (the right side bar's "Spell
+   Docs" view) of the window the session moves to, once it has (one tab, reloaded on every later `open`).  Needs
+   the spell extension (`yarn vscode`).
+   - MUST print "... shows in ... once this session moves there".  Why:  only a PENDING move defers it;  before
+     the handoff it shows in THIS window's side bar, the one being left.
+6. Isolate "Start", step 6:  END THE TURN.  Last line:  "moving to `<pkg> ⎇ <name>`:  press enter on `continue`
    there" (no plan yet:  "send the plan there").
-6. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
+7. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
+
+Staying in this window (step 0):  skip steps 4 and 6.  Step 5's `plan-doc open` shows the doc in THIS window's side
+bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  the last line asks for it, here.
 
 ## 3. Plan
 
@@ -124,7 +132,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
 1. `yarn plan-doc phase <name> <N> active`, and check the session's name (`.claude/skills/isolate/SKILL.md`,
    "Session name").
 2. Do the work.  Record as you go, not at the end:
-   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`
+   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`;  a
+     choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement` (ids `J1` ...;  see `/bedtime`)
    - something only Owen can check (a live window, a click, a look):  `add ... test "<step>" --details "<p>what
      should happen</p>"`, into "To test";  `close` it once he says it passed
    - fixed or obsolete:  `close <name> <id>` (it stays, struck through)
@@ -164,9 +173,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
 - The plan doc stays in `epics/` as the record:  every phase done.
 - Changelog:  add the epic's entry to `packages/docs/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
   the plan doc and the durable doc;  under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
-- Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  Right after its step 4
-  (`handoff --back`), still in the worktree:  `yarn plan-doc open <name>` one last time, so the doc follows the
-  session back to its package's window (the worktree's window closes).
+- Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  No move back:  the session and its
+  plan doc stay in the window they're in.
 - Last line of the reply:  "All done ..." (see the top).
 
 ## 7. Review:  `/epic review [<name>]`
@@ -316,7 +324,7 @@ new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from th
 add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
-add <name> question|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)
+add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)
 decide <name> <Q id> "decision" [--details html]   answer a question:  prints the decision's id (D7)
 close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
 log <name> "text"                                   timestamped line in the doc's log

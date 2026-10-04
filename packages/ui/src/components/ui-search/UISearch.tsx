@@ -245,8 +245,13 @@ export class UISearch extends FormElement<SearchVocabulary> {
     return this.attrs.required ? [REQUIRED_RULE] : []
   }
 
+  /**
+   * The label in validation messages.
+   * - Only once `loaded()`:  `label()` may fall back to a translated text, and the validity memo can run before the
+   *   runtime arrives (seen on the docs kitchen sink:  `UI.i18n ... isn't loaded yet`).  Tracked, so it recomputes.
+   */
   protected validationLabel(): string | undefined {
-    return this.label()
+    return this.loaded() ? this.label() : undefined
   }
 
   protected validationAnchor(): HTMLElement | undefined {

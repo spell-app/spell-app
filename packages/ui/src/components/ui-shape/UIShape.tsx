@@ -156,11 +156,15 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     return this.flipTo(undefined, this.target + step)
   }
 
-  /** An invoker command aimed at the host (`SHAPE_COMMANDS`). */
+  /** An invoker command aimed at the host (`SHAPE_COMMANDS`):  `--next`, `--previous`, `--flip-<direction>`. */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
     if (command === UIT.SHAPE_COMMANDS.next) void this.flipBy(1)
     else if (command === UIT.SHAPE_COMMANDS.previous) void this.flipBy(-1)
+    else if (command?.startsWith(UIT.SHAPE_COMMANDS.flip)) {
+      const direction = command.slice(UIT.SHAPE_COMMANDS.flip.length) as UIT.ShapeFlip
+      if (UIT.SHAPE_FLIPS.includes(direction)) void this.flipTo(direction)
+    }
   }
 
   ////////////////

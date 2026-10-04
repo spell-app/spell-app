@@ -53,6 +53,9 @@
 
 @layer ui.components.card.types, ui.components.card.content, ui.components.card.variations, ui.components.card.states;
 
+/* Breakpoints (`@custom-media`), inlined at build time:  `stack-with="page"`. */
+@import "../../styles/media.css";
+
 /* Loader spin, shared by `loading` cards. */
 @keyframes ui-card-spin {
   to {
@@ -524,48 +527,188 @@
    * - Doubling:  fewer cards to a row (Fomantic's counts per range);  stackable:  one card to a row.
    */
   @container ui-cards (width < 768px) {
-    .ui.doubling.two.cards {
-      --_cards-spacing: 0px;
-      --_cards-width: 100%;
+    @container not style(--ui-stack-with: page) {
+      .ui.doubling.two.cards:not(.stack-with-page) {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four, .five, .six).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.seven, .eight, .nine, .ten).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      /* `.ui.ui`:  stackable beats doubling (Fomantic's `!important`). */
+      .ui.ui.stackable.cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-stackable-spacing);
+        --_cards-row-spacing: calc(var(--_ui-cards-stackable-spacing) * 2);
+        --_cards-width: calc(100% - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
     }
-    .ui.doubling:is(.three, .four, .five, .six).cards {
-      --_cards-spacing: var(--_ui-cards-wide-spacing);
-      --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+    @container style(--ui-stack-with: page) {
+      .ui.doubling.two.cards.stack-with-container {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four, .five, .six).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.seven, .eight, .nine, .ten).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.ui.stackable.cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-stackable-spacing);
+        --_cards-row-spacing: calc(var(--_ui-cards-stackable-spacing) * 2);
+        --_cards-width: calc(100% - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
     }
-    .ui.doubling:is(.seven, .eight, .nine, .ten).cards {
-      --_cards-spacing: var(--_ui-cards-wide-spacing);
-      --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
-      --_cards-font-size: initial;
+  }
+  @media (--ui-mobile) {
+    @container style(--ui-stack-with: page) {
+      .ui.doubling.two.cards:not(.stack-with-container) {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four, .five, .six).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.seven, .eight, .nine, .ten).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.ui.stackable.cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-stackable-spacing);
+        --_cards-row-spacing: calc(var(--_ui-cards-stackable-spacing) * 2);
+        --_cards-width: calc(100% - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
     }
-    /* `.ui.ui`:  stackable beats doubling (Fomantic's `!important`). */
-    .ui.ui.stackable.cards {
-      --_cards-spacing: var(--_ui-cards-stackable-spacing);
-      --_cards-row-spacing: calc(var(--_ui-cards-stackable-spacing) * 2);
-      --_cards-width: calc(100% - 2 * var(--_cards-spacing));
-      --_cards-font-size: initial;
+    @container not style(--ui-stack-with: page) {
+      .ui.doubling.two.cards.stack-with-page {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four, .five, .six).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.seven, .eight, .nine, .ten).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.ui.stackable.cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-stackable-spacing);
+        --_cards-row-spacing: calc(var(--_ui-cards-stackable-spacing) * 2);
+        --_cards-width: calc(100% - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
     }
   }
   @container ui-cards (768px <= width < 992px) {
-    .ui.doubling.two.cards {
-      --_cards-spacing: 0px;
-      --_cards-width: 100%;
+    @container not style(--ui-stack-with: page) {
+      .ui.doubling.two.cards:not(.stack-with-page) {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.five, .six).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.eight, .nine).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.doubling.ten.cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+      }
     }
-    .ui.doubling:is(.three, .four).cards {
-      --_cards-spacing: var(--_ui-cards-wide-spacing);
-      --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+    @container style(--ui-stack-with: page) {
+      .ui.doubling.two.cards.stack-with-container {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.five, .six).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.eight, .nine).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.doubling.ten.cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+      }
     }
-    .ui.doubling:is(.five, .six).cards {
-      --_cards-spacing: var(--_ui-cards-wide-spacing);
-      --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+  }
+  @media (--ui-tablet) {
+    @container style(--ui-stack-with: page) {
+      .ui.doubling.two.cards:not(.stack-with-container) {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.five, .six).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.eight, .nine).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.doubling.ten.cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+      }
     }
-    .ui.doubling:is(.eight, .nine).cards {
-      --_cards-spacing: var(--_ui-cards-narrow-spacing);
-      --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
-      --_cards-font-size: initial;
-    }
-    .ui.doubling.ten.cards {
-      --_cards-spacing: var(--_ui-cards-narrow-spacing);
-      --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+    @container not style(--ui-stack-with: page) {
+      .ui.doubling.two.cards.stack-with-page {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.five, .six).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.eight, .nine).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.doubling.ten.cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+      }
     }
   }
 }

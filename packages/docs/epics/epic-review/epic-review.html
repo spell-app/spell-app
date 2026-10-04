@@ -719,7 +719,16 @@ back      to Start</code></pre>
           >
         </ui-section>
 
-        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+        <ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing>
+          <ui-icon slot="icon" name="compass"></ui-icon>
+          <p class="meta">
+            Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open
+            until you review it; struck = accepted. Disagree: say so, and it becomes a question.
+          </p>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed
             ><ui-item id="c1" data-status="open"
@@ -788,13 +797,13 @@ back      to Start</code></pre>
           >
         </ui-section>
 
-        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+        <ui-section id="todos" header="6. Todos" sticky collapsible dividing>
           <ui-icon slot="icon" name="list check"></ui-icon>
           <p class="meta">For later: not caveats, not issues.</p>
           <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
         </ui-section>
 
-        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
             ><ui-item id="i1" data-status="done"
@@ -804,7 +813,7 @@ back      to Start</code></pre>
           >
         </ui-section>
 
-        <ui-section id="tests" header="7. To test" sticky collapsible dividing>
+        <ui-section id="tests" header="8. To test" sticky collapsible dividing>
           <ui-icon slot="icon" name="flask"></ui-icon>
           <p class="meta">
             What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
@@ -867,7 +876,7 @@ back      to Start</code></pre>
           >
         </ui-section>
 
-        <ui-section id="log" header="8. Log" sticky collapsible dividing>
+        <ui-section id="log" header="9. Log" sticky collapsible dividing>
           <ui-icon slot="icon" name="clock rotate left"></ui-icon>
           <p class="meta">Plan changes, oldest first, local time.</p>
           <ui-feed class="plan-log" size="small">

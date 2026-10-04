@@ -1,0 +1,89 @@
+/*
+ * bookish theme:  Fomantic's `bookish` theme, serif "book" headers in Karma, `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("bookish")` registers `classic` + this sheet).
+ * - Touches ONE component:  the standalone header (`<ui-header>`, `.ui.header`;  `ui-parts.css`).  Other headers
+ *   (card, modal, item ...) keep classic's font, as in Fomantic, where `header.variables` reached only `header.less`.
+ * - Font:  Karma 400 / 700 (latin), `bookish/karma-*.woff2`, from Google Fonts (SIL OFL 1.1, `bookish/OFL.txt`),
+ *   where Fomantic `@import`ed Google's CSS.  Referenced relatively;  Vite rewrites the `url()`s when it inlines the
+ *   sheet.  The `@font-face` rules sit OUTSIDE the layer (they can't be layered), and work from the PAGE copy:
+ *   shadow roots ignore `@font-face`, but use the page's fonts.
+ * - Tokens (`header.variables`):
+ *   - `@fontWeight: normal` -> `--ui-header-font-weight`;  page `h1` / `h2` and `huge` / `large` headers stay
+ *     bold (the `.overrides`)
+ *   - `@iconSize` (= ours), `@subHeaderFontSize: 0.85rem` -> `--ui-header-sub-font-size`,
+ *     `@dividedBorder` -> `--ui-header-dividing-border` (plus its colour:  the dividing rule re-colours the border)
+ *   - `@blockVerticalPadding` / `@blockHorizontalPadding` -> `--ui-header-block-padding`, which attached headers
+ *     share;  `@attachedBackground` -> `--ui-header-attached-background`
+ *   - `@h1` ... `@h5` (rem) -> `--ui-header-h1` ... `-h5`;  `@hugeFontSize` ... `@tinyFontSize` (em) ->
+ *     `--ui-header-size-huge` ... `-tiny`
+ *   - `@headerFont` -> a `font-family` on the header box:  a token (`--ui-font-family-heading`) would also reach
+ *     card / modal / item headers
+ *   - `@iconAlignment: top` -> the header's icon owner switch, `--_ui-icon-owner-align` (text headers only)
+ * - NOT ported:
+ *   - `@iconOffset` (a `padding-top` on the icon):  the icon box is the icon's own;  `top` alignment gets close
+ *   - `@attachedVerticalPadding: 1.3` (unitless:  invalid in Fomantic's output too);  attached headers take the
+ *     block padding instead
+ */
+
+@font-face {
+  font-family: Karma;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./bookish/karma-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: Karma;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./bookish/karma-700.woff2") format("woff2");
+}
+
+@layer ui.theme {
+  :root {
+    --ui-header-font-weight: var(--ui-font-weight-normal);
+    --ui-header-sub-font-size: calc(var(--ui-font-size) * 0.85);
+    --ui-header-dividing-border: var(--ui-border-width) dotted
+      light-dark(oklch(0 0 0 / 0.2), oklch(from var(--ui-ink-on-dark) l c h / 0.25));
+    --ui-header-block-padding: 1.3em 1em;
+    /* one background layer:  the gradient over a colour (`light-dark()` takes colours only) */
+    --ui-header-attached-background: linear-gradient(oklch(0 0 0 / 0), oklch(0 0 0 / 0.03))
+      light-dark(oklch(0.979 0 0), var(--ui-surface));
+
+    /* Page headers (`level`), times `--ui-font-size`, like Fomantic's rem */
+    --ui-header-h1: 1.75;
+    --ui-header-h2: 1.33;
+    --ui-header-h3: 1.33;
+    --ui-header-h4: 1;
+    --ui-header-h5: 0.9;
+
+    /* Content headers, em of the surrounding text */
+    --ui-header-size-huge: 1.75;
+    --ui-header-size-large: 1.33;
+    --ui-header-size-medium: 1.33;
+    --ui-header-size-small: 1;
+    --ui-header-size-tiny: 0.9;
+  }
+
+  .ui.header {
+    font-family: Karma, "Times New Roman", serif;
+  }
+  .ui.header:not(.icon) {
+    --_ui-icon-owner-align: top;
+  }
+  .ui.dividing.header {
+    border-bottom-color: var(
+      --ui-color,
+      light-dark(oklch(0 0 0 / 0.2), oklch(from var(--ui-ink-on-dark) l c h / 0.25))
+    );
+  }
+
+  /* Big page headers stay bold. */
+  h1.ui.header,
+  h2.ui.header,
+  .ui.huge.header,
+  .ui.large.header {
+    font-weight: var(--ui-font-weight-bold);
+  }
+}

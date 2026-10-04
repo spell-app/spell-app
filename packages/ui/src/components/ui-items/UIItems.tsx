@@ -18,7 +18,7 @@ import { ITEM_CONTEXT } from "./ui-items.types"
  *   `:state(in-item)`, where a list's parts see through the item to the list.
  * - Items adopt THIS class's `styles`, so `ui-items.css` holds the item rules too;  the group's variations reach them
  *   as inherited tokens.  Stacking answers to THIS host's width:  it's a block and the size container
- *   `ui-items` (`:state(items)`, always on).
+ *   `ui-items` (`:state(items)`, always on);  or to the screen's, with `stack-with="page"` (a private class).
  * - Not interactive:  `link` is Fomantic's hover look;  an item that goes somewhere takes `href` (one link).
  ****************/
 export class UIItems extends UIElement<typeof itemsVocabulary> implements UIT.ItemOwner {
@@ -34,6 +34,11 @@ export class UIItems extends UIElement<typeof itemsVocabulary> implements UIT.It
 
   protected hostStates() {
     return { items: true }
+  }
+
+  /** `stack-with`'s class (`UIT.StackClasses`). */
+  protected extraClasses(): string | undefined {
+    return UIT.StackClasses.of(this.attrs.stackWith)
   }
 
   render(): JSX.Element {

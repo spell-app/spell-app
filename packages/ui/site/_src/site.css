@@ -1,0 +1,167 @@
+/*
+ * The Spell UI site's own CSS:  LAYOUT GLUE ONLY (grid areas, widths, sticky offsets), bundled after `@spell-app/ui`'s
+ * page foundation into `_assets/site.css`.
+ * - Everything visible is a `<ui-*>` widget:  a rule here that changes a LOOK is a widget gap -- record it as a plan
+ *   issue (`Gap:  <ui-tag> <what's missing>`) instead.  The few that do are marked `GAP` with their issue.
+ * - In `@layer ui.app`, the page's own layer:  above the components, so a layout rule wins without `!important`.
+ * - The page skeleton is the template's (`packages/docs/templates/spell-ui-docs.html`);  the measures are Fomantic's
+ *   docs.css:  a 250px nav column, the main column 3em from it, a 319px rail 3em right of the content (387px kept free
+ *   for it), rails hidden on narrower screens.
+ * - Breakpoints in px (this file isn't run through the `@custom-media` import):  Fomantic's computer (992px) and the
+ *   width where content + rail no longer fit (1200px).
+ */
+
+@layer ui.app {
+  :root {
+    /* Fomantic docs.css measures, shared by the rules below. */
+    --site-nav-width: 250px;
+    --site-gutter: 3em;
+    --site-rail-room: 387px;
+    --site-rail-width: 319px;
+    /* The fixed `<spell-site-header>` bar above everything (its own rule sets the height). */
+    --site-top: var(--spell-site-header-height, 0px);
+  }
+
+  /* ## Page grid:  the nav column beside the main column */
+  .site-layout {
+    display: grid;
+    grid-template-columns: var(--site-nav-width) minmax(0, 1fr);
+    align-items: start;
+  }
+  .site-nav {
+    position: sticky;
+    top: var(--site-top);
+    height: calc(100dvh - var(--site-top));
+    --ui-docs-nav-height: 100%;
+  }
+  .site-main {
+    min-width: 0;
+  }
+
+  /* ## Header:  the include and its placeholder take the menu's room;  the menu sits flush on the page */
+  body {
+    margin: 0;
+  }
+  .site-header {
+    display: block;
+  }
+  .site-top-menu::part(menu),
+  .site-header-placeholder::part(menu) {
+    margin: 0;
+    border-radius: 0;
+  }
+  /* the menu button opens the nav flyout:  only where the nav column is hidden */
+  @media (width >= 992px) {
+    .site-menu-item {
+      display: none;
+    }
+  }
+  .site-nav-flyout {
+    --ui-docs-nav-height: 100%;
+  }
+
+  /* ## Masthead and body:  Fomantic's main column, left-aligned beside the nav, room kept for the rail */
+  .site-masthead > ui-container::part(container),
+  .site-body::part(container) {
+    width: auto;
+    max-width: none;
+    margin-inline: var(--site-gutter) var(--site-rail-room);
+  }
+  .site-masthead::part(segment) {
+    padding-block: 3em;
+  }
+  .site-body::part(container) {
+    position: relative;
+    padding-block: 2em 7em;
+  }
+  .site-title {
+    --ui-header-margin-top: 0;
+  }
+  .site-themes {
+    display: inline-block;
+    margin-block-start: 1em;
+  }
+  /* the panes sit flush in the column, as Fomantic's sections do (a `basic` pane keeps a segment's padding) */
+  .site-tabs > ui-tab::part(tab) {
+    padding-inline: 0;
+  }
+
+  /* ## Rail:  the "On this page" toc, sticky below the site header */
+  .site-rail {
+    --ui-rail-width: var(--site-rail-width);
+    --ui-rail-distance: calc(var(--site-gutter) * 2);
+  }
+  /* the sticky's host is `display: contents`:  its box is the part, sticking inside the full-height rail */
+  .site-toc::part(sticky) {
+    padding-block-end: 2em;
+  }
+  /* nothing to list (the API tab):  no rail, and the content takes its room */
+  .site-body:has(ui-docs-toc:state(empty)) .site-rail {
+    display: none;
+  }
+  .site-body:has(ui-docs-toc:state(empty))::part(container) {
+    margin-inline-end: var(--site-gutter);
+  }
+
+  /* ## Content:  section headers land below the fixed bar */
+  .site-tabs [id],
+  .site-article [id] {
+    scroll-margin-top: calc(var(--site-top) + 1em);
+  }
+
+  /* ## Footer */
+  .site-footer {
+    display: block;
+  }
+  .site-footer-segment::part(segment) {
+    padding-block: 4em 8em;
+  }
+  .site-footer-segment > ui-container::part(container) {
+    width: auto;
+    max-width: none;
+    margin-inline: var(--site-gutter);
+  }
+
+  /* ## Narrower than content + rail:  no rail, the content takes its room */
+  @media (width < 1200px) {
+    .site-rail {
+      display: none;
+    }
+    .site-masthead > ui-container::part(container),
+    .site-body::part(container) {
+      margin-inline-end: var(--site-gutter);
+    }
+  }
+
+  /* ## Narrower than Fomantic's computer:  the nav moves into the flyout the menu button opens */
+  @media (width < 992px) {
+    .site-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .site-nav {
+      display: none;
+    }
+    .site-masthead > ui-container::part(container),
+    .site-body::part(container),
+    .site-footer-segment > ui-container::part(container) {
+      margin-inline: 1em;
+    }
+  }
+
+  /* ## Phone:  the header keeps the menu button, the logo and the theme picker */
+  @media (width < 768px) {
+    .site-top-link {
+      display: none;
+    }
+    .site-page-links,
+    .site-themes-item {
+      display: none;
+    }
+  }
+  /* the flyout's copy of the theme picker:  phones only (the top menu has it elsewhere) */
+  @media (width >= 768px) {
+    .site-flyout-themes {
+      display: none;
+    }
+  }
+}

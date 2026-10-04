@@ -305,7 +305,8 @@
   .ui.icon.message > .icons:last-child {
     margin: 0 0 0 var(--_ui-message-icon-distance);
   }
-  .ui.icon.message > .icon:not(.close) > svg {
+  /* NOTE:  a descendant, not `> svg`:  the shorthand glyph is the FALLBACK of `<slot name="icon">`, a grandchild. */
+  .ui.icon.message > .icon:not(.close) svg {
     display: block;
     width: auto;
     height: 1em;

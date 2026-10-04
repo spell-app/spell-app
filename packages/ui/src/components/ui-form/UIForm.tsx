@@ -87,6 +87,11 @@ export class UIForm extends UIElement<Vocabulary> {
     return super.classValue(name)
   }
 
+  /** `stack-with`'s class (`UIT.StackClasses`):  sets the switch its rows stack by. */
+  protected extraClasses(): string | undefined {
+    return UIT.StackClasses.of(this.attrs.stackWith)
+  }
+
   protected hostStates() {
     const state = this.shownState()
     return {

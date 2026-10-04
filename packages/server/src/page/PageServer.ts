@@ -4,13 +4,14 @@ import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "nod
 import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { SRV, type ServerInfo } from "$/server"
-import { AstroProxy, PageEditor, RunningEpics, type PageServerSettings, type RouteModule } from "$/server/page"
+import { PageEditor, RunningEpics, UI_SITE, type PageServerSettings, type RouteModule } from "$/server/page"
 
 /**
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
  * - docs, plan docs, goals, Spell UI docs and (once `app` is in) the editor, all live-reloading
  * - `/` -> the docs index;  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`;  `/ui/` -> Spell UI's
- *   docs (`AstroProxy`);  `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
+ *   docs:  the static folder `packages/ui/site/` (`UI_SITE`), live-reloading like every page
+ * - `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. goals' buttons
  * - port:  `DEFAULT_PORT` (4747) if free, else any;  the real one goes in `<root>/.spell-server.json`, where
  *   `yarn server ensure` and the openers find it
@@ -28,9 +29,6 @@ export class PageServer {
 
   /** what `/_server/ping` answers;  `port` is set by `start()` */
   readonly info: ServerInfo
-
-  /** Spell UI's docs, `astro dev` behind `/ui/` */
-  readonly astro: AstroProxy
 
   /** running epics' plan docs, from the worktrees */
   readonly epics: RunningEpics
@@ -55,7 +53,10 @@ export class PageServer {
       root: this.root,
       token,
       live: true,
-      mounts: [{ prefix: "/", dir: this.root }],
+      mounts: [
+        { prefix: "/", dir: this.root },
+        { prefix: UI_SITE.prefix, dir: join(this.root, UI_SITE.dir) }
+      ],
       configure: (served) => ({
         root: this.root,
         branch: this.info.branch,
@@ -75,8 +76,6 @@ export class PageServer {
     )
     router.get("/_server/ping", (_request, reply) => reply.set("Cache-Control", "no-store").json(this.info))
     // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams
-    this.astro = new AstroProxy(this.root)
-    if (this.astro.exists) this.astro.route(this.web)
     new PageEditor(this.root).route(router, this.web.guard)
     this.epics = new RunningEpics(this.root).route(this.web)
   }
@@ -91,6 +90,7 @@ export class PageServer {
     const settings = this.settings()
     for (const dir of settings.watch ?? ["packages/docs"])
       this.web.live!.watch(join(this.root, dir), { ignore: /(^|\/)(scripts|experiments)\// })
+    this.web.live!.watch(join(this.root, UI_SITE.dir), { ignore: UI_SITE.ignore })
     this.epics.watch(this.web.live!)
     if (routes) for (const path of settings.routes ?? []) await this.loadRoutes(path)
     const { port: actual } = await this.web.listen({ port })
@@ -103,10 +103,9 @@ export class PageServer {
     return this
   }
 
-  /** stop:  route modules' stops, `astro dev`, the pid file (if ours), the server */
+  /** stop:  route modules' stops, the pid file (if ours), the server */
   async stop(): Promise<void> {
     for (const stop of this.stops) await Promise.resolve(stop()).catch(() => {})
-    this.astro.stop()
     this.epics.close()
     this.pidFile.removeIfOurs()
     await this.web.close()

@@ -588,6 +588,9 @@ function buildRail(outline, counts) {
  * Every section folds, and the reader's folds are remembered per page (`localStorage`, `{ [id]: folded }`).
  * - SECTIONS:  `<ui-section collapsible>` folds itself;  this restores the saved folds (else the markup's
  *   `collapsed` stands) and saves the reader's toggles (`ui-open` / `ui-close`)
+ *   - a PLAN DOC (`body.plan-doc`):  every section and sub-section not in the saved folds starts FOLDED, whatever
+ *     its markup says:  Owen opens what he wants to read (2026-10-03).  A link to an id inside still lands
+ *     (`reveal()` unfolds around it)
  * - HEADINGS:  a chevron button starts each h2 / h3, and a click anywhere on the heading (not on a link or button
  *   in it) toggles it too;  folded:  `section.spell-folded`, all but the heading hidden by CSS.  Starts folded as
  *   saved, else when the section says `data-fold="closed"`.
@@ -605,10 +608,12 @@ function wireFolds(main, outline) {
   else wireHeadingFolds()
   return { reveal }
 
-  /** SECTIONS:  restore the saved folds, save the reader's. */
+  /** SECTIONS:  restore the saved folds (a plan doc:  the rest start folded), save the reader's. */
   function wireSectionFolds() {
+    const startFolded = document.body.classList.contains("plan-doc")
     for (const section of main.querySelectorAll("ui-section[collapsible][id]"))
       if (section.id in saved) setCollapsed(section, !!saved[section.id])
+      else if (startFolded) setCollapsed(section, true)
     main.addEventListener("ui-open", onToggle)
     main.addEventListener("ui-close", onToggle)
   }

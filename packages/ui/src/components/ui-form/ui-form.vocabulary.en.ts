@@ -9,8 +9,8 @@
  * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
  */
 
-// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which the
-// docs site evaluates on the server (`astro dev`), where Solid's client APIs throw
+// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which node
+// can't (`yarn site:data` / `yarn gen:root` import every vocabulary through tsx:  no `?inline` css, no JSX)
 import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { STATE_STATES } from "./ui-form.types"
@@ -46,6 +46,15 @@ export const formVocabulary = {
     { name: "loading", kind: "keyOnly", description: "Busy:  dimmed behind a spinner, not usable." },
     { name: "disabled", kind: "keyOnly", description: "Nothing inside can be used (`inert`)." },
     { name: "unstackable", kind: "keyOnly", description: "Rows of fields never stack on narrow forms." },
+    {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        "What its rows of fields stack by:  `container` (the default) -- the form's own width;  `page` -- " +
+        "the screen's, as in Fomantic.  Its `<ui-fields>` follow it.  Unset:  the page-wide " +
+        "`--ui-stack-with` token decides (`<ui-root stack-with>`)."
+    },
     {
       name: "on",
       kind: "enum",

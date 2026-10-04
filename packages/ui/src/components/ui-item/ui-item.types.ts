@@ -15,6 +15,9 @@ export const COLOR_CLASS_PREFIX = "ui-"
 /** Root tags. */
 export const DIV = "div"
 
+/** Host attribute forwarded to a `<button>` box:  a disclosure item. */
+export const ARIA_EXPANDED = "aria-expanded"
+
 /** Role of a divider. */
 export const SEPARATOR = "separator"
 

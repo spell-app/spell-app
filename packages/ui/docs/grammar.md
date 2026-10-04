@@ -213,7 +213,25 @@ parts -- never `ui-list-item` / `ui-menu-item`:
 - A `<ui-menu>` inside a menu (directly, or inside an item) is a SUB-MENU:  `<div class="[position] menu">`,
   e.g. `<ui-menu position="right">` for Fomantic's `right menu`.  It hands its items the top menu's context.
 - `ui-select` (`{ value, item }`) fires when a link / button item is activated;  the menu never moves `selected`.
-- `items="3"` => `three item` (evenly divided);  `items="equal"` => `equal width`.
+- The look is ONE word, `appearance` (`UIT.MENU_APPEARANCES`), shared with `<ui-tabs>`:  `tabular`, `pointing`,
+  `secondary`, `text`, and our `segmented` -- a bordered group of joined items, the selected one filled with `color`
+  (else the primary colour) in its on-colour, hugging its items.  `kind: "valueOnly"`:  the value IS the class word,
+  so the older booleans (`tabular`, `pointing` ...) stay as aliases with the same words, and combine
+  (`appearance="pointing" secondary` ~== `secondary pointing`).  Not in it:  `vertical` (an orientation every look
+  takes) and `basic` (`<ui-tabs basic>` is the panes').
+- `alignment="fluid | left | center | right"` => `<value> aligned`:  where the items sit along a horizontal bar --
+  packed at one end (`justify-content`), or filling it (`fluid`:  each item grows from its own width).  A segmented
+  menu IS its items, so it moves as a whole (auto margins).  Ignored when `vertical`.
+- `equal` (keyOnly):  every item the same width, from the items themselves -- no count:
+  - packed (no `alignment`, or `left` / `center` / `right`):  the root becomes a grid of `1fr` columns sized to its
+    content (`grid-auto-columns: 1fr` + `width: fit-content`), so each item is as wide as the widest and the bar hugs
+    them;  `alignment` moves the bar.  A packed `tabular` bar's rule ends at its last tab
+  - `alignment="fluid"`:  each item `flex: 1 1 0`, an equal share of the bar
+  - the same attribute on `<ui-tabs>`, `<ui-buttons>`, `<ui-statistics>`, `<ui-steps>`, `<ui-fields>`:  a group that
+    hugs its children (buttons, steps) packs as a grid unless `fluid`;  one that spans its row (statistics, fields)
+    shares the row (fields:  Fomantic's own `equal width fields`)
+- `items="3"` => `three item` (evenly divided);  `items="equal"` => `equal width`:  the older, COUNT-based aliases of
+  `equal alignment="fluid"`, kept as Fomantic's words (as `width` on buttons, `widths` on statistics / steps / fields).
 - A dropdown item is an item holding a `<ui-dropdown>`:  `<ui-item><ui-dropdown text="More">...`.
 
 ## Tables:  `<ui-table>` and the native `<table>`
@@ -915,8 +933,9 @@ first paint never needs the property.  No virtualization yet:  every row renders
   shadow root.  A separate tab-button element would have duplicated the generic `<ui-item>`.
 - The tab list is `<div class="ui ... menu" role="tablist">` of `<button role="tab" class="[active] item">`, styled by
   `ui-menu.css` itself (adopted as is, its static `.ui.menu .item` rules):  the look words are the menu's --
-  `tabular`, `pointing`, `secondary`, `text`, `vertical`, `inverted`, `fluid`, sizes, colours.  The root is
-  `ui ... tabs`;  the tab list the same words with the noun `menu`.
+  `appearance` (or its boolean aliases `tabular`, `pointing`, `secondary`, `text`), `vertical`, `inverted`, `fluid`,
+  `alignment`, `equal`, sizes, colours (see "Menus").  The root is `ui ... tabs`;  the tab list the same words with
+  the noun `menu`.  `appearance="segmented" alignment="fluid" equal` is the docs site's own tab bar.
 - Panes:  `ui [bottom attached] tab segment` (+ `active`), adopting `ui-segment.css`.  `attached` (bare ~== `top`) joins
   the menu and the panes;  `attached="bottom"` puts the menu below.  `basic` / `inverted` reach the panes too.
 - Selection:  `value` (a pane's `value`, else its index) is auto-controlled, with a cancelable `ui-change`

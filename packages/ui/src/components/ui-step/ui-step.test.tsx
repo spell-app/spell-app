@@ -6,6 +6,7 @@ import { expectAccessible } from "$/ui/test/a11y"
 import { Fixture } from "$/ui/test/fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Viewport } from "$/ui/test/viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-step"
@@ -47,6 +48,14 @@ function three(attributes = "", width?: number) {
   return width ? `<div style="width: ${width}px">${steps}</div>` : steps
 }
 
+/** Three steps of uneven titles in `<ui-steps attributes>`, in a 900px box. */
+function uneven(attributes: string) {
+  return (
+    `<div style="width: 900px"><ui-steps ${attributes}><ui-step header="A"></ui-step>` +
+    `<ui-step selected header="A much longer step"></ui-step><ui-step header="C"></ui-step></ui-steps></div>`
+  )
+}
+
 describe("<ui-steps> classes", () => {
   it.each([
     ["", "ui steps"],
@@ -76,7 +85,7 @@ describe("<ui-step>", () => {
     ["selected", "div", "active step"],
     ["active", "div", "step active"],
     ["completed disabled", "div", "completed disabled step"],
-    ['color="red"', "div", "red step"],
+    ['color="red"', "div", "red step ui-red"],
     ['href="#a"', "a", "step"],
     ["link", "button", "link step"]
   ])("<ui-step %s> => <%s class=%s>", async (attributes, tag, classes) => {
@@ -185,6 +194,26 @@ describe("<ui-steps> layouts", () => {
     expect(row[1]!.getBoundingClientRect().top).toBe(row[0]!.getBoundingClientRect().top)
   })
 
+  it('`stack-with="page"` stacks by the SCREEN;  the token too, and the attribute beats it', async () => {
+    const holder = await ElementFixture.render(
+      `<div style="width: 500px">${three('stack-with="page"')}<div style="--ui-stack-with: page">${three()}` +
+        `${three('stack-with="container"')}</div></div>`
+    )
+    const groups = [...holder.querySelectorAll("ui-steps")]
+    expect(groups[0]!.shadowRoot!.firstElementChild!.className).toBe("ui steps stack-with-page")
+    /** Whether `group`'s steps are stacked. */
+    const stacked = (group: Element) => token(stepRoots(group)[0]!, "--_ui-step-layout") === "stacked"
+    await Viewport.resize(1200)
+    await expect.poll(() => groups.map(stacked)).toEqual([false, false, true])
+    await Viewport.resize(900)
+    const tablet = await ElementFixture.render(
+      `<div style="width: 1200px">${three('stackable="tablet" stack-with="page"')}</div>`
+    )
+    await expect.poll(() => stacked(tablet.querySelector("ui-steps")!)).toBe(true)
+    await Viewport.resize(500)
+    await expect.poll(() => groups.map(stacked)).toEqual([true, true, true])
+  })
+
   it("stacks a tablet-stackable group below 992px", async () => {
     const holder = await ElementFixture.render(three('stackable="tablet"', 900))
     const roots = stepRoots(holder)
@@ -239,6 +268,48 @@ describe("<ui-steps> layouts", () => {
     expect(ring.borderTopLeftRadius).toBe("50%")
     const red = Fixture.render(`<span style="color: var(--ui-red)"></span>`)
     expect(ring.borderTopColor).toBe(getComputedStyle(red).color)
+  })
+
+  it("draws a step's own `color` on its ring, over the group's or with none", async () => {
+    const holder = await ElementFixture.render(
+      `<div style="width: 900px"><ui-steps circular><ui-step color="teal"></ui-step><ui-step></ui-step></ui-steps>` +
+        `<ui-steps circular color="red"><ui-step color="orange"></ui-step></ui-steps></div>`
+    )
+    const [teal, plain, orange] = stepRoots(holder)
+    const hue = (name: string) =>
+      getComputedStyle(Fixture.render(`<span style="color: var(--ui-${name})"></span>`)).color
+    expect(getComputedStyle(teal!, "::before").borderTopColor).toBe(hue("teal"))
+    expect(getComputedStyle(orange!, "::before").borderTopColor).toBe(hue("orange"))
+    expect(getComputedStyle(plain!, "::before").borderTopColor).not.toBe(hue("teal"))
+  })
+})
+
+describe("<ui-steps equal>", () => {
+  it("every step as wide as the widest, the group hugging them", async () => {
+    const natural = stepRoots(await ElementFixture.render(uneven("unstackable")))
+    const widest = Math.max(...natural.map((step) => step.getBoundingClientRect().width))
+    const box = await ElementFixture.render(uneven("equal unstackable"))
+    const root = box.querySelector("ui-steps")!.shadowRoot!.firstElementChild as HTMLElement
+    expect(root.className).toBe("ui equal unstackable steps")
+    for (const step of stepRoots(box)) expect(step.getBoundingClientRect().width).toBeCloseTo(widest, -0.5)
+    expect(root.getBoundingClientRect().width).toBeLessThan(900)
+  })
+
+  it("`equal fluid`:  an equal share of the row each", async () => {
+    const box = await ElementFixture.render(uneven("equal fluid unstackable"))
+    const root = box.querySelector("ui-steps")!.shadowRoot!.firstElementChild as HTMLElement
+    const steps = stepRoots(box)
+    const share = root.clientWidth / steps.length
+    for (const step of steps) expect(step.getBoundingClientRect().width).toBeCloseTo(share, -0.5)
+  })
+
+  it("stacks below 768px of the group all the same", async () => {
+    const box = await ElementFixture.render(
+      `<div style="width: 500px"><ui-steps equal><ui-step header="A"></ui-step>` +
+        `<ui-step header="B"></ui-step></ui-steps></div>`
+    )
+    const [a, b] = stepRoots(box).map((step) => step.getBoundingClientRect())
+    expect(b!.top).toBeGreaterThanOrEqual(a!.bottom - 1)
   })
 })
 

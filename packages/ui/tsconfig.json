@@ -19,8 +19,9 @@
     "jsxImportSource": "@solidjs/web",
     "types": ["vite/client"]
   },
-  "include": ["src", "test", "tools"],
+  "include": ["src", "test", "tools", "site/_src"],
   // `packages/` are their own projects (own `tsconfig.json`, `yarn fork tsc`);  files the root imports from them
   // are still checked here
-  "exclude": ["site", "packages", "node_modules", "dist", "vendor", "tools/frameworks/solid/dist"]
+  // `site/`:  only `site/_src` (the site bundle's entry);  the rest is pages, data and the committed bundle
+  "exclude": ["site/_assets", "packages", "node_modules", "dist", "vendor", "tools/frameworks/solid/dist"]
 }

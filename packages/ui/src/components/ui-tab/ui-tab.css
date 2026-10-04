@@ -79,6 +79,10 @@
   .ui.tabs > .ui.menu {
     flex: none;
   }
+  /* `compact`:  the menu keeps its own width in the column (a flex item would stretch). */
+  .ui.tabs > .ui.compact.menu {
+    align-self: flex-start;
+  }
 
   /* A tab's icon glyph (the pane's `icon`). */
   .ui.menu > .item > .icon {
@@ -119,7 +123,12 @@
     flex: var(--_ui-tabs-pane-flex);
     min-width: 0;
   }
+  /*
+   * The set's colour words (`color`, and `secondary`, which the colour sheet also reads as a hue) are the TABS':
+   * the panes would inherit the set root's `--ui-color` and draw it as a segment's coloured top edge.
+   */
   :host(:state(in-tabs)) > .ui.tab {
+    --ui-color: initial;
     margin: var(--_ui-tabs-pane-margin);
   }
   /* Static markup:  a pane straight inside a `.ui.tabs` root is the flex item itself. */

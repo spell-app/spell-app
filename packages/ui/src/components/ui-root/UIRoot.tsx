@@ -56,6 +56,8 @@ import rootCSS from "./ui-root.css?inline"
  *   inside (`RootSettings.generation`).
  * - Theme, size, box:  `:state(light | dark)`, `:state(box)`, `:state(fixed)` in `ui-root.css`;  width, height and the
  *   subtree's `--ui-scale` in the root's own sheet (`RootBox`).
+ * - `stack-with`:  the subtree's `--ui-stack-with` token (also in `RootBox`), which every stacking element without a
+ *   `stack-with` of its own follows (`UIT.STACK_WITH_TOKEN`).
  * - Static server render (`$/ui/server`):  nothing loads and nothing is hidden;  the root is a plain wrapper
  *   (`serverRender()`).
  ****************/
@@ -162,8 +164,9 @@ export class UIRoot extends UIElement<RootVocabulary> {
   /**
    * The root in a static server render:  a `<div>` around the content, carrying its classes and theme / box states
    * (the flattener's `data-state`), never hidden -- a static page has nothing to wait for.
-   * - Its inline style is what the browser puts on the host:  `RootBox`'s width, height and `--ui-scale`, and
-   *   `display: contents` unless it's a box (the host's own `display`, which a static stylesheet drops).
+   * - Its inline style is what the browser puts on the host:  `RootBox`'s width, height, `--ui-scale` and
+   *   `--ui-stack-with`, and `display: contents` unless it's a box (the host's own `display`, which a static
+   *   stylesheet drops).
    * - A box scrolls its content in the same named region as in the browser.
    */
   private serverRender(): JSX.Element {
@@ -185,7 +188,12 @@ export class UIRoot extends UIElement<RootVocabulary> {
 
   /** The server wrapper's inline style:  `RootBox`'s declarations, or `display: contents` when not a box. */
   private serverStyle(): string | undefined {
-    const box = RootBox.css({ width: this.attrs.width, height: this.attrs.height, size: this.attrs.size })
+    const box = RootBox.css({
+      width: this.attrs.width,
+      height: this.attrs.height,
+      size: this.attrs.size,
+      stackWith: this.attrs.stackWith
+    })
     const declarations = [this.scrolls() ? "" : SERVER_CONTENTS, box].filter(Boolean)
     return declarations.join("; ") || undefined
   }
@@ -238,7 +246,13 @@ export class UIRoot extends UIElement<RootVocabulary> {
     )
     const box = new RootBox(this.host.renderRoot)
     createEffect(
-      () => RootBox.css({ width: this.attrs.width, height: this.attrs.height, size: this.attrs.size }),
+      () =>
+        RootBox.css({
+          width: this.attrs.width,
+          height: this.attrs.height,
+          size: this.attrs.size,
+          stackWith: this.attrs.stackWith
+        }),
       (css) => box.set(css)
     )
   }

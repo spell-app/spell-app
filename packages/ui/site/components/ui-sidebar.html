@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Sidebar | Spell UI</title>
+    <meta name="description" content="A sidebar hides additional content beside a page." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-sidebar.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-sidebar%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/modules/sidebar.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Sidebar
+                <ui-header>A sidebar hides additional content beside a page.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-sidebar" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Sidebar"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's sidebar page, its Definition tab section by section (Types, States, Variations), then its
+                  Examples tab (More Examples).  Fomantic's demos slide sidebars over the whole docs page;  here each one lives in its
+                  own `<ui-pushable>` (Fomantic's custom context), and buttons toggle them through invoker commands (`commandfor` +
+                  `command="--toggle"`):  no script.  Escape or a click on the dimmed page beside a modal sidebar closes it.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Sidebar">
+                  <p slot="description">
+                    A sidebar: <code>&lt;ui-pushable&gt;</code> (the context) holds <code>&lt;ui-sidebar&gt;</code>s and
+                    one <code>&lt;ui-pusher&gt;</code> (the page beside them).
+                  </p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >Although sidebars can be used with any content, in most cases sidebars hold an
+                    <code>inverted</code> <code>vertical</code> <code>&lt;ui-menu&gt;</code>. See the Usage tab for more
+                    details.</ui-message
+                  >
+                  <ui-pushable>
+                    <ui-sidebar id="sidebar-simple" inverted aria-label="Site">
+                      <ui-menu vertical inverted fluid aria-label="Site">
+                        <ui-item href="#one">1</ui-item>
+                        <ui-item href="#two">2</ui-item>
+                        <ui-item href="#three">3</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-button commandfor="sidebar-simple" command="--toggle" icon="sidebar">Toggle</ui-button>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Labeled Icon"
+                  description="A thin sidebar of a `labeled icon` menu:  each item an icon over its label."
+                >
+                  <ui-pushable>
+                    <ui-sidebar id="sidebar-labeled" width="thin" inverted aria-label="Sections">
+                      <ui-menu vertical inverted fluid labeled icon aria-label="Sections">
+                        <ui-item href="#home" icon="home">Home</ui-item>
+                        <ui-item href="#topics" icon="block layout">Topics</ui-item>
+                        <ui-item href="#friends" icon="smile">Friends</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-button commandfor="sidebar-labeled" command="--toggle" icon="sidebar">Toggle</ui-button>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example header="Visible">
+                  <p slot="description">A sidebar can be visible on the page: add <code>visible</code>.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >A modal sidebar that starts <code>visible</code> takes focus as the page loads, so a sidebar shown
+                    from the start is usually <code>persistent</code>: part of the page, nothing dimmed or
+                    blocked.</ui-message
+                  >
+                  <ui-pushable>
+                    <ui-sidebar width="thin" transition="push" persistent visible aria-label="Sections">
+                      <ui-menu vertical fluid aria-label="Sections">
+                        <ui-item href="#alpha">Alpha</ui-item>
+                        <ui-item href="#beta">Beta</ui-item>
+                        <ui-item href="#gamma">Gamma</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-docs-example header="Dimmed">
+                  <p slot="description">
+                    The pusher is the element pushed away by the sidebar: it holds your site content. A pusher is dimmed
+                    while a modal sidebar beside it is visible.
+                  </p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: a <code>dimmed</code> pusher of its own -- the pushable dims (and makes inert) its
+                    pusher exactly while a modal sidebar shows, so the two never disagree.</ui-message
+                  >
+                  <ui-pushable>
+                    <ui-sidebar id="sidebar-dimmed" transition="overlay" inverted aria-label="Dimmed">
+                      <ui-menu vertical inverted fluid aria-label="Dimmed">
+                        <ui-item href="#one">1</ui-item>
+                        <ui-item href="#two">2</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-button commandfor="sidebar-dimmed" command="--show" icon="sidebar">Show</ui-button>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Direction"
+                  description="A sidebar can appear on different sides of the page:  `position` is `left` (the default), `right`, `top` or `bottom`.  Top and bottom sidebars overlay the page by default."
+                >
+                  <ui-buttons>
+                    <ui-button commandfor="sidebar-position-left" command="--toggle">Left</ui-button>
+                    <ui-button commandfor="sidebar-position-right" command="--toggle">Right</ui-button>
+                    <ui-button commandfor="sidebar-position-top" command="--toggle">Top</ui-button>
+                    <ui-button commandfor="sidebar-position-bottom" command="--toggle">Bottom</ui-button>
+                  </ui-buttons>
+                  <ui-pushable>
+                    <ui-sidebar id="sidebar-position-left" inverted aria-label="Left">
+                      <ui-menu vertical inverted fluid aria-label="Left">
+                        <ui-item href="#one">One</ui-item>
+                        <ui-item href="#two">Two</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-position-right" position="right" inverted aria-label="Right">
+                      <ui-menu vertical inverted fluid aria-label="Right">
+                        <ui-item href="#one">One</ui-item>
+                        <ui-item href="#two">Two</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-position-top" position="top" inverted aria-label="Top">
+                      <ui-menu inverted fluid aria-label="Top">
+                        <ui-item href="#one">One</ui-item>
+                        <ui-item href="#two">Two</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-position-bottom" position="bottom" inverted aria-label="Bottom">
+                      <ui-menu inverted fluid aria-label="Bottom">
+                        <ui-item href="#one">One</ui-item>
+                        <ui-item href="#two">Two</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-docs-example header="Width">
+                  <p slot="description">
+                    A sidebar can specify its width: <code>width</code> is <code>very thin</code> (60px),
+                    <code>thin</code> (150px), 260px by default, <code>wide</code> (350px) or
+                    <code>very wide</code> (475px), or columns of the viewport (<code>4</code>, <code>1/4</code>,
+                    <code>25%</code>).
+                  </p>
+                  <ui-message slot="description" size="small"
+                    >A sidebar adjusts its animations to any width, the words' or your own
+                    <code>--ui-sidebar-width</code>.</ui-message
+                  >
+                  <ui-buttons wrapping>
+                    <ui-button commandfor="sidebar-width-very-thin" command="--toggle">Very thin</ui-button>
+                    <ui-button commandfor="sidebar-width-thin" command="--toggle">Thin</ui-button>
+                    <ui-button commandfor="sidebar-width-default" command="--toggle">Default</ui-button>
+                    <ui-button commandfor="sidebar-width-wide" command="--toggle">Wide</ui-button>
+                    <ui-button commandfor="sidebar-width-very-wide" command="--toggle">Very wide</ui-button>
+                    <ui-button commandfor="sidebar-width-quarter" command="--toggle">A quarter</ui-button>
+                  </ui-buttons>
+                  <ui-pushable>
+                    <ui-sidebar
+                      id="sidebar-width-very-thin"
+                      width="very thin"
+                      transition="overlay"
+                      inverted
+                      aria-label="Very thin"
+                    >
+                      <ui-menu vertical inverted fluid icon aria-label="Very thin">
+                        <ui-item href="#home" icon="home" aria-label="Home"></ui-item>
+                        <ui-item href="#topics" icon="block layout" aria-label="Topics"></ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-width-thin" width="thin" transition="overlay" inverted aria-label="Thin">
+                      <ui-menu vertical inverted fluid aria-label="Thin"><ui-item href="#thin">Thin</ui-item></ui-menu>
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-width-default" transition="overlay" inverted aria-label="Default">
+                      <ui-menu vertical inverted fluid aria-label="Default"
+                        ><ui-item href="#default">Default</ui-item></ui-menu
+                      >
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-width-wide" width="wide" transition="overlay" inverted aria-label="Wide">
+                      <ui-menu vertical inverted fluid aria-label="Wide"><ui-item href="#wide">Wide</ui-item></ui-menu>
+                    </ui-sidebar>
+                    <ui-sidebar
+                      id="sidebar-width-very-wide"
+                      width="very wide"
+                      transition="overlay"
+                      inverted
+                      aria-label="Very wide"
+                    >
+                      <ui-menu vertical inverted fluid aria-label="Very wide"
+                        ><ui-item href="#very-wide">Very wide</ui-item></ui-menu
+                      >
+                    </ui-sidebar>
+                    <ui-sidebar
+                      id="sidebar-width-quarter"
+                      width="1/4"
+                      transition="overlay"
+                      inverted
+                      aria-label="A quarter"
+                    >
+                      <ui-menu vertical inverted fluid aria-label="A quarter"
+                        ><ui-item href="#quarter">A quarter</ui-item></ui-menu
+                      >
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Blurring"
+                  description="A `blurring` sidebar blurs the dimmed page beside it (Fomantic's `blurring` dimmer)."
+                >
+                  <ui-pushable>
+                    <ui-sidebar id="sidebar-blurring" blurring transition="overlay" aria-label="Blurring">
+                      <ui-menu vertical fluid aria-label="Blurring"><ui-item href="#one">One</ui-item></ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-button commandfor="sidebar-blurring" command="--toggle" icon="sidebar">Toggle</ui-button>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="more-examples">More Examples</ui-header>
+
+                <ui-docs-example header="Transitions">
+                  <p slot="description">
+                    Not all sidebar transitions are available for every sidebar direction: <code>overlay</code>,
+                    <code>push</code> and <code>scale down</code> work on every edge; <code>uncover</code> (the default
+                    at the sides), <code>slide along</code> and <code>slide out</code> on the left and right only.
+                  </p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: Fomantic's <code>dimPage</code> setting -- a modal sidebar always dims the page beside
+                    it, a <code>persistent</code> one never does.</ui-message
+                  >
+                  <ui-buttons wrapping>
+                    <ui-button commandfor="sidebar-transition-overlay" command="--toggle">Overlay</ui-button>
+                    <ui-button commandfor="sidebar-transition-push" command="--toggle">Push</ui-button>
+                    <ui-button commandfor="sidebar-transition-scale" command="--toggle">Scale Down</ui-button>
+                    <ui-button commandfor="sidebar-transition-uncover" command="--toggle">Uncover</ui-button>
+                    <ui-button commandfor="sidebar-transition-along" command="--toggle">Slide Along</ui-button>
+                    <ui-button commandfor="sidebar-transition-out" command="--toggle">Slide Out</ui-button>
+                  </ui-buttons>
+                  <ui-pushable>
+                    <ui-sidebar id="sidebar-transition-overlay" transition="overlay" inverted aria-label="Overlay">
+                      <ui-menu vertical inverted fluid aria-label="Overlay"
+                        ><ui-item href="#overlay">Overlay</ui-item></ui-menu
+                      >
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-transition-push" transition="push" inverted aria-label="Push">
+                      <ui-menu vertical inverted fluid aria-label="Push"><ui-item href="#push">Push</ui-item></ui-menu>
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-transition-scale" transition="scale down" inverted aria-label="Scale down">
+                      <ui-menu vertical inverted fluid aria-label="Scale down"
+                        ><ui-item href="#scale">Scale Down</ui-item></ui-menu
+                      >
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-transition-uncover" transition="uncover" inverted aria-label="Uncover">
+                      <ui-menu vertical inverted fluid aria-label="Uncover"
+                        ><ui-item href="#uncover">Uncover</ui-item></ui-menu
+                      >
+                    </ui-sidebar>
+                    <ui-sidebar
+                      id="sidebar-transition-along"
+                      transition="slide along"
+                      inverted
+                      aria-label="Slide along"
+                    >
+                      <ui-menu vertical inverted fluid aria-label="Slide along"
+                        ><ui-item href="#along">Slide Along</ui-item></ui-menu
+                      >
+                    </ui-sidebar>
+                    <ui-sidebar id="sidebar-transition-out" transition="slide out" inverted aria-label="Slide out">
+                      <ui-menu vertical inverted fluid aria-label="Slide out"
+                        ><ui-item href="#out">Slide Out</ui-item></ui-menu
+                      >
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-docs-example header="Displaying Multiple">
+                  <p slot="description">
+                    Multiple sidebars can be displayed at the same time when they are <code>persistent</code>, with a
+                    transition like <code>push</code> or <code>overlay</code>. A modal sidebar is a drawer: one at a
+                    time.
+                  </p>
+                  <ui-buttons>
+                    <ui-button commandfor="sidebar-multiple-left" command="--toggle">Left</ui-button>
+                    <ui-button commandfor="sidebar-multiple-right" command="--toggle">Right</ui-button>
+                  </ui-buttons>
+                  <ui-pushable>
+                    <ui-sidebar
+                      id="sidebar-multiple-left"
+                      width="thin"
+                      transition="overlay"
+                      persistent
+                      inverted
+                      aria-label="Left"
+                    >
+                      <ui-menu vertical inverted fluid aria-label="Left"><ui-item href="#left">Left</ui-item></ui-menu>
+                    </ui-sidebar>
+                    <ui-sidebar
+                      id="sidebar-multiple-right"
+                      position="right"
+                      width="thin"
+                      transition="overlay"
+                      persistent
+                      inverted
+                      aria-label="Right"
+                    >
+                      <ui-menu vertical inverted fluid aria-label="Right"
+                        ><ui-item href="#right">Right</ui-item></ui-menu
+                      >
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <!-- GAP I73:  a menu item can't toggle the sidebar (no invoker commands on `<ui-item>`);  a button in the menu does. -->
+                <ui-docs-example header="Using a custom context">
+                  <p slot="description">
+                    A sidebar can sit inside any element, not just a page's body: its
+                    <code>&lt;ui-pushable&gt;</code> is the context.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >A sidebar's context can't have any padding: pad its pusher's content instead.</ui-message
+                  >
+                  <ui-menu attached="top" aria-label="Demo">
+                    <ui-item>
+                      <ui-button commandfor="sidebar-context" command="--toggle" basic compact icon="sidebar"
+                        >Menu</ui-button
+                      >
+                    </ui-item>
+                  </ui-menu>
+                  <ui-pushable>
+                    <ui-sidebar id="sidebar-context" width="thin" inverted aria-label="Application">
+                      <ui-menu vertical inverted fluid labeled icon aria-label="Application">
+                        <ui-item href="#home" icon="home">Home</ui-item>
+                        <ui-item href="#topics" icon="block layout">Topics</ui-item>
+                        <ui-item href="#friends" icon="smile">Friends</ui-item>
+                        <ui-item href="#history" icon="calendar">History</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-header level="3">Application Content</ui-header>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Triggering show/hide with other content"
+                  description='Any `<ui-button>` (or native `<button>`) toggles a sidebar:  `commandfor` its id, `command="--toggle"`.'
+                >
+                  <ui-button commandfor="sidebar-trigger" command="--toggle">Trigger Sidebar</ui-button>
+                  <ui-pushable>
+                    <ui-sidebar id="sidebar-trigger" inverted aria-label="Triggered">
+                      <ui-menu vertical inverted fluid aria-label="Triggered">
+                        <ui-item href="#one">1</ui-item>
+                        <ui-item href="#two">2</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Triggering custom behavior with other content"
+                  description="You can also say what the button does:  `--show`, `--close` or `--toggle`."
+                >
+                  <ui-button commandfor="sidebar-open" command="--show">Open Sidebar</ui-button>
+                  <ui-pushable>
+                    <ui-sidebar id="sidebar-open" inverted aria-label="Opened">
+                      <ui-menu vertical inverted fluid aria-label="Opened">
+                        <ui-item href="#one">1</ui-item>
+                        <ui-item href="#two">2</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+
+                <ui-docs-example header="Starting Visible">
+                  <p slot="description">A sidebar can start visible: <code>visible</code>.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >No pre-script class is needed: the elements lay the sidebar out before and after they load, at any
+                    width. Here it's <code>persistent</code> too, so it doesn't take focus as the page
+                    loads.</ui-message
+                  >
+                  <ui-pushable>
+                    <ui-sidebar width="thin" transition="push" persistent visible inverted aria-label="Application">
+                      <ui-menu vertical inverted fluid labeled icon aria-label="Application">
+                        <ui-item href="#home" icon="home">Home</ui-item>
+                        <ui-item href="#topics" icon="block layout">Topics</ui-item>
+                        <ui-item href="#friends" icon="smile">Friends</ui-item>
+                        <ui-item href="#history" icon="calendar">History</ui-item>
+                      </ui-menu>
+                    </ui-sidebar>
+                    <ui-pusher>
+                      <ui-segment basic>
+                        <ui-header level="3">Application Content</ui-header>
+                        <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      </ui-segment>
+                    </ui-pusher>
+                  </ui-pushable>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  page structure, the two kinds, commands and events, keyboard, accessibility, framework snippets. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Fomantic's three classes are three elements. `<ui-pushable>` is the clipping box (Fomantic's context); inside it,
+                    `<ui-sidebar>`s and one `<ui-pusher>`, the page beside them. A visible sidebar tells its pushable what it needs,
+                    and the pushable moves, dims or blurs the pusher.
+
+                    - `position` is the edge: `left` (default), `right`, `top`, `bottom`.
+                    - `width` on a side sidebar: Fomantic's words (`very thin`, `thin`, `wide`, `very wide`) or columns of the
+                      viewport (`4`, `1/4`, `25%`).
+                    - `transition` is how it appears: `overlay`, `push`, `scale down`, `uncover` (the default at the sides; top and
+                      bottom default to `overlay`), `slide along`, `slide out`.
+                    - `inverted` gives a dark panel: put an `inverted` menu in it.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="page-structure">Page structure</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    For a whole page, make the pushable the viewport's height, with the sidebars and the pusher as its children.
+                    Fomantic's `body.pushable` and its `fixed` menus are left out on purpose: a whole-page pushable is a
+                    `<ui-pushable>` of viewport height, and a fixed menu goes inside the pusher.
+                  </script>
+                </ui-markdown>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <body>
+                      <ui-pushable style="height: 100dvh">
+                        <ui-sidebar id="site-menu" inverted aria-label="Site">
+                          <ui-menu vertical inverted fluid aria-label="Site">
+                            <ui-item href="/">Home</ui-item>
+                            <ui-item href="/topics">Topics</ui-item>
+                          </ui-menu>
+                        </ui-sidebar>
+                        <ui-pusher>
+                          <ui-button commandfor="site-menu" command="--toggle" icon="sidebar">Menu</ui-button>
+                          <!-- site content -->
+                        </ui-pusher>
+                      </ui-pushable>
+                    </body>
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="kinds">Modal and persistent</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A sidebar is one of two things, following the WAI-ARIA patterns:
+
+                    - MODAL (the default): a drawer. A `<dialog>` that takes focus and keeps Tab inside; the pusher is dimmed and
+                      inert, Escape or a click beside the sidebar closes it, and focus returns to the button that opened it.
+                      `closedby` says what closes it, as on `<ui-modal>`: `any`, `closerequest` or `none`. The page doesn't
+                      scroll-lock (Fomantic's `scrollLock: false`): only the pusher is blocked.
+                    - `persistent`: part of the page. An `<aside>` landmark (a `<ui-menu>` inside is the `<nav>`), with nothing
+                      dimmed, inert or trapped, and focus left alone. Several can show at once.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="events">Commands and events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `visible` is the controlled state: writing it shows or hides the sidebar and fires nothing (Fomantic's `show` /
+                    `hide` / `toggle` behaviours).
+
+                    - User actions -- the invoker commands `--show`, `--close` and `--toggle` from a button's `commandfor`, Escape,
+                      a click beside it -- dispatch the cancelable `ui-open` / `ui-close` first. `detail.reason` is `escape`,
+                      `outside`, `close` or `close-all`.
+                    - `ui-show` / `ui-hide` follow after the slide (Fomantic's `onVisible` / `onHidden`).
+                    - A hidden sidebar is `visibility: hidden`: out of the tab order and the accessibility tree, but still laid out.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const menu = document.querySelector("#site-menu")
+                    menu.addEventListener("ui-close", (event) => {
+                      if (event.detail.reason === "outside" && pinned) event.preventDefault()
+                    })
+                    menu.visible = true // show from code:  no ui-open
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    | Key               | Action                                                     |
+                    | ----------------- | ---------------------------------------------------------- |
+                    | Tab / Shift + Tab | Move between the controls in a modal sidebar (never out)   |
+                    | Escape            | Close a modal sidebar (`closedby` `any` or `closerequest`) |
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - A modal sidebar is a `<dialog aria-modal="true">` (opened with `show()`, so it stays inside its pushable):
+                      focus moves in, Tab stays in, the pusher is inert, and focus returns to the opener when it closes.
+                    - A `persistent` sidebar is an `<aside>` landmark: nothing moves focus or blocks the page.
+                    - Name it with `aria-label`; otherwise it is "Sidebar" (translated). Name the menu inside too.
+                    - Open it from a real button (`commandfor`), so keyboard and screen reader users can reach it.
+                    - If the element can't render, its native fallback is an `<aside>` that follows `visible` and slides over the
+                      page like an `overlay` sidebar: no dimming, focus trap, Escape or events.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Bind `visible` to your state and listen for `ui-close` to follow the user.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-sidebar visible={open} aria-label="Site" onui-close={() => setOpen(false)}>
+                      ...
+                    </ui-sidebar>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                    <ui-sidebar :visible="open" aria-label="Site" @ui-close="open = false">...</ui-sidebar>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    // no `on:` namespace:  listen through a ref
+                    <ui-sidebar
+                      prop:visible={open()}
+                      aria-label="Site"
+                      ref={(el) => el.addEventListener("ui-close", () => setOpen(false))}
+                    >
+                      ...
+                    </ui-sidebar>
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-sidebar"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-sidebar-*` tokens: set one on the element, on any ancestor (`:root` for every
+                    sidebar), or on the box through `::part(sidebar)`.
+
+                    - The width words replace `--ui-sidebar-width`; `inverted` replaces `--ui-sidebar-background`.
+                    - `--ui-sidebar-duration`, `--ui-sidebar-dimmer-background` and `--ui-pusher-background` are read where they
+                      paint (the sidebar, the pusher and its dimmer): set them on the pushable or any ancestor to reach them all, or
+                      on the sidebar or the pusher alone.
+                    - `blurring` reads the shared dimmer tokens.
+                    - Style the boxes with `::part(pushable)` and `::part(pusher)`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    ui-sidebar {
+                      --ui-sidebar-width: 300px;
+                      --ui-sidebar-background: oklch(0.3 0.05 260);
+                    }
+                    ui-pusher::part(pusher) {
+                      background: var(--ui-surface);
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      Never set the `--_ui-*` names (`--_ui-pusher-blurring` ...): they're the private switches the pushable sets on
+                      its pusher.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-sidebar" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    No Fomantic theme restyles the sidebar itself: Fomantic's own sidebar page lists only the default theme. The
+                    site-wide themes in the header (Material, GitHub, Dark ...) still restyle the menu inside it.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

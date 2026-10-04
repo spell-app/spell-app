@@ -70,8 +70,21 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Enter a worktree with `/isolate <name>` (`/epic` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
-- Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
-  `... close <name>` on leaving.  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
+- New window, or stay?  `node scripts/window.mjs stay-check` recommends one, with reasons, and Owen picks in a
+  modal (`.claude/skills/isolate/SKILL.md`, "Start", step 2b).  Staying is fine when the session is its window's
+  only one.
+  - A session that stays:  same tab, only its folder changes;  its changes show in Source Control, since every
+    package window has `git.detectWorktrees` on (each worktree its own repo there).
+  - NEVER add a worktree's folders to a package window (`window.mjs add`):  VS Code writes them into
+    `workspaces/<pkg>.code-workspace`, and they stay there after the worktree is gone (three did, by 2026-10-03).
+    Nobody sees them:  those files are `skip-worktree` in the main checkout, so Owen's theme changes never show
+    as changes either.
+  - A branch that changes those files merges onto `main` only once the flag is off:  back up the local files,
+    `git update-index --no-skip-worktree`, `git checkout --` them, merge, write the local edits back on top, set the
+    flag again (`PAPERCUTS.md`, "claude-code").
+- A new window:  open it at once, from the worktree's root:  `node scripts/window.mjs open <name>`.
+  On leaving (`/isolate done`), the session does NOT move back:  it stays in that window, which Owen closes
+  (`... close <name>` closes it and deletes its file).  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
   moves to that window, in an editor tab (never the sidebar), `continue` typed into it, and its old tab closes
   (the `Stop` hook, `.claude/hooks/handoff.mjs`).
   - So END THE TURN right after `handoff`:  the rest (`yarn install` ...) happens in the new window.
@@ -93,7 +106,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
   worktree, plus a `PARKED-<name>.md` note), `/unpark` to pick it back up, or `/wait-for <other>` to wait for
   that session to finish, then merge `main` in and carry on by itself.
-- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>").
+- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>", or
+  "..., staying in this window").
 
 ## Changelog
 

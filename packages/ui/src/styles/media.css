@@ -3,7 +3,8 @@
  * - Build-time only:  no browser ships `@custom-media`, so sheets `@import` this file and Lightning CSS
  *   (Vite `css.lightningcss.drafts.customMedia`) inlines the ranges.  A sheet loaded raw, without that
  *   build step, silently drops every rule inside `@media (--ui-*)`.
- * - Page-level only:  components respond to their CONTAINER (container queries), not the viewport.
+ * - Page-level:  stacking components respond to their CONTAINER (container queries) by default;  these ranges are
+ *   their `stack-with="page"` twins (`docs/theming.md` "Stacking"), and the screen-based words (`only`, menus).
  * - Values MUST match `breakpoints` in `styles.vocabulary.en.ts`;  `styles.test.ts` checks they do.
  */
 

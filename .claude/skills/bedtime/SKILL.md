@@ -22,7 +22,23 @@ MORNING PLAN:  what was done, every judgement call, every problem.  `/wakeup` en
 - No phases:  say so in one line and stop.
 - In plan mode:  ask Owen to leave it (shift+tab) first, as in `.claude/skills/isolate/SKILL.md`, "Start", step 0.
 
-## 2. Pick phases (modal)
+## 2. Pick phases (modal, or one page with step 3)
+
+More than fits ONE modal call (the phase pick plus step 3's questions, over 4 questions, or over 4 options in
+one):  steps 2 and 3 go on ONE details page instead (Owen, 2026-10-03), so he answers everything in one sitting:
+- the spec:  `where`:  the epic and what it's for, just now "about to run P<a>-P<b> overnight", decides "what I do
+  while you sleep:  anything left open becomes a judgement call"
+- questions:  `phases` (`multiple`, "All" `recommended`, then each to-do phase), "Isolate first?" when step 3 says
+  so, then every real question of step 3, each with its options, one `recommended`
+- in an epic:  `--epic <name>`, slug `bedtime-<date>`, so the page stays with the plan doc
+- `yarn details new <slug> --from <spec.json>` (the spec in the scratchpad;  its shape:  `DetailsSpec` in
+  `packages/docs/scripts/details.js`), then `yarn details show <slug> --wait` with Bash `run_in_background: true`,
+  and END THE TURN with the page's link pair (`yarn docs:link <page>`).  Owen's Send wakes the session with the
+  answers as text (`.claude/skills/details/SKILL.md`;  write it as "Writing for Owen" there says)
+- woken:  record the answers (step 3's "Record the answers"), then step 3's "Then" and on into the night.  The
+  session must run unattended from here:  say so in the reply before ending the turn (auto mode or allow-rules)
+
+Else, the modals:
 
 - AskUserQuestion, `multiSelect`, "Which phases tonight?":
   - first option "All", then the to-do phases in order, labelled `P<n> · <Name>`
@@ -72,12 +88,12 @@ Everything else stands:  `yarn vscode` after each stage, the parser speed test o
 2. Do the work and run its verify and the touched packages' checks (`yarn ts`, `yarn test`).
 3. JUDGEMENT CALL (a choice Owen might have made differently):  pick the option the plan and code best support,
    then record it, with the options and why:
-   - MORNING PLAN, under the phase in "Phases":  `J<k>` (numbered across the night), what, the choice, the
-     alternatives
-   - plan doc:  ALSO `add <name> todo "Review:  <the call>" --details "<p>chose ... over ... because ...</p>"`, so
-     every call is an open todo there, and link it from the phase's body (hand-edited prose):  a
-     `<li><b>Judgement calls:</b>  <a href="#t4">T4</a> ...</li>` after its Goal / Files / Verify, one link per
-     call
+   - plan doc FIRST:  `add <name> judgement "<the call>" --details "<p>chose ... over ... because ...</p><ul>
+     <li>options ...</li></ul>"` -- it prints the id (`J4`):  the plan doc's "Judgement calls" section is where Owen
+     finds them, open until he reviews each.  Then link it from the phase's body (hand-edited):
+     `<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j4">J4</a> ...</ui-item>` after Goal / Files /
+     Verify, one link per call.  Agents you start record theirs the same way (put the command in their prompt).
+   - MORNING PLAN, under the phase in "Phases":  the SAME id (`J4`), what, the choice, the alternatives
 4. Checks fail and you can't fix them:
    - commit what's there as `WIP P<n>:  <name>`
    - record an issue (plan doc `add ... issue`, and the MORNING PLAN's "Problems")

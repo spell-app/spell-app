@@ -4,6 +4,7 @@
  * - The family's grammar notes are in `ui-card.vocabulary.en.ts`.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -33,6 +34,15 @@ export const cardsVocabulary = {
       description: "With `columns`:  fewer cards per row in a narrow group (tablet, mobile widths)."
     },
     { name: "stackable", kind: "keyOnly", description: "One card per row in a narrow group (mobile widths)." },
+    {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        "What `stackable` and `doubling` measure:  `container` (the default) -- the group's own width;  " +
+        "`page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides " +
+        "(`<ui-root stack-with>`)."
+    },
     { name: "centered", kind: "keyOnly", description: "Centres each row of cards." },
     { name: "horizontal", kind: "keyOnly", description: "Every card horizontal." },
     { name: "raised", kind: "keyOnly", description: "Every card raised." },

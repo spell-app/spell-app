@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Content parts | Spell UI</title>
+    <meta
+      name="description"
+      content="Headers, content, descriptions, metas and the other generic parts that cards, items, modals and messages share."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-header.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-header%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/elements/header.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Content parts
+                <ui-header
+                  >Headers, content, descriptions, metas and the other generic parts that cards, items, modals and
+                  messages share.</ui-header
+                >
+              </ui-header>
+              <ui-docs-themes for="ui-header" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Content parts"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's header page, section by section, in its order (Types, Content, States, Variations), plus our
+                  extras (Fitted, Link), then the generic content parts (Parts), from the part sections of Fomantic's card, item,
+                  comment, feed and statistic pages.
+                  - A nested `<ui-header sub>` is Fomantic's `.sub.header` inside a header;  a standalone `sub` is `ui sub header`.
+                  - Fomantic's `img.ui.wireframe.image` => `<ui-image src>`.
+                  - Fomantic's `images/icons/school.png` / `plugin.png` aren't in `site/images/`:  `book.png` / `lab.png` instead.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Page Headers">
+                  <p slot="description">
+                    Headers may be oriented to give the hierarchy of a section in the context of the page:
+                    <code>level</code> renders <code>&lt;h1&gt;</code> ... <code>&lt;h6&gt;</code>.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Page headings are sized from <code>--ui-font-size</code> by level and are not affected by
+                    surrounding content size.</ui-message
+                  >
+                  <ui-header level="1">First header</ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  <ui-header level="2">Second header</ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  <ui-header level="3">Third header</ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  <ui-header level="4">Fourth header</ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  <ui-header level="5">Fifth header</ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example header="Content Headers">
+                  <p slot="description">
+                    Headers may be oriented to give the importance of a section in the context of the content that
+                    surrounds it:
+                    <code>size</code>.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Content headings are sized with <code>em</code> and are based on the font-size of their
+                    container.</ui-message
+                  >
+                  <ui-segment vertical>
+                    <ui-header size="huge">Huge Header</ui-header>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                    <ui-header size="large">Large Header</ui-header>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                    <ui-header size="medium">Medium Header</ui-header>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                    <ui-header size="small">Small Header</ui-header>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                    <ui-header size="tiny">Tiny Header</ui-header>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example description="A page header takes a `size` too, which wins over its level.">
+                  <ui-header level="2" size="massive">A sized page header</ui-header>
+                  <ui-header level="2" size="mini">A mini page header</ui-header>
+                </ui-docs-example>
+
+                <ui-docs-example header="Icon Headers" description="A header can be formatted to emphasize an icon.">
+                  <ui-header level="2" icon>
+                    <ui-icon name="settings"></ui-icon>
+                    <ui-content>
+                      Account Settings
+                      <ui-header sub>Manage your account settings and set e-mail preferences.</ui-header>
+                    </ui-content>
+                  </ui-header>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-header level="2" text-align="center" icon>
+                    <ui-icon name="users" circular></ui-icon>
+                    Friends
+                  </ui-header>
+                  <ui-image centered src="../images/wireframe/centered-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Sub Headers"
+                  description="Headers may be formatted to label smaller or de-emphasized content:  `sub`."
+                >
+                  <ui-header level="2" sub>Price</ui-header>
+                  <span>$10.99</span>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-list horizontal>
+                    <ui-item image="../images/avatar2/small/molly.png">
+                      <ui-content>
+                        <ui-header sub>Molly</ui-header>
+                        Coordinator
+                      </ui-content>
+                    </ui-item>
+                    <ui-item image="../images/avatar2/small/elyse.png">
+                      <ui-content>
+                        <ui-header sub>Elyse</ui-header>
+                        Developer
+                      </ui-content>
+                    </ui-item>
+                    <ui-item image="../images/avatar2/small/eve.png">
+                      <ui-content>
+                        <ui-header sub>Eve</ui-header>
+                        Project Manager
+                      </ui-content>
+                    </ui-item>
+                  </ui-list>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="content">Content</ui-header>
+
+                <ui-docs-example header="Image" description="A header may contain an image.">
+                  <ui-header level="2">
+                    <img src="../images/icons/book.png" alt="" />
+                    <ui-content>Learn More</ui-content>
+                  </ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+                <!-- GAP I115:  a slotted `<ui-image circular>` isn't sized by the header:  a plain (square) `<img>` instead. -->
+                <ui-docs-example>
+                  <ui-header level="2">
+                    <img src="../images/avatar2/large/patrick.png" alt="" />
+                    Patrick
+                  </ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-header level="2">
+                    <img src="../images/icons/lab.png" alt="" />
+                    <ui-content>
+                      Plug-ins
+                      <ui-header sub>Check out our plug-in marketplace</ui-header>
+                    </ui-content>
+                  </ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Icon"
+                  description="A header may contain an icon, with the text in a `<ui-content>`."
+                >
+                  <ui-header level="2">
+                    <ui-icon name="plug"></ui-icon>
+                    <ui-content>Uptime Guarantee</ui-content>
+                  </ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-header level="2">
+                    <ui-icon name="settings"></ui-icon>
+                    <ui-content>
+                      Account Settings
+                      <ui-header sub>Manage your preferences</ui-header>
+                    </ui-content>
+                  </ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Subheader"
+                  description="Headers may contain subheaders:  a nested `<ui-header sub>`."
+                >
+                  <ui-header level="2">
+                    Account Settings
+                    <ui-header sub>Manage your account settings and set e-mail preferences.</ui-header>
+                  </ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-header level="1">
+                    H1
+                    <ui-header sub>Sub Header</ui-header>
+                  </ui-header>
+                  <ui-header level="2">
+                    H2
+                    <ui-header sub>Sub Header</ui-header>
+                  </ui-header>
+                  <ui-header level="3">
+                    H3
+                    <ui-header sub>Sub Header</ui-header>
+                  </ui-header>
+                  <ui-header level="4">
+                    H4
+                    <ui-header sub>Sub Header</ui-header>
+                  </ui-header>
+                  <ui-header level="5">
+                    H5
+                    <ui-header sub>Sub Header</ui-header>
+                  </ui-header>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example header="Disabled" description="A header can show that it is inactive.">
+                  <ui-header disabled>Disabled Header</ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Dividing"
+                  description="A header can be formatted to divide itself from the content below it."
+                >
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  <ui-header level="3" dividing>Dividing Header</ui-header>
+                  <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Block"
+                  description="A header can be formatted to appear inside a content block."
+                >
+                  <ui-header level="3" block>Block Header</ui-header>
+                  <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Attached"
+                  description="A header can be attached to other content, like a segment."
+                >
+                  <ui-header level="3" attached="top">Top Attached</ui-header>
+                  <ui-segment attached>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-header level="3" attached>Attached</ui-header>
+                  <ui-segment attached>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-header level="3" attached="bottom">Bottom Attached</ui-header>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Seamless attached"
+                  description="A top header can be seamless attached without related attached border."
+                >
+                  <ui-header level="3" seamless attached="top">Seamless Top Attached</ui-header>
+                  <ui-segment attached>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-segment attached>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-message slot="description" state="warning" size="small"
+                    >This variant is not available for the bottom header, which doesn't have the attached border. To get
+                    a seamless bottom header, make the previous attached element seamless.</ui-message
+                  >
+                  <ui-segment attached>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-segment seamless attached>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-header level="3" attached="bottom">Seamless Bottom Attached</ui-header>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Floating"
+                  description="A header can sit to the left or right of other content."
+                >
+                  <ui-segment clearing>
+                    <ui-header level="3" floated="right">Go Forward</ui-header>
+                    <ui-header level="3" floated="left">Go Back</ui-header>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example header="Text Alignment" description="A header can have its text aligned to a side.">
+                  <ui-segment>
+                    <ui-header level="3" text-align="right">Right</ui-header>
+                    <ui-header level="3" text-align="left">Left</ui-header>
+                    <ui-header level="3" text-align="justified"
+                      >This should take up the full width even if only one line</ui-header
+                    >
+                    <ui-header level="3" text-align="center">Center</ui-header>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example header="Colored" description="A header can be formatted with different colors.">
+                  <ui-header level="4" color="primary">Primary</ui-header>
+                  <ui-header level="4" color="secondary">Secondary</ui-header>
+                  <ui-header level="4" color="red">Red</ui-header>
+                  <ui-header level="4" color="orange">Orange</ui-header>
+                  <ui-header level="4" color="yellow">Yellow</ui-header>
+                  <ui-header level="4" color="olive">Olive</ui-header>
+                  <ui-header level="4" color="green">Green</ui-header>
+                  <ui-header level="4" color="teal">Teal</ui-header>
+                  <ui-header level="4" color="blue">Blue</ui-header>
+                  <ui-header level="4" color="purple">Purple</ui-header>
+                  <ui-header level="4" color="violet">Violet</ui-header>
+                  <ui-header level="4" color="pink">Pink</ui-header>
+                  <ui-header level="4" color="brown">Brown</ui-header>
+                  <ui-header level="4" color="grey">Grey</ui-header>
+                </ui-docs-example>
+
+                <ui-docs-example header="Inverted">
+                  <p slot="description">A header can have its colors inverted for contrast.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Inverted headers use light versions of the site's colours, adapted to have more contrast on a dark
+                    background.</ui-message
+                  >
+                  <ui-segment inverted>
+                    <ui-header level="4" color="red" inverted>Red</ui-header>
+                    <ui-header level="4" color="orange" inverted>Orange</ui-header>
+                    <ui-header level="4" color="yellow" inverted>Yellow</ui-header>
+                    <ui-header level="4" color="olive" inverted>Olive</ui-header>
+                    <ui-header level="4" color="green" inverted>Green</ui-header>
+                    <ui-header level="4" color="teal" inverted>Teal</ui-header>
+                    <ui-header level="4" color="blue" inverted>Blue</ui-header>
+                    <ui-header level="4" color="purple" inverted>Purple</ui-header>
+                    <ui-header level="4" color="violet" inverted>Violet</ui-header>
+                    <ui-header level="4" color="pink" inverted>Pink</ui-header>
+                    <ui-header level="4" color="brown" inverted>Brown</ui-header>
+                    <ui-header level="4" color="grey" inverted>Grey</ui-header>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example header="Fitted" description="A header can drop its padding.">
+                  <ui-header level="3" fitted block>Fitted block header</ui-header>
+                  <ui-header level="3" block>Block header</ui-header>
+                </ui-docs-example>
+
+                <ui-docs-example header="Link" description="With `href` a header renders a link styled as a header.">
+                  <ui-header href="#link">Link header</ui-header>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="parts">Parts</ui-header>
+
+                <ui-message size="small" state="info"
+                  >The other content parts style themselves by their OWNER: the same <code>&lt;ui-meta&gt;</code> reads
+                  differently in a card, an item, a feed and a comment. Outside any owner they are unstyled blocks.
+                  Their own pages (card, items, comment, feed, statistic, step, label) show every owner in
+                  full.</ui-message
+                >
+
+                <ui-docs-example
+                  header="Content"
+                  description="`<ui-content>` is the main content block of a card, item, event, comment, modal, message, list item or step."
+                >
+                  <ui-card>
+                    <ui-content>
+                      <ui-header>Elliot Fu</ui-header>
+                      <ui-meta>Friend</ui-meta>
+                      <ui-description>Elliot is a film-maker from New York.</ui-description>
+                    </ui-content>
+                    <ui-content>
+                      <ui-description>A second content block, divided from the first.</ui-description>
+                    </ui-content>
+                  </ui-card>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="In a card, `text-align` aligns one content block:  Fomantic's `center aligned content`."
+                >
+                  <ui-card>
+                    <ui-content text-align="center">
+                      <ui-header>Centered</ui-header>
+                      <ui-description>A center aligned content block.</ui-description>
+                    </ui-content>
+                  </ui-card>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Header"
+                  description="Inside an owner, `<ui-header>` is the owner's header:  here a card's, an item's and a list item's."
+                >
+                  <ui-card>
+                    <ui-content><ui-header>Matthew</ui-header></ui-content>
+                  </ui-card>
+                  <ui-items>
+                    <ui-item>
+                      <ui-content>
+                        <ui-header href="#header">Arrowhead Valley Camp</ui-header>
+                        <ui-meta><span>Summer camp</span></ui-meta>
+                      </ui-content>
+                    </ui-item>
+                  </ui-items>
+                  <ui-list>
+                    <ui-item icon="user">
+                      <ui-content><ui-header>Rachel</ui-header></ui-content>
+                    </ui-item>
+                  </ui-list>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Meta"
+                  description="`<ui-meta>` holds metadata about the content, e.g. a date or a category:  the same markup in a card, an item, a feed event and a comment."
+                >
+                  <ui-card>
+                    <ui-content>
+                      <ui-header>Kristy</ui-header>
+                      <ui-meta><span>Joined in 2013</span></ui-meta>
+                    </ui-content>
+                  </ui-card>
+                  <ui-items>
+                    <ui-item>
+                      <ui-content>
+                        <ui-header>Cute Dog</ui-header>
+                        <ui-meta><span>Description</span><span>Stevie</span></ui-meta>
+                      </ui-content>
+                    </ui-item>
+                  </ui-items>
+                  <ui-feed>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary>Elliot Fu added you as a friend</ui-summary>
+                        <ui-meta><a href="#like">4 Likes</a></ui-meta>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                  <ui-comments>
+                    <ui-comment>
+                      <ui-content>
+                        <ui-author href="#matt">Matt</ui-author>
+                        <ui-meta><span>Today at 5:42PM</span></ui-meta>
+                      </ui-content>
+                    </ui-comment>
+                  </ui-comments>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Description"
+                  description="`<ui-description>` describes the content:  a card's or item's text, a comment's text (Fomantic's comment `text`), a step's line."
+                >
+                  <ui-card>
+                    <ui-content>
+                      <ui-header>Elliot</ui-header>
+                      <ui-description
+                        >Elliot is a sound engineer living in Nashville who enjoys playing guitar.</ui-description
+                      >
+                    </ui-content>
+                  </ui-card>
+                  <ui-comments>
+                    <ui-comment>
+                      <ui-content>
+                        <ui-author href="#elliot">Elliot Fu</ui-author>
+                        <ui-description>This has been very useful for my research. Thanks as well!</ui-description>
+                      </ui-content>
+                    </ui-comment>
+                  </ui-comments>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Extra"
+                  description="`<ui-extra>` is extra content, set apart from the main content:  a card's footer, an item's extra line, a feed event's extra text."
+                >
+                  <ui-card>
+                    <ui-content><ui-header>Elliot</ui-header></ui-content>
+                    <ui-extra><a href="#friends">16 Friends</a></ui-extra>
+                  </ui-card>
+                  <ui-feed>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary>Helen Troy added 2 photos</ui-summary>
+                        <ui-extra text
+                          >Ours is a life of constant reruns. We're always circling back to where we'd we
+                          started.</ui-extra
+                        >
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Actions"
+                  description="`<ui-actions>` holds the actions a user can take:  a comment's reply links, a modal's or toast's buttons."
+                >
+                  <ui-comments>
+                    <ui-comment>
+                      <ui-content>
+                        <ui-author href="#joe">Joe Henderson</ui-author>
+                        <ui-description>Dude, this is awesome. Thanks so much</ui-description>
+                        <ui-actions
+                          ><a href="#reply">Reply</a><a href="#save">Save</a><a href="#hide">Hide</a></ui-actions
+                        >
+                      </ui-content>
+                    </ui-comment>
+                  </ui-comments>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Avatar and Author"
+                  description="`<ui-avatar>` is a small picture of a person, `<ui-author>` who wrote a comment or did a feed event (Fomantic's feed `user`)."
+                >
+                  <ui-comments>
+                    <ui-comment>
+                      <ui-avatar src="../images/avatar/small/matt.jpg"></ui-avatar>
+                      <ui-content>
+                        <ui-author href="#matt">Matt</ui-author>
+                        <ui-meta><span>Today at 5:42PM</span></ui-meta>
+                        <ui-description>How artistic!</ui-description>
+                      </ui-content>
+                    </ui-comment>
+                  </ui-comments>
+                  <ui-feed>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary><ui-author href="#elliot">Elliot Fu</ui-author> added you as a friend</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Summary and Date"
+                  description="`<ui-summary>` is a feed event's summary line;  `<ui-date>` says when, inline and small inside it (`datetime` makes it a real `<time>`)."
+                >
+                  <ui-feed>
+                    <ui-event>
+                      <ui-content>
+                        <ui-date datetime="P3D">3 days ago</ui-date>
+                        <ui-summary>You added Jenny Hess to your coworker group.</ui-summary>
+                      </ui-content>
+                    </ui-event>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary>
+                          <ui-author href="#jenny">Jenny Hess</ui-author> added you as a friend
+                          <ui-date datetime="PT4H">4 hours ago</ui-date>
+                        </ui-summary>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Title"
+                  description="`<ui-title>` is a step's, an accordion panel's or a search result's title."
+                >
+                  <ui-steps>
+                    <ui-step icon="truck">
+                      <ui-content>
+                        <ui-title>Shipping</ui-title>
+                        <ui-description>Choose your shipping options</ui-description>
+                      </ui-content>
+                    </ui-step>
+                  </ui-steps>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Value"
+                  description="`<ui-value>` is a statistic's value (a number, a word, an icon or image), with `<ui-label>` naming it."
+                >
+                  <ui-statistics>
+                    <ui-statistic>
+                      <ui-value>40,509</ui-value>
+                      <ui-label>Views</ui-label>
+                    </ui-statistic>
+                    <ui-statistic>
+                      <ui-value><ui-icon name="plane"></ui-icon> 5</ui-value>
+                      <ui-label>Flights</ui-label>
+                    </ui-statistic>
+                    <ui-statistic>
+                      <ui-value text>Three Thousand</ui-value>
+                      <ui-label>Signups</ui-label>
+                    </ui-statistic>
+                  </ui-statistics>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Detail"
+                  description="`<ui-detail>` is a label's dimmer second value, e.g. a count."
+                >
+                  <ui-label>Dogs<ui-detail>214</ui-detail></ui-label>
+                  <ui-label color="blue">Veronika<ui-detail>Friend</ui-detail></ui-label>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    One family, thirteen tags: `<ui-header>`, `<ui-content>`, `<ui-description>`, `<ui-meta>`, `<ui-extra>`,
+                    `<ui-actions>`, `<ui-title>`, `<ui-summary>`, `<ui-date>`, `<ui-author>`, `<ui-avatar>`, `<ui-detail>` and
+                    `<ui-value>`.
+
+                    - Only a STANDALONE `<ui-header>` is a component in its own right (Fomantic's `ui header`), with its own
+                      attributes: `level`, `size`, `sub`, `icon`, `dividing`, `block`, `attached`, `color`, `inverted` ...
+                    - `level` renders a real `<h1>` ... `<h6>` (a page header, sized by level); without it the header is a `<div>`
+                      sized by `size`, relative to the text around it (a content header).
+                    - Inside a header, a nested `<ui-header sub>` is its sub header and a `<ui-content>` its text column (beside an
+                      icon or image).
+                    - The other parts take few or no attributes: they are styled by their OWNER.
+                  </script>
+                </ui-markdown>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <ui-header level="2" icon>
+                      <ui-icon name="settings"></ui-icon>
+                      <ui-content>
+                        Account Settings
+                        <ui-header sub>Manage your account settings and set e-mail preferences.</ui-header>
+                      </ui-content>
+                    </ui-header>
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="owners">Owners</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A generic part styles itself by its OWNER, not by a per-owner tag: there is no `ui-card-header`. The part finds
+                    its nearest owner and sets `:state(in-card)`, `:state(in-modal)` ... on itself, and `ui-parts.css` keys on that
+                    state, so the same markup reads differently in each owner.
+
+                    - The owners: card, item (in `<ui-items>`), feed, comment, statistic, step, message, modal, flyout, popup,
+                      accordion, tabs, list, menu, label and header, with more as families land. Each owner lists what it owns
+                      (`ownsParts`) in its own vocabulary; each part's `in-*` states (API tab) list the owners it knows.
+                    - Outside any owner, `<ui-content>`, `<ui-description>` and the rest are unstyled blocks.
+                    - Owners hand their parts private layout switches (`--_ui-card-layout: horizontal`), so a part never needs to
+                      know its owner's markup.
+                    - Parts have no events.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Parts take no keys of their own. A header, title, author or detail with `href` renders a real `<a>`: **Tab**
+                    reaches it and **Enter** follows it.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - A `<ui-header>` with `level` renders a real `<h1>` ... `<h6>`, so it belongs in the document outline. Without
+                      `level` it is a `<div>` that only looks like a heading: pick a level whenever it labels a section.
+                    - A slotted `<ui-icon>` is decorative unless given a `label`; an image inside a header needs its own `alt`.
+                    - `sub` and `disabled` are visual: `disabled` does not remove the header from the outline.
+                    - A linked header with a `level` is `<a role="heading" aria-level>`, so it is both a link and a heading.
+                    - `<ui-date datetime>` renders a `<time datetime>`, so machines read the date too.
+                    - `<ui-avatar>`'s `alt` defaults to `""` (decorative): the person's name is nearby.
+                    - The other parts are neutral blocks with no role; their meaning comes from the owner and from the semantic
+                      elements you put inside them.
+                    - Without JavaScript the native fallback renders the same part elements (`<h1>` ... `<h6>` for a leveled header)
+                      around a slot, so the text and outline stay; only the owner-context styling (`:state(in-card)`) is lost.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-parts"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A standalone header's tokens are public (`--ui-header-*`): set one on the element, on any ancestor or `:root`, or
+                    through `::part(header)`. They inherit into the shadow root, where the sheet reads each through a private alias.
+
+                    - The page header ladder (`--ui-header-h1` ... `-h6`) is a ratio of `--ui-font-size`; the content header ladder
+                      (`--ui-header-size-mini` ... `-massive`) is in `em` of the surrounding text.
+                    - Inside an owner, a part's look comes from the OWNER's tokens (`--ui-card-header-color`,
+                      `--ui-modal-header-size` ...): set them on the owner or above it, and every part inside follows. See each
+                      owner's Theming tab.
+                    - Never set the private switches owners hand their parts (`--_ui-card-layout` ...), or any `--_*` name.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    /* quieter page headers everywhere */
+                    :root {
+                      --ui-header-font-weight: 600;
+                      --ui-header-h1: 1.75;
+                    }
+                    /* one card's header */
+                    ui-card.note {
+                      --ui-card-header-color: var(--ui-primary);
+                    }
+                  </script>
+                </ui-code>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-parts" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle these parts; the one in the header applies a theme
+                    to the whole site.
+
+                    Themes that restyle headers and parts: Amazon, Bookish, Chubby, Flat, Fomantic classic, GitHub and Material.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>
