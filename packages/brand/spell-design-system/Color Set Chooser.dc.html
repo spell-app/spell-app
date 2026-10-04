@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="styles.css">
+<style>body{margin:0} @keyframes sp-open{from{grid-template-rows:0fr}to{grid-template-rows:1fr}} @keyframes sp-slide{from{transform:translateY(-10px);opacity:0;clip-path:inset(0 0 0 0)}to{transform:none;opacity:1;clip-path:inset(0 0 0 0)}} @keyframes sp-close{from{grid-template-rows:1fr}to{grid-template-rows:0fr}} @keyframes sp-slide-out{from{transform:none;opacity:1;clip-path:inset(0 0 0 0)}to{transform:translateY(-10px);opacity:0;clip-path:inset(0 0 0 0)}}</style>
+</helmet>
+<div style="min-height:100vh;background:var(--bg-canvas);color:var(--text-body);font-family:var(--font-sans);padding:36px 40px 56px;box-sizing:border-box">
+  <a data-backlink="1" href="Design%20System.dc.html" target="_top" style="position:fixed;right:16px;bottom:16px;z-index:100;display:flex;align-items:center;gap:8px;height:34px;padding:0 16px 0 12px;border-radius:999px;background:var(--surface-inverse);color:var(--text-inverse);box-shadow:var(--shadow-lg);font:500 13px/1 var(--font-sans);text-decoration:none;white-space:nowrap" style-hover="text-decoration:none;filter:brightness(1.1)"><i class="fa-solid fa-arrow-left"></i>Design System</a>
+  <div style="max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+    <header style="display:flex;flex-direction:column;gap:8px">
+      <div style="font:500 12px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">Tools</div>
+      <h1 style="margin:0;font:700 40px/1.05 var(--font-serif);letter-spacing:-0.02em;color:var(--text-strong)">Make a color set.</h1>
+    </header>
+
+    <div style="display:grid;grid-template-columns:380px minmax(0,1fr);gap:24px;align-items:start">
+      <div style="background:var(--accent-25);border:1px solid var(--accent-150);border-radius:16px;box-shadow:var(--shadow-sm);padding:16px;display:flex;flex-direction:column;gap:8px">
+        <div class="sp-tooltip-wrap" onClick="{{ toggleColor }}" role="button" aria-expanded="{{ colorOpen }}" style="display:flex;align-items:center;gap:8px;margin-left:-16px;margin-right:-16px;margin-top:-16px;margin-bottom:{{ colorBottom }};padding:12px 16px;background:var(--accent-100);border-top:0;border-bottom:0;cursor:pointer;user-select:none;align-self:stretch;border-radius:15px 15px 0 0"><span style="font:700 17px/1 var(--font-sans);letter-spacing:-0.01em;text-transform:none;color:var(--text-strong);text-box:trim-both cap alphabetic">Color Set</span><i class="{{ colorChevron }}" style="margin-left:auto;font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:260px;left:0;right:auto;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);letter-spacing:0;text-transform:none;text-align:left">The colour this set is built from.<span style="display:block;height:8px"></span>Give it a <b>name</b>, then pick a <b>base colour</b> to start from.</span></div>
+        <sc-if value="{{ colorOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.colorOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:inherit;animation:{{ anim.colorInner }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+        <label style="display:flex;flex-direction:column;gap:4px">
+          
+          <input value="{{ name }}" onChange="{{ onName }}" spellcheck="false" placeholder="Name, e.g. brand" aria-label="Color name" title="The name used in code, e.g. brand-500" style="height:30px;box-sizing:border-box;border-radius:6px;border:1px solid var(--border-default);background:var(--surface-card);padding:0 12px;font:500 14px/1 var(--font-sans);color:var(--text-strong);outline:none" style-hover="border-color:var(--border-strong)" style-focus="border-color:var(--border-accent);box-shadow:var(--shadow-focus)">
+        </label>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px">
+          <span style="display:flex;align-items:center;gap:8px;min-height:20px;font:500 13px/1 var(--font-sans);color:var(--text-strong)"><span>Base color</span><span style="margin-left:auto;display:flex;align-items:center;gap:8px"></span><span class="sp-tooltip-wrap" tabindex="0" style="outline:none;flex:none;display:inline-flex;width:16px;justify-content:center"><i class="fa-solid fa-circle-info" style="font-size:13px;color:var(--text-subtle);opacity:0.4;cursor:help;transition:opacity .15s" style-hover="opacity:1"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:250px;left:auto;right:-6px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);letter-spacing:0;text-transform:none">The colour you’re starting from.<span style="display:block;height:8px"></span><b>Click the square</b> to pick one, or type it in:<br><b>RGB</b>: a code like #8E96B5.<br><b>OKLCH</b>: lightness, colourfulness and hue, if you know them.</span></span></span>
+          <div style="display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px 16px;align-items:center">
+            <div style="grid-row:span 2;position:relative;width:76px;height:76px">
+              <button type="button" onClick="{{ togglePicker }}" title="Choose a colour" aria-label="Choose a colour" style="position:relative;width:76px;height:76px;aspect-ratio:1;border-radius:12px;background:{{ hex }};box-shadow:inset 0 0 0 1px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.35), 0 1px 2px rgba(43,47,63,0.12), 0 6px 14px -6px rgba(43,47,63,0.35);cursor:pointer;transition:transform .12s, box-shadow .12s;border:0;padding:0;display:block" style-hover="transform:translateY(-1px);box-shadow:inset 0 0 0 1px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 4px rgba(43,47,63,0.14), 0 10px 20px -8px rgba(43,47,63,0.4)" style-active="transform:translateY(0) scale(0.97)"></button>
+              <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ closePicker }}" style="position:fixed;inset:0;z-index:40"></div>
+                <div style="position:absolute;top:calc(100% + 10px);left:0;z-index:41;width:300px;padding:16px;border-radius:16px;background:var(--surface-raised);border:1px solid var(--border-subtle);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:16px">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span style="width:44px;height:44px;border-radius:10px;background:{{ hex }};box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)"></span>
+                    <span style="display:flex;flex-direction:column;gap:4px"><b style="font:700 15px/1 var(--font-serif);color:var(--text-strong)">Choose a colour</b><span style="font:400 12px/1 var(--font-mono);color:var(--text-muted)">{{ hex }}</span></span>
+                    <button type="button" onClick="{{ closePicker }}" aria-label="Done" style="margin-left:auto;width:28px;height:28px;border-radius:8px;border:0;background:transparent;color:var(--text-muted);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--surface-tint);color:var(--text-strong)"><i class="fa-solid fa-xmark"></i></button>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                  <span style="display:flex;justify-content:space-between;font:500 12px/1 var(--font-sans);color:var(--text-strong)"><span>Lightness × Colourfulness</span><span style="font:400 11px/1 var(--font-mono);color:var(--text-muted)">L {{ pk.lVal }} · C {{ pk.cVal }}</span></span>
+                  <div style="position:relative;height:160px;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);cursor:crosshair;touch-action:none" onPointerDown="{{ pk.planeDown }}" onPointerMove="{{ pk.planeMove }}" onPointerUp="{{ pk.planeUp }}">
+                    <canvas ref="{{ pk.planeRef }}" width="134" height="80" style="position:absolute;inset:0;width:100%;height:100%;image-rendering:auto"></canvas>
+                    <span style="position:absolute;left:{{ pk.mx }};top:{{ pk.my }};width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:{{ hex }};box-shadow:0 0 0 2px rgba(255,255,255,.9), 0 1px 6px rgba(0,0,0,.45);pointer-events:none"></span>
+                  </div>
+                  <span style="font:400 11px/1.3 var(--font-sans);color:var(--text-subtle)">Up = lighter · right = more colourful · hatched area can't be shown on screens</span>
+                </div>
+                <label style="display:flex;flex-direction:column;gap:8px">
+                  <span style="display:flex;justify-content:space-between;font:500 12px/1 var(--font-sans);color:var(--text-strong)"><span>{{ pk.hLabel }}</span><span style="font:400 11px/1 var(--font-mono);color:var(--text-muted)">{{ pk.hVal }}</span></span>
+                  <input type="range" min="{{ pk.hMin }}" max="{{ pk.hMax }}" step="{{ pk.hStep }}" value="{{ pk.h }}" onChange="{{ pk.hSet }}" style="-webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:999px;background:{{ pk.hGrad }};box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);margin:0;cursor:pointer">
+                </label>
+                  
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <span style="font:500 12px/1 var(--font-sans);color:var(--text-strong)">Or start from a family</span>
+                    <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:4px">
+                      <sc-for list="{{ pk.families }}" as="f" hint-placeholder-count="20">
+                        <button type="button" onClick="{{ f.pick }}" title="{{ f.label }}" style="aspect-ratio:1;border-radius:5px;border:0;padding:0;background:{{ f.hex }};box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);cursor:pointer" style-hover="transform:scale(1.12)"></button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;min-width:0"><span class="sp-tooltip-wrap" style="width:48px;flex:none"><button type="button" onClick="{{ copyRgb }}" style="border:0;background:none;padding:0;font:500 11px/1 var(--font-mono);color:var(--text-muted);cursor:copy;text-underline-offset:3px" style-hover="text-decoration:underline;color:var(--text-strong)">RGB</button><span class="sp-tooltip" role="tooltip" style="left:0;transform:none;padding:8px 12px;border-radius:8px;font:500 12px/1.3 var(--font-sans)">{{ rgbTip }}</span></span><input value="{{ hexText }}" onChange="{{ onHexText }}" onBlur="{{ onRgbBlur }}" placeholder="#8E96B5 or 142 150 181" style="flex:1;min-width:0;height:34px;box-sizing:border-box;border-radius:10px;border:1px solid var(--border-default);background:var(--surface-card);padding:0 12px;font:400 13px/1 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--text-body);outline:none;text-transform:uppercase" style-focus="border-color:var(--border-accent);box-shadow:var(--shadow-focus)"><button type="button" onClick="{{ copyRgb }}" aria-label="Copy CSS value" title="Copy CSS value, e.g. #8E96B5" style="width:32px;height:34px;margin-right:-8px;flex:none;border:0;border-radius:8px;background:transparent;color:var(--text-subtle);opacity:0.55;transition:opacity .15s, background .15s, color .15s;cursor:pointer;display:grid;place-items:center;font-size:13px" style-hover="opacity:1;background:var(--accent-soft);color:var(--text-accent)"><i class="{{ rgbIcon }}"></i></button></div>
+            <div style="display:flex;align-items:center;gap:8px;min-width:0"><span class="sp-tooltip-wrap" style="width:48px;flex:none"><button type="button" onClick="{{ copyOk }}" style="border:0;background:none;padding:0;font:500 11px/1 var(--font-mono);color:var(--text-muted);cursor:copy;text-underline-offset:3px" style-hover="text-decoration:underline;color:var(--text-strong)">OKLCH</button><span class="sp-tooltip" role="tooltip" style="left:0;transform:none;padding:8px 12px;border-radius:8px;font:500 12px/1.3 var(--font-sans)">{{ okTip }}</span></span>
+              <sc-for list="{{ okFields }}" as="o" hint-placeholder-count="3">
+                <div style="flex:{{ o.flex }};min-width:0;width:0;height:34px;box-sizing:border-box;display:flex;align-items:stretch;border-radius:10px;border:1px solid var(--border-default);background:var(--surface-card);overflow:hidden" style-focus-within="border-color:var(--border-accent);box-shadow:var(--shadow-focus)">
+                  <input value="{{ o.value }}" onChange="{{ o.change }}" onBlur="{{ okBlur }}" title="{{ o.title }}" inputmode="decimal" style="flex:1;min-width:0;width:0;height:100%;box-sizing:border-box;border:0;background:transparent;font:400 13px/1 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--text-body);outline:none;padding:0 4px;text-align:center">
+                  <sc-if value="{{ o.suffix }}" hint-placeholder-val="{{ false }}"><span style="flex:none;display:grid;place-items:center;padding:0 6px;background:var(--surface-tint);border-left:1px solid var(--border-subtle);font:500 12px/1 var(--font-sans);color:var(--text-muted)">{{ o.suffix }}</span></sc-if>
+                </div>
+              </sc-for>
+              <button type="button" onClick="{{ copyOk }}" aria-label="Copy CSS value" title="Copy CSS value, e.g. oklch(67.7% 0.047 274)" style="width:32px;height:34px;margin-right:-8px;flex:none;border:0;border-radius:8px;background:transparent;color:var(--text-subtle);opacity:0.55;transition:opacity .15s, background .15s, color .15s;cursor:pointer;display:grid;place-items:center;font-size:13px" style-hover="opacity:1;background:var(--accent-soft);color:var(--text-accent)"><i class="{{ okIcon }}"></i></button>
+            </div>
+          </div>
+        </div>
+        </div>
+        </div></div></sc-if>
+        <div class="sp-tooltip-wrap" onClick="{{ toggleTweak }}" role="button" aria-expanded="{{ tweakOpen }}" style="display:flex;align-items:center;gap:8px;margin-left:-16px;margin-right:-16px;margin-top:{{ tweakTop }};margin-bottom:{{ tweakBottom }};padding:4px 16px;background:var(--accent-75);border-top:1px solid var(--accent-150);border-bottom:0;cursor:pointer;user-select:none;align-self:stretch"><span style="font:700 12px/1 var(--font-sans);letter-spacing:0.01em;text-transform:uppercase;color:var(--accent-800);text-box:trim-both cap alphabetic">Tweak</span><i class="{{ tweakChevron }}" style="margin-left:auto;font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:260px;left:0;right:auto;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);letter-spacing:0;text-transform:none;text-align:left">Fine-tune how the <b>17 shades</b> are made.<span style="display:block;height:8px"></span>The defaults work well for most colours, so you can usually skip this.</span></div>
+        <sc-if value="{{ tweakOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.tweakOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:inherit;animation:{{ anim.tweakInner }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+        <label style="display:flex;flex-direction:column;gap:0">
+          <span style="display:flex;align-items:center;gap:8px;min-height:20px;font:500 13px/1 var(--font-sans);color:var(--text-strong)"><span>Base color sits at</span><span style="margin-left:auto;display:flex;align-items:center;gap:8px"><span class="sp-tooltip-wrap" style="margin-right:8px"><button type="button" onClick="{{ setAuto }}" style="height:22px;padding:0 8px 0 8px;border-radius:999px;border:0;background:{{ autoBg }};color:{{ autoFg }};font:500 11px/1 var(--font-sans);cursor:pointer;display:inline-flex;align-items:center;gap:4px"><i class="{{ autoIcon }}" style="font-size:10px"></i>Auto</button><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:240px;left:auto;right:-30px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);text-align:left"><sc-if value="{{ isAuto }}" hint-placeholder-val="{{ true }}"><b>Auto is on.</b><br>Spell placed your colour on the shade that matches its lightness.<br>Drag the slider to choose a different shade yourself.</sc-if><sc-if value="{{ notAuto }}" hint-placeholder-val="{{ false }}"><b>Auto is off.</b><br>You chose this shade yourself.<br>Click <b>Auto</b> to let Spell pick the best-matching shade again.</sc-if></span></span><span style="font:400 12px/1 var(--font-mono);color:var(--text-muted)">{{ anchor }}</span></span><span class="sp-tooltip-wrap" tabindex="0" style="outline:none;flex:none;display:inline-flex;width:16px;justify-content:center"><i class="fa-solid fa-circle-info" style="font-size:13px;color:var(--text-subtle);opacity:0.4;cursor:help;transition:opacity .15s" style-hover="opacity:1"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:250px;left:auto;right:-6px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);letter-spacing:0;text-transform:none">Your colour becomes <b>one shade</b> in a set of 17, from very light to very dark.<span style="display:block;height:8px"></span>This picks <b>which shade</b> it is.<br><b>Auto</b> usually gets it right.</span></span></span>
+          <input type="range" min="0" max="16" step="1" list="anchor-steps" value="{{ anchorIdx }}" onChange="{{ onAnchorIdx }}" aria-label="Base color sits at" style="width:100%;margin:0;accent-color:var(--accent);cursor:pointer">
+          <datalist id="anchor-steps">
+            <sc-for list="{{ ticks }}" as="t" hint-placeholder-count="17"><option value="{{ t.i }}" label="{{ t.label }}"></option></sc-for>
+          </datalist>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:0">
+          <span style="display:flex;align-items:center;gap:8px;min-height:20px;font:500 13px/1 var(--font-sans);color:var(--text-strong)"><span>Vibrancy</span><span style="margin-left:auto;display:flex;align-items:center;gap:8px"><sc-if value="{{ chromaChanged }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetChroma }}" title="Back to default" style="height:22px;padding:0 8px;border-radius:999px;border:0;background:var(--accent-soft);color:var(--text-accent);font:500 11px/1 var(--font-sans);cursor:pointer;display:inline-flex;align-items:center;gap:4px" style-hover="background:var(--accent-soft-hover)"><i class="fa-solid fa-rotate-left" style="font-size:10px"></i>Reset</button></sc-if><span style="font:400 12px/1 var(--font-mono);color:var(--text-muted)">{{ chromaLabel }}</span></span><span class="sp-tooltip-wrap" tabindex="0" style="outline:none;flex:none;display:inline-flex;width:16px;justify-content:center"><i class="fa-solid fa-circle-info" style="font-size:13px;color:var(--text-subtle);opacity:0.4;cursor:help;transition:opacity .15s" style-hover="opacity:1"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:250px;left:auto;right:-6px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);letter-spacing:0;text-transform:none">How <b>bold</b> the colours are.<span style="display:block;height:8px"></span>Slide <b>left</b> for softer, greyer shades.<br>Slide <b>right</b> for brighter, richer ones.</span></span></span>
+          <input type="range" min="0" max="200" value="{{ chroma }}" onChange="{{ onChroma }}" list="chroma-ticks" style="width:100%;margin:0;cursor:pointer;accent-color:var(--accent)">
+          <datalist id="chroma-ticks"><option value="0"></option><option value="20"></option><option value="40"></option><option value="60"></option><option value="80"></option><option value="100"></option><option value="120"></option><option value="140"></option><option value="160"></option><option value="180"></option><option value="200"></option></datalist>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:0">
+          <span style="display:flex;align-items:center;gap:8px;min-height:20px;font:500 13px/1 var(--font-sans);color:var(--text-strong)"><span>Hue drift toward dark</span><span style="margin-left:auto;display:flex;align-items:center;gap:8px"><sc-if value="{{ driftChanged }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetDrift }}" title="Back to default" style="height:22px;padding:0 8px;border-radius:999px;border:0;background:var(--accent-soft);color:var(--text-accent);font:500 11px/1 var(--font-sans);cursor:pointer;display:inline-flex;align-items:center;gap:4px" style-hover="background:var(--accent-soft-hover)"><i class="fa-solid fa-rotate-left" style="font-size:10px"></i>Reset</button></sc-if><span style="font:400 12px/1 var(--font-mono);color:var(--text-muted)">{{ driftLabel }}</span></span><span class="sp-tooltip-wrap" tabindex="0" style="outline:none;flex:none;display:inline-flex;width:16px;justify-content:center"><i class="fa-solid fa-circle-info" style="font-size:13px;color:var(--text-subtle);opacity:0.4;cursor:help;transition:opacity .15s" style-hover="opacity:1"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:250px;left:auto;right:-6px;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);letter-spacing:0;text-transform:none">Lets the <b>darker shades</b> lean toward a neighbouring colour, like blue drifting toward purple.<span style="display:block;height:8px"></span>Leave it in the <b>middle</b> to keep every shade the same colour.</span></span></span>
+          <input type="range" min="-40" max="40" value="{{ drift }}" onChange="{{ onDrift }}" list="drift-ticks" style="width:100%;margin:0;cursor:pointer;accent-color:var(--accent)">
+          <datalist id="drift-ticks"><option value="-40"></option><option value="-32"></option><option value="-24"></option><option value="-16"></option><option value="-8"></option><option value="0"></option><option value="8"></option><option value="16"></option><option value="24"></option><option value="32"></option><option value="40"></option></datalist>
+        </label>
+        </div>
+        </div></div></sc-if>
+        <div class="sp-tooltip-wrap" onClick="{{ togglePresets }}" role="button" aria-expanded="{{ presetsOpen }}" style="display:flex;align-items:center;gap:8px;margin-left:-16px;margin-right:-16px;margin-top:{{ presetsTop }};margin-bottom:{{ presetsBottom }};padding:4px 16px;background:var(--accent-75);border-top:1px solid var(--accent-150);border-bottom:0;cursor:pointer;user-select:none;align-self:stretch"><span style="font:700 12px/1 var(--font-sans);letter-spacing:0.01em;text-transform:uppercase;color:var(--accent-800);text-box:trim-both cap alphabetic">Presets</span><i class="{{ presetsChevron }}" style="margin-left:auto;font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:260px;left:0;right:auto;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);letter-spacing:0;text-transform:none;text-align:left">Ready-made <b>Spell brand</b> colours.<span style="display:block;height:8px"></span>Click one to load it, then adjust it under <b>Tweak</b>.</span></div>
+        <sc-if value="{{ presetsOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.presetsOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:inherit;animation:{{ anim.presetsInner }}"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{ presets }}" as="p" hint-placeholder-count="6">
+            <button onClick="{{ p.pick }}" title="{{ p.label }}" style="width:28px;height:28px;aspect-ratio:1;border-radius:7px;padding:0;border:0;background:{{ p.hex }};box-shadow:{{ p.ring }};cursor:pointer;transition:transform .12s" style-hover="transform:scale(1.1)" style-active="transform:scale(0.95)"></button>
+          </sc-for>
+        </div></div></div></sc-if>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+        <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="sp-tooltip-wrap" onClick="{{ toggleVariants }}" role="button" aria-expanded="{{ variantsOpen }}" style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border-subtle);cursor:pointer;user-select:none;align-self:stretch"><span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">{{ variantsTitle }}</span><sc-if value="{{ variantsClosed }}" hint-placeholder-val="{{ false }}"><span style="display:flex;gap:2px;margin-left:auto"><sc-for list="{{ swatches }}" as="w" hint-placeholder-count="17"><span style="width:10px;height:10px;border-radius:2px;background:{{ w.hex }}"></span></sc-for></span></sc-if><i class="{{ variantsChevron }}" style="margin-left:{{ variantsChevGap }};font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:260px;left:0;right:auto;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);letter-spacing:0;text-transform:none;text-align:left"><b>AA</b> marks shades that are easy to read text on.<span style="display:block;height:8px"></span>Use them <b>behind words</b>: buttons, badges, banners.<br>Shades without it are fine for <b>backgrounds, borders and big headlines</b>.</span></div>
+          <sc-if value="{{ variantsOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.variantsOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:inherit;animation:{{ anim.variantsInner }}">
+<div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:16px;box-shadow:var(--shadow-sm);padding:20px;display:flex;flex-direction:column;gap:12px">
+                    <div style="display:grid;grid-template-columns:repeat(17,minmax(0,1fr));gap:4px">
+            <sc-for list="{{ swatches }}" as="w" hint-placeholder-count="17">
+              <div onMouseEnter="{{ w.enter }}" onMouseLeave="{{ w.leave }}" style="position:relative;display:flex;flex-direction:column;gap:4px;min-width:0">
+                <sc-if value="{{ w.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:100%;{{ w.pos }};z-index:30;padding-top:8px">
+                    <div style="width:230px;padding:12px 16px;border-radius:12px;background:var(--surface-inverse);color:var(--text-inverse);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:8px;font:400 13px/1.4 var(--font-sans)">
+                      <div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:{{ w.hex }};box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)"></span><b style="font:700 14px/1 var(--font-sans)">{{ w.token }}</b></div>
+                      <div style="display:grid;grid-template-columns:48px 1fr 24px;align-items:center;gap:4px 8px;font:400 12px/1 var(--font-mono)">
+                        <b style="font:600 11px/1 var(--font-mono);opacity:.7">RGB</b><span>{{ w.hex }}</span><button onClick="{{ w.copyHex }}" aria-label="Copy RGB" style="width:24px;height:24px;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer;display:grid;place-items:center" style-hover="background:rgba(255,255,255,.14)"><i class="{{ w.hexIcon }}"></i></button>
+                        <b style="font:600 11px/1 var(--font-mono);opacity:.7">OKLCH</b><span>{{ w.ok }}</span><button onClick="{{ w.copyOk }}" aria-label="Copy OKLCH" style="width:24px;height:24px;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer;display:grid;place-items:center" style-hover="background:rgba(255,255,255,.14)"><i class="{{ w.okIcon }}"></i></button>
+                      </div>
+                      <div style="padding-top:8px;border-top:1px solid rgba(255,255,255,.14);font:400 12px/1.45 var(--font-sans);opacity:.9">{{ w.note }}</div>
+                    </div>
+                  </div>
+                </sc-if>
+                <div style="aspect-ratio:1;border-radius:8px;background:{{ w.hex }};box-shadow:{{ w.ring }};display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;font:600 10px/1 var(--font-sans);color:{{ w.ink }}">{{ w.aa }}</div>
+                <span style="font:500 10px/1 var(--font-mono);color:var(--text-strong);text-align:center">{{ w.step }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+          </div></div></sc-if>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:{{ samplesTop }}">
+          <div class="sp-tooltip-wrap" onClick="{{ toggleSamples }}" role="button" aria-expanded="{{ samplesOpen }}" style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border-subtle);cursor:pointer;user-select:none;align-self:stretch"><span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">Samples</span><i class="{{ samplesChevron }}" style="margin-left:{{ samplesChevGap }};font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i><span class="sp-tooltip" role="tooltip" style="white-space:normal;width:260px;left:0;right:auto;transform:none;padding:12px 16px;border-radius:12px;font:400 14px/1.35 var(--font-sans);letter-spacing:0;text-transform:none;text-align:left">A quick preview of this colour in a real app.<span style="display:block;height:8px"></span><b>Light</b> uses the pale shades for the page and darker ones for text.<br><b>Dark</b> flips that around.</span>
+          </div>
+          <sc-if value="{{ samplesOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.samplesOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:inherit;animation:{{ anim.samplesInner }}">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px">
+            <div style="background:{{ c.s25 }};border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 0 0 1px {{ c.s100 }}">
+              <span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:{{ c.s700 }}">Light</span>
+              <div style="font:700 22px/1.15 var(--font-serif);color:{{ c.s900 }}">Habit Tracker</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <span style="height:34px;padding:0 16px;border-radius:999px;background:{{ c.s600 }};color:{{ c.on600 }};display:inline-flex;align-items:center;font:500 14px/1 var(--font-sans)">+ Add habit</span>
+                <span style="height:34px;padding:0 16px;border-radius:999px;background:{{ c.s100 }};color:{{ c.s800 }};display:inline-flex;align-items:center;font:500 14px/1 var(--font-sans)">Soft</span>
+                <span style="height:22px;padding:0 8px;border-radius:999px;background:{{ c.s150 }};color:{{ c.s800 }};display:inline-flex;align-items:center;font:500 12px/1 var(--font-sans)">Badge</span>
+              </div>
+              <div style="height:6px;border-radius:999px;background:{{ c.s150 }};overflow:hidden"><div style="width:62%;height:100%;background:{{ c.s500 }}"></div></div>
+            </div>
+            <div style="background:{{ c.s950 }};border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 0 0 1px {{ c.s850 }}">
+              <span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:{{ c.s300 }}">Dark</span>
+              <div style="font:700 22px/1.15 var(--font-serif);color:{{ c.s50 }}">Habit Tracker</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <span style="height:34px;padding:0 16px;border-radius:999px;background:{{ c.s300 }};color:{{ c.on300 }};display:inline-flex;align-items:center;font:500 14px/1 var(--font-sans)">+ Add habit</span>
+                <span style="height:34px;padding:0 16px;border-radius:999px;background:{{ c.s850 }};color:{{ c.s200 }};display:inline-flex;align-items:center;font:500 14px/1 var(--font-sans)">Soft</span>
+                <span style="height:22px;padding:0 8px;border-radius:999px;background:{{ c.s800 }};color:{{ c.s150 }};display:inline-flex;align-items:center;font:500 12px/1 var(--font-sans)">Badge</span>
+              </div>
+              <div style="height:6px;border-radius:999px;background:{{ c.s850 }};overflow:hidden"><div style="width:62%;height:100%;background:{{ c.s400 }}"></div></div>
+            </div>
+          </div>
+          </div></div></sc-if>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:{{ cssTop }}">
+          <div onClick="{{ toggleCss }}" role="button" aria-expanded="{{ cssOpen }}" style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border-subtle);padding-bottom:{{ cssPadBottom }};border-bottom:{{ cssRule }};cursor:pointer;user-select:none;align-self:stretch"><span style="font:500 11px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">CSS</span><sc-if value="{{ cssClosed }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ copyCssStop }}" aria-label="Copy CSS" title="Copy CSS" style="width:26px;height:26px;margin:-4px 0 -4px auto;padding:0;border:0;border-radius:6px;background:transparent;color:var(--text-muted);display:grid;place-items:center;cursor:pointer;font-size:13px" style-hover="background:var(--accent-soft);color:var(--text-accent)"><i class="{{ copyIcon }}"></i></button></sc-if><i class="{{ cssChevron }}" style="margin-left:{{ cssChevGap }};font-size:11px;color:var(--text-subtle);opacity:0.55;padding:4px;margin-right:-4px;transition:opacity .15s, color .15s" style-hover="opacity:1;color:var(--text-strong)"></i></div>
+          <sc-if value="{{ cssOpen }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:inherit;animation:{{ anim.cssOuter }}"><div style="min-height:0;display:flex;flex-direction:column;gap:inherit;animation:{{ anim.cssInner }}">
+            <div style="position:relative">
+              <pre style="margin:0;padding:16px;border-radius:14px;background:var(--surface-code);font:400 12px/1.6 var(--font-mono);color:var(--text-body);white-space:pre;overflow-x:auto">{{ css }}</pre>
+              <div style="position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:8px">
+                <div role="group" aria-label="Value format" style="display:inline-flex;padding:2px;gap:2px;border-radius:8px;background:var(--surface-card);box-shadow:var(--shadow-xs)">
+                  <sc-for list="{{ cssFormats }}" as="cf" hint-placeholder-count="2">
+                    <button type="button" onClick="{{ cf.pick }}" aria-pressed="{{ cf.on }}" style="height:26px;padding:0 10px;border:0;border-radius:6px;background:{{ cf.bg }};color:{{ cf.fg }};font:600 11px/1 var(--font-sans);letter-spacing:0.04em;cursor:pointer" style-hover="color:var(--text-strong)">{{ cf.label }}</button>
+                  </sc-for>
+                </div>
+                <span class="sp-tooltip-wrap"><button onClick="{{ copyCss }}" aria-label="Copy CSS" style="width:30px;height:30px;padding:0;border-radius:8px;border:0;background:var(--surface-card);color:var(--text-muted);box-shadow:var(--shadow-xs);display:grid;place-items:center;cursor:pointer;font-size:14px" style-hover="background:var(--accent-soft);color:var(--text-accent)"><i class="{{ copyIcon }}"></i></button><span class="sp-tooltip" role="tooltip" style="left:auto;right:0;transform:none;padding:8px 12px;border-radius:8px;font:500 12px/1.3 var(--font-sans)">{{ copyLabel }}</span></span>
+              </div>
+            </div>
+          </div></div></sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  toggleSection(k) {
+    const open = this.state[k + 'Open'], closing = (this.state.closing || {})[k];
+    if (open && !closing) {
+      this.setState(x => ({ closing: { ...(x.closing || {}), [k]: true } }));
+      clearTimeout((this._ct = this._ct || {})[k]);
+      this._ct[k] = setTimeout(() => this.setState(x => ({ [k + 'Open']: false, closing: { ...(x.closing || {}), [k]: false } })), 140);
+    } else if (!open) this.setState({ [k + 'Open']: true });
+  }
+  state = { variantsOpen: true, colorOpen: true, tweakOpen: true, cssOpen: true, presetsOpen: true, pickerOpen: false, fam: [], name: 'brand', hex: '#8E96B5', hexText: '#8E96B5', anchor: 'auto', chroma: 100, drift: 0, copied: false };
+  componentDidMount() { fetch(new URL('lib/palette.json', location.href)).then(r => r.json()).then(fam => this.setState({ fam })); import(new URL('lib/palette.mjs', location.href).href).then(m => { this.P = m; this.forceUpdate(); }); }
+  planePick(e, o, setOk) {
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+    setOk({ l: Math.max(0.02, 1 - y), c: x * 0.37, h: o.h });
+  }
+  drawPlane(h) {
+    const el = this.planeEl, P = this.P; if (!el || !P) return;
+    const hk = Math.round(h); if (this._planeH === hk && this._planeEl === el) return; this._planeH = hk; this._planeEl = el;
+    const W = el.width, H = el.height, ctx = el.getContext('2d'), img = ctx.createImageData(W, H);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const l = 1 - y / (H - 1), c = x / (W - 1) * 0.37;
+      const rgb = P.oklchToRgbRaw({ l, c, h });
+      const ok = rgb.every(v => v >= -0.002 && v <= 1.002);
+      const i = (y * W + x) * 4;
+      if (ok) { img.data[i] = rgb[0] * 255; img.data[i + 1] = rgb[1] * 255; img.data[i + 2] = rgb[2] * 255; }
+      else { const g = ((x + y) % 6 < 3) ? 236 : 246; img.data[i] = g; img.data[i + 1] = g; img.data[i + 2] = g + 2; }
+      img.data[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  componentDidUpdate() { if (this.state.pickerOpen && this.planeEl) { const o = this.P && this.P.hexToOklch(this.state.hex); if (o) this.drawPlane(this.state.okEdit ? parseFloat(this.state.okEdit.h) || o.h : o.h); } }
+  renderVals() {
+    const s = this.state, P = this.P;
+    const STEPS = [25, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 800, 850, 900, 925, 950, 975];
+    const presets = [['brand', '#8E96B5', 'House of Owen'], ['accent', '#F1E7D4', 'Polished Ivory'], ['violet', '#6550CA', 'Spell Purple'], ['teal', '#14A39A', 'Teal'], ['rose', '#E8436A', 'Rose'], ['amber', '#F0A020', 'Amber']]
+      .map(([n, hex, label]) => ({ hex, label, ring: 'inset 0 0 0 1px rgba(0,0,0,.08)', pick: () => this.setState({ hex, hexText: hex, okEdit: null, name: n, anchor: n === 'violet' ? '600' : 'auto' }) }));
+    let scale = {}, anchor = 500;
+    if (P) {
+      const r = P.generateScale(s.hex, { anchor: s.anchor === 'auto' ? undefined : +s.anchor, chromaScale: s.chroma / 100, hueShift: s.drift * 2.5 });
+      scale = r.scale; anchor = r.anchor;
+    } else STEPS.forEach(st => scale[st] = '#DDDDDD');
+    const ink = '#1A1C27';
+    const onFor = hex => (P && P.contrast('#FFFFFF', hex) >= P.contrast(ink, hex)) ? '#FFFFFF' : ink;
+    const nm = (s.name || 'color').toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+    const swatches = STEPS.map(st => {
+      const hex = scale[st]; const on = onFor(hex); const cr = P ? P.contrast(on, hex) : 0;
+      const i = STEPS.indexOf(st); const o = P ? P.hexToOklch(hex) : { l: 0, c: 0, h: 0 };
+      const okStr = `oklch(${(o.l * 100).toFixed(1)}% ${o.c.toFixed(3)} ${o.h.toFixed(0)})`;
+      const copy = (txt, key) => { try { navigator.clipboard.writeText(txt); } catch (e) {} this.setState({ swCopied: st + key }); clearTimeout(this.sct); this.sct = setTimeout(() => this.setState({ swCopied: null }), 1200); };
+      const onName = on === '#FFFFFF' ? 'white' : 'dark';
+      const note = cr >= 4.5 ? `Good for text: ${onName} text reads clearly on this shade.` : cr >= 3 ? 'Not enough contrast for small text. Use for large headlines, icons and borders only.' : 'Not enough contrast for text. Use for backgrounds, fills and dividers only.';
+      return { step: st, hex, short: hex.slice(1), ink: on, aa: cr >= 4.5 ? 'AA' : '', token: '--' + nm + '-' + st, ok: okStr, note,
+        open: s.hover === st, enter: () => this.setState({ hover: st }), leave: () => this.setState(x => (x.hover === st ? { hover: null } : null)),
+        pos: i < 3 ? 'left:0' : i > 13 ? 'right:0' : 'left:50%;transform:translateX(-50%)',
+        copyHex: () => copy(hex, 'h'), copyOk: () => copy(okStr, 'o'),
+        hexIcon: s.swCopied === st + 'h' ? 'fa-solid fa-check' : 'fa-regular fa-copy', okIcon: s.swCopied === st + 'o' ? 'fa-solid fa-check' : 'fa-regular fa-copy', ring: st === anchor ? '0 0 0 2px var(--surface-card), 0 0 0 3.5px var(--text-strong)' : 'inset 0 0 0 1px rgba(0,0,0,.06)' };
+    });
+    const c = {}; STEPS.forEach(st => c['s' + st] = scale[st]); c.on600 = onFor(scale[600]); c.on300 = onFor(scale[300]);
+    const fmtCss = hx => { if (s.cssFmt !== 'oklch' || !P) return hx; const o = P.hexToOklch(hx); return `oklch(${(o.l * 100).toFixed(1)}% ${o.c.toFixed(3)} ${Math.round(o.h)})`; };
+    const css = `:root {\n  /* ${nm} — seed ${s.hex.toUpperCase()} @ ${anchor} */\n` + STEPS.map(st => `  --${nm}-${st}: ${fmtCss(scale[st])};`).join('\n') + `\n}`;
+    const cssFormats = [['rgb', 'RGB'], ['oklch', 'OKLCH']].map(([k, label]) => { const on = (s.cssFmt || 'rgb') === k; return { label, on, pick: () => this.setState({ cssFmt: k }), bg: on ? 'var(--accent-soft)' : 'transparent', fg: on ? 'var(--text-accent)' : 'var(--text-muted)' }; });
+    const parseRgb = v => {
+      const t = v.trim(); const h = t.startsWith('#') ? t : '#' + t;
+      if (/^#[0-9a-f]{6}$/i.test(h)) return h.toUpperCase();
+      if (/^#[0-9a-f]{3}$/i.test(h)) return ('#' + h.slice(1).split('').map(x => x + x).join('')).toUpperCase();
+      const n = t.replace(/rgba?\(|\)/gi, '').split(/[\s,]+/).filter(Boolean).map(Number);
+      if (n.length === 3 && n.every(x => x >= 0 && x <= 255)) return '#' + n.map(x => Math.round(x).toString(16).padStart(2, '0')).join('').toUpperCase();
+      return null;
+    };
+    const setHex = v => { const h = parseRgb(v); this.setState(h ? { hex: h, hexText: v, okEdit: null } : { hexText: v }); };
+    const ok = P ? P.hexToOklch(s.hex) : { l: 0, c: 0, h: 0 };
+    const okVals = s.okEdit || { l: (ok.l * 100).toFixed(1), c: ok.c.toFixed(3), h: ok.h.toFixed(0) };
+
+    const pkO = s.okEdit ? { l: parseFloat(s.okEdit.l) / 100 || ok.l, c: parseFloat(s.okEdit.c) || ok.c, h: parseFloat(s.okEdit.h) || ok.h } : ok;
+    const setOk = (o) => { if (!P) return; const hx = P.oklchToHex(o); this.setState({ hex: hx, hexText: hx, okEdit: { l: (o.l * 100).toFixed(1), c: o.c.toFixed(3), h: o.h.toFixed(0) } }); };
+    const L = (pkO.l * 100).toFixed(0), C = pkO.c.toFixed(3), H = pkO.h.toFixed(0);
+    const pk = {
+      hLabel: 'Hue', hVal: H + '°', h: H, hMin: 0, hMax: 360, hStep: 1, hSet: e => setOk({ ...pkO, h: +e.target.value }),
+      hGrad: 'linear-gradient(90deg,' + [0, 45, 90, 135, 180, 225, 270, 315, 360].map(h => `oklch(${pkO.l} ${Math.max(pkO.c, 0.06)} ${h})`).join(',') + ')',
+      lLabel: 'Lightness', lVal: L + '%', l: L, lMin: 5, lMax: 99, lStep: 1, lSet: e => setOk({ ...pkO, l: +e.target.value / 100 }),
+      lGrad: `linear-gradient(90deg, oklch(0.1 ${pkO.c} ${pkO.h}), oklch(0.55 ${pkO.c} ${pkO.h}), oklch(0.98 ${pkO.c} ${pkO.h}))`,
+      cLabel: 'Colourfulness', cVal: C, c: C, cMin: 0, cMax: 0.3, cStep: 0.002, cSet: e => setOk({ ...pkO, c: +e.target.value }),
+      cGrad: `linear-gradient(90deg, oklch(${pkO.l} 0 ${pkO.h}), oklch(${pkO.l} 0.3 ${pkO.h}))`,
+      planeRef: el => { this.planeEl = el; this.drawPlane(pkO.h); },
+      mx: (Math.min(pkO.c, 0.37) / 0.37 * 100).toFixed(2) + '%', my: ((1 - pkO.l) * 100).toFixed(2) + '%',
+      planeDown: e => { this.dragging = true; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {} this.planePick(e, pkO, setOk); },
+      planeMove: e => { if (this.dragging) this.planePick(e, pkO, setOk); },
+      planeUp: () => { this.dragging = false; },
+      families: (s.fam || []).map(f => ({ label: f.label, hex: f.scale[f.anchor], pick: () => this.setState({ hex: f.scale[f.anchor], hexText: f.scale[f.anchor], okEdit: null }) }))
+    };
+    const okCss = `oklch(${(ok.l * 100).toFixed(1)}% ${ok.c.toFixed(3)} ${ok.h.toFixed(0)})`;
+    const okFields = [['l', 'Lightness 0–100'], ['c', 'Chroma 0–0.4'], ['h', 'Hue 0–360°']].map(([k, title]) => ({ value: okVals[k], title, suffix: k === 'l' ? '%' : '', flex: k === 'l' ? '1.5' : k === 'h' ? '0.8' : '1', change: e => {
+      const next = { ...okVals, [k]: e.target.value };
+      const L = parseFloat(next.l), C = parseFloat(next.c), H = parseFloat(next.h);
+      const upd = { okEdit: next };
+      if (P && [L, C, H].every(Number.isFinite)) { const hx = P.oklchToHex({ l: Math.min(100, Math.max(0, L)) / 100, c: Math.max(0, C), h: ((H % 360) + 360) % 360 }); upd.hex = hx; upd.hexText = hx; }
+      this.setState(upd);
+    } }));
+    return {
+      copyCssStop: e => { e.stopPropagation(); try { navigator.clipboard.writeText(css); } catch (err) {} this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1200); },
+      variantsChevGap: s.variantsOpen ? 'auto' : '8px', samplesChevGap: 'auto', cssChevGap: s.cssOpen ? 'auto' : '8px',
+      anim: Object.fromEntries(["variants","samples","color","tweak","css","presets"].flatMap(k => { const c = (s.closing || {})[k]; return [[k + 'Outer', c ? 'sp-close .14s cubic-bezier(.4,0,1,1) forwards' : 'sp-open .32s cubic-bezier(.22,1,.36,1)'], [k + 'Inner', c ? 'sp-slide-out .14s cubic-bezier(.4,0,1,1) forwards' : 'sp-slide .32s cubic-bezier(.22,1,.36,1)']]; })),
+      chromaChanged: s.chroma !== 100, resetChroma: () => this.setState({ chroma: 100 }), driftChanged: s.drift !== 0, resetDrift: () => this.setState({ drift: 0 }),
+      variantsClosed: !s.variantsOpen, samplesClosed: !s.samplesOpen, cssClosed: !s.cssOpen,
+      samplesTop: s.variantsOpen ? '12px' : '-12px', cssTop: s.samplesOpen ? '12px' : '-12px',
+      cssPadBottom: s.cssOpen ? '0' : '8px', cssRule: s.cssOpen ? '0' : '1px solid var(--border-subtle)',
+      cssSummary: '17 values · ' + ((s.cssFmt || 'rgb') === 'oklch' ? 'OKLCH' : 'RGB'),
+      variantsTitle: ((s.name || '').trim() ? '“' + s.name.trim() + '” variants' : 'Variants'),
+      name: s.name, onName: e => this.setState({ name: e.target.value }),
+      hex: s.hex, hexText: s.hexText, onHex: e => this.setState({ hex: e.target.value.toUpperCase(), hexText: e.target.value.toUpperCase(), okEdit: null }), onHexText: e => setHex(e.target.value), onRgbBlur: () => this.setState({ hexText: s.hex }), pk, pickerOpen: s.pickerOpen, togglePicker: () => this.setState(x => ({ pickerOpen: !x.pickerOpen })), closePicker: () => this.setState({ pickerOpen: false, okEdit: null }), okFields, okBlur: () => this.setState({ okEdit: null }),
+      copyRgb: () => { try { navigator.clipboard.writeText(s.hex); } catch (e) {} this.setState({ copiedField: 'rgb' }); clearTimeout(this.ct); this.ct = setTimeout(() => this.setState({ copiedField: null }), 1400); },
+      copyOk: () => { const t = okCss; try { navigator.clipboard.writeText(t); } catch (e) {} this.setState({ copiedField: 'ok' }); clearTimeout(this.ct); this.ct = setTimeout(() => this.setState({ copiedField: null }), 1400); },
+      rgbIcon: s.copiedField === 'rgb' ? 'fa-solid fa-check' : 'fa-regular fa-copy', okIcon: s.copiedField === 'ok' ? 'fa-solid fa-check' : 'fa-regular fa-copy',
+      rgbTip: s.copiedField === 'rgb' ? 'Copied ' + s.hex : 'Click to copy ' + s.hex,
+      okTip: s.copiedField === 'ok' ? 'Copied ' + okCss : 'Click to copy ' + okCss,
+      presets, anchor, anchorIdx: STEPS.indexOf(anchor), ticks: STEPS.map((st, i) => ({ i: String(i), label: String(st) })), onAnchorIdx: e => this.setState({ anchor: String(STEPS[+e.target.value]) }), setAuto: () => this.setState({ anchor: 'auto' }), autoIcon: s.anchor === 'auto' ? 'fa-solid fa-check' : 'fa-solid fa-rotate-left', isAuto: s.anchor === 'auto', variantsOpen: s.variantsOpen, toggleVariants: () => this.toggleSection('variants'), variantsChevron: s.variantsOpen ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down', samplesOpen: s.samplesOpen, toggleSamples: () => this.toggleSection('samples'), samplesChevron: s.samplesOpen ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down', colorOpen: s.colorOpen, toggleColor: () => this.toggleSection('color'), colorChevron: s.colorOpen ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down', colorBorderB: '1px solid var(--border-subtle)', colorBottom: s.colorOpen ? '4px' : '0', presetsBottom: s.presetsOpen ? '4px' : '-16px', presetsTop: s.tweakOpen ? '12px' : '-8px', presetsBorder: s.colorOpen ? '1px solid var(--border-subtle)' : '0', tweakOpen: s.tweakOpen, tweakBorderB: s.tweakOpen ? '1px solid var(--border-subtle)' : '0', tweakBottom: s.tweakOpen ? '2px' : '0', tweakTop: s.colorOpen ? '12px' : '-8px', tweakBorder: s.presetsOpen ? '1px solid var(--border-subtle)' : '0', toggleTweak: () => this.toggleSection('tweak'), tweakChevron: s.tweakOpen ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down', cssOpen: s.cssOpen, toggleCss: () => this.toggleSection('css'), cssChevron: s.cssOpen ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down', presetsOpen: s.presetsOpen, togglePresets: () => this.toggleSection('presets'), presetsChevron: s.presetsOpen ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down', notAuto: s.anchor !== 'auto', autoBg: s.anchor === 'auto' ? 'var(--surface-tint)' : 'var(--accent)', autoFg: s.anchor === 'auto' ? 'var(--text-muted)' : 'var(--text-on-accent)',
+      chroma: s.chroma, chromaLabel: s.chroma + '%', onChroma: e => this.setState({ chroma: +e.target.value }),
+      drift: s.drift, driftLabel: (s.drift > 0 ? '+' : '') + s.drift + '°', onDrift: e => this.setState({ drift: +e.target.value }),
+      swatches, c, css, cssFormats, copyLabel: s.copied ? 'Copied' : 'Copy CSS', copyIcon: s.copied ? 'fa-solid fa-check' : 'fa-regular fa-copy',
+      copyCss: () => { try { navigator.clipboard.writeText(css); } catch (e) {} this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1200); }
+    };
+  }
+}
+</script>
+</body>
+</html>

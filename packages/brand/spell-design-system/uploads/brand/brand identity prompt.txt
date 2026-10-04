@@ -1,0 +1,7 @@
+"Spell" (a.k.a. "Spell-app") is an non-programmer programming language whose input is grammatical human language.  It is intended for humans to be able to create an editable, live app using AI - the AI writes the spell, the human can read and understand the spell, and the spell is compiled into code that runs e.g. in a web browser.  It will eventually be internationalized, so you can write a spell in spanish, german, etc.
+
+I want to create a brand identity for spell which is friendly without being kitchy, and sophisticated.  I'm leaning toward a "wizard hat" metaphor for the logo as in this sketch, but am open to other things.
+
+In addition to the logo bug, we'll want a visual identity for "Spell" and "Spell App" and a purple color scheme in light and dark.
+
+We will want to also create a visual style for applications as well as pages written in spell.
