@@ -137,7 +137,7 @@ async function start() {
 
 /**
  * A plan doc (`epics/<name>/<name>.html`) names its tab `<name>`:  every link to it has `target="<name>"`
- * (`doc-links.py`), so they reuse this tab, as `yarn plan-doc open <name>` does.
+ * (`doc-links.js`), so they reuse this tab, as `yarn plan-doc open <name>` does.
  */
 function nameTab() {
   const plan = /\/epics\/([^/]+)\/\1\.html$/.exec(decodeURIComponent(location.pathname))
