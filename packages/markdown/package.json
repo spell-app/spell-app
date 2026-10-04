@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@spell-app/parser": "workspace:*",
-    "@spell-app/util": "workspace:*"
+    "@spell-app/util": "workspace:*",
+    "entities": "^6.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",

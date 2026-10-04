@@ -7,7 +7,12 @@ import { MD, type Block } from "$/markdown"
  *   Default:  the text, whitespace around line ends tidied (`plainInline()`).
  * - Tight list items draw their paragraphs without `<p>`.
  */
-export function renderBlocks(block: Block, inline: InlineRenderer = plainInline): P.Markup {
+export function renderBlocks(
+  block: Block,
+  inline: InlineRenderer = plainInline,
+  options: { tagfilter?: boolean } = {}
+): P.Markup {
+  const { tagfilter = true } = options
   return draw(block, false)
 
   /** `block` as markup;  `tight`:  inside a tight list's item. */
@@ -34,12 +39,12 @@ export function renderBlocks(block: Block, inline: InlineRenderer = plainInline)
       case "thematic_break":
         return P.render.h("hr", {})
       case "code": {
-        const language = block.info ? block.info.split(/\s+/)[0] : ""
+        const language = block.info ? MD.unescapeString(block.info).split(/\s+/)[0] : ""
         const text = block.lines.length ? `${block.lines.join("\n")}\n` : ""
         return P.render.h("pre", {}, P.render.h("code", { class: language ? `language-${language}` : undefined }, text))
       }
       case "html":
-        return MD.raw(block.lines.join("\n"))
+        return MD.raw(tagfilter ? MD.tagFilter(block.lines.join("\n")) : block.lines.join("\n"))
       case "table":
         return drawTable(block)
     }

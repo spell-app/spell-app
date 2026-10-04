@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Markdown on the parser</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Inline Rules</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p5">next: P5 · ui Output</ui-label></span
             >
           </header></ui-sticky
         >
@@ -57,6 +57,11 @@
                 (0/670); checks: parser 458, spell 788, lsp 96, markdown 6 green; <a href="#j1">J1</a>,
                 <a href="#j2">J2</a>
               </li>
+              <li>
+                <b>P3</b> eb9f4ed2 BlockScanner (CommonMark block phase + GFM tables), rulex line rules (8 kinds),
+                Markup renderer; GFM spec 342/670 (block sections all pass but inline-dependent ones); checks: markdown
+                18 tests, ts, lint green; <a href="#j3">J3</a>
+              </li>
             </ul>
           </ui-section>
           <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
@@ -87,7 +92,7 @@
               preview editor); scope = useful GFM subset first.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 16h-24h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 12h-18h left</p>
           <ui-section id="o1" header="1.1 Shape" sticky collapsible dividing collapsed>
             <p>
               New package
@@ -258,7 +263,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -415,14 +420,14 @@
           <ui-section
             id="p4"
             data-phase="4"
-            data-status="todo"
+            data-status="done"
             header="P4 · Inline Rules"
             sticky
             collapsible
             dividing
             collapsed
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Code spans, escapes, entities, links + images (inline, reference), autolinks (<code
@@ -431,8 +436,13 @@
                 + GFM www / url / email), strikethrough, hard / soft breaks, raw inline HTML, emphasis via hand-written
                 delimiter pass. Adjacency now comes from P2's spacing-as-written (<a href="#d17">D17</a>); any other
                 parser fix found here goes through the review gate (<a href="#d7">D7</a>).</ui-item
-              ><ui-item icon="folder"><b>Files:</b> <code>packages/markdown/src/inlines/</code></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../../markdown/src/inlines/" target="src-packages-markdown-src-inlines"
+                  ><code>packages/markdown/src/inlines/</code></a
+                ></ui-item
               ><ui-item icon="flask"><b>Verify:</b> Inline-section pass rate; speedTest if parser touched</ui-item
+              ><ui-item icon="compass"><b>Judgement calls:</b> <a href="#j4">J4</a> <a href="#j5">J5</a></ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
             >
           </ui-section>
@@ -1718,6 +1728,74 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j4">J4</a>
+                  <span class="plan-title"
+                    >P4: the inline phase is hand-written (a commonmark.js port), not rulex</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose to port commonmark.js 0.29's inline parser over writing inlines as rulex rules, against D15
+                    ("as much in rulex as possible"), because what decides an inline is character-level precedence, not
+                    a grammar:
+                  </p>
+                  <ul>
+                    <li>
+                      emphasis pairs delimiter RUNS after the fact (left / right flanking, the rule of 3): not a grammar
+                      (planned hand-written all along)
+                    </li>
+                    <li>
+                      a code span ends at a backtick run of the SAME length: rulex can't say "as long as the opening"
+                    </li>
+                    <li>
+                      link text must have balanced brackets, may hold emphasis, can't hold a link; references resolve by
+                      normalized label: a bracket stack, not a rule
+                    </li>
+                    <li>
+                      which construct wins where they overlap (code spans and autolinks bind tighter than links, links
+                      tighter than emphasis) is order-of-scanning
+                    </li>
+                  </ul>
+                  <p>
+                    Rulex does carry the BLOCK phase's line kinds (P3, 8 rules). Result: the GFM spec passes 670/670.
+                  </p>
+                  <ul>
+                    <li>
+                      Options: this; inlines as rulex rules wrapping a hand-written core (more code, same behaviour); or
+                      a rulex extension for "same length as" and bracket balancing (a big parser change, D28).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j5">J5</a>
+                  <span class="plan-title"
+                    >GFM autolinks + tagfilter are options (on by default); a strong inside a strong draws once</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Chose, to match GitHub and pass the spec:</p>
+                  <ul>
+                    <li>
+                      <code>MD.toHTML(md, { autolinks, tagfilter })</code>, both on by default. CommonMark core examples
+                      say bare URLs AREN'T links and <code>&lt;script&gt;</code> IS raw HTML, so the spec test turns
+                      each extension on only for its own examples, as cmark-gfm's runner does.
+                      <code>&lt;ui-markdown&gt;</code> sanitizes with DOMPurify anyway.
+                    </li>
+                    <li>
+                      Nested <code>strong</code> draws no inner tag (<code>****foo****</code> is one bold), as
+                      cmark-gfm's renderer does; the spec expects it.
+                    </li>
+                    <li>
+                      HTML comments follow CommonMark 0.31's rule (<code>&lt;!--&gt;</code>, <code>--</code> inside),
+                      which GFM's examples expect over 0.29's.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1788,7 +1866,7 @@
                 >End of P2: yarn gen:spell in packages/ui (the highlighter bundle carries the parser + spell grammar,
                 both changed)</span
               > </ui-item
-            ><ui-item id="t3" data-status="open"
+            ><ui-item id="t3" data-status="done"
               ><a class="plan-id" href="#t3">T3</a>
               <span class="plan-title"
                 >GFM spec: odd edge cases are deferred (Owen, D28) -- list them here as P3/P4 find them</span
@@ -2302,6 +2380,36 @@
                   BlockScanner (commonmark.js 0.29 port: containers, lazy lines, tabs, tight/loose, GFM tables), rulex
                   lineRules (8 line kinds), Markup renderer + markupToHTML; spec 342/670 (block sections all but
                   inline-dependent); checks: markdown 18 tests, ts, lint green</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:06-04:00">2026-10-04 03:06</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:14-04:00">2026-10-04 03:14</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:14-04:00">2026-10-04 03:14</time></ui-date> T3 closed: GFM
+                  spec: odd edge cases are deferred (Owen, D28) -- list them here as P3/P4 find them</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:14-04:00">2026-10-04 03:14</time></ui-date> P4 done:
+                  InlineParser (commonmark.js 0.29 inline port: code spans, escapes, entities, autolinks, raw HTML,
+                  links / images / references, emphasis + GFM strikethrough), extractReferences, GFM extended autolinks,
+                  tagfilter, renderInlines; GFM spec 670/670; checks: markdown 21 tests, ts, lint green</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

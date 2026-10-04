@@ -9,6 +9,19 @@ export function normalize(text: string) {
   return unix.endsWith("\n") ? unix : `${unix}\n`
 }
 
+// ## Options
+
+/**
+ * GFM extensions that change what CORE markdown means, so each can be turned off -- on by default, as on GitHub.
+ * - The spec test turns each on only for its own examples (cmark-gfm's spec runner does the same).
+ */
+export type MarkdownOptions = {
+  /** Bare `www.x.com`, `https://...`, `a@b.c` become links (GFM 6.9). */
+  autolinks?: boolean
+  /** Raw `<script>`, `<style>`, `<iframe>` ... are written escaped (GFM 6.11). */
+  tagfilter?: boolean
+}
+
 // ## Spec
 
 /** One GFM spec example, as `src/spec/gfm-spec.json` holds it. */

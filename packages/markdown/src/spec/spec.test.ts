@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { MD, type SpecExample } from "$/markdown"
 
-import { comparableHTML } from "./spec.types"
+import { comparableHTML, specOptions } from "./spec.types"
 import spec from "./gfm-spec.json"
 
 /**
@@ -36,7 +36,7 @@ describe("GFM spec", () => {
 /** Does `MD.toHTML()` render `example` as the spec says?  A throw counts as a fail. */
 function passes(example: SpecExample) {
   try {
-    return comparableHTML(MD.toHTML(example.markdown)) === comparableHTML(example.html)
+    return comparableHTML(MD.toHTML(example.markdown, specOptions(example))) === comparableHTML(example.html)
   } catch {
     return false
   }
