@@ -9,7 +9,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 ## Overview
 
 - Spell's brand, and the work of bringing it into Spell UI (epic `design-system`,
-  `packages/docs/epics/design-system/design-system.html`).
+  `packages/docs/epics/design-system/design-system.plan.html`).
 - `spell-design-system/` -- Claude Design's output, AS EXPORTED:  `readme.md` (the brand rules), tokens, logo
   assets, and 13 top-level `*.dc.html` pages.
   - NEVER edit Claude Design's files:  they're the reference the copies are measured against, and Claude Design may

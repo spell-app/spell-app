@@ -1,7 +1,7 @@
 <!-- bedtime: active -->
 # Morning plan:  vite-plus
 
-Plan doc:  `packages/docs/epics/vite-plus/vite-plus.html`.  Branch `vite-plus`, worktree `.claude/worktrees/vite-plus`.
+Plan doc:  `packages/docs/epics/vite-plus/vite-plus.plan.html`.  Branch `vite-plus`, worktree `.claude/worktrees/vite-plus`.
 
 ## 1. Summary
 

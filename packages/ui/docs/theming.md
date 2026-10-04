@@ -424,7 +424,7 @@ every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks an
 ### Our own theme:  `spell-brand`
 
 `themes/spell-brand.css` is `spell` as Claude Design's brand pages draw it, converging on them (epic
-`design-system`, `packages/docs/epics/design-system/design-system.html`).
+`design-system`, `packages/docs/epics/design-system/design-system.plan.html`).
 
 - Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift;  whether it replaces `spell` is a later
   call.  Also in `ThemeSheets.OWN`, and in the docs' theme picker as "Spell brand".
