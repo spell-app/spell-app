@@ -198,8 +198,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   wait in its INBOX FILE, `epics/<name>/<name>.inbox.json` beside the doc, until a Claude session takes them.
   - absent until the first mark, deleted once empty;  git-ignored:  per-machine pending state, never the record
   - shape and helpers:  `scripts/inbox.js` (`setMark()`, `requestNow()`, `markSent()`, `unsentMarks()`,
-    `takeNow()`, `setWorking()`, `setListening()`, `clearMarks()`);  EVERY write through `updateInbox()` /
-    `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
+    `sentMarks()`, `takeNow()`, `takeWork()`, `setWorking()`, `setListening()`, `clearMarks()`, `clearApplied()`);
+    EVERY write through `updateInbox()` / `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
 - The page writes through the page server's route module `scripts/reviewRoutes.ts`, `/api/review/...`:
   `GET inbox?page=`, `POST mark { page, id, mark | null }`, `POST now { page, id, action, note? }` (Add Details,
   revisit now:  queued on `now`), `POST send { page }`.
@@ -208,6 +208,15 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 - Unsent:  marks newer than `sent` (the last "send to Claude"), never an immediate one (`details`, revisit `now`).
 - `yarn plan-doc inbox <name> [--json]` prints it:  marks by action with their items' titles, sent or not, the
   `now` queue, agents at work, the session listening.
+- Claude's side, `yarn plan-doc inbox <name> ...` (the loop, step by step:  `templates/epics/plan-doc.md`, "Review
+  inbox"):
+  - `listen` / `unlisten`:  a session waits on it, or stopped
+  - `wait`:  run in the background;  exits 0 with work (requests for now, taken;  a send not yet handed over,
+    `handedOver`), which wakes the session;  2 on timeout
+  - `apply [ids]`:  the sent approve / pick / todo marks, into the doc (`PlanDoc.applyMark()`), then cleared
+  - `working <id> on|off`, `done <id>...`, `clear <id>...`
+  - an agent writes into ONE item with `yarn plan-doc details <name> <id> --file <html> [--append]`:  under the
+    doc's lock, so it never races the session's other edits
 
 ## Details pages
 

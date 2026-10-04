@@ -1036,3 +1036,28 @@ button.plan-send:focus-visible {
 .plan-review-notice[hidden] {
   display: none;
 }
+
+/*
+ * Claude's reply to a revisit note (`div.plan-reply > div.plan-reply-title` + the answer), appended to an item's
+ * details by `yarn plan-doc details --append` during `/epic review`:  a violet card, the brand's action color, apart
+ * from the ivory answer card
+ */
+.plan-reply {
+  margin: 8px 0;
+  padding: 0 10px 6px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ui-violet, #6550ca) 30%, transparent);
+  border-radius: 6px;
+  background: var(--ui-violet-background, light-dark(#eaeaff, rgb(184 180 255 / 0.16)));
+}
+.plan-reply-title {
+  margin: 0 -10px 6px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--ui-violet, #6550ca) 14%, transparent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.plan-reply > :last-child {
+  margin-bottom: 0;
+}
