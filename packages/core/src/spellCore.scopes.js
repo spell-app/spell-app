@@ -24,8 +24,8 @@
       detail: "counts from 1",
       description: "Things in order -- `a deck is a list of cards` makes a deck.\n- Counts from 1:  `card 1 of the deck` is the first.  Negative counts from the end, so\n  `card -1 of the deck` is the last -- as is `the last card of the deck`.\n- Reactive, like a thing:  add or remove an item and whatever drew the list redraws.\n- The word for its items is just for reading:  `number of cards in the deck`\n  ~== `number of items in the deck`.\n- Its actions also work on a plain list, e.g. `number of items in [1, 2, 3]`.\n\n```spell\na deck is a list of cards\nset the deck to a new deck\nadd a new card to the deck\nshuffle the deck\nfor each card in the deck\n  set the direction of the card to \"down\"\n```",
       rules: [
-        { name: "create_list_type", syntax: "create a type (named|called) {type} as a list of {instanceType:type}" },
-        { name: "create_list_type", syntax: "(a|an) {type} is a list of {instanceType:type}" },
+        { name: "create_list_type", syntax: "create a type (named|called) {type} as (a|an) (exclusive:exclusive)? list of {instanceType:type}" },
+        { name: "create_list_type", syntax: "(a|an) {type} is (a|an) (exclusive:exclusive)? list of {instanceType:type}" },
         { name: "new_list", syntax: "a new (list|List) (of {instanceType:type}?)" }
       ]
     },

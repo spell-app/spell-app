@@ -331,11 +331,16 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   new `Pile`, e.g. in Solitaire's `pile.state` or `reset the game`.  Each one registered as one of the program's
   things, cluttering "All things" with nameless `Pile`s.  `newThingLike()` now makes them
   `ThingRegistry.quietly()` -- which can't tell a throwaway result from a copy the program means to keep.
+  And since piles are EXCLUSIVE (P8 of precedence-and-types), each such result is marked scratch too
+  (`spellCore.newScratch()`, `List.asScratch()`) so it owns nothing -- else filtering a pile would steal its cards.
+  Solitaire relies on a scratch result keeping its type:  `the state of cards-to-move` reads a `Pile`'s getter.
 - **Fix**:  helpers that make a throwaway -- `map()`, `filter()`, loops -- build a plain `List` or array, NOT the
   collection's own type.  Only "a copy of" (`duplicateCollection()`) makes the same type, and registers.  Then
   `newThingLike()` needn't be quiet.  Touches what every collection helper returns, and their tests.
+  NOTE: a plain `List` loses its type's members, which a program may read off a result -- `the state of
+  cards-to-move` above -- so a range or `where` result probably keeps its type, scratch.
 - **Pinned at**:  `spellCore.newThingLike()` (`core.ts`);  test "NOT a collection helper's result" in
-  `packages/core/src/things.test.ts`.
+  `packages/core/src/things.test.ts`;  "scratch results own nothing" in `packages/core/src/classes/List.test.ts`.
 
 ---
 

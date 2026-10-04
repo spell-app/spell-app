@@ -111,6 +111,40 @@ describe("incremental parsing ~== full parse", () => {
     }
   })
 
+  test("editing an exclusive list's line:  its owner member follows -- `the pile of a card` comes and goes", () => {
+    const cards = files.filter((it) => it.path === "/Card.spell" || it.path === "/Deck.spell")
+    const exclusive = "a pile is an exclusive list of cards\na tableau is a pile"
+    const reader = [
+      "set card to a new card",
+      "to stack a card on a tableau: add the card to the tableau",
+      "print the pile of the card",
+      "set the pile of the card to 1"
+    ].join("\n")
+    const pileFiles: SpellSourceFile[] = [
+      ...cards,
+      { path: "/Pile.spell", contents: exclusive },
+      { path: "/Reader.spell", contents: reader }
+    ]
+    const project = newProject(pileFiles)
+    const errorsOf = () => summarizeIncremental(project).flatMap((file) => file.errors)
+    expect(errorsOf()).toEqual([
+      "4:0 Can't set the pile of a Card:  it's the Pile holding it -- add it to a Pile instead"
+    ])
+    const edits = [
+      "a pile is a list of cards\na tableau is a pile",
+      exclusive,
+      "a heap is an exclusive list of cards\na pile is an exclusive list of cards\na tableau is a pile",
+      "a pile is an exclusive list of cards\na tableau is a pile\n// a comment",
+      "a tableau is a pile",
+      exclusive
+    ]
+    for (const contents of edits) {
+      pileFiles.splice(2, 1, { path: "/Pile.spell", contents })
+      project.update("/Pile.spell", contents)
+      expect(summarizeIncremental(project), contents).toEqual(summarize(parseSpellProject(pileFiles)))
+    }
+  })
+
   test("a body edit which changes what a method returns re-parses what follows", () => {
     const text = (returned: string) =>
       ["to check (n as number): print 1", "to pick (n)", `\treturn ${returned}`, "check pick 2"].join("\n")

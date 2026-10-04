@@ -49,6 +49,12 @@ export class ScopeVariable {
    */
   declare auto: boolean | undefined
   /**
+   * `true` for the member an EXCLUSIVE list type gives its item type, naming it, e.g. `pile` on `Card` for `a pile is
+   * an exclusive list of cards`:  the pile holding the card, or nothing.  READ-ONLY -- see `P.TypeScope.exclusive`.
+   * - Declared by the list type's statement, NOT a property statement of the item type's.
+   */
+  declare exclusive: boolean | undefined
+  /**
    * How a READ of it compiles, if not `<object>.<name>` -- a template, `{it}` standing for what it's read from:
    * `{it}.length`, `{it}.getFullYear()` or `spellCore.itemCountOf({it})`.
    * - A built-in type's member, from spell's table of them -- see spell's `BUILT_IN_TYPE_TABLE`.
@@ -98,6 +104,8 @@ export type ScopeVariableProps = {
   words?: string
   /** See `ScopeVariable.auto`. */
   auto?: boolean
+  /** See `ScopeVariable.exclusive`. */
+  exclusive?: boolean
   /** See `ScopeVariable.compile`. */
   compile?: string
   /** See `ScopeVariable.doc`. */

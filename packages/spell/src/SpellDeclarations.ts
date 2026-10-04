@@ -98,10 +98,14 @@ export class SpellDeclarations {
     const constantOutputs: Record<string, string> = {}
     for (const item of mine) {
       if (item instanceof P.TypeScope) {
-        if (!item.stub) merge({ type: item.name, superType: item.superType, itemType: item.itemType })
+        if (!item.stub) {
+          merge({ type: item.name, superType: item.superType, itemType: item.itemType, exclusive: item.exclusive })
+        }
       } else if (item instanceof P.ScopeMethod) {
         merge(SpellDeclarations.methodDeclaration(item))
       } else if (item instanceof P.ScopeVariable) {
+        // an exclusive list's owner member, e.g. `pile` on `Card`:  loading its type's `exclusive` gives it again
+        if (item.exclusive) continue
         if (item.scope instanceof P.TypeScope) merge(SpellDeclarations.variableDeclaration(item, item.scope, mine))
       } else if (item instanceof P.ScopeConstant) {
         constants.push(item.name)
@@ -220,8 +224,9 @@ export class SpellDeclarations {
       const declaredAt = SpellDeclarations.declaredAt(projectId, declaration.defined)
       if (declaration.type) {
         const runtimeName = declaration.type === original.type ? undefined : original.type
-        const { type, superType, itemType } = declaration
-        SpellDeclarations.loadType(scope, from, names, { name: type, superType, itemType, runtimeName, declaredAt })
+        const { type, superType, itemType, exclusive } = declaration
+        const props = { name: type, superType, itemType, exclusive, runtimeName, declaredAt }
+        SpellDeclarations.loadType(scope, from, names, props)
       }
       SpellDeclarations.loadVariables(scope, names, declaration, declaredAt)
       SpellDeclarations.loadConstants(scope, from, names, declaration, declaredAt)
@@ -262,15 +267,20 @@ export class SpellDeclarations {
   /**
    * Type `type`, if picked -- throws if another import already declared it.
    * - `runtimeName`:  its class's name when the code runs, if it was renamed -- see `P.TypeScope.runtimeName`.
+   * - `exclusive`:  its item type gains the member naming it, e.g. `pile` on `Card` -- see
+   *   `P.TypeScope.declareOwnerMember()`.  Not if the item type wasn't picked, or is built in.
    */
   private static loadType(scope: P.ImportScope, from: string, names: Set<string>, type: P.TypeScopeProps) {
-    const { name } = type
+    const { name, itemType, exclusive, declaredAt } = type
     if (!names.has(name)) return
     if (scope.types.get(name, "LOCAL_ONLY")) {
       SpellDeclarations.fail(from, `type '${name}' was already imported from '${scope.origins.get(name)}'`)
     }
-    scope.types.add(definedOnly(type))
+    const [loaded] = scope.types.add(definedOnly(type))
     scope.origins.set(name, from)
+    // an exclusive list's owner member, e.g. `pile` on `Card` -- if its item type was loaded, which it was first
+    const items = exclusive && itemType ? scope.types.get(itemType, "LOCAL_ONLY") : undefined
+    if (items) loaded!.declareOwnerMember(items, { declaredAt })
   }
 
   /**
@@ -612,6 +622,7 @@ const PROP_ORDER = [
   "datatype",
   "auto",
   "itemType",
+  "exclusive",
   "params",
   "returns",
   "initializer",

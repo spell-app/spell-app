@@ -274,19 +274,16 @@ export class Card extends Thing {
   }
 
   /**
-   * "move" a card
-   * NOTE: use this rather than `add` to make sure card is only in one pile at a time
+   * "move" a card:  piles are exclusive, so adding it takes it out of its old pile -- then pause a moment
    * if you `wait for: move the card to the pile` the move will be animated
    */
   /*! SPELL: DECLARES {
     syntax: "move {thisArg:expression} to {callArgs:expression}", output: "move_to_$pile",
     rule: "method_call", of: "Card", alias: ["statement", "expression"], kind: "method",
     name: "move a card to a pile", params: [{ name: "pile", datatype: "Pile" }],
-    defined: "/Pile.spell:403-577",
+    defined: "/Pile.spell:418-487",
   } */
   async move_to_$pile(pile) {
-    if (spellCore.isDefined(this.pile)) { spellCore.remove(this.pile, this) }
-    this.pile = pile
     spellCore.append(pile, this)
     await spellCore.pauseFor(50, 'msec')
   }
@@ -529,28 +526,19 @@ export function test_deck_with_jokers() {
 }
 test_deck_with_jokers()
 // -----------
-/*! SPELL: DECLARES {
-  property: "pile", of: "Card", datatype: "Pile", auto: true,
-  defined: "/Pile.spell:496-532",
-} */
-Card.declareProp('pile', { type: 'Pile' })
-Object.defineProperty(Card.prototype, 'pile', {
-  get() { return this.getProp('pile') },
-  set(value) { this.setProp('pile', value) },
-  configurable: true
-})
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
-  type: "Pile", superType: "List", itemType: "Card",
-  defined: "/Pile.spell:25-50",
+  type: "Pile", superType: "List", itemType: "Card", exclusive: true,
+  defined: "/Pile.spell:25-61",
 } */
 export class Pile extends List {
   static instanceType = Card
+  static exclusive = true
 
   /*! SPELL: DECLARES {
     property: "color", of: "Pile",
-    defined: "/Pile.spell:52-140",
+    defined: "/Pile.spell:63-151",
   } */
   get color() {
     if (spellCore.isEmpty(this)) { return "none" }
@@ -559,7 +547,7 @@ export class Pile extends List {
 
   /*! SPELL: DECLARES {
     property: "value", of: "Pile", datatype: "number",
-    defined: "/Pile.spell:142-225",
+    defined: "/Pile.spell:153-236",
   } */
   get value() {
     if (spellCore.isEmpty(this)) { return 0 }
@@ -569,7 +557,7 @@ export class Pile extends List {
 
   /*! SPELL: DECLARES {
     property: "state", of: "Pile", datatype: "text",
-    defined: "/Pile.spell:580-744",
+    defined: "/Pile.spell:490-654",
   } */
   get state() {
     let state = ((this.name || "pile") + ":")
@@ -579,3 +567,9 @@ export class Pile extends List {
     return state
   }
 }
+Object.defineProperty(Card.prototype, 'pile', {
+  get() {
+    return Pile.ownerOf(this)
+  },
+  configurable: true
+})

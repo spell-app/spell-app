@@ -58,7 +58,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
    */
   duplicateCollection(collection?: unknown, constructor?: new () => unknown): unknown {
     if (!assert.isArrayLike(collection, "spellCore.duplicateCollection(collection)")) return false
-    const result = constructor ? new constructor() : spellCore.newThingLike(collection)
+    // a copy owns nothing -- see `spellCore.newScratch()`
+    const result = constructor ? spellCore.newScratch(constructor) : spellCore.newThingLike(collection)
     return spellCore.mergeCollectionsInto(result, collection)
   },
 
@@ -78,8 +79,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
   mergeCollections(collections?: unknown, constructor?: new () => unknown): unknown {
     if (!assert.isArrayLike(collections, "spellCore.mergeCollections(collection)")) return undefined
     let merged: unknown
+    // a merge owns nothing -- see `spellCore.newScratch()`
     if (constructor) {
-      merged = new constructor()
+      merged = spellCore.newScratch(constructor)
     } else {
       const first = spellCore.getItemOf(collections, 1)
       if (!assert.isArrayLike(first, "spellCore.mergeCollections(collection)")) return undefined

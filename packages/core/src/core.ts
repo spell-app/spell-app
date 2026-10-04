@@ -87,6 +87,7 @@ export const coreMethods = defineSpellCoreModule({
    * - What collection helpers build their results in, e.g. `map()`, `filter()`, `duplicateCollection()`.
    * - NOT registered for the Thing Explorer -- see `ThingRegistry.quietly()` -- so a copy the program keeps
    *   doesn't show either.  See `CODE-DEBT.md`.
+   * - A SCRATCH list:  an exclusive one, e.g. a `Pile`, owns nothing -- see `spellCore.newScratch()`.
    * - TODO: number? string?  non-constructable thing???
    */
   newThingLike(thing: unknown): unknown {
@@ -94,11 +95,22 @@ export const coreMethods = defineSpellCoreModule({
     // if (spellCore.isArrayLike(thing)) return []
     try {
       const target = thing as { constructor: new () => unknown }
-      // scratch, e.g. `map()`'s result:  NOT one of the program's things -- see `ThingRegistry.quietly()`
-      return spellCore.things.quietly(() => new target.constructor())
+      return spellCore.newScratch(target.constructor)
     } catch (e) {
       return {}
     }
+  },
+
+  /**
+   * New SCRATCH `constructor`, e.g. `map()`'s result, or `a copy of the pile as a pile`:
+   * - NOT one of the program's things -- see `ThingRegistry.quietly()`
+   * - a list owns nothing, even an exclusive one (plan doc D8):  filtering a pile mustn't take its cards --
+   *   see `List.asScratch()`
+   */
+  newScratch(constructor: new () => unknown): unknown {
+    const made = spellCore.things.quietly(() => new constructor())
+    ;(made as { asScratch?: () => unknown }).asScratch?.()
+    return made
   },
 
   ////////////////

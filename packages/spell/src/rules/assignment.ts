@@ -32,6 +32,7 @@ export const assignment = new SpellParser({ module: "assignment" })
  *   one keeps its own:  the first datatype wins.
  * - SIDE EFFECT: `set the X of Y to V` declares property `X` if `Y`'s type doesn't -- see `declareProperty()`.
  * - A built-in type's member is read-only, e.g. `set the length of the name to 3`:  a parse error -- see `parse()`.
+ *   So is an exclusive list's owner, e.g. `set the pile of the card to x`:  add the card to the pile instead.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
 class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
@@ -42,13 +43,19 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
   /**
    * Refused when `thing` reads a built-in type's member, e.g. `the length of the name`:  spell works those out --
    * its `compile`, e.g. `spellCore.itemCountOf(deck)`, is no place to put a value.  See `SP.BUILT_IN_TYPE_TABLE`.
+   * - And when it reads an exclusive list's owner, e.g. `the pile of the card`:  it's whichever pile holds the card --
+   *   see `P.ScopeVariable.exclusive`.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     const read = match && memberRead(match.groups.thing)
-    if (!match || !(read?.member instanceof P.ScopeVariable) || !read.member.compile) return match
+    const member = read?.member
+    if (!match || !read || !(member instanceof P.ScopeVariable) || !(member.compile || member.exclusive)) return match
     const type = read.type ? ` of a ${P.typeName(read.type.name)}` : ""
-    return SpellStatement.refuse(match, `Can't set the ${read.property.raw}${type}:  spell works it out`)
+    const why = member.exclusive
+      ? `it's the ${member.datatype} holding it -- add it to a ${member.datatype} instead`
+      : "spell works it out"
+    return SpellStatement.refuse(match, `Can't set the ${read.property.raw}${type}:  ${why}`)
   }
 
   /**

@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Precedence and Types</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p8">next: P8 · Exclusive Lists</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Doc Review</ui-label></span
             >
           </header></ui-sticky
         >
@@ -70,6 +70,11 @@
                 auto-declare at first set; checks: green; BENCH +7%, speed test +27% raw (+12% like for like,
                 <a href="#c17">C17</a>); <a href="#j23">J23</a>-<a href="#j31">J31</a>
               </li>
+              <li>
+                <b>P7</b> aaf25df8 built-in member tables, per-type member compile, Type Explorer generated from them,
+                built-in types refuse new properties; checks: green, no slowdown; <a href="#j32">J32</a>,
+                <a href="#j33">J33</a>, <a href="#j34">J34</a>, <a href="#j35">J35</a>
+              </li>
             </ul>
           </ui-section>
           <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
@@ -90,6 +95,10 @@
                 comment sits at the declaration, not the `set` line (<a href="#j29">J29</a>); app element.build.test
                 fails (ui/customElement.js holds Solid), likely pre-existing
               </li>
+              <li>
+                <a href="#p7">P7</a>: found `the absolute value of` / `round` compile to spellCore helpers that don't
+                exist -- they throw when run (SUSPECTED-BUGS, spell)
+              </li>
             </ul>
           </ui-section>
         </ui-section>
@@ -108,7 +117,7 @@
               plan before we start anything.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 3h-4h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 1h left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <ul>
               <li>
@@ -367,7 +376,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="7" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="8" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -607,6 +616,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p7"
             data-phase="7"
             data-status="done"
@@ -647,13 +657,13 @@
           <ui-section
             id="p8"
             data-phase="8"
-            data-status="todo"
+            data-status="done"
             header="P8 · Exclusive Lists"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>a pile is an exclusive list of cards</code>; Pile.spell's
@@ -674,7 +684,11 @@
                 <code>yarn ts &amp;&amp; yarn lint &amp;&amp; yarn test</code>; fixtures re-blessed, diff READ;
                 <code>speedTest()</code> on HEAD and the change; <code>PARSING.md</code> updated;
                 <code>yarn vscode</code>; stop for review.</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j36">J36</a> <a href="#j37">J37</a> <a href="#j38">J38</a>
+                <a href="#j39">J39</a> <a href="#j40">J40</a> <a href="#j41">J41</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Doc Review" sticky collapsible dividing>
@@ -3059,6 +3073,160 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j36" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j36">J36</a>
+                  <span class="plan-title"
+                    >P8: an exclusive list of a BUILT-IN type (things, numbers) is allowed, with no owner member -- not
+                    refused</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: <code>a bag is an exclusive list of things</code> compiles
+                    <code>static exclusive = true</code> but gives <code>Thing</code> no <code>bag</code> member (it
+                    would go on the root scope every project shares); at runtime only objects can be owned, so numbers /
+                    text are just held.
+                  </p>
+                  <ul>
+                    <li>
+                      Refusing it (<code>SpellStatement.refuse()</code>) loses: the refused <code>parse_error</code> has
+                      priority 0, so <code>create_type</code> (priority 10) reads <code>a bag is an exclusive</code> as
+                      a type extending <code>Exclusive</code> and drops the rest. Making a refusal win is a parser
+                      change (D11).
+                    </li>
+                    <li>Rejecting the word (return undefined) gives the same confusing <code>Exclusive</code> type.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j37" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j37">J37</a>
+                  <span class="plan-title"
+                    >P8: adding a card a pile already holds MOVES it there, never twice</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: an exclusive list holds each item once -- <code>add the card to the pile</code> when the pile
+                    has it moves it to the end (<code>addAtPosition()</code> drops the old place first). As the old
+                    <code>to move</code> did (remove from its pile, then add).
+                  </p>
+                  <ul>
+                    <li>
+                      Other option: allow duplicates within one list -- but then 'in at most one list' still lets a pile
+                      hold a card twice, and <code>the pile of a card</code> would survive removing one copy.
+                    </li>
+                    <li>
+                      <code>setItem()</code> (reverse, shuffle) may hold one twice for a moment; owners are worked out
+                      from what's left, so they end right.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j38" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j38">J38</a>
+                  <span class="plan-title"
+                    >P8: scratch results keep their type but own nothing -- a flag, not plain lists</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: <code>map()</code>, <code>filter()</code>, ranges, <code>a copy of</code> and
+                    <code>merge ... into a new pile</code> still make a <code>Pile</code>, marked scratch
+                    (<code>List.asScratch()</code>, <code>spellCore.newScratch()</code>), which owns nothing (D8).
+                  </p>
+                  <ul>
+                    <li>
+                      Plain <code>List</code>s (CODE-DEBT's fix) would break Solitaire:
+                      <code>the state of cards-to-move</code> reads a <code>Pile</code> getter off a
+                      <code>starting with</code> range.
+                    </li>
+                    <li>
+                      A copy made <code>as a pile</code> (an explicit type) is scratch too: D8 says copies own nothing,
+                      and Solitaire's <code>reset the stock pile</code> iterates its copy while moving the cards out of
+                      the discards.
+                    </li>
+                    <li>CODE-DEBT entry kept, with a note.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j39" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j39">J39</a>
+                  <span class="plan-title"
+                    >P8: the owner member compiles as a getter patched on after the list's class, with no setter</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose:
+                    <code
+                      >Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) },
+                      configurable: true })</code
+                    >
+                    right after <code>class Pile</code> (a <code>P.ASTPatchedMember</code>), plus
+                    <code>static exclusive = true</code> in the class.
+                  </p>
+                  <ul>
+                    <li>
+                      Hoisted into <code>Card</code>'s class body instead: an accessor a <code>card has a pile</code> /
+                      auto-declared <code>pile</code> gave Card would override it, depending on order. Patched after
+                      <code>Pile</code>, it runs last and wins.
+                    </li>
+                    <li>
+                      No setter: read-only. A later <code>set the pile of ...</code> is a parse error (<code
+                        >Can't set the pile of a Card: it's the Pile holding it -- add it to a Pile instead</code
+                      >).
+                    </li>
+                    <li>
+                      Named from the class's runtime name, so an import renaming <code>Pile</code> still reads
+                      <code>pile</code>, the getter the code defines.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j40" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j40">J40</a>
+                  <span class="plan-title"
+                    >P8: a moved card's owner changes ONCE -- the new list takes it before the old lets go</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: in <code>List.writeItems()</code>, an incoming item's owner is set to the new list, THEN it
+                    leaves the old one -- so a reader of <code>the pile of the card</code> (a spell cell per item) never
+                    sees it ownerless mid-move. The old list's items still hold it for that moment.
+                  </p>
+                  <ul>
+                    <li>Other order (old list first): readers re-run twice, once seeing nothing.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j41" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j41">J41</a>
+                  <span class="plan-title"
+                    >P8: completion after `a thingy is a` now offers `exclusive` and `list` beside the types</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The list-type syntax went from the fixed words <code>is a list of</code> to
+                    <code>is (a|an) (exclusive:exclusive)? list of</code>, so the expecting parse records both words.
+                    Tests updated:
+                    <a
+                      href="../../../spell/src/parserTests/Expectations.test.ts"
+                      target="src-packages-spell-src-parsertests-expectations-test-ts"
+                      ><code>Expectations.test.ts</code></a
+                    >
+                    (<code>a deck is a</code>) and lsp's completion test (was 'ONLY types', now types plus those two
+                    words). Kept: they're real next words.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -3412,6 +3580,42 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c19" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c19">C19</a>
+                  <span class="plan-title"
+                    >P8: a `set the pile of the card` parsed BEFORE the exclusive line isn't refused -- and throws when
+                    it runs</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The read-only check is a parse-time lookup: a <code>set</code> in an earlier file, or above
+                    <code>a pile is an exclusive list of cards</code>, auto-declares <code>pile</code> (P6) before the
+                    exclusive line replaces it. Scope ends right (reads see the exclusive member), but the compiled
+                    <code>card.pile = x</code> meets a getter-only property at runtime: <code>TypeError</code>. Probe
+                    <code>X4</code> pins the compiled shape. Fix if it matters: the type pre-scan
+                    (<code>typesDeclaredIn()</code>) could note <code>exclusive</code> too, so every
+                    <code>set</code> sees it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c20" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c20">C20</a>
+                  <span class="plan-title"
+                    >P8: hover on `the pile of a card` shows the pile type's docstring</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The owner member is declared by <code>a pile is an exclusive list of cards</code>, so its docs are
+                    that line's docstring (Solitaire: 'Pile of playing cards'), and its scope-pack entry's description
+                    is too. The hover's first line says what it is:
+                    <code>property pile of Card · a Pile · the Pile holding it, read-only: Piles are exclusive</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -3687,6 +3891,24 @@ the first card of {list:NAME}
                     <code>yarn start</code> in
                     <a href="../../../app/" target="src-packages-app"><code>packages/app</code></a> and play a few moves
                     of Solitaire: cards draw, move between piles, the deck turns over.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v2">V2</a>
+                  <span class="plan-title"
+                    >Solitaire with exclusive piles: deal, move cards, turn the stock over</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    In <code>yarn start</code>, open <code>@examples/Solitaire</code>: the deal fills the tableaus 1..7
+                    and the stock, cards move between piles on click (each card in exactly one pile, none left behind or
+                    doubled), Restart deals again, and clicking an empty stock turns the discards back over. AutoPlay
+                    and Cheat still work. Headless check passed (deal, 30 stock plays incl. turning over, auto-play,
+                    cheat, a play, a second deal: every card in exactly one pile,
+                    <code>the pile of the card</code> right every time).
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -4306,6 +4528,29 @@ the first card of {list:NAME}
                   itemCountOf(deck)), Type Explorer generated from the table, built-in types refuse new properties;
                   checks: parser 411, spell 898, lsp 107, cli 132, core 388 green; speed 65.6ms, BENCH 57.2ms (no
                   regression)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:09-04:00">2026-10-04 05:09</time></ui-date> P8
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:35-04:00">2026-10-04 05:35</time></ui-date> P8
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T05:35-04:00">2026-10-04 05:35</time></ui-date> P8 done: exclusive
+                  lists (family = type + subtypes), derived read-only `the pile of a card`, runtime ownership per
+                  family, scratch results own nothing, thin `to move`; checks: parser 411, spell 912, lsp 109, core 400,
+                  cli 132 green; headless Solitaire play-check 39/39; speed unchanged</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

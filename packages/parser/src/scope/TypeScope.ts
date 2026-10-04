@@ -11,6 +11,8 @@ import { BlockScope } from "./BlockScope"
  *  - `variables` (from BlockScope) are instance fields
  *  - `classMethods` and `classVariables` are static to the class.
  *  - `itemType`:  what a list type holds, e.g. `Card` for `a deck is a list of cards`.
+ *  - `exclusive`:  an item is in at most ONE list of our family at a time, e.g. `a pile is an exclusive list of
+ *    cards` -- see `exclusiveRoot()`, `declareOwnerMember()`.
  *  - Member lookup walks the super-type chain:  `chain()`, `isA()`, `getMember()`.
  */
 export class TypeScope extends BlockScope {
@@ -26,6 +28,14 @@ export class TypeScope extends BlockScope {
    *   which walks the super-type chain:  a sub-type of `Deck` holds cards too.
    */
   declare itemType?: P.Datatype
+  /**
+   * `true` for an EXCLUSIVE list type, e.g. `a pile is an exclusive list of cards`:  an item is in at most ONE list
+   * of our FAMILY -- us and our sub-types, e.g. tableaus and foundations -- at a time (plan doc D7).
+   * - Set when declared (`claim()` for a stub), so journaled with it.  Only the family's root says so:  a sub-type
+   *   finds it with `exclusiveRoot()`.
+   * - Our item type gains a read-only member naming us -- see `declareOwnerMember()`.
+   */
+  declare exclusive?: boolean
   /**
    * Name of our class when the code runs, if not `name` -- e.g. `Card` for a type imported as `Playingcard`.
    * - Why:  runtime type checks compare class names as strings, e.g. `spellCore.isOfType(thing, 'Card')`.
@@ -73,20 +83,21 @@ export class TypeScope extends BlockScope {
   /**
    * `declaredBy` really declares us, with `superType`:  we were stubbed by an earlier mention (see `getOrStub()`),
    * or left by an earlier parse of the same statement (see `sameStatement()`).
-   * - Clears `stub`, takes `declaredBy`, `superType` and `itemType`, journaled so incremental parsing can take that
-   *   back.
+   * - Clears `stub`, takes `declaredBy`, `superType` and -- for a list type -- `itemType` and `exclusive`, journaled
+   *   so incremental parsing can take that back.
    * - Changes THIS object, NOT `types.replace()`:  matches parsed so far point at it (`data.scopeType`),
    *   and it may already hold property `classVariables`.
    * - `superType` MUST be right:  a project's declarations read it -- see `SP.SpellDeclarations`.
    */
-  claim(declaredBy: P.Match, superType?: string, itemType?: P.Datatype): void {
+  claim(declaredBy: P.Match, superType?: string, { itemType, exclusive }: ClaimListOptions = {}): void {
     const previous = {
       stub: this.stub,
       declaredBy: this.declaredBy,
       superType: this.superType,
-      itemType: this.itemType
+      itemType: this.itemType,
+      exclusive: this.exclusive
     }
-    const next = { stub: false, declaredBy, superType: superType && typeCase(superType), itemType }
+    const next = { stub: false, declaredBy, superType: superType && typeCase(superType), itemType, exclusive }
     Object.assign(this, next)
     // now IT declares us -- see `ScopeList.noteDeclared()`
     P.ScopeList.noteDeclared(this)
@@ -128,6 +139,41 @@ export class TypeScope extends BlockScope {
   }
 
   /**
+   * SIDE EFFECT:  `itemType` gains the read-only member naming us, an exclusive list type's family root, e.g. `pile`
+   * on `Card` for `a pile is an exclusive list of cards` -- the pile holding a card, or nothing.
+   * - Declared by OUR statement (`declaredBy`, so go-to-definition lands there), or loaded from our declaration
+   *   (`declaredAt`).  `datatype` us, `exclusive`, so a `set` of it is refused:  adding the item to a list moves it.
+   * - Its name is our class's when the code runs (`runtimeName`):  that's the getter compiled spell defines.
+   * - REPLACES a property of that name another statement declared, e.g. one auto-declared by `set the pile of the
+   *   card to ...` -- journaled.  Ours from an earlier parse of the same statement:  ours again, as `declareProperty()`.
+   */
+  declareOwnerMember(itemType: TypeScope, { declaredBy, declaredAt }: DeclaredByOrAt): void {
+    const name = instanceCase(this.runtimeName ?? this.name)
+    const existing = itemType.variables.get(name, "LOCAL_ONLY")
+    if (existing && existing.declaredBy && existing.declaredBy === declaredBy) return
+    if (existing?.exclusive && declaredBy && TypeScope.sameStatement(existing.declaredBy, declaredBy)) {
+      const previous = existing.declaredBy
+      existing.declaredBy = declaredBy
+      declaredBy.scope.parser?.journal?.record({
+        undo: () => (existing.declaredBy = previous),
+        redo: () => (existing.declaredBy = declaredBy)
+      })
+      P.ScopeList.noteDeclared(existing)
+      return
+    }
+    // only what's there:  a declaration writes out what a record holds
+    const props: P.ScopeVariableProps = { name, datatype: this.name, exclusive: true }
+    if (declaredBy) props.declaredBy = declaredBy
+    if (declaredAt) props.declaredAt = declaredAt
+    if (!existing) {
+      itemType.variables.add(props)
+      return
+    }
+    const [replaced] = itemType.variables.replace(props)
+    P.ScopeList.noteDeclared(replaced)
+  }
+
+  /**
    * Is `old` an earlier parse of the same statement as `match`:  same rule, same line of the same file?
    * - Why:  incremental parsing can REPLAY a record an old match added (`P.ParseJournal` swaps in whole item
    *   lists), so a re-parsed statement finds "its" record already there -- declared by a match that's gone.
@@ -161,6 +207,14 @@ export class TypeScope extends BlockScope {
   /** Our super-type's record, looked up from where we were declared -- `undefined` if none, or unknown. */
   superTypeScope(): TypeScope | undefined {
     return this.superType ? this.parentScope?.types?.get(this.superType) : undefined
+  }
+
+  /**
+   * Root of our exclusive-list FAMILY, e.g. `Pile` for a `Tableau` -- the type up our chain that's `exclusive`.
+   * `undefined` if none:  we're not an exclusive list.
+   */
+  exclusiveRoot(): TypeScope | undefined {
+    return this.chain().find((type) => type.exclusive)
   }
 
   /** Are we `ancestor`, or a sub-type of it?  By record, or by name, e.g. `"thing"`. */
@@ -232,6 +286,22 @@ export class TypeScope extends BlockScope {
   }
 }
 
+/** What `TypeScope.claim()` takes for a list type -- see `TypeScope.itemType`, `TypeScope.exclusive`. */
+export type ClaimListOptions = {
+  /** What it holds, e.g. `Card`. */
+  itemType?: P.Datatype
+  /** An exclusive list type -- see `TypeScope.exclusive`. */
+  exclusive?: boolean
+}
+
+/** Where a record came from:  the match that declared it, or -- imported -- where it was declared. */
+export type DeclaredByOrAt = {
+  /** See `P.ScopeVariable.declaredBy`. */
+  declaredBy?: P.Match
+  /** See `P.ScopeVariable.declaredAt`. */
+  declaredAt?: P.DeclaredAt
+}
+
 /** What `TypeScope.declareProperty()` takes besides a name -- each optional. */
 export type DeclarePropertyOptions = {
   /** Its words as written, e.g. `short rank` -- see `P.ScopeVariable.words`. */
@@ -252,6 +322,8 @@ export type TypeScopeProps = {
   stub?: boolean
   /** See `TypeScope.itemType`. */
   itemType?: P.Datatype
+  /** See `TypeScope.exclusive`. */
+  exclusive?: boolean
   /** See `TypeScope.runtimeName`. */
   runtimeName?: string
   /** See `TypeScope.declaredBy`. */

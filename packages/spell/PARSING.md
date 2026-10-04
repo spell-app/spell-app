@@ -45,7 +45,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `Literal` / `Literals` / `Pattern` / `TokenType` compare single tokens with `===` / regex -- cheap.
 - Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-10-04, after P3 of precedence-and-types
   halved it):  Card.spell (121 lines) ~12ms, Solitaire.spell (259 lines) ~32ms, whole Solitaire project ~55ms;
-  ~60ms after P5 (typed calls, return types), ~59ms after P6 (members).
+  ~60ms after P5 (typed calls, return types), ~59ms after P6 (members), 57.4ms after P8 (exclusive lists:  no change).
   Compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
   `parser.rules` rebuilds after mid-parse `addRule()`s:  35 per project parse (38 before P6:  no rule per enumeration),
   ~1ms total -- not worth optimizing.
@@ -222,6 +222,27 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   `src/builtinTypes.test.ts` reads each one off a sample value, so it must be real.  Then `yarn scopes --builtins`.
   Adding a TYPE:  its name in `P.BUILT_IN_TYPES` first, then its entry.
 
+## Exclusive lists:  `a pile is an exclusive list of cards`
+
+- `create_list_type` (`classes.ts`) takes `(exclusive:exclusive)?`:  `a pile is an exclusive list of cards`,
+  `create a type called hand as an exclusive list of cards`.  A card is in at most ONE list of the pile FAMILY -- `Pile`
+  and its sub-types (`a tableau is a pile`) -- at a time;  `a deck is a list of cards` is outside it (plan doc D7).
+- Scope:  `exclusive` on the type's `P.TypeScope` (journaled with it, as `claim()` is);  a sub-type finds its family's
+  root with `exclusiveRoot()`.  The item type gains the read-only member naming the root,
+  `TypeScope.declareOwnerMember()`:  `pile` on `Card`, `datatype` `Pile`, `exclusive: true`, `declaredBy` the pile's
+  line -- so `the pile of the card` / `its pile` resolve as any member (see "Members"), and go-to-definition lands on
+  that line.  It REPLACES a `pile` another statement declared, e.g. auto-declared by an earlier `set`.  NOT for a
+  built-in item type (`an exclusive list of things`):  the root scope is shared.
+- `set the pile of the card to ...` is refused (`assignment_statement.parse()`):  add the card to a pile instead.
+- Compiles `static exclusive = true` in the class, then the member, patched on after it (`P.ASTPatchedMember`, never
+  hoisted:  it must run after the item type's class, and win over any accessor it has):
+  `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) }, configurable: true })`.
+- Declarations:  the type's statement says `exclusive: true`;  the member isn't written, loading rebuilds it from that
+  and `itemType` (`SpellDeclarations.loadType()`), if the item type was picked too.
+- Runtime:  `core`'s `List` keeps the owners -- see `packages/core/AGENTS.md`, "Exclusive lists".
+- Probe ledger, `X1` ... `X4` (`probeExclusive()`:  the frozen `Card` / `Deck`, a `Pile.spell` of the probe's own);
+  compiled and RUN:  `src/parserTests/exclusiveLists.test.ts`.
+
 ## File => block => line => statement
 
 - `Block.parse()` (`packages/spell/src/rules/Block.ts`) loops over the root `BlockToken`'s items:
@@ -288,7 +309,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - `get` / `set it to` ALWAYS declare a new `it` (`declareIt()`):  plain `it`, then `it_2`, `it_3`... numbered
     from the visible `it`'s `output`, skipping names in use -- so callbacks keep the `it` they captured
   - each new variable holds its value's `datatype` -- see "Datatypes"
-  - types:  `create_type`, `create_list_type` (`classes.ts`, which sets `itemType` too);  a type mentioned before
+  - types:  `create_type`, `create_list_type` (`classes.ts`, which sets `itemType` and `exclusive` too -- and
+    an exclusive list's owner member, see "Exclusive lists");  a type mentioned before
     its own line is a `stub`, which its real declaration later claims (`TypeScope.claim()`, journaled)
   - BEFORE a project's files parse, every type they declare is stubbed (`parser.stubDeclaredTypes()`, from
     `SpellParser.typesDeclaredIn()`:  a scan for lines starting `a card is`, `create a type called hand`), so a line
@@ -392,8 +414,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
       e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit` -- see `ScopesSource` in `packages/app/src/runner/`.
     - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
       unless a key already says, e.g. `type`.
-    - a method's `params` (`[{ name: "pile", datatype: "Pile" }]`) and `returns`;  a list type's `itemType` --
-      only what's known.  Loading rebuilds the `P.ScopeMethod` record;  a key an older compiler didn't write
+    - a method's `params` (`[{ name: "pile", datatype: "Pile" }]`) and `returns`;  a list type's `itemType` and
+      `exclusive` -- only what's known.  An exclusive list's owner member goes without saying:  loading rebuilds it.  Loading rebuilds the `P.ScopeMethod` record;  a key an older compiler didn't write
       loads as unknown.
   - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +
     `provides`

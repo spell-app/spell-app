@@ -435,6 +435,108 @@ describe("grammar probes", () => {
       ERROR 10:0 Can't set the length of a list:  spell works it out"
     `)
   })
+
+  ////////////////
+  // ## P8 (epic phase):  exclusive lists
+  //    Against `Card` / `Deck` and a `Pile.spell` of the probe's own -- see `probeExclusive()`.
+  ////////////////
+
+  test("X1  `a pile is an exclusive list of cards`:  the class, then `the pile of a card`", () => {
+    expect(probeExclusive(["a pile is an exclusive list of cards", "a tableau is a pile"], [])).toMatchInlineSnapshot(`
+      "export class Pile extends List {
+        static instanceType = Card
+        static exclusive = true
+      }
+      Object.defineProperty(Card.prototype, 'pile', {
+        get() {
+          return Pile.ownerOf(this)
+        },
+        configurable: true
+      })
+      export class Tableau extends Pile {}
+      ---"
+    `)
+  })
+
+  test("X2  `the pile of the card` is the pile holding it -- a `Pile`, read-only", () => {
+    expect(
+      probeExclusive(
+        ["a pile is an exclusive list of cards"],
+        ["add the card to the pile", "print the pile of the card", "set the pile of the card to the pile"]
+      )
+    ).toMatchInlineSnapshot(`
+      "export class Pile extends List {
+        static instanceType = Card
+        static exclusive = true
+      }
+      Object.defineProperty(Card.prototype, 'pile', {
+        get() {
+          return Pile.ownerOf(this)
+        },
+        configurable: true
+      })
+      ---
+      spellCore.append(pile, card)
+      spellCore.console.log(card.pile)
+      /* PARSE ERROR: Can't set the pile of a Card:  it's the Pile holding it -- add it to a Pile instead */
+      ERROR /Probe.spell 6:0 Can't set the pile of a Card:  it's the Pile holding it -- add it to a Pile instead"
+    `)
+  })
+
+  test("X3  a card in the deck AND a pile:  a deck is outside the family", () => {
+    expect(
+      probeExclusive(
+        ["a pile is an exclusive list of cards", "a tableau is a pile"],
+        ["the tableau is a new tableau", "add the card to the deck", "add the card to the tableau"]
+      )
+    ).toMatchInlineSnapshot(`
+      "export class Pile extends List {
+        static instanceType = Card
+        static exclusive = true
+      }
+      Object.defineProperty(Card.prototype, 'pile', {
+        get() {
+          return Pile.ownerOf(this)
+        },
+        configurable: true
+      })
+      export class Tableau extends Pile {}
+      ---
+      export let tableau = new Tableau()
+      spellCore.append(deck, card)
+      spellCore.append(tableau, card)"
+    `)
+  })
+
+  test("X4  a `pile` property set before the exclusive line:  the exclusive one replaces it", () => {
+    expect(
+      probeExclusive(
+        ["to stash a card in a pile: set the pile of the card to the pile", "a pile is an exclusive list of cards"],
+        ["print the pile of the card"]
+      )
+    ).toMatchInlineSnapshot(`
+      "Object.defineProperty(Card.prototype, 'pile', {
+        get() { return this.getProp('pile') },
+        set(value) { this.setProp('pile', value) },
+        configurable: true
+      })
+      Card.prototype.stash_in_$pile = function (pile) {
+        this.pile = pile
+      }
+      export class Pile extends List {
+        static instanceType = Card
+        static exclusive = true
+      }
+      Object.defineProperty(Card.prototype, 'pile', {
+        get() {
+          return Pile.ownerOf(this)
+        },
+        configurable: true
+      })
+      ---
+      spellCore.console.log(card.pile)"
+    `)
+  })
 })
 
 describe("datatypes", () => {
@@ -527,6 +629,19 @@ describe("datatypes", () => {
       muddle x  =>  ?
       tally "a"  =>  text"
     `)
+  })
+
+  test("exclusive lists (P8):  the owner member", () => {
+    const { files } = parseExclusive(
+      ["a pile is an exclusive list of cards", "a tableau is a pile"],
+      ["the tableau is a new tableau", "set d1 to the pile of the card", "get the card", "set d2 to its pile"]
+    )
+    const { scope } = files.at(-1)!
+    expect(["d1", "d2"].map((name) => `${name}  =>  ${scope.variables!.get(name)?.datatype ?? "?"}`).join("\n"))
+      .toMatchInlineSnapshot(`
+        "d1  =>  Pile
+        d2  =>  Pile"
+      `)
   })
 
   test("built-in members (P7):  what the table says each is", () => {
@@ -705,6 +820,34 @@ function probe(...lines: string[]): string {
   const output = compiled.slice(compiled.lastIndexOf(SETUP_END_COMPILED) + 1)
   const errors = [...types!.errors, ...file!.errors].map((error) => `ERROR ${error}`)
   return [...output, ...errors].join("\n")
+}
+
+/**
+ * `lines` parsed after the frozen `Card` / `Deck`, then `pileLines` as the project's `/Pile.spell` -- in place of the
+ * fixture's, whose piles aren't exclusive -- then `EXCLUSIVE_SETUP`.
+ */
+function parseExclusive(pileLines: string[], lines: string[]) {
+  return parseSpellProject([
+    ...CARDS.filter((file) => !file.path.endsWith("Pile.spell")),
+    { path: "/Pile.spell", contents: pileLines.join("\n") },
+    { path: "/Probe.spell", contents: [...EXCLUSIVE_SETUP, ...lines].join("\n") }
+  ])
+}
+
+/** Variables the exclusive-list probes refer to, as `SETUP`'s. */
+const EXCLUSIVE_SETUP = ["the card is a new card", "the deck is a new deck", "the pile is a new pile"]
+
+/**
+ * `/Pile.spell` -- `pileLines` -- as compiled, `---`, then what `lines` compiled to after `EXCLUSIVE_SETUP`, then
+ * every parse error.  See `parseExclusive()`.
+ */
+function probeExclusive(pileLines: string[], lines: string[]): string {
+  const { files } = parseExclusive(pileLines, lines)
+  const [pile, file] = files.slice(-2)
+  const declarations = (code: string) => code.split("\n").filter((line) => !DECLARATION_LINE.test(line))
+  const output = declarations(file!.compiled).slice(EXCLUSIVE_SETUP.length)
+  const errors = files.flatMap((it) => it.errors.map((error) => `ERROR ${it.path} ${error}`))
+  return [...declarations(pile!.compiled), "---", ...output, ...errors].join("\n")
 }
 
 /**

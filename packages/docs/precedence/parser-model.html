@@ -1536,6 +1536,17 @@ constructor(props: SpellExpressionProps) {
               >
               are generated from the table (J34).
             </p>
+            <p>
+              Built (P8): as the table says. <code>create_list_type</code> takes <code>(exclusive:exclusive)?</code>;
+              <code>exclusive</code> is on the <code>TypeScope</code> (journaled with <code>claim()</code>), and
+              <code>TypeScope.declareOwnerMember()</code> gives the item type the read-only member naming the family
+              root, declared by that line -- replacing a <code>pile</code> an earlier statement declared. No new rule:
+              <code>the pile of the card</code> is a P6 member read. Compiled: <code>static exclusive = true</code>,
+              then the getter patched on after the class (<code>Pile.ownerOf(this)</code>, plan doc J39); declarations
+              write <code>exclusive</code> and loading rebuilds the member. The runtime <code>List</code> routes every
+              change to its items through one method, with one <code>WeakMap</code> per family and a spell cell per
+              item; collection helpers' results are scratch and own nothing (J38). Not for a built-in item type (J36).
+            </p>
           </ui-section>
 
           <ui-section id="6-3-rules" header="6.3 Rules that change in P4-P8" sticky collapsible dividing>
