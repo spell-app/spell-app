@@ -1142,6 +1142,9 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   it's found by its label, and a new session has none (`no tabs titled ''`), while sessions opened in a worktree's
   window share that worktree's title. · `.claude/hooks/prompt-gate.mjs` renames the session on `/isolate|epic|unpark
   <name>` before Claude runs, and blocks those inside another worktree. · claude-code
+- 2026-10-03 · In a worktree-isolated session, a `python3 - <<'PY'` heredoc that edits a page was refused ("feeds
+  python text naming git"):  the guard scans the heredoc's text, and prose like "git-ignored" counts. · Write the
+  script to the scratchpad and run `python3 <file>`.  (Also:  `yarn -s` isn't a Yarn 4 option.) · claude-code
 
 ## vscode
 

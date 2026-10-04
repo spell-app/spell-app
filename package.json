@@ -42,7 +42,8 @@
   "pageServer": {
     "routes": [
       "goals/_tools/goalsRoutes.ts",
-      "packages/app/src/server/appRoutes.ts"
+      "packages/app/src/server/appRoutes.ts",
+      "packages/docs/scripts/detailsRoutes.ts"
     ],
     "watch": [
       "packages/docs"
