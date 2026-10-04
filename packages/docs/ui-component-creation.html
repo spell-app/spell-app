@@ -19,20 +19,25 @@
           Where <a href="../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> stands after
           the monorepo move: what the 2026-10-01 session fixed and decided, what's still open, and how to check it.
         </p>
-        <ul>
-          <li>
-            Written for: Owen, and whoever picks up
-            <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a> next
-          </li>
-          <li>Status: built; branch <code>worktree-ui-component-creation</code>, not merged to <code>main</code></li>
-          <li>
-            Record of the session: the plan doc
-            <a href="epics/ui-component-creation/ui-component-creation.html" target="ui-component-creation"
-              ><code>epics/ui-component-creation/ui-component-creation.html</code></a
-            >; before it, the handoff <i>/Users/owen/www/spell-app/outstanding/ui-component-build.md</i> (outside the
-            repo)
-          </li>
-        </ul>
+        <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="epics/ui-component-creation/ui-component-creation.plan.html" target="ui-component-creation"
+              >epic ui-component-creation</a
+            ></ui-item
+          >
+          <ui-item icon="user"
+            >Written for: Owen, and whoever picks up
+            <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a> next</ui-item
+          >
+          <ui-item icon="flag"
+            >Status: built; branch <code>worktree-ui-component-creation</code>, not merged to <code>main</code></ui-item
+          >
+          <ui-item icon="clock rotate left"
+            >Before the plan doc: the handoff
+            <i>/Users/owen/www/spell-app/outstanding/ui-component-build.md</i> (outside the repo)</ui-item
+          >
+        </ui-list>
 
         <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
           <ul>
@@ -70,7 +75,7 @@
               <li>Review the branch's commits, then merge. Nothing waits on Owen.</li>
               <li>
                 Later: Linux visual baselines once Docker Desktop works; the open items in the plan doc's
-                <a href="epics/ui-component-creation/ui-component-creation.html#o4" target="ui-component-creation"
+                <a href="epics/ui-component-creation/ui-component-creation.plan.html#o4" target="ui-component-creation"
                   >3.4</a
                 >.
               </li>
@@ -360,7 +365,8 @@
             <li><code>&lt;ui-root&gt;</code>'s own limits: <a href="#root-limits">7</a>.</li>
             <li>
               The rest, by area: the plan doc's
-              <a href="epics/ui-component-creation/ui-component-creation.html#o4" target="ui-component-creation">3.4</a
+              <a href="epics/ui-component-creation/ui-component-creation.plan.html#o4" target="ui-component-creation"
+                >3.4</a
               >;
               <a href="../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a> (<code
                 >## ui</code
@@ -847,7 +853,7 @@ divider.style.setProperty(
               </li>
               <li>
                 Everything else open, by area: the plan doc's
-                <a href="epics/ui-component-creation/ui-component-creation.html#o4" target="ui-component-creation"
+                <a href="epics/ui-component-creation/ui-component-creation.plan.html#o4" target="ui-component-creation"
                   >3.4</a
                 >.
               </li>
@@ -941,7 +947,8 @@ divider.style.setProperty(
               <a href="../ui/site/components/ui-root.html" target="src-packages-ui-site-components-ui-root-html"
                 ><code>packages/ui/site/components/ui-root.html</code></a
               >; how it's built: the plan doc's Overview
-              <a href="epics/ui-component-creation/ui-component-creation.html#o5" target="ui-component-creation">3.5</a
+              <a href="epics/ui-component-creation/ui-component-creation.plan.html#o5" target="ui-component-creation"
+                >3.5</a
               >. The docs site itself runs inside <code>&lt;ui-root display="immediately"&gt;</code>.
             </li>
           </ul>

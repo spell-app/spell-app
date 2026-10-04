@@ -8,7 +8,7 @@ decide, record, go on.
 - Worktree `/Users/owen/www/spell-app/spell-app/.claude/worktrees/spell-ui-pages` (branch `spell-ui-pages`).  Run
   everything from inside it.  NEVER `cd` / `git -C` to the main checkout, never merge, push, or `git add -A`.
 - Do NOT commit unless your task says so:  the lead commits per phase.  Never `git stash`.
-- Plan doc:  `packages/docs/epics/spell-ui-pages/spell-ui-pages.html` (read "1. Overview" and "3. Questions &
+- Plan doc:  `packages/docs/epics/spell-ui-pages/spell-ui-pages.plan.html` (read "1. Overview" and "3. Questions &
   Decisions").
 
 ## What we're building

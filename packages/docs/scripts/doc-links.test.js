@@ -86,6 +86,7 @@ describe("targets", () => {
     expect(targetFor("https://www.example.com/a/b?c=1")).toBe("ext-example-com-a-b-c-1")
     expect(targetFor("http://example.com/")).toBe("ext-example-com")
     expect(targetFor(join(DOCS, "epics/commands/commands.html"))).toBe("commands")
+    expect(targetFor(join(DOCS, "epics/commands/commands.plan.html"))).toBe("commands")
     expect(targetFor(join(DOCS, "epics/commands/notes.html"))).toBe("src-packages-docs-epics-commands-notes-html")
     expect(targetFor(`https://example.com/${"x".repeat(100)}`)).toHaveLength(84)
   })
