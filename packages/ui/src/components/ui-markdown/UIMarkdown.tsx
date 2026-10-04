@@ -29,8 +29,10 @@ import markdownCSS from "./ui-markdown.css?inline"
  *   the preview panel, when `editable`).
  * - Text:  the element's own (`<script type="text/markdown">` keeps it exact), or a `source` file -- see
  *   `SourceElement`.
- * - Rendering:  marked + DOMPurify, loaded with the first render (`MarkdownRenderer` -> `MarkdownEngine`, the lazy
- *   chunk);  sanitized unless `trusted`;  headings get GitHub's ids (`headings`, `ui-render`).
+ * - Rendering:  marked, loaded with the first render (`MarkdownRenderer` -> `MarkdownEngine`, the lazy chunk);
+ *   headings get GitHub's ids (`headings`, `ui-render`).
+ * - NOT sanitized unless `sanitized`:  raw HTML in the text is kept.  `sanitized` loads DOMPurify (`MarkdownSanitizer`, a
+ *   lazy chunk of its own) alongside the engine;  set it for text you didn't write.
  * - After rendering:
  *   - each fenced code block becomes a `<ui-code language="x" copy>` (one highlighter, one palette)
  *   - each task-list checkbox is named by its item's text (marked leaves it unlabelled)
@@ -89,7 +91,7 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
           options: {
             breaks: !!this.attrs.breaks,
             headingOffset: Number(this.attrs.headingOffset) || 0,
-            trusted: !!this.attrs.trusted
+            sanitized: !!this.attrs.sanitized
           }
         }),
         ({ text, loaded, editable, shown, options }) => {
@@ -202,9 +204,15 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
     const ticket = ++this.ticket
     try {
       await UI.load()
-      const engine = editable ? await MarkdownRenderer.loadMD() : await MarkdownRenderer.load()
+      const [engine, sanitizer] = await Promise.all([
+        editable ? MarkdownRenderer.loadMD() : MarkdownRenderer.load(),
+        options.sanitized ? MarkdownRenderer.loadSanitizer() : undefined
+      ])
       if (ticket !== this.ticket || !this.body) return
-      const { fragment, headings } = engine.render(text, options)
+      const { html, headings } = engine.render(text, options)
+      const fragment = sanitizer
+        ? sanitizer.sanitize(html, editable)
+        : this.host.ownerDocument.createRange().createContextualFragment(html)
       this.upgradeCode(fragment)
       this.labelTaskItems(fragment)
       this.resolveUrls(fragment)

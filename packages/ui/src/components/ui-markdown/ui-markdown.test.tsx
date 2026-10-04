@@ -5,6 +5,7 @@ import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
 import { MarkdownEngine } from "./MarkdownEngine"
+import { MarkdownRenderer } from "./MarkdownRenderer"
 import type { UIMarkdownHost } from "./UIMarkdownHost"
 
 import "$/ui/components/ui-markdown"
@@ -93,9 +94,9 @@ describe("<ui-markdown>", () => {
     expect(body(host).querySelector("h6")!.textContent).toBe("Six")
   })
 
-  it("sanitizes:  no scripts, no handlers, no javascript: links", async () => {
+  it("`sanitized` sanitizes:  no scripts, no handlers, no javascript: links", async () => {
     // through `content`:  a `</script>` in the text would end an inline `<script type="text/markdown">`
-    const host = await markdown(md("placeholder"))
+    const host = await markdown(md("placeholder", "sanitized"))
     const rendered = nextRender(host)
     host.content =
       '<script>window.__md = 1</script>\n\n<img src="x" onerror="window.__md = 2">\n\n[x](javascript:alert(1))'
@@ -106,9 +107,16 @@ describe("<ui-markdown>", () => {
     expect((window as { __md?: number }).__md).toBeUndefined()
   })
 
-  it("`trusted` keeps raw HTML", async () => {
-    const host = await markdown(md('<ui-label color="teal">kept</ui-label>', "trusted"))
-    expect(body(host).querySelector("ui-label")!.textContent).toBe("kept")
+  it("keeps raw HTML without `sanitized`, and never loads DOMPurify", async () => {
+    const loadSanitizer = vi.spyOn(MarkdownRenderer, "loadSanitizer")
+    try {
+      const host = await markdown(md('<ui-label color="teal" data-x="1">kept</ui-label>'))
+      expect(body(host).querySelector("ui-label")!.textContent).toBe("kept")
+      expect(body(host).querySelector("ui-label")!.getAttribute("data-x")).toBe("1")
+      expect(loadSanitizer).not.toHaveBeenCalled()
+    } finally {
+      loadSanitizer.mockRestore()
+    }
   })
 
   it("turns code blocks into highlighted <ui-code>s", async () => {
@@ -150,8 +158,8 @@ describe("<ui-markdown>", () => {
 
 describe("<ui-markdown editable>", () => {
   /** An editable `<ui-markdown>` holding `text`, on its Write tab (nothing rendered yet). */
-  async function editable(text: string): Promise<UIMarkdownHost> {
-    const host = await ElementFixture.render<UIMarkdownHost>(md(text, "editable"))
+  async function editable(text: string, attributes = ""): Promise<UIMarkdownHost> {
+    const host = await ElementFixture.render<UIMarkdownHost>(md(text, `editable ${attributes}`))
     await ElementFixture.settle(host)
     return host
   }
@@ -237,8 +245,8 @@ describe("<ui-markdown editable>", () => {
     expect(tabs(host)[0].getAttribute("aria-selected")).toBe("true")
   })
 
-  it("sanitizes spell's engine's output too, keeping ui-* elements", async () => {
-    const host = await editable("placeholder")
+  it("`sanitized` sanitizes spell's engine's output too, keeping ui-* elements", async () => {
+    const host = await editable("placeholder", "sanitized")
     await type(host, '<b onclick="window.__md = 3">bold</b>\n\n<ui-label onclick="window.__md = 4">kept</ui-label>')
     await preview(host)
     expect(body(host).querySelector("b")!.hasAttribute("onclick")).toBe(false)

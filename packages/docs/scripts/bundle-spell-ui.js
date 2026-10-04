@@ -21,8 +21,9 @@
  *   first use of a name in that chunk (`spell-ui:emoji` sets `EmojiData.chunkLoader`).  A page with no `<ui-emoji>`
  *   loads none.
  * - The source elements' ENGINES stay lazy the same way (`LAZY`):  `<ui-code>`'s highlight.js (with all its
- *   languages), `<ui-markdown>`'s marked + DOMPurify, and spell's pre-compiled highlighter are each built from UI's
- *   SOURCE into a classic script, `_assets/lazy/<name>.js`;  their `dist/` chunks are stubbed out of the bundle, and
+ *   languages), `<ui-markdown>`'s marked (and DOMPurify, only for `sanitized`), and spell's pre-compiled highlighter are
+ *   each built from UI's SOURCE into a classic script, `_assets/lazy/<name>.js`;  their `dist/` chunks are stubbed out
+ *   of the bundle, and
  *   `spell-ui:lazy` points UI's loader hooks (`CodeHighlighter.engineLoader` ...) at the scripts.  A page that shows
  *   no code loads none.
  */
@@ -171,6 +172,13 @@ const LAZY = [
     source: join(UI_DIR, "src/components/ui-markdown/MarkdownEngine.ts"),
     chunk: /(?:^|\/)MarkdownEngine-[\w-]+\.js$/,
     hook: `MarkdownRenderer.engineLoader = () => lazy("markdown-engine", "__spellMarkdownEngine")`
+  },
+  {
+    name: "markdown-sanitizer",
+    global: "__spellMarkdownSanitizer",
+    source: join(UI_DIR, "src/components/ui-markdown/MarkdownSanitizer.ts"),
+    chunk: /(?:^|\/)MarkdownSanitizer-[\w-]+\.js$/,
+    hook: `MarkdownRenderer.sanitizerLoader = () => lazy("markdown-sanitizer", "__spellMarkdownSanitizer")`
   },
   {
     name: "spell-en",

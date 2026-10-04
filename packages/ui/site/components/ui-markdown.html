@@ -70,7 +70,7 @@
               <ui-tab value="examples" label="Examples">
                 <!--
                   EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples (Types, Variations), restyled, plus the
-                  vocabulary's `breaks` and `trusted`.  File shown:  `site/examples/readme.md`.
+                  vocabulary's `breaks` and `sanitized`.  File shown:  `site/examples/readme.md`.
                 -->
                 <ui-header level="2" dividing id="types">Types</ui-header>
 
@@ -148,16 +148,16 @@
                 </ui-docs-example>
 
                 <ui-docs-example
-                  header="Trusted"
-                  description="Raw HTML is sanitized:  `trusted` keeps it as written, `<ui-*>` elements included.  ONLY for text you wrote."
+                  header="Sanitized"
+                  description="Raw HTML is kept as written, `<ui-*>` elements included.  `sanitized` runs it through DOMPurify, loaded only then:  set it for text you didn't write."
                 >
-                  <ui-markdown trusted>
+                  <ui-markdown>
                     <script type="text/markdown">
                       Version **2** adds <ui-label size="mini" color="teal">include</ui-label> and <ui-label size="mini">code</ui-label>.
                     </script>
                   </ui-markdown>
                   <ui-divider></ui-divider>
-                  <ui-markdown>
+                  <ui-markdown sanitized>
                     <script type="text/markdown">
                       Version **2** adds <ui-label size="mini" color="teal">include</ui-label> and <ui-label size="mini">code</ui-label>.
                     </script>
@@ -178,8 +178,8 @@
                     - A `<script type="text/markdown">` child: its text exactly, so `<tags>` in code stay text.
                     - The element's own text, dedented.
 
-                    The `content` property replaces either until `source` changes. Rendering (marked) and sanitizing (DOMPurify) load
-                    lazily, with the first markdown shown.
+                    The `content` property replaces either until `source` changes. Rendering (marked) loads lazily, with the first
+                    markdown shown;  sanitizing (DOMPurify) only with `sanitized`.
                   </script>
                 </ui-markdown>
 
@@ -188,7 +188,8 @@
                   <script type="text/markdown">
                     - GitHub-flavoured: tables, task lists, strikethrough, autolinks.
                     - Fenced code blocks become `<ui-code language="x" copy>`: one highlighter and one palette for the whole page.
-                    - Raw HTML is sanitized unless `trusted`.
+                    - Raw HTML is kept as written unless `sanitized`, which runs it through DOMPurify (its own lazy chunk):
+                      set it for text you didn't write.
                     - Headings get GitHub's ids, so `#anchor` links work, inside the element too (the page's own fragment
                       navigation can't see into its shadow root). `heading-offset` shifts their levels to sit under the page's
                       heading (property `headingLevelOffset`: `headingOffset` is WebKit's native `headingoffset`).

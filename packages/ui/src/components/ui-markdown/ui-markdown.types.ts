@@ -24,14 +24,14 @@ export type MarkdownOptions = {
   breaks: boolean
   /** levels to shift headings by */
   headingOffset: number
-  /** skip sanitizing */
-  trusted: boolean
+  /** sanitize the markup (`MarkdownSanitizer`, loaded on first use) */
+  sanitized: boolean
 }
 
-/** What a render came to. */
+/** What an engine's render came to. */
 export type MarkdownResult = {
-  /** the markup, sanitized unless `trusted` */
-  fragment: DocumentFragment
+  /** the markup, NOT sanitized:  the element sanitizes it when `sanitized` */
+  html: string
   headings: MarkdownHeading[]
 }
 
