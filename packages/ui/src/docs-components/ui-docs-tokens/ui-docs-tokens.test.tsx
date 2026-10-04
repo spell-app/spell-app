@@ -32,6 +32,7 @@ function tagOf(tag: string, folder: string): SiteTag {
     folder,
     mainTag: folder,
     main: tag === folder,
+    page: tag === folder,
     topics: [],
     aka: [],
     noun: tag,

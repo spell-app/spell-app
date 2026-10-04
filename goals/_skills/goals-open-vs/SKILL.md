@@ -7,7 +7,7 @@ argument-hint: "[set/][topic][/item-or-section]"
 # /goals-open-vs
 
 1. `G open-vs $ARGUMENTS`, where `G` is `scripts/goals.sh` in the `goals` skill's base directory
-   (`../goals/scripts/goals.sh` from this skill's base directory, e.g. `~/.claude/skills/goals/scripts/goals.sh`).
+   (`../goals/scripts/goals.sh` from this skill's base directory, e.g. `.claude/skills/goals/scripts/goals.sh`).
    - It starts the page server (`yarn server`) if need be, then asks THIS session's VS Code window (through the
      spell extension's window bridge) to show the page, at its item, in the doc preview:  the "Spell Docs" view in the right side bar (or Simple Browser beside the
      editor, setting `spell.docPreview.location`).

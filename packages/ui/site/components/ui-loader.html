@@ -9,73 +9,60 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Loader">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-loader.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-loader%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/elements/loader.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Loader
+            <ui-header>A loader alerts a user to wait for an activity to complete.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-loader" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-loader.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-loader%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/elements/loader.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Loader
-                <ui-header>A loader alerts a user to wait for an activity to complete.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-loader" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Loader"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's loader page, section by section, in its order (Types, States, Variations).
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <!-- GAP I43:  an active <ui-dimmer> neither shows nor inverts its <ui-loader>:  every loader in a dimmer says `active` (and `inverted` in a dark one). -->
-
-                <ui-docs-example header="Loader">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's loader page, section by section, in its order (Types, States, Variations).
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <!-- GAP I43:  an active <ui-dimmer> neither shows nor inverts its <ui-loader>:  every loader in a dimmer says `active` (and `inverted` in a dark one). -->
+              <ui-section id="examples-types-loader" header="Loader" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A loader.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Loaders are hidden unless <code>active</code> or inside an active
@@ -88,11 +75,10 @@
                     </ui-dimmer>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Text Loader"
-                  description="A loader can contain text:  add `text` and put the words inside."
-                >
+              <ui-section id="examples-types-text-loader" header="Text Loader" sticky collapsible dividing>
+                <ui-docs-example description="A loader can contain text:  add `text` and put the words inside.">
                   <ui-segment>
                     <ui-dimmer active>
                       <ui-loader active inverted text>Loading</ui-loader>
@@ -108,13 +94,12 @@
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
-                <ui-docs-example
-                  header="Indeterminate"
-                  description="A loader can show it's unsure of how long a task will take."
-                >
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-indeterminate" header="Indeterminate" sticky collapsible dividing>
+                <ui-docs-example description="A loader can show it's unsure of how long a task will take.">
                   <ui-segment>
                     <ui-dimmer active>
                       <ui-loader active inverted indeterminate text>Preparing Files</ui-loader>
@@ -122,8 +107,10 @@
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Active">
+              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A loader can be active or visible.</p>
                   <ui-message slot="description" state="info" size="small"
                     >An active loader may not be clearly visible without a <code>&lt;ui-dimmer&gt;</code>.</ui-message
@@ -133,37 +120,43 @@
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Disabled"
-                  description="A loader can be disabled or hidden, even while `active`."
-                >
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="A loader can be disabled or hidden, even while `active`.">
                   <ui-segment>
                     <ui-loader active disabled></ui-loader>
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example header="Inline" description="Loaders can appear inline with content.">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-inline" header="Inline" sticky collapsible dividing>
+                <ui-docs-example description="Loaders can appear inline with content.">
                   <ui-loader active inline></ui-loader>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Inline Center" description="Loaders can appear inline centered with content.">
+              <ui-section id="examples-variations-inline-center" header="Inline Center" sticky collapsible dividing>
+                <ui-docs-example description="Loaders can appear inline centered with content.">
                   <ui-loader active centered inline></ui-loader>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-speed" header="Speed" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Speed"
                   description='Loaders can appear slow, normal or fast:  `speed="slow"`, `speed="fast"`.'
                 >
                   <ui-loader active inline speed="slow"></ui-loader>
                   <ui-loader active inline></ui-loader>
                   <ui-loader active inline speed="fast"></ui-loader>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Colors" description="Loaders can be different colors.">
+              <ui-section id="examples-variations-colors" header="Colors" sticky collapsible dividing>
+                <ui-docs-example description="Loaders can be different colors.">
                   <ui-loader active inline color="primary"></ui-loader>
                   <ui-loader active inline color="secondary"></ui-loader>
                   <ui-loader active inline color="red"></ui-loader>
@@ -180,8 +173,10 @@
                   <ui-loader active inline color="grey"></ui-loader>
                   <ui-loader active inline color="black"></ui-loader>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Size" description="Loaders can have different sizes.">
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="Loaders can have different sizes.">
                   <ui-segment>
                     <ui-dimmer active>
                       <ui-loader active inverted size="mini" text>Loading</ui-loader>
@@ -240,8 +235,10 @@
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Inverted" description="Loaders can have their colors inverted.">
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="Loaders can have their colors inverted.">
                   <ui-segment inverted padded="very">
                     <ui-loader active inverted></ui-loader>
                   </ui-segment>
@@ -279,9 +276,10 @@
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-styles" header="Styles" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Styles"
                   description="Loaders can also appear in `double` or `elastic` animation style.  Can be combined with any color or speed."
                 >
                   <ui-segment padded="very">
@@ -291,112 +289,115 @@
                     <ui-loader active elastic color="blue"></ui-loader>
                   </ui-segment>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  showing and hiding a loader, where it sits, accessibility. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  showing and hiding a loader, where it sits, accessibility. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A loader shows only while it is `active`, so you can leave it in place and toggle the attribute; `disabled` hides
+                  it again.
+
+                  - Without `inline` it is centred over the nearest ancestor with `position: relative` (or any other positioning),
+                    across component boundaries, so it covers that box whatever the markup in between. A `<ui-segment>` is
+                    positioned.
+                  - Inside an active `<ui-dimmer>` it shows by itself, in the dimmer's colours.
+                  - With `inline` it sits in the line of text instead; add `centered` for a line of its own.
+                  - `text` shows the slotted words below the spinner.
+                  - To show that a whole block of content is loading, a [segment](ui-segment.html) with `loading` already draws its
+                    own spinner and announces it.
+                  - Loaders have no events.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const loader = document.querySelector("ui-loader")
+                  loader.toggleAttribute("active", true)
+                  await saveChanges()
+                  loader.toggleAttribute("active", false)
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A loader takes no focus and has no keys: it's a status, not a control.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The loader is a polite live region (`role="status"`): screen readers announce it without interrupting.
+                  - Its name is its text, or "Loading…" (translatable) when it has none. The spinner itself is decorative.
+                  - Mark the region that is loading with `aria-busy="true"` while the loader is active, so its half-loaded content
+                    isn't read out.
+                  - With reduced motion turned on, the spinner shows a still arc; the status and its text still carry the message.
+                  - Without JavaScript the native fallback renders the same loader with the status role on it, named "Loading…" in
+                    English when empty; that name doesn't follow later changes to the text.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-loader"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-loader-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
+                  the inner box through `::part(loader)`. They inherit into the shadow root, where the sheet reads each through a
+                  private alias, so nothing inside blocks them.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  /* every loader on the page */
+                  :root {
+                    --ui-loader-speed: 0.8s;
+                  }
+                  /* one kind, on its box */
+                  ui-loader.thick::part(loader) {
+                    --ui-loader-line-width: 0.3em;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
                 <ui-markdown>
                   <script type="text/markdown">
-                    A loader shows only while it is `active`, so you can leave it in place and toggle the attribute; `disabled` hides
-                    it again.
-
-                    - Without `inline` it is centred over the nearest ancestor with `position: relative` (or any other positioning),
-                      across component boundaries, so it covers that box whatever the markup in between. A `<ui-segment>` is
-                      positioned.
-                    - Inside an active `<ui-dimmer>` it shows by itself, in the dimmer's colours.
-                    - With `inline` it sits in the line of text instead; add `centered` for a line of its own.
-                    - `text` shows the slotted words below the spinner.
-                    - To show that a whole block of content is loading, a [segment](ui-segment.html) with `loading` already draws its
-                      own spinner and announces it.
-                    - Loaders have no events.
+                    `--ui-loader-slow` and `--ui-loader-fast` are ratios of `--ui-loader-speed`, so one change paces every style,
+                    `indeterminate` included. Never set the `--_ui-loader-*` / `--_loader-*` names: they're the sheet's private
+                    plumbing.
                   </script>
                 </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const loader = document.querySelector("ui-loader")
-                    loader.toggleAttribute("active", true)
-                    await saveChanges()
-                    loader.toggleAttribute("active", false)
-                  </script>
-                </ui-code>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-loader" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A loader takes no focus and has no keys: it's a status, not a control.
-                  </script>
-                </ui-markdown>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - The loader is a polite live region (`role="status"`): screen readers announce it without interrupting.
-                    - Its name is its text, or "Loading…" (translatable) when it has none. The spinner itself is decorative.
-                    - Mark the region that is loading with `aria-busy="true"` while the loader is active, so its half-loaded content
-                      isn't read out.
-                    - With reduced motion turned on, the spinner shows a still arc; the status and its text still carry the message.
-                    - Without JavaScript the native fallback renders the same loader with the status role on it, named "Loading…" in
-                      English when empty; that name doesn't follow later changes to the text.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-loader"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-loader-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
-                    the inner box through `::part(loader)`. They inherit into the shadow root, where the sheet reads each through a
-                    private alias, so nothing inside blocks them.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    /* every loader on the page */
-                    :root {
-                      --ui-loader-speed: 0.8s;
-                    }
-                    /* one kind, on its box */
-                    ui-loader.thick::part(loader) {
-                      --ui-loader-line-width: 0.3em;
-                    }
-                  </script>
-                </ui-code>
-                <ui-message state="info" size="small">
-                  <ui-markdown>
-                    <script type="text/markdown">
-                      `--ui-loader-slow` and `--ui-loader-fast` are ratios of `--ui-loader-speed`, so one change paces every style,
-                      `indeterminate` included. Never set the `--_ui-loader-*` / `--_loader-*` names: they're the sheet's private
-                      plumbing.
-                    </script>
-                  </ui-markdown>
-                </ui-message>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-loader" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                    theme to the whole site.
-
-                    Themes that restyle loaders: Duo and Pulsar.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+                  Themes that restyle loaders: Duo and Pulsar.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

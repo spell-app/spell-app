@@ -9,75 +9,63 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Search">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-search.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-search%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/search.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Search
+            <ui-header>A search module allows a user to query for results from a selection of data.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-search" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-search.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-search%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/modules/search.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Search
-                <ui-header>A search module allows a user to query for results from a selection of data.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-search" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Search"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's search page, its Definition tab section by section (Types, States, Variations), then its
-                  Examples tab (More Examples).  `source` is a JS PROPERTY;  plain HTML may also write it as a JSON attribute
-                  (single-quoted), as these examples do, so they need no script.  Fomantic's remote GitHub searches run on a local
-                  `source` here:  the site never calls a third-party API.  Type in a search to see its results.
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <!-- GAP I37:  Fomantic's bare prompt (no icon);  ours always draws the search icon. -->
-                <ui-docs-example header="Standard" description="A search can display a set of results.">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's search page, its Definition tab section by section (Types, States, Variations), then its
+              Examples tab (More Examples).  `source` is a JS PROPERTY;  plain HTML may also write it as a JSON attribute
+              (single-quoted), as these examples do, so they need no script.  Fomantic's remote GitHub searches run on a local
+              `source` here:  the site never calls a third-party API.  Type in a search to see its results.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <!-- GAP I37:  Fomantic's bare prompt (no icon);  ours always draws the search icon. -->
+              <ui-section id="examples-types-standard" header="Standard" sticky collapsible dividing>
+                <ui-docs-example description="A search can display a set of results.">
                   <ui-search
                     placeholder="Github Repositories..."
                     source='[{"title":"Fomantic-UI","description":"Fomantic empowers designers and developers by creating a shared vocabulary for UI."},{"title":"Fomantic-UI-Docs","description":"Docs for Fomantic-UI"},{"title":"Fomantic-UI-CSS","description":"CSS only distribution"},{"title":"Fomantic-UI-LESS","description":"LESS only distribution"},{"title":"create-fomantic-icons","description":"Create Fomantic icons from Font Awesome"}]'
@@ -93,9 +81,11 @@
                     source='[{"title":"Fomantic-UI"},{"title":"Fomantic-UI-Docs"},{"title":"Fomantic-UI-CSS"},{"title":"Fomantic-UI-LESS"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I38:  no `clearable` remove icon;  Escape clears the text instead. -->
-                <ui-docs-example header="Clearable">
+              <!-- GAP I38:  no `clearable` remove icon;  Escape clears the text instead. -->
+              <ui-section id="examples-types-clearable" header="Clearable" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A search can show a remove icon to be able to cancel a previous search term.</p>
                   <ui-message slot="description" size="small"
                     >Not yet: there is no remove icon. Escape closes the results, and a second Escape clears the
@@ -109,9 +99,10 @@
                     <ui-icon slot="icon" name="github"></ui-icon>
                   </ui-search>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-category" header="Category" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Category"
                   description="A search can display results ordered by categories:  `category`, with each result's `category`."
                 >
                   <ui-search
@@ -120,9 +111,16 @@
                     source='[{"category":"Designers","title":"Elliot Fu","description":"Film buff"},{"category":"Designers","title":"Helen Troy","description":"Wizard"},{"category":"Developers","title":"Jenny Hess","description":"Student"},{"category":"Developers","title":"Matt Giampietro","description":"Coach"},{"category":"Writers","title":"Stevie Feliciano","description":"Library"},{"category":"Writers","title":"Christian Rocha","description":"Mixologist"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-types-horizontal-category"
+                header="Horizontal Category"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Horizontal Category"
                   description="You can also display horizontal category names on top of each results instead:  `horizontal`."
                 >
                   <ui-search
@@ -132,8 +130,10 @@
                     source='[{"category":"Designers","title":"Elliot Fu","description":"Film buff"},{"category":"Designers","title":"Helen Troy","description":"Wizard"},{"category":"Developers","title":"Jenny Hess","description":"Student"},{"category":"Developers","title":"Matt Giampietro","description":"Coach"},{"category":"Writers","title":"Stevie Feliciano","description":"Library"},{"category":"Writers","title":"Christian Rocha","description":"Mixologist"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Local Search">
+              <ui-section id="examples-types-local-search" header="Local Search" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A search can look for results inside a static local source.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Results that begin with the query come first, then content that matches the query anywhere inside.
@@ -145,9 +145,16 @@
                     source='[{"title":"Andorra"},{"title":"United Arab Emirates"},{"title":"Afghanistan"},{"title":"Antigua"},{"title":"Anguilla"},{"title":"Albania"},{"title":"Armenia"},{"title":"Netherlands Antilles"},{"title":"Angola"},{"title":"Argentina"},{"title":"American Samoa"},{"title":"Austria"},{"title":"Australia"},{"title":"Aruba"},{"title":"Aland Islands"},{"title":"Azerbaijan"},{"title":"Bosnia"},{"title":"Barbados"},{"title":"Bangladesh"},{"title":"Belgium"},{"title":"Burkina Faso"},{"title":"Bulgaria"},{"title":"Bahrain"},{"title":"Burundi"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-types-local-category-search"
+                header="Local Category Search"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Local Category Search"
                   description="A search can look for category results inside a static local source:  `category`, with each result's `category`."
                 >
                   <ui-search
@@ -156,9 +163,16 @@
                     source='[{"category":"South America","title":"Brazil"},{"category":"South America","title":"Peru"},{"category":"North America","title":"Canada"},{"category":"Asia","title":"South Korea"},{"category":"Asia","title":"Japan"},{"category":"Asia","title":"China"},{"category":"Europe","title":"Denmark"},{"category":"Europe","title":"England"},{"category":"Europe","title":"France"},{"category":"Europe","title":"Germany"},{"category":"Africa","title":"Ethiopia"},{"category":"Africa","title":"Nigeria"},{"category":"Africa","title":"Zimbabwe"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-types-search-ignoring-diacritics"
+                header="Search ignoring Diacritics"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Search ignoring Diacritics"
                   description="A search field can allow a user to ignore all diacritics while searching:  `ignore-diacritics`, so `a` matches `á`."
                 >
                   <ui-search
@@ -168,9 +182,16 @@
                     source='[{"title":"André"},{"title":"Bokmål"},{"title":"café"},{"title":"cafetería"},{"title":"château"},{"title":"décolleté"},{"title":"Élysée"},{"title":"Fräulein"},{"title":"garçon"},{"title":"háček"},{"title":"inrō"},{"title":"jūjutsu"},{"title":"kroužek"},{"title":"La Niña"},{"title":"Māori"},{"title":"négligée"},{"title":"pączki"},{"title":"Québec"},{"title":"ragoût"},{"title":"Škoda"},{"title":"takahē"},{"title":"über"},{"title":"voilà"},{"title":"whekī"},{"title":"c Zoë"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-types-highlight-search-matches"
+                header="Highlight search matches"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Highlight search matches"
                   description="A search field can highlight matching strings inside the search results:  `highlight-matches`."
                 >
                   <ui-search
@@ -179,9 +200,16 @@
                     source='[{"title":"Andorra"},{"title":"United Arab Emirates"},{"title":"Afghanistan"},{"title":"Antigua"},{"title":"Anguilla"},{"title":"Albania"},{"title":"Armenia"},{"title":"Netherlands Antilles"},{"title":"Angola"},{"title":"Argentina"},{"title":"American Samoa"},{"title":"Austria"},{"title":"Australia"},{"title":"Aruba"},{"title":"Aland Islands"},{"title":"Azerbaijan"},{"title":"Bosnia"},{"title":"Barbados"},{"title":"Bangladesh"},{"title":"Belgium"},{"title":"Burkina Faso"},{"title":"Bulgaria"},{"title":"Bahrain"},{"title":"Burundi"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-types-descriptions-prices-and-links"
+                header="Descriptions, prices and links"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Descriptions, prices and links"
                   description="A result can carry a `description`, a `price`, an `image` and a `url`:  choosing a result with a `url` follows it."
                 >
                   <ui-search
@@ -190,27 +218,31 @@
                     source='[{"title":"Apple","description":"Crisp and sweet"},{"title":"Apricot","description":"Soft, from Valencia","price":"$2.00"},{"title":"Grape","url":"#grape"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
-                <!-- GAP I39:  Fomantic's second and third rows (`blue loading double`, `slow elastic pink loading`) have no attribute value. -->
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <!-- GAP I39:  Fomantic's second and third rows (`blue loading double`, `slow elastic pink loading`) have no attribute value. -->
+              <ui-section id="examples-states-loading" header="Loading" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Loading"
                   description="A search can show a loading indicator.  It also spins while a remote query runs."
                 >
                   <ui-search loading placeholder="Search..."></ui-search>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-disabled" header="Disabled" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Disabled"
                   description="A search can show it is currently unable to be interacted with:  it's dimmed and left out of the form."
                 >
                   <ui-search disabled category placeholder="Search animals..."></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Scrolling">
+              <ui-section id="examples-variations-scrolling" header="Scrolling" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A search can have its results scroll.</p>
                   <ui-message slot="description" state="info" size="small"
                     >The scroll height depends on the viewport: 4 results' height, 6 / 8 / 12 from 768px / 992px /
@@ -227,8 +259,10 @@
                     source='[{"title":"Andorra"},{"title":"United Arab Emirates"},{"title":"Afghanistan"},{"title":"Antigua"},{"title":"Anguilla"},{"title":"Albania"},{"title":"Armenia"},{"title":"Netherlands Antilles"},{"title":"Angola"},{"title":"Argentina"},{"title":"American Samoa"},{"title":"Austria"},{"title":"Australia"},{"title":"Aruba"},{"title":"Aland Islands"},{"title":"Azerbaijan"},{"title":"Bosnia"},{"title":"Barbados"},{"title":"Bangladesh"},{"title":"Belgium"},{"title":"Burkina Faso"},{"title":"Bulgaria"},{"title":"Bahrain"},{"title":"Burundi"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Height">
+              <ui-section id="examples-variations-height" header="Height" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A search can be <code>very-short</code> (0.75x of the default height) so that more results can be
                     glanced, or <code>short</code>, <code>long</code> (2x) and <code>very-long</code>.
@@ -252,11 +286,10 @@
                     source='[{"title":"Andorra"},{"title":"United Arab Emirates"},{"title":"Afghanistan"},{"title":"Antigua"},{"title":"Anguilla"},{"title":"Albania"},{"title":"Armenia"},{"title":"Netherlands Antilles"},{"title":"Angola"},{"title":"Argentina"},{"title":"American Samoa"},{"title":"Austria"},{"title":"Australia"},{"title":"Aruba"},{"title":"Aland Islands"},{"title":"Azerbaijan"},{"title":"Bosnia"},{"title":"Barbados"},{"title":"Bangladesh"},{"title":"Belgium"},{"title":"Burkina Faso"},{"title":"Bulgaria"},{"title":"Bahrain"},{"title":"Burundi"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Fluid"
-                  description="A search can have its results take up the width of its container."
-                >
+              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+                <ui-docs-example description="A search can have its results take up the width of its container.">
                   <ui-search
                     fluid
                     category
@@ -264,9 +297,10 @@
                     source='[{"category":"Mammals","title":"Cat"},{"category":"Mammals","title":"Dog"},{"category":"Birds","title":"Crow"},{"category":"Birds","title":"Owl"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-aligned" header="Aligned" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Aligned"
                   description='A search can have its results aligned to its left or right container edge:  `aligned="right"` extends them to the left.'
                 >
                   <ui-search
@@ -276,9 +310,11 @@
                     source='[{"category":"Mammals","title":"Cat","description":"Aligned to the right edge"},{"category":"Mammals","title":"Dog"},{"category":"Birds","title":"Crow"},{"category":"Birds","title":"Owl"}]'
                   ></ui-search>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I37:  Fomantic's sizes are bare prompts;  ours keep the search icon. -->
-                <ui-docs-example header="Size" description="A search can vary in size.">
+              <!-- GAP I37:  Fomantic's sizes are bare prompts;  ours keep the search icon. -->
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A search can vary in size.">
                   <ui-search size="mini" placeholder="Mini search..."></ui-search>
                   <ui-search size="tiny" placeholder="Tiny search..."></ui-search>
                   <ui-search size="small" placeholder="Small search..."></ui-search>
@@ -287,11 +323,19 @@
                   <ui-search size="huge" placeholder="Huge search..."></ui-search>
                   <ui-search size="massive" placeholder="Massive search..."></ui-search>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="more-examples">More Examples</ui-header>
-
-                <!-- GAP I37, I40:  no left icon input;  no response field mapping, so the GitHub search is a local source. -->
-                <ui-docs-example header="Using Different Response Fields">
+            <ui-section id="examples-more-examples" header="More Examples" sticky collapsible dividing>
+              <!-- GAP I37, I40:  no left icon input;  no response field mapping, so the GitHub search is a local source. -->
+              <ui-section
+                id="examples-more-examples-using-different-response-fields"
+                header="Using Different Response Fields"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     Fomantic maps a server's answer to its result fields with <code>fields</code>. A remote
                     <code>&lt;ui-search url&gt;</code> expects Fomantic's own answer shape (<code
@@ -308,9 +352,17 @@
                     <ui-icon slot="icon" name="github"></ui-icon>
                   </ui-search>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I40:  no `onResponse` hook to regroup a third-party answer. -->
-                <ui-docs-example header="Using API Settings">
+              <!-- GAP I40:  no `onResponse` hook to regroup a third-party answer. -->
+              <ui-section
+                id="examples-more-examples-using-api-settings"
+                header="Using API Settings"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     Fomantic's <code>apiSettings.onResponse</code> regroups GitHub's answer by language. Ours: a
                     <code>category</code> search over results that carry a <code>category</code>, here a local source.
@@ -332,200 +384,207 @@
                     <ui-icon slot="icon" name="github"></ui-icon>
                   </ui-search>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  how to use it (results, events, forms), keyboard, accessibility, framework snippets. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (results, events, forms), keyboard, accessibility, framework snippets. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write `<ui-search>` and give it results. Name it with `aria-label` or a `<label for>`: the placeholder alone is
+                  not a name. Results come from one of two places:
+
+                  - the `source` PROPERTY, searched in the page. Plain HTML may write it as a JSON attribute (single-quoted), as
+                    the examples do.
+                    - `search-fields` picks the fields searched (`title description` by default).
+                    - `full-text-search` says how loosely they match: a word START always matches; then `exact` anywhere (the
+                      default), `fuzzy` in order, `prefix` nothing more, `some` any word, `all` every word.
+                    - `ignore-diacritics` lets `a` match `á`; `max-results` caps the list (`0`: no limit).
+                  - or a server: `url` is a template with `{query}` (`/api/search?q={query}`). Typing waits `search-delay` ms, a
+                    newer query cancels an older one, and answers are cached per query. The answer is Fomantic's shape:
+                    `{ results: [...] }`, or `{ results: { key: { name, results: [...] } } }` for a `category` search.
+
+                  A result is Fomantic's `{ title, description, image, price, category, url }`. `min-characters` (default 1) is how
+                  much to type before a search runs.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const search = document.querySelector("ui-search")
+                  search.source = [
+                    { title: "France", description: "EU", url: "/countries/fr" },
+                    { title: "Ghana", description: "AU", url: "/countries/gh" }
+                  ]
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-search` -- `{ query }`: the user typed a query at least `min-characters` long; it's about to run.
+                  - `ui-results` -- `{ query, results }`: a remote query answered.
+                  - `ui-select` -- `{ result }`, cancelable: a result is about to be chosen (Fomantic's `onSelect`).
+                    `preventDefault()` keeps the text, the results and the page.
+                  - `ui-change` -- `{ value }`: the text was committed: a result chosen, the input cleared with Escape, or left
+                    after an edit.
+                  - `ui-open` / `ui-close` -- `{ open }`, cancelable: the results are about to show / hide.
+
+                  Choosing a result fires `ui-select` first; then its title goes into the input (`ui-change`), the results close,
+                  and a result with a `url` is followed.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  search.addEventListener("ui-select", (event) => {
+                    event.preventDefault() // stay on the page
+                    console.log(event.detail.result.title)
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A search is a form-associated element, like Fomantic's real `<input class="prompt">`.
+
+                  - With a `name`, it submits the input's text; `value` is that text (the query, or a chosen result's title).
+                  - `required` means the input can't be empty.
+                  - `disabled` dims it and leaves it out of the form.
+                  - Enter with no result highlighted submits the form.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-security" header="Security" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Fomantic's Security tab warns that results from a foreign API may carry HTML. Ours render every field as TEXT
+                  (`highlight-matches` wraps the query in a real `<mark>`, never a string of HTML), so a hostile title or
+                  description can't inject markup. A result's `url` is still followed when chosen: check it if the API isn't yours.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Focus stays in the text field; the arrows move a highlight through the results.
+
+                  | Key                   | Action                                                                |
+                  | --------------------- | --------------------------------------------------------------------- |
+                  | Arrow Down / Arrow Up | Move the highlight through the results (stops at the ends)            |
+                  | Enter                 | Choose the highlighted result; with none highlighted, submit the form |
+                  | Escape                | Close the results; when they're already closed, clear the text        |
+                  | Tab                   | Leave the search                                                      |
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The text field is an ARIA 1.2 combobox with a list of results (the WAI-ARIA authoring practices pattern).
+
+                  - `role="combobox"` with `aria-autocomplete="list"`, `aria-expanded`, `aria-controls` and
+                    `aria-activedescendant` pointing at the highlighted result; focus stays in the text field.
+                  - The results are a `listbox` of `option`s; a `category` search groups them in named `group`s.
+                  - A hidden status message announces how many results there are, or the no-results / error message.
+                  - Name the search with `aria-label` on the host or a `<label for>`; the placeholder alone is not a name.
+                  - If the element can't render, its native fallback is a text input with the browser's suggestions (a
+                    `<datalist>`) from `source`: titles only, no remote results, no events.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set `source` as a property, not an attribute, and listen for `ui-select` or `ui-change`.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-search name="country" source={countries} onui-select={(event) => setCountry(event.detail.result)} />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-search name="country" :source="countries" @ui-select="(event) => (country = event.detail.result)" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref;  `prop:` for the property
+                  <ui-search
+                    name="country"
+                    prop:source={countries}
+                    ref={(el) => el.addEventListener("ui-select", (event) => setCountry(event.detail.result))}
+                  />
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-search"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-search-*` tokens: set one on the element, on any ancestor (`:root` included), or on
+                  one piece through `::part(input)` / `::part(results)`. They inherit into the shadow root, where the sheet reads
+                  each through a private alias, so nothing inside blocks them. `prompt` is the text field itself.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  /* every search on the page:  square-ish prompts */
+                  :root {
+                    --ui-search-prompt-radius: var(--ui-radius);
+                  }
+                  /* one search's results, wider */
+                  ui-search.site-search::part(results) {
+                    --ui-search-results-width: 24em;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
                 <ui-markdown>
                   <script type="text/markdown">
-                    Write `<ui-search>` and give it results. Name it with `aria-label` or a `<label for>`: the placeholder alone is
-                    not a name. Results come from one of two places:
-
-                    - the `source` PROPERTY, searched in the page. Plain HTML may write it as a JSON attribute (single-quoted), as
-                      the examples do.
-                      - `search-fields` picks the fields searched (`title description` by default).
-                      - `full-text-search` says how loosely they match: a word START always matches; then `exact` anywhere (the
-                        default), `fuzzy` in order, `prefix` nothing more, `some` any word, `all` every word.
-                      - `ignore-diacritics` lets `a` match `á`; `max-results` caps the list (`0`: no limit).
-                    - or a server: `url` is a template with `{query}` (`/api/search?q={query}`). Typing waits `search-delay` ms, a
-                      newer query cancels an older one, and answers are cached per query. The answer is Fomantic's shape:
-                      `{ results: [...] }`, or `{ results: { key: { name, results: [...] } } }` for a `category` search.
-
-                    A result is Fomantic's `{ title, description, image, price, category, url }`. `min-characters` (default 1) is how
-                    much to type before a search runs.
+                    `--ui-search-results-max-height` replaces the viewport-based height of `scrolling` results at every width;
+                    `very-short`, `long` and `very-long` scale whatever it is (0.75x, 2x, 3x). `category` results use the
+                    `--ui-search-category-*` tokens. Never set the `--_ui-*` / `--_search-*` names: they're the sheet's private
+                    plumbing.
                   </script>
                 </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const search = document.querySelector("ui-search")
-                    search.source = [
-                      { title: "France", description: "EU", url: "/countries/fr" },
-                      { title: "Ghana", description: "AU", url: "/countries/gh" }
-                    ]
-                  </script>
-                </ui-code>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-search" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - `ui-search` -- `{ query }`: the user typed a query at least `min-characters` long; it's about to run.
-                    - `ui-results` -- `{ query, results }`: a remote query answered.
-                    - `ui-select` -- `{ result }`, cancelable: a result is about to be chosen (Fomantic's `onSelect`).
-                      `preventDefault()` keeps the text, the results and the page.
-                    - `ui-change` -- `{ value }`: the text was committed: a result chosen, the input cleared with Escape, or left
-                      after an edit.
-                    - `ui-open` / `ui-close` -- `{ open }`, cancelable: the results are about to show / hide.
-
-                    Choosing a result fires `ui-select` first; then its title goes into the input (`ui-change`), the results close,
-                    and a result with a `url` is followed.
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    search.addEventListener("ui-select", (event) => {
-                      event.preventDefault() // stay on the page
-                      console.log(event.detail.result.title)
-                    })
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="forms">Forms</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A search is a form-associated element, like Fomantic's real `<input class="prompt">`.
-
-                    - With a `name`, it submits the input's text; `value` is that text (the query, or a chosen result's title).
-                    - `required` means the input can't be empty.
-                    - `disabled` dims it and leaves it out of the form.
-                    - Enter with no result highlighted submits the form.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="security">Security</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Fomantic's Security tab warns that results from a foreign API may carry HTML. Ours render every field as TEXT
-                    (`highlight-matches` wraps the query in a real `<mark>`, never a string of HTML), so a hostile title or
-                    description can't inject markup. A result's `url` is still followed when chosen: check it if the API isn't yours.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Focus stays in the text field; the arrows move a highlight through the results.
-
-                    | Key                   | Action                                                                |
-                    | --------------------- | --------------------------------------------------------------------- |
-                    | Arrow Down / Arrow Up | Move the highlight through the results (stops at the ends)            |
-                    | Enter                 | Choose the highlighted result; with none highlighted, submit the form |
-                    | Escape                | Close the results; when they're already closed, clear the text        |
-                    | Tab                   | Leave the search                                                      |
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The text field is an ARIA 1.2 combobox with a list of results (the WAI-ARIA authoring practices pattern).
-
-                    - `role="combobox"` with `aria-autocomplete="list"`, `aria-expanded`, `aria-controls` and
-                      `aria-activedescendant` pointing at the highlighted result; focus stays in the text field.
-                    - The results are a `listbox` of `option`s; a `category` search groups them in named `group`s.
-                    - A hidden status message announces how many results there are, or the no-results / error message.
-                    - Name the search with `aria-label` on the host or a `<label for>`; the placeholder alone is not a name.
-                    - If the element can't render, its native fallback is a text input with the browser's suggestions (a
-                      `<datalist>`) from `source`: titles only, no remote results, no events.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Set `source` as a property, not an attribute, and listen for `ui-select` or `ui-change`.
-                  </script>
-                </ui-markdown>
-                <ui-header level="4" id="framework-react">React 19</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    <ui-search name="country" source={countries} onui-select={(event) => setCountry(event.detail.result)} />
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                    <ui-search name="country" :source="countries" @ui-select="(event) => (country = event.detail.result)" />
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    // no `on:` namespace:  listen through a ref;  `prop:` for the property
-                    <ui-search
-                      name="country"
-                      prop:source={countries}
-                      ref={(el) => el.addEventListener("ui-select", (event) => setCountry(event.detail.result))}
-                    />
-                  </script>
-                </ui-code>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-search"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-search-*` tokens: set one on the element, on any ancestor (`:root` included), or on
-                    one piece through `::part(input)` / `::part(results)`. They inherit into the shadow root, where the sheet reads
-                    each through a private alias, so nothing inside blocks them. `prompt` is the text field itself.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    /* every search on the page:  square-ish prompts */
-                    :root {
-                      --ui-search-prompt-radius: var(--ui-radius);
-                    }
-                    /* one search's results, wider */
-                    ui-search.site-search::part(results) {
-                      --ui-search-results-width: 24em;
-                    }
-                  </script>
-                </ui-code>
-                <ui-message state="info" size="small">
-                  <ui-markdown>
-                    <script type="text/markdown">
-                      `--ui-search-results-max-height` replaces the viewport-based height of `scrolling` results at every width;
-                      `very-short`, `long` and `very-long` scale whatever it is (0.75x, 2x, 3x). `category` results use the
-                      `--ui-search-category-*` tokens. Never set the `--_ui-*` / `--_search-*` names: they're the sheet's private
-                      plumbing.
-                    </script>
-                  </ui-markdown>
-                </ui-message>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-search" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    No Fomantic theme restyles the search itself (Fomantic's own search page has no theme list). The site-wide themes
-                    in the header (Material, GitHub, Dark ...) still change the colours, radii and fonts it inherits.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles the search itself (Fomantic's own search page has no theme list). The site-wide themes
+                  in the header (Material, GitHub, Dark ...) still change the colours, radii and fonts it inherits.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

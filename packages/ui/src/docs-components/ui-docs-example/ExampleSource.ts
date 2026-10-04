@@ -1,3 +1,5 @@
+import { ORIGINAL_PREFIX } from "$/ui/components/ui-include/ui-include.types"
+
 import { HtmlFormatter } from "./HtmlFormatter"
 import { EXAMPLE_TAG, OWN_SLOTS, RUNTIME_ATTRIBUTES, SNAPSHOTS_KEY, type SnapshotGlobal } from "./ui-docs-example.types"
 
@@ -13,7 +15,8 @@ import { EXAMPLE_TAG, OWN_SLOTS, RUNTIME_ATTRIBUTES, SNAPSHOTS_KEY, type Snapsho
  *   2. a SNAPSHOT:  the host's `innerHTML` taken by `snapshot()` before any family loaded -- the site bundle's entry
  *      (`site/_src/site.ts`) calls it first thing, so every example parsed with the page is read pristine.
  *   3. the host's `innerHTML` NOW, minus `RUNTIME_ATTRIBUTES`:  examples added after the entry ran (a
- *      `<ui-include>`d part, a test, an app).
+ *      `<ui-include>`d part, a test, an app) -- unless `keep()` saw them first (the site's router keeps every
+ *      page it swaps in).
  * - Then:  children of the example's own named slots (`description`) are dropped, and `HtmlFormatter` re-indents.
  * - Limits:
  *   - (3) can't tell an author's `tabindex` from a roving one, and keeps anything else a family wrote into its light
@@ -41,6 +44,38 @@ export class ExampleSource {
       count++
     }
     return count
+  }
+
+  /**
+   * Keep the markup of every `<ui-docs-example>` in `root` -- a fragment about to go into the page (a
+   * `<ui-include>`'s `ui-insert`) -- defined or not;  returns how many.
+   * - Its elements may be upgraded already (imported into a document whose families are defined), but not yet
+   *   connected, so their light DOM is still as authored.
+   * - URLs the include rewrote go back to what the page wrote (`data-ui-include-*`):  the code shows the source.
+   * - SIDE EFFECT:  fills the page-wide snapshot map.
+   */
+  static keep(root: ParentNode): number {
+    let count = 0
+    for (const host of root.querySelectorAll(EXAMPLE_TAG)) {
+      if (ExampleSource.snapshots.has(host)) continue
+      ExampleSource.snapshots.set(host, ExampleSource.authored(host))
+      count++
+    }
+    return count
+  }
+
+  /** `host`'s inner markup with every URL an include rewrote put back as written. */
+  private static authored(host: Element): string {
+    const copy = document.createElement("template")
+    copy.innerHTML = host.innerHTML
+    for (const element of copy.content.querySelectorAll("*")) {
+      for (const attribute of [...element.attributes]) {
+        if (!attribute.name.startsWith(ORIGINAL_PREFIX)) continue
+        element.setAttribute(attribute.name.slice(ORIGINAL_PREFIX.length), attribute.value)
+        element.removeAttribute(attribute.name)
+      }
+    }
+    return copy.innerHTML
   }
 
   /** `host`'s top-level `<template>` child, if it has one:  the example's markup, kept inert. */

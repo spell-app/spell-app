@@ -13,16 +13,19 @@
  *   - no active contents link after scrolling
  *   - a `ui-accordion.spell-code` without a `<pre>`
  *   - a contents drawer that doesn't open at phone width
+ * - loads the page from `file://`, or from the page server when its `<body>` says `data-spell-needs-server`
  * - reports, never fails on:  icons with no `<svg>` drawn in their shadow tree (no reliable "done loading" signal)
  * - prints a JSON summary on stdout (last thing written), problems on stderr
  * - Look at the screenshots too:  the checks can't see overlap, clipping or ugly wrapping.
  */
-import { mkdtempSync, mkdirSync } from "node:fs"
+import { mkdtempSync, mkdirSync, readFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { chromium } from "playwright"
+
+import { ensurePageServer, serverUrl } from "./pages.js"
 
 const [docPath, outArg] = process.argv.slice(2)
 if (!docPath) {
@@ -31,8 +34,8 @@ if (!docPath) {
 }
 const out = outArg ?? mkdtempSync(join(tmpdir(), "check-spell-"))
 mkdirSync(out, { recursive: true })
-const url = pathToFileURL(resolve(docPath)).href
 const seen = new Map()
+const url = pageUrl(docPath)
 const browser = await chromium.launch()
 
 const desk = await open({ width: 1440, height: 900 })
@@ -107,6 +110,20 @@ const summary = {
 for (const problem of problems) console.error("PROBLEM:", problem)
 console.log(JSON.stringify(summary, null, 2))
 process.exit(problems.length ? 1 : 0)
+
+/**
+ * Where to load `file` from:  `file://`, or the page server for a page that needs one.
+ * - a page whose `<body>` says `data-spell-needs-server` (the `commands` template:  it fetches its JSON) loads from
+ *   this checkout's page server, started if need be;  a server that won't start is a problem, and `file://` is used
+ */
+function pageUrl(file) {
+  const local = pathToFileURL(resolve(file)).href
+  if (!/<body\b[^>]*\bdata-spell-needs-server\b/.test(readFileSync(file, "utf8"))) return local
+  const served = ensurePageServer()
+  if (served) return serverUrl(served.base, file)
+  problem("page needs the page server, and it didn't start")
+  return local
+}
 
 /**
  * Record a problem, once per distinct first line:  a broken element logs the same error for every instance.

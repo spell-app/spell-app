@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from "vitest"
+import { describe, expect, it, onTestFinished, vi } from "vitest"
 
 import { UI } from "$/ui/runtime"
 import { ThemeSheets } from "$/ui/styles"
@@ -719,5 +719,42 @@ describe("twitter", () => {
     const primary = await ThemeHarness.inner(`<ui-button primary>Tweet</ui-button>`, ".ui.button")
     expect(primary.style.backgroundColor).toBe("oklch(0.719 0.128 243.9)")
     expect(primary.style.boxShadow).toContain("0.605")
+  })
+})
+
+describe("spell", () => {
+  it("is our own theme:  a sheet, listed in OWN, not among the Fomantic names", () => {
+    expect(ThemeSheets.sheets).toContain("spell")
+    expect(ThemeSheets.OWN).toEqual(["spell"])
+    expect(ThemeSheets.names).not.toContain("spell")
+  })
+
+  it("Spell Purple primary (lilac on the aubergine dark), pill buttons that press in", async () => {
+    await T3.use("spell")
+    const { box, style } = await ThemeHarness.inner(`<ui-button primary>Build</ui-button>`, ".ui.button")
+    expect(style.backgroundColor).toBe("rgb(101, 80, 202)") // violet-600
+    expect(style.borderTopLeftRadius).toBe("9999px")
+    expect(style.fontWeight).toBe("500")
+    expect(style.transitionProperty).toContain("scale")
+    // no colour transition:  under a loaded test run a waitFor can time out mid-way (an `oklch(...)` in between)
+    const button = box as HTMLElement
+    button.style.transition = "none"
+    document.documentElement.classList.add("ui-dark")
+    onTestFinished(() => document.documentElement.classList.remove("ui-dark"))
+    await vi.waitFor(() => expect(getComputedStyle(box).backgroundColor).toBe("rgb(184, 180, 255)")) // violet-300
+    expect(T3.color("--ui-background")).toBe("rgb(26, 16, 64)") // violet-950:  aubergine, not black
+  })
+
+  it("Spell Serif headers:  regular by default, a page h1 bold;  16px cards", async () => {
+    await T3.use("spell")
+    const { style } = await ThemeHarness.inner(`<ui-header>Today</ui-header>`, ".ui.header")
+    expect(style.fontFamily).toMatch(/^"Spell Serif"/)
+    expect(style.fontWeight).toBe("400")
+    const h1 = await ThemeHarness.inner(`<ui-header level="1">Write in plain language.</ui-header>`, "h1.ui.header")
+    expect(h1.style.fontWeight).toBe("700")
+    const card = await ThemeHarness.inner(`<ui-card><ui-content>Streak</ui-content></ui-card>`, ".ui.card")
+    expect(card.style.borderTopLeftRadius).toBe("16px")
+    // no font files ship:  an installed Palatino-family face, else the stack ends in the generic `serif`
+    expect(style.fontFamily).toMatch(/, serif$/)
   })
 })

@@ -9,76 +9,64 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Advertisement">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-ad.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-ad%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/views/advertisement.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Advertisement
+            <ui-header>An ad displays third-party promotional content.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-ad" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-ad.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-ad%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/views/advertisement.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Advertisement
-                <ui-header>An ad displays third-party promotional content.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-ad" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Advertisement"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
-                  Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/epics/spell-ui-pages/PAGES.md.
-                  - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
-                  - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
-                    IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
-                  - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <ui-docs-example header="Ad">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
+              Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/epics/spell-ui-pages/PAGES.md.
+              - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
+              - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
+                IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
+              - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-ad" header="Ad" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A standard ad.</p>
                   <ui-message slot="description" size="small"
                     >The following example shows basic
@@ -94,13 +82,15 @@
                     ></ins>
                   </ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Common Units">
+              <ui-section id="examples-types-common-units" header="Common Units" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     An advertisement can appear in common ad unit sizes: <code>unit</code> takes the unit's words.
                   </p>
                   <ui-message slot="description" state="info" size="small"
-                    >These additional examples use the <a href="#test"><code>test</code></a> variation to appear on the
+                    >These additional examples use the <a href="#examples-variations-test"><code>test</code></a> variation to appear on the
                     page. <code>&lt;ui-ad&gt;</code> is best used as a wrapper for third party ad network content like
                     AdSense or DoubleClick.</ui-message
                   >
@@ -110,9 +100,11 @@
                   <ui-ad unit="large rectangle" test="Large Rectangle"></ui-ad>
                   <ui-ad unit="half page" test="Half Page"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I30:  no `mobile` modifier for other units (Fomantic's `mobile banner`);  only the `mobile leaderboard` / `large mobile banner` units. -->
-                <ui-docs-example header="Mobile">
+              <!-- GAP I30:  no `mobile` modifier for other units (Fomantic's `mobile banner`);  only the `mobile leaderboard` / `large mobile banner` units. -->
+              <ui-section id="examples-types-mobile" header="Mobile" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">An ad can use common mobile ad sizes.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Mobile ads will automatically only appear on mobile browser viewports, so this example is empty on
@@ -121,57 +113,77 @@
                   <ui-ad unit="mobile leaderboard" test="Mobile Leaderboard"></ui-ad>
                   <ui-ad unit="large mobile banner" test="Large Mobile Banner"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Rectangle" description="An ad can use a common rectangle ad unit size.">
+              <ui-section id="examples-types-rectangle" header="Rectangle" sticky collapsible dividing>
+                <ui-docs-example description="An ad can use a common rectangle ad unit size.">
                   <ui-ad unit="vertical rectangle" test="Vertical Rectangle"></ui-ad>
                   <ui-ad unit="small rectangle" test="Small Rectangle"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Button" description="An ad can use button ad unit size.">
+              <ui-section id="examples-types-button" header="Button" sticky collapsible dividing>
+                <ui-docs-example description="An ad can use button ad unit size.">
                   <ui-ad unit="button" test="Button"></ui-ad>
                   <ui-ad unit="square button" test="Square Button"></ui-ad>
                   <ui-ad unit="small button" test="Small Button"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Square" description="An ad can use a square ad unit size.">
+              <ui-section id="examples-types-square" header="Square" sticky collapsible dividing>
+                <ui-docs-example description="An ad can use a square ad unit size.">
                   <ui-ad unit="square" test="Square"></ui-ad>
                   <ui-ad unit="small square" test="Small Square"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Skyscraper" description="An ad can use skyscraper ad unit size.">
+              <ui-section id="examples-types-skyscraper" header="Skyscraper" sticky collapsible dividing>
+                <ui-docs-example description="An ad can use skyscraper ad unit size.">
                   <ui-ad unit="skyscraper" test="Skyscraper"></ui-ad>
                   <ui-ad unit="wide skyscraper" test="Wide Skyscraper"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Banner" description="An ad can use banner ad unit size.">
+              <ui-section id="examples-types-banner" header="Banner" sticky collapsible dividing>
+                <ui-docs-example description="An ad can use banner ad unit size.">
                   <ui-ad unit="banner" test="Banner"></ui-ad>
                   <ui-ad unit="vertical banner" test="Vertical Banner"></ui-ad>
                   <ui-ad unit="top banner" test="Top Banner"></ui-ad>
                   <ui-ad unit="half banner" test="Half Banner"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I32:  units wider than the column (leaderboards, top banner, panorama) overflow it on desktop. -->
-                <ui-docs-example header="Leaderboards" description="An ad can use leaderboard ad unit size.">
+              <!-- GAP I32:  units wider than the column (leaderboards, top banner, panorama) overflow it on desktop. -->
+              <ui-section id="examples-types-leaderboards" header="Leaderboards" sticky collapsible dividing>
+                <ui-docs-example description="An ad can use leaderboard ad unit size.">
                   <ui-ad unit="leaderboard" test="Leaderboard"></ui-ad>
                   <ui-ad unit="large leaderboard" test="Large Leaderboard"></ui-ad>
                   <ui-ad unit="billboard" test="Billboard"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Panorama" description="An ad can use panorama ad unit size.">
+              <ui-section id="examples-types-panorama" header="Panorama" sticky collapsible dividing>
+                <ui-docs-example description="An ad can use panorama ad unit size.">
                   <ui-ad unit="panorama" test="Panorama"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Netboard" description="An ad can use netboard ad unit size.">
+              <ui-section id="examples-types-netboard" header="Netboard" sticky collapsible dividing>
+                <ui-docs-example description="An ad can use netboard ad unit size.">
                   <ui-ad unit="netboard" test="Netboard"></ui-ad>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example header="Centered" description="An advertisement can appear centered.">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-centered" header="Centered" sticky collapsible dividing>
+                <ui-docs-example description="An advertisement can appear centered.">
                   <ui-ad unit="banner" centered test></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Test">
+              <ui-section id="examples-variations-test" header="Test" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">An advertisement can be formatted to help verify placement.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Set the text of a test placement with <code>test="..."</code> (Fomantic's <code>data-text</code>);
@@ -181,118 +193,123 @@
                   <ui-ad unit="medium rectangle" test="Ad Unit 2"></ui-ad>
                   <ui-ad unit="small rectangle" test></ui-ad>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-content" header="Content" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Content"
                   description="The ad itself goes inside:  usually an `<iframe>` from the ad network, or an image link with its own `alt`."
                 >
                   <ui-ad unit="small rectangle">
                     <ui-image href="#sponsor" src="../images/wireframe/image.png" alt="Our sponsor"></ui-image>
                   </ui-ad>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `<ui-ad>` is only the slot: it sizes a box to an IAB unit and lays out whatever you put in it.
-                    Loading the ad itself is up to your ad network's script.
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-ad>` is only the slot: it sizes a box to an IAB unit and lays out whatever you put in it.
+                  Loading the ad itself is up to your ad network's script.
 
-                    - `unit` takes the unit's words (`medium rectangle`, `leaderboard`, `large mobile banner` ...),
-                      not `size`, which is `mini` ... `massive` on every component.
-                    - `test` shows a grey placeholder until the real ad arrives: bare, it says "Ad" (translated);
-                      with a value, it says that.
-                    - `centered` centres the box in its container.
-                    - Mobile units (`mobile leaderboard`, `large mobile banner`) show only on phone-sized viewports:
-                      they're served for the device, not for the container's width.
-                    - It has no events.
-                  </script>
-                </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <ui-ad unit="medium rectangle" test="Your ad here">
-                      <iframe src="https://ads.example.com/unit/123" title="Advertisement" width="300" height="250"></iframe>
-                    </ui-ad>
-                  </script>
-                </ui-code>
+                  - `unit` takes the unit's words (`medium rectangle`, `leaderboard`, `large mobile banner` ...),
+                    not `size`, which is `mini` ... `massive` on every component.
+                  - `test` shows a grey placeholder until the real ad arrives: bare, it says "Ad" (translated);
+                    with a value, it says that.
+                  - `centered` centres the box in its container.
+                  - Mobile units (`mobile leaderboard`, `large mobile banner`) show only on phone-sized viewports:
+                    they're served for the device, not for the container's width.
+                  - It has no events.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-ad unit="medium rectangle" test="Your ad here">
+                    <iframe src="https://ads.example.com/unit/123" title="Advertisement" width="300" height="250"></iframe>
+                  </ui-ad>
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="unit-sizes">Unit sizes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Unit sizes are the IAB's, in `px`, on purpose: an ad unit is a pixel contract with the ad server,
-                    not a typographic size, so they aren't tokens. Units wider than the column (`leaderboard` 728 px,
-                    `billboard` 970 px) overflow it; give them a wide enough region.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-unit-sizes" header="Unit sizes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Unit sizes are the IAB's, in `px`, on purpose: an ad unit is a pixel contract with the ad server,
+                  not a typographic size, so they aren't tokens. Units wider than the column (`leaderboard` 728 px,
+                  `billboard` 970 px) overflow it; give them a wide enough region.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    None of its own: the box takes no focus (`delegatesFocus` is off). Links and frames inside the
-                    ad take focus as usual.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  None of its own: the box takes no focus (`delegatesFocus` is off). Links and frames inside the
+                  ad take focus as usual.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - An ad is a plain block with no role, so several ads on a page don't create duplicate landmarks.
-                      Where you want one, wrap the ad column in a named `<aside aria-label="Sponsored">`.
-                    - The `test` text is drawn by CSS and isn't reliably read aloud; it's a layout placeholder, not
-                      content.
-                    - The ad's own content needs its own text alternative: an `alt` on an image link, a `title` on an
-                      `<iframe>`.
-                    - If the element can't render, its native fallback keeps the same box and class words, so the unit
-                      keeps its size; a bare `test` then says "Ad" in English rather than the translated text.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - An ad is a plain block with no role, so several ads on a page don't create duplicate landmarks.
+                    Where you want one, wrap the ad column in a named `<aside aria-label="Sponsored">`.
+                  - The `test` text is drawn by CSS and isn't reliably read aloud; it's a layout placeholder, not
+                    content.
+                  - The ad's own content needs its own text alternative: an `alt` on an image link, a `title` on an
+                    `<iframe>`.
+                  - If the element can't render, its native fallback keeps the same box and class words, so the unit
+                    keeps its size; a bare `test` then says "Ad" in English rather than the translated text.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-ad"></ui-docs-api>
-              </ui-tab>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-ad"></ui-docs-api>
+          </ui-tab>
 
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-ad-*` tokens: set one on the element, on any ancestor (a region,
-                    `:root`), or on the ad's box through `::part(ad)`. They inherit into the shadow root, where the
-                    sheet reads each through a private alias, so nothing inside blocks them. The unit sizes are fixed
-                    by the IAB, so they aren't tokens. Never set the `--_ui-ad-*` names: they're the sheet's private
-                    plumbing.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    :root {
-                      --ui-ad-margin: 2em 0;
-                      --ui-ad-test-background: var(--ui-surface-muted);
-                      --ui-ad-test-color: var(--ui-text-muted);
-                    }
-                  </script>
-                </ui-code>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-ad" playground></ui-docs-tokens>
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-ad-*` tokens: set one on the element, on any ancestor (a region,
+                  `:root`), or on the ad's box through `::part(ad)`. They inherit into the shadow root, where the
+                  sheet reads each through a private alias, so nothing inside blocks them. The unit sizes are fixed
+                  by the IAB, so they aren't tokens. Never set the `--_ui-ad-*` names: they're the sheet's private
+                  plumbing.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  :root {
+                    --ui-ad-margin: 2em 0;
+                    --ui-ad-test-background: var(--ui-surface-muted);
+                    --ui-ad-test-color: var(--ui-text-muted);
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-ad" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    No Fomantic theme restyles ads: they keep the default look under every theme. The one in the
-                    header still changes the page around them.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles ads: they keep the default look under every theme. The one in the
+                  header still changes the page around them.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

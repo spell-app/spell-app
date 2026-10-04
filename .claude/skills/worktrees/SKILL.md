@@ -9,8 +9,8 @@ argument-hint: "[sessions]"
 Owen has lots going at once:  show it all in one screen, sort it, and clean up what he picks.  Nothing changes
 before he picks it in a modal.  (Was `/whassup` plus the old global `/worktrees`, merged 2026-10-03.)
 
-- `worktrees.py`:  `python3 .claude/skills/worktrees/scripts/worktrees.py [--json | --sessions]`, from the repo root
-  or any worktree.  Read-only.  Its docstring says what it looks at and how it groups.
+- `spell dev stock [--json]` (the whole report) and `spell dev worktree list` (the sessions table alone), from the
+  repo root or any worktree.  Read-only.  What it looks at and how it groups:  `packages/cli/src/dev/stock.ts`.
 - The sessions (`sessions[]`):  every LIVE session on the machine (`~/.claude/sessions/<pid>.json`, dead pids
   skipped), in this repo or not:  title, agent name (what `ListAgents` and `SendMessage` call it), id (`/session`
   and `claude --resume` take its first 8), status, where it runs (VS Code / terminal / Desktop), worktree, branch,
@@ -27,7 +27,7 @@ before he picks it in a modal.  (Was `/whassup` plus the old global `/worktrees`
 
 ## 1. Take stock
 
-1. Run `worktrees.py --json`.  `/worktrees sessions`:  `worktrees.py --sessions` instead, reply with step 2's
+1. Run `spell dev stock --json`.  `/worktrees sessions`:  `spell dev worktree list` instead, reply with step 2's
    table and its "worth acting on" lines, and stop.
 2. The sessions, as a markdown table (drop empty columns;  mark this session "(this one)"), then one line per thing
    worth acting on:  a session `waiting` for input, two sessions in the SAME worktree (their edits collide), a
@@ -105,7 +105,7 @@ In the order Owen will want to see them:  quick looks (`wtf`, `open`, `answer`) 
 
 ## 5. Where we stand
 
-1. Run `worktrees.py --json` again.
+1. Run `spell dev stock --json` again.
 2. One line per item whose group changed or that went away ("**worktree ui-import**:  dead -> gone"), then the three
    groups again, as in step 1.  Commands refused in step 4:  listed last, ready to paste.
 3. Stop there:  no second "What's next?" unless Owen asks.

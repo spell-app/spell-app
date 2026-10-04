@@ -2,8 +2,8 @@ import { STORAGE_KEYS, type NavView } from "./ui-docs-nav.types"
 
 /****************
  * ### `NavPreferences`
- * The viewer's nav preferences in `localStorage`:  favourites, the view, the open topics.  Replaces the Astro site's
- * `SiteStorage` (same keys, `STORAGE_KEYS`, so a viewer keeps theirs).
+ * The viewer's nav preferences in `localStorage`:  favourites, the view, the open topics, the folded groups.  Replaces
+ * the Astro site's `SiteStorage` (same keys, `STORAGE_KEYS`, so a viewer keeps theirs).
  * - Every access is wrapped:  private windows and blocked storage THROW, and then a preference just doesn't persist.
  * - Per viewer and browser only;  NOT the search text.
  ****************/
@@ -40,6 +40,16 @@ export class NavPreferences {
   /** Store the open topic ids;  none removes the key. */
   static setOpenTopics(ids: Iterable<string>) {
     NavPreferences.writeList(STORAGE_KEYS.openTopics, ids)
+  }
+
+  /** Groups the viewer folded away (unknown names included:  the element only asks about its own). */
+  static closedGroups(): string[] {
+    return NavPreferences.readList(STORAGE_KEYS.closedGroups)
+  }
+
+  /** Store the folded groups;  none removes the key. */
+  static setClosedGroups(groups: Iterable<string>) {
+    NavPreferences.writeList(STORAGE_KEYS.closedGroups, groups)
   }
 
   ////////////////

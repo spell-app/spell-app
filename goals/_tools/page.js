@@ -311,7 +311,7 @@ export class GoalsPage {
 
   /**
    * Links to other goals pages open in the SAME tab:  `target="_self"` on relative `.html` links without a target.
-   * - the goals pages read like a website;  `tidy()`'s `doc-links.py` gives every other link a named new-tab
+   * - the goals pages read like a website;  `tidy()`'s `doc-links.js` gives every other link a named new-tab
    *   target, but skips links that already have one
    */
   retarget() {

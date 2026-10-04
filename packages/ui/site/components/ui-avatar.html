@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Avatar | Spell UI</title>
+    <meta
+      name="description"
+      content="An avatar is a small picture of a person, beside a comment, an item or a card."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Avatar">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-avatar.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-avatar%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Avatar
+            <ui-header>An avatar is a small picture of a person, beside a comment, an item or a card.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-avatar" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  `<ui-avatar>` in each owner that gives it a look (from the owners' own pages and
+              `src/components/ui-parts/examples/elements/`), then its attributes.  The Content parts page
+              (`ui-header.html`) shows every part together.
+            -->
+            <ui-section id="examples-owners" header="Owners" sticky collapsible dividing>
+              <ui-section id="examples-owners-comment" header="Comment" sticky collapsible dividing>
+                <ui-docs-example description="A comment's avatar sits beside its content.">
+                  <ui-comments>
+                    <ui-comment>
+                      <ui-avatar src="../images/avatar/small/elliot.jpg"></ui-avatar>
+                      <ui-content>
+                        <ui-author href="#elliot">Elliot Fu</ui-author>
+                        <ui-meta><span>Yesterday at 12:30AM</span></ui-meta>
+                        <ui-description>This has been very useful for my research. Thanks as well!</ui-description>
+                      </ui-content>
+                    </ui-comment>
+                  </ui-comments>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-owners-card" header="Card" sticky collapsible dividing>
+                <ui-docs-example description="In a card, an avatar is a small round image before a name.">
+                  <ui-card>
+                    <ui-content>
+                      <ui-avatar src="../images/avatar/small/jenny.jpg"></ui-avatar>
+                      Jenny Hess
+                    </ui-content>
+                  </ui-card>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-owners-item" header="Item" sticky collapsible dividing>
+                <ui-docs-example description="In an item, a round image before a name.">
+                  <ui-items>
+                    <ui-item>
+                      <ui-content>
+                        <ui-avatar src="../images/avatar/small/stevie.jpg"></ui-avatar>
+                        Stevie Feliciano
+                      </ui-content>
+                    </ui-item>
+                  </ui-items>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-image" header="Image" sticky collapsible dividing>
+                <ui-docs-example description="`src` renders the image;  or slot your own `<img>`.">
+                  <ui-comments>
+                    <ui-comment>
+                      <ui-avatar><img src="../images/avatar/small/joe.jpg" alt="Joe Henderson" /></ui-avatar>
+                      <ui-content>
+                        <ui-description>A slotted image, with its own <code>alt</code>.</ui-description>
+                      </ui-content>
+                    </ui-comment>
+                  </ui-comments>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-avatar>` is a small picture of a person: a comment's, an item's or a card's.
+
+                  - `src` renders the `<img>`; or slot your own `<img>`.
+                  - `alt` defaults to `""` (decorative): the person's name is right beside it. Give it text when it isn't.
+                  - Its look comes from its owner: 2.5em beside a comment, 2em and round inline in a card, round in an item.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-owners" header="Owners" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-avatar>` finds its nearest owner and sets `:state(in-<owner>)` on itself; `ui-parts.css` styles it by that
+                  state. Its owners, and what each makes of it:
+
+                  - [Comment](ui-comment.html) (`:state(in-comment)`): beside the content, on the left
+                  - [Card](ui-card.html) (`:state(in-card)`): small and round, inline before a name
+                  - [Item](ui-items.html) (`:state(in-item)`): round, inline before a name
+
+                  Anywhere else it is an unstyled block. More on how parts find their owners: [Content parts](ui-header.html#usage-owners).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `alt` defaults to `""`, so the image is decorative: the name next to it already says who it is. Set `alt` (or
+                    slot an `<img alt>`) when the avatar stands alone.
+                  - No role of its own, no tab stop.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api tag="ui-avatar"></ui-docs-api>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

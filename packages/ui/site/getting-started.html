@@ -9,72 +9,67 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="_assets/site.css" />
     <script type="module" src="_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Getting started">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/getting-started.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=Getting%20started%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Getting started
+            <ui-header>Install the package, load the components, and use them from any framework.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
+      <ui-container class="site-body">
+        <article class="site-article">
+          <!--
+            GETTING STARTED:  the old Astro page (`getting-started.mdx`, deleted in P7:  install, the contract,
+            frameworks, styling) plus Fomantic's `introduction/getting-started.html.eco` where it fits our install
+            (General Usage:  descriptive class names, class order;  Installation;  Updating).  Fomantic's gulp build,
+            semantic.json, CDN and CSS / LESS distributions have no counterpart:  one line says so.
+          -->
+          <ui-markdown>
+            <script type="text/markdown">
+              How to put Spell UI on a page, and the three rules every component follows so it works in any
+              framework. Something unclear or broken? [Open an issue](https://github.com/spell-app/spell-app/issues/new).
+            </script>
+          </ui-markdown>
 
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/getting-started.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=Getting%20started%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Getting started
-                <ui-header>Install the package, load the components, and use them from any framework.</ui-header>
-              </ui-header>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc header="Getting started"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <article class="site-article">
-              <!--
-                GETTING STARTED:  the old Astro page (`getting-started.mdx`, deleted in P7:  install, the contract,
-                frameworks, styling) plus Fomantic's `introduction/getting-started.html.eco` where it fits our install
-                (General Usage:  descriptive class names, class order;  Installation;  Updating).  Fomantic's gulp build,
-                semantic.json, CDN and CSS / LESS distributions have no counterpart:  one line says so.
-              -->
-              <ui-markdown>
-                <script type="text/markdown">
-                  How to put Spell UI on a page, and the three rules every component follows so it works in any
-                  framework. Something unclear or broken? [Open an issue](https://github.com/spell-app/spell-app/issues/new).
-                </script>
-              </ui-markdown>
-
-              <ui-header level="2" dividing id="general-usage">General Usage</ui-header>
-              <ui-docs-example header="Descriptive Attributes">
+          <ui-section id="general-usage" header="General Usage" sticky collapsible dividing>
+            <ui-section
+              id="general-usage-descriptive-attributes"
+              header="Descriptive Attributes"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-docs-example>
                 <p slot="description">
                   Fomantic's base concept is descriptive class names on HTML nodes; Spell UI's is descriptive ATTRIBUTES
                   on <code>ui-*</code> tags. The tag's <code>ui-</code> prefix does the namespacing Fomantic's
@@ -87,7 +82,9 @@
               >
                 <ui-button size="huge" primary>Button</ui-button>
               </ui-docs-example>
-              <ui-docs-example header="Attribute Order">
+            </ui-section>
+            <ui-section id="general-usage-attribute-order" header="Attribute Order" sticky collapsible dividing>
+              <ui-docs-example>
                 <p slot="description">
                   Fomantic needs some class names in a strict order (<code>ui left labeled right floated button</code>,
                   never <code>ui left right button floated labeled</code>). Attributes have no such rule: each names its
@@ -100,78 +97,81 @@
                   <ui-button floated="right" icon="heart" labeled="left">Labeled</ui-button>
                 </ui-segment>
               </ui-docs-example>
+            </ui-section>
+          </ui-section>
 
-              <ui-header level="2" dividing id="installation">Installation</ui-header>
-              <ui-message state="info" header="Not published yet">
-                <code>@spell-app/ui</code> lives in the spell-app monorepo (<code>packages/ui</code>) and isn't on npm
-                yet. Once it is, the steps below apply. Until then: <code>yarn</code> in the monorepo, and
-                <code>yarn build</code> in <code>packages/ui</code> writes <code>dist/</code>.
-              </ui-message>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Requirements: a current browser. Spell UI ASSUMES anchor positioning, popover, `<dialog>`,
-                  container style queries and form-associated custom elements, with no polyfills.
-                </script>
-              </ui-markdown>
-              <ui-code language="bash">
-                <script type="text/plain">
-                  yarn add @spell-app/ui    # or:  npm install @spell-app/ui
-                </script>
-              </ui-code>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Then load the components, in one of three ways:
+          <ui-section id="installation" header="Installation" sticky collapsible dividing>
+            <ui-message state="info" header="Not published yet">
+              <code>@spell-app/ui</code> lives in the spell-app monorepo (<code>packages/ui</code>) and isn't on npm
+              yet. Once it is, the steps below apply. Until then: <code>yarn</code> in the monorepo, and
+              <code>yarn build</code> in <code>packages/ui</code> writes <code>dist/</code>.
+            </ui-message>
+            <ui-markdown>
+              <script type="text/markdown">
+                Requirements: a current browser. Spell UI ASSUMES anchor positioning, popover, `<dialog>`,
+                container style queries and form-associated custom elements, with no polyfills.
+              </script>
+            </ui-markdown>
+            <ui-code language="bash">
+              <script type="text/plain">
+                yarn add @spell-app/ui    # or:  npm install @spell-app/ui
+              </script>
+            </ui-code>
+            <ui-markdown>
+              <script type="text/markdown">
+                Then load the components, in one of three ways:
 
-                  - **Everything**: `import "@spell-app/ui"` registers every `ui-*` element.
-                  - **One family at a time**: each family is its own entry, `import "@spell-app/ui/ui-button"`, so a
-                    page loads only what it imports.
-                  - **On demand**: wrap the page (or an app) in `<ui-root>` and import only `@spell-app/ui/ui-root`.
-                    Each `ui-*` tag inside loads its family the first time it appears. This site works that way.
-                </script>
-              </ui-markdown>
-              <ui-code language="js">
-                <script type="text/plain">
-                  import "@spell-app/ui/ui-root" // the root;  it loads every other family on first use
-                </script>
-              </ui-code>
-              <ui-code language="html">
-                <script type="text/plain">
-                  <ui-root icons="fa7-brands" display="immediately">
-                    <ui-button primary>Save</ui-button>
-                  </ui-root>
-                </script>
-              </ui-code>
-              <ui-markdown>
-                <script type="text/markdown">
-                  For pages with no JavaScript at all, `ui.css` (`src/styles/ui.css`, a build entry) is the whole page
-                  foundation as one stylesheet: tokens, utilities, typography and native markup. Add
-                  `class="ui-typography"` to `<body>` for Fomantic's page typography.
-                </script>
-              </ui-markdown>
-              <ui-message size="small" class="site-not-ported"
-                >Not ported: Fomantic's <code>gulp</code> build, <code>semantic.json</code>, CDN links and separate CSS
-                / LESS / SASS distributions -- one package holds the elements, their CSS and the token sheets, and
-                themes are CSS files you add, not a build.</ui-message
-              >
+                - **Everything**: `import "@spell-app/ui"` registers every `ui-*` element.
+                - **One family at a time**: each family is its own entry, `import "@spell-app/ui/ui-button"`, so a
+                  page loads only what it imports.
+                - **On demand**: wrap the page (or an app) in `<ui-root>` and import only `@spell-app/ui/ui-root`.
+                  Each `ui-*` tag inside loads its family the first time it appears. This site works that way.
+              </script>
+            </ui-markdown>
+            <ui-code language="js">
+              <script type="text/plain">
+                import "@spell-app/ui/ui-root" // the root;  it loads every other family on first use
+              </script>
+            </ui-code>
+            <ui-code language="html">
+              <script type="text/plain">
+                <ui-root icons="fa7-brands" display="immediately">
+                  <ui-button primary>Save</ui-button>
+                </ui-root>
+              </script>
+            </ui-code>
+            <ui-markdown>
+              <script type="text/markdown">
+                For pages with no JavaScript at all, `ui.css` (`src/styles/ui.css`, a build entry) is the whole page
+                foundation as one stylesheet: tokens, utilities, typography and native markup. Add
+                `class="ui-typography"` to `<body>` for Fomantic's page typography.
+              </script>
+            </ui-markdown>
+            <ui-message size="small" class="site-not-ported"
+              >Not ported: Fomantic's <code>gulp</code> build, <code>semantic.json</code>, CDN links and separate CSS
+              / LESS / SASS distributions -- one package holds the elements, their CSS and the token sheets, and
+              themes are CSS files you add, not a build.</ui-message
+            >
+          </ui-section>
 
-              <ui-header level="2" dividing id="the-contract">The Contract</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Every component follows the same three rules, which is what makes it work in every framework:
+          <ui-section id="the-contract" header="The Contract" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                Every component follows the same three rules, which is what makes it work in every framework:
 
-                  - **Properties for data.** Rich data (`options`, `rows`) is a JS property, a real accessor on the
-                    class, so frameworks find it with `key in el`. First paint never needs one: server rendering
-                    drops object properties.
-                  - **Attributes for primitives.** Strings, numbers and booleans are reflected attributes. Booleans
-                    follow HTML: presence, `""`, `"true"` or `"yes"` mean true; `"false"` and `"no"` mean false (see
-                    [Grammar](grammar.html#booleans)).
-                  - **`ui-*` events.** Every event is a `CustomEvent` with `bubbles: true, composed: true` and a
-                    lowercase kebab name (`ui-change`, `ui-open`). `detail` carries the computed state, e.g.
-                    `{ value }`, plus `originalEvent`.
-                </script>
-              </ui-markdown>
+                - **Properties for data.** Rich data (`options`, `rows`) is a JS property, a real accessor on the
+                  class, so frameworks find it with `key in el`. First paint never needs one: server rendering
+                  drops object properties.
+                - **Attributes for primitives.** Strings, numbers and booleans are reflected attributes. Booleans
+                  follow HTML: presence, `""`, `"true"` or `"yes"` mean true; `"false"` and `"no"` mean false (see
+                  [Grammar](grammar.html#booleans)).
+                - **`ui-*` events.** Every event is a `CustomEvent` with `bubbles: true, composed: true` and a
+                  lowercase kebab name (`ui-change`, `ui-open`). `detail` carries the computed state, e.g.
+                  `{ value }`, plus `originalEvent`.
+              </script>
+            </ui-markdown>
+            <ui-section id="the-contract-plain-html" header="Plain HTML" sticky collapsible dividing>
               <ui-docs-example
-                header="Plain HTML"
                 description="No framework:  attributes in markup, the `options` property and a `ui-change` listener in script.  Pick a fruit."
               >
                 <ui-dropdown id="contract-dropdown" selection placeholder="Fruit" aria-label="Fruit"></ui-dropdown>
@@ -187,74 +187,75 @@
                   })
                 </script>
               </ui-docs-example>
-              <ui-markdown>
-                <script type="text/markdown">
-                  The script above sets `options` before `<ui-root>` has loaded the dropdown. That works: every
-                  component "upgrades" a property set before its definition (it deletes the shadowing own property
-                  and re-sets it through the setter).
-                </script>
-              </ui-markdown>
+            </ui-section>
+            <ui-markdown>
+              <script type="text/markdown">
+                The script above sets `options` before `<ui-root>` has loaded the dropdown. That works: every
+                component "upgrades" a property set before its definition (it deletes the shadowing own property
+                and re-sets it through the setter).
+              </script>
+            </ui-markdown>
+          </ui-section>
 
-              <ui-header level="2" dividing id="frameworks">Frameworks</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  The contract holds in React 19, Vue 3.5, Svelte 5, Solid, Angular 20 and Preact 10. One line each:
+          <ui-section id="frameworks" header="Frameworks" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                The contract holds in React 19, Vue 3.5, Svelte 5, Solid, Angular 20 and Preact 10. One line each:
 
-                  | Framework | Usage                                                                                                                 |
-                  | --------- | --------------------------------------------------------------------------------------------------------------------- |
-                  | React 19  | `<ui-dropdown options={arr} value="x" open onui-change={fn} />`                                                       |
-                  | Vue 3.5   | `isCustomElement: (tag) => tag.startsWith("ui-")`, then `<ui-dropdown .options="arr" value="x" open @ui-change="fn">` |
-                  | Svelte 5  | `<ui-dropdown options={arr} value="x" open onui-change={fn}>`                                                         |
-                  | Solid     | `<ui-dropdown prop:options={arr} value="x" open={o} ref={(el) => el.addEventListener("ui-change", fn)}>`              |
-                  | Angular   | `[options]="arr" (ui-change)="fn($event)"` plus `CUSTOM_ELEMENTS_SCHEMA`                                              |
+                | Framework | Usage                                                                                                                 |
+                | --------- | --------------------------------------------------------------------------------------------------------------------- |
+                | React 19  | `<ui-dropdown options={arr} value="x" open onui-change={fn} />`                                                       |
+                | Vue 3.5   | `isCustomElement: (tag) => tag.startsWith("ui-")`, then `<ui-dropdown .options="arr" value="x" open @ui-change="fn">` |
+                | Svelte 5  | `<ui-dropdown options={arr} value="x" open onui-change={fn}>`                                                         |
+                | Solid     | `<ui-dropdown prop:options={arr} value="x" open={o} ref={(el) => el.addEventListener("ui-change", fn)}>`              |
+                | Angular   | `[options]="arr" (ui-change)="fn($event)"` plus `CUSTOM_ELEMENTS_SCHEMA`                                              |
 
-                  - Define the elements before the framework renders them. As a backstop, a property set before
-                    definition is upgraded (above).
-                  - Vue may send `open="false"` when it can't find a property; the boolean converter reads that as
-                    false.
-                </script>
-              </ui-markdown>
+                - Define the elements before the framework renders them. As a backstop, a property set before
+                  definition is upgraded (above).
+                - Vue may send `open="false"` when it can't find a property; the boolean converter reads that as
+                  false.
+              </script>
+            </ui-markdown>
+          </ui-section>
 
-              <ui-header level="2" dividing id="styling">Styling</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Components use shadow DOM, so page CSS doesn't reach inside. Instead:
+          <ui-section id="styling" header="Styling" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                Components use shadow DOM, so page CSS doesn't reach inside. Instead:
 
-                  - **tokens** (`--ui-font-size`, `--ui-primary` ...) inherit into every component;
-                  - **utilities** (`ui-stack`, `ui-bold` ...) work on your markup and inside components;
-                  - **`::part()`**: each component names its inner boxes (`ui-button::part(button)`);
-                  - **the app stylesheet**: give one stylesheet `id="ui-app-stylesheet"` and every component adopts
-                    it, so it can restyle component internals with Fomantic's class grammar.
+                - **tokens** (`--ui-font-size`, `--ui-primary` ...) inherit into every component;
+                - **utilities** (`ui-stack`, `ui-bold` ...) work on your markup and inside components;
+                - **`::part()`**: each component names its inner boxes (`ui-button::part(button)`);
+                - **the app stylesheet**: give one stylesheet `id="ui-app-stylesheet"` and every component adopts
+                  it, so it can restyle component internals with Fomantic's class grammar.
 
-                  See [Theming](theming.html) for the details, and each component's Theming tab for its own tokens.
-                </script>
-              </ui-markdown>
-              <ui-code language="css">
-                <script type="text/plain">
-                  :root {
-                    --ui-primary: oklch(55% 0.2 290);
-                  }
-                  ui-button.wide {
-                    --ui-button-padding-inline: 3em;
-                  }
-                </script>
-              </ui-code>
+                See [Theming](theming.html) for the details, and each component's Theming tab for its own tokens.
+              </script>
+            </ui-markdown>
+            <ui-code language="css">
+              <script type="text/plain">
+                :root {
+                  --ui-primary: oklch(55% 0.2 290);
+                }
+                ui-button.wide {
+                  --ui-button-padding-inline: 3em;
+                }
+              </script>
+            </ui-code>
+          </ui-section>
 
-              <ui-header level="2" dividing id="updating">Updating</ui-header>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Once published, `yarn up @spell-app/ui` (or `npm update @spell-app/ui`) is all there is: no
-                  installer to rerun, no build to redo. Theme sheets and your token overrides are plain CSS, so they
-                  survive an update untouched. [`CHANGELOG.md`](https://github.com/spell-app/spell-app/blob/main/packages/ui/CHANGELOG.md)
-                  lists what changed.
-                </script>
-              </ui-markdown>
-            </article>
-          </ui-container>
-
-          <ui-include class="site-footer" source="_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+          <ui-section id="updating" header="Updating" sticky collapsible dividing>
+            <ui-markdown>
+              <script type="text/markdown">
+                Once published, `yarn up @spell-app/ui` (or `npm update @spell-app/ui`) is all there is: no
+                installer to rerun, no build to redo. Theme sheets and your token overrides are plain CSS, so they
+                survive an update untouched. [`CHANGELOG.md`](https://github.com/spell-app/spell-app/blob/main/packages/ui/CHANGELOG.md)
+                lists what changed.
+              </script>
+            </ui-markdown>
+          </ui-section>
+        </article>
+      </ui-container>
+    </main>
   </body>
 </html>
