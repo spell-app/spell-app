@@ -18,8 +18,10 @@ export const ROOT = resolve(DOCS, "../..")
 /**
  * Folders that hold no pages.
  * - `examples`:  fragments a page includes (`ui-import/examples/part.html`), not pages:  no sections, no contents
+ * - `details`:  details pages (`yarn details`), questions for one session:  not in the index, not checked with the
+ *   docs (scratch `details/`, and an epic's `epics/<name>/details/`)
  */
-const SKIP_DIRS = new Set(["_assets", "scripts", "node_modules", "experiments", "examples"])
+const SKIP_DIRS = new Set(["_assets", "scripts", "node_modules", "experiments", "examples", "details"])
 
 /** Every `.html` page under `dir` (default:  all of them), sorted, skipping tooling folders. */
 export function findPages(dir = DOCS) {
@@ -82,6 +84,21 @@ export function ensurePageServer() {
   } catch {
     return undefined
   }
+}
+
+/**
+ * A template's `html` fixed for a page `depth` folders below `packages/docs` (`glossary.html` is 0, `a/a.html` 1).
+ * - templates assume one folder deep:  `_assets` and `index.html` paths, and the site header's `root` (the path up
+ *   to the repo root:  `packages/docs` is two more)
+ * - drops the template's `TEMPLATE:` how-to comment
+ * - `docs:new`, `details new`
+ */
+export function atDepth(html, depth) {
+  const up = "../".repeat(depth)
+  return html
+    .replace(/((?:href|src)=")(?:\.\.\/)*(_assets\/|index\.html)/g, `$1${up}$2`)
+    .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up}../.."`)
+    .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
 }
 
 /** URL of `file` on the page server at `base`, e.g. `http://127.0.0.1:4747/packages/docs/index.html`. */
