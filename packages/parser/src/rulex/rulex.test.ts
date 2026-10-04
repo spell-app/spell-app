@@ -35,6 +35,12 @@ describe("testing language rulex", () => {
       expect(() => rulex.compile("(a|{x})/i")).toThrow("`/i` goes after a keyword")
     })
 
+    it("prints a symbol run's specials back escaped, so they read back the same", () => {
+      // spacing doesn't round-trip yet (a morning question):  escapes do
+      expect(rulex.compile("\\[{x}\\]\\({y}\\)").toRulexSyntax()).toBe("\\[ {x} \\]\\( {y} \\)")
+      expect(rulex.compile("\\*\\* {x}").toRulexSyntax()).toBe("\\*\\* {x}")
+    })
+
     it("prints /i back", () => {
       expect(rulex.compile("(note|tip)/i").toRulexSyntax()).toBe("(note|tip)/i")
       expect(rulex.compile("note/i").toRulexSyntax()).toBe("note/i")

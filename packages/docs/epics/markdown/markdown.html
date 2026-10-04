@@ -589,6 +589,21 @@
             settled, don't re-argue without new facts. An answered question sits just above its decision.
           </p>
           <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="q10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q10">Q10</a>
+                  <span class="plan-title">Round trip: should toRulexSyntax() print spacing as written?</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    After P2.3 a rule knows its spacing, but printing it back as syntax drops it:
+                    <code>isn't</code> prints as <code>isn ' t</code>, <code>-{spaces}{x}</code> as <code>- {x}</code>.
+                    Re-read, those are LOOSER (spaced parts may space), never wrong. Fixing it is ~40 lines across the
+                    four printers. Used by spell's <code>SPELL: DECLARES</code> comments and LSP descriptions.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ><ui-item id="q1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
@@ -1609,7 +1624,58 @@
             Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open
             until you review it; struck = accepted. Disagree: say so, and it becomes a question.
           </p>
-          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed
+            ><ui-item id="j1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j1">J1</a>
+                  <span class="plan-title">Round trip: escapes now print back; spacing doesn't (deferred, Q10)</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Chose to do D14 in two parts because the review gate is "tiny parser changes only" tonight (D28):
+                  </p>
+                  <ul>
+                    <li>
+                      <b>done</b> (12 lines): <code>Symbols</code> / <code>Keywords</code> print rulex's specials
+                      escaped (<code>P.escapeRulex()</code>), so <code>\[{x}\]\({y}\)</code> reads back the same rule.
+                    </li>
+                    <li>
+                      <b>deferred</b>: printing spacing back (touching parts touching, <code>{space}</code> /
+                      <code>{spaces}</code>) touches <code>Literal</code>, <code>Literals</code>, <code>Sequence</code>,
+                      <code>Repeat</code> printers: more than tiny. Not needed for markdown; affects spell's
+                      <code>SPELL: DECLARES</code> comments and LSP descriptions, which print <code>isn't</code> as
+                      <code>isn ' t</code> (reads back looser, never wrong).
+                    </li>
+                    <li>Options were: all of D14 tonight (breaks the tiny rule), skip D14 entirely, or this split.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j2">J2</a>
+                  <span class="plan-title"
+                    >Skipped "Tokenizer arrow fields -&gt; methods": the markdown tokenizer doesn't need it</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Chose to skip this planned P2 parser change: <code>MarkdownTokenizer</code> overrides
+                    <code>matchTopTokens()</code> and the regex getters (<code>WORD_START</code>,
+                    <code>NUMBER</code> ...), which are already prototype members, so a subclass overrides them fine.
+                    Converting the arrow fields is a bigger change (they're passed around as callbacks) with nothing
+                    needing it yet.
+                  </p>
+                  <ul>
+                    <li>
+                      Options: convert now (not tiny, D28), or skip until a subclass needs to override an arrow field.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing collapsed>
@@ -1780,11 +1846,12 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i3" data-status="open"
+            ><ui-item id="i3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i3">I3</a>
-                  <span class="plan-title">toRulexSyntax() round trip loses escapes</span> </ui-title
+                  <span class="plan-title">toRulexSyntax() round trip loses escapes</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
                 ><ui-content
                   ><p>
                     <code>\[{text}\]\({url}\)</code> compiles fine, but prints back as
@@ -2139,6 +2206,13 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:51-04:00">2026-10-04 02:51</time></ui-date> Bedtime started:
                   P2-P9</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:54-04:00">2026-10-04 02:54</time></ui-date> I3 closed:
+                  toRulexSyntax() round trip loses escapes</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
