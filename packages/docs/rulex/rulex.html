@@ -694,19 +694,19 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
               </tbody>
             </table>
           </ui-table>
-          <ui-message state="warning" header="Silent truncation">
+          <ui-message state="positive" header="Silent truncation: fixed 2026-10-04">
             <ul>
               <li>
-                <code>rulex.compile()</code> never checks that it used every token. It throws only when NOTHING parsed;
-                otherwise it returns the rule built so far and drops the rest without a word.
+                Before, <code>rulex.compile()</code> never checked that it used every token: it threw only when NOTHING
+                parsed, else returned the rule built so far and dropped the rest.
               </li>
-              <li><code>[{sub}]</code> (one subrule, no delimiter) likewise compiles to <code>Symbol("[")</code>.</li>
               <li>
-                The
-                <a href="../../parser/src/rulex/rulex.ts" target="src-packages-parser-src-rulex-rulex-ts"
-                  ><code>rulex.ts</code></a
-                >
-                source already says <code>TODO: consume all tokens</code>.
+                Now it throws, naming what it couldn't read: <code>(a|b</code> gives "rulex couldn't read
+                <code>|b</code> in <code>(a|b</code>". No spell syntax relied on the drop.
+              </li>
+              <li>
+                Still open: an unescaped <code>[</code>, <code>{</code> or <code>(</code> that doesn't close becomes a
+                literal symbol, so <code>[{sub}]</code> compiles whole, to literal brackets. Next in P2.
               </li>
             </ul>
           </ui-message>
@@ -850,7 +850,8 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
         <ui-section id="8-open" header="8. Planned changes" sticky collapsible dividing collapsed>
           <p>
             Decided with Owen on 2026-10-03, after reviewing this page. Built in the <code>markdown</code> epic's P2,
-            one at a time; this page is updated as each one lands. Built so far: the plain rulex tokenizer (2026-10-04).
+            one at a time; this page is updated as each one lands. Built so far: the plain rulex tokenizer and throw on
+            leftovers (2026-10-04).
           </p>
           <ui-table celled compact striped>
             <table>
@@ -879,7 +880,10 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
                   </td>
                 </tr>
                 <tr>
-                  <td><b>Throw on leftovers</b>: <code>rulex.compile()</code> fails if any syntax token is unused</td>
+                  <td>
+                    <ui-label size="mini" color="green">built</ui-label> <b>Throw on leftovers</b>:
+                    <code>rulex.compile()</code> fails if any syntax token is unused
+                  </td>
                   <td><code>a -- b</code> throws, naming <code>-- b</code></td>
                   <td>Any syntax relying on the silent drop shows in the test suite</td>
                 </tr>

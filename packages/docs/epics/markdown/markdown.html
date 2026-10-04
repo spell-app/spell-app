@@ -1318,6 +1318,23 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d22" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d22">D22</a>
+                  <span class="plan-title">P2.2 diff: RulexParser.compile() throws on leftover syntax tokens</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Review gate (<a href="#d7">D7</a>) for <a href="#d12">D12</a>. <code>RulexParser.compile()</code>:
+                    tokenize, parse, then if <code>match.length &lt; tokens.length</code> throw
+                    <code>ParserError</code> "rulex couldn't read <code>…rest…</code> in <code>…syntax…</code>"; else
+                    <code>match.compile()</code>. One parse, as before. Spell impact: any syntax that relied on the
+                    silent drop now fails at import; the suite shows which. Rulex's own <code>[]</code> /
+                    <code>[{sub}]</code> tests (marked <code>TODO: error for this?</code>) become errors.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1399,11 +1416,12 @@
         <ui-section id="issues" header="7. Issues" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
-            ><ui-item id="i1" data-status="open"
+            ><ui-item id="i1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
-                  <span class="plan-title">Rulex silently drops the rest of a syntax it can't read</span> </ui-title
+                  <span class="plan-title">Rulex silently drops the rest of a syntax it can't read</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
                 ><ui-content
                   ><p>
                     <code>rulex.compile()</code> (via <code>P.Rule.compileSyntax()</code>) never checks that every token
@@ -1525,6 +1543,32 @@
                       target="src-packages-docs-rulex-experiments-rulex-probe-mts"
                       ><code>rulex/experiments/rulex-probe.mts</code></a
                     >. Goes away with digits-only numbers (<a href="#d20">D20</a>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i5">I5</a>
+                  <span class="plan-title">Rulex: an unclosed [ { ( quietly becomes a literal symbol</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Found testing <a href="#d22">D22</a>. Rulex's <code>symbol</code> rule takes an unescaped
+                    <code>[</code>, <code>{</code> or <code>(</code> when the list / subrule / choice it starts doesn't
+                    parse, so the syntax still compiles whole:
+                  </p>
+                  <ul>
+                    <li>
+                      <code>[{sub}]</code> (list without delimiter) =&gt; <code>[ {sub} ]</code>: literal brackets
+                    </li>
+                    <li><code>{a</code> =&gt; <code>{ a</code></li>
+                    <li><code>[{a},</code> =&gt; <code>[ {a} ,</code></li>
+                  </ul>
+                  <p>
+                    Fix (if wanted): <code>symbol</code> refuses unescaped <code>[ { (</code> as it already refuses
+                    <code>| )</code>, so these throw. Spell's 3 escaped-bracket syntaxes are fine; others would need
+                    checking. Not in P2 unless you say so.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1744,6 +1788,20 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T01:35-04:00">2026-10-04 01:35</time></ui-date> C6 closed: In
                   rulex syntax, a line-start #, --, // and quotes belong to the tokenizer</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:37-04:00">2026-10-04 01:37</time></ui-date> P2.2 staged for
+                  review: rulex throws on leftovers; parser 419 + spell 788 green; speed 68 -&gt; 69 ms</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:39-04:00">2026-10-04 01:39</time></ui-date> I1 closed: Rulex
+                  silently drops the rest of a syntax it can't read</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
