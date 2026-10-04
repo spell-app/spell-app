@@ -17,3 +17,7 @@ MORNING-*.md
 
 # `/park`'s note on where parked work stopped:  never committed
 PARKED-*.md
+
+# `/details` scratch pages and their answers (`yarn details new`):  never committed;  an epic's go in
+# `packages/docs/epics/<name>/details/`, which is
+packages/docs/details/

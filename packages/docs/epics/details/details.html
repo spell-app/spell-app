@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Details Pages</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Page Template</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Details CLI</ui-label></span
             >
           </header></ui-sticky
         >
@@ -71,7 +71,7 @@
               type a letter) when the page server or extension isn't available.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 5h-6h in all, 4h-4h 30m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 5h-6h in all, 2h 30m left</p>
           <ui-section id="o1" header="1.1 What already works" sticky collapsible dividing>
             <ul>
               <li>
@@ -103,8 +103,12 @@
             <ol>
               <li>
                 Claude: <code>yarn details new &lt;slug&gt; --title "..."</code> -&gt; a page from
-                <code>templates/details.html</code> in <code>packages/docs/details/</code> (ignored by version control,
-                swept after 14 days), or with <code>--epic &lt;name&gt;</code> in
+                <a href="../../templates/details.html" target="src-packages-docs-templates-details-html"
+                  ><code>templates/details.html</code></a
+                >
+                in
+                <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/details/</code></a>
+                (ignored by version control, swept after 14 days), or with <code>--epic &lt;name&gt;</code> in
                 <code>epics/&lt;name&gt;/details/</code> (committed, linked from the decision it led to:
                 <a href="#d3">D3</a>); prints its path.
               </li>
@@ -135,17 +139,26 @@
           </ui-section>
           <ui-section id="o3" header="1.3 The pieces" sticky collapsible dividing>
             <ul>
-              <li><code>packages/docs/templates/details.html</code> -- the page: context area, question markup.</li>
               <li>
-                <code>packages/docs/_assets/details.js</code> (+ css) -- turns the question markup into a form, posts
-                the answer, shows the answered state from <code>.answer.json</code> on load.
+                <a href="../../templates/details.html" target="src-packages-docs-templates-details-html"
+                  ><code>packages/docs/templates/details.html</code></a
+                >
+                -- the page: context area, question markup.
+              </li>
+              <li>
+                <a href="../../_assets/details.js" target="src-packages-docs-assets-details-js"
+                  ><code>packages/docs/_assets/details.js</code></a
+                >
+                (+ css) -- turns the question markup into a form, posts the answer, shows the answered state from
+                <code>.answer.json</code> on load.
               </li>
               <li>
                 <a href="../../scripts/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
                   ><code>packages/docs/scripts/detailsRoutes.ts</code></a
                 >
                 -- the route module: <code>POST /api/details/answer</code>; maps the page's URL (main, or
-                <code>/worktrees/&lt;w&gt;/</code>) to its file, ONLY inside a <code>details/</code> folder under
+                <code>/worktrees/&lt;w&gt;/</code>) to its file, ONLY inside a
+                <a href="../../details/" target="src-packages-docs-details"><code>details/</code></a> folder under
                 <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
                 >.
               </li>
@@ -167,11 +180,12 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="5" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="5" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
+            collapsed
             id="p1"
             data-phase="1"
             data-status="done"
@@ -198,21 +212,33 @@
                 ></ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> tests: write and read back; no token -&gt; 403; path outside a
-                <code>details/</code> folder -&gt; 403; <code>/worktrees/&lt;w&gt;/</code> URL -&gt; that worktree's
-                file</ui-item
+                <a href="../../details/" target="src-packages-docs-details"><code>details/</code></a> folder -&gt; 403;
+                <code>/worktrees/&lt;w&gt;/</code> URL -&gt; that worktree's file</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 1h-1h30m</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p2" data-phase="2" data-status="todo" header="P2 · Page Template" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p2" data-phase="2" data-status="done" header="P2 · Page Template" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
-                ><b>Goal:</b> <code>templates/details.html</code> + <code>_assets/details.js</code> (+ css): context
-                area, then questions as option cards (radio, or checkboxes for several), recommended badge, Other,
-                notes, Send; after Send: locked, Sent, answer shown; reload restores it</ui-item
+                ><b>Goal:</b>
+                <a href="../../templates/details.html" target="src-packages-docs-templates-details-html"
+                  ><code>templates/details.html</code></a
+                >
+                +
+                <a href="../../_assets/details.js" target="src-packages-docs-assets-details-js"
+                  ><code>_assets/details.js</code></a
+                >
+                (+ css): context area, then questions as option cards (radio, or checkboxes for several), recommended
+                badge, Other, notes, Send; after Send: locked, Sent, answer shown; reload restores it</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> <code>packages/docs/templates/details.html</code>,
-                <code>packages/docs/_assets/details.js</code>, css</ui-item
+                ><b>Files:</b>
+                <a href="../../templates/details.html" target="src-packages-docs-templates-details-html"
+                  ><code>packages/docs/templates/details.html</code></a
+                >,
+                <a href="../../_assets/details.js" target="src-packages-docs-assets-details-js"
+                  ><code>packages/docs/_assets/details.js</code></a
+                >, css</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b>
                 <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
@@ -233,7 +259,9 @@
                 >; <code>wait</code> prints the answer as plain text, then exits</ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> <code>packages/docs/scripts/details.js</code>, package scripts, ignore rule for
-                <code>packages/docs/details/</code>, skip <code>details/</code> in <code>docs:index</code> /
+                <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/details/</code></a
+                >, skip <a href="../../details/" target="src-packages-docs-details"><code>details/</code></a> in
+                <code>docs:index</code> /
                 <a href="../../scripts/doc-links.py" target="src-packages-docs-scripts-doc-links-py"
                   ><code>doc-links.py</code></a
                 >
@@ -374,8 +402,9 @@
                     <li>
                       <b>Epic: committed; else scratch (recommended)</b>: in an epic, the page goes in
                       <code>epics/&lt;name&gt;/details/</code> and the decision it led to links it, so the plan doc
-                      keeps the picture behind each call. Outside an epic: ignored <code>packages/docs/details/</code>,
-                      swept after 14 days.
+                      keeps the picture behind each call. Outside an epic: ignored
+                      <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/details/</code></a
+                      >, swept after 14 days.
                     </li>
                     <li><b>Always scratch</b>: ignored, swept after 14 days, never committed.</li>
                     <li><b>Always committed</b>: every page kept as a record.</li>
@@ -640,6 +669,30 @@
                   ><ui-date><time datetime="2026-10-03T20:02-04:00">2026-10-03 20:02</time></ui-date> P1 done: POST
                   /api/details/answer (detailsRoutes.ts) writes &lt;slug&gt;.answer.json; StaticHandler.resolve();
                   checks: docs ts/lint/test 47 pass, server ts/test 76 pass</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:02-04:00">2026-10-03 20:02</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:08-04:00">2026-10-03 20:08</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:08-04:00">2026-10-03 20:08</time></ui-date> P2 done:
+                  templates/details.html, _assets/details.js + details.css (stacked ui-segment cards, ui-radio /
+                  ui-checkbox, folding details, Other, notes, Send, answered + Change); GET /api/details/answer; route
+                  listed before appRoutes (its /api catch-all 404s); checks: route tests 6, Playwright click-through,
+                  check-spell ok, docs lint/ts</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

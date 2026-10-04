@@ -8,8 +8,9 @@
  *     `/worktrees/<w>/packages/docs/...` on the main checkout's server
  *   - ONLY a page in a `details/` folder of `packages/docs` (scratch, or an epic's):  anything else is a 403
  *   - sent again (Owen changed his answer):  replaces the file, `changes` counts up
- * - The page reads its answer back as a plain file (`<slug>.answer.json`, served as is);  `yarn details wait` polls
- *   for it, and wakes the waiting Claude session when it lands.
+ * - `GET /api/details/answer?page=<path>` -- the answer sent, or `{ answer: null }`:  the page shows it on load (a
+ *   plain fetch of the missing `.answer.json` would log a 404 in every fresh page's console)
+ * - `yarn details wait` polls for the file itself, and wakes the waiting Claude session when it lands.
  * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  */
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
@@ -30,6 +31,11 @@ const detailsRoutes: RouteModule = {
   name: "details",
   setup({ router, guard, web }) {
     const api = new SRV.Router()
+    api.get("/answer", (request, reply) => {
+      const out = answerFile(detailsPage(web.files, request.query.page))
+      const answer = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")) as DetailsAnswer) : null
+      reply.set("Cache-Control", "no-store").json({ answer })
+    })
     api.use(guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }))
     api.post("/answer", (request, reply) => {
       const body = request.body as { page?: unknown; answers?: unknown; notes?: unknown }
