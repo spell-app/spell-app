@@ -499,10 +499,10 @@ export class SpellLanguageService {
     const lines: string[] = []
     if (subject.kind === "variable") {
       const { name, output, kind, datatype, isAlias } = subject.record
-      const bits = [`variable **${name}**`]
+      // what it holds, e.g. `card: Card` for an argument `(a card)`, a loop's item, `it` in a method
+      const bits = [`variable **${name}**${datatype ? `: ${datatype}` : ""}`]
       if (output && output !== name) bits.push(`as \`${output}\``)
       if (kind) bits.push(kind)
-      if (datatype) bits.push(`a ${datatype}`)
       if (isAlias) bits.push("alias")
       lines.push(bits.join(" · "))
     } else if (subject.kind === "type") {
@@ -954,14 +954,13 @@ export class SpellLanguageService {
   }
 
   /**
-   * Type of `variable`, looked up in `scope`:  its `datatype`, else the type a method's `it` / `this` stands for,
-   * e.g. `card` in `to turn (a card) over`.
+   * Type of `variable`, looked up in `scope` -- see `P.Scope.getType()`:  its `datatype`, else the type a method's
+   * `it` / `this` stands for, e.g. `card` in `to turn (a card) over`.
    */
   private typeOfVariable(variable: P.ScopeVariable, scope: P.Scope): P.TypeScope | undefined {
     const { datatype, output } = variable
     const methodScope = variable.scope instanceof P.MethodScope ? variable.scope : undefined
-    const typeName = datatype ?? (output === "this" ? methodScope?.thisVar : undefined)
-    return typeName ? scope.types?.get(typeName) : undefined
+    return scope.getType(datatype ?? (output === "this" ? methodScope?.thisVar : undefined))
   }
 
   /**
@@ -1049,7 +1048,7 @@ export class SpellLanguageService {
     const type = subject.record?.scope
     if (!(type instanceof P.TypeScope)) return true
     const owner = this.ownerOf(match, ancestors)
-    return !owner || SpellLanguageService.isA(owner, type)
+    return !owner || owner.isA(type)
   }
 
   ////////////////
@@ -1891,35 +1890,17 @@ export class SpellLanguageService {
   }
 
   /**
-   * Record of property `name` on `type`, or on the nearest super-type declaring it.
-   * - `LOCAL_ONLY` at each step:  a type's `variables` fall back to its parent SCOPE's, not its super-type's.
+   * Record of property `name` on `type`, or on the nearest super-type declaring it -- see `P.TypeScope.getMember()`.
+   * - A property only:  `undefined` if the member is a method.
    */
   static propertyOf(type: P.TypeScope, name: string): P.ScopeVariable | undefined {
-    for (const ancestor of SpellLanguageService.typeChain(type)) {
-      const record = ancestor.variables.get(name, "LOCAL_ONLY")
-      if (record) return record
-    }
-    return undefined
+    const member = type.getMember(name)
+    return member instanceof P.ScopeVariable ? member : undefined
   }
 
   /** Properties declared on `type` itself -- NOT the enumerations `define_property_has` also files there. */
   static propertiesOf(type: P.TypeScope): P.ScopeVariable[] {
     return type.variables.get().filter((variable) => !("enumeration" in variable))
-  }
-
-  /** Is `type` the same as `ancestor`, or a sub-type of it? */
-  static isA(type: P.TypeScope, ancestor: P.TypeScope): boolean {
-    return SpellLanguageService.typeChain(type).includes(ancestor)
-  }
-
-  /** `type`, then its super-type, and so on up -- stopping at one we've seen, in case of a cycle. */
-  static typeChain(type: P.TypeScope): P.TypeScope[] {
-    const chain: P.TypeScope[] = []
-    for (let at: P.TypeScope | undefined = type; at && !chain.includes(at);) {
-      chain.push(at)
-      at = at.superType ? at.parentScope?.types?.get(at.superType) : undefined
-    }
-    return chain
   }
 
   /** Is `token` one an editor should colour:  a word, symbol, number, string or comment -- NOT whitespace? */

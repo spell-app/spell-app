@@ -90,7 +90,7 @@ export class ASTNode<Props extends object = object> extends Assertable {
   }
 
   /**
-   * Datatype which this node represents, e.g. `string`, `number`, custom type.
+   * Datatype which this node represents, in spell's words -- see `P.Datatype` -- e.g. `text`, `number`, `Card`.
    * - Many subclasses override just `get datatype()` to return a fixed/derived value.
    * - Some subclasses also override `set datatype()` to allow overriding via `this.override()`.
    */
@@ -239,7 +239,7 @@ export type ASTStringLiteralProps = Prettify<{ value: string; raw?: string }>
 export class ASTStringLiteral extends ASTLiteral {
   declare value: string
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "string"
+    return "text"
   }
   /** Constructor also accepts a bare `string` as shorthand for `{ value }`. */
   constructor(match: P.AnyMatch, props: string | ASTStringLiteralProps) {
@@ -258,7 +258,7 @@ export type ASTBooleanLiteralProps = Prettify<{ value: boolean; raw?: string }>
 export class ASTBooleanLiteral extends ASTLiteral {
   declare value: boolean
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "boolean"
+    return "choice"
   }
   /** Constructor also accepts a bare `boolean` as shorthand for `{ value }`. */
   constructor(match: P.AnyMatch, props: boolean | ASTBooleanLiteralProps) {
@@ -294,7 +294,7 @@ export class ASTRegExpLiteral extends ASTLiteral {
 export class ASTNullLiteral extends ASTLiteral {
   // TODO: ???
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "null"
+    return "nothing"
   }
   constructor(match: P.AnyMatch, props?: object) {
     super(match, props)
@@ -311,7 +311,7 @@ export class ASTNullLiteral extends ASTLiteral {
 /** UndefinedLiteral type.  TODO: ???? */
 export class ASTUndefinedLiteral extends ASTLiteral {
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "undefined"
+    return "nothing"
   }
   constructor(match: P.AnyMatch, props?: object) {
     super(match, props)
@@ -344,7 +344,7 @@ export type ASTKeywordLiteralProps = Prettify<{ value: string; raw?: string }>
 export class ASTKeywordLiteral extends ASTLiteral {
   declare value: string
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "string"
+    return "text"
   }
   /** SIDE EFFECT: routes through `this.override()` so a subclass instance can force a specific datatype. */
   set datatype(datatype: string) {
@@ -421,7 +421,7 @@ export type ASTQuotedExpressionProps = Prettify<{ expression: ASTExpression }>
 export class ASTQuotedExpression extends ASTExpression {
   declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "string"
+    return "text"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
@@ -448,7 +448,7 @@ export type ASTBackTickExpressionProps = Prettify<{ expression: ASTExpression }>
 export class ASTBackTickExpression extends ASTExpression {
   declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "string"
+    return "text"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
@@ -475,7 +475,7 @@ export type ASTBacktickSubstitutionProps = Prettify<{ expression: ASTExpression 
 export class ASTBacktickSubstitution extends ASTExpression {
   declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "string"
+    return "text"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
@@ -506,7 +506,7 @@ export type ASTTripleBackTickExpressionProps = Prettify<{ expression: ASTExpress
 export class ASTTripleBackTickExpression extends ASTExpression {
   declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "string"
+    return "text"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
@@ -874,14 +874,14 @@ export class ASTParenthesizedExpression extends ASTExpression {
 
 /** Not expression.
  *  - `expression` is contained AST Expression.
- *  - `datatype` is ALWAYS boolean.
+ *  - `datatype` is ALWAYS `choice`.
  */
 export type ASTNotExpressionProps = Prettify<{ expression: ASTExpression }>
 
 export class ASTNotExpression extends ASTExpression {
   declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "boolean"
+    return "choice"
   }
   constructor(match: P.AnyMatch, props: ASTNotExpressionProps) {
     super(match, props)
@@ -1230,7 +1230,7 @@ export class ASTTypeExpression extends ASTExpression {
   declare raw: string | undefined
   declare plurality: "singular" | "plural" | undefined
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "Type"
+    return "type"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
@@ -1299,7 +1299,7 @@ export class ASTConstantExpression extends ASTExpression {
   declare output: string
   declare constant: P.ScopeConstant | undefined
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "string"
+    return "text"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
@@ -1518,7 +1518,7 @@ export type ASTObjectLiteralProps = Prettify<{
 export class ASTObjectLiteral extends ASTExpression {
   declare properties: Array<ASTObjectLiteralProperty | ASTMethodDefinition>
   /*@readonly*/ /*@proto*/ get datatype(): string {
-    return "object"
+    return "Object"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)

@@ -1,5 +1,8 @@
 import { Derivative } from "$/util"
-import { P } from "$/parser"
+import type { P } from "$/parser"
+// Import directly to avoid circular import:  a VALUE import of `P` here would make `$/parser/scope/Scope` an
+// entry which breaks the barrel -- see `barrel.test.ts`
+import { itemTypeOf } from "$/parser/parser.types"
 
 /**
  * We create a `Scope` when starting a parse run, so parser can keep state as it descends up and down.
@@ -29,7 +32,7 @@ export class Scope extends Derivative {
    * `BlockScope`, `RootScope`).
    */
   /** Forwards to `parentScope.methods`. */
-  get methods(): P.ScopeList<P.MethodScope, P.MethodScope | P.MethodScopeProps> | undefined {
+  get methods(): P.ScopeList<P.ScopeMethod, P.ScopeMethod | P.ScopeMethodProps> | undefined {
     return this.parentScope?.methods
   }
   /** Forwards to `parentScope.variables`. */
@@ -73,6 +76,34 @@ export class Scope extends Derivative {
     // NOTE: `definition` may be undefined -- store an empty object so an export can always spread it.
     this.rules?.add({ name: instance.name!, rule, definition: definition ?? {}, declaredBy, declared, instance })
     return instance
+  }
+
+  ////////////////
+  // ## Types
+  ////////////////
+
+  /**
+   * `TypeScope` for `datatype`, as seen from here -- `undefined` if unknown, or `datatype` is.
+   * - Any spelling `P.typeName()` takes, e.g. `Card`, `cards`, `text`;  a `list of cards` is a `list`.
+   * - A lookup:  call it WHILE PARSING, never from `getAST()` / `getDatatype()`.
+   */
+  getType(datatype: P.Datatype | undefined): P.TypeScope | undefined {
+    if (!datatype) return undefined
+    const name = itemTypeOf(datatype) ? "list" : datatype
+    return this.types?.get(name)
+  }
+
+  /**
+   * What a list of `datatype` holds, e.g. `Card` for `list of cards`, or for `Deck` (`a deck is a list of cards`)
+   * -- the first `itemType` up its type's super-type chain.  `undefined` if we can't tell.
+   * - A lookup:  call it WHILE PARSING, never from `getAST()` / `getDatatype()`.
+   */
+  getItemType(datatype: P.Datatype | undefined): P.Datatype | undefined {
+    const fromWords = itemTypeOf(datatype)
+    if (fromWords) return fromWords
+    return this.getType(datatype)
+      ?.chain()
+      .find((type) => type.itemType)?.itemType
   }
 
   ////////////////

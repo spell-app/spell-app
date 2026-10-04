@@ -8,6 +8,10 @@ fixed, or disproven, delete it (note a disproof in a line at the top if the reas
   `drawThing(deck.cards)` (`draw_items` now outranks `draw_thing`, priority 2 vs 1, and its test runs);
   `draw_thing`'s odd `precedence: 100` (now priority 1, with its why);  `print the card is a new card` gave
   `isOfType(card, 'New')` plus a parse error (now `card == new Card()`:  the longer `is` + `a new card` suffix wins).
+- Fixed 2026-10-04 (precedence-and-types P4, types plumbed):  `a todo has a done as choice` emitted
+  `declareProp('done', { type: 'boolean' })`, which the runtime's `isOfType()` (`typesOf(true)` is `["choice"]`)
+  warned about on every set -- now `{ type: 'choice' }`, as are `as a boolean` and `is a boolean`;  `as a string`
+  is `text`.  One normaliser, `P.typeName()`, replaced `types.ts`' `TYPE_VALUE_MAP`.  Probe `T2` pins it.
 `[V]` = checked against the code by hand.  Everything else is unverified.
 
 Entry format:  `` - `path/to/file.ts` `symbol()`: what looks wrong, why, and how to prove it. ``
@@ -183,11 +187,13 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   `setProp()` (reactive) and an undeclared one a plain field, with no warning.  Epic `precedence-and-types` decided
   (D10) to auto-declare a property at its first `set`, reactive + typed.  Found 2026-09-30.
 
-- `packages/spell/src/rules/types.ts` `TYPE_VALUE_MAP` maps `choice` to `boolean` (`:53-56`), while `as yes or no`
-  compiles to `'choice'` (`classes.ts:427`).  So `a todo has a done as choice` likely emits
-  `declareProp('done', { type: 'boolean' })`, and `isOfType()` warns on every set:  the runtime's `typesOf(true)` is
-  `["choice"]` (`packages/core/src/core.ts:122-128,163-167`).  From reading the code, NOT run.  Epic
-  `precedence-and-types` P4 (one type vocabulary) should fix it.  Found 2026-10-03.
+- `packages/parser/src/scope/TypeScope.ts` `declareProperty()` (and `define_property_has` / getters in `classes.ts`):
+  a property declared on a BUILT-IN type (`the size of a thing is: ...`, `things have a tag as text`) or an IMPORTED
+  one is recorded on that type's shared `TypeScope` -- the root scope's, or the import layer's -- which every project
+  in the process shares and no project's journal records.  So it outlives the edit that made it, and another project
+  (e.g. in the language server) sees it.  Since P4 of `precedence-and-types` the root also has `Text`, `Number` ...,
+  so `the length of a text is:` does it too.  Method records avoid it (judgement J11:  they go in the project's
+  `methods`).  From reading the code, NOT run.  Found 2026-10-04.
 
 ### 2. Server robustness / security
 

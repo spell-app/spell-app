@@ -276,7 +276,7 @@ export class ScopeExplorer {
    */
   private addType(type: P.TypeScope, tree: Tree) {
     const path = tree.typePaths.get(type)!
-    const parent = LSP.SpellLanguageService.typeChain(type)[1]
+    const parent = type.chain()[1]
     const superPath = parent && tree.typePaths.get(this.sourceType(parent, tree))
     const entry: LSP.ScopeEntry = { path }
     if (superPath) entry.super = superPath

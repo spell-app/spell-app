@@ -104,7 +104,8 @@ classes.addRule(create_type, {
  * `a deck is a list of cards` or `create a type called Deck as a list of cards` -- declares `type` as a
  * new class extending `List`, with its `instanceType` set to `instanceType`.
  * - `priority: 10` so this wins over the plainer `create_type` rule above for the `is a list of` form.
- * - SIDE EFFECT: adds `type` to `scope.types` (superType `"list"`), unless already defined.
+ * - SIDE EFFECT: adds `type` to `scope.types` (superType `"list"`), unless already defined -- with its
+ *   `itemType`, e.g. `Card`, so `the first card of the deck` knows it's a card.
  * - Compiles to a class declaration extending `List` with a static `instanceType`, e.g.
  *   `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
  */
@@ -114,17 +115,20 @@ class create_list_type extends SpellStatement<"type|instanceType"> {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
 
   mutateScope(match: P.MatchFor<this>) {
-    const { type } = match.groups
+    const { type, instanceType } = match.groups
+    const itemType = P.typeName(`${instanceType.value}`)
     // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
     // TODO: complain if existing type is set up differently!
     // An IMPORTED one is declared again anyway, so `SP.SpellDeclarations.checkImportClashes()` can report it.
     const existing = match.scope.types?.get(type.value)
     if (existing && !(existing.parentScope instanceof P.ImportScope)) {
       // a stub, or left by an earlier parse of this statement -- see `P.TypeScope.sameStatement()`
-      if (existing.stub || P.TypeScope.sameStatement(existing.declaredBy, match)) existing.claim(match, "list")
+      if (existing.stub || P.TypeScope.sameStatement(existing.declaredBy, match)) {
+        existing.claim(match, "list", itemType)
+      }
       return
     }
-    match.scope.types?.add({ name: type.value, superType: "list", declaredBy: match })
+    match.scope.types?.add({ name: type.value, superType: "list", itemType, declaredBy: match })
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
     const { type, instanceType } = match.groups
@@ -183,6 +187,11 @@ classes.addRule(create_list_type, {
 class new_thing extends SpellStatement<"type|props?"> {
   @proto static alias = "expression"
 
+  /** The type it makes, e.g. `Card`, `thing`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return P.typeName(`${match.groups.type.value}`)
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     const { type, props } = match.groups
     return new P.ASTNewInstanceExpression(match, {
@@ -224,6 +233,12 @@ classes.addRule(new_thing, {
  */
 class new_list extends SpellStatement<"instanceType?"> {
   @proto static alias = "expression"
+
+  /** A `list`, or a `list of` what it says, e.g. `list of todos`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const { instanceType } = match.groups
+    return instanceType ? P.listOf(P.typeName(`${instanceType.value}`)) : "list"
+  }
 
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     const { instanceType } = match.groups
@@ -272,6 +287,11 @@ classes.addRule(new_list, {
  */
 class create_thing extends SpellStatement<"type|props?"> {
   @proto static alias = ["expression", "statement"]
+
+  /** The type it makes, e.g. `Card`, `thing`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return P.typeName(`${match.groups.type.value}`)
+  }
 
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     const { type, props } = match.groups
@@ -369,6 +389,11 @@ classes.addRule(type_specifier_enum, {
 class type_specifier_datatype extends P.Sequence<"datatype"> {
   @proto static alias = "type_specifier"
 
+  /** The type it names, in spell's words, e.g. `number`, `Automobile`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return P.typeName(`${match.groups.datatype.value}`)
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTTypeExpression {
     return P.matchAST<P.ASTTypeExpression>(match.groups.datatype)
   }
@@ -396,6 +421,11 @@ classes.addRule(type_specifier_datatype, {
  */
 class type_specifier_instance extends P.Sequence<"new_thing"> {
   @proto static alias = "type_specifier"
+
+  /** The type it makes, e.g. `thing` for `as a new thing`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.new_thing.datatype
+  }
 
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     return P.matchAST<P.ASTNewInstanceExpression>(match.groups.new_thing)
@@ -425,6 +455,7 @@ classes.addRule(type_specifier_instance, {
  */
 class type_specifier_yes_or_no extends P.Sequence {
   @proto static alias = "type_specifier"
+  @proto static datatype = "choice"
 
   getAST(match: P.MatchFor<this>): P.ASTTypeExpression {
     return new P.ASTTypeExpression(match, { raw: "yes or no", name: "choice" })
@@ -531,8 +562,8 @@ class define_property_has extends SpellStatement<"type|property|specifier?"> {
 
     const typeName = type.value
     const typeScope = P.TypeScope.getOrStub(scope, typeName, match)
-    const datatype = specifierAST instanceof P.ASTTypeExpression ? specifierAST.name : undefined
-    typeScope.declareProperty(`${property.value}`, match, datatype)
+    // what its specifier says it holds, e.g. `text`, `choice`, `thing` for `as a new thing`
+    typeScope.declareProperty(`${property.value}`, match, specifier?.datatype)
 
     // If there is a specifier as enumerated values, add rules to match it
     if (specifierAST instanceof P.ASTEnumeration) {
@@ -861,10 +892,12 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
   /** Nested scope for the getter body -- maps `its`/`it` to `this` so the body can say `its name`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const { type } = match.groups
+    const typeScope = getKnownType(type)
     return new P.MethodScope({
       parentScope: match.scope,
-      thisVar: getKnownType(type).instanceName,
+      thisVar: typeScope.instanceName,
       mapItTo: "this",
+      itDatatype: P.typeName(typeScope.name),
       declaredBy: match
     })
   }
@@ -1179,7 +1212,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
           body: new P.ASTReturnStatement(match, {
             value: P.ASTMultiInfixExpression(match, { expressions, operator: "&&" })
           }),
-          datatype: "boolean"
+          datatype: "choice"
         })
       })
     ]

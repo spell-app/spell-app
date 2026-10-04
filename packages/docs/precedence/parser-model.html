@@ -1476,6 +1476,16 @@ constructor(props: SpellExpressionProps) {
               of <code>of the a an is has have in to and or if where</code>: otherwise
               <code>a card has short rank as text</code> swallows <code>as text</code>.
             </p>
+            <p>
+              Built (P4): as above, plus what the table didn't say.
+              <code>Scope.getType()</code> / <code>getItemType()</code> resolve a datatype to its type, or a
+              <code>Deck</code>'s item type, for the rules doing a lookup in <code>parse()</code>.
+              <code>compound_expression.getDatatype()</code> runs <code>getAST()</code>'s shunting-yard over each
+              suffix's <code>getResultDatatype()</code>. <code>MethodScope.itDatatype</code> types <code>this</code> /
+              <code>it</code>. A method of a type the project doesn't own (built in, imported) is recorded in the
+              project's <code>methods</code> with <code>of</code>, not on the shared type (plan doc J11).
+              <code>is a</code>'s forward references count through stubs only (J10).
+            </p>
           </ui-section>
 
           <ui-section id="6-3-rules" header="6.3 Rules that change in P4-P8" sticky collapsible dividing>
@@ -1727,7 +1737,8 @@ constructor(props: SpellExpressionProps) {
             </li>
             <li>
               <b>Speed.</b> Baseline (P1): <code>speedTest()</code> 74ms, BENCH 115ms. Before P3 (2026-10-04): 67.7ms,
-              109.6ms. After P3: <code>yarn spell speed --json</code> 54.5ms, BENCH 55.2ms (medians of 3 runs).
+              109.6ms. After P3: <code>yarn spell speed --json</code> 54.5ms, BENCH 55.2ms (medians of 3 runs). After
+              P4: 60.1ms, BENCH 60.3ms; P3 re-measured the same night: speed 62.3ms, so most of that is the machine.
               Give-back adds parses only to sequences already failing.
             </li>
           </ul>
@@ -1784,7 +1795,7 @@ constructor(props: SpellExpressionProps) {
 
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
-          <p class="meta">Last checked 2026-10-04 against branch <code>precedence-and-types</code>, P3 as built.</p>
+          <p class="meta">Last checked 2026-10-04 against branch <code>precedence-and-types</code>, P4 as built.</p>
         </footer>
       </main>
     </div>

@@ -282,9 +282,20 @@ describe("SpellLanguageService", () => {
     const hover = (file: SP.SpellFile, position: Position) =>
       (service.hover(file, position)!.contents as { value: string }).value
     // `get a new foundation ...` then `add it to the foundations`, for the second foundation
-    expect(hover(solitaire, at(solitaire, 35, "it"))).toContain("variable **it** · as `it_2`")
+    expect(hover(solitaire, at(solitaire, 35, "it"))).toContain("variable **it**: Foundation · as `it_2`")
     // the signature of `to turn (a card) face up`
     expect(hover(card, at(card, 60, "turn"))).toContain("compiles to `turn_face_up()`")
+  })
+
+  test("hover says what a variable holds:  an argument, a loop's item, `it`", () => {
+    const hover = (file: SP.SpellFile, position: Position) =>
+      (service.hover(file, position)!.contents as { value: string }).value
+    // `a stock-pile "can pick up (a card)" if: the card is its bottom card`
+    expect(hover(solitaire, at(solitaire, 17, "card", 1))).toContain("variable **card**: Card · argument")
+    // `for each card in the deck` / `move it to the stock`:  the loop's item
+    expect(hover(solitaire, at(solitaire, 61, "it"))).toContain("variable **it**: Card")
+    // `to turn (a card) over:` / `if its direction is up: turn it face down`
+    expect(hover(card, at(card, 70, "it", 1))).toContain("variable **it**: Card")
   })
 
   /**

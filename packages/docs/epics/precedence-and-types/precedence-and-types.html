@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Precedence and Types</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Types Plumbed</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p5"
+                >next: P5 · Typed Calls, Signatures</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -60,7 +62,7 @@
               plan before we start anything.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 16h-23h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 24h-34h in all, 12h-17h left</p>
           <ui-section id="o1" header="1.1 Why" sticky collapsible dividing>
             <ul>
               <li>
@@ -312,7 +314,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -383,7 +385,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Binding Power" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · Binding Power"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -414,8 +425,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 5-7h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Types Plumbed" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p4" data-phase="4" data-status="done" header="P4 · Types Plumbed" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> a datatype on every match, in spell's words. Output MAY change where it gets
@@ -2197,6 +2208,189 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j10">J10</a>
+                  <span class="plan-title">P4: `is a` forward references count through stubs only</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Chose <code>{expression:known_type}</code> as Parser Model §6.3 says, with D32's "declared later
+                    still counts" read as its parenthesis says: through <b>stubs</b>. A type counts if it's built in,
+                    imported, declared in an earlier line or file, or mentioned earlier (e.g.
+                    <code>a joker has a color ...</code> stubs <code>Joker</code>). A type FIRST mentioned in an
+                    <code>is a</code> above its own declaration -- e.g. <code>if the pile is a foundation</code> in
+                    Card.spell, with <code>a foundation is a pile</code> in Solitaire.spell -- is a parse error.
+                  </p>
+                  <ul>
+                    <li>chosen: stubs only -- no new mechanism (D11); every live example and fixture still parses</li>
+                    <li>
+                      other: a project-wide pre-scan stubbing every <code>a X is a Y</code> before parsing -- a new
+                      concept, needs incremental-parse care (I-issue filed)
+                    </li>
+                    <li>
+                      other: accept any word, report unknown ones after the project parses -- needs a post-parse error
+                      channel nothing has
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j11">J11</a>
+                  <span class="plan-title"
+                    >P4: a method of a type the project doesn't own is recorded in the PROJECT's `methods`, with
+                    `of`</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>MethodDefinition.addMethod()</code> puts a <code>P.ScopeMethod</code> in its type's
+                    <code>methods</code> only if THIS project declares the type. A method of a built-in
+                    (<code>Thing</code>) or imported (<code>Card</code> from <code>@library/cards</code>) type, or of a
+                    word that isn't a type yet, goes in the project's own <code>methods</code>, its
+                    <code>of</code> saying whose; <code>findMethod()</code> looks there second, checking
+                    <code>isA(of)</code>.
+                  </p>
+                  <ul>
+                    <li>
+                      chosen: why -- root and import-layer types are shared by every project (and the import layer is
+                      outside the journal), so a record added there would outlive the edit that made it, and leak into
+                      other projects in the same process (the language server)
+                    </li>
+                    <li>other: always on the type, as Parser Model §6.2 sketches</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j12">J12</a>
+                  <span class="plan-title"
+                    >P4: `+` is `number` only when both sides are; `text` when either is; else unknown</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The brief: arithmetic is <code>number</code>, or <code>text</code> when <code>+</code> has a text
+                    side. Chose to leave <code>x + y</code> UNKNOWN when neither side's type is known, rather than guess
+                    <code>number</code>: javascript joins a string either side, and P5's typed calls reject on a
+                    CONFIDENT mismatch (D6), so a wrong guess would reject a good call. <code>- * /</code> are always
+                    <code>number</code>.
+                  </p>
+                  <ul>
+                    <li>chosen: confident only</li>
+                    <li>other: <code>number</code> unless a side is text</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j13">J13</a>
+                  <span class="plan-title"
+                    >P4: type names a user writes now compile in spell's words -- `as a string` checks `'text'`, `as a
+                    boolean` / `is a boolean` `'choice'`</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Folding <code>TYPE_VALUE_MAP</code> / <code>SIMPLE_TYPES</code> into
+                    <code>P.typeName()</code> changes what a few phrasings compile to -- each a fix, as the runtime's
+                    <code>typeOf()</code> already speaks these words:
+                  </p>
+                  <ul>
+                    <li>
+                      <code>as choice</code> / <code>as a boolean</code> / <code>is a boolean</code>:
+                      <code>'choice'</code> (was <code>'boolean'</code>, which <code>isOfType()</code> never matched --
+                      the suspected bug)
+                    </li>
+                    <li>
+                      <code>as a string</code> / <code>is a string</code>: <code>'text'</code> (was
+                      <code>'String'</code>, also never matched)
+                    </li>
+                    <li>
+                      <code>as a fraction</code>: <code>'number'</code>; <code>as a char</code>:
+                      <code>'character'</code>
+                    </li>
+                    <li>
+                      classes stay Type_Case for compiled code: <code>List</code>, <code>Thing</code>,
+                      <code>Object</code>
+                    </li>
+                    <li>
+                      a method on a <code>date</code> / <code>nothing</code> arg is no longer promoted to an instance
+                      method: <code>isSimpleType()</code> is now every value type, not a hand list
+                    </li>
+                    <li>
+                      a declared property's datatype comes from its specifier's datatype:
+                      <code>as a new thing</code> =&gt; <code>thing</code>, <code>as a list</code> =&gt;
+                      <code>list</code> (was <code>List</code>)
+                    </li>
+                  </ul>
+                  <p>
+                    No fixture or live example used any of the changed spellings; probe T2 pins <code>choice</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j14">J14</a>
+                  <span class="plan-title"
+                    >P4: SPELL: DECLARES writes `params` only when a method has some, `returns` / `itemType` only when
+                    known</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    So a method with no parameters, and every getter, compiles exactly as before; the fixture diff is 9
+                    lines, all additions: <code>params: [{ name: "pile", datatype: "Pile" }]</code> on methods with
+                    arguments, <code>itemType: "Card"</code> on <code>Deck</code> / <code>Pile</code>.
+                    <code>params</code> lists the method's JAVASCRIPT parameters, so a <code>(with ...)</code> clause
+                    shows as <code>{ name: "props" }</code> -- P5 may want its props instead. No
+                    <code>SPELL_VERSION</code> bump (D37); a declaration without these keys loads them as unknown
+                    (tested).
+                  </p>
+                  <ul>
+                    <li>chosen: only what's known</li>
+                    <li>other: always write <code>params: []</code></li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j15">J15</a>
+                  <span class="plan-title"
+                    >P4: extras -- every live example recompiled, hover says `card: Card`, probes T1 / T2 and a
+                    "datatypes" ledger</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Recompiled with <code>spell compile</code> not just the cards library and the two Solitaire
+                      examples, but Todos, Todos - Form Based, Calculator and FizzBuzz too, so no compiled example lags
+                      the compiler: declaration additions only (<code>params</code>, <code>datatype: "list"</code>), no
+                      code changed; their <code>.scopes.js</code> packs gain each variable's datatype as
+                      <code>detail</code>.
+                    </li>
+                    <li>
+                      Hover: <code>variable **card**: Card · argument</code> replaces
+                      <code>variable **card** · argument · a Card</code>. The Type Explorer shows variables' datatypes
+                      too (<code>variable game (Game)</code>), and <code>App (is a Thing)</code>: <code>App</code>'s
+                      super-type is now set in the root scope, as at runtime.
+                    </li>
+                    <li>
+                      Probe ledger: new probes titled <code>T1</code> / <code>T2</code> (P4's, not precedence.html
+                      problem numbers) and a <code>datatypes</code> block: <code>datatypes()</code> sets a variable to
+                      each expression and reads the datatype it got; <code>sinks()</code> reads what arguments, loop
+                      items, <code>it</code> and <code>where</code> results hold.
+                    </li>
+                    <li>
+                      Built-in suffixes default to <code>datatype: "choice"</code> on <code>InfixOperatorSuffix</code>:
+                      every suffix is a test unless it says otherwise (<code>+ - * /</code>, <code>as upper case</code>,
+                      <code>as a &lt;type&gt;</code>, <code>X if C otherwise Y</code>).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2366,6 +2560,55 @@ the first card of {list:NAME}
                     <code>main</code> after this branch merges, or before the worktree is removed; until then, other
                     branches see this branch's grammar.
                   </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title"
+                    >P4: built-in type names are now KNOWN types -- `text`, `number`, `date`, `nothing` ...</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The root scope has a <code>TypeScope</code> for each built-in (<code>P.BUILT_IN_TYPES</code>), so
+                    every rule taking <code>{type:known_type}</code> now accepts them: <code>is a number</code> (as
+                    asked), but also <code>a new number</code> (=&gt; <code>new number()</code>), and
+                    <code>the length of a text is: ...</code> would declare a property on the ROOT
+                    <code>Text</code> type, which every project shares. The same was already true of <code>Thing</code>,
+                    <code>List</code>, <code>App</code>, <code>Object</code> -- see SUSPECTED-BUGS. Members of built-ins
+                    arrive in P7.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c10">C10</a>
+                  <span class="plan-title"
+                    >P4: datatypes still unknown in places -- calls, enumerated properties, `has items where`</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      a method call's datatype is its record's <code>returns</code>, which nothing fills until P5's
+                      return inference: every call is unknown
+                    </li>
+                    <li>
+                      an enumerated property (<code>as one of clubs, diamonds ...</code>) has no datatype, so
+                      <code>the suit of the card</code> is unknown
+                    </li>
+                    <li>
+                      <code>x has items where ...</code>: the item's type is unknown -- the list is the suffix's left
+                      side, which a suffix can't see while parsing
+                    </li>
+                    <li><code>its X</code> with no <code>it</code> in scope (meaning <code>this</code>) is unknown</li>
+                    <li>
+                      a variable keeps the datatype it was declared with: a later <code>set x to</code> something else
+                      doesn't change it (first datatype wins)
+                    </li>
+                  </ul>
+                  <p>Unknown is compatible with everything, so none of this changes what parses.</p></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -2546,6 +2789,23 @@ the first card of {list:NAME}
                       parser.
                     </li>
                   </ol></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i5">I5</a>
+                  <span class="plan-title"
+                    >P4: `is a &lt;type&gt;` above that type's own declaration is a parse error (J10)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    With <code>is_a</code> on <code>{expression:known_type}</code>, a type first mentioned in an
+                    <code>is a</code> before its declaration -- later in the file, or in a later file -- doesn't parse.
+                    No live example or fixture does this today (all checked). If it matters: pre-scan each project's
+                    files for <code>(a|an) X is (a|an) ...</code> / <code>create a type called X</code> and stub those
+                    names before parsing -- new mechanism, and edits that add a type would need re-scanning.
+                  </p></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -3021,6 +3281,42 @@ the first card of {list:NAME}
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:47-04:00">2026-10-04 02:47</time></ui-date> Bedtime started:
                   P4-P9 unattended; answers recorded</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:47-04:00">2026-10-04 02:47</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:18-04:00">2026-10-04 03:18</time></ui-date> P4 built
+                  (bedtime): P.Datatype + P.typeName() (TYPE_VALUE_MAP / SIMPLE_TYPES folded in, choice bug fixed);
+                  Rule.getDatatype() / match.datatype with ~20 overrides; Scope.getType() / getItemType(),
+                  TypeScope.itemType / chain() / isA() / getMember() (LSP delegates), P.ScopeMethod records in the
+                  methods lists; sinks (args, this / it, set / get / is, loop and where items, on ... with); is_a on
+                  known_type; SPELL: DECLARES params / returns / itemType, no version bump; built-in type names in the
+                  root scope; probes T1 / T2 + a datatypes ledger; hover card: Card. Fixture diff: 9 declaration lines
+                  added, no code. Speed 60.1ms, BENCH 60.3ms (P3 re-measured: 62.3ms). J10-J15, I5, C9-C10.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:21-04:00">2026-10-04 03:21</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:21-04:00">2026-10-04 03:21</time></ui-date> P4 done: datatype
+                  on every match (P.Datatype, P.typeName), TypeScope itemType/chain/isA/getMember, ScopeMethod records,
+                  is_a known types, choice bug fixed; checks: parser 411, spell 833, lsp 97, cli 132 green; speed 60.1ms
+                  / BENCH 60.3ms (+10%)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

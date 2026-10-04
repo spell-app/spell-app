@@ -367,8 +367,8 @@ export abstract class Rule<
   @proto static declares?: P.DeclaresSpec = undefined
   /** How editors colour our matches' own tokens -- see `P.HighlightKind`. */
   @proto static highlightAs?: P.HighlightKind = undefined
-  /** Datatype. */
-  static datatype?: string
+  /** What our matches ARE, in spell's words, e.g. `text` -- see `getDatatype()`. */
+  static datatype?: P.Datatype
   /** Description. */
   static description?: string
   /**
@@ -393,8 +393,8 @@ export abstract class Rule<
   declare module: string | undefined
   /** Description of this rule. */
   declare description: string | undefined
-  /** Datatype which rule result represents, e.g. `string`, `number`, custom type. */
-  declare datatype: string | undefined
+  /** What our matches ARE, in spell's words, e.g. `text` -- default for `getDatatype()`. */
+  declare datatype: P.Datatype | undefined
 
   /** Return array of `names` for this rule:  its `.name` + any `.alias`es. */
   get names() {
@@ -473,6 +473,19 @@ export abstract class Rule<
    * If you implement this, return an `ASTNode` object (or `undefined` if the match yields no output).
    */
   getAST?(match: P.MatchFor<this>): P.ASTNode | undefined
+
+  /**
+   * What `match` IS, in spell's words, e.g. `text`, `list of cards`, `Card` -- `undefined` if we can't tell.
+   * - Read it as `match.datatype`, which memoizes this.
+   * - Default:  our `datatype`, e.g. `@proto static datatype = "number"`.
+   * - Override for a datatype which depends on the match, e.g. a variable's, from its scope record.
+   * - Reads ONLY `match` and its `data`, like `getAST()`:  NEVER look up scope here.  A lookup it needs happens
+   *   WHILE PARSING, into `match.data` -- e.g. the item type of the list a `the first card of ...` reads.
+   * - Unknown (`undefined`) is compatible with everything:  nothing stops parsing for want of a type.
+   */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return this.datatype
+  }
 
   ////////////////
   // ## Quick testing methods
@@ -637,8 +650,8 @@ export type RuleProps = {
   description?: string
   /** Name aliases -- indicates this rules works a part of collections such as `expression` or `statement`. */
   alias?: string | string[]
-  /** Datatype which rule result represents, e.g. `string`, `number`, custom type. */
-  datatype?: string
+  /** What our matches ARE, in spell's words, e.g. `text` -- see `Rule.getDatatype()`. */
+  datatype?: P.Datatype
   /** Rulex syntax string used to define this rule. */
   syntax?: string
   /** Which of several matches of the same words wins a `Choice`, highest first.  Default = 0. */

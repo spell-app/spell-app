@@ -86,11 +86,27 @@ properties.addRule(the_property_of, {
  * expression that follows, e.g. `the foo of the bar` ~== `bar.foo`.
  * - TODO: multiple identifiers would be cool...
  */
-class property_expression extends SpellExpression<"property_accessor|expression"> {
+class property_expression extends SpellExpression<"property_accessor|expression", MemberData> {
   /** Our syntax is all subrules, so ask `property_accessor` whether it could start here, e.g. `the foo of`. */
   test(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (super.test(scope, tokens, start) === false) return false
     return scope.getRuleOrDie("property_accessor").test(scope, tokens, start)
+  }
+  /**
+   * Note the member we read, while we can look it up:  the property on the type of what follows `of`, e.g.
+   * `rank` of `Card` for `the rank of the card` -- see `getMember()`.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match) return undefined
+    const { property_accessor, expression } = match.groups
+    const { property } = property_accessor.groups as { property?: P.Match }
+    if (property) match.data.member = getMember(scope, expression.datatype, `${property.value}`)
+    return match
+  }
+  /** What the member we read holds, if known. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return memberDatatype(match.data.member)
   }
   getAST(match: P.MatchFor<this>) {
     const { property_accessor, expression } = match.groups
@@ -129,11 +145,18 @@ properties.addRule(property_expression, {
  * - Tracks `it`:  `get it` / `put its foo in the bar`.
  * - Synonym for `this` if `it` is not (yet) defined in scope.
  */
-class its_property extends SpellExpression<"property", ItsMatchData> {
+class its_property extends SpellExpression<"property", ItsMatchData & MemberData> {
+  /** Note `it`, and the member of its type we read, while we can look them up. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
-    if (match) match.data.itVar = scope.variables?.get("it") ?? NONE
+    if (!match) return undefined
+    const itVar = (match.data.itVar = scope.variables?.get("it") ?? NONE)
+    if (itVar !== NONE) match.data.member = getMember(scope, itVar.datatype, `${match.groups.property.value}`)
     return match
+  }
+  /** What the member we read holds, if known. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return memberDatatype(match.data.member)
   }
   getAST(match: P.MatchFor<this>) {
     const property = P.asAST<P.ASTPropertyLiteral>(match.groups.property.AST)
@@ -201,13 +224,20 @@ properties.addRule(its_property, {
  * - Synonym for `this` if `it` is not (yet) defined in scope.
  * - Compiles to `spellCore.getItemOf(object, ordinal)` rather than a plain property access.
  */
-class its_ordinal extends SpellExpression<"ordinal|arg", ItsMatchData> {
+class its_ordinal extends SpellExpression<"ordinal|arg", ItsMatchData & { itemType?: P.Datatype }> {
   @proto static alias = ["expression", "property_accessor"]
 
+  /** Note `it`, and what it holds, while we can look them up. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
-    if (match) match.data.itVar = scope.variables?.get("it") ?? NONE
+    if (!match) return undefined
+    const itVar = (match.data.itVar = scope.variables?.get("it") ?? NONE)
+    if (itVar !== NONE) match.data.itemType = scope.getItemType(itVar.datatype)
     return match
+  }
+  /** An item of `it`, e.g. `Card` for `its first card` in a method of decks. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.data.itemType
   }
   getAST(match: P.MatchFor<this>) {
     const { ordinal } = match.groups
@@ -344,4 +374,28 @@ properties.addRule(object_literal_properties, {
 type ItsMatchData = {
   /** `it` in scope when parsed, or `NONE` => means `this`.  Looked up THEN, not in `getAST()` -- see `SpellIdentifier`. */
   itVar?: P.ScopeVariable | typeof NONE
+}
+
+////////////////
+// ## Members
+//    shared by the rules which read a member, e.g. `property_expression`
+////////////////
+
+/** What a rule reading a member stashes on its match. */
+type MemberData = {
+  /** Member it reads, found while parsing -- see `getMember()`.  `undefined` if none known. */
+  member?: P.ScopeVariable | P.ScopeMethod
+}
+
+/**
+ * Member `name` of the type `datatype` names, e.g. `rank` of `Card` -- `undefined` if either is unknown.
+ * - A lookup:  call it WHILE PARSING -- see `P.TypeScope.getMember()`.
+ */
+function getMember(scope: P.Scope, datatype: P.Datatype | undefined, name: string) {
+  return scope.getType(datatype)?.getMember(name)
+}
+
+/** What `member` holds:  a property's datatype, a method's return type. */
+function memberDatatype(member: P.ScopeVariable | P.ScopeMethod | undefined): P.Datatype | undefined {
+  return member instanceof P.ScopeMethod ? member.returns : member?.datatype
 }

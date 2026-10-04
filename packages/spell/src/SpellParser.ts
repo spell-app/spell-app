@@ -1,4 +1,4 @@
-import { getDerived } from "$/util"
+import { getDerived, typeCase } from "$/util"
 import { P } from "$/parser"
 // Import directly, NOT through the `$/core` barrel:  the parser MUST NOT load `spellCore` itself -- each
 // runner runs its own copy.  See `spellRuntime.ts`.
@@ -97,6 +97,9 @@ export class SpellParser extends P.Parser {
   /**
    * `rootScope` for all spellParsers -- contains base rules, types, constants.
    * - All project scopes point back to this.
+   * - Its types:  spell's runtime classes (`SPELL_BASE_TYPES`:  `Object`, `Thing`, `List`, `App`), then every other
+   *   built-in type's NAME (`P.BUILT_IN_TYPES`:  `text`, `number` ...), each with its super-type -- so `is a number`
+   *   names a known type, and `integer` is a `number`.  Their members come later.
    */
   /*@memoize*/
   static get rootScope(): P.RootScope {
@@ -104,6 +107,11 @@ export class SpellParser extends P.Parser {
       const scope = new P.RootScope({ name: "spellRoot", parser: SP.spellParser })
       // spell's built-in types -- `spellCore.BASE_TYPES`
       SPELL_BASE_TYPES.forEach((type) => scope.types.add(type))
+      for (const [name, superType] of Object.entries(P.BUILT_IN_TYPES)) {
+        const existing = scope.types.get(name, "LOCAL_ONLY")
+        if (!existing) scope.types.add({ name, superType })
+        else if (superType) existing.superType = typeCase(superType)
+      }
       return scope
     })
   }

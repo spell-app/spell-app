@@ -76,15 +76,20 @@ class on extends SpellStatement<"eventName|props?|body?"> {
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "event", name: "eventName" }
 
-  /** Nested scope for the handler body -- named for `eventName`, args are `event` plus any `props`. */
+  /**
+   * Nested scope for the handler body -- named for `eventName`, args are `event` plus any `props`, each with its
+   * type if it says, e.g. `Card` for `with a card`.
+   */
   getNestedScopeForMatch(match: P.MatchFor<this>) {
     const { eventName, props } = match.groups
-    const args: string[] = ["event"]
+    const args: P.ScopeVariableProps[] = [{ name: "event" }]
     // `with_props_arg`'s own `parse()` (in methods.ts) stashes its prop `P.ASTVariableExpression`s
     // directly on `match.data.props` -- narrow via `is()` to read them typed, rather than the generic
     // `props` group.
     if (props?.is(with_props_arg)) {
-      args.push(...(props.data.props ?? []).map(({ name }) => name))
+      for (const { name, datatype } of props.data.props ?? []) {
+        args.push({ name, datatype: typeof datatype === "string" ? datatype : undefined })
+      }
     }
     const methodScopeProps: P.MethodScopeProps = {
       parentScope: match.scope,

@@ -16,8 +16,12 @@ export class ScopeVariable {
   declare output: string | undefined
   /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
   declare kind: "argument" | "static" | undefined
-  /** Type of the variable.  Not consistently used (yet). */
-  declare datatype: string | undefined
+  /**
+   * What it holds, in spell's words -- see `P.Datatype` -- e.g. `Card` for an argument `(a card)`, or what
+   * the value it was declared with was.  `undefined` if unknown.
+   * - Set when it's declared, and never changed after:  the first datatype wins.
+   */
+  declare datatype: P.Datatype | undefined
   /** String used to initialize the variable.  Not consistently used. */
   declare initializer: string | undefined
   /**
@@ -56,8 +60,8 @@ export type ScopeVariableProps = {
   output?: string
   /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
   kind?: "argument" | "static"
-  /** Type of the variable.  Not consistently used (yet). */
-  datatype?: string
+  /** See `ScopeVariable.datatype`. */
+  datatype?: P.Datatype
   /** String used to initialize the variable.  Not consistently used. */
   initializer?: string
   /** See `ScopeVariable.isAlias`. */

@@ -182,6 +182,7 @@ export class Stock_Pile extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Stock_Pile", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:433-500",
   } */
   can_pick_up_$card(card) {
@@ -220,6 +221,7 @@ export class Discard_Pile extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Discard_Pile", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:691-760",
   } */
   can_pick_up_$card(card) {
@@ -249,6 +251,7 @@ export class Foundation extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Foundation", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:949-991",
   } */
   can_pick_up_$card(card) {
@@ -258,6 +261,7 @@ export class Foundation extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} play {expression:operand}", output: "can_play_$card",
     rule: "method_infix", of: "Foundation", kind: "method", name: '"can play (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:992-1113",
   } */
   can_play_$card(card) {
@@ -323,6 +327,7 @@ export class Tableau extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Tableau", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:1656-1712",
   } */
   can_pick_up_$card(card) {
@@ -332,6 +337,7 @@ export class Tableau extends Pile {
   /*! SPELL: DECLARES {
     syntax: "{operator:can} play {expression:operand}", output: "can_play_$card",
     rule: "method_infix", of: "Tableau", kind: "method", name: '"can play (a card)"',
+    params: [{ name: "card", datatype: "Card" }],
     defined: "/Solitaire.spell:1713-1890",
   } */
   can_play_$card(card) {

@@ -353,19 +353,23 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:game", line: 7,
+      detail: "Game",
       section: "Game bits"
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:all_piles", line: 11,
+      detail: "list of piles",
       section: "set up all piles",
       description: "## set up all piles"
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:foundations", line: 12,
+      detail: "list of piles",
       section: "set up all piles"
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:tableaus", line: 13,
+      detail: "list of piles",
       section: "set up all piles"
     },
     {
@@ -390,6 +394,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:stock", line: 18,
+      detail: "Stock_Pile",
       section: "set up all piles"
     },
     {
@@ -414,6 +419,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:discards", line: 24,
+      detail: "Discard_Pile",
       section: "set up all piles"
     },
     {
@@ -445,6 +451,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:it", line: 38,
+      detail: "Foundation",
       section: "set up all piles"
     },
     {
@@ -476,6 +483,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:deck", line: 57,
+      detail: "Deck",
       section: "set up all piles",
       description: "set up deck of cards"
     },

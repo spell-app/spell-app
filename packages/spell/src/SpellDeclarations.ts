@@ -98,7 +98,9 @@ export class SpellDeclarations {
     const constantOutputs: Record<string, string> = {}
     for (const item of mine) {
       if (item instanceof P.TypeScope) {
-        if (!item.stub) merge({ type: item.name, superType: item.superType })
+        if (!item.stub) merge({ type: item.name, superType: item.superType, itemType: item.itemType })
+      } else if (item instanceof P.ScopeMethod) {
+        merge(SpellDeclarations.methodDeclaration(item))
       } else if (item instanceof P.ScopeVariable) {
         if (item.scope instanceof P.TypeScope) merge(SpellDeclarations.variableDeclaration(item, item.scope, mine))
       } else if (item instanceof P.ScopeConstant) {
@@ -218,12 +220,13 @@ export class SpellDeclarations {
       const declaredAt = SpellDeclarations.declaredAt(projectId, declaration.defined)
       if (declaration.type) {
         const runtimeName = declaration.type === original.type ? undefined : original.type
-        const { type, superType } = declaration
-        SpellDeclarations.loadType(scope, from, names, { name: type, superType, runtimeName, declaredAt })
+        const { type, superType, itemType } = declaration
+        SpellDeclarations.loadType(scope, from, names, { name: type, superType, itemType, runtimeName, declaredAt })
       }
       SpellDeclarations.loadVariables(scope, names, declaration, declaredAt)
       SpellDeclarations.loadConstants(scope, from, names, declaration, declaredAt)
       if (declaration.rule) SpellDeclarations.loadRule(scope, from, names, declaration.rule, declaration, declaredAt)
+      SpellDeclarations.loadMethod(scope, names, declaration, declaredAt)
     }
   }
 
@@ -340,6 +343,27 @@ export class SpellDeclarations {
   }
 
   /**
+   * `declaration`'s method record, if it declared a method or function and its owner was picked -- see
+   * `P.ScopeMethod`.
+   * - On its type `of`, else the import layer's own `methods`, for a free function.
+   * - Keys a compiler of before P4 didn't write -- `params`, `returns` -- load as unknown.
+   */
+  private static loadMethod(
+    scope: P.ImportScope,
+    names: Set<string>,
+    declaration: SP.SpellDeclaration,
+    declaredAt: P.DeclaredAt | undefined
+  ) {
+    const { kind, output, of, params, returns, syntax } = declaration
+    if ((kind !== "method" && kind !== "function") || !output) return
+    const owner = of ?? output
+    if (!names.has(owner)) return
+    const methods = of ? scope.types.get(of, "LOCAL_ONLY")?.methods : scope.methods
+    const words = declaration.name ?? syntax
+    methods?.add(definedOnly({ name: output, words, params, returns, of, declaredAt }))
+  }
+
+  /**
    * What `declaration`'s statement declared, as its rule's `getDeclaration()` said when it was parsed --
    * `undefined` if it doesn't say.
    * - `kind` and `name` where `declarationFor()` left them out because a key says, e.g. `property`.
@@ -429,17 +453,23 @@ export class SpellDeclarations {
 
   /**
    * `declaration` with each type it names renamed by `renames`, e.g. `of: "Card"` => `of: "Playingcard"`.
-   * - Its `type`, `superType`, `of` and `datatype` -- a rule built from it takes the new name from `of`,
-   *   e.g. `EnumerationRule` matches `playingcard suits`.
+   * - Its `type`, `superType`, `of`, `datatype`, `itemType`, `returns` and its `params`' datatypes -- a rule built
+   *   from it takes the new name from `of`, e.g. `EnumerationRule` matches `playingcard suits`.
    * - NOT method names, syntax or constants:  those don't hold type names.
    */
   private static renamed(declaration: SP.SpellDeclaration, renames: Map<string, string>): SP.SpellDeclaration {
     if (!renames.size) return declaration
     const renamed = { ...declaration }
-    for (const key of ["type", "superType", "of", "datatype"] as const) {
+    for (const key of ["type", "superType", "of", "datatype", "itemType", "returns"] as const) {
       const name = declaration[key]
       const to = name === undefined ? undefined : renames.get(typeCase(name))
       if (to) renamed[key] = to
+    }
+    if (declaration.params) {
+      renamed.params = declaration.params.map((param) => {
+        const to = param.datatype === undefined ? undefined : renames.get(typeCase(param.datatype))
+        return to ? { ...param, datatype: to } : param
+      })
     }
     return renamed
   }
@@ -477,6 +507,14 @@ export class SpellDeclarations {
       (it) => it instanceof P.ScopeVariable && it !== variable && it.kind === "static" && it.name === name
     )
     return isTwin ? {} : { property: name, of, datatype, initializer: ownInitializer }
+  }
+
+  /**
+   * A method's record as props:  its `params` and what it `returns` -- only what's known.
+   * - Its name, owner and syntax come from its rule -- see `ruleDeclaration()`.
+   */
+  private static methodDeclaration({ params, returns }: P.ScopeMethod): SP.SpellDeclaration {
+    return definedOnly({ params: params.length ? params : undefined, returns })
   }
 
   /**
@@ -561,6 +599,9 @@ const PROP_ORDER = [
   "kind",
   "name",
   "datatype",
+  "itemType",
+  "params",
+  "returns",
   "initializer",
   "constants",
   "constantOutputs",

@@ -283,6 +283,15 @@ _if_.addRule(_else, {
 class backwards_if extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.ternary
 
+  /** What both sides are, if they agree -- else unknown. */
+  getResultDatatype(
+    match: P.MatchFor<this>,
+    lhs: P.Datatype | undefined,
+    rhs: P.Datatype | undefined
+  ): P.Datatype | undefined {
+    return lhs === rhs ? lhs : undefined
+  }
+
   compileASTExpression(
     match: P.Match,
     { lhs, operator, rhs }: { lhs: P.ASTExpression; operator: P.Match; rhs: P.ASTExpression }
