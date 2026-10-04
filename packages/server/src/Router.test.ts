@@ -1,5 +1,5 @@
 import JSON5 from "json5"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
 import { ask, serveHandler, type Served } from "$/server/test/serve"

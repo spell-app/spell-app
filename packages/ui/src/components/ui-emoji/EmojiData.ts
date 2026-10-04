@@ -167,7 +167,7 @@ export class EmojiData {
   /**
    * Where a chunk's names come from instead of this module's own lazy `import()`s:  `(set, chunk) => names`.
    * - For a build that can't load ES modules lazily, e.g. the docs' single-file bundle on `file://`, which loads each
-   *   chunk as a classic `<script>` (`packages/docs/scripts/bundle-spell-ui.js`).  Set it before the first lookup.
+   *   chunk as a classic `<script>` (`packages/docs/tools/bundle-spell-ui.js`).  Set it before the first lookup.
    */
   static chunkLoader?: (set: string, chunk: string) => Promise<Record<string, string>>
 

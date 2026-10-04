@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { A11y, expectAccessible } from "./a11y"
 import { Fixture } from "./fixture"

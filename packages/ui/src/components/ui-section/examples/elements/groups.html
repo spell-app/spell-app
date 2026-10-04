@@ -1,0 +1,37 @@
+<!-- `src/components/ui-section/examples/groups.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Collapsing</h4>
+    <ui-sections collapsing>
+      <ui-section header="Overview" dividing collapsed><p>What the project is.</p></ui-section>
+      <ui-section header="Install" dividing collapsed><p>How to get it.</p></ui-section>
+      <ui-section header="Configure" dividing>
+        <p>Open: flush under the title above, with the usual space below its content.</p>
+        <ui-section header="Options" collapsed><p>Every option.</p></ui-section>
+        <ui-section header="Defaults" collapsed><p>What you get as is.</p></ui-section>
+      </ui-section>
+      <ui-section header="Deploy" dividing collapsed><p>Ship it.</p></ui-section>
+      <ui-section header="Changelog" dividing collapsible="false">
+        <p>Opted out (<code>collapsible="false"</code>): never folds, keeps its space.</p>
+      </ui-section>
+    </ui-sections>
+  </section>
+
+  <section>
+    <h4>Styled</h4>
+    <ui-sections collapsing>
+      <ui-section header="What is a dog?" level="4" styled collapsed><p>A domesticated carnivore.</p></ui-section>
+      <ui-section header="What kinds of dogs are there?" level="4" styled collapsed><p>Many breeds.</p></ui-section>
+      <ui-section header="How do you acquire a dog?" level="4" styled collapsed><p>Adopt one.</p></ui-section>
+    </ui-sections>
+  </section>
+
+  <section>
+    <h4>Plain group</h4>
+    <p>A paragraph before the group: the group keeps a section's space from it.</p>
+    <ui-sections>
+      <ui-section header="First" dividing><p>A plain group changes nothing in its sections.</p></ui-section>
+      <ui-section header="Second" dividing><p>The usual space between them.</p></ui-section>
+    </ui-sections>
+  </section>
+</div>

@@ -15,7 +15,7 @@ import { CSS_TARGETS, SOLID_DEDUPE, emitIconPacks } from "../ui/vite.config.ts"
  *   on its first line, `/** @jsxImportSource react *\/`:  `tsconfig.json` type-checks it as React from that, and
  *   `reactFiles()` hands it to the React plugin instead of Solid's.  ONE marker, read by both.
  * - The app's own UI is all Solid (P6-P9):  only what compiled spell draws with keeps the marker (`core`'s classes,
- *   spell's forms `F`).  See `CODE-DEBT.md` "app:  React for spell programs, beside the app's Solid".
+ *   spell's forms `F`).  See `agents/CODE-DEBT.md` "app:  React for spell programs, beside the app's Solid".
  * - NOTE: the file list is read when the config loads:  restart `vite` after adding or removing a marker.
  */
 

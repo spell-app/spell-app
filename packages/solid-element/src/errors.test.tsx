@@ -6,7 +6,7 @@
 /** FIX 7:  an error boundary per element, `onError`, `fallback`, `errorEvent`, `:state(errored)`. */
 
 import { createMemo, flush, resetErrorHalt } from "solid-js"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { IMPLEMENTATIONS, cleanup, mount, nextTag, reproduce, type Implementation } from "./testing"

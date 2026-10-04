@@ -6,8 +6,8 @@
 /** FIX 10:  delegated events don't leak Solid's walk state out of shadow roots. */
 
 import { Dynamic, render } from "@solidjs/web"
-import { afterEach, describe, expect, it } from "vitest"
-import { userEvent } from "vitest/browser"
+import { afterEach, describe, expect, it } from "vite-plus/test"
+import { userEvent } from "vite-plus/test/browser"
 
 import { customElement } from "./customElement"
 import { noShadowDOM } from "./current"

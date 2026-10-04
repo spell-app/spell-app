@@ -3,7 +3,7 @@
  * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - No Fomantic counterpart, so no class grammar:  every attribute is a property (`enum`, `string`, `boolean`), plus
  *   `size` (kind `size`, for the shared value set), which the root applies to its subtree, not to a class.
- * - Design:  `packages/docs/epics/ui-component-creation/ui-component-creation.html`, Overview 3.5 and D51-D68.
+ * - Design:  `packages/docs/content/epics/ui-component-creation/ui-component-creation.plan.html`, Overview 3.5 and D51-D68.
  */
 
 import * as UIT from "$/ui/components/components.types"

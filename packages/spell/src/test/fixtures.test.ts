@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 
 import { SP } from "$/spell"
 import { compiledFixture, fixturePath, fixtureProjectNames } from "$/spell/test"

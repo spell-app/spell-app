@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Radio | Spell UI</title>
+    <meta
+      name="description"
+      content="A radio button lets a user choose exactly one value of a group."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Radio">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-radio.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-radio%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/checkbox.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Radio
+            <ui-header>A radio button lets a user choose exactly one value of a group.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-radio" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  the radio parts of Fomantic's checkbox page (Types, States, Variations), moved here from the
+              checkbox page when `<ui-radio>` got its own page (epic ui-docs-rework P7);  `<ui-checkbox>` and
+              `<ui-radio>` are still one family (`ui-checkbox`).
+              - Radios group by `name` across the whole page when there is no form, so every example's group has its own name.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-radio" header="Radio" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A radio is an exclusive option: <code>&lt;ui-radio&gt;</code>s with the same <code>name</code> form a
+                    group, and choosing one unchooses the rest.
+                  </p>
+                  <ui-radio name="radio" selected>Radio choice</ui-radio>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-form>
+                    <form>
+                      <ui-fields inline role="radiogroup" aria-labelledby="radio-frequency-label">
+                        <label id="radio-frequency-label">How often do you use checkboxes?</label>
+                        <ui-field><ui-radio name="frequency" value="week" selected>Once a week</ui-radio></ui-field>
+                        <ui-field><ui-radio name="frequency" value="2-3">2-3 times a week</ui-radio></ui-field>
+                        <ui-field><ui-radio name="frequency" value="day">Once a day</ui-radio></ui-field>
+                        <ui-field><ui-radio name="frequency" value="twice">Twice a day</ui-radio></ui-field>
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-form>
+                    <form>
+                      <ui-fields grouped role="radiogroup" aria-labelledby="radio-example2-label">
+                        <label id="radio-example2-label">How often do you use checkboxes?</label>
+                        <ui-field><ui-radio name="example2" value="week" selected>Once a week</ui-radio></ui-field>
+                        <ui-field><ui-radio name="example2" value="2-3">2-3 times a week</ui-radio></ui-field>
+                        <ui-field><ui-radio name="example2" value="day">Once a day</ui-radio></ui-field>
+                        <ui-field><ui-radio name="example2" value="twice">Twice a day</ui-radio></ui-field>
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-slider" header="Slider" sticky collapsible dividing>
+                <ui-docs-example
+                  description='Radios can be sliders, to emphasize the current selection:  `type="slider"`.'
+                >
+                  <ui-form>
+                    <form>
+                      <ui-fields grouped role="radiogroup" aria-labelledby="radio-throughput-label">
+                        <label id="radio-throughput-label">Outbound Throughput</label>
+                        <ui-field><ui-radio type="slider" name="throughput" value="20">20 mbps max</ui-radio></ui-field>
+                        <ui-field><ui-radio type="slider" name="throughput" value="10">10mbps max</ui-radio></ui-field>
+                        <ui-field><ui-radio type="slider" name="throughput" value="5">5mbps max</ui-radio></ui-field>
+                        <ui-field
+                          ><ui-radio type="slider" name="throughput" value="unmetered" selected>Unmetered</ui-radio></ui-field
+                        >
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-toggle" header="Toggle" sticky collapsible dividing>
+                <ui-docs-example description='Radios can be toggles, an on or off look:  `type="toggle"`.'>
+                  <ui-form>
+                    <form>
+                      <ui-fields grouped role="radiogroup" aria-labelledby="radio-plan-label">
+                        <label id="radio-plan-label">Plan</label>
+                        <ui-field><ui-radio type="toggle" name="plan" value="free" selected>Free</ui-radio></ui-field>
+                        <ui-field><ui-radio type="toggle" name="plan" value="pro">Pro</ui-radio></ui-field>
+                        <ui-field><ui-radio type="toggle" name="plan" value="team">Team</ui-radio></ui-field>
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP:  Fomantic styles an invisible checkbox's LABEL as any component (button, message, segment);  ours is a bordered label tinted when chosen. -->
+              <ui-section id="examples-types-invisible" header="Invisible" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    An invisible radio has no box: the label itself is the control, bordered while unchosen and tinted when
+                    chosen. Its content can be any markup.
+                  </p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: styling the label as another component (Fomantic's
+                    <code>label class="ui purple button"</code>, <code>ui orange message</code>,
+                    <code>ui teal segment</code>) -- the label is in the shadow root, so it can't take another component's
+                    classes.</ui-message
+                  >
+                  <ui-form>
+                    <form>
+                      <ui-fields grouped>
+                        <ui-radio invisible name="invisible-example" value="one"
+                          ><b>Option One</b><br />I am a radio styled as a bordered label</ui-radio
+                        >
+                        <ui-radio invisible name="invisible-example" value="two"
+                          ><b>Option Two</b><br />I am tinted when chosen</ui-radio
+                        >
+                        <ui-radio invisible name="invisible-example" value="three" selected
+                          ><b>Option Three</b><br />I am chosen</ui-radio
+                        >
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-checked" header="Checked" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A radio can be chosen. <code>selected</code> is the canonical name; <code>checked</code> is accepted as an
+                    alias, as on a native radio.
+                  </p>
+                  <ui-radio name="checked-example" checked>Active</ui-radio>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-read-only" header="Read-only" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A radio can be read-only and unable to change states.  It is still submitted."
+                >
+                  <ui-radio name="readonly-example" readonly selected>Read Only</ui-radio>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A radio can show it is currently unable to be interacted with. It is left out of the form.
+                  </p>
+                  <ui-segment basic>
+                    <ui-radio name="disabled-example" disabled>Disabled</ui-radio>
+                  </ui-segment>
+                  <ui-segment basic>
+                    <ui-radio name="disabled-toggle" type="toggle" disabled>Disabled</ui-radio>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-fitted" header="Fitted" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A fitted radio does not leave padding for a label. Give it an <code>aria-label</code>.
+                  </p>
+                  <ui-segment floated="left" compact>
+                    <ui-radio fitted name="fitted" aria-label="Fitted"></ui-radio>
+                  </ui-segment>
+                  <ui-segment floated="left" compact>
+                    <ui-radio fitted type="slider" name="fitted-slider" aria-label="Fitted slider"></ui-radio>
+                  </ui-segment>
+                  <ui-segment floated="left" compact>
+                    <ui-radio fitted type="toggle" name="fitted-toggle" aria-label="Fitted toggle"></ui-radio>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A radio can be formatted to appear on dark backgrounds.">
+                  <ui-segment compact inverted>
+                    <ui-radio inverted name="inverted" selected>Inverted</ui-radio>
+                  </ui-segment>
+                  <ui-segment compact inverted>
+                    <ui-radio inverted type="slider" name="inverted-slider">Inverted</ui-radio>
+                  </ui-segment>
+                  <ui-segment compact inverted>
+                    <ui-radio inverted type="toggle" name="inverted-toggle">Inverted</ui-radio>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-right-aligned" header="Right aligned" sticky collapsible dividing>
+                <ui-docs-example description="A radio can be aligned to the right of its label:  `right-aligned`.">
+                  <ui-form>
+                    <form>
+                      <ui-fields grouped role="radiogroup" aria-label="Right aligned">
+                        <ui-field><ui-radio right-aligned name="right-aligned" value="a" selected>Radio</ui-radio></ui-field>
+                        <ui-field
+                          ><ui-radio right-aligned type="slider" name="right-aligned" value="b">Slider</ui-radio></ui-field
+                        >
+                        <ui-field
+                          ><ui-radio right-aligned type="toggle" name="right-aligned" value="c">Toggle</ui-radio></ui-field
+                        >
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A radio can have different colors:  `color` tints the chosen bullet, lane or line."
+                >
+                  <ui-radio color="purple" name="colored" selected>Purple</ui-radio>
+                  <ui-radio color="green" type="toggle" name="colored-toggle" selected>Green</ui-radio>
+                  <ui-radio color="blue" type="slider" name="colored-slider" selected>Blue</ui-radio>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A radio can have different sizes.">
+                  <ui-radio size="mini" name="size">Mini</ui-radio>
+                  <ui-radio size="tiny" name="size">Tiny</ui-radio>
+                  <ui-radio size="small" name="size">Small</ui-radio>
+                  <ui-radio name="size" selected>Medium</ui-radio>
+                  <ui-radio size="large" name="size">Large</ui-radio>
+                  <ui-radio size="big" name="size">Big</ui-radio>
+                  <ui-radio size="huge" name="size">Huge</ui-radio>
+                  <ui-radio size="massive" name="size">Massive</ui-radio>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  groups, forms, `selected` / `checked`, events, keyboard, accessibility, frameworks. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write one `<ui-radio>` per option, its label inside, and give the options of one question the same `name`. No
+                  JavaScript to call: radios work as soon as the elements are defined, like Fomantic's radio checkbox without its
+                  module. `<ui-radio>` shares its family, sheet and tokens with [`<ui-checkbox>`](ui-checkbox.html).
+
+                  - `type="toggle"` / `type="slider"` changes the look; the default is the round radio.
+                  - `selected` is the chosen state, as an attribute and a property. `checked` is an alias: the `checked`
+                    attribute in markup chooses the radio, and `el.checked` reads and writes `el.selected`.
+                  - The label is the slotted content, or `label` for plain text; a `fitted` radio has none.
+                  - Wrap a group in `<ui-fields grouped>` (one per line) or `<ui-fields inline>` (one row) inside a `<ui-form>`.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-radio-groups" header="Radio groups" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Radios group by `name` within their form, or the whole page when there is none, even though each `<ui-radio>`
+                  keeps its input in its own shadow root. Choosing one unchooses the others without firing events on them. A group
+                  can mix looks (a radio, a slider and a toggle with one `name` are still one group).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Radios are real form controls.
+
+                  - A group submits `name=value` of its chosen radio (`value` defaults to `on`, as natively); with none chosen,
+                    nothing.
+                  - `form.reset()` restores the starting choice, and a disabled `<fieldset>` disables them.
+                  - `required` on any member makes the whole group required.
+                  - `disabled` leaves a radio out of the form; `readonly` keeps it in but cancels clicks.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `ui-change` fires on the newly chosen radio only, when the user chooses it, with `{ selected, value,
+                  originalEvent }`. It fires BEFORE the change, so a handler that sets `selected` back vetoes it (see the
+                  checkbox page's [Vetoing a change](ui-checkbox.html#usage-vetoing-a-change)). Setting `selected` from code
+                  fires nothing -- Fomantic's `set checked`.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const form = document.querySelector("form")
+                  form.addEventListener("ui-change", (event) => {
+                    if (event.target.localName === "ui-radio") console.log(event.target.name, event.detail.value)
+                  })
+                  document.querySelector("ui-radio[value=day]").checked = true // same as .selected = true;  no event
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - **Space** chooses the focused radio.
+                  - **Arrow Down** / **Arrow Right**: choose the next enabled radio of the group and focus it (wraps).
+                  - **Arrow Up** / **Arrow Left**: choose the previous enabled radio of the group (wraps).
+                  - **Tab** moves into or out of a group, through its one tab stop.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The shadow root holds a real `<input type="radio">` tied to a `<label>`, so clicking the label, Space, and the
+                    checked state come from the browser. `delegatesFocus` keeps the host out of the tab order and draws the focus
+                    ring on the box.
+                  - Toggles and sliders keep the radio role (one of a group), not `switch`.
+                  - The accessible name is the label text. A `fitted` radio (or an `invisible` one holding only an image) has none,
+                    so give it an `aria-label` or a `<label for>` pointing at the host.
+                  - Wrap a group in `role="radiogroup"` with a name (`aria-label` or `aria-labelledby`), as the examples do.
+                  - Only the chosen radio of a group (else the first enabled one) is a tab stop, as with native radios.
+                  - A required group the user left empty gets `aria-invalid="true"` once they have interacted.
+                  - Without JavaScript the native fallback keeps the same markup with a plain native radio: it still submits,
+                    validates `required` and fires `ui-change`. It drops grouping across elements (each fallback radio stands
+                    alone, with no arrow keys), vetoing `ui-change`, the invalid state and reset to the starting state.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Bind `selected` as a property on each radio, and listen for `ui-change` on the group.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  {sizes.map((size) => (
+                    <ui-radio key={size} name="size" value={size} selected={chosen === size} onui-change={() => setChosen(size)}>
+                      {size}
+                    </ui-radio>
+                  ))}
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-radio v-for="size in sizes" name="size" :value="size" :selected="chosen === size" @ui-change="chosen = size">
+                    {{ size }}
+                  </ui-radio>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <For each={sizes}>
+                    {(size) => (
+                      <ui-radio
+                        name="size"
+                        value={size()}
+                        prop:selected={chosen() === size()}
+                        ref={(el) => el.addEventListener("ui-change", () => setChosen(size()))}
+                      >
+                        {size()}
+                      </ui-radio>
+                    )}
+                  </For>
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  `<ui-radio>`'s tables (`site/_data/components.json`);  the whole family's are on the checkbox page. -->
+            <ui-docs-api tag="ui-radio"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the checkbox family's tokens a radio reads, live. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A radio reads the checkbox family's `--ui-checkbox-*` tokens: the shared box, label and focus tokens, plus its
+                  own `--ui-checkbox-radio-size`, `--ui-checkbox-radio-top` and `--ui-checkbox-bullet-scale` (the dot's size in
+                  the circle). Set one on the element, on any ancestor (a form, `:root`), or on the root box through
+                  `::part(checkbox)`. Slider and toggle radios read the slider and toggle tokens: the
+                  [checkbox page](ui-checkbox.html#theming-tokens) lists them all.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-radio {
+                    --ui-checkbox-bullet-scale: 0.6;
+                    --ui-checkbox-mark-color: var(--ui-primary);
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens
+                family="ui-checkbox"
+                tokens="--ui-checkbox-radio* --ui-checkbox-bullet* --ui-checkbox-mark-color --ui-checkbox-size --ui-checkbox-label* --ui-checkbox-border* --ui-checkbox-background* --ui-checkbox-focus*"
+                playground
+              >
+                <ui-radio name="theming-preview" value="a" selected>Chosen</ui-radio>
+                <ui-radio name="theming-preview" value="b">Not chosen</ui-radio>
+              </ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle radios (the checkbox family's): Colored. The one
+                  in the header applies a theme to the whole site.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+
+      </ui-container>
+    </main>
+  </body>
+</html>

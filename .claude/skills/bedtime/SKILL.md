@@ -17,11 +17,11 @@ Overnight section once he has.
   log, so removing it loses nothing.
 - Bedtime mode is on while the section says so:  `yarn plan-doc summary <name> --json` has `"overnight": "active"`.
   That's how a compacted session knows it's still running.
-- Style:  caveman lite, as in `/epic`.
+- Style:  as in `/epic`:  the plan doc written for Owen coming back cold (`plan-doc.md`, "Rules").
 
 ## 1. Find the phases
 
-- Plan doc (`packages/docs/epics/<name>/`, or the one this session has been keeping):
+- Plan doc (`packages/docs/content/epics/<name>/`, or the one this session has been keeping):
   `yarn plan-doc summary <name> --json`.  To-do phases:  every one whose `status` isn't `done`.
 - No plan doc (only a plan drafted in this session):  make one FIRST, as `/epic` does mid-session
   (`.claude/skills/epic/SKILL.md`, "Mid-session":  "make this a plan doc"), which isolates it too.  Its name
@@ -40,7 +40,7 @@ one):  steps 2 and 3 go on ONE details page instead (Owen, 2026-10-03), so he an
   so, then every real question of step 3, each with its options, one `recommended`
 - `--epic <name>`, slug `bedtime-<date>`, so the page stays with the plan doc
 - `yarn details new <slug> --from <spec.json>` (the spec in the scratchpad;  its shape:  `DetailsSpec` in
-  `packages/docs/scripts/details.js`), then `yarn details show <slug> --wait` with Bash `run_in_background: true`,
+  `packages/docs/tools/details.js`), then `yarn details show <slug> --wait` with Bash `run_in_background: true`,
   and END THE TURN with the page's link pair (`yarn docs:link <page>`).  Owen's Send wakes the session with the
   answers as text (`.claude/skills/details/SKILL.md`;  write it as "Writing for Owen" there says)
 - woken:  record the answers (step 3's "Record the answers"), then step 3's "Then" and on into the night.  The
@@ -87,8 +87,8 @@ Until the run ends (step 6), these OVERRIDE the root rules and memory:
 Owen writing in this session mid-run means he's awake:  bedtime mode ends there.  Say which phase it was on, run
 step 6's "At the end" for what's done, and go back to the root rules.
 
-Everything else stands:  `yarn vscode` after each stage, the parser speed test on parser changes, `PAPERCUTS.md`,
-`SUSPECTED-BUGS.md`, `CODE-DEBT.md`, the plan doc's rules.
+Everything else stands:  `yarn vscode` after each stage, the parser speed test on parser changes, `agents/PAPERCUTS.md`,
+`agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md`, the plan doc's rules.
 
 ## 5. Each phase, in plan order
 
@@ -106,7 +106,8 @@ Everything else stands:  `yarn vscode` after each stage, the parser speed test o
    - `add <name> issue ...`, and `overnight <name> problem "P<n> WIP:  <what fails>  (I<k>)"`
    - go on only with later phases that don't build on this one;  skip the rest, saying why:
      `overnight <name> problem "P<m> skipped:  builds on WIP P<n>"`
-5. `yarn plan-doc phase <name> <N> done` (not for a WIP phase:  it stays `active`).
+5. `yarn plan-doc phase <name> <N> done --done "<ul>...</ul>"` (what was built, as `/epic` writes it;  not for a WIP
+   phase:  it stays `active`).
 6. `yarn plan-doc log <name> "P<n> done|WIP:  <what was built>;  checks:  <results>"`, BEFORE the commit so the line
    goes in with it.
 7. Commit:  `P<n>:  <Name> -- <one-line summary>` (`WIP P<n>:  ...` for WIP).

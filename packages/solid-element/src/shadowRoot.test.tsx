@@ -5,7 +5,7 @@
 
 /** FIX 9:  an existing declarative shadow root is adopted and replaced, not appended to. */
 
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { cleanup, mount, nextTag, reproduce } from "./testing"

@@ -8,7 +8,7 @@ argument-hint: "[topic]"
 
 A DETAILS PAGE:  a small page that explains one decision, shown in the "Spell Docs" view (VS Code's right side
 bar).  Owen picks on the page and clicks Send;  the page server writes his answer beside the page, and a waiter
-running in the background exits with it, which wakes this session.  Docs:  `packages/docs/details.html`.
+running in the background exits with it, which wakes this session.  Docs:  `packages/docs/content/details.html`.
 
 - Explain as `templates/epics/plan-doc.md` "Explaining a question or issue" says:  plain words, coined words
   defined, the real code, tables, options side by side, one recommended.
@@ -43,16 +43,16 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
 1. `yarn details new <slug> --title "<Title>"` -- prints the page's path.
    - many questions of one shape (a list to pick from):  `--from <spec.json>` builds the whole page from data
      instead:  title, lede, "Where we are", context, questions and their options (`DetailsSpec` in
-     `packages/docs/scripts/details.js`).  `/worktrees` and `/bedtime` use it.
+     `packages/docs/tools/details.js`).  `/worktrees` and `/bedtime` use it.
    - in an epic (a plan doc this session keeps):  add `--epic <name>`.  The page goes in
      `epics/<name>/details/`, is committed with the plan doc, and the decision it leads to links it.
-   - else scratch:  `packages/docs/details/`, ignored by version control, swept after 14 days (`new` sweeps).
+   - else scratch:  `packages/docs/content/details/`, ignored by version control, swept after 14 days (`new` sweeps).
    - `<slug>`:  lower-kebab-case, about the decision (`answer-path`, `card-layout`), unique.
 2. Edit the page (the template's placeholders show where):
    - lede:  what's being decided, and why now;  meta:  "Asked by:  session `<name>`, while <doing what>"
    - the "Where we are" box:  filled in, never left as the template's placeholder ("Writing for Owen")
    - `1. Context`:  the picture.  Page widgets:  `packages/docs/AGENTS.md`, "Writing a page" (tables, code
-     folded, pros / cons, steps ...).  Icons only from `ICONS` in `packages/docs/scripts/bundle-spell-ui.js`.
+     folded, pros / cons, steps ...).  Icons only from `ICONS` in `packages/docs/tools/bundle-spell-ui.js`.
    - one `ui-section.spell-question` per question, ids `q1`, `q2` ... header `Q1 · Short question`:
 
      ```html
@@ -74,7 +74,7 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
      - pick several:  `data-multiple` on the section (checkboxes);  else pick one (radios)
      - every question gets an "Other" box, and the page a notes box and Send:  `_assets/details.js` adds them
    - a picture page:  delete the question sections;  nothing to send
-3. Epic page:  `yarn oxfmt <page>` before committing it.
+3. Epic page:  `yarn vp fmt <page>` before committing it.
 
 ## 3. Show it, and wait
 
@@ -89,7 +89,7 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
 Any page you name to Owen (a details page, a plan doc, any docs page):  `yarn docs:link <page> --hash <id> --show`,
 and paste what it prints.
 - It shows the page in this session's side bar NOW (`--show`), and prints two links:  the title opens it in the
-  side bar (again), `(_browser_)` in Chrome.  Both go through the page server (`packages/docs/scripts/showRoutes.ts`):
+  side bar (again), `(_browser_)` in Chrome.  Both go through the page server (`packages/docs/tools/showRoutes.ts`):
   the Claude panel ignores `vscode://` links and opens `localhost` ones in a VS Code tab.
 - `--hash`:  ALWAYS the id of what you mean (`q2`, `t4`, `p3` ...):  the page lands there, below the sticky titles,
   unfolded.
@@ -115,7 +115,7 @@ and paste what it prints.
 ## 5. When it fails
 
 - The page says "can't take answers yet":  the page server serving it is older than its route module
-  (`packages/docs/scripts/detailsRoutes.ts`):  route modules load when a page server starts.  Say so in one line;
+  (`packages/docs/tools/detailsRoutes.ts`):  route modules load when a page server starts.  Say so in one line;
   ask in chat or the modal meanwhile.  Owen restarts it (`yarn server stop`, then `yarn server ensure`, in the
   checkout whose server it is) when no other session needs it.
 - "The page server restarted since this page loaded":  Owen reloads the page, then sends again.

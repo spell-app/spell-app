@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from "vitest"
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { hueAliases, hueStates, hues, semanticAliases, semanticColors, type Oklch } from "$/ui/styles"
 import { ColorContrast } from "$/ui/styles/ColorContrast"

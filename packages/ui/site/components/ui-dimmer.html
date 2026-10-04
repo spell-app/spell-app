@@ -9,75 +9,62 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Dimmer">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-dimmer.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-dimmer%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/dimmer.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Dimmer
+            <ui-header>A dimmer hides distractions to focus attention on particular content.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-dimmer" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-dimmer.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-dimmer%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/modules/dimmer.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Dimmer
-                <ui-header>A dimmer hides distractions to focus attention on particular content.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-dimmer" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Dimmer"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's dimmer page, section by section, in its order (Types, States, Variations, then its Examples
-                  tab), plus our own extra (On click).
-                  - The plus / minus buttons drive the dimmers through invoker commands (`commandfor` + `command="--show|--close"`),
-                    no script.  Always-active examples are `closedby="none"`, so a stray click doesn't hide them.
-                -->
-
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <ui-docs-example header="Dimmer">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's dimmer page, section by section, in its order (Types, States, Variations, then its Examples
+              tab), plus our own extra (On click).
+              - The plus / minus buttons drive the dimmers through invoker commands (`commandfor` + `command="--show|--close"`),
+                no script.  Always-active examples are `closedby="none"`, so a stray click doesn't hide them.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-dimmer" header="Dimmer" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A simple dimmer displays no content. It covers its parent; <code>active</code> shows it, and a click
                     on the dimmer hides it. The buttons show and hide it with <code>command="--show"</code> /
@@ -98,8 +85,10 @@
                     <ui-button icon="minus" commandfor="dimmer-plain" command="--close" aria-label="Hide"></ui-button>
                   </ui-buttons>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Content Dimmer">
+              <ui-section id="examples-types-content-dimmer" header="Content Dimmer" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dimmer can display content, centred over what it dims. A dark dimmer is the dark scheme for its
                     content, so a plain header reads light.
@@ -121,8 +110,10 @@
                     <ui-button icon="minus" commandfor="dimmer-content" command="--close" aria-label="Hide"></ui-button>
                   </ui-buttons>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Page Dimmer">
+              <ui-section id="examples-types-page-dimmer" header="Page Dimmer" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dimmer can be formatted to be fixed to the page: <code>page</code> covers the whole viewport, as a
                     modal dialog, so the page behind it can't be reached. A click anywhere, or Escape, brings the page
@@ -131,31 +122,34 @@
                   <ui-button icon="plus" commandfor="dimmer-page" command="--show">Show</ui-button>
                   <ui-dimmer id="dimmer-page" page aria-label="Page dimmer">Hello</ui-dimmer>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
-                <ui-docs-example header="Active" description="An active dimmer will dim its parent container.">
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+                <ui-docs-example description="An active dimmer will dim its parent container.">
                   <ui-segment>
                     <ui-dimmer active closedby="none"></ui-dimmer>
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Disabled"
-                  description="A disabled dimmer cannot be activated, even while `active`."
-                >
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="A disabled dimmer cannot be activated, even while `active`.">
                   <ui-segment>
                     <ui-dimmer disabled active></ui-dimmer>
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example header="Blurring">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-blurring" header="Blurring" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dimmer can blur its contents: <code>blurring</code> blurs and greys what's behind it.
                   </p>
@@ -199,11 +193,16 @@
                     ></ui-button>
                   </ui-buttons>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Vertical Alignment"
-                  description="A dimmer can have its content top or bottom aligned:  `vertical-align`."
-                >
+              <ui-section
+                id="examples-variations-vertical-alignment"
+                header="Vertical Alignment"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="A dimmer can have its content top or bottom aligned:  `vertical-align`.">
                   <ui-segment>
                     <ui-dimmer vertical-align="top" active closedby="none">
                       <ui-header level="2" inverted>Title</ui-header>
@@ -225,8 +224,10 @@
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Simple Dimmer">
+              <ui-section id="examples-variations-simple-dimmer" header="Simple Dimmer" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dimmer can be controlled without JavaScript. On the element, <code>simple</code> looks the same:
                     <code>active</code> shows it.
@@ -237,11 +238,10 @@
                     <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Inverted Dimmer"
-                  description="A dimmer can be formatted to have its colors inverted."
-                >
+              <ui-section id="examples-variations-inverted-dimmer" header="Inverted Dimmer" sticky collapsible dividing>
+                <ui-docs-example description="A dimmer can be formatted to have its colors inverted.">
                   <ui-segment>
                     <ui-dimmer id="dimmer-inverted" inverted></ui-dimmer>
                     <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
@@ -257,8 +257,10 @@
                     ></ui-button>
                   </ui-buttons>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Dimmer Shades">
+              <ui-section id="examples-variations-dimmer-shades" header="Dimmer Shades" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dimmer can be formatted to have a different depth of background shading:
                     <code>shade="medium"</code>, <code>light</code> or <code>very light</code>.
@@ -283,18 +285,20 @@
                     <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: Partially Dimmer (<code>top</code> / <code>center</code> / <code>bottom dimmer</code>, a
-                  caption as tall as its content) -- deferred (<code>docs/status.md</code>); use
-                  <code>vertical-align</code> on a full dimmer meanwhile.</ui-message
-                >
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Partially Dimmer (<code>top</code> / <code>center</code> / <code>bottom dimmer</code>, a
+                caption as tall as its content) -- deferred (<code>docs/status.md</code>); use
+                <code>vertical-align</code> on a full dimmer meanwhile.</ui-message
+              >
+            </ui-section>
 
-                <ui-header level="2" dividing id="dimmer-examples">Examples</ui-header>
-
-                <!-- GAP I55:  `<ui-image>` holds no children, so a dimmer can't sit in Fomantic's `ui medium image` wrapper;  a compact basic segment stands in, and the circular variant is left out. -->
-                <!-- GAP I56:  `size="medium"` is the natural size, not 300px;  `large` here. -->
-                <ui-docs-example header="Dimmer Events">
+            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
+              <!-- GAP I55:  `<ui-image>` holds no children, so a dimmer can't sit in Fomantic's `ui medium image` wrapper;  a compact basic segment stands in, and the circular variant is left out. -->
+              <!-- GAP I56:  `size="medium"` is the natural size, not 300px;  `large` here. -->
+              <ui-section id="examples-examples-dimmer-events" header="Dimmer Events" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dimmer can trigger a visibility change on an event: <code>on="hover"</code> shows it while the
                     pointer is over its parent, or keyboard focus is inside it (Tab reaches its buttons).
@@ -308,9 +312,10 @@
                     </ui-dimmer>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-examples-on-click" header="On click" sticky collapsible dividing>
                 <ui-docs-example
-                  header="On click"
                   description='`on="click"` shows the dimmer when its parent is clicked;  a click on the dimmer hides it again.'
                 >
                   <ui-segment>
@@ -319,10 +324,17 @@
                     <ui-dimmer on="click"><ui-header level="4" inverted>Clicked!</ui-header></ui-dimmer>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I43:  a dimmer doesn't show or invert its loader;  the loaders say `active` (and `inverted` on a dark dimmer) themselves. -->
+              <!-- GAP I43:  a dimmer doesn't show or invert its loader;  the loaders say `active` (and `inverted` on a dark dimmer) themselves. -->
+              <ui-section
+                id="examples-examples-loaders-inside-dimmers"
+                header="Loaders inside Dimmers"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Loaders inside Dimmers"
                   description="Any loader inside a dimmer will automatically use an appropriate color to match."
                 >
                   <ui-segment>
@@ -347,184 +359,190 @@
                     <ui-image src="../images/wireframe/image.png" size="large" alt=""></ui-image>
                   </ui-segment>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  element vs page dimmer, `active`, `closedby`, events, invokers, keyboard, accessibility, frameworks. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  element vs page dimmer, `active`, `closedby`, events, invokers, keyboard, accessibility, frameworks. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Put a `<ui-dimmer>` inside what it should cover; its children are the content, centred. Unlike Fomantic's, a
+                  dimmer is never created for you: write the element.
+
+                  - An ELEMENT dimmer (the default) covers its parent: the nearest positioned box, and the page stylesheet
+                    positions a plain parent for it. Like Fomantic's, it is not modal: what it covers stays in the page.
+                  - A PAGE dimmer (`page`) is a `<dialog>` shown with `showModal()`, and it IS modal: it covers everything, so the
+                    page behind it is inert (no Tab, no screen reader), focus moves inside and comes back when it hides, the page
+                    can't scroll, and Escape closes it.
+                  - `on="hover"` / `on="click"` makes it show by itself, from its parent; otherwise only `active` shows it.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-showing-and-hiding" header="Showing and hiding" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `active` is the controlled state: writing it shows or hides the dimmer and fires nothing (Fomantic's
+                  `.dimmer('show')` / `'hide'`).
+
+                  `closedby` says what hides it, as on `<dialog closedby>`:
+
+                  - `any` (the default): a click on the dimmer (not its content), and Escape on a page dimmer
+                  - `closerequest`: Escape only
+                  - `none`: only `active`
+
+                  A hover dimmer ignores clicks. Buttons drive it with no script: `commandfor` + `command="--show"`, `--close` or
+                  `--toggle`, as the examples do.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const busy = document.querySelector("#busy") // <ui-dimmer id="busy" page closedby="none" aria-label="Saving">
+                  busy.active = true // show from code:  no event
+                  await save()
+                  busy.active = false
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  User actions (the `on` trigger, a click, Escape, an invoker command) dispatch the cancelable `ui-open` /
+                  `ui-close` first (`detail.reason` is `click`, `escape`, `hover` or `close-all`), then `ui-show` / `ui-hide`
+                  after the fade -- Fomantic's `onShow` / `onVisible`, `onHide` / `onHidden`.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const dimmer = document.querySelector("ui-dimmer")
+                  dimmer.addEventListener("ui-close", (event) => {
+                    if (event.detail.reason === "click" && unsaved) event.preventDefault() // stays shown
+                  })
+                  dimmer.addEventListener("ui-hide", () => console.log("hidden"))
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - **Tab** moves focus inside a page dimmer only (the page behind is inert).
+                  - **Escape** closes a page dimmer (`closedby` `any` or `closerequest`).
+                  - A hover dimmer also shows when focus moves inside its parent.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A page dimmer is modal: a `<dialog>` in the top layer, the rest of the page inert, focus inside (on the dialog
+                    itself when nothing inside can take focus) and back where it was when it hides. Name it with `aria-label`;
+                    otherwise it is "Dimmed page" (translated).
+                  - An element dimmer is NOT modal: what it covers can still be reached with Tab and read. If it means "busy", mark
+                    the covered region `aria-busy` or `inert` yourself.
+                  - A hover dimmer also shows on keyboard focus inside its parent, and stays laid out (transparent) while hidden,
+                    so Tab reaches its buttons. Fomantic's was mouse-only.
+                  - Escape closes a page dimmer unless `closedby="none"`; with `none`, hide it from code.
+                  - If the element can't render, its native fallback still follows `active`, and a page dimmer is still a native
+                    modal `<dialog>` that covers, blocks and closes on Escape. `on` triggers, the `ui-open` / `ui-close` vetoes and
+                    the fade are lost.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Bind `active` to your state and listen for `ui-close` to follow the user.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-dimmer page active={busy} aria-label="Saving" onui-close={() => setBusy(false)}>...</ui-dimmer>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-dimmer page :active="busy" aria-label="Saving" @ui-close="busy = false">...</ui-dimmer>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-dimmer
+                    page
+                    prop:active={busy()}
+                    aria-label="Saving"
+                    ref={(el) => el.addEventListener("ui-close", () => setBusy(false))}
+                  >
+                    ...
+                  </ui-dimmer>
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-dimmer"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-dimmer-*` tokens: set one on the element, on any ancestor (`:root` for every dimmer),
+                  or on the box through `::part(dimmer)`. `--ui-dimmer-background`, `-inverted-background`, `-blurred-background`,
+                  `-blur` and `-duration` are read where they paint. Style the centred box with `::part(content)`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  :root {
+                    --ui-dimmer-background: oklch(0.2 0.05 260 / 0.8);
+                    --ui-dimmer-blur: blur(8px);
+                  }
+                  ui-dimmer::part(content) {
+                    max-width: 30em;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
                 <ui-markdown>
                   <script type="text/markdown">
-                    Put a `<ui-dimmer>` inside what it should cover; its children are the content, centred. Unlike Fomantic's, a
-                    dimmer is never created for you: write the element.
-
-                    - An ELEMENT dimmer (the default) covers its parent: the nearest positioned box, and the page stylesheet
-                      positions a plain parent for it. Like Fomantic's, it is not modal: what it covers stays in the page.
-                    - A PAGE dimmer (`page`) is a `<dialog>` shown with `showModal()`, and it IS modal: it covers everything, so the
-                      page behind it is inert (no Tab, no screen reader), focus moves inside and comes back when it hides, the page
-                      can't scroll, and Escape closes it.
-                    - `on="hover"` / `on="click"` makes it show by itself, from its parent; otherwise only `active` shows it.
+                    The dimmer tokens are SHARED: `--ui-dimmer-background` also colours `<ui-modal>`'s backdrop, and
+                    `<ui-flyout blurring>` and `<ui-sidebar blurring>` read the blur tokens, so one rule on `:root` themes every
+                    dimmer on the page. The shades (`medium`, `light`, `very light`) set their own background. Never set the
+                    `--_ui-dimmer-*` names: they're the sheet's private plumbing.
                   </script>
                 </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-dimmer" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="showing">Showing and hiding</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `active` is the controlled state: writing it shows or hides the dimmer and fires nothing (Fomantic's
-                    `.dimmer('show')` / `'hide'`).
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
 
-                    `closedby` says what hides it, as on `<dialog closedby>`:
-
-                    - `any` (the default): a click on the dimmer (not its content), and Escape on a page dimmer
-                    - `closerequest`: Escape only
-                    - `none`: only `active`
-
-                    A hover dimmer ignores clicks. Buttons drive it with no script: `commandfor` + `command="--show"`, `--close` or
-                    `--toggle`, as the examples do.
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const busy = document.querySelector("#busy") // <ui-dimmer id="busy" page closedby="none" aria-label="Saving">
-                    busy.active = true // show from code:  no event
-                    await save()
-                    busy.active = false
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    User actions (the `on` trigger, a click, Escape, an invoker command) dispatch the cancelable `ui-open` /
-                    `ui-close` first (`detail.reason` is `click`, `escape`, `hover` or `close-all`), then `ui-show` / `ui-hide`
-                    after the fade -- Fomantic's `onShow` / `onVisible`, `onHide` / `onHidden`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const dimmer = document.querySelector("ui-dimmer")
-                    dimmer.addEventListener("ui-close", (event) => {
-                      if (event.detail.reason === "click" && unsaved) event.preventDefault() // stays shown
-                    })
-                    dimmer.addEventListener("ui-hide", () => console.log("hidden"))
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - **Tab** moves focus inside a page dimmer only (the page behind is inert).
-                    - **Escape** closes a page dimmer (`closedby` `any` or `closerequest`).
-                    - A hover dimmer also shows when focus moves inside its parent.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - A page dimmer is modal: a `<dialog>` in the top layer, the rest of the page inert, focus inside (on the dialog
-                      itself when nothing inside can take focus) and back where it was when it hides. Name it with `aria-label`;
-                      otherwise it is "Dimmed page" (translated).
-                    - An element dimmer is NOT modal: what it covers can still be reached with Tab and read. If it means "busy", mark
-                      the covered region `aria-busy` or `inert` yourself.
-                    - A hover dimmer also shows on keyboard focus inside its parent, and stays laid out (transparent) while hidden,
-                      so Tab reaches its buttons. Fomantic's was mouse-only.
-                    - Escape closes a page dimmer unless `closedby="none"`; with `none`, hide it from code.
-                    - If the element can't render, its native fallback still follows `active`, and a page dimmer is still a native
-                      modal `<dialog>` that covers, blocks and closes on Escape. `on` triggers, the `ui-open` / `ui-close` vetoes and
-                      the fade are lost.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Bind `active` to your state and listen for `ui-close` to follow the user.
-                  </script>
-                </ui-markdown>
-                <ui-header level="4" id="framework-react">React 19</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    <ui-dimmer page active={busy} aria-label="Saving" onui-close={() => setBusy(false)}>...</ui-dimmer>
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                    <ui-dimmer page :active="busy" aria-label="Saving" @ui-close="busy = false">...</ui-dimmer>
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    // no `on:` namespace:  listen through a ref
-                    <ui-dimmer
-                      page
-                      prop:active={busy()}
-                      aria-label="Saving"
-                      ref={(el) => el.addEventListener("ui-close", () => setBusy(false))}
-                    >
-                      ...
-                    </ui-dimmer>
-                  </script>
-                </ui-code>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-dimmer"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-dimmer-*` tokens: set one on the element, on any ancestor (`:root` for every dimmer),
-                    or on the box through `::part(dimmer)`. `--ui-dimmer-background`, `-inverted-background`, `-blurred-background`,
-                    `-blur` and `-duration` are read where they paint. Style the centred box with `::part(content)`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    :root {
-                      --ui-dimmer-background: oklch(0.2 0.05 260 / 0.8);
-                      --ui-dimmer-blur: blur(8px);
-                    }
-                    ui-dimmer::part(content) {
-                      max-width: 30em;
-                    }
-                  </script>
-                </ui-code>
-                <ui-message state="info" size="small">
-                  <ui-markdown>
-                    <script type="text/markdown">
-                      The dimmer tokens are SHARED: `--ui-dimmer-background` also colours `<ui-modal>`'s backdrop, and
-                      `<ui-flyout blurring>` and `<ui-sidebar blurring>` read the blur tokens, so one rule on `:root` themes every
-                      dimmer on the page. The shades (`medium`, `light`, `very light`) set their own background. Never set the
-                      `--_ui-dimmer-*` names: they're the sheet's private plumbing.
-                    </script>
-                  </ui-markdown>
-                </ui-message>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-dimmer" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                    theme to the whole site.
-
-                    No Fomantic theme restyles dimmers: Fomantic ships only the default.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+                  No Fomantic theme restyles dimmers: Fomantic ships only the default.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

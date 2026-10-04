@@ -1,0 +1,1545 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Changelog</title>
+    <meta
+      name="description"
+      content="Everything the monorepo shipped, newest first:  one entry per epic or isolated piece of work, linked to its plan doc and durable doc."
+    />
+    <link rel="stylesheet" href="../tools/_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          HOW TO ADD AN ENTRY (rules:  the repo root's AGENTS.md, "Changelog"):
+          - one nested `<ui-section>` per epic or `/isolate` piece of work, under its month in "3. Merged into main",
+            newest first;  a new month is a new nested section at the TOP of section 3
+          - id:  the epic / worktree name (stable:  other pages link to it);  header:  "YYYY-MM-DD · Title" (the merge
+            date, or "start → end")
+          - a `spell-meta` list:  plan doc and durable doc as links (`target` = the epic name for a plan doc), branch
+          - then EVERYTHING it shipped, one bullet each, grouped by phase when there are phases
+          - unmerged epics sit in "2. In worktrees";  move the entry into section 3 when it merges
+        -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Changelog</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <h1>Changelog</h1>
+        <p class="lede">What the spell monorepo shipped, newest first, with a link to each piece's plan doc.</p>
+        <ui-list class="spell-meta">
+          <ui-item icon="user">Written for: Owen, and any agent catching up on what exists and why</ui-item>
+          <ui-item icon="flag"
+            >Status: <ui-label size="mini" color="green">kept up to date</ui-label> on every
+            <code>/isolate done</code> merge and every <code>/epic</code> Doc Review</ui-item
+          >
+          <ui-item icon="flask"
+            >Built from: <code>git log</code> since 2026-09-19 (218 commits) and every plan doc, on
+            <code>main</code> and in worktrees, 2026-10-03</ui-item
+          >
+        </ui-list>
+
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
+          <ui-icon slot="icon" name="map"></ui-icon>
+          <ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="218" label="commits, 2 weeks"></ui-statistic>
+            <ui-statistic value="7" label="epics merged"></ui-statistic>
+            <ui-statistic value="3" label="epics in worktrees"></ui-statistic>
+            <ui-statistic value="12" label="packages"></ui-statistic>
+          </ui-statistics>
+          <ul>
+            <li>218 commits from 2026-09-19 to 2026-10-03, nearly all from 09-27 on (70 on 10-02 alone).</li>
+            <li>
+              7 epics are done and merged: docs-workspace, cli-additions, ui-component-creation, unified-server,
+              solid-migration, ui-import and seo.
+            </li>
+            <li>vite-plus lives only in its worktree: done but unmerged.</li>
+            <li>
+              12 packages since the monorepo move: util, parser, core, spell, lsp, app, vscode, cli, ui, solid-element,
+              docs and server.
+            </li>
+            <li>A heading with a plan doc links it in its meta line; so does its durable doc.</li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="2-in-worktrees" header="2. In worktrees, not merged" sticky collapsible dividing>
+          <ui-icon slot="icon" name="code branch"></ui-icon>
+          <ul>
+            <li>
+              Their plan docs live in <code>.claude/worktrees/&lt;name&gt;/</code>: open them from the page server's
+              "Running epics" on the <a href="index.html" target="src-packages-docs-index-html">docs index</a>.
+            </li>
+            <li>Each moves to section 3, with plan-doc links, when it merges.</li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="3-merged" header="3. Merged into main" sticky collapsible dividing>
+          <ui-icon slot="icon" name="flag checkered"></ui-icon>
+
+          <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section id="markdown" header="2026-10-03 → 10-04 · Markdown on the parser" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc: <a href="epics/markdown/markdown.plan.html" target="markdown">epics/markdown</a></ui-item
+                >
+                <ui-item icon="lightbulb"
+                  >Docs:
+                  <a href="markdown/markdown.html" target="src-packages-docs-markdown-markdown-html"
+                    >Markdown on the parser</a
+                  >, <a href="rulex/rulex.html" target="src-packages-docs-rulex-rulex-html">Rulex</a></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>markdown</code>, one <code>/bedtime</code> run, merged 2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1 · Rulex deep dive: the durable doc
+                  <a href="rulex/rulex.html" target="src-packages-docs-rulex-rulex-html"
+                    ><code>rulex/rulex.html</code></a
+                  >; docs now start with every section and code block folded, under a sticky title.
+                </li>
+                <li>
+                  P2 · Rulex and tokenizer:
+                  <ul>
+                    <li>rulex reads syntax with its own plain tokenizer (words, digit-only numbers, symbols)</li>
+                    <li>
+                      it throws when it can't read the whole syntax; an unescaped <code>[ { (</code> only opens a group
+                    </li>
+                    <li>
+                      spacing as written: parts that touch must touch; <code>{space}</code> and <code>{spaces}</code>
+                    </li>
+                    <li>
+                      counts <code>{n}</code>, <code>{n,m}</code>, <code>{n,}</code>; <code>/i</code> case-insensitive
+                      keywords
+                    </li>
+                    <li>specials print back escaped; spell's syntaxes gained the spaces they meant</li>
+                    <li>
+                      new package
+                      <a href="../../markdown/" target="src-packages-markdown"><code>packages/markdown</code></a>
+                      (<code>$/markdown</code>, <code>MD</code>), its tokenizer and the GFM spec harness
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  P3 · Block structure: <code>BlockScanner</code> (commonmark.js 0.29 blocks + GFM tables) and 8 rulex
+                  line rules.
+                </li>
+                <li>
+                  P4 · Inline rules: <code>InlineParser</code> (delimiter and bracket stacks), reference definitions,
+                  GFM autolinks, strikethrough and tag filter; GFM spec 670/670.
+                </li>
+                <li>
+                  P5 · ui output: <code>MD.render()</code> with the <code>ui-*</code> mapping (headers, lists, tables,
+                  alert messages, task checkboxes); compared with marked on 172 repo files; line guards took it from 6×
+                  to 1.8× marked's time.
+                </li>
+                <li>
+                  P6 · Docstrings: the app's <code>&lt;Markdown&gt;</code> on <code>MD</code> (lazily loaded; marked
+                  gone from <code>app</code>); the LSP colours bold, italic, links and strikethrough in comments.
+                </li>
+                <li>
+                  P7 · ui bundle: <code>yarn gen:markdown</code> builds
+                  <a
+                    href="../../ui/src/components/ui-markdown/md.bundle.js"
+                    target="src-packages-ui-src-components-ui-markdown-md-bundle-js"
+                    ><code>md.bundle.js</code></a
+                  >; 88 kB gzipped vs marked's 25 kB, so plain <code>&lt;ui-markdown&gt;</code> keeps marked.
+                </li>
+                <li>
+                  P8 · Live preview: <code>&lt;ui-markdown editable&gt;</code>, Write / Preview tabs, the preview drawn
+                  with <code>ui-*</code> elements by <code>MD</code> in a lazy chunk, patched block by block.
+                </li>
+                <li>
+                  I6 · Sanitizing opt-in: <code>&lt;ui-markdown&gt;</code> keeps raw HTML unless <code>sanitized</code>,
+                  which loads DOMPurify in a lazy chunk of its own (<code>trusted</code> is gone); marked&apos;s chunk
+                  26.2 &rarr; 14.2 kB gzipped.
+                </li>
+                <li>
+                  I6 · Spell&apos;s markdown bundle 88.3 &rarr; 59.4 kB gzipped, cut at bundle time: the browser&apos;s
+                  entity decoder, <code>lodash-es</code>, no chalk; renders exactly what node does on all 670 spec
+                  examples.
+                </li>
+                <li>
+                  Left: <code>yarn vscode</code> from <code>main</code>; visual tests; T8 (AST and scope out of the
+                  bundle).
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="shared-content"
+              header="2026-10-04 · Shared content, P1-P3:  docs reorganised, tools link-aware"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/shared-content/shared-content.plan.html" target="shared-content"
+                    >epics/shared-content</a
+                  ></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>shared-content</code>, P1-P3 merged 2026-10-04; P4-P8 (the shared repo itself) still in
+                  its worktree</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: spike: Claude edits through a FOLDER link but refuses a FILE link, so only whole folders will be
+                  shared; <code>../spell-app-dev</code> trusted for edits in user and project settings.
+                </li>
+                <li>
+                  P2: every docs page, plan doc and template moved to
+                  <a href="./" target="src-packages-docs-content"><code>packages/docs/content/</code></a
+                  >; page URLs gained <code>/content/</code>, and the page server redirects the old ones.
+                </li>
+                <li>
+                  P2: the docs scripts and <code>_assets</code> moved to
+                  <a href="../tools/" target="src-packages-docs-tools"><code>packages/docs/tools/</code></a
+                  >, the goals tooling to
+                  <a href="../tools/goals/" target="src-packages-docs-tools-goals"
+                    ><code>packages/docs/tools/goals/</code></a
+                  >; every <code>yarn</code> script kept its name.
+                </li>
+                <li>
+                  P2: <code>PAPERCUTS.md</code>, <code>SUSPECTED-BUGS.md</code> and <code>CODE-DEBT.md</code> moved to
+                  <a href="../../../agents/" target="src-agents"><code>agents/</code></a
+                  >.
+                </li>
+                <li>
+                  P2:
+                  <a href="../tools/relocate.js" target="src-packages-docs-tools-relocate-js"
+                    ><code>packages/docs/tools/relocate.js</code></a
+                  >
+                  rewrote every link and path mention to match, and repairs links written for the old layout (a worktree
+                  merging <code>main</code>).
+                </li>
+                <li>
+                  P3: the docs tools work through a linked
+                  <a href="./" target="src-packages-docs-content"><code>packages/docs/content</code></a> (rehearsed with
+                  a real link): <code>plan-doc</code> runs git in the spell-app checkout, never inside the shared
+                  folder; shared epics count once; a shared plan doc finds its commits by subject (<code
+                    >&lt;epic&gt; I3:</code
+                  >, or <code>P3:</code> with that phase's name).
+                </li>
+              </ul>
+            </ui-section>
+            <ui-section id="vite-plus" header="2026-10-02 → 10-04 · Vite+ toolchain" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/vite-plus/vite-plus.plan.html" target="vite-plus">epics/vite-plus</a></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc: <a href="vite-plus.html" target="src-packages-docs-vite-plus-html">Vite+</a></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>vite-plus</code>, one <code>/bedtime</code> run, merged 2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: <code>vite-plus</code> 1.0 replaces vite, vitest, oxlint, oxfmt and tsgolint in the root and 11
+                  packages (<code>catalog:</code> versions; <code>vite</code> aliased to <code>vite-plus-core</code>).
+                </li>
+                <li>
+                  P1: lint and format settings out of <code>.oxlintrc*.json</code> / <code>.oxfmtrc.json</code> into
+                  each <a href="../../../vite.config.ts" target="src-vite-config-ts"><code>vite.config.ts</code></a
+                  >, spreading one root module,
+                  <a href="../../../vite.lint.ts" target="src-vite-lint-ts"><code>vite.lint.ts</code></a
+                  >.
+                </li>
+                <li>P1: test imports <code>vitest</code> → <code>vite-plus/test</code>; Node 24.11+, CI on 24.</li>
+                <li>P1: oxfmt 0.70 (Vite+&apos;s pin) rewraps 4 files.</li>
+                <li>
+                  P2: measured, verdict adopt: <code>yarn ts</code> 6.0 s → 3.1 s, tests about 15% faster, dev and build
+                  unchanged.
+                </li>
+                <li>
+                  P3: root <code>ts</code> / <code>test:packages</code> / <code>review</code> run through
+                  <code>vp run</code>;
+                  <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> Toolchain
+                  section. <code>yarn vp fmt</code> / <code>yarn vp lint</code> replace <code>yarn oxfmt</code> /
+                  <code>yarn oxlint</code> in packages.
+                </li>
+                <li>Found: <code>vp run --cache</code> replays a stale "TSC PASSED" (I1), so nothing caches yet.</li>
+                <li>
+                  C6: the app&apos;s browser tests pass on a cold vite cache:
+                  <a href="../../app/src/runner/spellRuntime.ts" target="src-packages-app-src-runner-spellruntime-ts"
+                    ><code>spellRuntime.ts</code></a
+                  >, imported by URL, is one of <code>optimizeDeps.entries</code>.
+                </li>
+                <li>Left: format-on-save check, format 63 files and add a root <code>vp check</code> script.</li>
+              </ul>
+            </ui-section>
+            <ui-section
+              id="commands"
+              header="2026-10-02 → 10-04 · Commands:  CLI, skills, yarn"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc: <a href="epics/commands/commands.plan.html" target="commands">epics/commands</a></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc:
+                  <a href="dev/commands/commands.html" target="src-packages-docs-dev-commands-commands-html"
+                    >Commands</a
+                  >
+                  (and its agent rules,
+                  <a href="dev/commands/commands.md" target="src-packages-docs-dev-commands-commands-md"
+                    ><code>dev/commands/commands.md</code></a
+                  >)</ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>commands</code>, two <code>/bedtime</code> runs, merged 2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: a docs template for command references (<a
+                    href="templates/commands.html"
+                    target="src-packages-docs-templates-commands-html"
+                    ><code>templates/commands.html</code></a
+                  >
+                  + <code>.json</code>):
+                  <a href="../tools/_assets/commands.js" target="src-packages-docs-assets-commands-js"
+                    ><code>_assets/commands.js</code></a
+                  >
+                  draws the tables from the page's JSON, fetched from the page server;
+                  <code>yarn docs:new commands</code>;
+                  <a href="../tools/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                    ><code>check-spell.js</code></a
+                  >
+                  loads <code>data-spell-needs-server</code> pages from the server.
+                </li>
+                <li>
+                  P2: the Commands page: every operation of the <code>spell</code> CLI, the skills and the yarn scripts
+                  (227 at first), CLI / skill / yarn marks, the tool that runs it.
+                </li>
+                <li>
+                  P3: the target: repo tools under <code>spell dev &lt;noun&gt; &lt;verb&gt;</code>, noun-then-verb
+                  names everywhere, a roadmap R1-R10, a target on every row.
+                </li>
+                <li>
+                  P4: <code>spell dev commands [list|check]</code> (<code>yarn commands:check</code>): every command
+                  against the page; <code>CLI.findCheckout()</code>.
+                </li>
+                <li>
+                  P5: root
+                  <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> "Commands":
+                  before a new skill, <code>spell</code> command or yarn script, read
+                  <a href="dev/commands/commands.md" target="src-packages-docs-dev-commands-commands-md"
+                    ><code>commands.md</code></a
+                  >
+                  and suggest where it belongs; keep the page true.
+                </li>
+                <li>P6: the page's Why and Limits.</li>
+                <li>
+                  P7: <code>spell dev session list|find|open|title|window|transcript</code>, ported from
+                  <code>session.py</code> and <code>transcript.py</code>.
+                </li>
+                <li>
+                  P8: <code>spell dev worktree list|status</code>, <code>spell dev park list|candidates|wait</code>,
+                  ported from <code>status.py</code> and <code>worktrees.py</code>.
+                </li>
+                <li>
+                  P9: <code>spell dev stock</code>, ported from <code>whassup.py</code> (then <code>/worktrees</code>'
+                  report, at the merge).
+                </li>
+                <li>
+                  P10: <code>doc-links.py</code> became plain-Node
+                  <a href="../tools/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                    ><code>doc-links.js</code></a
+                  >: the same page edits.
+                </li>
+                <li>
+                  P11: the skills call <code>spell dev</code>; <code>/session</code> moved into the repo; every python
+                  tool deleted: tools are TypeScript, never python.
+                </li>
+                <li>P12: the page and plan doc true to the port.</li>
+                <li>
+                  Merge: main's <code>/worktrees</code>, batched plan status, git-ignored link targets and
+                  <code>session.py</code>'s new <code>title</code> ported too; 219 commands on the page.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="ui-docs-rework" header="2026-10-04 · Spell UI docs rework" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/ui-docs-rework/ui-docs-rework.plan.html" target="ui-docs-rework"
+                    >epics/ui-docs-rework</a
+                  ></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc:
+                  <a href="spell-ui-site.html" target="src-packages-docs-spell-ui-site-html"
+                    >Spell UI Docs Site</a
+                  ></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>ui-docs-rework</code>, built overnight (<code>/bedtime</code>), merged
+                  2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: <code>spell</code> theme from the brand (tokens, installed-Palatino serif headings, no font files,
+                  pills, aubergine dark), the default on every doc site; Spell favicon on every site.
+                </li>
+                <li>
+                  P2: one layout (<a
+                    href="../../ui/site/_parts/layout.html"
+                    target="src-packages-ui-site-parts-layout-html"
+                    ><code>site/_parts/layout.html</code></a
+                  >); pages are a bare <code>main</code>; <code>SiteShell</code> + <code>SiteRouter</code> swap pages
+                  through <code>&lt;ui-include&gt;</code> (new <code>ui-insert</code> event); no flash on load.
+                </li>
+                <li>P3: <code>&lt;ui-docs-nav&gt;</code> as the brand panel: lockup, folding group bands, nav rows.</li>
+                <li>
+                  P4: no top bar on wide screens; right column with <code>&lt;spell-site-header docked&gt;</code>, look
+                  controls and "On this page"; slim top bar below 1200px.
+                </li>
+                <li>P5: look controls as a sun / moon flip + palette overlay; one scheme key for every site.</li>
+                <li>
+                  P6: 1,749 nested <code>&lt;ui-section&gt;</code>s with nested ids (<code>yarn site:sections</code>),
+                  sticky tabs and titles, deep-link landing, old hashes forwarded.
+                </li>
+                <li>P7: own pages for <code>ui-radio</code>, <code>ui-textarea</code> and the Parts tags.</li>
+                <li>
+                  P8: <code>&lt;ui-docs-search&gt;</code>: this page, components, pages, sections, attributes;
+                  <kbd>/</kbd> and <kbd>⌘K</kbd>.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="epic-review" header="2026-10-03 → 10-04 · /epic review" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/epic-review/epic-review.plan.html" target="epic-review">epics/epic-review</a></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="epic-review.html" target="src-packages-docs-epic-review-html">epic-review.html</a></ui-item
+                >
+                <ui-item icon="code branch">Branch <code>epic-review</code></ui-item>
+              </ui-list>
+              <p><b>P1 · Interaction mockup</b></p>
+              <ul>
+                <li>
+                  The prompt hook lets <code>/epic review ...</code> through: no rename, no block;
+                  <code>review</code> is a reserved epic name
+                </li>
+                <li>The review flow mocked on canned data first, reshaped over six rounds of Owen's clicks</li>
+              </ul>
+              <p><b>P2 · Review state</b></p>
+              <ul>
+                <li>
+                  <code>yarn plan-doc review / defer / queue / unqueue</code>: dated marks on items, a label right after
+                  the id (reviewed, deferred, to do)
+                </li>
+                <li>
+                  "Reviewed" also counts struck, decided, and decision-linked items; <code>items</code> (sections,
+                  counts, the to-do list, each item's recommendation) and <code>list</code> (every epic, main and
+                  worktrees)
+                </li>
+                <li>
+                  Open | All on every plan doc item section: Open (the default) hides struck items, "N hidden · show
+                  all"
+                </li>
+                <li>
+                  <a href="../tools/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                    ><code>check-spell.js</code></a
+                  >
+                  skips sections too short to stick (an empty Todos failed every new doc)
+                </li>
+              </ul>
+              <p><b>P3 · Review backfill</b></p>
+              <ul>
+                <li>
+                  <code>yarn plan-doc backfill &lt;name&gt; | --all [--apply]</code>
+                  (<a href="../tools/review-backfill.js" target="src-packages-docs-scripts-review-backfill-js"
+                    ><code>scripts/review-backfill.js</code></a
+                  >): items Owen named in a past session of the epic, his messages and modal answers; a dry run by
+                  default
+                </li>
+              </ul>
+              <p><b>P4 · The real review</b></p>
+              <ul>
+                <li>
+                  The epic skill's section 7, on real commands; every <code>/epic</code> session marks what it talks
+                  through
+                </li>
+                <li>
+                  The item picker: a details page from <code>plan-doc items --section s --spec</code>, the not-reviewed
+                  items ticked; Explain further: a details page
+                </li>
+                <li>
+                  Every <code>plan-doc</code> command but <code>new</code> edits the epic's live doc (its worktree, else
+                  main)
+                </li>
+              </ul>
+              <p><b>P5 · Epics index</b></p>
+              <ul>
+                <li>
+                  One Epics section in the docs index: <code>docs:index</code> writes merged cards and a slot,
+                  <code>RunningEpics</code> fills it with running ones; no separate "Running epics"
+                </li>
+                <li>
+                  Each card's title after its state: [3/6], done (green check), planning (blue thought bubble), stalled
+                  (yellow pause); Open | All on the section; a "circle pause" icon bundled
+                </li>
+              </ul>
+              <p><b>P6 · Dry run</b></p>
+              <ul>
+                <li>
+                  The picker reworked: two-column cards (tick box, (?) more details, state icon | title, whole text),
+                  Select all / none, Open | All, no site header
+                </li>
+                <li>
+                  Every details page: the Send bar pinned as the page's bottom (notes and a round send button), long
+                  text clamped with Show more, folds only when they hold more, "Asked" date up top, boxes that start
+                  ticked
+                </li>
+              </ul>
+              <p><b>P7 · Doc review</b></p>
+              <ul>
+                <li>
+                  The durable doc,
+                  <a href="epic-review.html" target="src-packages-docs-epic-review-html"
+                    ><code>epic-review.html</code></a
+                  >
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="epics-skill"
+              header="2026-10-03 · /epics, and /whassup merged into /worktrees"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch">Branch <code>epics-skill</code>, no plan doc</ui-item>
+              </ui-list>
+              <ul>
+                <li>
+                  <code>/epics</code> (<a href="../../../.claude/skills/epics/" target="src-claude-skills-epics"
+                    ><code>.claude/skills/epics/</code></a
+                  >): the open epics, one line each: state (planning, working, stalled, unmerged), phase, worktree,
+                  session, what's waiting on Owen, plan doc links; <code>/epics all</code> adds the finished ones. List
+                  only.
+                </li>
+                <li>
+                  <code>/worktrees</code> is now the repo's (<a
+                    href="../../../.claude/skills/worktrees/"
+                    target="src-claude-skills-worktrees"
+                    ><code>.claude/skills/worktrees/</code></a
+                  >): the old global sessions table plus all of <code>/whassup</code> (groups, pick-and-do clean-up);
+                  <code>/whassup</code> is gone. <code>worktrees.py --sessions</code> gives the table alone, for
+                  <code>/isolate</code> and <code>/wtf</code>.
+                </li>
+                <li>
+                  <code>yarn plan-doc summary</code> reads plan docs made before the judgement section instead of
+                  failing; <code>/whassup</code> had listed 9 finished epics as having phases left.
+                </li>
+                <li>
+                  <code>yarn plan-doc summaries &lt;file&gt;...</code>: many docs, by path (worktrees' too), in one run;
+                  <code>/worktrees</code> down from 17s to 2s.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="details"
+              header="2026-10-03 · Details pages:  questions answered in the side bar"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/details/details.plan.html" target="details"
+                    >epics/details/details.plan.html</a
+                  ></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="details.html" target="src-packages-docs-details-html">Details Pages</a></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>details</code>, P1-P5 built overnight (<code>/bedtime</code>)</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1 · Answer Endpoint: <code>POST /api/details/answer</code> (route module
+                  <a href="../tools/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
+                    ><code>packages/docs/tools/detailsRoutes.ts</code></a
+                  >) writes a details page's answer beside it; <code>StaticHandler.resolve()</code> maps a URL path to
+                  its file through the mounts.
+                </li>
+                <li>
+                  P2 · Page Template:
+                  <a href="templates/details.html" target="src-packages-docs-templates-details-html"
+                    ><code>templates/details.html</code></a
+                  >,
+                  <a href="../tools/_assets/details.js" target="src-packages-docs-assets-details-js"
+                    ><code>_assets/details.js</code></a
+                  >
+                  /
+                  <a href="../tools/_assets/details.css" target="src-packages-docs-assets-details-css"
+                    ><code>details.css</code></a
+                  >: option cards on
+                  <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> (radio
+                  or checkbox, Recommended, folding details), Other, notes, Send; locked once sent, Change answer;
+                  <code>GET /api/details/answer</code>. Route modules adding <code>/api/...</code> must come before
+                  <a href="../../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                    ><code>appRoutes.ts</code></a
+                  >.
+                </li>
+                <li>
+                  P3 · Details CLI: <code>yarn details new | show --wait | wait | answer | list | sweep</code>; the
+                  waiter, run in the background, exits with the answer and wakes the session.
+                  <code>atDepth()</code> shared with <code>docs:new</code>;
+                  <a href="details/" target="src-packages-docs-details"><code>details/</code></a> folders kept out of
+                  the index and checks.
+                </li>
+                <li>
+                  P4 · Skill and Rule:
+                  <a href="../../../.claude/skills/details/SKILL.md" target="src-claude-skills-details-skill-md"
+                    ><code>.claude/skills/details/SKILL.md</code></a
+                  >, a root <a href="../CLAUDE.md" target="src-packages-docs-claude-md"><code>CLAUDE.md</code></a> line,
+                  and the first real page,
+                  <a
+                    href="epics/details/details/morning-review.html"
+                    target="src-packages-docs-epics-details-details-morning-review-html"
+                    ><code>epics/details/details/morning-review.html</code></a
+                  >.
+                </li>
+                <li>P5 · Doc Review: the durable doc, the page server doc's route module list.</li>
+                <li>
+                  P6 · Sidebar Links: <code>yarn docs:link</code> prints a side bar link and a
+                  <code>(_browser_)</code> one, both through <code>GET /api/docs/show</code>; pages land on the id
+                  meant, unfolded; details pages open with a "Where we are" box; the skills link pages this way.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="stay-put"
+              header="2026-10-03 · /isolate and /epic:  stay in this window, or move"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branch <code>stay-put</code>; no plan doc (an <code>/isolate</code>)</ui-item
+                >
+                <ui-item icon="lightbulb"
+                  >Durable doc: the header of
+                  <a href="../../../scripts/window.mjs" target="src-scripts-window-mjs"
+                    ><code>scripts/window.mjs</code></a
+                  >, "Staying put"; the root's
+                  <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
+                  >, "Worktrees"</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  <code>node scripts/window.mjs stay-check [--epic] [--json]</code>: counts the window's Claude sessions
+                  (its extension host's <code>claude</code> children) and which worktree each other one is in;
+                  recommends <code>stay</code> only for the window's only session, else <code>window</code>, with
+                  reasons
+                </li>
+                <li>
+                  <code>/isolate</code> step 2b: a modal every time, "New window" or "Stay in this window", recommended
+                  first; "Stay" carries on in the same tab, same turn
+                </li>
+                <li>
+                  <code>/epic</code> "2. Session" step 0: the same modal; staying shows the plan doc in this window's
+                  side bar and plans in the same turn
+                </li>
+                <li><code>/unpark</code>: its "new window?" modal follows <code>stay-check</code>'s recommendation</li>
+                <li>
+                  every package window: <code>git.detectWorktrees</code> on, so Source Control lists each worktree as
+                  its own repo, and a session that stays is still reviewable (one window reload)
+                </li>
+                <li>
+                  root <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
+                  >: NEVER add a worktree's folders to a package window, since VS Code writes them into its
+                  <code>workspaces/&lt;pkg&gt;.code-workspace</code>, where they outlive the worktree unseen (the files
+                  are <code>skip-worktree</code>); three dead ones removed (<code>seo</code>,
+                  <code>solid-migration</code>, <code>doc-template</code>)
+                </li>
+                <li>
+                  tests: <code>processTable()</code>, <code>claudeSessions()</code>, <code>parseLsof()</code>,
+                  <code>stayAdvice()</code> in
+                  <a href="../../../scripts/window.test.mjs" target="src-scripts-window-test-mjs"
+                    ><code>scripts/window.test.mjs</code></a
+                  >
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="spell-ui-pages"
+              header="2026-10-02 → 10-03 · Spell UI docs in Fomantic's style"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branch <code>spell-ui-pages</code>; plan doc
+                  <a href="epics/spell-ui-pages/spell-ui-pages.plan.html" target="spell-ui-pages"
+                    >Spell UI Pages</a
+                  ></ui-item
+                >
+                <ui-item icon="lightbulb"
+                  >Durable doc:
+                  <a href="spell-ui-pages.html" target="src-packages-docs-spell-ui-pages-html"
+                    >spell-ui-pages.html</a
+                  ></ui-item
+                >
+              </ui-list>
+              <p>
+                Spell UI's docs rebuilt as 66 hand-written HTML pages in Fomantic's docs style (1608 live examples),
+                built only from <code>&lt;ui-*&gt;</code>; the Astro site is gone; 100 widget gaps logged.
+              </p>
+              <ul>
+                <li>P1: Fomantic-UI 2.9.4 and Fomantic-UI-Docs cloned for reference; 87 doc images copied.</li>
+                <li>
+                  P2: 5 <code>&lt;ui-docs-*&gt;</code> elements (example, api, tokens, nav, themes), known to
+                  <code>&lt;ui-root&gt;</code>, fed by a generated
+                  <a href="../../ui/site/_data/components.json" target="src-packages-ui-site-data-components-json"
+                    ><code>site/_data/components.json</code></a
+                  >; a committed, code-split site bundle; <code>/ui/</code> a static mount,
+                  <code>AstroProxy</code> deleted.
+                </li>
+                <li>
+                  P3: the <code>spell-ui-docs</code> page template, <code>yarn site:new</code>,
+                  <code>yarn site:check</code> (Playwright), shared header / footer through
+                  <code>&lt;ui-include&gt;</code>, <code>&lt;ui-docs-toc&gt;</code>, the button page as the pilot,
+                  <a href="epics/spell-ui-pages/PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+                    ><code>PAGES.md</code></a
+                  >.
+                </li>
+                <li>
+                  P4 + P5: 59 component pages and 7 foundation pages (home, getting started, grammar, theming with a
+                  theme gallery, utilities, icons, a generated kitchen sink, a 378-card component index); ~30 small
+                  widget fixes (item and message icon shorthands, label bottom corners, ad margins, tab pane border, nag
+                  commands, shape flip directions, step colour, header sub, ...).
+                </li>
+                <li>
+                  P6: 24 Fomantic themes as token sheets on top of
+                  <code>classic</code> (<code>ThemeSheets.apply()</code>),
+                  <code>UI.styles.register(..., { shadow: true })</code> for their class-grammar overrides; fonts
+                  bundled where Fomantic loaded them.
+                </li>
+                <li>
+                  P7: the Astro site, MDX and 330 lockfile packages removed; <code>yarn site:dev</code> watch build.
+                </li>
+                <li>P8: the gap report, grouped, with recommendations.</li>
+                <li>
+                  P10: <code>stack-with="container|page"</code> on grid, cards, steps, form, items, statistics, and
+                  page-wide on <code>&lt;ui-root&gt;</code>; the docs use <code>page</code>.
+                </li>
+                <li>
+                  P11: <code>appearance</code> (+ <code>segmented</code>) and <code>alignment</code> on
+                  <code>&lt;ui-menu&gt;</code> / <code>&lt;ui-tabs&gt;</code>; <code>equal</code> on menu, tabs,
+                  buttons, statistics, steps, fields.
+                </li>
+                <li>
+                  Plan docs: judgement calls are their own item kind (<code>J1</code> ..., a "Judgement calls" section);
+                  <code>/bedtime</code> and <code>/epic</code> record them there.
+                </li>
+                <li>P9, P12: the durable doc and the plan doc made true to the build.</li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="seo" header="2026-10-01 → 10-03 · Static pages for SEO" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branch <code>seo</code>; plan doc
+                  <a href="epics/seo/seo.plan.html" target="seo">Static Pages for SEO</a></ui-item
+                >
+                <ui-item icon="lightbulb"
+                  >Durable doc: <a href="seo/seo.html" target="src-packages-docs-seo-seo-html">seo/seo.html</a></ui-item
+                >
+              </ui-list>
+              <p>
+                <code>spell static page.html</code> renders every <code>ui-*</code> family on the server (Solid 2
+                <code>renderToString</code>) into light-DOM HTML plus one <code>@scope</code>-fenced stylesheet, so
+                pages work for SEO and with JS off.
+              </p>
+              <ul>
+                <li>
+                  P1: <code>StaticRender</code>; <code>@spell-app/solid-element/server</code>
+                  <code>ServerElement</code>, <code>ServerRuntime</code>, <code>hostEffect()</code>,
+                  <code>ServerHost</code> on linkedom; each host replaced by its root, slots by their children, list
+                  items wrapped in <code>&lt;li&gt;</code>.
+                </li>
+                <li>I1: fixed Solid SSR dropping <code>;</code> between computed style keys.</li>
+                <li>
+                  P2: <code>StaticStylesheet</code> (postcss, <code>@scope</code> per component fenced by
+                  <code>data-ui</code>, token resets, <code>@layer ui-slotted, page, ui</code>);
+                  <code>yarn test:visual --static</code> parity tool.
+                </li>
+                <li>
+                  P3: all 93 classes render statically; icons as inline SVG; server-only shapes for breadcrumb, sticky,
+                  transition, step, visibility; 287 of 342 visual pairs within 1%; element bugs found by the parity
+                  check fixed (darwin baselines only).
+                </li>
+                <li>
+                  P4: no-JS interactions: native modal commands, <code>popovertarget</code> popups,
+                  <code>&lt;details&gt;</code> accordions, tooltips as <code>title</code>; form round-trip tests; a
+                  JS-off Chromium test.
+                </li>
+                <li>
+                  P5: the <code>spell static</code> command (<code>-o</code>, <code>--css</code>,
+                  <code>--no-minify</code>), rendering in a child process on a Vite SSR server; Lightning CSS minify.
+                </li>
+                <li>P6: durable doc; ui review 202 ssr, 4,149 browser, 145 fork tests.</li>
+                <li>
+                  Morning after: ONE cached <code>ui.static.css</code> per output folder by default, its first line
+                  recording what it covers so later runs only add to it; <code>--inline-css</code> (was
+                  <code>--inline</code>); minified sheet by sheet.
+                </li>
+                <li>
+                  Morning after: the app's menu items use their <code>icon</code> attribute again (the
+                  <code>InDropdown</code> workaround removed).
+                </li>
+                <li>
+                  <code>yarn docs:update</code> green again: <code>doc-links.py --check</code> accepts missing
+                  gitignored targets, <code>findPages()</code> skips <code>examples/</code>.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="isolate-changes"
+              header="2026-10-03 · /isolate and /epic:  move first, prompt gate, running epics"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branch <code>isolate-changes</code>; plan doc
+                  <a href="epics/isolate-changes/isolate-changes.plan.html" target="isolate-changes"
+                    >Isolate &amp; Epic Changes</a
+                  >, written after the merge</ui-item
+                >
+                <ui-item icon="lightbulb"
+                  >Durable doc:
+                  <a href="server.html#running-epics-flow" target="src-packages-docs-server-html"
+                    >server.html, "Running epics"</a
+                  ></ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  <b>P1 · Prompt Gate</b>:
+                  <a href="../../../.claude/hooks/prompt-gate.mjs" target="src-claude-hooks-prompt-gate-mjs"
+                    ><code>.claude/hooks/prompt-gate.mjs</code></a
+                  >, a <code>UserPromptSubmit</code> hook on <code>/isolate</code>, <code>/epic</code> and
+                  <code>/unpark &lt;name&gt;</code>
+                  <ul>
+                    <li>renames the session <code>&lt;name&gt;</code> before Claude reads the prompt</li>
+                    <li>
+                      plan mode: blocks the prompt, saving its text to <code>~/.spell/prompts/&lt;name&gt;.md</code> and
+                      quoting it back; <code>/epic &lt;name&gt;</code> alone picks it up
+                    </li>
+                    <li>inside another worktree (by folder or by window): blocks the same way</li>
+                    <li>
+                      the global title hook also runs on <code>SessionStart</code> (resume), so a moved session gets its
+                      queued title
+                    </li>
+                    <li>skills repeat the checks for plain-word triggers; <code>/park</code> renames itself</li>
+                  </ul>
+                </li>
+                <li>
+                  <b>P2 · Move First</b>
+                  <ul>
+                    <li>
+                      <code>/isolate</code> ends its turn right after <code>handoff</code>;
+                      <code>yarn install</code> and the rest run in the new window ("Continue")
+                    </li>
+                    <li>
+                      <code>handoff --prompt</code> types <code>continue</code> into the new tab (the Claude extension's
+                      <code>initialPrompt</code>)
+                    </li>
+                    <li>
+                      the old tab is closed by any title it may show (<code>/rename</code> title, then Claude's own)
+                    </li>
+                    <li>no package window: <code>/isolate</code> asks which package instead of failing</li>
+                    <li>
+                      carried-over edits use a tagged stash, applied by sha; <code>window.mjs</code>'s flag parser no
+                      longer swallows the next flag
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <b>P3 · Epic Stub First</b>
+                  <ul>
+                    <li>
+                      <code>/epic</code> saves the kickoff prompt, makes the worktree, writes the stub plan doc, then
+                      moves and ends the turn; planning happens in the new window
+                    </li>
+                    <li>
+                      the plan doc template's "Plan hung?" notice: restart steps and the prompt with a copy button;
+                      <code>plan-doc</code> drops it once a phase starts
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <b>P4 · Central Epic Docs</b>
+                  <ul>
+                    <li>
+                      <code>RunningEpics</code>: main's page server serves <code>/worktrees/&lt;w&gt;/</code>, lists
+                      running epics at <code>/_server/epics</code>, and fills the docs index's "Running epics" section
+                    </li>
+                    <li>
+                      <code>SRV.mainServerUrl()</code>: <code>yarn server url</code> and the VS Code doc preview give a
+                      worktree's file on port 4747
+                    </li>
+                    <li>
+                      <code>yarn plan-doc</code> no longer rewrites the committed index inside a worktree (merge
+                      conflicts)
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <b>P5 · Doc Review</b>:
+                  <a href="server.html" target="src-packages-docs-server-html"><code>server.html</code></a
+                  >, <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> "Worktrees",
+                  the skills,
+                  <a href="../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a>
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="session-tooling"
+              header="2026-10-01 → 10-03 · Windows, worktrees and sessions"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >On <code>main</code> and small branches (<code>whassup</code>, <code>plans-2-epics</code>); no plan
+                  doc</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  One VS Code window per package (<code>workspaces/&lt;pkg&gt;.code-workspace</code>, a theme each), the
+                  repo root first so every Claude panel lists every session.
+                </li>
+                <li>
+                  The <code>WorktreeCreate</code> hook; the extension's <code>WindowBridge</code>;
+                  <a href="../../../scripts/window.mjs" target="src-scripts-window-mjs"
+                    ><code>scripts/window.mjs</code></a
+                  >
+                  open / close / show.
+                </li>
+                <li>
+                  Worktrees open in their own tinted window; files in
+                  <a href="../../../workspaces/ongoing/" target="src-workspaces-ongoing"
+                    ><code>workspaces/ongoing/</code></a
+                  >.
+                </li>
+                <li>
+                  Session handoff: a Stop hook moves the session to the worktree's window in an editor tab; a doc shown
+                  mid-move follows it; <code>handoff --prompt</code> types the next prompt in.
+                </li>
+                <li>
+                  <code>/isolate</code>, then <code>/isolate done</code>: merge into <code>main</code> with conflict
+                  handling, ff-only after <code>ExitWorktree</code>; offers to remove finished worktrees.
+                </li>
+                <li>
+                  Prompt gate hook: renames the session first; blocks <code>/isolate</code> / <code>/epic</code> in plan
+                  mode or another worktree and saves the prompt.
+                </li>
+                <li>
+                  New skills: <code>/wtf</code>, <code>/park</code>, <code>/unpark</code>, <code>/wait-for</code>,
+                  <code>/bedtime</code> + <code>/wakeup</code>, <code>/whassup</code>, <code>/spell-docs</code>,
+                  <code>/spell-serve</code>.
+                </li>
+                <li>Up to 5 agents without asking, unless the prompt says "watch token budget".</li>
+                <li>
+                  The "Spell Docs" view: a webview in VS Code's right side bar showing page-server pages; every skill
+                  opens docs there (Chrome outside VS Code). Replaced the earlier Simple Browser
+                  <code>DocPreview</code> handler.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="docs-sections-and-epics"
+              header="2026-10-01 → 10-03 · Docs on ui-section;  plan-doc → /epic"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branches <code>worktree-doc-template</code>, <code>plans-2-epics</code>; no plan doc of its
+                  own</ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="spell-docs/spell-docs.html" target="src-packages-docs-spell-docs-spell-docs-html"
+                    >How the docs work</a
+                  ></ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  Templates use more <code>ui-*</code> widgets: breadcrumb, meta list, statistics, steps, popup, tabs,
+                  feed, items; a badge filter on cheat sheets.
+                </li>
+                <li>
+                  Plan-doc template rework: sticky current-phase header; Overview, Phases, Questions &amp; Decisions,
+                  Caveats, Todos, Issues, Log; <code>prompt</code> / <code>decide</code> / <code>migrate</code>.
+                </li>
+                <li>
+                  New <code>&lt;ui-section&gt;</code> and <code>StickyWatch</code> in ui; the runtime drives folding,
+                  counts, the icon rail and anchored links.
+                </li>
+                <li>
+                  Every doc page converted to <code>&lt;ui-section&gt;</code> (<a
+                    href="../tools/to-ui-section.js"
+                    target="src-packages-docs-scripts-to-ui-section-js"
+                    ><code>scripts/to-ui-section.js</code></a
+                  >); fold checks in <code>check-spell</code>.
+                </li>
+                <li>Per-phase time estimates, totalled in the Overview.</li>
+                <li>
+                  <code>/plan-doc</code> renamed <code>/epic</code>; plan docs moved to
+                  <a href="epics/" target="src-packages-docs-epics"><code>packages/docs/content/epics/</code></a> (old
+                  URLs redirect).
+                </li>
+                <li>
+                  Move first, the prompt gate, epic "stub first" and running epics: see
+                  <a href="#isolate-changes">/isolate and /epic</a>.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="ui-import" header="2026-10-02 · ui-import" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc: <a href="epics/ui-import/ui-import.plan.html" target="ui-import">ui-import</a></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="ui-import/ui-import.html" target="src-packages-docs-ui-import-ui-import-html"
+                    >ui-import</a
+                  ></ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: <code>UI.sources</code> (cached same-origin loading, ETag, pluggable saver) and the shared
+                  <code>SourceElement</code> / <code>SourceHost</code>.
+                </li>
+                <li>
+                  P2: <code>&lt;ui-include&gt;</code>: shadow root or light DOM, <code>select</code>, lazy load, cycle
+                  guard, scripts never run; <code>save()</code> splices edits back into the file.
+                </li>
+                <li>
+                  P3: <code>&lt;ui-code&gt;</code>: lazy highlight.js (9 languages detected, 21 more by name), line
+                  numbers, wrap, copy.
+                </li>
+                <li>
+                  P4: spell highlighting: <code>SP.SpellHighlighter</code>, shipped to ui pre-compiled by
+                  <code>yarn gen:spell</code> (the one ui → spell exception).
+                </li>
+                <li>
+                  P5: <code>&lt;ui-markdown&gt;</code>: GFM through marked + DOMPurify, GitHub heading ids, fences as
+                  <code>&lt;ui-code&gt;</code>.
+                </li>
+                <li>
+                  P6: the page server saves text files with PUT; <code>SPELL_SERVER.saveFile()</code>; lazy engines in
+                  the docs bundle.
+                </li>
+                <li>P7: durable doc with live examples.</li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="solid-migration" header="2026-10-02 · Solid migration" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/solid-migration/solid-migration.plan.html" target="solid-migration"
+                    >solid-migration</a
+                  ></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="solid-migration.html" target="src-packages-docs-solid-migration-html"
+                    >Solid migration</a
+                  ></ui-item
+                >
+                <ui-item icon="clock rotate left">About 4 h 15 m of phase work, against a 15-25 h estimate</ui-item>
+              </ui-list>
+              <ul>
+                <li>P1: <code>@thing</code> runs <code>create()</code> once, after field initializers.</li>
+                <li>P2: Solid rc.13 everywhere; <code>&lt;Errored&gt;</code> in the fork.</li>
+                <li>
+                  P3: the app builds React and Solid side by side (<code>appConfig()</code>); 55 files marked
+                  <code>@jsxImportSource react</code>.
+                </li>
+                <li>P4: <code>tracked()</code>, so Solid sees easy-state changes; a browser test project.</li>
+                <li>
+                  P6: every editor pane on Solid: console, match / AST viewers, explorers, Monaco editors, modals on
+                  <code>UI.modals</code>, menus, notices, Markdown.
+                </li>
+                <li>
+                  P7: runners, <code>&lt;spell-app&gt;</code> and <code>&lt;spell-editor&gt;</code> via
+                  <code>customElement()</code>; one shared <code>spell-solid.js</code> across builds; the VS Code
+                  webview in <code>&lt;ui-root&gt;</code>.
+                </li>
+                <li>
+                  P8: the editor shell on Solid with <code>@solidjs/router</code>; the parser draws ASTs as plain
+                  markup; <code>@reach/router</code>, <code>react-hotkeys-hook</code>, <code>classnames</code>
+                  removed; main chunk 686 → 596 kB.
+                </li>
+                <li>
+                  P11: spell cells (<code>Cell</code>, <code>Derived</code>, <code>Reaction</code>, <code>Schema</code>,
+                  <code>@prop</code> / <code>@derived</code>, <code>view()</code>, <code>bridgeSolid()</code>) replace
+                  easy-state and observer-util; compiled spell declares its props.
+                </li>
+                <li>
+                  P9: no React in the app's own chunks; it remains only in <code>spell-runtime.js</code> and the CLI's
+                  Ink UI.
+                </li>
+                <li>
+                  P10: durable doc;
+                  <a href="solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"><code>solid-2.md</code></a>
+                  made true to what was built. P5 (Core + JSX emit) was dropped, now a todo.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="unified-server" header="2026-10-02 · Unified page server" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/unified-server/unified-server.plan.html" target="unified-server"
+                    >unified-server</a
+                  ></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc: <a href="server.html" target="src-packages-docs-server-html">Page Server</a></ui-item
+                >
+                <ui-item icon="clock rotate left">An overnight <code>/bedtime</code> run, 01:01-01:59</ui-item>
+              </ui-list>
+              <ul>
+                <li>
+                  P1:
+                  <a href="../../server/" target="src-packages-server"><code>packages/server</code></a>
+                  (<code>SRV</code>): mime, <code>safePath</code>, <code>StaticHandler</code>, an Express-shaped
+                  <code>Router</code>, ports, openers, <code>FileLock</code>.
+                </li>
+                <li>
+                  P2: one live-reloading page server per checkout (<code>yarn server serve|ensure|stop|status|url</code
+                  >), with a page-edit API (PATCH by id, <code>If-Match</code>).
+                </li>
+                <li>P3: the CLI's serve and ui's <code>StaticServer</code> run on SRV.</li>
+                <li>
+                  P4: docs, plans, goals and Spell UI on one port; <code>&lt;spell-site-header&gt;</code> on every page;
+                  in-place section editing.
+                </li>
+                <li>P5: goals on a route module; the old goals <code>server.js</code> deleted.</li>
+                <li>
+                  P6: the app's API off Express, contract tests first; Express, body-parser, express-json5 and
+                  proper-lockfile removed.
+                </li>
+                <li>P7: <code>spell serve</code> and <code>yarn start</code> run everything.</li>
+                <li>
+                  Follow-ups: the page server starts and stops the editor (vite); <code>yarn serve</code> prints every
+                  server's port; a port is free only if free on IPv4 and IPv6.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="ui-component-creation"
+              header="2026-10-01 · ui component creation"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/ui-component-creation/ui-component-creation.plan.html" target="ui-component-creation"
+                    >ui-component-creation</a
+                  ></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="ui-component-creation.html" target="src-packages-docs-ui-component-creation-html"
+                    >ui component creation</a
+                  ></ui-item
+                >
+                <ui-item icon="check">22 phases; 11,756 tests pass in chromium, firefox and webkit</ui-item>
+              </ui-list>
+              <ul>
+                <li>
+                  P1: back to green after the monorepo move (<code>test:hmr</code>, <code>site:build</code>, a
+                  date-dependent visual test).
+                </li>
+                <li>P2: <code>UI.icons</code> never rejects; <code>$/ui/tools/IconPackBuilder</code>.</li>
+                <li>
+                  P3/P4: bug sweep and Owen's decisions: toast pause, modal <code>closable</code>, invoker
+                  <code>commandfor</code>, popup <code>hoverable</code>, label colour, sidebar width, table stacking,
+                  fixed dropdown menus, about 20 more.
+                </li>
+                <li>
+                  P5: cross-browser <code>test:all</code> (92 failures → 4), kitchen sink page, CHANGELOG, publish dry
+                  run.
+                </li>
+                <li>P8/P9: invoker commands on popup, dropdown and toast; docs explainers with live examples.</li>
+                <li>
+                  P10/P12: CLDR wins the 19 emoji name clashes; two name sets (cldr / fomantic) with loose lookup; lazy
+                  emoji chunks, docs bundle 2.36 → 1.75 MB.
+                </li>
+                <li>P11: plan-doc tabs open in the background, named per doc.</li>
+                <li>
+                  P13: folders renamed <code>ui-&lt;family&gt;/</code> (codemod, 2,922 refs); one vocabulary per tag;
+                  the <code>UIT</code> namespace.
+                </li>
+                <li>
+                  P14: topics and <code>aka</code> names in all 93 vocabularies; <code>ComponentDefinitions</code>;
+                  <code>describe()</code>.
+                </li>
+                <li>P15: the docs sidebar is a component browser: search, A-Z / Topics views, favourites.</li>
+                <li>
+                  P16-P20: <code>&lt;ui-root&gt;</code>: loads the families a page uses on demand, skeleton / when-ready
+                  / immediately, theme / size / box, per-root icons and emoji, skeletons for 37 tags; the docs site runs
+                  on it; dark mode fixed in <a href="../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a
+                  >.
+                </li>
+                <li>
+                  P21: <code>&lt;ui-table stack-by&gt;</code>, WebKit style-query fixes, the form as a size container.
+                </li>
+                <li>P22: durable doc.</li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="cli-additions" header="2026-10-01 · CLI additions" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/cli-additions/cli-additions.plan.html" target="cli-additions"
+                    >cli-additions</a
+                  ></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc: <a href="cli.html" target="src-packages-docs-cli-html">spell Command Line</a></ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>P1: <code>spell compile</code> and <code>spell watch</code> write scope packs.</li>
+                <li>
+                  P2: <code>spell projects</code>, <code>spell speed --against &lt;ref&gt;</code>,
+                  <code>spell format --check</code>.
+                </li>
+                <li>
+                  P3: <code>spell parse</code>, <code>spell repl</code>, <code>spell explain</code>,
+                  <code>spell new</code>.
+                </li>
+                <li>
+                  P4: watch rebuilds importers and gains <code>--test</code>; explore reloads, <code>e</code> edits
+                  descriptions; <code>compile --force</code>; <code>test --name</code> / <code>--watch</code>.
+                </li>
+                <li>
+                  P6: no target means the project here; otherwise an autocompleting target prompt, recent picks first.
+                </li>
+                <li>P7: <code>spell icons [query]</code>; <code>--open</code> serves a gallery of 3,760 icons.</li>
+                <li>P8: <code>spell run</code> opens UI projects in the browser, in <code>&lt;spell-app&gt;</code>.</li>
+                <li>P10: <code>spell serve [target]</code>.</li>
+                <li>Also: <code>spell help</code>; an unknown command exits 2.</li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="other-2026-10" header="2026-10-01 → 10-02 · Other" sticky collapsible dividing>
+              <ul>
+                <li>The spell brand.</li>
+                <li>
+                  Goals pages (<a href="../../../goals/" target="src-goals"><code>goals/</code></a
+                  >).
+                </li>
+                <li>A graphify knowledge graph of the repo.</li>
+                <li>Solitaire: dropped a shuffle test that failed 1 time in 52.</li>
+              </ul>
+            </ui-section>
+          </ui-section>
+
+          <ui-section id="2026-09" header="September 2026" sticky collapsible dividing>
+            <ui-section id="monorepo" header="2026-09-30 → 10-01 · Monorepo" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch">On <code>main</code>, several agents merged in; no plan doc</ui-item>
+              </ui-list>
+              <ul>
+                <li>
+                  The parser moved in, then <code>ui</code> and <code>cli</code> merged with their history; one yarn
+                  workspace, one <a href="../../../yarn.lock" target="src-yarn-lock"><code>yarn.lock</code></a
+                  >.
+                </li>
+                <li>
+                  Split into packages: util, parser, core, spell, lsp, app, vscode (its own yarn project), cli,
+                  solid-element.
+                </li>
+                <li>
+                  One alias table,
+                  <a href="../../../tsconfig.base.json" target="src-tsconfig-base-json"
+                    ><code>tsconfig.base.json</code></a
+                  >: <code>#name</code> → <code>$/name</code>, npm scope <code>@spell-app</code>; repeatable codemods
+                  (<a href="../../../scripts/move-packages.mjs" target="src-scripts-move-packages-mjs"
+                    ><code>scripts/move-packages.mjs</code></a
+                  >,
+                  <a href="../../../scripts/rename-aliases.mjs" target="src-scripts-rename-aliases-mjs"
+                    ><code>scripts/rename-aliases.mjs</code></a
+                  >).
+                </li>
+                <li>
+                  One copy of Solid, hoisted; one root
+                  <a href="../../../vite.decorators.ts" target="src-vite-decorators-ts"
+                    ><code>vite.decorators.ts</code></a
+                  >; one oxlint / oxfmt config; one root vitest run.
+                </li>
+                <li>
+                  Shared root <a href="../AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a
+                  >, <a href="../CLAUDE.md" target="src-packages-docs-claude-md"><code>CLAUDE.md</code></a
+                  >,
+                  <a href="../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a
+                  >,
+                  <a href="../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                    ><code>agents/SUSPECTED-BUGS.md</code></a
+                  >,
+                  <a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a
+                  >, the solid-2 skill; a README.
+                </li>
+                <li>CI: a per-package <code>review</code> workflow on <code>main</code> and PRs.</li>
+                <li>The repo is <code>spell-app/spell-app</code>; Docker support removed.</li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="docs-workspace"
+              header="2026-09-30 · Docs workspace and plan docs"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/docs-workspace/docs-workspace.plan.html" target="docs-workspace"
+                    >docs-workspace</a
+                  ></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="spell-docs/spell-docs.html" target="src-packages-docs-spell-docs-spell-docs-html"
+                    >How the docs work</a
+                  ></ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: <a href="../" target="src-packages-docs"><code>packages/docs</code></a
+                  >: every doc moved in, kebab-case, hand-written <code>ui-*</code> pages; the
+                  <code>.spell.html</code> converter retired.
+                </li>
+                <li>
+                  P2: one classic bundle that opens from <code>file://</code>; a contents sidebar from the headings; the
+                  docs index (<code>yarn docs:index</code>).
+                </li>
+                <li>P3: templates for durable pages, cheat sheets and plan docs.</li>
+                <li>P4: <code>yarn plan-doc</code>: phases, items, log, summary, a lock, Chrome tab reuse.</li>
+                <li>P5: the <code>/plan-doc</code> skill (now <code>/epic</code>).</li>
+                <li>
+                  P6: dry run; <code>yarn docs:new</code> / <code>docs:open</code>; <code>doc-links.py --check</code>.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section id="cli-moved" header="2026-09-30 · The spell CLI" sticky collapsible dividing>
+              <ul>
+                <li>Moved off the parser's CLI branch: compile, check, describe, explore, watch, run, test.</li>
+                <li><code>SpellProject.compile({ save: false })</code>, for compiling without writing.</li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="spell-ui"
+              header="2026-09-28 → 09-30 · @spell-app/ui from scratch"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="book open"
+                  >Status:
+                  <a href="../../ui/docs/status.md" target="src-packages-ui-docs-status-md"
+                    ><code>packages/ui/docs/status.md</code></a
+                  ></ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>Scaffold: yarn 4, TS 7, Vite 8, Vitest 5 browser mode, oxlint / oxfmt, an axe test harness.</li>
+                <li>
+                  Runtime services (Keyboard, Overlays, Focus, Styles, Transitions, I18n, Ids, Api), the vocabulary
+                  schema, <code>ValueSets</code>, ClassBuilder, Validator.
+                </li>
+                <li>The CSS foundation (tokens, colours, sizes, utilities, dark theme); an Astro 7 docs site.</li>
+                <li>
+                  Lit vs Solid spikes and a comparison: chose Solid 2; Lit archived at tag
+                  <code>archive/lit-spike</code>.
+                </li>
+                <li>
+                  The
+                  <a href="../../solid-element/README.md" target="src-packages-solid-element-readme-md"
+                    ><code>@spell-app/solid-element</code></a
+                  >
+                  fork, fixing 22 reproduced bugs; native fallbacks when a component fails.
+                </li>
+                <li>HMR for custom elements: in-place definition swap, a Vite plugin, 8 end-to-end scenarios.</li>
+                <li>
+                  Phase A: button, dropdown, icon, label, divider, segment, container, grid, image, text, flag, loader,
+                  placeholder, message, breadcrumb; then list, table, menu and a shared
+                  <code>&lt;ui-item&gt;</code>; popup and modal.
+                </li>
+                <li>
+                  Phases B + C, 29 families: card, items, feed, comment, statistic, step, rail, reveal, ad, emoji,
+                  accordion, tab, progress, rating, slider, select, search, toast, nag, sticky, visibility, embed,
+                  transition, dimmer, flyout, sidebar, shape, calendar, state.
+                </li>
+                <li>Themeable component tokens across 53 families (<code>yarn tokens:alias</code>).</li>
+                <li>
+                  SVG icon packs (fa7-free, fa7-brands, fomantic), <code>UI.icons</code>, the pack builder; visual
+                  testing.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="spell-app-element"
+              header="2026-09-29 → 09-30 · Runtime, &lt;spell-app&gt;, compiled JS"
+              sticky
+              collapsible
+              dividing
+            >
+              <ul>
+                <li>
+                  Runner pieces: <code>runCompiled()</code>, <code>RunnerSplit</code> / <code>RunnerPane</code> /
+                  <code>RunnerConsole</code>; <code>spellCore</code> can live in a shadow root.
+                </li>
+                <li>
+                  Flat scope trees keyed by <code>path</code>; scope packs (<code>&lt;Project&gt;.scopes.js</code>);
+                  <code>@examples</code> / <code>@guides</code> roots.
+                </li>
+                <li>
+                  <code>&lt;spell-app&gt;</code>: runs a compiled project in any page, in a shadow root, with a toolbar
+                  and debug pane; each element on its own runtime copy.
+                </li>
+                <li>
+                  The VS Code runner and the web app run programs on <code>spell-runtime.js</code>; the import map is
+                  gone.
+                </li>
+                <li>
+                  Idiomatic compiled JS: members inside class bodies, getter / setter properties over
+                  <code>getProp</code> / <code>setProp</code>, 2-space indents; fixed "Cannot redefine property: play".
+                </li>
+                <li>
+                  The Thing Explorer; the Type Explorer in document order; a built-in types pack;
+                  <code>&lt;spell-editor&gt;</code>.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
+              id="parser-editor"
+              header="2026-09-19 → 09-28 · Parser, language server, editor"
+              sticky
+              collapsible
+              dividing
+            >
+              <ul>
+                <li>
+                  A docs pass and review fixes;
+                  <a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a>
+                  and
+                  <a href="../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a>
+                  started.
+                </li>
+                <li>
+                  Renames (<code>WhitespaceToken</code>, <code>ASTNumber</code>); <code>defineRule()</code> refactor;
+                  <code>testRules</code> removed; <code>store</code> → <code>editor</code>.
+                </li>
+                <li>Incremental parsing.</li>
+                <li>The language server, then the VS Code extension.</li>
+                <li>CodeMirror → Monaco; <code>NestedSplit</code> gone; cleaner rule definitions.</li>
+                <li>Partial matching of rules; multi-syntax rule cleanup.</li>
+                <li>The project runner and Thing Explorer pane in VS Code.</li>
+                <li>Imports between spell projects; Jokers in Solitaire.</li>
+              </ul>
+            </ui-section>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="4-planned" header="4. Planned, not started" sticky collapsible dividing>
+          <ui-icon slot="icon" name="seedling"></ui-icon>
+          <ui-section id="precedence-and-types" header="Precedence and types" sticky collapsible dividing>
+            <ui-list class="spell-meta">
+              <ui-item icon="book open"
+                >Design:
+                <a href="precedence/precedence.html" target="src-packages-docs-precedence-precedence-html"
+                  >Precedence</a
+                ></ui-item
+              >
+            </ui-list>
+            <ul>
+              <li>Designed 2026-09-30; nothing built. 14 decisions wait on Owen.</li>
+              <li>
+                Phases planned: precedence, types plumbed through, typed methods, multi-word members, built-in member
+                tables, exclusive lists, a TypeScript backend.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Last updated 2026-10-04 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages, stay-put,
+            epic-review, commands, vite-plus and markdown.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

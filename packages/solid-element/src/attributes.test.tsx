@@ -6,7 +6,7 @@
 /** FIX 4:  removals always apply;  change callbacks know their source;  synchronous reflection guard. */
 
 import { flush } from "solid-js"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import type { ChangeSource, SolidElement } from "./solid-element.types"

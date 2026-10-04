@@ -1,5 +1,5 @@
 import _ from "lodash"
-import { describe, test, expect, beforeEach, afterEach, vi } from "vitest"
+import { describe, test, expect, beforeEach, afterEach, vi } from "vite-plus/test"
 import { spellCore, assert } from "$/core"
 
 // Wrap `assert.failed` for each test

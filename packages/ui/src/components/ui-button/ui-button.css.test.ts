@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from "vitest"
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { ClassBuilder } from "$/ui/elements"
 import { colorsCSS, foundationCSS } from "$/ui/styles"

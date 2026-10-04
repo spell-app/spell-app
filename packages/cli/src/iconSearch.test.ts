@@ -1,5 +1,5 @@
 import { existsSync } from "fs"
-import { beforeAll, describe, test, expect } from "vitest"
+import { beforeAll, describe, test, expect } from "vite-plus/test"
 
 import { CLI } from "$/cli"
 
