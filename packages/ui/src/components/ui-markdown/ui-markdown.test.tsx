@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from "vitest"
+import { beforeAll, describe, expect, it, vi } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/a11y"

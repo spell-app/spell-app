@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { MARKER, PageServer, RunningEpics, type RunningEpic } from "$/server/page"
 import { ask } from "$/server/test/serve"
@@ -27,23 +27,23 @@ describe("RunningEpics", () => {
   let port: number
 
   beforeAll(async () => {
-    writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["packages/docs"] } }))
-    put(root, "packages/docs/index.html", `<html><head></head><body><h1>Docs</h1>${MARKER}</body></html>\n`)
+    writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["packages/docs/content"] } }))
+    put(root, "packages/docs/content/index.html", `<html><head></head><body><h1>Docs</h1>${MARKER}</body></html>\n`)
     // merged into the main checkout:  a worktree's copy of it is stale, never listed
-    put(root, "packages/docs/epics/old/old.html", planDoc("Old"))
-    put(root, ".claude/worktrees/seo/packages/docs/epics/old/old.html", planDoc("Old, stale"))
+    put(root, "packages/docs/content/epics/old/old.html", planDoc("Old"))
+    put(root, ".claude/worktrees/seo/packages/docs/content/epics/old/old.html", planDoc("Old, stale"))
     // the worktree's own epic, mid-way;  and one planning, in another worktree
     put(
       root,
-      ".claude/worktrees/seo/packages/docs/epics/seo/seo.plan.html",
+      ".claude/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html",
       planDoc("SEO &amp; co", [
         ["done", "P1 · Meta Tags"],
         ["active", "P2 · Site Map"],
         ["todo", "P3 · Doc Review"]
       ])
     )
-    // a worktree cut before the rename to `<name>.plan.html`:  its plan doc under the old name still counts;  a page
-    // of that name that isn't a plan doc doesn't
+    // a worktree cut before the rename to `<name>.plan.html` and the move into `content/`:  its plan doc under the old
+    // name and folder still counts;  a page of that name that isn't a plan doc doesn't
     put(root, ".claude/worktrees/vite/packages/docs/epics/vite/vite.html", planDoc("Vite"))
     put(root, ".claude/worktrees/vite/packages/docs/epics/notes/notes.html", "<html><body>notes</body></html>\n")
     server = await new PageServer({ root }).start({ port: 0, routes: false })
@@ -60,7 +60,7 @@ describe("RunningEpics", () => {
       {
         name: "seo",
         worktree: "seo",
-        url: "/worktrees/seo/packages/docs/epics/seo/seo.plan.html",
+        url: "/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html",
         title: "SEO & co",
         done: 1,
         total: 3,
@@ -79,7 +79,7 @@ describe("RunningEpics", () => {
   })
 
   it("serves them under `/worktrees/`, and the list as JSON", async () => {
-    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/epics/seo/seo.plan.html")
+    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html")
     expect(doc.status).toBe(200)
     expect(doc.text).toContain("SEO &amp; co")
     const list = JSON.parse((await ask(port, "GET", "/_server/epics")).text) as RunningEpic[]
@@ -87,7 +87,7 @@ describe("RunningEpics", () => {
   })
 
   it("gives a worktree's page that worktree's badge", async () => {
-    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/epics/seo/seo.plan.html")
+    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html")
     const config = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(doc.text)![1]!) as { worktree?: string }
     expect(config.worktree).toBe("seo")
   })
@@ -98,9 +98,9 @@ describe("RunningEpics", () => {
   })
 
   it("puts the running epics' cards at the marker in the Epics list, each title after its state", async () => {
-    const index = (await ask(port, "GET", "/packages/docs/index.html")).text
+    const index = (await ask(port, "GET", "/packages/docs/content/index.html")).text
     expect(index).not.toContain(MARKER)
-    expect(index).toContain(`href="/worktrees/seo/packages/docs/epics/seo/seo.plan.html"`)
+    expect(index).toContain(`href="/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html"`)
     // in progress:  [done/all], the active phase in the meta line
     expect(index).toContain(`<ui-label class="spell-epic-state" size="mini" basic>1/3</ui-label> <a`)
     expect(index).toContain("<ui-meta>P2 · Site Map · .claude/worktrees/seo</ui-meta>")

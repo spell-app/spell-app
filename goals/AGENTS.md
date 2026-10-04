@@ -5,7 +5,8 @@ waiting to be worked in, and the tools that keep it all consistent.  As the root
 
 - Start at `index.html` (every goal set), or a set's own `<set>/index.html`.  `yarn goals open` shows them served
   live;  they also open straight from disk.
-- The /goals skills (`_skills/`, linked into the repo's `.claude/skills/`) drive dialogs, thoughts and updates.
+- The /goals skills (`packages/docs/tools/goals/skills/`, linked into the repo's `.claude/skills/`) drive dialogs,
+  thoughts and updates.
 - Built in this repo, meant for any project later:  keep paths relative, and project specifics in the preferences.
 
 ## Layout
@@ -19,20 +20,21 @@ waiting to be worked in, and the tools that keep it all consistent.  As the root
   decisions and thoughts.
 - `<set>/<topic>/<topic>.md` -- the same topic as a brief for agents:  context, decisions, work, the questions they
   must not decide, pointers.  Same ids as the page.
-- `_tools/` -- the tools:
+- This folder holds content only.  It may be a symlink into a peer content repo, so the tools find it as
+  `<repo root>/goals`, never beside themselves.
+- `packages/docs/tools/goals/` -- the tools:
   - `goals.js` -- `yarn goals ...` / `spell goals ...` (below)
   - `page.js` -- `GoalsPage`:  every edit to a page, pure (HTML in, HTML out)
-  - `targets.js` -- preferences, sets, topics, and what a target means
+  - `targets.js` -- preferences, sets, topics, and what a target means;  where the repo root and this folder are
   - `launch.js` -- Claude sessions in a terminal window
   - `goalsRoutes.ts` -- the pages' buttons, as a route module of the page server (below);  tests:
     `goalsRoutes.test.ts` (`yarn goals:test`)
-- The tools run under `tsx` (`goals.sh`, `yarn goals`), with `tsconfig.json` here for the repo's aliases:  they use
-  the page server's code (`$/server`).  So this folder now needs this repo:  copy it elsewhere and it needs
-  `packages/server` and `tsx` too.
-- `_skills/` -- the /goals skills:  `goals`, `goals-thought`, `goals-update`, `goals-open`, `goals-open-vs`.
-  `_skills/goals/scripts/goals.sh` finds the nearest goals folder and runs its tool:  every skill calls it.
-- Templates:  `packages/docs/templates/goals/`.  Look:  `packages/docs/_assets/goals.css`.  Live buttons:
-  `packages/docs/_assets/goals-live.js`.
+- The tools run under `tsx` (`goals.sh`, `yarn goals`), with `packages/docs/tsconfig.json` for the repo's aliases:
+  they use the page server's code (`$/server`).
+- `packages/docs/tools/goals/skills/` -- the /goals skills:  `goals`, `goals-thought`, `goals-update`, `goals-open`,
+  `goals-open-vs`.  `goals/scripts/goals.sh` there runs its checkout's tool:  every skill calls it.
+- Templates:  `packages/docs/content/templates/goals/`.  Look:  `packages/docs/tools/_assets/goals.css`.  Live buttons:
+  `packages/docs/tools/_assets/goals-live.js`.
 
 ## Words
 
@@ -116,14 +118,14 @@ A TARGET names a set, a topic, or one place on a page:  `[set/]topic[/anchor]`.
 - Keep the `.md` in step after every dialog or update:  new decisions, work status (`proposed` → `ready` →
   `done`), closed questions.  Same ids, same titles.
 - Links between goals pages open in the SAME tab (`target="_self"`, added by the tool);  every other link gets a
-  named new-tab target from `packages/docs/scripts/doc-links.js`.  Write code references as
+  named new-tab target from `packages/docs/tools/doc-links.js`.  Write code references as
   `<code>path/from/repo/root</code>`:  the tool links them.
 - History (`#history`):  newest first, one line per session or change, via `yarn goals log`.
 
 ## The tool
 
 `yarn goals <command>` at the repo root, `spell goals <command>` anywhere (the spell CLI finds the nearest goals
-folder), or `_skills/goals/scripts/goals.sh <command>` from any project.  `help` lists everything.
+folder), or `.claude/skills/goals/scripts/goals.sh <command>` from anywhere.  `help` lists everything.
 
 ```
 sets  /  use <set>                        the goal sets;  make one the active set
@@ -147,13 +149,13 @@ update [target] [--print] [--window]      /goals-update with Claude (--print:  h
 claude                                    is Claude Code installed and logged in?
 ```
 
-- An icon a page uses must be in `ICONS` in `packages/docs/scripts/bundle-spell-ui.js`, then
-  `node packages/docs/scripts/bundle-spell-ui.js --skip-ui-build`:  any other name draws nothing.
+- An icon a page uses must be in `ICONS` in `packages/docs/tools/bundle-spell-ui.js`, then
+  `node packages/docs/tools/bundle-spell-ui.js --skip-ui-build`:  any other name draws nothing.
 
 ## The page server
 
 - Goals pages are served by the repo's PAGE SERVER (`packages/server`, `yarn server`), one per checkout, which
-  serves docs, plans and Spell UI too.  Goals plug in as a ROUTE MODULE, `_tools/goalsRoutes.ts`, listed in the
+  serves docs, plans and Spell UI too.  Goals plug in as a ROUTE MODULE, `packages/docs/tools/goals/goalsRoutes.ts`, listed in the
   root `package.json`'s `"pageServer"`.
 - `yarn goals open` starts it in the background if need be (`yarn goals server start|stop|status`;  `serve` runs
   it in front).  It asks for `server.port` (the preferences) first, else any free port.  State and log:
@@ -195,4 +197,4 @@ claude                                    is Claude Code installed and logged in
   - progress or findings:  `yarn goals log <set/topic> "W2:  ..." --icon robot`
   - a new risk or question:  `yarn goals add <set/topic> risk|question "..."`
   - done:  `yarn goals close <set/topic/W2>`, and mark it `done` in the `.md`
-- Repo-wide rules still apply:  `CODE-DEBT.md`, `SUSPECTED-BUGS.md`, `PAPERCUTS.md`.
+- Repo-wide rules still apply:  `agents/CODE-DEBT.md`, `agents/SUSPECTED-BUGS.md`, `agents/PAPERCUTS.md`.

@@ -6,7 +6,7 @@
 /** FIX 3:  per-prop definitions, the boolean rule, JSON only for `Object` / `Array`, attribute names. */
 
 import { flush } from "solid-js"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { toAttribute } from "./props"

@@ -1,6 +1,6 @@
 import { readFileSync } from "fs"
 import { resolve } from "path"
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 
 import { PACKAGE_VERSION } from "$/util"
 

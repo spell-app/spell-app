@@ -1,4 +1,4 @@
-import { onTestFinished } from "vitest"
+import { onTestFinished } from "vite-plus/test"
 
 import { ClassBuilder } from "$/ui/elements"
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"

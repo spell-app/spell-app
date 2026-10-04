@@ -312,7 +312,7 @@ export type DocViewName = "docs" | "review"
 /** The docs index of the window's first folder (the repo root), `undefined` when it has none. */
 export function docsIndex(): string | undefined {
   const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
-  const file = root && join(root, "packages", "docs", "index.html")
+  const file = root && join(root, "packages", "docs", "content", "index.html")
   return file && existsSync(file) ? file : undefined
 }
 

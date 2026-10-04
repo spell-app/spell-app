@@ -123,7 +123,7 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    and "Leave unmerged", listing the commits in the question.  On "Merge now", get the BRANCH ready to fast-forward
    `main`, all from the worktree (branches are shared, so `main` is visible here):
    - NEVER `git -C <main checkout>` or `cd` there:  a worktree session refuses both.  `main` itself moves in step 6.
-   - first, the changelog:  add or move this branch's entry in `packages/docs/changelog.html` ("Changelog" in the
+   - first, the changelog:  add or move this branch's entry in `packages/docs/content/changelog.html` ("Changelog" in the
      root's `AGENTS.md`) and commit it on the branch (the "Merge now" answer counts as the ask)
    - `git log --oneline HEAD..main` empty (`main` hasn't moved):  ready, go on to step 4
    - else `git merge-tree --write-tree --name-only main HEAD`, which merges without touching any files:
@@ -132,10 +132,10 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    - nothing unmerged:  skip this step and say "nothing to merge"
 3. Merge conflicts.  ONLY in logs and built files:  fix them WITHOUT asking (Owen, 2026-10-03), say in one line
    which files and how, commit the merge ("Merge main into `<name>`"), then step 4.
-   - logs:  `PAPERCUTS.md`, `SUSPECTED-BUGS.md`, `CODE-DEBT.md` (keep both sides' entries), the changelog
-     (`packages/docs/changelog.html`:  take `main`'s, then put this branch's entry back where it goes)
+   - logs:  `agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md` (keep both sides' entries), the changelog
+     (`packages/docs/content/changelog.html`:  take `main`'s, then put this branch's entry back where it goes)
    - built files:  regenerate with their command instead of merging by hand:  the docs index (`yarn docs:index`),
-     `yarn.lock` (`yarn install`), bundles (`packages/docs/_assets/spell-ui.js` ...:  their build)
+     `yarn.lock` (`yarn install`), bundles (`packages/docs/tools/_assets/spell-ui.js` ...:  their build)
    - any OTHER file in conflict (code, skills, docs prose):  AskUserQuestion, listing the conflicting files, options:
      - "Fix conflicts, then merge":
        - `git merge main` in the worktree;  resolve each file, keeping BOTH sides' intent

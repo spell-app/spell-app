@@ -1,6 +1,6 @@
 /**
  * Families `yarn test:visual --static` compares, and the controller classes `StaticRender.define()`s for them.
- * - Grows as families become server-ready (plan P3, `packages/docs/plans/seo/seo.html`):  add the family folder and
+ * - Grows as families become server-ready (plan P3, `packages/docs/content/plans/seo/seo.html`):  add the family folder and
  *   the classes that render cleanly in node;  nothing else changes.
  * - PURE DATA, no imports:  the CLI and the Playwright spec (no Vite) read it for WHICH examples to compare,
  *   `StaticFixture` (loaded through Vite's SSR) for WHAT to define.

@@ -9,10 +9,7 @@ import { CLI } from "$/cli"
  * - a worktree or epic counts while it isn't finished and has a worktree or commits of its own
  */
 export function waitCandidates(main = CLI.mainRoot()): CLI.WaitCandidate[] {
-  const names = new Set([
-    ...folders(join(main, ".claude", "worktrees")),
-    ...folders(join(main, "packages", "docs", "epics"))
-  ])
+  const names = new Set([...folders(join(main, ".claude", "worktrees")), ...folders(CLI.epicsDir(main))])
   const found: CLI.WaitCandidate[] = []
   for (const name of [...names].sort()) {
     const status = CLI.nameStatus(name, [], main)

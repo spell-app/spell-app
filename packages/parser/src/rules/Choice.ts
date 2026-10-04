@@ -137,7 +137,7 @@ export class Choice<
    * - Then we take the one with the longest matched string.
    * - If more than one rule with same length, takes the EARLIEST one -- so in a `(a|b)` choice, `a` wins a tie,
    *   and in a `Group` of same-named rules the FIRST-registered wins.  Pinned by `Rule.test.ts`.
-   * - NOTE: both loops below were commented as preferring LATER rules;  they never did -- see SUSPECTED-BUGS.md.
+   * - NOTE: both loops below were commented as preferring LATER rules;  they never did -- see agents/SUSPECTED-BUGS.md.
    */
   getBestMatch(matches: P.Match[]) {
     if (matches.length === 1) return matches[0]

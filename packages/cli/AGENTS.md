@@ -36,7 +36,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   in `main.ts`.
 - Two kinds of command:  the spell LANGUAGE's, bare (`spell compile`), and the repo's own tools, `spell dev <noun>
   <verb>` (`spell dev commands`):  each finds the nearest checkout with `CLI.findCheckout()`.
-  - A new or renamed command:  first `packages/docs/dev/commands/commands.md` (root `AGENTS.md`, "Commands"):
+  - A new or renamed command:  first `packages/docs/content/dev/commands/commands.md` (root `AGENTS.md`, "Commands"):
     suggest where it belongs, then add it to the commands page's `commands.json` and run `yarn commands:check`.
   - `spell dev commands` reads `main.ts`'s TEXT for `program.command(...)` / `dev.command(...)`:  keep those
     receivers' names.

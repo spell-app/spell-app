@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Goal Topic Template</title>
+    <meta
+      name="description"
+      content="Goal topic template:  copied by `yarn goals new <set>/<topic>`, kept current by /goals dialogs."
+    />
+    <link rel="stylesheet" href="../../../../../tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../../../../tools/_assets/plan-doc.css" />
+    <link rel="stylesheet" href="../../../../../tools/_assets/goals.css" />
+  </head>
+  <body
+    class="spell-doc-page"
+    data-set="{{set}}"
+    data-topic="{{name}}"
+    data-short="{{short}}"
+    data-n="{{n}}"
+    data-icon="{{icon}}"
+    data-accent="{{accent}}"
+    data-status="draft"
+  >
+    <spell-site-header root="../../../../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          GOAL TOPIC:  made by `yarn goals new <set>/<topic>`, which fills the {{placeholders}};  rules in
+          `goals/AGENTS.md`.
+          - Structured parts (items, thoughts, status, history, updated) go through `yarn goals ...`;  hand-edit prose
+            only.
+          - Section ids are fixed:  other topics, and `/goals <set>/<topic>/<id>`, refer to them.
+        -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="_self">Goals</ui-breadcrumb-section>
+          <ui-breadcrumb-section href="../index.html" target="_self">{{set}}</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>{{n}} · {{short}}</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <header class="goals-hero">
+          <span class="goals-hero-icon" aria-hidden="true"><ui-icon name="{{icon}}"></ui-icon></span>
+          <p class="goals-eyebrow"><span class="goals-num">{{n}}</span> Topic · {{short}}</p>
+          <h1>{{title}}</h1>
+          <p class="lede">{{description}}</p>
+          <ui-list class="spell-meta">
+            <ui-item icon="flag"
+              >Status: <ui-label class="goals-status" size="mini" color="grey">draft</ui-label> · first pass, not yet
+              talked through</ui-item
+            >
+            <ui-item icon="calendar">Updated: <time class="goals-updated">{{today}}</time></ui-item>
+            <ui-item icon="robot">Notes for agents: <a href="topic.md" target="goals-notes">{{name}}.md</a></ui-item>
+          </ui-list>
+        </header>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="summary"><ui-icon name="eye"></ui-icon> 1. Summary</h2></ui-sticky
+          >
+          <ul>
+            <li>Where this topic stands, in three to five bullets.</li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="today"><ui-icon name="calendar"></ui-icon> 2. Today</h2></ui-sticky
+          >
+          <ul>
+            <li>What exists now, with links to the code.</li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="goals"><ui-icon name="bullseye"></ui-icon> 3. Goals</h2></ui-sticky
+          >
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="now"><ui-icon name="seedling"></ui-icon> {{now}}</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="now"></ol>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="next"><ui-icon name="tree"></ui-icon> {{next}}</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="next"></ol>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="someday"><ui-icon name="mountain sun"></ui-icon> {{someday}}</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="someday"></ol>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="ideas"><ui-icon name="lightbulb"></ui-icon> 4. Ideas</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="idea"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="questions"><ui-icon name="circle question"></ui-icon> 5. Questions</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="question"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="risks"><ui-icon name="triangle exclamation"></ui-icon> 6. Risks</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="risk"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="decisions"><ui-icon name="gavel"></ui-icon> 7. Decisions</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="decision"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="work"><ui-icon name="list check"></ui-icon> 8. Work</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="work"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="history"><ui-icon name="clock rotate left"></ui-icon> 9. History</h2></ui-sticky
+          >
+          <ui-feed class="spell-history goals-history" size="small"></ui-feed>
+        </section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Part of the <a href="../index.html" target="_self">{{set}}</a> goal set. Notes for agents:
+            <a href="topic.md" target="goals-notes">{{name}}.md</a>.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../../../../tools/_assets/spell-ui.js"></script>
+    <script src="../../../../../tools/_assets/goals-live.js"></script>
+  </body>
+</html>

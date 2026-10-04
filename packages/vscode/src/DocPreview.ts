@@ -4,7 +4,7 @@
  * - Which view:  `docs` (the "Spell Docs" tab, the default) or `review` (the "Review" tab:  `/epic review`).
  *   `review` is ALWAYS the side bar's "Review" tab:  the setting moves only `docs`.
  * - Opened by URI:  `vscode://spell-app.spell-language/doc-preview?file=<absolute path>[&view=review]` -- what
- *   `packages/docs/scripts/pages.js` `openInVSCode()` opens (`yarn plan-doc open`, `yarn plan-doc phase`).
+ *   `packages/docs/tools/pages.js` `openInVSCode()` opens (`yarn plan-doc open`, `yarn plan-doc phase`).
  * - Or `?url=<http://127.0.0.1:port/...>`:  a page some local server already serves, shown as is -- the page
  *   server's live pages (`/goals-open-vs`).  Loopback URLs only;  with a `file` too, the file is the fallback when
  *   the URL isn't loopback.
@@ -96,7 +96,7 @@ export class DocPreview {
 
   /**
    * Our own server for `root`, started once:  static files with live reload, on a free port.
-   * - watches `packages/docs` and `goals` if there, else the whole root
+   * - watches `DOC_FOLDERS` if there, else the whole root
    */
   static serverFor(root: string): Promise<SRV.WebServer> {
     let server = DocPreview.servers.get(root)
@@ -144,8 +144,11 @@ function gitRoot(file: string): string {
 /** Start serving `root`:  see `DocPreview.serverFor()`. */
 async function start(root: string): Promise<SRV.WebServer> {
   const server = new SRV.WebServer({ root, live: true, mounts: [{ prefix: "/", dir: root }] })
-  const watched = ["packages/docs", "goals"].map((dir) => join(root, dir)).filter((dir) => existsSync(dir))
+  const watched = DOC_FOLDERS.map((dir) => join(root, dir)).filter((dir) => existsSync(dir))
   for (const dir of watched.length ? watched : [root]) server.live!.watch(dir)
   await server.listen()
   return server
 }
+
+/** Folders our own server live-reloads, relative to the root:  docs pages, their bundle, goals. */
+const DOC_FOLDERS = ["packages/docs/content", "packages/docs/tools/_assets", "goals"]

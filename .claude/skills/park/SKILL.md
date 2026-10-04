@@ -73,7 +73,7 @@ name to park this session under.
    ```
 
    - The note must stand on its own:  a new session reading only it, plus the diff, can carry on.
-5. Plan doc (`packages/docs/epics/<name>/`, in the worktree):  `yarn plan-doc log <name> "Parked at <hash>:  <one
+5. Plan doc (`packages/docs/content/epics/<name>/`, in the worktree):  `yarn plan-doc log <name> "Parked at <hash>:  <one
    line>;  next:  <step 1>"`.  No plan doc, or no `node_modules/`:  skip.
 6. One line:  "parked `<name>` at `<hash>`;  pick it up with `/unpark <name>`, or `/wait-for <other>` to resume
    when <other> is done".

@@ -57,9 +57,9 @@ class FamilyRenamer {
     "packages/ui/test/visual/baselines/",
     "packages/ui/src/icons/icon-packs/",
     "packages/ui/src/icons/data/",
-    "packages/docs/_assets/spell-ui.js",
-    "packages/docs/_assets/emoji/",
-    "packages/docs/epics/ui-component-creation/ui-component-creation.plan.html",
+    "packages/docs/tools/_assets/spell-ui.js",
+    "packages/docs/tools/_assets/emoji/",
+    "packages/docs/content/epics/ui-component-creation/ui-component-creation.plan.html",
     "yarn.lock"
   ]
 

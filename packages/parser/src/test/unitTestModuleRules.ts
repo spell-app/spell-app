@@ -7,7 +7,7 @@
  * - TODO: output as a function?
  */
 
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 

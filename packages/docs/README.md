@@ -2,7 +2,7 @@
 
 Docs for every package in the repo, written as plain HTML pages that render with [`@spell-app/ui`](../ui/README.md).
 
-Open [`index.html`](index.html) in a browser.  Pages load straight from disk:  no server, no build step
+Open [`index.html`](content/index.html) in a browser.  Pages load straight from disk:  no server, no build step
 to read them.
 
 | Folder                       | What's there                                                                  |

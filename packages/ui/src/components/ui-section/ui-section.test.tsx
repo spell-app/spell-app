@@ -1,5 +1,5 @@
-import { userEvent } from "vitest/browser"
-import { describe, expect, it } from "vitest"
+import { userEvent } from "vite-plus/test/browser"
+import { describe, expect, it } from "vite-plus/test"
 
 import type { SectionToggleDetail } from "$/ui/components/components.types"
 import { UI } from "$/ui/runtime"
