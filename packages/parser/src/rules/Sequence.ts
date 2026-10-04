@@ -63,7 +63,10 @@ export class Sequence<
         return undefined
       }
       let match: P.Match | undefined
-      if (expecting) {
+      // spaced wrong for the syntax:  no match, without even trying
+      if (!P.spacingAllows(tokens[length - 1], rule.spacing)) {
+        match = undefined
+      } else if (expecting) {
         const from = expecting.records.length
         match = expecting.nested(() => rule.parse(scope, remainingTokens))
         if (expecting.records.length > from) within = i - 1

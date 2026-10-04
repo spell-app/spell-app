@@ -67,7 +67,9 @@ export abstract class Literals<
    */
   matchAtStart(tokens: P.Token[], start = 0) {
     for (let i = 0, matcher; (matcher = this.literals[i]); i++) {
-      const matched = tokens[start]?.matchesLiteral(matcher.literal)
+      // a later literal's `spacing` is about the token we matched just before it
+      const spacedRight = start === 0 || P.spacingAllows(tokens[start - 1], matcher.spacing)
+      const matched = spacedRight && tokens[start]?.matchesLiteral(matcher.literal)
       if (matched) start++
       else if (!matcher.optional) return 0
     }

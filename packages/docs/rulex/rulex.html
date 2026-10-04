@@ -45,7 +45,7 @@
             <ui-statistic value="133" label="spell registrations"></ui-statistic>
             <ui-statistic value="7" label="constructs"></ui-statistic>
             <ui-statistic value="3" label="modifiers"></ui-statistic>
-            <ui-statistic value="0" label="whitespace control"></ui-statistic>
+            <ui-statistic value="3" label="spacings"></ui-statistic>
           </ui-statistics>
           <ul>
             <li>
@@ -56,8 +56,8 @@
             <li>
               Seven constructs: keywords, symbols (<code>\</code> escapes any), <code>{subrule}</code>,
               <code>(a|b)</code>, <code>[item delimiter]</code>, numbers and <code>name:</code> labels. Three modifiers:
-              <code>?</code>, <code>+</code>, <code>*</code>; more planned (<code>{1,6}</code>, <code>\s</code>,
-              <code>/i</code>). Spell uses all but numbers, in 133 registrations.
+              <code>?</code>, <code>+</code>, <code>*</code>; more planned (<code>{1,6}</code>, <code>/i</code>). Spell
+              uses all but numbers, in 133 registrations.
             </li>
             <li>
               Every rulex special character escapes with <code>\</code>:
@@ -73,9 +73,10 @@
               >).
             </li>
             <li>
-              What the rules it builds match: token VALUES, exact and case-sensitive. Today whitespace is invisible:
-              <code>**</code> also matches <code>* *</code>, and a rule can't require a space. Planned: spacing as
-              written, <code>\s</code>, intervals and <code>/i</code>.
+              What the rules it builds match: token VALUES, exact and case-sensitive, SPACED AS WRITTEN (since
+              2026-10-04): parts written touching must touch (<code>\*\*{x}\*\*</code> refuses <code>* *x* *</code>),
+              spaced ones may space, and <code>{space}</code> / <code>{spaces}</code> require one space / some. Planned:
+              intervals and <code>/i</code>.
             </li>
           </ul>
           <ui-message state="info" header="For markdown">
@@ -83,7 +84,8 @@
               <li>
                 With a markdown tokenizer for the input and the planned rulex changes, every markdown line kind
                 (headings, breaks, fences, lists, tasks, tables, quotes, alerts, links, images) is one short syntax:
-                <code>#{1,6}\s{text}</code>, <code>(-|\*|\+)\s{text}</code>, <code>!\[{alt}\]\({url}\)</code>.
+                <code>#{1,6}{spaces}{text}</code>, <code>(-|\*|\+){spaces}{text}</code>,
+                <code>!\[{alt}\]\({url}\)</code>.
               </li>
               <li>
                 Not rulex: code spans ("any token up to the matching backtick run") and emphasis' delimiter rules. Those
@@ -374,19 +376,44 @@ math.addRule(plus, {
                     </td>
                   </tr>
                   <tr>
-                    <td>space required <ui-label size="mini" color="orange">planned</ui-label></td>
-                    <td><code>-\s{text}</code></td>
-                    <td>zero-width whitespace check</td>
-                    <td>Regex's <code>\s</code>. Consumes nothing: checks the previous token's trailing whitespace</td>
+                    <td>spacing as written</td>
+                    <td><code>!\[{alt}\]\({url}\)</code> vs <code>{a} and {b}</code></td>
+                    <td>
+                      a part written touching the one before gets <code>spacing: "none"</code>; spaced, none (free)
+                    </td>
+                    <td>
+                      Touching in the syntax = touching in the input; a space in the syntax allows (not requires) one. A
+                      list's delimiter too: <code>[{x},]</code> wants <code>x, y</code>, <code>[{x} ,]</code> also takes
+                      <code>x , y</code>
+                    </td>
                   </tr>
                   <tr>
-                    <td>spacing as written <ui-label size="mini" color="orange">planned</ui-label></td>
-                    <td><code>!\[{alt}\]\({url}\)</code> vs <code>{a} and {b}</code></td>
-                    <td>(how parts may be spaced in the input)</td>
+                    <td>symbol run</td>
+                    <td><code>#+</code> vs <code>- +</code></td>
+                    <td><code>Repeat(Symbol("#"))</code>, <code>itemSpacing: "none"</code></td>
                     <td>
-                      Parts written touching must touch in the input; a space in the syntax allows (not requires) one. A
-                      repeat's items follow the spacing after the repeated part: <code>-{3,}</code> takes only
-                      <code>---</code>, <code>(- ){3,}</code> also <code>- - -</code>
+                      A SYMBOL touching its flag repeats as a run, like <code>**</code>: <code>#+</code> takes
+                      <code>##</code>, not <code># #</code>. Spaced before the flag, copies may space:
+                      <code>- +</code> takes <code>- - -</code> too. Other repeats (subrules, groups, keywords) space
+                      freely
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>one space</td>
+                    <td><code>\[{space}\]</code></td>
+                    <td>next part gets <code>spacing: "one"</code></td>
+                    <td>
+                      Exactly one space between the parts either side: <code>[ ]</code>, not <code>[]</code> or
+                      <code>[&nbsp;&nbsp;]</code>. Not a rule: zero-width, it owns that boundary
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>some spaces</td>
+                    <td><code>-{spaces}{text}</code></td>
+                    <td>next part gets <code>spacing: "some"</code></td>
+                    <td>
+                      One or more spaces / tabs: <code>- item</code>, not <code>-item</code>. Must sit between two
+                      parts, unnamed and unflagged, or rulex throws
                     </td>
                   </tr>
                 </tbody>
@@ -459,7 +486,7 @@ math.addRule(plus, {
                   <td><code>hello world</code></td>
                   <td><code>hello&nbsp;&nbsp;&nbsp;world</code></td>
                   <td class="yes positive">yes</td>
-                  <td>Inline whitespace is dropped from the tokens</td>
+                  <td>A space in the syntax allows any spacing; inline whitespace rides on the token before it</td>
                 </tr>
                 <tr>
                   <td><code>hello world</code></td>
@@ -470,20 +497,26 @@ math.addRule(plus, {
                 <tr>
                   <td><code>\*\*{word}\*\*</code></td>
                   <td><code>* *hello* *</code></td>
-                  <td class="meh warning">yes</td>
-                  <td><code>Symbols</code> says "no space in-between" but never checks</td>
+                  <td class="no negative">no</td>
+                  <td>Written touching, so must touch (before 2026-10-04: yes, spacing was invisible)</td>
                 </tr>
                 <tr>
                   <td><code>\[{word}\]\({word}\)</code></td>
                   <td><code>[ hello ] ( world )</code></td>
-                  <td class="meh warning">yes</td>
+                  <td class="no negative">no</td>
                   <td>Same</td>
                 </tr>
                 <tr>
                   <td><code>{word} ' s</code></td>
                   <td><code>hello's</code> and <code>hello 's</code></td>
                   <td class="yes positive">both</td>
-                  <td>Same: spaces don't count</td>
+                  <td>Written spaced, so may space, or not</td>
+                </tr>
+                <tr>
+                  <td><code>-{spaces}{word}</code></td>
+                  <td><code>- hello</code> / <code>-hello</code></td>
+                  <td class="yes positive">yes / no</td>
+                  <td><code>{spaces}</code>: one or more spaces required</td>
                 </tr>
                 <tr>
                   <td><code>[{word},]</code></td>
@@ -750,31 +783,35 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
                 <tr>
                   <td>heading <code># Title</code></td>
                   <td><code>\#+ {text}</code></td>
-                  <td><code>#{1,6}\s{text}</code></td>
-                  <td>1-6 only; space required (<code>#Title</code> is text)</td>
+                  <td><code>#{1,6}{spaces}{text}</code></td>
+                  <td>A run of 1-6 (<code># #</code> isn't level 2); space required (<code>#Title</code> is text)</td>
                 </tr>
                 <tr>
                   <td>thematic break</td>
                   <td><code>(\-\-\-+|\*\*\*+|___+)</code></td>
-                  <td><code>((- ){3,}|(\* ){3,}|(_ ){3,})</code></td>
-                  <td>No escaping <code>-</code>; spaces between allowed, as markdown does (<code>- - -</code>)</td>
+                  <td><code>(- {3,}|\* {3,}|_ {3,})</code></td>
+                  <td>
+                    No escaping <code>-</code>; spaced before the count, so copies may space, as markdown allows (<code
+                      >- - -</code
+                    >)
+                  </td>
                 </tr>
                 <tr>
                   <td>bullet item</td>
                   <td><code>(\-|\*|\+) {text}</code></td>
-                  <td><code>(-|\*|\+)\s{text}</code></td>
+                  <td><code>(-|\*|\+){spaces}{text}</code></td>
                   <td>Refuses <code>-hello</code></td>
                 </tr>
                 <tr>
                   <td>ordered item</td>
                   <td><code>{digits} (.|\)) {text}</code></td>
-                  <td><code>{digits}(.|\))\s{text}</code></td>
+                  <td><code>{digits}(.|\)){spaces}{text}</code></td>
                   <td>Digits touch the <code>.</code>; space required after</td>
                 </tr>
                 <tr>
                   <td>task item</td>
                   <td><code>(\-|\*) \[ (x|X)? \] {text}</code></td>
-                  <td><code>(-|\*|\+)\s\[(x/i|\s)\]\s{text}</code></td>
+                  <td><code>(-|\*|\+){spaces}(\[{space}\]|\[x/i\]){spaces}{text}</code></td>
                   <td><code>[ ]</code> / <code>[x]</code> exactly; <code>/i</code> takes <code>X</code></td>
                 </tr>
                 <tr>
@@ -854,8 +891,9 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
         <ui-section id="8-open" header="8. Planned changes" sticky collapsible dividing collapsed>
           <p>
             Decided with Owen on 2026-10-03, after reviewing this page. Built in the <code>markdown</code> epic's P2,
-            one at a time; this page is updated as each one lands. Built so far: the plain rulex tokenizer and throw on
-            leftovers (2026-10-04).
+            one at a time; this page is updated as each one lands. Built so far (2026-10-04): the plain rulex tokenizer,
+            throw on leftovers (and on an unclosed <code>[</code> <code>{</code> <code>(</code>), spacing as written
+            with <code>{space}</code> / <code>{spaces}</code>.
           </p>
           <ui-table celled compact striped>
             <table>
@@ -875,10 +913,7 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
                     digits only: <code>1.1</code> is <code>1</code> <code>.</code> <code>1</code>, <code>-1</code> is
                     <code>-</code> <code>1</code> (fixes the <code>1.1.1</code> crash)
                   </td>
-                  <td>
-                    <code>#{1,6}\s{text}</code>, <code>---</code>, <code>"</code>, <code>&lt;b&gt;</code> as plain
-                    symbols
-                  </td>
+                  <td><code>#</code>, <code>---</code>, <code>"</code>, <code>&lt;b&gt;</code> as plain symbols</td>
                   <td>
                     None: no spell syntax contains <code>#</code>, <code>--</code>, <code>//</code>, quotes or tags
                   </td>
@@ -893,32 +928,34 @@ add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {li
                 </tr>
                 <tr>
                   <td>
-                    <b>Spacing as written</b>: no space in the syntax = none allowed; a space = allowed. Replaces "make
-                    <code>Symbols</code> adjacent"
+                    <ui-label size="mini" color="green">built</ui-label> <b>Spacing as written</b>: no space in the
+                    syntax = none allowed; a space = allowed. A symbol touching its flag repeats as a run. Replaces
+                    "make <code>Symbols</code> adjacent"
                   </td>
                   <td>
                     <code>!\[{alt}\]\({url}\)</code> refuses <code>! [x] (y)</code>; <code>(&lt;|&gt;) =?</code> still
-                    takes <code>&gt; =</code>
+                    takes <code>&gt; =</code>; <code>#+</code> refuses <code># #</code>
                   </td>
                   <td>
-                    11 of 135 syntaxes have touching parts. Contractions (<code>isn't</code>) get stricter; the 4 list
-                    commas and the method-signature parens get a space, so they match as today
+                    11 of 135 syntaxes have touching parts. Contractions (<code>isn't</code>) got stricter; the 4 list
+                    commas and the method-signature parens got a space, so they match as before
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <b><code>\s</code></b
-                    >: whitespace required here (zero-width: reads the previous token's whitespace)
+                    <ui-label size="mini" color="green">built</ui-label>
+                    <b><code>{space}</code> / <code>{spaces}</code></b
+                    >: exactly one space / one or more, between two parts (replaced the planned <code>\s</code>)
                   </td>
-                  <td><code>\-\s{text}</code> takes <code>- item</code>, refuses <code>-item</code></td>
-                  <td>None: no spell syntax uses it</td>
+                  <td><code>-{spaces}{text}</code> takes <code>- item</code>, refuses <code>-item</code></td>
+                  <td>None: no spell syntax uses them</td>
                 </tr>
                 <tr>
                   <td>
                     <b>Intervals</b>, as regex: <code>{n}</code>, <code>{n,m}</code>, <code>{n,}</code> straight after a
                     rule
                   </td>
-                  <td><code>\#{1,6}\s{text}</code>, <code>\-{3,}</code></td>
+                  <td><code>#{1,6}{spaces}{text}</code>, <code>- {3,}</code></td>
                   <td>None. <code>{</code> + digit is a count; <code>{</code> + letter stays a subrule</td>
                 </tr>
                 <tr>

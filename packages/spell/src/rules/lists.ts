@@ -37,7 +37,7 @@ class identifier_list extends P.Repeat {
   }
 }
 lists.addRule(identifier_list, {
-  syntax: "[({known_variable}|{constant}|{number})(,|or|and|nor)]",
+  syntax: "[({known_variable}|{constant}|{number}) (,|or|and|nor)]",
   tests: [
     {
       tests: [
@@ -71,7 +71,7 @@ class bracketed_list extends P.Sequence<"list?"> {
   }
 }
 lists.addRule(bracketed_list, {
-  syntax: "\\[ [list:{expression},]? \\]",
+  syntax: "\\[ [list:{expression} ,]? \\]",
   tests: [
     {
       title: "correctly matches literal lists",
