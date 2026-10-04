@@ -1,0 +1,30 @@
+{
+  "page": "/packages/docs/epics/details/details/morning-review.html",
+  "answered": "2026-10-04T00:26:42.176Z",
+  "changes": 0,
+  "answers": {
+    "q1": {
+      "picked": [],
+      "other": "Make Solid widgets for this, e.g. `<claude-option>` for the above?"
+    },
+    "q2": {
+      "picked": [
+        "A"
+      ]
+    },
+    "q3": {
+      "picked": [
+        "C"
+      ]
+    },
+    "q4": {
+      "picked": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+    }
+  },
+  "notes": ""
+}
