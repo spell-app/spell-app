@@ -10,7 +10,7 @@ Save a thought where it belongs on a goals page, marked new.  Don't discuss it, 
 digesting is `/goals-update`'s job.
 
 - `G` is `scripts/goals.sh` in the `goals` skill's base directory (this skill's sibling:  `../goals/scripts/goals.sh`
-  from this skill's base directory, e.g. `~/.claude/skills/goals/scripts/goals.sh`).
+  from this skill's base directory, e.g. `.claude/skills/goals/scripts/goals.sh`).
   - exit 3 lists several goals folders:  ask which, then prefix `GOALS_DIR=<folder>`
 
 1. Split `$ARGUMENTS`:  the first word is the TARGET (`[set/]topic[/anchor]`);  the rest is the thought.
