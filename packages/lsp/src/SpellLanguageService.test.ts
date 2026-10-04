@@ -413,6 +413,52 @@ describe("SpellLanguageService", () => {
       test("not in a method call => nothing", async () => {
         await help("set y ", (result) => expect(result).toBeNull())
       })
+
+      test("a paren-free method:  its arguments are its `a <type>`s, as written", async () => {
+        await withParenFreeMethod(async () => {
+          await help("deal ", (result) =>
+            expect(result).toEqual({ label: "deal a card onto a pile", active: "a card" })
+          )
+          await help("deal the top card of stock onto ", (result) => expect(result?.active).toBe("a pile"))
+        })
+      })
+
+      test("...inside an expression too, where the call is an operand", async () => {
+        await withParenFreeMethod(async () => {
+          await help("set y to deal the top card of stock onto ", (result) =>
+            expect(result).toEqual({ label: "deal a card onto a pile", active: "a pile" })
+          )
+        })
+      })
+    })
+
+    describe("a paren-free method", () => {
+      test("comes as a snippet, its placeholders named for its parameters", async () => {
+        await withParenFreeMethod(() => {
+          // on the empty line after it:  a method is only visible after its definition
+          const after = solitaire.parseText.split("\n").length - 1
+          const item = service
+            .completion(solitaire, { line: after, character: 0 })
+            .find(({ label }) => label === "deal a card onto a pile")
+          expect(item).toMatchObject({ insertText: "deal ${1:card} onto ${2:pile}", insertTextFormat: 2 })
+        })
+      })
+
+      test("its arguments' types are parameters, the words between them its name", async () => {
+        await withParenFreeMethod(() => {
+          // the line before the final newline
+          const last = solitaire.parseText.split("\n").length - 1
+          expect(describeTokens(solitaire, [last]).slice(0, 7)).toEqual([
+            `${last}:0 "to" keyword`,
+            `${last}:3 "deal" function declaration`,
+            `${last}:8 "a" keyword`,
+            `${last}:10 "card" parameter declaration`,
+            `${last}:15 "onto" function declaration`,
+            `${last}:20 "a" keyword`,
+            `${last}:22 "pile" parameter declaration`
+          ])
+        })
+      })
     })
 
     test("mid-statement:  names, but no statement starts", () => {
@@ -488,13 +534,13 @@ describe("SpellLanguageService", () => {
 
     test("a line that didn't parse => define a method it would call, its expressions as parameters", async () => {
       await fixes("juggle the deck 3 times", (titles) => {
-        expect(titles).toEqual(["Define `to juggle (a deck) (number) times`"])
+        expect(titles).toEqual(["Define `to juggle a deck (number) times`"])
       })
     })
 
     test("...which goes above the line's top-level statement, and makes the line parse", async () => {
       await fixes("juggle the deck 3 times", async (_titles, fixed) => {
-        expect(fixed).toMatch(/\nto juggle \(a deck\) \(number\) times:\n\t\/\/ TODO\n\njuggle the deck 3 times$/)
+        expect(fixed).toMatch(/\nto juggle a deck \(number\) times:\n\t\/\/ TODO\n\njuggle the deck 3 times$/)
         await workspace.update(solitaireUri, fixed!)
         expect(service.diagnostics(solitaire)).toEqual([])
       })
@@ -503,7 +549,7 @@ describe("SpellLanguageService", () => {
     test("a statement that parsed, with words left over => the statement AND its leftovers", async () => {
       // `shuffle the deck` is the built-in `shuffle {list}`, leaving `3 times`
       await fixes("shuffle the deck 3 times", async (titles, fixed) => {
-        expect(titles).toEqual(["Define `to shuffle (a deck) (number) times`"])
+        expect(titles).toEqual(["Define `to shuffle a deck (number) times`"])
         await workspace.update(solitaireUri, fixed!)
         expect(service.diagnostics(solitaire)).toEqual([])
       })
@@ -511,7 +557,7 @@ describe("SpellLanguageService", () => {
 
     test("...an inline body's statement too, NOT the line's", async () => {
       await fixes("if stock: shuffle the deck 3 times", async (titles, fixed) => {
-        expect(titles).toEqual(["Define `to shuffle (a deck) (number) times`"])
+        expect(titles).toEqual(["Define `to shuffle a deck (number) times`"])
         await workspace.update(solitaireUri, fixed!)
         expect(service.diagnostics(solitaire)).toEqual([])
       })
@@ -590,6 +636,17 @@ describe("SpellLanguageService", () => {
     expect(card.contents).toBe(cardText)
     expect(service.diagnostics(card)).toEqual([])
   })
+
+  /** Run `check` with `to deal a card onto a pile` added to the end of Solitaire.spell, then ALWAYS take it out. */
+  async function withParenFreeMethod(check: () => void | Promise<void>) {
+    const original = solitaire.contents!
+    try {
+      await workspace.update(solitaireUri, `${original.trimEnd()}\nto deal a card onto a pile: print 1\n`)
+      await check()
+    } finally {
+      await workspace.update(solitaireUri, original)
+    }
+  }
 
   /** Run `check` with Card.spell's open text set to `text`, then ALWAYS put the original back. */
   function withCardText(text: string, check: (changed: SP.SpellFile[]) => void) {

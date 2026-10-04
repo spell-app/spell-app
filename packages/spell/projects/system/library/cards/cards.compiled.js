@@ -45,7 +45,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   /*! SPELL: DECLARES {
-    property: "value", of: "Card",
+    property: "value", of: "Card", datatype: "number",
     defined: "/Card.spell:439-500",
   } */
   get value() {
@@ -69,7 +69,7 @@ export class Card extends Thing {
   /** "card is face up/down" */
   /*! SPELL: DECLARES {
     syntax: "{operator:is} face up", output: "is_face_up", rule: "method_postfix", of: "Card",
-    kind: "method", name: '"is face up"',
+    kind: "method", name: '"is face up"', returns: "choice",
     defined: "/Card.spell:615-657",
   } */
   get is_face_up() {
@@ -78,7 +78,7 @@ export class Card extends Thing {
 
   /*! SPELL: DECLARES {
     syntax: "{operator:is} face down", output: "is_face_down", rule: "method_postfix", of: "Card",
-    kind: "method", name: '"is face down"',
+    kind: "method", name: '"is face down"', returns: "choice",
     defined: "/Card.spell:658-704",
   } */
   get is_face_down() {
@@ -88,7 +88,7 @@ export class Card extends Thing {
   /** `card is a face card` */
   /*! SPELL: DECLARES {
     syntax: "{operator:is} a face card", output: "is_a_face_card", rule: "method_postfix", of: "Card",
-    kind: "method", name: '"is a face card"',
+    kind: "method", name: '"is a face card"', returns: "choice",
     defined: "/Card.spell:730-795",
   } */
   get is_a_face_card() {
@@ -131,7 +131,7 @@ export class Card extends Thing {
 
   /** name as a derivation of name/suit */
   /*! SPELL: DECLARES {
-    property: "name", of: "Card",
+    property: "name", of: "Card", datatype: "text",
     defined: "/Card.spell:1085-1136",
   } */
   get name() {
@@ -139,7 +139,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_suit", of: "Card",
+    property: "short_suit", of: "Card", datatype: "text",
     defined: "/Card.spell:1138-1299",
   } */
   get short_suit() {
@@ -151,7 +151,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_rank", of: "Card",
+    property: "short_rank", of: "Card", datatype: "text",
     defined: "/Card.spell:1301-1463",
   } */
   get short_rank() {
@@ -161,7 +161,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_direction", of: "Card",
+    property: "short_direction", of: "Card", datatype: "text",
     defined: "/Card.spell:1465-1545",
   } */
   get short_direction() {
@@ -171,7 +171,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_name", of: "Card",
+    property: "short_name", of: "Card", datatype: "text",
     defined: "/Card.spell:1548-1608",
   } */
   get short_name() {
@@ -179,7 +179,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "state", of: "Card",
+    property: "state", of: "Card", datatype: "text",
     defined: "/Card.spell:1610-1687",
   } */
   get state() {
@@ -194,8 +194,8 @@ export class Card extends Thing {
    */
   /*! SPELL: DECLARES {
     syntax: "turn {thisArg:expression} face up", output: "turn_face_up", rule: "method_call",
-    of: "Card", alias: ["statement", "expression"], kind: "method", name: "turn (a card) face up",
-    defined: "/Card.spell:1806-1876",
+    of: "Card", alias: ["statement", "expression"], kind: "method", name: "turn a card face up",
+    defined: "/Card.spell:1806-1874",
   } */
   async turn_face_up() {
     this.direction = 'up'
@@ -204,8 +204,8 @@ export class Card extends Thing {
 
   /*! SPELL: DECLARES {
     syntax: "turn {thisArg:expression} face down", output: "turn_face_down", rule: "method_call",
-    of: "Card", alias: ["statement", "expression"], kind: "method", name: "turn (a card) face down",
-    defined: "/Card.spell:1877-1951",
+    of: "Card", alias: ["statement", "expression"], kind: "method", name: "turn a card face down",
+    defined: "/Card.spell:1875-1947",
   } */
   async turn_face_down() {
     this.direction = 'down'
@@ -218,8 +218,8 @@ export class Card extends Thing {
    */
   /*! SPELL: DECLARES {
     syntax: "turn {thisArg:expression} over", output: "turn_over", rule: "method_call", of: "Card",
-    alias: ["statement", "expression"], kind: "method", name: "turn (a card) over",
-    defined: "/Card.spell:2059-2171",
+    alias: ["statement", "expression"], kind: "method", name: "turn a card over",
+    defined: "/Card.spell:2055-2165",
   } */
   async turn_over() {
     if (this.direction == 'up') { this.turn_face_down() }
@@ -229,8 +229,8 @@ export class Card extends Thing {
 
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Card",
-    alias: ["statement", "expression"], kind: "method", name: "draw (a card)",
-    defined: "/Card.spell:2173-2649",
+    alias: ["statement", "expression"], kind: "method", name: "draw a card",
+    defined: "/Card.spell:2167-2641",
   } */
   draw() {
     let className = (((((("Card face-" + this.direction) + " ") + this.rank) + " ") + this.suit) + " ui button compact fluid ")
@@ -267,8 +267,8 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "{operator:is} the {expression:operand} joker", output: "is_the_$color_joker",
     rule: "method_infix", of: "Card", kind: "method", name: '"is the (color) joker"',
-    params: [{ name: "color" }],
-    defined: "/Card.spell:3118-3187",
+    params: [{ name: "color" }], returns: "choice",
+    defined: "/Card.spell:3110-3179",
   } */
   is_the_$color_joker(color) {
     return (spellCore.isOfType(this, 'Joker') && (this.color == color))
@@ -282,8 +282,8 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "move {thisArg:expression} to {callArgs:expression}", output: "move_to_$pile",
     rule: "method_call", of: "Card", alias: ["statement", "expression"], kind: "method",
-    name: "move (a card) to (a pile)", params: [{ name: "pile", datatype: "Pile" }],
-    defined: "/Pile.spell:403-581",
+    name: "move a card to a pile", params: [{ name: "pile", datatype: "Pile" }],
+    defined: "/Pile.spell:403-577",
   } */
   async move_to_$pile(pile) {
     if (spellCore.isDefined(this.pile)) { spellCore.remove(this.pile, this) }
@@ -297,14 +297,14 @@ spellCore.heading("A joker: a wild card with no rank or suit -- there's a red on
 /** A joker: a wild card with no rank or suit -- there's a red one and a black one */
 /*! SPELL: DECLARES {
   type: "Joker", superType: "Card",
-  defined: "/Card.spell:2733-2750",
+  defined: "/Card.spell:2725-2742",
 } */
 export class Joker extends Card {
   /** joker color:  red or black -- set when it's made, as it has no suit to work it out from */
   /*! SPELL: DECLARES {
     property: "color", classVariable: "Colors", rule: "enumeration", of: "Joker",
     enumeration: ["'red'", "'black'"],
-    defined: "/Card.spell:2843-2885",
+    defined: "/Card.spell:2835-2877",
   } */
   static Colors = ['red', 'black']
   static { this.declareProp('color', { oneOf: Joker.Colors }) }
@@ -313,16 +313,16 @@ export class Joker extends Card {
 
   /** name as its color, e.g. "red joker" */
   /*! SPELL: DECLARES {
-    property: "name", of: "Joker",
-    defined: "/Card.spell:2926-2970",
+    property: "name", of: "Joker", datatype: "text",
+    defined: "/Card.spell:2918-2962",
   } */
   get name() {
     return (this.color + "-joker")
   }
 
   /*! SPELL: DECLARES {
-    property: "short_name", of: "Joker",
-    defined: "/Card.spell:2972-3006",
+    property: "short_name", of: "Joker", datatype: "text",
+    defined: "/Card.spell:2964-2998",
   } */
   get short_name() {
     return "🃏"
@@ -334,7 +334,7 @@ spellCore.heading("create a card instance with default properties")
 /*! SPELL: DECLARES {
   syntax: "test card setup", output: "test_card_setup", rule: "method_call", alias: "statement",
   kind: "function", name: "card setup",
-  defined: "/Card.spell:3239-5019",
+  defined: "/Card.spell:3231-5011",
 } */
 export function test_card_setup() {
   return spellCore.test('test card setup', function test_card_setup() {
@@ -424,8 +424,8 @@ export class Deck extends List {
 
   /*! SPELL: DECLARES {
     syntax: "set up {thisArg:expression}", output: "set_up", rule: "method_call", of: "Deck",
-    alias: ["statement", "expression"], kind: "method", name: "set up (a deck)",
-    defined: "/Deck.spell:247-618",
+    alias: ["statement", "expression"], kind: "method", name: "set up a deck", returns: "nothing",
+    defined: "/Deck.spell:247-616",
   } */
   set_up() {
     if (this.is_set_up) { return }
@@ -446,8 +446,8 @@ export class Deck extends List {
 
   /*! SPELL: DECLARES {
     syntax: "display {thisArg:expression}", output: "display", rule: "method_call", of: "Deck",
-    alias: ["statement", "expression"], kind: "method", name: "display (a deck)",
-    defined: "/Deck.spell:620-771",
+    alias: ["statement", "expression"], kind: "method", name: "display a deck",
+    defined: "/Deck.spell:618-767",
   } */
   display() {
     let card_names = new List()
@@ -461,7 +461,7 @@ export class Deck extends List {
 /*! SPELL: DECLARES {
   syntax: "test deck creation", output: "test_deck_creation", rule: "method_call",
   alias: "statement", kind: "function", name: "deck creation",
-  defined: "/Deck.spell:773-1423",
+  defined: "/Deck.spell:769-1419",
 } */
 export function test_deck_creation() {
   return spellCore.test('test deck creation', function test_deck_creation() {
@@ -501,7 +501,7 @@ test_deck_creation()
 /*! SPELL: DECLARES {
   syntax: "test deck with jokers", output: "test_deck_with_jokers", rule: "method_call",
   alias: "statement", kind: "function", name: "deck with jokers",
-  defined: "/Deck.spell:1444-1828",
+  defined: "/Deck.spell:1440-1824",
 } */
 export function test_deck_with_jokers() {
   return spellCore.test('test deck with jokers', function test_deck_with_jokers() {
@@ -540,7 +540,7 @@ export class Pile extends List {
   }
 
   /*! SPELL: DECLARES {
-    property: "value", of: "Pile",
+    property: "value", of: "Pile", datatype: "number",
     defined: "/Pile.spell:142-225",
   } */
   get value() {
@@ -550,8 +550,8 @@ export class Pile extends List {
   }
 
   /*! SPELL: DECLARES {
-    property: "state", of: "Pile",
-    defined: "/Pile.spell:584-748",
+    property: "state", of: "Pile", datatype: "text",
+    defined: "/Pile.spell:580-744",
   } */
   get state() {
     let state = ((this.name || "pile") + ":")

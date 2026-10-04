@@ -1486,6 +1486,18 @@ constructor(props: SpellExpressionProps) {
               project's <code>methods</code> with <code>of</code>, not on the shared type (plan doc J11).
               <code>is a</code>'s forward references count through stubs only (J10).
             </p>
+            <p>
+              Built (P5): <code>is a</code> forward references now count anywhere in the project. Before any file
+              parses, <code>parser.stubDeclaredTypes()</code> stubs every type the files declare, found by a line scan
+              (<code>SpellParser.typesDeclaredIn()</code>, lines starting <code>a card is</code>); an edit changing
+              which types a file declares re-parses the whole project (closes J10, I5). Return types are inferred after
+              the body parses, through a new hook, <code>SpellStatement.mutateScopeAfterBody()</code>, which
+              <code>commitStatement()</code> runs; a getter's inferred type is its property's datatype, so getters
+              change scope like any declaration (D9). D24's bounded calls are one generic mechanism,
+              <code>@proto static operandInExpressions</code>: <code>SpellParser.addRule()</code> registers such a rule
+              as the statement plus an operand twin. The twin is derived at registration, so declarations still write
+              ONE rule (not both, as D27 said) and loading rebuilds both.
+            </p>
           </ui-section>
 
           <ui-section id="6-3-rules" header="6.3 Rules that change in P4-P8" sticky collapsible dividing>
@@ -1517,7 +1529,21 @@ constructor(props: SpellExpressionProps) {
                     <td>
                       <code>DynamicMethodRule</code>, <code>MethodInfixRule</code>, <code>MethodPostfixRule</code>
                     </td>
-                    <td>parameter types in statics, not syntax: saved call syntax unchanged</td>
+                    <td>
+                      parameter types in statics, not syntax: saved call syntax unchanged. Built:
+                      <code>thisType</code> / <code>paramTypes</code> from the method record's <code>of</code> /
+                      <code>params</code>, which the declaration already holds; <code>MethodInfixRule</code> checks only
+                      its right side, <code>MethodPostfixRule</code> nothing (a suffix can't see its left side while
+                      parsing)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>P5</td>
+                    <td><code>DynamicMethodRule</code>, <code>await</code></td>
+                    <td>
+                      Built: <code>operandInExpressions</code> -- a statement, plus an operand twin whose last
+                      <code>{x:expression}</code> is <code>{x:operand}</code> (D24, D27, D33)
+                    </td>
                   </tr>
                   <tr>
                     <td>P6</td>
@@ -1574,7 +1600,8 @@ constructor(props: SpellExpressionProps) {
                     target="src-packages-spell-src-rules-methods-ts"
                     ><code>methods.ts</code></a
                   >:784) tells a keyword from a parenthesised argument by its match length. A bare
-                  <code>a card</code> is 2 tokens, like a keyword pair: it must test the rule instead.
+                  <code>a card</code> is 2 tokens, like a keyword pair: it must test the rule instead. Built: it tests
+                  the rule.
                 </li>
               </ul>
             </ui-message>
@@ -1739,7 +1766,9 @@ constructor(props: SpellExpressionProps) {
               <b>Speed.</b> Baseline (P1): <code>speedTest()</code> 74ms, BENCH 115ms. Before P3 (2026-10-04): 67.7ms,
               109.6ms. After P3: <code>yarn spell speed --json</code> 54.5ms, BENCH 55.2ms (medians of 3 runs). After
               P4: 60.1ms, BENCH 60.3ms; P3 re-measured the same night: speed 62.3ms, so most of that is the machine.
-              Give-back adds parses only to sequences already failing.
+              After P5: 60.7ms, BENCH 59.6ms; P4 re-measured just before: 55.0ms, BENCH 55.5ms (typed calls compute each
+              argument's datatype while parsing; every call is also an operand twin). Give-back adds parses only to
+              sequences already failing.
             </li>
           </ul>
         </ui-section>

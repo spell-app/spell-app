@@ -34,4 +34,16 @@ describe("scope records the rules it creates, for export", () => {
     importer.addRule(entry.rule, entry.definition)
     expect(importer.compile("frobnicate 1", "statement")).toBe("frobnicate_$thing(1)")
   })
+
+  test("...typed as it was defined, and an operand inside an expression", () => {
+    const { scope } = compileInScope("exporter3", "to double (n as number): return n * 2")
+    const entry = scope.rules!.get("double_$n")!
+
+    const importer = spellParser.getScope("importer3")
+    importer.addRule(entry.rule, entry.definition)
+    // text isn't a number
+    expect(importer.parse('double "a"', "statement")).toBeUndefined()
+    expect(importer.compile("double 2 + 1", "statement")).toBe("double_$n(2 + 1)")
+    expect(importer.compile("double 2 + 1", "expression")).toBe("(double_$n(2) + 1)")
+  })
 })

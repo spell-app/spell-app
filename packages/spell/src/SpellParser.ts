@@ -59,9 +59,55 @@ export class SpellParser extends P.Parser {
     rule: P.Rule | P.RuleConstructor,
     namesOrDefinition?: string | string[] | P.RuleDefinitionProps
   ): P.Rule | undefined {
+    const definition =
+      typeof namesOrDefinition === "object" && !Array.isArray(namesOrDefinition) ? namesOrDefinition : undefined
+    // NOTE: duck-typed, not `instanceof SP.SpellStatement`:  rule modules register while the `SP` barrel loads
+    if (typeof rule === "function" && definition && (rule.prototype as OperandTwinned).operandInExpressions) {
+      const statement = this.addStatementAndOperand(rule as unknown as typeof P.Rule, definition)
+      if (statement) return statement
+    }
     // Overloads hide `super`'s implementation signature -- it takes either shape, so any overload will do.
     return super.addRule(rule as Class<P.Rule>, namesOrDefinition as P.DefinitionFor<P.Rule>)
   }
+
+  /**
+   * Register statement class `ruleClass`, which says `operandInExpressions` and is aliased both `statement` and
+   * `expression`, as TWO rules -- see `SP.SpellStatement.operandInExpressions`:
+   * - the statement:  its `definition` as is, e.g. `notify {callArgs:expression}`
+   * - the expression (so an `operand`):  a twin whose LAST slot is an operand, `notify {callArgs:operand}`, its
+   *   `statementRule` pointing back at the statement
+   * - Returns the statement, which is what `scope.addRule()` records -- so a project's declarations write ONE
+   *   rule, and loading it here makes both again.  `undefined` (nothing registered) if `ruleClass` isn't all that,
+   *   or its syntax doesn't end in an `{expression}` slot.
+   */
+  private addStatementAndOperand(ruleClass: typeof P.Rule, definition: P.RuleDefinitionProps): P.Rule | undefined {
+    const syntax = definition.syntax ?? (ruleClass.prototype as { syntax?: string }).syntax
+    const operandSyntax =
+      typeof syntax === "string"
+        ? syntax.replace(SpellParser.LAST_EXPRESSION_SLOT, (_slot, name = "expression", optional) => {
+            return `{${name}:operand}${optional}`
+          })
+        : undefined
+    if (!operandSyntax || operandSyntax === syntax) return undefined
+    // as `P.Parser.addRule()` instantiates a class
+    const registered: P.RuleDefinitionProps = this.module ? { ...definition, module: this.module } : { ...definition }
+    const statement = ruleClass.instantiate(registered)
+    const names = statement?.names ?? []
+    if (!statement || !names.includes("statement") || !names.includes("expression")) return undefined
+    const operand = ruleClass.instantiate({
+      ...registered,
+      syntax: operandSyntax,
+      tests: undefined,
+      statementRule: statement
+    } as P.RuleDefinitionProps)!
+    const statementNames = names.filter((name) => name !== "expression")
+    super.addRule(statement, statement.tests ? [...statementNames, "_testable_"] : statementNames)
+    super.addRule(operand, ["expression"])
+    return statement
+  }
+
+  /** A syntax's LAST slot, if it's an `{expression}` -- its group name and any `?` captured.  See `addStatementAndOperand()`. */
+  static LAST_EXPRESSION_SLOT = /\{(?:(\w+):)?expression\}(\??)\s*$/
 
   /** Without the `/*! SPELL: DECLARES` comments -- a rule's tests are about its code.  See `SpellDeclarations`. */
   normalizeTestOutput(compiled: unknown): unknown {
@@ -140,6 +186,21 @@ export class SpellParser extends P.Parser {
     return tokens
   }
 
+  /**
+   * Types `text` declares, by a scan of its lines -- `a card is a thing`, `a deck is a list of cards`,
+   * `create a type called hand as a list of cards` -- so a line ABOVE one knows the type.  See `P.Parser.stubDeclaredTypes()`.
+   * - Only a line STARTING that way, as `create_type` / `create_list_type` would read it:  a comment never does.
+   * - `a card is` is enough:  a declaration being typed, e.g. `a card is a`, still declares `card`, so the editor
+   *   keeps its last good version rather than re-parsing everything -- see `P.IncrementalProject.update()`.
+   */
+  typesDeclaredIn(text: string): string[] {
+    return [...text.matchAll(SpellParser.TYPE_DECLARATION)].map(([, type, created]) => (type ?? created)!)
+  }
+
+  /** A line declaring a type, its name captured -- see `typesDeclaredIn()`. */
+  static TYPE_DECLARATION =
+    /^[ \t]*(?:an?[ \t]+([\w-]+)[ \t]+is\b|create[ \t]+a[ \t]+type[ \t]+(?:named|called)[ \t]+([\w-]+))/gim
+
   /** Commit a spell statement parsed on its own -- see `SP.commitStatement()`. */
   commit(match: P.Match) {
     SP.commitStatement(match)
@@ -208,3 +269,6 @@ export class SpellParser extends P.Parser {
     return result
   }
 }
+
+/** A rule class's prototype, as `SpellParser.addRule()` reads it -- see `SP.SpellStatement.operandInExpressions`. */
+type OperandTwinned = { operandInExpressions?: boolean }

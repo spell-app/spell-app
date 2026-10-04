@@ -180,6 +180,27 @@ describe("SpellDeclarations.importScope()", () => {
     expect(renamed.types.get("Pile", "LOCAL_ONLY")?.itemType).toBe("Playingcard")
   })
 
+  test("an imported method's call rule checks its arguments' types, and is an operand inside an expression", () => {
+    const contents = [
+      "set card to a new card",
+      "set deck to a new deck",
+      "set pile to a new pile",
+      "move card to pile",
+      "move card to deck",
+      "set moved to move card to pile"
+    ].join("\n")
+    const { files } = parseSpellProject([{ path: "/A.spell", contents }], { parentScope: importLibrary() })
+    expect([files[0]!.compiled, ...files[0]!.errors].join("\n")).toMatchInlineSnapshot(`
+      "export let card = new Card()
+      export let deck = new Deck()
+      export let pile = new Pile()
+      card.move_to_$pile(pile)
+      /* PARSE ERROR: Don't understand "move card to deck" */
+      export let moved = card.move_to_$pile(pile)
+      5:0 Don't understand "move card to deck""
+    `)
+  })
+
   test("declarations from before P4 load:  no `params` or `itemType` is unknown", () => {
     const old = {
       ...declarations,

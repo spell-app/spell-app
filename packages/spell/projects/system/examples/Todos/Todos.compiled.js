@@ -1,4 +1,4 @@
-/*! SPELL: PROJECT { spellVersion: "0.8.0", provides: ["Task", "Todos_App", "create_a_task"] } */
+/*! SPELL: PROJECT { spellVersion: "0.8.0", provides: ["Task", "Todos_App", "create_a_new_task"] } */
 import { spellCore, Thing, List, App } from "@spell/core"
 
 spellCore.heading("Todo app example")
@@ -26,7 +26,7 @@ export class Task extends Thing {
 
   /*! SPELL: DECLARES {
     syntax: "{operator:is} complete", output: "is_complete", rule: "method_postfix", of: "Task",
-    kind: "method", name: '"is complete"',
+    kind: "method", name: '"is complete"', returns: "choice",
     defined: "/Todo.spell:110-154",
   } */
   get is_complete() {
@@ -35,7 +35,7 @@ export class Task extends Thing {
 
   /*! SPELL: DECLARES {
     syntax: "{operator:is} active", output: "is_active", rule: "method_postfix", of: "Task",
-    kind: "method", name: '"is active"',
+    kind: "method", name: '"is active"', returns: "choice",
     defined: "/Todo.spell:155-196",
   } */
   get is_active() {
@@ -45,7 +45,7 @@ export class Task extends Thing {
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Task",
     alias: ["statement", "expression"], kind: "method", name: "draw (a task)",
-    defined: "/Todo.spell:651-1104",
+    defined: "/Todo.spell:667-1120",
   } */
   draw() {
     if (this.is_complete && (app.filter == "active")) { return false }
@@ -109,7 +109,7 @@ export class Todos_App extends App {
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Todos_App",
     alias: ["statement", "expression"], kind: "method", name: "draw (a todos-app)",
-    defined: "/Todo.spell:1106-2064",
+    defined: "/Todo.spell:1122-2088",
   } */
   draw() {
     return spellCore.element({ tag: "div", children: [
@@ -122,7 +122,7 @@ export class Todos_App extends App {
           props: {
             type: "text",
             onBlur: (event) => {
-              return create_a_task({ title: event.target.value })
+              return create_a_new_task({ title: event.target.value })
             }
           }
         })
@@ -176,7 +176,7 @@ export class Todos_App extends App {
           tag: "button",
           props: {
             onClick: (event) => {
-              return create_a_task({ title: "Moar" })
+              return create_a_new_task({ title: "Moar" })
             }
           },
           children: [
@@ -227,20 +227,20 @@ export let app = new Todos_App()
 app.filter = "all"
 
 /*! SPELL: DECLARES {
-  syntax: "create a task (with {props:object_literal_properties})?", output: "create_a_task",
-  rule: "method_call", alias: ["statement", "expression"], kind: "function",
-  name: "create a task (with title as text)", params: [{ name: "props" }],
-  defined: "/Todo.spell:391-518",
+  syntax: "create a new task (with {props:object_literal_properties})?",
+  output: "create_a_new_task", rule: "method_call", alias: ["statement", "expression"],
+  kind: "function", name: "create a new task (with title as text)", params: [{ name: "props" }],
+  defined: "/Todo.spell:391-522",
 } */
-export function create_a_task(props = {}) {
+export function create_a_new_task(props = {}) {
   let { title } = props
   let it = new Task({ title: title, completed: false })
   spellCore.append(app.tasks, it)
 }
 
-create_a_task({ title: "Create todos app" })
-create_a_task({ title: "Teach it to draw" })
-create_a_task({ title: "Test app" })
+create_a_new_task({ title: "Create todos app" })
+create_a_new_task({ title: "Teach it to draw" })
+create_a_new_task({ title: "Test app" })
 
 app.start()
 spellCore.console.log(app)

@@ -5,7 +5,7 @@ a deck is a list of cards
 // with-jokers:  yes to add the red and the black joker when it's set up, after the 52 cards
 a deck has a with-jokers as yes or no
 
-to set up (a deck)
+to set up a deck
 	if  the is-set-up of it return
 	for each rank in card ranks
 		for each suit in card suits
@@ -18,7 +18,7 @@ to set up (a deck)
 		add it to the deck
 	set the is-set-up of the deck to yes
 
-to display (a deck)
+to display a deck
 	set card-names to a new list
 	for each card in the deck
 		add the short-name of the card to card-names

@@ -23,6 +23,7 @@ import {
  *   - `to foo the bar`
  *   - `to foo (a thing)`
  *   - `to foo (a thing) in (a thing)`
+ *   - `to foo a thing in a pile` -- paren-free:  `a` / `an` + a KNOWN type is an argument (`bare_type_arg`)
  *   - `to foo (bar)`
  *   - `to foo the (bar as text)`
  *   - `to foo (with bar)`
@@ -45,18 +46,27 @@ export const methods = new SpellParser({ module: "methods" })
 /**
  * Rule `constructor` for a plain (non-instance, non-operator) dynamically-defined method's CALL SITE, e.g.
  * matching `notify 1` after `to notify (message): ...` defined it.  `MethodDefinition.getRule()` registers
- * `DynamicMethodRule.specialize({ output, alias })` for every generated method that isn't
+ * `DynamicMethodRule.specialize({ output, alias, of, params })` for every generated method that isn't
  * a postfix/infix expression -- see `specialize()`.
+ * - TYPED:  a call whose argument is KNOWN to be the wrong type isn't ours, so `put the chip on the pot` finds
+ *   Chip's `put`, not Card's -- see `parse()`.
+ * - As a statement its LAST argument is a whole expression (`notify x + y` => `notify(x + y)`);  inside an
+ *   expression, an operand (`if double x is 4` => `double(x) == 4`) -- see `operandInExpressions`.
  * - NOTE: not made a generic pass-through like `MethodDefinition` -- every dynamically-generated rule built
  *   on top of it uses the same `thisArg`/`callArgs`/`props` syntax convention, so there's no subclass that
  *   needs a different `Groups`/`MatchData`.
  */
 export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|props?", DynamicMethodData> {
   @proto static importableAs = "method_call"
+  @proto static operandInExpressions = true
 
   /** Generated method name to invoke -- fixed per rule by `specialize()`, shared by every match of it. */
   declare methodName: string
   @proto static methodName?: string
+  /** Type the method is ON, e.g. `Card` -- `undefined` for a free function.  See `parse()`. */
+  declare thisType: P.Datatype | undefined
+  /** Datatype of each `callArgs` slot, in order -- `undefined` where the signature doesn't say.  See `parse()`. */
+  declare paramTypes: Array<P.Datatype | undefined> | undefined
   /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
   declare readonly Props: DynamicMethodRuleProps
 
@@ -64,11 +74,20 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   declare static readonly SpecializeWith: MethodRuleDeclared & { alias?: string | string[] }
   /**
    * Call to generated method `output`, e.g. `play_fizzbuzz` -- also our `ruleName`.
-   * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.
+   * - `of` / `params`:  the method's owner and parameters, as its `P.ScopeMethod` record says -- our `thisType` and
+   *   `paramTypes`, which `parse()` checks arguments against.
+   * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.  `of` / `params` are
+   *   the method record's, in the same comment:  loading hands us the whole of it.
    */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output, alias } = declared as (typeof DynamicMethodRule)["SpecializeWith"]
-    const statics: P.RuleStatics<DynamicMethodRule> = { ruleName: output, methodName: output, alias }
+    const { output, alias, of, params } = declared as (typeof DynamicMethodRule)["SpecializeWith"]
+    const statics: P.RuleStatics<DynamicMethodRule> = {
+      ruleName: output,
+      methodName: output,
+      alias,
+      thisType: of,
+      paramTypes: params?.map((param) => param.datatype)
+    }
     return super.specialize(statics, declared) as unknown as T
   }
 
@@ -78,13 +97,24 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   }
 
   /**
-   * Note the method we call, while we can look it up -- see `MethodDefinition.findMethod()`.
-   * - On `thisArg`'s type, if it has one, else a free function.
+   * Match, unless an argument is the wrong type -- then note the method we call, while we can look it up
+   * (`MethodDefinition.findMethod()`):  on `thisArg`'s type, if it has one, else a free function.
+   * - Wrong type:  KNOWN, and can't be what the method takes (`scope.couldBeA()`), e.g. a `Chip` for Card's
+   *   `put (a card) on (a pile)`, or a `Deck` for its pile.  Unknown always fits, so untyped code parses as it did.
    */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
-    if (match) match.data.method = MethodDefinition.findMethod(scope, this.methodName, match.groups.thisArg?.datatype)
+    if (!match || !this.argumentsFit(match)) return undefined
+    match.data.method = MethodDefinition.findMethod(scope, this.methodName, match.groups.thisArg?.datatype)
     return match
+  }
+
+  /** Could each of `match`'s arguments be what we take?  See `parse()`. */
+  argumentsFit(match: P.MatchFor<this>): boolean {
+    const { scope } = match
+    const { thisArg, callArgs = [] } = match.groups
+    if (thisArg && !scope.couldBeA(thisArg.datatype, this.thisType)) return false
+    return callArgs.every((arg, index) => scope.couldBeA(arg.datatype, this.paramTypes?.[index]))
   }
 
   /** What the method returns, if known -- see `P.ScopeMethod.returns`. */
@@ -130,8 +160,18 @@ type DynamicMethodData = {
   method?: P.ScopeMethod
 }
 
-/** Props bag accepted by `DynamicMethodRule` -- `methodName` is the generated method it compiles a call to. */
-export type DynamicMethodRuleProps = Prettify<SpellStatementProps & { methodName?: string }>
+/**
+ * Props bag accepted by `DynamicMethodRule`.
+ * - `methodName`:  the generated method it compiles a call to
+ * - `thisType` / `paramTypes`:  what it takes -- see `DynamicMethodRule.parse()`
+ */
+export type DynamicMethodRuleProps = Prettify<
+  SpellStatementProps & {
+    methodName?: string
+    thisType?: P.Datatype
+    paramTypes?: Array<P.Datatype | undefined>
+  }
+>
 
 /** `match.groups` for `DynamicMethodRule`, once `getGroupsForMatch()` has normalized `callArgs` to an array. */
 type DynamicMethodRuleGroups = P.GroupsFor<"thisArg?|callArgs[]?|props?">
@@ -181,14 +221,18 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
   }
 }
 
-/** Props bag accepted by `MethodPostfixRule` / `MethodInfixRule` -- the generated method. */
-type MethodOperatorRuleProps = Prettify<SpellExpressionProps & { methodName: string }>
+/** Props bag accepted by `MethodPostfixRule` / `MethodInfixRule` -- the generated method, and what it takes. */
+type MethodOperatorRuleProps = Prettify<
+  SpellExpressionProps & { methodName: string; paramTypes?: Array<P.Datatype | undefined> }
+>
 
 /**
  * What a generated method's call-site rule is declared with -- see `DynamicMethodRule.specialize()`.
  * - `output`:  the method's name in compiled JS, e.g. `play_fizzbuzz`
+ * - `of` / `params`:  its owner and parameters, as its `P.ScopeMethod` record -- loading passes the whole
+ *   declaration, which holds the record's too
  */
-type MethodRuleDeclared = { output: string }
+type MethodRuleDeclared = { output: string; of?: string; params?: P.ScopeParam[] }
 
 ////////////////
 // ## `MethodInfixRule` base class
@@ -212,16 +256,36 @@ export class MethodInfixRule extends InfixOperatorSuffix {
 
   /** Generated method to call, e.g. `nerds_out_with_$another`. */
   declare methodName: string
+  /** Datatype of its one parameter, if the signature says -- see `parse()`. */
+  declare paramTypes: Array<P.Datatype | undefined> | undefined
   /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
   declare readonly Props: MethodOperatorRuleProps
 
   /** TYPE-ONLY: what `specialize()` takes -- see `P.SpecializeWith`. */
   declare static readonly SpecializeWith: MethodRuleDeclared
-  /** Calls generated method `output` -- also our `ruleName`.  See `DynamicMethodRule.specialize()`. */
+  /**
+   * Calls generated method `output` -- also our `ruleName`.  Its `params` are our `paramTypes`.
+   * See `DynamicMethodRule.specialize()`.
+   */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output } = declared as MethodRuleDeclared
-    const statics: P.RuleStatics<MethodInfixRule> = { ruleName: output, methodName: output }
+    const { output, params } = declared as MethodRuleDeclared
+    const statics: P.RuleStatics<MethodInfixRule> = {
+      ruleName: output,
+      methodName: output,
+      paramTypes: params?.map((param) => param.datatype)
+    }
     return super.specialize(statics, declared) as unknown as T
+  }
+
+  /**
+   * Match, unless our right side is KNOWN to be the wrong type -- as `DynamicMethodRule.parse()`.
+   * - NOTE: our LEFT side isn't checked:  a suffix can't see it while parsing.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens)
+    const rhs = (match?.groups as { expression?: P.Match } | undefined)?.expression
+    if (match && rhs && !scope.couldBeA(rhs.datatype, this.paramTypes?.[0])) return undefined
+    return match
   }
 
   /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
@@ -388,6 +452,18 @@ export class MethodDefinition<
   }
 
   /**
+   * SIDE EFFECT:  now our body has parsed, record what the method returns on its record -- `P.ScopeMethod.returns`,
+   * which a call's `datatype` is.  See `getReturnedDatatype()`.
+   * - Journaled.  Returns it, so `BlockLine.reparseBody()` can tell when an edit changes it.
+   */
+  mutateScopeAfterBody(match: P.Match): string | undefined {
+    const method = (match.data as MethodDefinitionData).scopeMethod
+    const returns = this.getReturnedDatatype(match)
+    if (method && method.returns !== returns) P.ParseJournal.assign(match.scope.parser?.journal, method, { returns })
+    return returns
+  }
+
+  /**
    * Record the method `match` defines as a `P.ScopeMethod`:  its words, its parameters with their types,
    * its owner -- so a call knows what it returns, and editors what it takes.
    * - A method of a type this project declares:  in that type's `methods`.
@@ -397,21 +473,37 @@ export class MethodDefinition<
    * - Through `ScopeList.add()`:  journaled, and noted as what `match` declared -- see `SP.SpellDeclarations`.
    */
   addMethod(match: P.MatchFor<this>): void {
-    const { methodName, args, instanceType } = this.getSignature(match)!
+    const { methodName } = this.getSignature(match)!
     if (!methodName) return
     // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
     const declaredBy = match as P.Match
     const project = declaredBy.getScopeOfType(P.RootScope) as P.RootScope | undefined
-    const type = instanceType ? match.scope.types?.get(instanceType) : undefined
+    const { type, of, params } = this.getOwnerAndParams(match)
     const record: P.ScopeMethodProps = {
       name: methodName,
       words: (match.groups as { signature?: P.Match }).signature?.inputText.trimEnd(),
-      params: args.map((arg) => definedOnly({ name: arg.name, datatype: argDatatype(arg) })),
-      of: type?.name ?? (instanceType && typeCase(instanceType)),
+      params,
+      of,
       declaredBy
     }
-    if (type && type.parentScope === project) type.methods.add(record)
-    else project?.methods.add(record)
+    const [added] =
+      type && type.parentScope === project ? type.methods.add(record) : (project?.methods.add(record) ?? [])
+    match.data.scopeMethod = added
+  }
+
+  /**
+   * Type the method `match` defines is ON -- its record, if known, and its name, `of` -- and its parameters, each with
+   * its datatype if the signature says.  What its `P.ScopeMethod` record and its call rule both hold.
+   * - A lookup:  call it from `mutateScope()`.
+   */
+  getOwnerAndParams(match: P.MatchFor<this>): { type?: P.TypeScope; of?: string; params: P.ScopeParam[] } {
+    const { args, instanceType } = this.getSignature(match)!
+    const type = instanceType ? match.scope.types?.get(instanceType) : undefined
+    return {
+      type,
+      of: type?.name ?? (instanceType && typeCase(instanceType)),
+      params: args.map((arg) => definedOnly({ name: arg.name, datatype: argDatatype(arg) }))
+    }
   }
 
   /**
@@ -440,9 +532,10 @@ export class MethodDefinition<
    *   a `MethodPostfixRule`/`MethodInfixRule`.
    * - Otherwise registers a `DynamicMethodRule`, aliased `"statement"` when
    *   `asTest` (so it can't be used as an expression), else `["statement", "expression"]`.
-   * - Each is `specialize()`d with the generated method's name as `output` (plus `alias`), which it
-   *   works out the rest from -- so the definition is just `{ syntax }`, as for every other spell rule,
-   *   and a project's declarations can rebuild it elsewhere.
+   * - Each is `specialize()`d with the generated method's name as `output` (plus `alias`, and the owner `of` and
+   *   `params` it checks arguments against -- see `getOwnerAndParams()`), which it works out the rest from -- so
+   *   the definition is just `{ syntax }`, as for every other spell rule, and a project's declarations can
+   *   rebuild it elsewhere.
    * - Registers through `scope.addRule(RuleClass, definition)`, which puts the rule on the scope's parser and
    *   records the class + definition on the scope itself -- these generated rules MUST keep their alias so the
    *   parser finds them by category (`statement`/`expression`/`expression_suffix`) on the very next line,
@@ -456,16 +549,17 @@ export class MethodDefinition<
     const declaredBy = match as P.Match
 
     const output = methodName
+    const { of, params } = this.getOwnerAndParams(match)
     if (asPostfixExpression) {
       scope.addRule(MethodPostfixRule.specialize({ output }), { syntax }, declaredBy)
       return
     }
     if (asInfixExpression) {
-      scope.addRule(MethodInfixRule.specialize({ output }), { syntax }, declaredBy)
+      scope.addRule(MethodInfixRule.specialize({ output, params }), { syntax }, declaredBy)
       return
     }
     const alias = asTest ? "statement" : ["statement", "expression"]
-    scope.addRule(DynamicMethodRule.specialize({ output, alias }), { syntax }, declaredBy)
+    scope.addRule(DynamicMethodRule.specialize({ output, alias, of, params }), { syntax }, declaredBy)
   }
 
   /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
@@ -602,6 +696,8 @@ export type MethodDefinitionProps = Prettify<SpellStatementProps & { inlineIniti
 type MethodDefinitionData = {
   /** Cached result of `getSignature()` -- see that method. */
   signature?: MethodSignatureData
+  /** Record of the method it declared -- see `addMethod()`. */
+  scopeMethod?: P.ScopeMethod
 }
 
 /** Operands passed to `compileASTExpression()` -- matches the (unexported) type of the same name in `./expressions`. */
@@ -748,6 +844,28 @@ methods.addRule(type_method_arg, {
 })
 
 ////////////////
+// ## `bare_type_arg` rule
+//    e.g. "a card" in "to give a card to a pile"
+////////////////
+
+/**
+ * A KNOWN type after `a` / `an`, with no parens, in a method's signature:  a parameter, as `(a card)` is --
+ * `to give a card to a pile` ~== `to give (a card) to (a pile)` => `Card.give_to_$pile(pile)`.
+ * - "a card" is "any card", so it's what the method takes.  A word that isn't a type stays words:
+ *   `to make a mess` => `make_a_mess()`.  So does anything after `the`:  `to reset the stock pile`.
+ * - Read by `method_signature` exactly as `type_method_arg` is -- see `buildSignatureData()`.
+ * - NOT a `method_arg`:  only `method_signature` takes it, outside parens.
+ */
+class bare_type_arg extends type_method_arg {
+  @proto static alias = []
+  /** Editors colour its type's word, `card`, as the parameter it names. */
+  @proto static highlightAs: P.HighlightKind = "parameter"
+}
+methods.addRule(bare_type_arg, {
+  syntax: `(a|an) {type:known_type}`
+})
+
+////////////////
 // ## `typed_method_arg` rule
 //    e.g. "thing as a card"
 ////////////////
@@ -838,10 +956,11 @@ methods.addRule(with_props_arg, {
 ////////////////
 
 /**
- * Full method signature: alternating keywords and parenthesized args, e.g. `foo the (bar as a thing)`.
- * - `({method_keyword}|\({method_arg}\))+` -- keywords and args can appear in ANY order/mix, any number
- *   of times; at least one repetition is required by the syntax, but see `parse()` for the additional
+ * Full method signature: alternating keywords and args, e.g. `foo the (bar as a thing)`, `give a card to a pile`.
+ * - `({bare_type_arg}|{method_keyword}|\({method_arg}\))+` -- keywords and args can appear in ANY order/mix, any
+ *   number of times; at least one repetition is required by the syntax, but see `parse()` for the additional
  *   keyword requirement.
+ * - `a card` is an arg if `card` is a KNOWN type (`bare_type_arg`, the longer match), else two keywords.
  * - `parse()` walks the repeated items and assembles `methodBits`/`syntaxBits` (joined into
  *   `methodName`/`syntax` by `MethodDefinition.computeSignature()`), `args`, `types` (candidate
  *   instance-method receivers), `extraVars` and `props` into `match.data` -- see `MethodSignatureData`.
@@ -858,9 +977,10 @@ class method_signature extends P.Repeat<never, MethodSignatureData> {
   }
 
   /**
-   * Flatten each matched `method_arg`/`method_keyword` item's `data` into `match.data`.
-   * - `item.matched.length === 1` for a bare `method_keyword`; a parenthesized `method_arg` has 3
-   *   matched tokens (`(`, arg, `)`) so its data lives on `item.matched[1]` instead.
+   * Flatten each matched `method_arg`/`method_keyword`/`bare_type_arg` item's `data` into `match.data`.
+   * - A `method_keyword` or `bare_type_arg` item holds its own data;  a parenthesized `method_arg` matched 3
+   *   things (`(`, arg, `)`), so its data lives on `item.matched[1]` instead.  Told apart by RULE, not length:
+   *   `a card` is 2 tokens, like a keyword pair.
    * - SIDE EFFECT: records `data.types` and their positions (`argIndex`/`methodIndex`/`syntaxIndex`)
    *   so `MethodDefinition.processSignature()` can later splice a promoted type back out of
    *   `args`/`methodBits`/`syntaxBits`.
@@ -868,7 +988,10 @@ class method_signature extends P.Repeat<never, MethodSignatureData> {
   buildSignatureData(match: P.MatchFor<this>): void {
     const data = match.data
     data.items = match.items.map(
-      (item) => (item.matched.length === 1 ? item.data : (item.matched[1] as P.Match).data) as MethodArgData
+      (item) =>
+        (item.is(method_keyword) || item.is(bare_type_arg)
+          ? item.data
+          : (item.matched[1] as P.Match).data) as MethodArgData
     )
     // calculated as we run through the keywords
     data.startsWithKeyword = false // `true` if first item is a keyword.
@@ -877,6 +1000,7 @@ class method_signature extends P.Repeat<never, MethodSignatureData> {
     data.syntaxBits = [] // rule syntax bits.  Converted to string by `MethodDefinition.computeSignature()`.
     data.types = [] // types we found, as `{ name, varName, isSimple, argIndex, methodIndex, syntaxIndex }`
     data.args = [] // method arguments, as `P.ASTVariableExpression`s
+    data.argMatches = [] // each argument's item, e.g. `(a card)` or `a card` -- for editors
     data.extraVars = [] // random extra vars we should enable (e.g. aliases for `this`)
     // calculated elsewhere
     data.props = undefined // array of P.ASTVariableExpression for `with_props_arg`
@@ -915,6 +1039,8 @@ class method_signature extends P.Repeat<never, MethodSignatureData> {
       if (syntax) data.syntaxBits.push(syntax)
       if (arg) {
         data.args.push(arg)
+        // NOT a `(with ...)` clause:  its call takes it as an optional extra
+        if (!props) data.argMatches.push(match.items[index]!)
       }
 
       // Recognize prop names in the method
@@ -926,7 +1052,7 @@ class method_signature extends P.Repeat<never, MethodSignatureData> {
   }
 }
 methods.addRule(method_signature, {
-  syntax: `({method_keyword}|\\({method_arg}\\))+`
+  syntax: `({bare_type_arg}|{method_keyword}|\\({method_arg}\\))+`
 })
 
 ////////////////
@@ -972,7 +1098,7 @@ methods.addRule(quoted_method_signature)
 ////////////////
 
 /**
- * Define a new method/statement: `to foo the bar`, `to create (a card)`, `to notify (message)`, etc.
+ * Define a new method/statement: `to foo the bar`, `to create a card`, `to create (a card)`, `to notify (message)`, etc.
  * - Optional `test` keyword (`to test foo: ...`) marks the definition as a test method -- see
  *   `MethodDefinition.processSignature()`/`getAST()`'s `asTest` handling.
  * - `inlineInitialType` is `true`: the FIRST bare-type arg found (e.g. `(a card)` in `to create (a
@@ -1012,14 +1138,29 @@ methods.addRule(to_do_something, {
           output: ["export function start_the_game() {}", '/* PARSE ERROR: Don\'t understand "print it" */']
         },
         {
-          title: "non-escaped type arg in signature",
+          title: "paren-free type arg in signature:  a known type is a parameter",
           input: "to create a card",
-          output: ["export function create_a_card() {}"]
+          output: ["Card.prototype.create = function () {}"]
         },
         {
-          title: "non-escaped type arg in signature - `it` is not defined",
+          title: "paren-free type arg in signature - it",
           input: "to create a card: print it",
-          output: ["export function create_a_card() {}", '/* PARSE ERROR: Don\'t understand "print it" */']
+          output: [`Card.prototype.create = function () {`, `  return spellCore.console.log(this)`, `}`]
+        },
+        {
+          title: "paren-free type args in signature ~== parenthesized",
+          input: "to give a card to a pile: set its pile to the pile",
+          output: [`Card.prototype.give_to_$pile = function (pile) {`, `  this.pile = pile`, `}`]
+        },
+        {
+          title: "paren-free:  a word that isn't a type stays words",
+          input: "to make a mess",
+          output: ["export function make_a_mess() {}"]
+        },
+        {
+          title: "paren-free:  `the` + a type stays words",
+          input: "to shuffle the deck",
+          output: ["export function shuffle_the_deck() {}"]
         },
         {
           title: "simple arg in signature - arg is defined",
@@ -1151,12 +1292,40 @@ methods.addRule(to_do_something, {
         },
         {
           title: "top level typed simple argument method",
+          input: ["to notify (message as text): print the message", 'notify "hi"'],
+          output: [
+            `export function notify_$message(message) {`,
+            `  return spellCore.console.log(message)`,
+            `}`,
+            `notify_$message("hi")`
+          ]
+        },
+        {
+          title:
+            "typed call:  an argument KNOWN to be the wrong type isn't a call to it -- here, the built-in `notify`",
           input: ["to notify (message as text): print the message", "notify 1"],
           output: [
             `export function notify_$message(message) {`,
             `  return spellCore.console.log(message)`,
             `}`,
-            `notify_$message(1)`
+            `spellCore.notify(1)`
+          ]
+        },
+        {
+          title: "typed call:  a sub-type fits, an unrelated type doesn't",
+          input: [
+            "a joker is a card",
+            "to show (a card) on (a pile): print 1",
+            "show a new joker on a new pile",
+            "show a new card on a new card"
+          ],
+          output: [
+            "export class Joker extends Card {}",
+            `Card.prototype.show_on_$pile = function (pile) {`,
+            `  return spellCore.console.log(1)`,
+            `}`,
+            "new Joker().show_on_$pile(new Pile())",
+            `/* PARSE ERROR: Don't understand "show a new card on a new card" */`
           ]
         },
         {
@@ -1172,6 +1341,16 @@ methods.addRule(to_do_something, {
         {
           title: "multiple type args in signature",
           input: ["to play (a card) on (a pile): set its pile to the pile", "play a new card on a new pile"],
+          output: [
+            `Card.prototype.play_on_$pile = function (pile) {`,
+            `  this.pile = pile`,
+            `}`,
+            "new Card().play_on_$pile(new Pile())"
+          ]
+        },
+        {
+          title: "paren-free type args in signature",
+          input: ["to play a card on a pile: set its pile to the pile", "play a new card on a new pile"],
           output: [
             `Card.prototype.play_on_$pile = function (pile) {`,
             `  this.pile = pile`,
@@ -1714,6 +1893,11 @@ type MethodSignatureData = {
   types: MethodTypeInfo[]
   /** Method arguments, as `P.ASTVariableExpression`s. */
   args: P.ASTVariableExpression[]
+  /**
+   * Each argument's item as written, in order, e.g. `(a card)` or `a card` -- NOT a `(with ...)` clause.
+   * - For editors, e.g. signature help's parameter ranges.  The same order as its call rule's `{slots}`.
+   */
+  argMatches: P.Match[]
   /** Random extra vars we should enable (e.g. aliases for `this`). */
   extraVars: MethodExtraVar[]
   /** `with_props_arg`'s props, if any. */

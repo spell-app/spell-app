@@ -37,6 +37,7 @@ export {
   ParseError,
   type DocComment,
   commitStatement,
+  SpellStatement,
   Block,
   BlockLine,
   parseExpression,

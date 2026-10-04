@@ -142,6 +142,33 @@ export class Parser extends Derivative {
   }
 
   ////////////////
+  // ## Forward declarations
+  ////////////////
+
+  /**
+   * Names of the types `text` declares, found WITHOUT parsing it, e.g. `["card"]` for `a card is a thing`.
+   * - Why:  so a line can name a type declared further down, or in a later file -- see `stubDeclaredTypes()`.
+   * - A cheap scan, not a parse:  a stray extra name just makes one more type known.
+   * - Default:  none.  Languages override, e.g. `SpellParser`.
+   */
+  typesDeclaredIn(_text: string): string[] {
+    return []
+  }
+
+  /**
+   * Stub each type `texts` declare (`typesDeclaredIn()`) which `scope` doesn't know yet -- run BEFORE a project's
+   * files parse, so a line above a type's declaration knows the type too, e.g. `if the pile is a foundation`.
+   * - Its declaration then `claim()`s the stub -- see `P.TypeScope.getOrStub()`.
+   * - Through `scope.types.add()`:  journaled, if there's a journal.
+   * - Returns the names found, in order:  `P.IncrementalProject` re-parses everything when an edit changes them.
+   */
+  stubDeclaredTypes(scope: P.Scope, texts: string[]): string[] {
+    const names = texts.flatMap((text) => this.typesDeclaredIn(text))
+    for (const name of names) if (!scope.types?.get(name)) scope.types?.add({ name, stub: true })
+    return names
+  }
+
+  ////////////////
   // ## Incremental parsing -- see `P.IncrementalParse`
   ////////////////
 

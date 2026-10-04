@@ -120,7 +120,7 @@ describe("grammar probes", () => {
       Chip.prototype.put_on_$pot = function (pot) {
         return spellCore.console.log(2)
       }
-      chip.put_on_$pile(pot)"
+      chip.put_on_$pot(pot)"
     `)
   })
 
@@ -133,7 +133,7 @@ describe("grammar probes", () => {
       "Card.prototype.add_to_$pile = function (pile) {
         return spellCore.console.log(1)
       }
-      card.add_to_$pile(deck)"
+      spellCore.append(deck, card)"
     `)
   })
 
@@ -143,7 +143,7 @@ describe("grammar probes", () => {
 
   test("P5   paren-free signature", () => {
     expect(probe("to give a card to a pile: print 1")).toMatchInlineSnapshot(`
-      "export function give_a_card_to_a_pile() {
+      "Card.prototype.give_to_$pile = function (pile) {
         return spellCore.console.log(1)
       }"
     `)
@@ -245,6 +245,57 @@ describe("grammar probes", () => {
       }"
     `)
   })
+
+  ////////////////
+  // ## P5 (epic phase):  typed calls, signatures, return types
+  ////////////////
+
+  test("T3  `is a` names a type declared further down", () => {
+    expect(probe("print the card is a widget", "a widget is a thing")).toMatchInlineSnapshot(`
+      "spellCore.console.log(spellCore.isOfType(card, 'Widget'))
+      export class Widget extends Thing {}"
+    `)
+  })
+
+  test("T4  paren-free signature, called", () => {
+    expect(probe("to give a card to a pile: print 1", "give the card to the pile")).toMatchInlineSnapshot(`
+      "Card.prototype.give_to_$pile = function (pile) {
+        return spellCore.console.log(1)
+      }
+      card.give_to_$pile(pile)"
+    `)
+  })
+
+  test("T5  a one-argument call inside an expression takes an operand;  as a statement, everything", () => {
+    expect(
+      probe(
+        "to double (n as number): return n * 2",
+        "if double x is 4: print 1",
+        "to announce (message): print 1",
+        "announce x + y"
+      )
+    ).toMatchInlineSnapshot(`
+      "export function double_$n(n) {
+        return (n * 2)
+      }
+      if (double_$n(x) == 4) { spellCore.console.log(1) }
+      export function announce_$message(message) {
+        return spellCore.console.log(1)
+      }
+      announce_$message(x + y)"
+    `)
+  })
+
+  test("T6  `wait for`:  a statement waits for everything, an expression for an operand", () => {
+    expect(probe("to check: wait for x is 1", "to check again: if wait for x is 1: print 1")).toMatchInlineSnapshot(`
+      "export async function check() {
+        return await (x == 1)
+      }
+      export async function check_again() {
+        if (await x == 1) { spellCore.console.log(1) }
+      }"
+    `)
+  })
 })
 
 describe("datatypes", () => {
@@ -270,7 +321,9 @@ describe("datatypes", () => {
         "a new card",
         "a new list of cards",
         "[1, 2, 3]",
-        "x if x > 1 otherwise 2"
+        "x if x > 1 otherwise 2",
+        "the name of the card",
+        "the value of the card"
       )
     ).toMatchInlineSnapshot(`
       "the card  =>  Card
@@ -292,7 +345,40 @@ describe("datatypes", () => {
       a new card  =>  Card
       a new list of cards  =>  list of cards
       [1, 2, 3]  =>  list of numbers
-      x if x > 1 otherwise 2  =>  number"
+      x if x > 1 otherwise 2  =>  number
+      the name of the card  =>  text
+      the value of the card  =>  number"
+    `)
+  })
+
+  test("method calls:  what the method returns", () => {
+    expect(
+      datatypesAfter(
+        [
+          "to double (n as number): return n * 2",
+          "to deal from a deck: return the first card of the deck",
+          "to describe (n)",
+          '\tif n is 1 return "one"',
+          '\treturn "many"',
+          "to muddle (n)",
+          '\tif n is 1 return "one"',
+          "\treturn 2",
+          "to tally (n as text)",
+          "\tfor each card in the deck: return 1",
+          "\treturn n"
+        ],
+        "double x",
+        "deal from the deck",
+        "describe x",
+        "muddle x",
+        'tally "a"'
+      )
+    ).toMatchInlineSnapshot(`
+      "double x  =>  number
+      deal from the deck  =>  Card
+      describe x  =>  text
+      muddle x  =>  ?
+      tally "a"  =>  text"
     `)
   })
 
@@ -369,8 +455,13 @@ const DECLARATION_LINE =
  *   it got -- the expression's `match.datatype`, through the assignment's sink.
  */
 function datatypes(...expressions: string[]): string {
+  return datatypesAfter([], ...expressions)
+}
+
+/** `datatypes()`, after `setup` lines, e.g. the methods `expressions` call. */
+function datatypesAfter(setup: string[], ...expressions: string[]): string {
   const lines = expressions.map((expression, index) => `set d${index + 1} to ${expression}`)
-  const { files } = parseProbe(lines)
+  const { files } = parseProbe([...setup, ...lines])
   const { scope } = files.at(-1)!
   return expressions
     .map((expression, index) => `${expression}  =>  ${scope.variables!.get(`d${index + 1}`)?.datatype ?? "?"}`)

@@ -114,6 +114,7 @@
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:value", line: 15,
+      detail: "number",
       section: "properties of cards",
       description: "value as a derivation of rank"
     },
@@ -195,31 +196,37 @@
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:name", line: 34,
+      detail: "text",
       section: "aliases",
       description: "name as a derivation of name/suit"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:short_suit", line: [36, 41],
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:short_rank", line: [43, 46],
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:short_direction", line: [48, 50],
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:short_name", line: 52,
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:state", line: 54,
+      detail: "text",
       section: "aliases"
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:turn (a card) face up", line: [60, 62],
+      path: "project:cards/file:Card.spell/type:Card/method:turn a card face up", line: [60, 62],
       section: "actions",
       description: "Turn card face up or face down\nNote that this will animate if you `wait for turn the card face up`",
       rules: [
@@ -227,14 +234,14 @@
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:turn (a card) face down", line: [63, 65],
+      path: "project:cards/file:Card.spell/type:Card/method:turn a card face down", line: [63, 65],
       section: "actions",
       rules: [
         { name: "turn_face_down", syntax: "turn {thisArg:expression} face down" }
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:turn (a card) over", line: [69, 72],
+      path: "project:cards/file:Card.spell/type:Card/method:turn a card over", line: [69, 72],
       section: "actions",
       description: "Flip card to opposite direction\nNote that this will animate if you `wait for turn the card face up`",
       rules: [
@@ -242,7 +249,7 @@
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:draw (a card)", line: [74, 81],
+      path: "project:cards/file:Card.spell/type:Card/method:draw a card", line: [74, 81],
       section: "actions",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -257,7 +264,7 @@
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:move (a card) to (a pile)", line: [15, 19],
+      path: "project:cards/file:Card.spell/type:Card/method:move a card to a pile", line: [15, 19],
       section: "Pile of playing cards",
       uri: "spell:/@system:library:cards/Pile.spell",
       description: "\"move\" a card\nNOTE: use this rather than `add` to make sure card is only in one pile at a time\nif you `wait for: move the card to the pile` the move will be animated",
@@ -302,11 +309,13 @@
     },
     {
       path: "project:cards/file:Card.spell/type:Joker/property:name", line: 90,
+      detail: "text",
       section: "A joker: a wild card with no rank or suit -- there's a red one and a black one",
       description: "name as its color, e.g. \"red joker\""
     },
     {
       path: "project:cards/file:Card.spell/type:Joker/property:short_name", line: 92,
+      detail: "text",
       section: "A joker: a wild card with no rank or suit -- there's a red one and a black one"
     },
     {
@@ -333,14 +342,14 @@
       description: "with-jokers:  yes to add the red and the black joker when it's set up, after the 52 cards"
     },
     {
-      path: "project:cards/file:Deck.spell/type:Deck/method:set up (a deck)", line: [8, 19],
+      path: "project:cards/file:Deck.spell/type:Deck/method:set up a deck", line: [8, 19],
       section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
       rules: [
         { name: "set_up", syntax: "set up {thisArg:expression}" }
       ]
     },
     {
-      path: "project:cards/file:Deck.spell/type:Deck/method:display (a deck)", line: [21, 25],
+      path: "project:cards/file:Deck.spell/type:Deck/method:display a deck", line: [21, 25],
       section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
       rules: [
         { name: "display", syntax: "display {thisArg:expression}" }
@@ -376,10 +385,12 @@
     },
     {
       path: "project:cards/file:Pile.spell/type:Pile/property:value", line: [8, 10],
+      detail: "number",
       section: "Pile of playing cards"
     },
     {
       path: "project:cards/file:Pile.spell/type:Pile/property:state", line: [22, 26],
+      detail: "text",
       section: "Pile of playing cards"
     }
   ]
