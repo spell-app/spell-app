@@ -25,7 +25,7 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
   - `<name>`:  `python3 .claude/skills/wtf/scripts/transcript.py --find <name>` (from the repo root) lists its
     sessions, newest first;  `transcript.py <id>` digests one:  Owen's prompts, its last reply, a question still
     waiting for an answer.  Several sessions:  digest the newest, mention the others.  Running or not:
-    `python3 ~/.claude/skills/worktrees/scripts/worktrees.py`.
+    `python3 .claude/skills/worktrees/scripts/worktrees.py --sessions`.
   - either way:  Owen's LAST stated intent (his words, not the plan's), what's been done, what was asked and not
     yet answered.
 - Where:  in the session's checkout (`git -C .claude/worktrees/<name>` for `<name>`):  `git branch --show-current`,

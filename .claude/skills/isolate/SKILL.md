@@ -107,7 +107,8 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
 0. Not in a worktree (the session's folder isn't under `.claude/worktrees/`):  say so in one line, then offer to
    clean up:
    - candidates:  each `.claude/worktrees/<name>` that
-     - no session is in:  under "No session in" from `python3 ~/.claude/skills/worktrees/scripts/worktrees.py`.
+     - no session is in:  under "No session in" from
+       `python3 .claude/skills/worktrees/scripts/worktrees.py --sessions`.
        Why:  a fresh worktree has nothing outside `main` either, but its session is still using it.
      - has nothing uncommitted (`git -C .claude/worktrees/<name> status --short`;  fine from the main checkout)
      - has nothing outside `main` (`git log --oneline main..<branch>` empty)
@@ -149,7 +150,7 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    (2026-10-03) "we don't need to go back into the originating window.  That's just confusing things".
    - The worktree's window stays open for Owen to read the summary;  he closes it.  Its file
      (`workspaces/ongoing/<name>.code-workspace`) goes with `node scripts/window.mjs close <name>` later, or
-     `/whassup` lists it.
+     `/worktrees` lists it.
    - NEVER `handoff <name> --back` from here.
 5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
    Never `remove` unasked (and on a hook-made worktree `remove` refuses without `discard_changes`).

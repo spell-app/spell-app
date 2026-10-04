@@ -117,6 +117,44 @@
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
             <ui-section
+              id="epics-skill"
+              header="2026-10-03 · /epics, and /whassup merged into /worktrees"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch">Branch <code>epics-skill</code>, no plan doc</ui-item>
+              </ui-list>
+              <ul>
+                <li>
+                  <code>/epics</code> (<a href="../../.claude/skills/epics/" target="src-claude-skills-epics"
+                    ><code>.claude/skills/epics/</code></a
+                  >): the open epics, one line each: state (planning, working, stalled, unmerged), phase, worktree,
+                  session, what's waiting on Owen, plan doc links; <code>/epics all</code> adds the finished ones. List
+                  only.
+                </li>
+                <li>
+                  <code>/worktrees</code> is now the repo's (<a
+                    href="../../.claude/skills/worktrees/"
+                    target="src-claude-skills-worktrees"
+                    ><code>.claude/skills/worktrees/</code></a
+                  >): the old global sessions table plus all of <code>/whassup</code> (groups, pick-and-do clean-up);
+                  <code>/whassup</code> is gone. <code>worktrees.py --sessions</code> gives the table alone, for
+                  <code>/isolate</code> and <code>/wtf</code>.
+                </li>
+                <li>
+                  <code>yarn plan-doc summary</code> reads plan docs made before the judgement section instead of
+                  failing; <code>/whassup</code> had listed 9 finished epics as having phases left.
+                </li>
+                <li>
+                  <code>yarn plan-doc summaries &lt;file&gt;...</code>: many docs, by path (worktrees' too), in one run;
+                  <code>/worktrees</code> down from 17s to 2s.
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
               id="details"
               header="2026-10-03 · Details pages:  questions answered in the side bar"
               sticky

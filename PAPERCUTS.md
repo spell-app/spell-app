@@ -1141,6 +1141,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `.oxfmtrc.json` ignores `docs/_assets/spell-ui.js` and `lazy/`, not `emoji/`. · Reverted with `git checkout`
   after the run;  `**/docs/_assets/emoji/**` (and maybe the templates) want an ignore pattern. · docs
 
+- 2026-10-03 · `/whassup` listed 9 finished epics as "plan doc with phases left":  `yarn plan-doc summary` threw
+  "no .plan-items[data-kind="judgement"] in the doc:  is it a plan doc?" on every doc made before the judgement
+  section (added that day), and `/park`'s `plan_status()` read the failure as "not done". · `summary` reads through
+  `findList()` (adds nothing, never throws);  `migrate` still adds the section.  Plan docs are read by PATH now
+  (`plan-doc summaries`), in one run. · docs
+
 ## claude-code
 
 - 2026-10-03 · In a worktree-isolated session, Bash refused `python3 - <<'EOF' ... EOF` heredocs holding backticks /
