@@ -9,74 +9,61 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Rating">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-rating.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-rating%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/rating.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Rating
+            <ui-header>A rating indicates user interest in content.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-rating" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-rating.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-rating%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/modules/rating.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Rating
-                <ui-header>A rating indicates user interest in content.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-rating" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Rating"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's rating page, its Definition tab section by section (Types, States, Variations), then its
-                  Examples tab (More Examples).  A rating is a form control (a group of real radios):  every example is named
-                  (`aria-label`, or a `<label for>`), as a real form would be.
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's rating page, its Definition tab section by section (Types, States, Variations), then its
+              Examples tab (More Examples).  A rating is a form control (a group of real radios):  every example is named
+              (`aria-label`, or a `<label for>`), as a real form would be.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-rating" header="Rating" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Rating"
                   description="A basic rating.  Fomantic's default is 4 icons;  `max-rating` changes it, here to one."
                 >
                   <ui-rating max-rating="1" aria-label="Favourite"></ui-rating>
@@ -84,9 +71,10 @@
                 <ui-docs-example description="Four icons, the first three filled by `value`.">
                   <ui-rating value="3" aria-label="Rating"></ui-rating>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-icon" header="Icon" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Icon"
                   description="You can use any available icon as rating indicator:  `icon` takes an icon name."
                 >
                   <ui-rating color="yellow" icon="star" value="2" aria-label="Stars"></ui-rating>
@@ -103,8 +91,10 @@
                   <br />
                   <ui-rating color="orange" icon="circle" value="2" aria-label="Circles"></ui-rating>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Color" description="You can specify any color of the palette with `color`.">
+              <ui-section id="examples-types-color" header="Color" sticky collapsible dividing>
+                <ui-docs-example description="You can specify any color of the palette with `color`.">
                   <ui-rating color="red" value="1" max-rating="7" aria-label="Red"></ui-rating>
                   <br />
                   <ui-rating color="orange" value="2" max-rating="7" aria-label="Orange"></ui-rating>
@@ -131,8 +121,10 @@
                   <br />
                   <ui-rating color="black" value="1" max-rating="7" aria-label="Black"></ui-rating>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Partial Ratings">
+              <ui-section id="examples-types-partial-ratings" header="Partial Ratings" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">You can use decimal values for showing partially filled ratings.</p>
                   <ui-message slot="description" state="info" size="small"
                     >A fractional <code>value</code> only draws a partly filled icon: no radio is chosen until the user
@@ -155,27 +147,31 @@
                   <br />
                   <ui-rating color="brown" value="4.75" max-rating="5" aria-label="Brown"></ui-rating>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Disabled"
                   description="A rating can be non-interactive with `disabled`:  it shows its value, can't be focused and isn't submitted."
                 >
                   <ui-rating color="yellow" disabled value="3" max-rating="5" aria-label="Disabled"></ui-rating>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-states-read-only" header="Read-only" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Read-only"
                   description="A `readonly` rating shows its value and can't be changed, but is still focusable and submitted.  A `<label for>` names it."
                 >
                   <label for="rating-readonly">Read-only</label>
                   <ui-rating id="rating-readonly" color="yellow" readonly value="3" max-rating="5"></ui-rating>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example header="Size" description="A rating can vary in size.">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A rating can vary in size.">
                   <ui-rating size="mini" color="yellow" value="3" aria-label="Mini"></ui-rating>
                   <br />
                   <ui-rating size="tiny" color="yellow" value="3" aria-label="Tiny"></ui-rating>
@@ -190,10 +186,18 @@
                   <br />
                   <ui-rating size="massive" color="yellow" value="3" aria-label="Massive"></ui-rating>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="more-examples">More Examples</ui-header>
-
-                <ui-docs-example header="Setting existing values">
+            <ui-section id="examples-more-examples" header="More Examples" sticky collapsible dividing>
+              <ui-section
+                id="examples-more-examples-setting-existing-values"
+                header="Setting existing values"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     The icon is <code>icon</code>, the starting rating <code>value</code> and the number of icons
                     <code>max-rating</code>: Fomantic's <code>data-icon</code>, <code>data-rating</code> and
@@ -224,8 +228,16 @@
                     </ui-item>
                   </ui-list>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Read-Only Ratings">
+              <ui-section
+                id="examples-more-examples-read-only-ratings"
+                header="Read-Only Ratings"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     You can disable or enable interactive rating: set or remove <code>readonly</code> (or
                     <code>disabled</code>), as an attribute or a property. Fomantic's <code>disable</code> /
@@ -240,9 +252,16 @@
                     aria-label="Read-only hearts"
                   ></ui-rating>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-more-examples-clearing-ratings"
+                header="Clearing Ratings"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Clearing Ratings"
                   description="With `clearable` you can clear the rating by choosing the current rating again (or with Backspace / Delete)."
                 >
                   <ui-rating
@@ -254,59 +273,63 @@
                     aria-label="Clearable hearts"
                   ></ui-rating>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  how to use it (attributes in practice, events, forms), keyboard, accessibility, framework snippets. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Write `<ui-rating>` and give it a name with `aria-label` or a `<label for>`: it's a form control, a group of real
-                    radios, one per icon. No script needed: Fomantic's `data-icon`, `data-rating` and `data-max-rating` metadata and
-                    its `icon`, `initialRating` and `maxRating` settings are plain attributes.
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (attributes in practice, events, forms), keyboard, accessibility, framework snippets. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write `<ui-rating>` and give it a name with `aria-label` or a `<label for>`: it's a form control, a group of real
+                  radios, one per icon. No script needed: Fomantic's `data-icon`, `data-rating` and `data-max-rating` metadata and
+                  its `icon`, `initialRating` and `maxRating` settings are plain attributes.
 
-                    - `icon` is an icon NAME (`star`, the default, `heart`, any `<ui-icon>` name), not a class.
-                    - `max-rating` is how many icons (Fomantic's default: 4).
-                    - `value` is the rating, `0` (none) ... `max-rating`. The attribute is the starting (and reset) value; the
-                      `value` property is the live one.
-                    - `clearable` lets the user take the rating back by choosing the current one again; a one-icon rating is always
-                      clearable (Fomantic's `clearable: auto`).
-                    - `readonly` and `disabled` are Fomantic's `interactive: false` and its `disable` / `enable` behaviours.
-                    - Fomantic's `set rating` / `get rating` / `clear rating` behaviours are the `value` property: set it, read it,
-                      set it to `0`.
-                  </script>
-                </ui-markdown>
+                  - `icon` is an icon NAME (`star`, the default, `heart`, any `<ui-icon>` name), not a class.
+                  - `max-rating` is how many icons (Fomantic's default: 4).
+                  - `value` is the rating, `0` (none) ... `max-rating`. The attribute is the starting (and reset) value; the
+                    `value` property is the live one.
+                  - `clearable` lets the user take the rating back by choosing the current one again; a one-icon rating is always
+                    clearable (Fomantic's `clearable: auto`).
+                  - `readonly` and `disabled` are Fomantic's `interactive: false` and its `disable` / `enable` behaviours.
+                  - Fomantic's `set rating` / `get rating` / `clear rating` behaviours are the `value` property: set it, read it,
+                    set it to `0`.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `ui-change` fires when the user rates (Fomantic's `onRate`), with `event.detail.value`: `0` when they clear it.
-                    Setting `value` back inside the handler vetoes the change. Setting `value` from script fires nothing (Fomantic's
-                    `fireOnInit: false`).
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const rating = document.querySelector("ui-rating")
-                    rating.addEventListener("ui-change", (event) => console.log(event.detail.value))
-                  </script>
-                </ui-code>
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `ui-change` fires when the user rates (Fomantic's `onRate`), with `event.detail.value`: `0` when they clear it.
+                  Setting `value` back inside the handler vetoes the change. Setting `value` from script fires nothing (Fomantic's
+                  `fireOnInit: false`).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const rating = document.querySelector("ui-rating")
+                  rating.addEventListener("ui-change", (event) => console.log(event.detail.value))
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="forms">Forms</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A rating is a form-associated element.
+            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A rating is a form-associated element.
 
-                    - With a `name`, it submits its `value` with the form while it's above `0`.
-                    - `required` makes a rating necessary; the element is `:state(invalid)` once the user has interacted and it's
-                      still empty.
-                    - A form reset puts back the starting `value` (the attribute).
-                    - `disabled` leaves it out of the form; `readonly` still submits.
-                    - A fractional `value` (`3.5`) only DRAWS a partial icon: no radio is chosen until the user rates.
-                  </script>
-                </ui-markdown>
+                  - With a `name`, it submits its `value` with the form while it's above `0`.
+                  - `required` makes a rating necessary; the element is `:state(invalid)` once the user has interacted and it's
+                    still empty.
+                  - A form reset puts back the starting `value` (the attribute).
+                  - `disabled` leaves it out of the form; `readonly` still submits.
+                  - A fractional `value` (`3.5`) only DRAWS a partial icon: no radio is chosen until the user rates.
+                </script>
+              </ui-markdown>
+              <ui-section id="usage-forms-in-a-form" header="In a form" sticky collapsible dividing>
                 <ui-docs-example
-                  header="In a form"
                   description="A required rating, submitted as `food`.  Rate, then reset the form to put back the starting value."
                 >
                   <ui-form>
@@ -324,125 +347,128 @@
                     </form>
                   </ui-form>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The rating is a radio group, so it's ONE tab stop and the arrows move the choice.
+
+                  | Key                      | Action                                    |
+                  | ------------------------ | ----------------------------------------- |
+                  | Tab                      | Move into the rating (one stop), then out |
+                  | Arrow Right / Arrow Down | Choose one more (wraps to the first)      |
+                  | Arrow Left / Arrow Up    | Choose one less (wraps to the last)       |
+                  | Home / End               | Choose the lowest / highest rating        |
+                  | Space                    | Choose the focused icon                   |
+                  | Backspace / Delete       | Clear a `clearable` rating                |
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The rating is a group of real radios: one per icon, each named "3 of 5" (translatable).
+
+                  - The group is a `radiogroup` named by the host's `aria-label` or a `<label for>`. A fractional rating adds a
+                    description, "Rated 3.5 of 5".
+                  - `readonly` stays focusable and announced but can't change; `disabled` leaves the tab order.
+                  - Colour is never the only signal: filled and empty icons differ in shape, and the radios carry the count.
+                  - If the element can't render, its native fallback is the same group of real radios, numbered instead of icons,
+                    so the rating still works and submits; colours, sizes, the hover preview, partial icons, `clearable` and
+                    Home / End are dropped.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `value` is a plain attribute; listen for `ui-change` with your framework's custom-event syntax.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-rating name="food" max-rating={5} value={stars} onui-change={(event) => setStars(event.detail.value)} />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-rating name="food" max-rating="5" :value="stars" @ui-change="(event) => (stars = event.detail.value)" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-rating
+                    name="food"
+                    max-rating="5"
+                    value={stars()}
+                    ref={(el) => el.addEventListener("ui-change", (event) => setStars(event.detail.value))}
+                  />
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-rating"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-rating-*` tokens: set one on the element, on any ancestor (`:root` included), or on
+                  the group's box through `::part(rating)`. They inherit into the shadow root, where the sheet reads each through a
+                  private alias, so nothing inside blocks them. Style one icon with `::part(icon)`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  /* every rating on the page */
+                  :root {
+                    --ui-rating-icon-width: 1.5em;
+                  }
+                  /* one kind:  quieter empty icons */
+                  ui-rating.reviews {
+                    --ui-rating-inactive-color: var(--ui-border-color);
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
                 <ui-markdown>
                   <script type="text/markdown">
-                    The rating is a radio group, so it's ONE tab stop and the arrows move the choice.
-
-                    | Key                      | Action                                    |
-                    | ------------------------ | ----------------------------------------- |
-                    | Tab                      | Move into the rating (one stop), then out |
-                    | Arrow Right / Arrow Down | Choose one more (wraps to the first)      |
-                    | Arrow Left / Arrow Up    | Choose one less (wraps to the last)       |
-                    | Home / End               | Choose the lowest / highest rating        |
-                    | Space                    | Choose the focused icon                   |
-                    | Backspace / Delete       | Clear a `clearable` rating                |
+                    `color` sets the filled icons' hue through the shared colour remap (`--ui-color`), so a coloured rating ignores
+                    `--ui-rating-active-color` (filled) and `--ui-rating-selected-color` (the hover preview); `size` scales the
+                    whole rating. Never set the `--_ui-*` names: they're the
+                    sheet's private plumbing.
                   </script>
                 </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-rating" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The rating is a group of real radios: one per icon, each named "3 of 5" (translatable).
-
-                    - The group is a `radiogroup` named by the host's `aria-label` or a `<label for>`. A fractional rating adds a
-                      description, "Rated 3.5 of 5".
-                    - `readonly` stays focusable and announced but can't change; `disabled` leaves the tab order.
-                    - Colour is never the only signal: filled and empty icons differ in shape, and the radios carry the count.
-                    - If the element can't render, its native fallback is the same group of real radios, numbered instead of icons,
-                      so the rating still works and submits; colours, sizes, the hover preview, partial icons, `clearable` and
-                      Home / End are dropped.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `value` is a plain attribute; listen for `ui-change` with your framework's custom-event syntax.
-                  </script>
-                </ui-markdown>
-                <ui-header level="4" id="framework-react">React 19</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    <ui-rating name="food" max-rating={5} value={stars} onui-change={(event) => setStars(event.detail.value)} />
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                    <ui-rating name="food" max-rating="5" :value="stars" @ui-change="(event) => (stars = event.detail.value)" />
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    // no `on:` namespace:  listen through a ref
-                    <ui-rating
-                      name="food"
-                      max-rating="5"
-                      value={stars()}
-                      ref={(el) => el.addEventListener("ui-change", (event) => setStars(event.detail.value))}
-                    />
-                  </script>
-                </ui-code>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-rating"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-rating-*` tokens: set one on the element, on any ancestor (`:root` included), or on
-                    the group's box through `::part(rating)`. They inherit into the shadow root, where the sheet reads each through a
-                    private alias, so nothing inside blocks them. Style one icon with `::part(icon)`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    /* every rating on the page */
-                    :root {
-                      --ui-rating-icon-width: 1.5em;
-                    }
-                    /* one kind:  quieter empty icons */
-                    ui-rating.reviews {
-                      --ui-rating-inactive-color: var(--ui-border-color);
-                    }
-                  </script>
-                </ui-code>
-                <ui-message state="info" size="small">
-                  <ui-markdown>
-                    <script type="text/markdown">
-                      `color` sets the filled icons' hue through the shared colour remap (`--ui-color`), so a coloured rating ignores
-                      `--ui-rating-active-color` (filled) and `--ui-rating-selected-color` (the hover preview); `size` scales the
-                      whole rating. Never set the `--_ui-*` names: they're the
-                      sheet's private plumbing.
-                    </script>
-                  </ui-markdown>
-                </ui-message>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-rating" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    No Fomantic theme restyles the rating itself: Fomantic's own rating page lists only the default theme. The
-                    site-wide themes in the header (Material, GitHub, Dark ...) still change the colours and fonts it inherits.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles the rating itself: Fomantic's own rating page lists only the default theme. The
+                  site-wide themes in the header (Material, GitHub, Dark ...) still change the colours and fonts it inherits.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

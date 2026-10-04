@@ -31,6 +31,7 @@ function tagOf(tag: string, folder: string, overrides: Partial<SiteTag> = {}): S
     folder,
     mainTag: folder,
     main: tag === folder,
+    page: tag === folder,
     topics: [],
     aka: [],
     noun: tag.replace(/^x-/, ""),

@@ -116,6 +116,7 @@ describe("PageServer", () => {
     expect(page.status).toBe(200)
     expect(page.text).toContain("<p>UI</p>")
     expect(page.text).toContain(`<script src="/_server/live.js" defer></script>`)
+    expect(page.text).toContain(SRV.FAVICON_LINKS)
     const served = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(page.text)![1]!) as SRV.ServerConfig
     expect(served.file).toBe("/packages/ui/site/button.html")
     const script = await ask(port, "GET", "/ui/_assets/site.js")

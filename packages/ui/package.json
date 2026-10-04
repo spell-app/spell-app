@@ -375,6 +375,7 @@
     "site:bundle": "tsx scripts/site-bundle.ts",
     "site:build": "yarn site:data && yarn site:index && yarn site:kitchen && yarn site:bundle",
     "site:new": "tsc -p scripts && tsx scripts/site-new.ts",
+    "site:sections": "tsx scripts/site-sections.ts",
     "site:check": "tsx tools/SiteCheck.ts",
     "/////// GENERATED": "",
     "gen:styles": "tsc -p scripts && tsx scripts/gen-styles.ts",

@@ -290,6 +290,12 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- `src/components/ui-parts/ui-parts.css` `:state(in-item) > .avatar` [V]:  sets only `display` / `overflow` / round corners,
+  no size and no `vertical-align`, so an item's `<ui-avatar>` draws at the image's own size (~3em for Fomantic's
+  `avatar/small/*.jpg`) with the name on its baseline, while a card's is 2em, `vertical-align: middle`
+  (`--ui-card-avatar-size`).  Fomantic's `ui avatar image` is 2em everywhere.  Seen on `site/components/ui-avatar.html`,
+  Owners / Item.  Prove:  compare the two avatars' boxes;  fix with an `--ui-item-avatar-size` alias like the card's.
+  (2026-10-04)
 - `src/components/ui-step/` horizontal `<ui-steps circular>`:  a description that wraps to a third line spills out of
   the group's box (the next example's header crowds it;  inside an `<ui-segment inverted>` the last line is clipped
   at the segment's bottom edge).  Seen on the site page `site/components/ui-step.html`, Ordered (second block) and
@@ -433,6 +439,12 @@ every entry below that date was fixed or disproven;  what's left:
 - `site/` masthead `<ui-docs-themes for>`:  a family with no Fomantic theme (embed, nag, flyout) shows a
   `0 themes` picker, and one with a single theme `1 themes` (I71);  maybe hide the picker at 0.
   (2026-10-03, epic `spell-ui-pages` P4)
+- `src/docs-components/ui-docs-api/` tables:  on a component page loaded on the Examples tab, switching to API (a
+  click, or `tabs.value = "api"`) shows every table STACKED (each row's cells one under another, header cells in a
+  column) at 1400px;  loaded straight on `#api` they're normal columns.  Looks like the tables decide to stack while
+  their pane is hidden (width 0) and don't re-decide when it shows.  Prove:  load `components/ui-button.html`, set
+  `document.querySelector("#site-tabs").value = "api"`, screenshot;  compare with `ui-button.html#api`.  (2026-10-04,
+  epic `ui-docs-rework` P6)
 
 ### 4. Types / API surface
 

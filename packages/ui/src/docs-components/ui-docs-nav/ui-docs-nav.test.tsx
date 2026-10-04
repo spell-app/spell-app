@@ -29,6 +29,7 @@ function tag(name: string, tagName: string, topics: string[], extra: Partial<Sit
     folder,
     mainTag: folder,
     main: folder === tagName,
+    page: folder === tagName,
     href: folder === tagName ? `components/${folder}.html` : `components/${folder}.html#${tagName}`,
     topics,
     aka: [],
@@ -114,16 +115,11 @@ async function settle(nav: Element) {
   flush()
 }
 
-/** The nav's link items, by `data-nav-link`, in order. */
+/** The nav's SHOWN links (none in a shut, `inert` fold), by `data-nav-link`, in order. */
 function links(nav: Element, scope = ""): string[] {
-  return [...nav.shadowRoot!.querySelectorAll(`${scope} [data-nav-link]`)].map((item) =>
-    item.getAttribute("data-nav-link")!
-  )
-}
-
-/** `item`'s rendered box (`<a>` / `<button>` / `<div>`). */
-function boxOf(item: Element): HTMLElement {
-  return item.shadowRoot!.querySelector<HTMLElement>("[part~=item]")!
+  return [...nav.shadowRoot!.querySelectorAll(`${scope} [data-nav-link]`)]
+    .filter((link) => !link.closest("[inert]"))
+    .map((link) => link.getAttribute("data-nav-link")!)
 }
 
 /** The element in `nav`'s shadow root matching `selector`. */
@@ -169,19 +165,35 @@ describe("<ui-docs-nav> lists", () => {
       "kitchen-sink"
     ])
     const menu = find(nav, "[part~=menu]")
-    expect(menu.localName).toBe("ui-menu")
-    expect(menu.hasAttribute("vertical") && menu.hasAttribute("inverted")).toBe(true)
-    expect(menu.shadowRoot!.querySelector("nav")!.getAttribute("aria-label")).toBe("Documentation")
+    expect(menu.localName).toBe("nav")
+    expect(menu.getAttribute("aria-label")).toBe("Documentation")
     expect(find(nav, "[part~=count]").textContent).toBe("5")
+    expect([...nav.shadowRoot!.querySelectorAll(".group .band")].map((band) => band.textContent)).toEqual([
+      "Get started",
+      "Components5",
+      "Foundation"
+    ])
+  })
+
+  it("is a panel:  the header band (slot, search, view switch) above the scrolling list", async () => {
+    const nav = await render("", `<ui-docs-nav base="#/"><b slot="header">Spell UI</b></ui-docs-nav>`)
+    const panel = find(nav, "[part~=nav]")
+    expect([...panel.children].map((child) => child.getAttribute("part"))).toEqual(["header", "menu"])
+    const header = find(nav, "[part~=header]")
+    expect(header.querySelector("slot")!.assignedElements()[0]!.textContent).toBe("Spell UI")
+    expect(header.querySelector("[part~=search]")).not.toBeNull()
+    expect(header.querySelector("[part~=views]")).not.toBeNull()
+    expect(getComputedStyle(find(nav, "[part~=menu]")).overflowY).toBe("auto")
   })
 
   it("links relative to `base`:  a sub-tag to its heading on its family's page", async () => {
     const nav = await render()
-    expect(boxOf(find(nav, '[data-nav-link="index"]')).getAttribute("href")).toBe("#/index.html")
-    expect(boxOf(find(nav, '[data-nav-link="ui-button"]')).getAttribute("href")).toBe("#/components/ui-button.html")
-    expect(boxOf(find(nav, '[data-nav-link="ui-buttons"]')).getAttribute("href")).toBe(
+    expect(find(nav, '[data-nav-link="index"]').getAttribute("href")).toBe("#/index.html")
+    expect(find(nav, '[data-nav-link="ui-button"]').getAttribute("href")).toBe("#/components/ui-button.html")
+    expect(find(nav, '[data-nav-link="ui-buttons"]').getAttribute("href")).toBe(
       "#/components/ui-button.html#ui-buttons"
     )
+    expect(find(nav, '[data-nav-link="ui-buttons"]').localName).toBe("a")
   })
 
   it("defaults `base` to the site root above the data file", async () => {
@@ -197,18 +209,45 @@ describe("<ui-docs-nav> lists", () => {
     expect(nav.shadowRoot!.querySelector('[data-nav-link="ui-input"] .status')).toBeNull()
   })
 
-  it("marks the current component page:  `selected`, `aria-current=page`, only its main tag", async () => {
+  it("marks the current component page:  `aria-current=page`, only its main tag;  moves with `current`", async () => {
     const nav = await render(`current="ui-button"`)
-    const item = find(nav, '[data-nav-link="ui-button"]')
-    expect(item.hasAttribute("selected")).toBe(true)
-    expect(boxOf(item).getAttribute("aria-current")).toBe("page")
-    expect(find(nav, '[data-nav-link="ui-buttons"]').hasAttribute("selected")).toBe(false)
-    expect(find(nav, '[data-nav-link="index"]').hasAttribute("selected")).toBe(false)
+    expect(find(nav, '[data-nav-link="ui-button"]').getAttribute("aria-current")).toBe("page")
+    expect(find(nav, '[data-nav-link="ui-buttons"]').hasAttribute("aria-current")).toBe(false)
+    expect(find(nav, '[data-nav-link="index"]').hasAttribute("aria-current")).toBe(false)
+    nav.setAttribute("current", "ui-input")
+    await settle(nav)
+    expect(find(nav, '[data-nav-link="ui-button"]').hasAttribute("aria-current")).toBe(false)
+    expect(find(nav, '[data-nav-link="ui-input"]').getAttribute("aria-current")).toBe("page")
+  })
+
+  it("links a sub-tag with its own page there, and marks it current;  a sub-tag on its family page never", async () => {
+    const radio = tag("Radio", "ui-radio", ["forms"], {
+      folder: "ui-checkbox",
+      page: true,
+      href: "components/ui-radio.html"
+    })
+    const pages = { "ui-radio": { title: "Radio", summary: "", status: "planned" as const } }
+    SiteData.reset(
+      serve({
+        ...DATA,
+        components: [...DATA.components, radio],
+        families: { ...DATA.families, "ui-checkbox": { ...family("ui-checkbox"), pages } }
+      })
+    )
+    const nav = await render(`current="ui-radio"`)
+    const row = find(nav, '[data-nav-link="ui-radio"]')
+    expect(row.getAttribute("href")).toBe("#/components/ui-radio.html")
+    expect(row.getAttribute("aria-current")).toBe("page")
+    // its own page's status, not its family's
+    expect(find(nav, '[data-nav-link="ui-radio"] .status').textContent).toBe("planned")
+    nav.setAttribute("current", "ui-buttons")
+    await settle(nav)
+    expect(find(nav, '[data-nav-link="ui-buttons"]').hasAttribute("aria-current")).toBe(false)
   })
 
   it("marks a hand-written page, and shows a load error", async () => {
     const nav = await render(`current="getting-started"`)
-    expect(boxOf(find(nav, '[data-nav-link="getting-started"]')).getAttribute("aria-current")).toBe("page")
+    expect(find(nav, '[data-nav-link="getting-started"]').getAttribute("aria-current")).toBe("page")
 
     SiteData.reset("/no-such-folder/_data/components.json")
     const broken = await render()
@@ -225,13 +264,14 @@ describe("<ui-docs-nav> topics", () => {
     expect(nav.shadowRoot!.querySelectorAll(".topic")).toHaveLength(3)
   })
 
-  it("groups by topic:  a toggle per used topic with its count, a tag under each of its topics", async () => {
+  it("groups by topic:  a band per used topic with its count, a tag under each of its topics", async () => {
     const nav = await render(`view="topics"`)
     const toggles = [...nav.shadowRoot!.querySelectorAll(".topic")]
     expect(toggles.map((toggle) => toggle.getAttribute("data-nav-topic"))).toEqual(["buttons", "forms", "date & time"])
     expect(toggles.map((toggle) => toggle.querySelector(".count")!.textContent)).toEqual(["3", "3", "1"])
-    expect(boxOf(toggles[0]!).localName).toBe("button")
-    expect(boxOf(toggles[0]!).getAttribute("aria-expanded")).toBe("false")
+    expect(toggles[0]!.localName).toBe("button")
+    expect(toggles[0]!.parentElement!.localName).toBe("h3")
+    expect(toggles[0]!.getAttribute("aria-expanded")).toBe("false")
     expect(links(nav, ".topic-rows")).toEqual([])
   })
 
@@ -239,7 +279,9 @@ describe("<ui-docs-nav> topics", () => {
     const nav = await render(`view="topics"`)
     await click(nav, '[data-nav-topic="forms"]')
     expect(links(nav, ".topic-rows")).toEqual(["ui-calendar", "ui-checkbox", "ui-input"])
-    expect(boxOf(find(nav, '[data-nav-topic="forms"]')).getAttribute("aria-expanded")).toBe("true")
+    const toggle = find(nav, '[data-nav-topic="forms"]')
+    expect(toggle.getAttribute("aria-expanded")).toBe("true")
+    expect(find(nav, `#${toggle.getAttribute("aria-controls")}`).classList.contains("open")).toBe(true)
     expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.openTopics)!)).toEqual(["forms"])
 
     const again = await render(`view="topics"`)
@@ -283,6 +325,67 @@ describe("<ui-docs-nav> topics", () => {
   })
 })
 
+describe("<ui-docs-nav> folding groups", () => {
+  it("folds a group away from its band:  `aria-expanded`, the fold `inert`, remembered", async () => {
+    const nav = await render()
+    const band = find(nav, '[data-nav-group="start"]')
+    expect(band.parentElement!.localName).toBe("h2")
+    expect(band.getAttribute("aria-expanded")).toBe("true")
+    await click(nav, '[data-nav-group="start"]')
+    expect(band.getAttribute("aria-expanded")).toBe("false")
+    expect(find(nav, `#${band.getAttribute("aria-controls")}`).hasAttribute("inert")).toBe(true)
+    expect(links(nav)).not.toContain("getting-started")
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.closedGroups)!)).toEqual(["start"])
+
+    const again = await render()
+    expect(find(again, '[data-nav-group="start"]').getAttribute("aria-expanded")).toBe("false")
+    await click(again, '[data-nav-group="start"]')
+    expect(links(again)).toContain("getting-started")
+    expect(localStorage.getItem(STORAGE_KEYS.closedGroups)).toBeNull()
+  })
+
+  it("opens a folded Components group while searching, unremembered;  clearing folds it again", async () => {
+    localStorage.setItem(STORAGE_KEYS.closedGroups, JSON.stringify(["components"]))
+    const nav = await render()
+    expect(links(nav, ".components")).toEqual([])
+    await search(nav, "inp")
+    expect(links(nav, ".components")).toEqual(["ui-input"])
+    await click(nav, '[data-nav-group="components"]')
+    expect(links(nav, ".components")).toEqual([])
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.closedGroups)!)).toEqual(["components"])
+    await search(nav, "")
+    expect(links(nav, ".components")).toEqual([])
+  })
+
+  it("keeps a shut topic's rows until its fold has eased shut (with motion), then drops them", async () => {
+    const nav = await render(`view="topics"`)
+    await click(nav, '[data-nav-topic="forms"]')
+    // let it ease open first (the fold's style computed, its opening finished)
+    const fold = find(nav, '[data-nav-fold="forms"]')
+    await Promise.all(fold.getAnimations().map((animation) => animation.finished))
+    await click(nav, '[data-nav-topic="forms"]')
+    expect(links(nav, ".topic-rows")).toEqual([])
+    const rendered = () => nav.shadowRoot!.querySelectorAll(".topic-rows [data-nav-link]").length
+    if (matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+      expect(rendered()).toBe(3)
+      expect(fold.hasAttribute("inert")).toBe(true)
+    }
+    await expect.poll(rendered).toBe(0)
+  })
+
+  it("drops a topic shut while it eases open at once:  no `transitionend` comes", async () => {
+    const nav = await render(`view="topics"`)
+    await click(nav, '[data-nav-topic="forms"]')
+    await click(nav, '[data-nav-topic="forms"]')
+    await expect.poll(() => nav.shadowRoot!.querySelectorAll(".topic-rows").length).toBe(0)
+  })
+
+  it("is `settled` once the list is ready and the current page revealed", async () => {
+    const nav = await render(`current="ui-input"`)
+    expect(nav.matches(":state(settled)")).toBe(true)
+  })
+})
+
 describe("<ui-docs-nav> search", () => {
   it.each([
     ["butt", ["ui-button", "ui-buttons", "ui-checkbox"]],
@@ -293,7 +396,7 @@ describe("<ui-docs-nav> search", () => {
   ])("matches name, tag, other names and topics:  %j", async (text, tags) => {
     const nav = await render()
     await search(nav, text)
-    expect(links(nav, ".rows")).toEqual(tags)
+    expect(links(nav, ".components")).toEqual(tags)
     expect(find(nav, "[part~=count]").textContent).toBe(String(tags.length))
     expect(nav.matches(":state(searching)")).toBe(true)
     expect(find(nav, "[role=status]").textContent).toBe(
@@ -304,11 +407,11 @@ describe("<ui-docs-nav> search", () => {
   it("says when nothing matches, and restores everything when cleared", async () => {
     const nav = await render()
     await search(nav, "zzz")
-    expect(links(nav, ".rows")).toEqual([])
+    expect(links(nav, ".components")).toEqual([])
     expect(nav.matches(":state(empty)")).toBe(true)
     expect(find(nav, ".empty").textContent).toBe("No components match")
     await search(nav, "")
-    expect(links(nav, ".rows")).toHaveLength(5)
+    expect(links(nav, ".components")).toHaveLength(5)
     expect(nav.matches(":state(searching)")).toBe(false)
     expect(find(nav, "[role=status]").textContent).toBe("")
   })
@@ -353,13 +456,13 @@ describe("<ui-docs-nav> favourites", () => {
     expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.favorites)!)).toEqual(["ui-input"])
     expect(events).toEqual([{ tag: "ui-input", favorite: true, favorites: ["ui-input"] }])
     expect(nav.favorites).toEqual(["ui-input"])
-    const star = find(nav, '.rows:not(.favorites) > [data-nav-star="ui-input"]')
+    const star = find(nav, '.rows:not(.favorites) [data-nav-star="ui-input"]')
     const button = star.shadowRoot!.querySelector("button")!
     expect(button.getAttribute("aria-pressed")).toBe("true")
     expect(button.getAttribute("aria-label")).toBe("Remove Input from favourites")
 
     // un-starred from Favourites:  the row goes, focus moves to the tag's star below
-    await click(nav, '.favorites > [data-nav-star="ui-input"]')
+    await click(nav, '.favorites [data-nav-star="ui-input"]')
     expect(nav.shadowRoot!.querySelector(".favorites")).toBeNull()
     expect(localStorage.getItem(STORAGE_KEYS.favorites)).toBeNull()
     expect(nav.shadowRoot!.activeElement).toBe(star)
@@ -392,10 +495,9 @@ describe("<ui-docs-nav> favourites", () => {
 })
 
 describe("<ui-docs-nav> navigation and scrolling", () => {
-  it("fires a cancelable `ui-navigate` for a plain click on a link;  stops the inner menu's `ui-select`", async () => {
+  it("fires a cancelable `ui-navigate` for a plain click on a link", async () => {
     const nav = await render()
     const seen: string[] = []
-    nav.addEventListener("ui-select", () => seen.push("ui-select"))
     nav.addEventListener("ui-navigate", (event) => {
       const { page, href } = (event as CustomEvent<{ page: string; href: string }>).detail
       seen.push(`${page} ${new URL(href).hash}`)
@@ -407,15 +509,16 @@ describe("<ui-docs-nav> navigation and scrolling", () => {
     expect(location.href).toBe(before)
   })
 
-  it("scrolls the current page's item into view inside a sized scroll box, never the page", async () => {
+  it("scrolls the current page's link into view inside the panel's list, never the page", async () => {
     const page = window.scrollY
     const nav = await render(
       "",
-      `<ui-docs-nav base="#/" current="ui-input" style="--ui-docs-nav-height: 200px"></ui-docs-nav>`
+      `<ui-docs-nav base="#/" current="ui-input" style="--ui-docs-nav-height: 260px"></ui-docs-nav>`
     )
-    const box = find(nav, "[part~=nav]")
+    expect(find(nav, "[part~=nav]").getBoundingClientRect().height).toBe(260)
+    const box = find(nav, "[part~=menu]")
     expect(box.scrollHeight).toBeGreaterThan(box.clientHeight)
-    const item = boxOf(find(nav, '[data-nav-link="ui-input"]')).getBoundingClientRect()
+    const item = find(nav, '[data-nav-link="ui-input"]').getBoundingClientRect()
     const port = box.getBoundingClientRect()
     expect(item.top).toBeGreaterThanOrEqual(port.top)
     expect(item.bottom).toBeLessThanOrEqual(port.bottom)
@@ -423,7 +526,7 @@ describe("<ui-docs-nav> navigation and scrolling", () => {
     expect(window.scrollY).toBe(page)
   })
 
-  it("puts slotted header / footer content in items of their own", async () => {
+  it("puts slotted header / footer content in boxes of their own", async () => {
     const nav = await render(
       "",
       `<ui-docs-nav base="#/"><b slot="header">Spell UI</b><i slot="footer">v1</i></ui-docs-nav>`

@@ -942,6 +942,10 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   (`parity.md`, `static-parity.md`, Playwright's `output/` is emptied first), so a report or diff image read a minute
   later belonged to another agent's run, or was gone. · Copy the report to the scratchpad right after each run, and
   read diff images before starting the next run. · ui
+- 2026-10-04 · `yarn site:check` failed a page with `HTTP 404 ... /ui/_assets/site.js` (and then every in-page check
+  on it):  another agent ran `yarn site:bundle` in the same worktree meanwhile, and the build empties `_assets/`
+  before writing it again. · Rerun the page once the other build is done;  agents sharing a worktree:  say before
+  rebuilding the bundle, and don't run `site:check --all` across someone's rebuild. · ui
 
 ## app
 
@@ -1155,6 +1159,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   section (added that day), and `/park`'s `plan_status()` read the failure as "not done". · `summary` reads through
   `findList()` (adds nothing, never throws);  `migrate` still adds the section.  Plan docs are read by PATH now
   (`plan-doc summaries`), in one run. · docs
+- 2026-10-04 · `yarn docs:update` failed at "check links" before any page check ran:  the finished epic
+  `epics/ui-component-creation/ui-component-creation.html` still linked to Astro files that P7 of `spell-ui-pages`
+  deleted (`site/src/layouts/Docs.astro`, `ui-root.mdx`, `RootDemo.astro`), broken on `main` too. · Unlinked the
+  four (kept their `<code>` names, the history).  A page-deleting change wants `doc-links.py --check` on EVERY page,
+  epics included. · ui-docs-rework
 
 ## claude-code
 
@@ -1264,6 +1273,16 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   update a flagged file even when it's unchanged.  `git checkout -- <file>` alone doesn't help while flagged. ·
   Back them up, `git update-index --no-skip-worktree` (paths from the REPO ROOT), `git checkout -- workspaces`,
   merge, write the local edits back on top, `git update-index --skip-worktree` again. · claude-code
+- 2026-10-04 · In a worktree-isolated session, a Bash call running `python3 - <<'EOF' ... EOF` (a multi-line edit
+  script) was refused:  "too complex to verify that it stays inside the worktree".  Same for a long `grep -rn` with
+  several `--include` flags.  Also zsh:  an unquoted `--include=*.ts` fails with "no matches found". · Write the
+  script to the scratchpad with the Write tool and run `python3 <file>`;  quote globs (`--include='*.ts'`), and
+  keep each command short and plain. · claude-code
+- 2026-10-04 · In a worktree-isolated session, `yarn plan-doc add ... --details "<p>...</p>"` was refused ("runs yarn
+  with the text <p>... cannot be shown not to be git") whenever the details held an apostrophe (`nav's`,
+  `flyout's`);  the same call without one ran.  Several such calls in one turn:  the refused ones just drop out. ·
+  Write the details without apostrophes (or `&#39;`), one `plan-doc add` per Bash call, and check each printed an
+  id. · claude-code
 
 ## vscode
 

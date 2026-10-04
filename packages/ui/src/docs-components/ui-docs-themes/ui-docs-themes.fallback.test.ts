@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { Fixture } from "$/ui/test/fixture"
 import { expectAccessible } from "$/ui/test/a11y"
@@ -13,49 +13,73 @@ FallbackStub.define("x-fb-docs-themes", (host, root, internals) =>
   DocsThemesFallback.render(host, root, new Error("boom"), internals)
 )
 
+/** `host`'s fallback wrapper. */
+function controlsOf(host: StubHost) {
+  return FallbackStub.shadow(host).firstElementChild as HTMLElement
+}
+
+beforeEach(() => {
+  vi.spyOn(ThemePreference, "osScheme").mockReturnValue("light")
+})
+
 afterEach(async () => {
   localStorage.removeItem(DOCS_LOOK_KEYS.theme)
   localStorage.removeItem(DOCS_LOOK_KEYS.scheme)
   ThemePreference.reset()
   ThemePreference.applyScheme("system")
   await ThemeSheets.apply(undefined)
+  vi.restoreAllMocks()
 })
 
 describe("DocsThemesFallback", () => {
-  it("renders the class grammar, a native select of every theme and three scheme buttons", async () => {
+  it("renders the class grammar, a native select of every theme, a scheme button and a Match system box", async () => {
     const host = Fixture.render<StubHost>(`<x-fb-docs-themes size="small"></x-fb-docs-themes>`)
-    const controls = FallbackStub.shadow(host).firstElementChild as HTMLElement
+    const controls = controlsOf(host)
     expect(controls.className).toBe("ui small themes")
     expect(controls.getAttribute("part")).toBe("controls")
     const select = controls.querySelector("select[part=theme]")!
     const values = [...select.querySelectorAll("option")].map((option) => option.value)
-    expect(values.slice(0, 2)).toEqual(["default", "classic"])
-    expect(values.slice(2).sort()).toEqual([...ThemeSheets.names].sort())
+    expect(values.slice(0, 3)).toEqual(["spell", "default", "classic"])
+    expect(values.slice(3).sort()).toEqual([...ThemeSheets.names].sort())
     expect(select.querySelector("optgroup")!.label).toBe("Fomantic themes")
-    const buttons = [...controls.querySelectorAll("button")]
-    expect(buttons.map((button) => button.getAttribute("part"))).toEqual(["light", "dark", "system"])
-    expect(buttons.map((button) => button.getAttribute("aria-pressed"))).toEqual(["false", "false", "true"])
+    expect(controls.querySelector("button[part=scheme]")!.textContent).toBe("Switch to dark")
+    const system = controls.querySelector("label[part=system]")!
+    expect(system.textContent!.trim()).toBe("Match system")
+    expect(system.querySelector("input")!.checked).toBe(true)
     await expectAccessible(host)
   })
 
   it("still applies and remembers a choice, and fires ui-change", async () => {
     const host = Fixture.render<StubHost>(`<x-fb-docs-themes></x-fb-docs-themes>`)
-    const controls = FallbackStub.shadow(host).firstElementChild as HTMLElement
+    const controls = controlsOf(host)
     const changes: unknown[] = []
     host.addEventListener("ui-change", (event) => changes.push((event as CustomEvent).detail))
-    controls.querySelector<HTMLButtonElement>("button[part=dark]")!.click()
+    const button = controls.querySelector<HTMLButtonElement>("button[part=scheme]")!
+    button.click()
     expect(document.documentElement.classList.contains("ui-dark")).toBe(true)
-    expect(controls.querySelector("button[part=dark]")!.getAttribute("aria-pressed")).toBe("true")
+    expect(localStorage.getItem(DOCS_LOOK_KEYS.scheme)).toBe("dark")
+    expect(button.textContent).toBe("Switch to light")
+    const box = controls.querySelector<HTMLInputElement>("label[part=system] input")!
+    expect(box.checked).toBe(false)
+    box.click()
+    expect(localStorage.getItem(DOCS_LOOK_KEYS.scheme)).toBeNull()
+    expect(button.textContent).toBe("Switch to dark")
     const select = controls.querySelector("select")!
     select.value = "github"
     select.dispatchEvent(new Event("change"))
     await vi.waitFor(() => expect(ThemeSheets.current).toBe("github"))
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBe("github")
-    expect(changes).toMatchObject([{ scheme: "dark" }, { theme: "github", scheme: "dark" }])
+    expect(changes).toMatchObject([
+      { scheme: "dark", shown: "dark" },
+      { scheme: "system", shown: "light" },
+      { theme: "github", scheme: "system" }
+    ])
   })
 
-  it("show=scheme leaves the select out", () => {
-    const host = Fixture.render<StubHost>(`<x-fb-docs-themes show="scheme"></x-fb-docs-themes>`)
-    expect(FallbackStub.shadow(host).querySelector("select")).toBeNull()
+  it("show=scheme:  the button alone;  show=theme:  the select alone", () => {
+    const scheme = controlsOf(Fixture.render<StubHost>(`<x-fb-docs-themes show="scheme"></x-fb-docs-themes>`))
+    expect([...scheme.children].map((child) => child.getAttribute("part"))).toEqual(["scheme"])
+    const theme = controlsOf(Fixture.render<StubHost>(`<x-fb-docs-themes show="theme"></x-fb-docs-themes>`))
+    expect([...theme.children].map((child) => child.getAttribute("part"))).toEqual(["theme"])
   })
 })

@@ -15,21 +15,28 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
 
 - Title, summary and status come from `site/_data/pages.json` (`families.<folder>`).  A wrong summary:  fix it THERE
   (hand-kept, the durable home) and rerun `yarn site:data`;  never only in the page.
+- One page per FAMILY, except tags that stand alone (epic ui-docs-rework, P7):  a family's `pages` map in
+  `pages.json` names them (`ui-radio`, `ui-textarea`, the Parts tags but `ui-header`), and `yarn site:new <tag>`
+  writes `site/components/<tag>.html` for one:  one tag's API (`<ui-docs-api tag>`), its own theme picker.  The
+  family page keeps the family's whole API and links each own page.
 - It refuses to overwrite;  `--force` regenerates (and loses your content:  don't).
 - What you get (DON'T change it;  it is the template's, `packages/docs/templates/spell-ui-docs.html`):
   - `<head>`:  the scheme script, `../_assets/site.css`, `../_assets/site.js`
-  - `<spell-site-header>`, `<ui-root class="site" stack-with="page" icons="fa7-brands, fomantic"
-    display="immediately">`:  `stack-with="page"` makes every `stackable` / `doubling` example inside (grid, cards,
-    steps, form rows, items, statistics, token tables) stack by the SCREEN, as on fomantic-ui.com, not by the
-    ~755px docs column (D40).  So keep Fomantic's markup:  no `unstackable` to stop a desktop stack, and no
+  - `<body>`:  ONE `<main id="main" class="site-main">`, nothing else.  The chrome -- `<spell-site-header>`, top bar,
+    nav column, footer and `<ui-root class="site" stack-with="page" icons="fa7-brands, fomantic"
+    display="when-ready">` -- is `site/_parts/layout.html`, written once, which the bundle wraps around the `main`
+    (epic ui-docs-rework, `site/README.md`).  `stack-with="page"` makes every `stackable` / `doubling` example
+    (grid, cards, steps, form rows, items, statistics, token tables) stack by the SCREEN, as on fomantic-ui.com, not
+    by the ~755px docs column (D40).  So keep Fomantic's markup:  no `unstackable` to stop a desktop stack, and no
     `stack-with` on an example unless it is ABOUT `stack-with`
-  - header + footer as `<ui-include page-styles>` of `_parts/header.html` / `_parts/footer.html`
-  - the nav column, the masthead (title, summary, status label unless done, source / bug / Fomantic links, the
+  - inline scripts in `main` run on every visit;  styles go in `main` (never `<head>`:  a page swap drops it)
+  - in the `main`:  the masthead (title, summary, status label unless done, source / bug / Fomantic links, the
     family's `<ui-docs-themes for>`)
-  - `<ui-rail>` + `<ui-sticky>` + `<ui-docs-toc for="site-tabs">` ("On this page", built at runtime)
+  - "On this page" is the layout's (`<ui-docs-toc>` in its right column, pointed at each page by the router):  it
+    lists your sections, nested, by itself
   - `<ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>` (a
-    segmented control across the column, four equal tabs) with four panes:  `examples`, `usage`, `api`,
-    `theming`.  YOU fill the CONTENTS of the `examples`, `usage` and `theming` panes;  `api` is done
+    segmented control across the column, four equal tabs, its bar sticky) with four panes:  `examples`, `usage`,
+    `api`, `theming`.  YOU fill the CONTENTS of the `examples`, `usage` and `theming` panes;  `api` is done
     (`<ui-docs-api family>`, generated from the vocabularies).
 
 ## 2. Sources
@@ -49,35 +56,53 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
 
 ## 3. Examples pane
 
-```html
-<ui-header level="2" dividing id="types">Types</ui-header>
+Content is NESTED `<ui-section>`s (epic ui-docs-rework, P6):  a section per Fomantic `h2`, a section per example
+inside it.  Every one is `sticky collapsible dividing`:  its title sticks below the tabs' bar (nested ones stack),
+it folds (the reader's folds are remembered per page;  everything starts open), and its id spells out where it is,
+so `#examples-types-emphasis` deep-links to it (its tab shown, the sections around it unfolded).
 
-<ui-docs-example header="Emphasis" description="A button can be formatted to show different levels of emphasis.">
-  <ui-button primary>Save</ui-button>
-  <ui-button>Discard</ui-button>
-</ui-docs-example>
-<ui-docs-example>
-  <ui-button secondary>Okay</ui-button>
-</ui-docs-example>
+```html
+<ui-section id="examples-types" header="Types" sticky collapsible dividing>
+  <ui-section id="examples-types-emphasis" header="Emphasis" sticky collapsible dividing>
+    <ui-docs-example description="A button can be formatted to show different levels of emphasis.">
+      <ui-button primary>Save</ui-button>
+      <ui-button>Discard</ui-button>
+    </ui-docs-example>
+    <ui-docs-example>
+      <ui-button secondary>Okay</ui-button>
+    </ui-docs-example>
+  </ui-section>
+</ui-section>
 ```
 
-- A SECTION per Fomantic `h2` (Types, Content, States, Variations, Groups, Group Variations ...):
-  `<ui-header level="2" dividing id="...">`.  ids lowercase-kebab, unique, NEVER `examples` / `usage` / `api` /
-  `theming` (those are the tab hash).  Sub-sections, rarely:  `level="3"`.
-- An EXAMPLE per Fomantic `.example`:  `<ui-docs-example header description>` around the live markup.  The toc
-  lists it under its section and gives it an id from its header (`#labeled-icon`).
-  - Fomantic's header-less `.another.example` continuation => `<ui-docs-example>` with no header.
+- Easiest:  write it FLAT and let `yarn site:sections` (in `packages/ui`, `scripts/site-sections.ts`) nest it:
+  `<ui-header level="2" dividing>Types</ui-header>`, then `<ui-docs-example header="Emphasis" description>` blocks
+  (and, rarely, `<ui-header level="3">` sub-sections).  It wraps each header and what follows it in a section, each
+  headed example in a section of its own (the example loses its `header`:  the section shows it), and writes the
+  ids.  Rerun it after renaming a header:  it fixes the ids.  It never touches what's already nested right.
+- Ids:  `<tab>-<section>-<example>`, each part the lowercase kebab of its header (`TocIndex.slug()`), `-2` ... when
+  taken.  A page without tabs starts at the section (`#general-usage`).  `yarn site:check` fails on an id that
+  doesn't follow its nesting, and on a flat `<ui-header level="2">` left in a pane.
+- A SECTION per Fomantic `h2` (Types, Content, States, Variations, Groups, Group Variations ...).  Sub-sections,
+  rarely:  a section in a section.
+- An EXAMPLE per Fomantic `.example`:  its own section (`header` = the example's name) around a
+  `<ui-docs-example description>` and the live markup.  The toc lists it under its section.
+  - Fomantic's header-less `.another.example` continuation => a second `<ui-docs-example>` (no header) in the same
+    section.
+  - A title with markup:  `<span slot="header">` as the section's first child, instead of `header`.
   - `description`:  one sentence;  `backticks` become code;  `&quot;` for a quote inside the attribute.
   - Richer description or Fomantic's `ui ignored message` notes:  several `slot="description"` children, in order
     (left out of the code shown);  then put the sentence in a `<p slot="description">` too (the attribute stops
     showing):
 
     ```html
-    <ui-docs-example header="Emphasis">
-      <p slot="description">A button can be formatted to show different levels of emphasis.</p>
-      <ui-message slot="description" state="info" size="small">Set your brand colours in <code>--ui-primary</code>.</ui-message>
-      <ui-button primary>Save</ui-button>
-    </ui-docs-example>
+    <ui-section id="examples-types-emphasis" header="Emphasis" sticky collapsible dividing>
+      <ui-docs-example>
+        <p slot="description">A button can be formatted to show different levels of emphasis.</p>
+        <ui-message slot="description" state="info" size="small">Set your brand colours in <code>--ui-primary</code>.</ui-message>
+        <ui-button primary>Save</ui-button>
+      </ui-docs-example>
+    </ui-section>
     ```
 
   - The markup IS the code shown:  clean `<ui-*>` markup, 2-space indent, no `style=`, no `<div class>` chrome.  A
@@ -122,7 +147,8 @@ Not in the table:  read the tag's vocabulary;  still nothing => it's a gap (sect
 
 ## 4. Usage pane
 
-Sections (`<ui-header level="2" dividing id>`), from the old mdx (git, above), tightened:
+Sections (`<ui-section id="usage-<slug>" header sticky collapsible dividing>`, or flat `<ui-header level="2">`
+and `yarn site:sections`, as in section 3), from the old mdx (git, above), tightened:
 
 - Using it -- what to write, which attributes matter (class words, booleans, shorthands vs slots), groups / owners
 - Events -- every `ui-*` event with its `detail`, a `<ui-code language="js">` listener
@@ -137,7 +163,8 @@ Prose:  `<ui-markdown><script type="text/markdown">...</script></ui-markdown>`. 
 
 ## 5. Theming pane
 
-Keep `<ui-docs-tokens family="ui-<name>" playground>` exactly.  Around it:
+Keep `<ui-docs-tokens family="ui-<name>" playground>` exactly.  Around it, in sections as on the other panes
+(`#theming-tokens`, `#theming-themes`):
 
 - Tokens -- how to set the family's public `--ui-<tag>-*` tokens (element, ancestor, `:root`, `::part()`), a
   `<ui-code language="css">` sample, what variations do with them;  "never set `--_*`" (private plumbing)
@@ -153,8 +180,9 @@ needs hand CSS -- is a GAP:
 2. New:  from the WORKTREE ROOT,
    `yarn plan-doc add spell-ui-pages issue "Gap:  <ui-tag> <what's missing>" --details "<p>Fomantic example: ...  What the page does instead: ...</p>"`
    (raw `<tags>` in the title:  the script escapes them).  It prints the id.
-3. In the page, an HTML comment BEFORE the example:  `<!-- GAP I23:  what's wrong, one line. -->`.  Render what we
-   can (closest attributes), or leave the example out with the comment saying so.
+3. In the page, an HTML comment BEFORE the example's section (or, for a header-less example, before the
+   example):  `<!-- GAP I23:  what's wrong, one line. -->`.  `yarn site:sections` keeps a comment with what follows
+   it.  Render what we can (closest attributes), or leave the example out with the comment saying so.
 4. Fix it in the widget ONLY if < ~15 min and local to that one widget, with a test;  then close the issue
    (`yarn plan-doc close spell-ui-pages <id>`) and drop the comment.  A suspected bug, not a gap:
    `SUSPECTED-BUGS.md` (repo root, `## ui`).
@@ -165,8 +193,9 @@ From `packages/ui`:
 
 1. `yarn site:check ui-<name>` -- must print `OK`.  Fails on console errors, 404s, undefined / unrendered `ui-*`, a
    missing tab, an empty toc on the Examples tab, phone-width overflow (it names the offenders:  usually an example;
-   wide demos scroll inside their frame on phones), a nav flyout that won't open.
-2. LOOK at the screenshots in `tools/results/site-check/` (`ui-<name>-desk-examples.png`, `-desk-full.png`,
+   wide demos scroll inside their frame on phones), a nav flyout that won't open, a section id that doesn't follow
+   its nesting or a flat level 2 header (`yarn site:sections` fixes both), a deep link that doesn't land.
+2. LOOK at the screenshots in `tools/results/site-check/` (`ui-<name>-desk-examples.png`, `-desk-full.png`, `-desk-deep.png`,
    `-desk-usage|api|theming.png`, `-phone-top|mid|full|nav.png`, `-desk-dark.png`):  every example renders, icons draw,
    nothing overlaps or clips.  Compare section by section with fomantic-ui.com's page.
 3. If you fixed a widget:  `yarn ts` and that family's tests (`yarn vitest run --project browser src/components/ui-<name>`).

@@ -116,6 +116,56 @@
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section id="ui-docs-rework" header="2026-10-04 · Spell UI docs rework" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/ui-docs-rework/ui-docs-rework.html" target="ui-docs-rework"
+                    >epics/ui-docs-rework</a
+                  ></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc:
+                  <a href="spell-ui-site.html" target="src-packages-docs-spell-ui-site-html"
+                    >Spell UI Docs Site</a
+                  ></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>ui-docs-rework</code>, built overnight (<code>/bedtime</code>), merged
+                  2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1: <code>spell</code> theme from the brand (tokens, installed-Palatino serif headings, no font files,
+                  pills, aubergine dark), the default on every doc site; Spell favicon on every site.
+                </li>
+                <li>
+                  P2: one layout (<a
+                    href="../ui/site/_parts/layout.html"
+                    target="src-packages-ui-site-parts-layout-html"
+                    ><code>site/_parts/layout.html</code></a
+                  >); pages are a bare <code>main</code>; <code>SiteShell</code> + <code>SiteRouter</code> swap pages
+                  through <code>&lt;ui-include&gt;</code> (new <code>ui-insert</code> event); no flash on load.
+                </li>
+                <li>P3: <code>&lt;ui-docs-nav&gt;</code> as the brand panel: lockup, folding group bands, nav rows.</li>
+                <li>
+                  P4: no top bar on wide screens; right column with <code>&lt;spell-site-header docked&gt;</code>, look
+                  controls and "On this page"; slim top bar below 1200px.
+                </li>
+                <li>P5: look controls as a sun / moon flip + palette overlay; one scheme key for every site.</li>
+                <li>
+                  P6: 1,749 nested <code>&lt;ui-section&gt;</code>s with nested ids (<code>yarn site:sections</code>),
+                  sticky tabs and titles, deep-link landing, old hashes forwarded.
+                </li>
+                <li>P7: own pages for <code>ui-radio</code>, <code>ui-textarea</code> and the Parts tags.</li>
+                <li>
+                  P8: <code>&lt;ui-docs-search&gt;</code>: this page, components, pages, sections, attributes;
+                  <kbd>/</kbd> and <kbd>⌘K</kbd>.
+                </li>
+              </ul>
+            </ui-section>
+
             <ui-section id="epic-review" header="2026-10-03 → 10-04 · /epic review" sticky collapsible dividing>
               <ui-list class="spell-meta">
                 <ui-item icon="map"
