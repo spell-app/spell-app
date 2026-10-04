@@ -5,7 +5,7 @@
  * - per machine, NOT committed (`.gitignore`):  pending notes and session state, not the record;  what Claude makes
  *   of a mark lands in the plan doc itself
  * - writers:  the page server's route module (`reviewRoutes.ts`, the page's clicks) and `yarn plan-doc inbox ...`
- *   (P6:  Claude taking the marks).  Both go through `updateInbox()` / `updateInboxAsync()`:  under the file's lock
+ *   (Claude taking the marks:  `listen`, `wait`, `apply`, `done`, `clear`).  Both go through `updateInbox()` / `updateInboxAsync()`:  under the file's lock
  *   (`SRV.FileLock`), written atomically (a temp file renamed over it), so neither clobbers the other and a reader
  *   never sees half a file
  * - The helpers on an inbox OBJECT (`setMark()`, `requestNow()`, `markSent()`, `takeNow()` ...) are pure apart from
@@ -16,6 +16,8 @@
  *   - `now`:  `[{ id, action, at, note? }]`, immediate requests (Add Details, revisit now) for Claude to take
  *   - `working`:  `{ [id]: { action, since } }`, Claude's agents at work on an item (the page shows a spinner)
  *   - `listening`:  `{ session, since }` while a Claude session waits on this inbox, else `null`
+ *   - `handedOver`:  the `sent` time a waiting session last took (`takeWork()`), else `null`:  so a second
+ *     `plan-doc inbox wait` doesn't hand the same send over again
  */
 import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 
@@ -63,7 +65,7 @@ export function inboxPath(planDoc) {
 
 /** An inbox with nothing in it. */
 export function emptyInbox() {
-  return { version: INBOX_VERSION, marks: {}, sent: null, now: [], working: {}, listening: null }
+  return { version: INBOX_VERSION, marks: {}, sent: null, now: [], working: {}, listening: null, handedOver: null }
 }
 
 /**
@@ -125,7 +127,7 @@ export function updateInboxAsync(file, change) {
 
 /**
  * Is there nothing in `inbox` worth a file?  No marks, no requests, no agents at work, nobody listening.
- * - `sent` alone doesn't count:  it only dates marks, and there are none
+ * - `sent` and `handedOver` alone don't count:  they only date marks, and there are none
  */
 export function isEmpty(inbox) {
   return !Object.keys(inbox.marks).length && !inbox.now.length && !Object.keys(inbox.working).length && !inbox.listening
@@ -184,6 +186,18 @@ export function unsentMarks(inbox) {
   return markList(inbox).filter((mark) => !isImmediate(mark) && Date.parse(mark.at) > sent)
 }
 
+/**
+ * Marks a "send to Claude" handed over:  `[{ id, ...mark }]`, oldest first.
+ * - made at or before `sent`;  none before the first send
+ * - NOT immediate ones:  those went through `now` (`takeWork()`)
+ * - still here until Claude applies or clears them:  a revisit being talked over stays sent
+ */
+export function sentMarks(inbox) {
+  if (!inbox.sent) return []
+  const sent = Date.parse(inbox.sent)
+  return markList(inbox).filter((mark) => !isImmediate(mark) && Date.parse(mark.at) <= sent)
+}
+
 /** Every mark as `[{ id, ...mark }]`, oldest first. */
 export function markList(inbox) {
   return Object.entries(inbox.marks)
@@ -240,6 +254,59 @@ export function setWorking(inbox, id, action, at = isoTime()) {
 export function setListening(inbox, session, at = isoTime()) {
   inbox.listening = session === null ? null : { session, since: at }
   return inbox.listening
+}
+
+/**
+ * Is there work for a waiting session (`plan-doc inbox wait`)?  A queued immediate request, or a send it hasn't
+ * taken yet (`newSend()`).
+ * - cheap, and read without the lock:  `takeWork()` checks again under it
+ */
+export function hasWork(inbox) {
+  return inbox.now.length > 0 || newSend(inbox)
+}
+
+/** Has Owen pressed "send to Claude" since a waiting session last took a send (`handedOver`)? */
+export function newSend(inbox) {
+  if (!inbox.sent) return false
+  return !inbox.handedOver || Date.parse(inbox.sent) > Date.parse(inbox.handedOver)
+}
+
+/**
+ * TAKE the work waiting for a session:  `{ now, sent }`, or `null` when there's none.
+ * - `now`:  the queued immediate requests (`takeNow()`), each item marked `working` (the page's spinner) until
+ *   Claude's agent is done (`plan-doc inbox done`);  their marks stay till then
+ * - `sent`:  `{ at, marks }` for a send not handed over yet (`newSend()`), else `null`:  every sent mark
+ *   (`sentMarks()`), each `again: true` when an earlier send already handed it over (a revisit still being talked
+ *   over);  `handedOver` becomes `sent`, so a send is taken once
+ *   - a send with no marks left (all applied) is taken quietly:  nothing to wake for
+ * - call it under the lock (`updateInbox()`)
+ */
+export function takeWork(inbox, at = isoTime()) {
+  const now = takeNow(inbox)
+  for (const each of now) setWorking(inbox, each.id, each.action, at)
+  let sent = null
+  if (newSend(inbox)) {
+    const before = inbox.handedOver ? Date.parse(inbox.handedOver) : -Infinity
+    const marks = sentMarks(inbox).map((mark) => ({ ...mark, again: Date.parse(mark.at) <= before }))
+    inbox.handedOver = inbox.sent
+    if (marks.length) sent = { at: inbox.sent, marks }
+  }
+  return now.length || sent ? { now, sent } : null
+}
+
+/**
+ * Remove the marks Claude applied, `[{ id, at }]`, but only while each is still the one applied:  a mark Owen
+ * changed meanwhile (a newer `at`) stays, for the next round.  Returns the ids cleared.
+ */
+export function clearApplied(inbox, marks) {
+  const cleared = []
+  for (const { id, at } of marks) {
+    const key = toItemId(id)
+    if (inbox.marks[key]?.at !== at) continue
+    delete inbox.marks[key]
+    cleared.push(key)
+  }
+  return cleared
 }
 
 ////////////////

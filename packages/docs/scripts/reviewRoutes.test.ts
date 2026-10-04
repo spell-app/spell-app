@@ -10,6 +10,7 @@ import { afterAll, beforeAll, beforeEach, expect, test } from "vitest"
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
+import { emptyInbox } from "./inbox.js"
 import reviewRoutes from "./reviewRoutes"
 
 let root: string
@@ -95,7 +96,7 @@ const PLAN_URL = `/${PAGES.plan}`
 test("GET:  an empty inbox before any mark, and no file", async () => {
   const got = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
   expect(got.status).toBe(200)
-  expect(JSON.parse(got.text)).toEqual({ version: 1, marks: {}, sent: null, now: [], working: {}, listening: null })
+  expect(JSON.parse(got.text)).toEqual(emptyInbox())
   expect(existsSync(inboxFile(PAGES.plan))).toBe(false)
 })
 

@@ -1339,3 +1339,101 @@ describe("PlanDoc overnight", () => {
     expect(plan.document.getElementById("overnight").getAttribute("header")).toBe("Overnight · 2026-10-01")
   })
 })
+
+describe("PlanDoc review inbox", () => {
+  /** Option cards A and B, B recommended, as a question's details. */
+  const OPTIONS =
+    '<ui-grid class="spell-pros-cons" columns="2" stackable>' +
+    '<ui-column><ui-segment><ui-label attached="top">A · Keep folds</ui-label><p>a</p></ui-segment></ui-column>' +
+    '<ui-column><ui-segment><ui-label attached="top">B · Unfold   it (recommended)</ui-label><p>b</p></ui-segment></ui-column>' +
+    "</ui-grid>"
+
+  /** A doc with one item of each kind, details where they matter. */
+  function inboxPlan() {
+    const plan = freshPlan()
+    plan.addItem("question", "which?", { details: OPTIONS })
+    plan.addItem("question", "no recommendation?", { details: "<p>talk</p>" })
+    plan.addItem("judgement", "chose X")
+    plan.addItem("caveat", "slow")
+    plan.addItem("test", "click it")
+    return plan
+  }
+
+  /** Item `id`'s status. */
+  function status(plan, id) {
+    return plan.document.getElementById(id).getAttribute("data-status")
+  }
+
+  it("optionCards:  letter, title without (recommended), which one is recommended", () => {
+    const plan = inboxPlan()
+    expect(plan.optionCards(plan.item("q1"))).toEqual([
+      { letter: "A", title: "Keep folds", recommended: false },
+      { letter: "B", title: "Unfold it", recommended: true }
+    ])
+    expect(plan.describeItem("J1")).toEqual({ id: "J1", kind: "judgement", status: "open", title: "chose X" })
+    expect(plan.describeItem("z9")).toBeNull()
+  })
+
+  it("approve:  a question takes its recommended option;  none recommended:  left", () => {
+    const plan = inboxPlan()
+    expect(plan.applyMark({ id: "q1", action: "approve" })).toEqual({
+      applied: true,
+      did: "approved:  answered B · Unfold it (recommended)"
+    })
+    const q1 = plan.document.getElementById("q1")
+    expect(q1.getAttribute("data-status")).toBe("decided")
+    expect(q1.querySelector(".plan-answer-title").textContent).toBe("Answer · Unfold it")
+    expect(q1.querySelector("ui-column[data-chosen] ui-label").textContent).toMatch(/^B/)
+    expect(q1.getAttribute("data-reviewed")).toBe("2026-10-01")
+    expect(plan.applyMark({ id: "q2", action: "approve" })).toMatchObject({ applied: false, left: /needs talk/ })
+    expect(status(plan, "q2")).toBe("open")
+  })
+
+  it("approve:  a judgement call and a test close;  a caveat is reviewed;  a closed item reviewed", () => {
+    const plan = inboxPlan()
+    expect(plan.applyMark({ id: "j1", action: "approve" }).did).toBe("approved:  closed (accepted)")
+    expect(plan.applyMark({ id: "v1", action: "approve" }).did).toBe("approved:  closed (passed)")
+    expect(plan.applyMark({ id: "c1", action: "approve" }).did).toBe("approved:  reviewed")
+    expect(plan.applyMark({ id: "j1", action: "approve" }).did).toBe("approved:  reviewed")
+    expect([status(plan, "j1"), status(plan, "v1"), status(plan, "c1")]).toEqual(["done", "done", "open"])
+    expect(plan.document.getElementById("c1").getAttribute("data-reviewed")).toBe("2026-10-01")
+    const log = Array.from(plan.document.querySelectorAll(".plan-log ui-summary"), (line) => line.textContent)
+    expect(log.at(-1)).toMatch(/J1 approved:  reviewed$/)
+  })
+
+  it("pick, todo;  revisit and details left;  a gone item flagged", () => {
+    const plan = inboxPlan()
+    expect(plan.applyMark({ id: "q1", action: "pick", pick: "A" }).did).toBe("picked A:  Keep folds")
+    expect(plan.document.querySelector("#q1 .plan-answer-title").textContent).toBe("Answer · Keep folds")
+    expect(plan.applyMark({ id: "q1", action: "pick", pick: "C" })).toMatchObject({
+      applied: false,
+      left: "no option C"
+    })
+    expect(plan.applyMark({ id: "c1", action: "todo" }).did).toBe("to todo T1")
+    const t1 = plan.document.getElementById("t1")
+    expect(t1.querySelector(".plan-title").textContent).toBe("Follow up:  slow")
+    expect(t1.querySelector('ui-content a[href="#c1"]').textContent).toBe("C1")
+    expect(plan.applyMark({ id: "q2", action: "revisit", when: "soon", note: "why?" })).toEqual({
+      applied: false,
+      left: 'to talk over:  "why?"'
+    })
+    expect(plan.applyMark({ id: "q2", action: "details" }).applied).toBe(false)
+    expect(plan.applyMark({ id: "i9", action: "approve" })).toMatchObject({ applied: false, gone: true })
+  })
+
+  it("setDetails:  replace or append, between the answer card and the commits;  stamped", () => {
+    const plan = inboxPlan()
+    plan.decide("q1", "B")
+    plan.addCommit({ item: "q1" }, "abc1234", "did it")
+    plan.setDetails("q1", "<p>new</p>")
+    const content = () =>
+      Array.from(plan.document.querySelector("#q1 ui-content").children, (el) => el.className || el.localName)
+    expect(content()).toEqual(["plan-answer-block", "p", "plan-commits"])
+    plan.setDetails("q1", '<div class="plan-reply">re</div>', { append: true })
+    expect(content()).toEqual(["plan-answer-block", "p", "plan-reply", "plan-commits"])
+    // an item without details gets a panel
+    plan.setDetails("c1", "<p>more</p>")
+    expect(plan.document.querySelector("#c1 > ui-accordion > ui-content").innerHTML).toBe("<p>more</p>")
+    expect(plan.document.getElementById("c1").getAttribute("data-changed")).toMatch(/^2026-10-01T09:05/)
+  })
+})

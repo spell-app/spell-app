@@ -302,6 +302,60 @@ Claude";  Add Details and revisit now go at once (the inbox's `now` queue).  Rea
 <name>`;  shape, routes and helpers:  `packages/docs/AGENTS.md`, "Review inbox".  NEVER edit the file by hand:  go
 through `scripts/inbox.js` (its lock).
 
+How a `/epic review` session takes the marks (nothing outside a session can wake it, except a background command
+it started ending):
+
+1. `yarn plan-doc inbox <name> listen`:  the page stops saying nobody is reviewing.
+2. `yarn plan-doc inbox <name> wait` in the BACKGROUND, then end the turn.  It exits when there's work, which wakes
+   the session;  it prints, for each item, its id, kind, status and title, the mark, the note, and a pick's option
+   card:
+
+   ```text
+   now (1):  start a background agent for each;  `yarn plan-doc inbox review-review done <id>` after
+     - I1  issue, open · The phases' progress bar label is cut off at its left end
+         Add Details
+   sent 2026-10-04T17:32:26.086-04:00 (4 marks):
+     approve (1):
+       - J9  judgement, open · A reload lands on the remembered section without unfolding it
+     pick (1):
+       - Q7  question, open · Should a reload land on the remembered section without unfolding it?
+           picks B · Land and unfold it
+     ...
+   next:  `yarn plan-doc inbox review-review apply` (approve, pick, todo)
+   ```
+
+   - `now`:  Add Details and revisit now, TAKEN off the queue, each item marked `working` (its spinner);  the mark
+     stays until `done`
+   - `sent`:  every mark the last "send to Claude" covered, once per send (`handedOver` in the inbox);  a mark an
+     earlier send already handed over (a revisit still being talked over) says "(sent before)"
+   - timeout (3300s):  exit 2, nothing taken;  run it again
+3. `yarn plan-doc inbox <name> apply`:  the mechanical marks, applied and cleared:
+
+   | Mark | On | Does |
+   |---|---|---|
+   | approve | an open question | answered with the option card marked "(recommended)" (`decide`, that card chosen), reviewed;  no recommended card:  left, "needs talk" |
+   | approve | an open judgement call | closed (accepted), reviewed |
+   | approve | an open test | closed (passed), reviewed |
+   | approve | anything else (open caveat, issue, todo;  closed or answered items) | reviewed |
+   | pick | a question | answered with that card's title, the card chosen, reviewed |
+   | todo | any item | a new todo "Follow up:  <title>" linking back, the item reviewed |
+   | revisit soon | any item | left:  talk it over in the chat, then `inbox <name> clear <id>` |
+
+   Each applied mark logs one line (`J9 approved:  closed (accepted)`);  a mark Owen changed meanwhile stays.
+4. Requests for now:  a background agent per item writes into it with `yarn plan-doc details <name> <id> --file
+   <html>` (Add Details:  replaces the details;  revisit now:  `--append` a reply), then `inbox <name> done <id>`.
+5. `wait` again.  On leaving:  `inbox <name> unlisten`.
+
+A reply to Owen's revisit note (`details --append`), dated, quoting the note:
+
+```html
+<div class="plan-reply">
+  <div class="plan-reply-title"><b>Claude</b> · <time>2026-10-04 17:20</time> · re:  "why not reuse the details route?"</div>
+  <p>The answer ...</p>
+  <ul><li>bullets;  option cards if Owen must choose;  a Net effect</li></ul>
+</div>
+```
+
 ## Prose
 
 - Code:  ALWAYS folded and colored:
@@ -364,3 +418,9 @@ worktree took of an epic merged before it was cut:  editing that would fork the 
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
 | `open <name>` | show the doc rendered in VS Code's doc preview (the right side bar's "Spell Docs" tab);  needs the spell extension (`yarn vscode`) |
 | `inbox <name> [--json]` | the marks Owen left on the page (`<name>.inbox.json`), by action, with their items' titles, sent or not;  the `now` queue, agents at work, the session listening |
+| `inbox <name> listen [--session <id>]` / `unlisten` | this session (`$CLAUDE_CODE_SESSION_ID`) waits on the inbox / stopped:  the page tells Owen whether anyone is listening |
+| `inbox <name> wait [--timeout <s>] [--json]` | block (polls every 1s, default 3300s) until there's work, print it, exit 0;  timeout:  exit 2.  Work:  requests for now (taken off the queue, their items marked working) and a send not yet handed over (its marks by action) |
+| `inbox <name> apply [ids...]` | apply the sent approve / pick / todo marks to the doc and clear them;  prints a line per item and what it left (revisits) |
+| `inbox <name> working <id> on\|off` | the page's spinner on an item |
+| `inbox <name> done <id>...` / `clear <id>...` | an agent finished the item:  its mark and spinner go / drop marks (a revisit talked over) |
+| `details <name> <id> --file <html> [--append]` | replace an item's details with the file's HTML, or add it after them (a reply);  the answer card stays first, the commits last;  logs "I1 details rewritten" / "I1 reply added" |

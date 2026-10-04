@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T14:13:40-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
+  <body data-recent-since="2026-10-04T16:10:37-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Review Review</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle right" href="#p6" title="Next:  P6 · Claude Side"
-                >P6</ui-label
+              ><ui-label basic color="grey" icon="circle right" href="#p7" title="Next:  P7 · Bedtime And Isolate"
+                >P7</ui-label
               ></span
             >
           </header></ui-sticky
@@ -189,7 +189,7 @@
               </blockquote></ui-content
             ></ui-accordion
           >
-          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 8h-12h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 5h-8h left</p>
           <ui-section id="o1" header="1.1 The new review loop" sticky collapsible dividing>
             <p>What a review looks like once this epic is done, step by step:</p>
             <ol>
@@ -385,7 +385,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -846,6 +846,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             badge="3-4h"
             id="p5"
             data-phase="5"
@@ -910,6 +911,20 @@
                     a reload, Choose then send, keyboard).
                   </li>
                 </ul></ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="0fd5533622886a45ca5fed88eb03140b2f9c131a">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/0fd5533622886a45ca5fed88eb03140b2f9c131a"
+                      target="github"
+                      >0fd5533</a
+                    >
+                    item menus, Revisit box, Choose pills, send-to-Claude button, the review inbox, &lt;ui-sections
+                    collapsing&gt;
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> new <code>_assets/review.js</code> and css, new
                 <a href="../../scripts/reviewRoutes.ts" target="src-packages-docs-scripts-reviewroutes-ts"
@@ -937,13 +952,13 @@
             badge="3-4h"
             id="p6"
             data-phase="6"
-            data-status="todo"
+            data-status="done"
             header="P6 · Claude Side"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -963,6 +978,39 @@
                   </li>
                   <li>The modal review flow goes.</li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    <code>/epic review &lt;name&gt;</code> is the new review: it opens the doc in the side bar's Review
+                    tab at the first thing that needs you, marks itself as listening, and waits on the doc's inbox in
+                    the background. The old modal walk through items is gone (the skill's section 7).
+                  </li>
+                  <li>
+                    When you SEND: approvals, picks and todos go straight into the doc (<code
+                      >yarn plan-doc inbox &lt;name&gt; apply</code
+                    >: e.g. an approved judgement call is closed and reviewed, a picked option answers its question, a
+                    todo item is filed); revisit notes are talked over in chat one at a time; choices go back onto the
+                    page as option cards.
+                  </li>
+                  <li>
+                    Add Details and "revisit now" start at once: a background agent writes the item's fuller details, or
+                    a reply card answering your note, into that item (<code>yarn plan-doc details</code>, under the
+                    doc's lock); the item spins until it's done.
+                  </li>
+                  <li>
+                    Each send is handed to Claude once; marks you change while Claude works are left for the next round
+                    (J33-J35).
+                  </li>
+                  <li>
+                    Two limits found (I3, I4): an item can't hold a pick and a note together; a killed session leaves
+                    the page thinking someone's listening.
+                  </li>
+                  <li>
+                    Not tried end to end in VS Code yet: it needs P5 and P6 on main (and main's page server restarted),
+                    then a real <code>/epic review</code>.
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
                 <a href="../../../../.claude/skills/epic/SKILL.md" target="src-claude-skills-epic-skill-md"
@@ -976,6 +1024,9 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> A dry run on a real doc: approve, todo, pick, revisit soon and now; the doc ends up
                 right</ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#j33">J33</a>, <a href="#j34">J34</a>, <a href="#j35">J35</a>,
+                <a href="#i3">I3</a>, <a href="#i4">I4</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -1785,13 +1836,13 @@
             ><ui-item
               data-reviewed="2026-10-04"
               data-changed="2026-10-04T14:17:18-04:00"
-              data-state="recent"
+              data-state="old"
               id="j1"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j1">J1</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title">Review tab: a codicon, an empty state, no Docs Index button</span> </ui-title
                 ><ui-content
                   ><p>Three small choices about the new "Review" tab in the right side bar:</p>
@@ -1818,13 +1869,13 @@
             ><ui-item
               data-reviewed="2026-10-04"
               data-changed="2026-10-04T14:17:21-04:00"
-              data-state="recent"
+              data-state="old"
               id="j2"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j2">J2</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Review pages ignore the "beside" setting; a pending move keeps one doc</span
                   > </ui-title
@@ -1848,13 +1899,13 @@
             ><ui-item
               data-changed="2026-10-04T14:19:12-04:00"
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="old"
               id="j3"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j3">J3</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title">Very narrow rail cut-off: 400px</span> </ui-title
                 ><ui-content
                   ><p>
@@ -1887,13 +1938,13 @@
             ><ui-item
               data-reviewed="2026-10-04"
               data-changed="2026-10-04T14:17:26-04:00"
-              data-state="recent"
+              data-state="old"
               id="j4"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j4">J4</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title">Kickoff prompt in a folded aside, not a sub-section</span> </ui-title
                 ><ui-content
                   ><p>
@@ -1920,13 +1971,13 @@
             ><ui-item
               data-changed="2026-10-04T14:19:14-04:00"
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="old"
               id="j5"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j5">J5</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title">Section chevron: down when open, left when folded</span> </ui-title
                 ><ui-content
                   ><p>
@@ -1950,13 +2001,13 @@
             ><ui-item
               data-reviewed="2026-10-04"
               data-changed="2026-10-04T14:17:31-04:00"
-              data-state="recent"
+              data-state="old"
               id="j6"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j6">J6</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Contents rail: accent for the current section, counts as accent pills</span
                   > </ui-title
@@ -1990,13 +2041,13 @@
             ><ui-item
               data-reviewed="2026-10-04"
               data-changed="2026-10-04T14:17:35-04:00"
-              data-state="recent"
+              data-state="old"
               id="j7"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j7">J7</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Pages with their own scripts, and the goals pages, still reload on an edit</span
                   > </ui-title
@@ -2024,13 +2075,13 @@
             ><ui-item
               data-reviewed="2026-10-04"
               data-changed="2026-10-04T14:17:38-04:00"
-              data-state="recent"
+              data-state="old"
               id="j8"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j8">J8</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >A script change reloads only pages that load scripts from that folder</span
                   > </ui-title
@@ -2080,13 +2131,13 @@
             ><ui-item
               data-reviewed="2026-10-04"
               data-changed="2026-10-04T14:17:41-04:00"
-              data-state="recent"
+              data-state="old"
               id="j10"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j10">J10</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title">Showing the page again at an id adds a history entry</span> </ui-title
                 ><ui-content
                   ><ul>
@@ -2106,13 +2157,13 @@
             ><ui-item
               data-reviewed="2026-10-04"
               data-changed="2026-10-04T14:17:45-04:00"
-              data-state="recent"
+              data-state="old"
               id="j11"
               data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j11">J11</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title">Undefined elements are hidden for at most 2 seconds</span> </ui-title
                 ><ui-content
                   ><ul>
@@ -2137,7 +2188,7 @@
               ></ui-item
             ><ui-item
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T14:17:48-04:00"
               id="j12"
               data-status="done"
@@ -2145,7 +2196,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j12">J12</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Red beats green: an item waiting on you stays red even when it changed overnight or just now</span
                   > </ui-title
@@ -2202,7 +2253,7 @@
               ></ui-item
             ><ui-item
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T14:17:51-04:00"
               id="j13"
               data-status="done"
@@ -2210,7 +2261,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j13">J13</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >The To review line lists every open item you haven't reviewed, overnight ones included</span
                   > </ui-title
@@ -2246,7 +2297,7 @@
               ></ui-item
             ><ui-item
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="open"
               data-changed="2026-10-04T14:17:53-04:00"
               id="j14"
               data-status="open"
@@ -2254,7 +2305,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j14">J14</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >migrate drops every hand-written Judgement calls line, and keeps what it linked in To review</span
                   > </ui-title
@@ -2291,7 +2342,7 @@
               ></ui-item
             ><ui-item
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T14:17:56-04:00"
               id="j15"
               data-status="done"
@@ -2299,7 +2350,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j15">J15</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Two small markers beyond the plan: data-answered on answered questions, data-sha on commit
                     entries</span
@@ -2345,7 +2396,7 @@
               ></ui-item
             ><ui-item
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="open"
               data-changed="2026-10-04T14:17:58-04:00"
               id="j16"
               data-status="open"
@@ -2353,7 +2404,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j16">J16</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Done items lose their strike-through: the chip's color says it</span
                   > </ui-title
@@ -2391,7 +2442,7 @@
               ></ui-item
             ><ui-item
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T14:18:01-04:00"
               id="j17"
               data-status="done"
@@ -2399,7 +2450,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j17">J17</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title">Filter button: "all" is outlined grey, "old" solid grey</span> </ui-title
                 ><ui-content
                   ><p>
@@ -2436,7 +2487,7 @@
               ></ui-item
             ><ui-item
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T14:18:05-04:00"
               id="j18"
               data-status="done"
@@ -2444,7 +2495,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j18">J18</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title">Red chips stay deep red in dark mode</span> </ui-title
                 ><ui-content
                   ><p>
@@ -3032,6 +3083,137 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:35:04-04:00"
+              id="j33"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j33">J33</a>
+                  <span class="plan-title">Approve means: accept the item as it stands, by kind</span> </ui-title
+                ><ui-content
+                  ><p>
+                    When Owen approves an item on the page and sends,
+                    <code>yarn plan-doc inbox review-review apply</code> turns the approval into a doc edit. What it
+                    does depends on the kind of item:
+                  </p>
+                  <ul>
+                    <li>
+                      An open question: answered with the option card marked "(recommended)", that card chosen, and the
+                      question marked reviewed. With no recommended card, nothing is guessed: the mark stays and
+                      <code>apply</code> prints "needs talk", for Claude to ask in the chat.
+                    </li>
+                    <li>An open judgement call: closed (accepted) and reviewed.</li>
+                    <li>An open test: closed (it passed) and reviewed.</li>
+                    <li>
+                      Anything else (an open caveat, issue or todo, or an item already closed or answered): only marked
+                      reviewed. Approving a caveat accepts the risk; it does not make it go away.
+                    </li>
+                    <li>
+                      Every applied mark also writes one log line, e.g. <code>J9 approved: closed (accepted)</code>.
+                    </li>
+                  </ul>
+                  <p>
+                    Chosen over closing every approved item: an approved issue or todo still needs the work done, so it
+                    stays open.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>approving Q7 (recommended A) answers it "Land without unfolding", card A chosen</li>
+                    <li>approving J9 closes it; approving C1 only marks it reviewed</li>
+                    <li>a question with no recommended option waits for a talk</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:35:06-04:00"
+              id="j34"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j34">J34</a>
+                  <span class="plan-title"
+                    >Each send is handed to the waiting session once; marks still open come again with the next
+                    send</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn plan-doc inbox review-review wait</code>, the background command that wakes the review
+                    session, prints a send only once, and remembers it did (a <code>handedOver</code> time in the inbox
+                    file).
+                  </p>
+                  <ul>
+                    <li>
+                      Why: the session runs <code>wait</code> again after every wake. Without the memory, the same send
+                      would wake it again at once, in a loop.
+                    </li>
+                    <li>
+                      A send prints EVERY mark it covers that is still in the inbox. So a revisit Claude has not
+                      finished talking over comes back with the next send, flagged "(sent before)".
+                    </li>
+                    <li>
+                      A send with no marks left (everything already applied) is taken quietly: no wake for nothing.
+                    </li>
+                    <li>
+                      Add Details and revisit now never wait for a send: <code>wait</code> takes them off the queue as
+                      soon as they arrive, and marks each item working (its spinner).
+                    </li>
+                  </ul>
+                  <p>
+                    Example: Owen sends J9 approve and a revisit on J28. Claude applies J9 and starts talking about J28.
+                    Owen marks C1 todo and sends again: the next wake prints J28 "(sent before)" and C1.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>one wake per send; a still-open mark is never lost, only repeated</li>
+                    <li>the inbox file gains a <code>handedOver</code> field</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:35:07-04:00"
+              id="j35"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j35">J35</a>
+                  <span class="plan-title"
+                    >apply touches only sent marks, and keeps a mark Owen changed while it ran</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn plan-doc inbox review-review apply</code> edits the plan doc from the marks Owen sent,
+                    then clears them. Three edges, and what it does:
+                  </p>
+                  <ul>
+                    <li>
+                      Marks not sent yet are left alone, even when named (<code>apply j9</code> prints "no sent mark"):
+                      Owen may still change them, and the send button is how he says he is done.
+                    </li>
+                    <li>
+                      If Owen changes a mark on the page while <code>apply</code> runs, his newer mark stays in the
+                      inbox for the next round. <code>apply</code> clears a mark only while it is still the exact one it
+                      applied (same time stamp).
+                    </li>
+                    <li>A mark on an item the doc no longer has is dropped, with "no such item".</li>
+                    <li>
+                      It tries the marks on a copy first, and writes the doc only when something applies: a batch of
+                      revisits alone leaves the doc untouched.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>no edit Owen did not send; no mark of his lost to a race</li>
+                    <li>revisits and unanswerable approvals stay in the inbox, printed under "left:"</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -3331,7 +3513,7 @@
                 ></ui-accordion
               ></ui-item
             ><ui-item
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T14:40:25-04:00"
               id="i2"
               data-status="done"
@@ -3373,6 +3555,82 @@
                   <ul>
                     <li>the index lists 14 epics, not 13</li>
                     <li>two dead links in old item text are plain code now</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:36:42-04:00"
+              id="i3"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title"
+                    >An item holds one mark: you can't pick an option AND ask about it</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Each item in the review inbox holds a single mark, and the latest wins. So on a question you can
+                    either choose an option card or write a revisit note, not both.
+                  </p>
+                  <ul>
+                    <li>
+                      Example: on Q7 you click "Choose" on B, then open Revisit and write "B, but only for plan docs?".
+                      The revisit replaces the pick: Claude sees the note, not that you chose B.
+                    </li>
+                    <li>
+                      Where:
+                      <a href="../../scripts/inbox.js" target="src-packages-docs-scripts-inbox-js"
+                        ><code>packages/docs/scripts/inbox.js</code></a
+                      >
+                      (<code>marks: { [id]: mark }</code>) and the page's menu, which shows one color per item.
+                    </li>
+                    <li>
+                      Fix options: let a pick and a note live together on one item (a mark with both
+                      <code>pick</code> and <code>note</code>), or treat a revisit on a picked question as "pick, with a
+                      remark".
+                    </li>
+                  </ul>
+                  <p><b>Net effect (once fixed):</b></p>
+                  <ul>
+                    <li>a question can carry your pick and your question about it in one send</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:36:44-04:00"
+              id="i4"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i4">I4</a>
+                  <span class="plan-title"
+                    >A session that ends without unlisten leaves the page saying someone is reviewing</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The page tells you whether a Claude session is listening from the inbox's
+                    <code>listening</code> field. A session that stops without running
+                    <code>inbox unlisten</code> (closed tab, crash, context reset) leaves it set.
+                  </p>
+                  <ul>
+                    <li>
+                      Example: you close the review session's tab; later you click "revisit now" and the page doesn't
+                      warn you, but nothing will answer.
+                    </li>
+                    <li>The <code>/epic review</code> skill unlistens when it finishes, but can't when it's killed.</li>
+                    <li>
+                      Fix: <code>inbox wait</code> stamps a heartbeat (e.g. <code>listening.seen</code>) every minute
+                      while it waits; the page treats a heartbeat older than two minutes as nobody listening.
+                    </li>
+                  </ul>
+                  <p><b>Net effect (once fixed):</b></p>
+                  <ul>
+                    <li>the "nobody is reviewing" warning is right even after a crash</li>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
@@ -4284,6 +4542,29 @@
                   action menus, Revisit box, Choose pills, send-to-Claude button, the review inbox and its routes,
                   &lt;ui-sections collapsing&gt;; checks: docs scripts 138, ui 4571 browser + 218 server, check-spell,
                   check-live, check-review ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:25-04:00">2026-10-04 17:25</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:36-04:00">2026-10-04 17:36</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:36-04:00">2026-10-04 17:36</time></ui-date> P6 done: /epic
+                  review rewritten for the on-page review; inbox listen / wait / apply / working / done / clear,
+                  plan-doc details; checks: docs scripts 148, check-spell, check-review, check-live, commands:check
+                  ok</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

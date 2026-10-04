@@ -9,18 +9,24 @@ import { afterAll, describe, expect, test } from "vitest"
 
 import {
   InboxError,
+  clearApplied,
   clearMarks,
   emptyInbox,
+  hasWork,
   inboxPath,
   isoTime,
   itemIds,
+  markList,
   markSent,
+  newSend,
   readInbox,
   requestNow,
+  sentMarks,
   setListening,
   setMark,
   setWorking,
   takeNow,
+  takeWork,
   toMark,
   unsentMarks,
   updateInbox,
@@ -132,6 +138,72 @@ describe("Claude's side", () => {
     expect(inbox.working).toEqual({})
     expect(setListening(inbox, "abc", T1)).toEqual({ session: "abc", since: T1 })
     expect(setListening(inbox, null)).toBeNull()
+  })
+})
+
+describe("waiting for work", () => {
+  test("sentMarks:  at or before the send, never an immediate one;  none before a send", () => {
+    const inbox = emptyInbox()
+    setMark(inbox, "j1", { action: "approve" }, T1)
+    expect(sentMarks(inbox)).toEqual([])
+    requestNow(inbox, "i2", "details", "", T1)
+    markSent(inbox, T2)
+    setMark(inbox, "q8", { action: "pick", pick: "B" }, T3)
+    expect(sentMarks(inbox).map((mark) => mark.id)).toEqual(["j1"])
+  })
+
+  test("takeWork:  now requests taken and marked working, their marks kept", () => {
+    const inbox = emptyInbox()
+    requestNow(inbox, "i2", "details", "", T1)
+    expect(hasWork(inbox)).toBe(true)
+    expect(takeWork(inbox, T2)).toEqual({ now: [{ id: "i2", action: "details", at: T1 }], sent: null })
+    expect(inbox.working).toEqual({ i2: { action: "details", since: T2 } })
+    expect(inbox.marks.i2).toBeDefined()
+    expect(hasWork(inbox)).toBe(false)
+    expect(takeWork(inbox)).toBeNull()
+  })
+
+  test("takeWork:  a send is handed over once;  the next send repeats what's left, flagged again", () => {
+    const inbox = emptyInbox()
+    setMark(inbox, "j1", { action: "approve" }, T1)
+    setMark(inbox, "q7", { action: "revisit", note: "why?" }, T1)
+    markSent(inbox, T2)
+    expect(newSend(inbox)).toBe(true)
+    const first = takeWork(inbox)
+    expect(first.sent.at).toBe(T2)
+    expect(first.sent.marks.map((mark) => [mark.id, mark.again])).toEqual([
+      ["j1", false],
+      ["q7", false]
+    ])
+    expect(inbox.handedOver).toBe(T2)
+    expect(hasWork(inbox)).toBe(false)
+    // j1 applied;  q7 still being talked over when Owen sends a new mark
+    clearMarks(inbox, ["j1"])
+    setMark(inbox, "c1", { action: "todo" }, T3)
+    markSent(inbox, "2026-10-04T15:03:00-04:00")
+    expect(takeWork(inbox).sent.marks.map((mark) => [mark.id, mark.again])).toEqual([
+      ["q7", true],
+      ["c1", false]
+    ])
+  })
+
+  test("takeWork:  a send with no marks left is taken quietly", () => {
+    const inbox = emptyInbox()
+    setListening(inbox, "abc", T1)
+    markSent(inbox, T2)
+    expect(hasWork(inbox)).toBe(true)
+    expect(takeWork(inbox)).toBeNull()
+    expect(hasWork(inbox)).toBe(false)
+  })
+
+  test("clearApplied:  only marks still as applied;  a newer one stays", () => {
+    const inbox = emptyInbox()
+    setMark(inbox, "j1", { action: "approve" }, T1)
+    setMark(inbox, "j2", { action: "approve" }, T1)
+    const applied = markList(inbox)
+    setMark(inbox, "j2", { action: "todo" }, T2)
+    expect(clearApplied(inbox, applied)).toEqual(["j1"])
+    expect(Object.keys(inbox.marks)).toEqual(["j2"])
   })
 })
 
