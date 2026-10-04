@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="styles.css">
+<style>body{margin:0}</style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--bg-canvas);color:var(--text-body);font-family:var(--font-sans);padding:40px 40px 64px;box-sizing:border-box">
+  <a data-backlink="1" href="Design%20System.dc.html" target="_top" style="position:fixed;right:16px;bottom:16px;z-index:100;display:flex;align-items:center;gap:8px;height:34px;padding:0 14px 0 12px;border-radius:999px;background:var(--surface-inverse);color:var(--text-inverse);box-shadow:var(--shadow-lg);font:500 13px/1 var(--font-sans);text-decoration:none;white-space:nowrap" style-hover="text-decoration:none;filter:brightness(1.1)"><i class="fa-solid fa-arrow-left"></i>Design System</a>
+  <div style="max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:28px">
+    <header style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font:500 12px/1 var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-accent)">Foundations</div>
+        <h1 style="margin:0;font:700 46px/1.05 var(--font-serif);letter-spacing:-0.02em;color:var(--text-strong)">Color palette.</h1>
+        <p style="margin:0;font:italic 400 20px/1.3 var(--font-serif);color:var(--text-strong)">Brand first, accent second, every hue on one ladder.</p>
+        <p style="margin:4px 0 0;max-width:620px;font:400 15px/1.55 var(--font-sans);color:var(--text-muted)">Seventeen steps per set with extra stops at both ends (25 · 75 · 150 · 850 · 925 · 975). Every set is generated in OKLCH from one seed colour, so steps line up across hues. Click a swatch to copy its token.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div style="display:inline-flex;padding:3px;gap:2px;border-radius:999px;background:var(--surface-tint);box-shadow:inset 0 0 0 1px var(--border-subtle)">
+          <sc-for list="{{ formats }}" as="f" hint-placeholder-count="3">
+            <button onClick="{{ f.pick }}" style="height:28px;padding:0 12px;border:0;border-radius:999px;background:{{ f.bg }};box-shadow:{{ f.shadow }};color:var(--text-strong);font:500 13px/1 var(--font-sans);cursor:pointer">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <button onClick="{{ toggleTheme }}" style="height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--border-default);background:var(--surface-card);color:var(--text-strong);font:500 13px/1 var(--font-sans);cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap"><i class="{{ themeIcon }}"></i>{{ themeLabel }}</button>
+      </div>
+    </header>
+
+    <div style="display:grid;grid-template-columns:150px repeat(17,minmax(0,1fr));gap:4px 5px;align-items:center">
+      <div></div>
+      <sc-for list="{{ steps }}" as="st" hint-placeholder-count="17">
+        <div style="font:500 11px/1 var(--font-mono);color:var(--text-muted);text-align:center;padding-bottom:4px">{{ st }}</div>
+      </sc-for>
+      <sc-for list="{{ sets }}" as="s" hint-placeholder-count="20">
+        <div style="display:flex;flex-direction:column;gap:3px;padding-right:8px;padding-top:{{ s.gapTop }};min-width:0">
+          <span style="font:700 16px/1.1 var(--font-serif);color:var(--text-strong)">{{ s.label }}</span>
+          <span style="font:400 11px/1.3 var(--font-sans);color:var(--text-muted)">{{ s.note }}</span>
+        </div>
+        <sc-for list="{{ s.swatches }}" as="w" hint-placeholder-count="17">
+          <button onClick="{{ w.copy }}" title="{{ w.token }}" style="height:54px;margin-top:{{ s.gapTop }};border:0;border-radius:8px;background:{{ w.hex }};color:{{ w.ink }};box-shadow:{{ w.ring }};display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding:5px 6px;cursor:pointer;min-width:0;overflow:hidden;transition:transform .12s" style-hover="transform:scale(1.06)">
+            <span style="font:500 9.5px/1.2 var(--font-mono);white-space:nowrap;opacity:0.9">{{ w.label }}</span>
+          </button>
+        </sc-for>
+      </sc-for>
+    </div>
+    <p style="margin:0;font:400 13px/1.5 var(--font-sans);color:var(--text-muted)">Outlined swatch = the seed colour (House of Owen at brand-500, Polished Ivory at accent-150, Spell Purple at violet-600). Text on each swatch is white or ink, whichever passes 4.5:1.</p>
+  </div>
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:10px 16px;border-radius:14px;background:var(--surface-inverse);color:var(--text-inverse);box-shadow:var(--shadow-lg);font:500 13px/1 var(--font-mono)">Copied {{ toast }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;'light' | 'dark'&quot;}}">
+class Component extends DCLogic {
+  state = { sets: [], fmt: 'hex', themeOverride: null, toast: '' };
+  componentDidMount() {
+    fetch(new URL('lib/palette.json', location.href)).then(r => r.json()).then(sets => this.setState({ sets }));
+    import(new URL('lib/palette.mjs', location.href).href).then(m => { this.P = m; this.forceUpdate(); });
+  }
+  copy(text) { try { navigator.clipboard.writeText(text); } catch (e) {} clearTimeout(this.t); this.setState({ toast: text }); this.t = setTimeout(() => this.setState({ toast: '' }), 1400); }
+  renderVals() {
+    const s = this.state, P = this.P;
+    const theme = s.themeOverride || this.props.theme || 'light';
+    const STEPS = [25, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 800, 850, 900, 925, 950, 975];
+    const ink = '#1A1C27';
+    const fmtVal = (hex) => {
+      if (s.fmt === 'hex' || !P) return hex.slice(1);
+      if (s.fmt === 'oklch') { const o = P.hexToOklch(hex); return `${Math.round(o.l * 100)} ${o.c.toFixed(2)} ${Math.round(o.h)}`; }
+      return '';
+    };
+    const sets = s.sets.map((set, i) => ({
+      label: set.label, note: set.note || (set.name === 'grey' ? '' : ''),
+      gapTop: (i === 2 || i === s.sets.length - 1) ? '14px' : '0px',
+      swatches: STEPS.map(st => {
+        const hex = set.scale[st];
+        const white = P ? P.contrast('#FFFFFF', hex) : 3; const dark = P ? P.contrast(ink, hex) : 3;
+        const token = `--${set.name}-${st}`;
+        return { hex, ink: white >= dark ? '#FFFFFF' : ink, label: s.fmt === 'token' ? '' : fmtVal(hex), token,
+          ring: st === set.anchor ? '0 0 0 2px var(--bg-canvas), 0 0 0 3.5px var(--text-strong)' : 'inset 0 0 0 1px rgba(43,47,63,0.06)',
+          copy: () => this.copy(s.fmt === 'hex' ? hex : `var(${token})`) };
+      })
+    }));
+    const formats = [['hex', 'Hex'], ['oklch', 'OKLCH'], ['token', 'Swatch only']].map(([k, label]) => ({ label, pick: () => this.setState({ fmt: k }), bg: s.fmt === k ? 'var(--surface-card)' : 'transparent', shadow: s.fmt === k ? 'var(--shadow-sm)' : 'none' }));
+    return { theme, sets, steps: STEPS, formats, toast: s.toast,
+      toggleTheme: () => this.setState({ themeOverride: theme === 'dark' ? 'light' : 'dark' }),
+      themeIcon: theme === 'dark' ? 'fa-regular fa-sun' : 'fa-regular fa-moon', themeLabel: theme === 'dark' ? 'Light page' : 'Dark page' };
+  }
+}
+</script>
+</body>
+</html>
