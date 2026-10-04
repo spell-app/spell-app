@@ -170,10 +170,8 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 - The plan doc stays in `epics/` as the record:  every phase done.
 - Changelog:  add the epic's entry to `packages/docs/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
   the plan doc and the durable doc;  under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
-- Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  Right after its step 4
-  (`handoff --back`), still in the worktree:  `yarn plan-doc open <name>` one last time, so the doc follows the
-  session back to its package's window (the worktree's window closes).  A session that stayed:  no move, and the
-  doc is already here.
+- Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  No move back:  the session and its
+  plan doc stay in the window they're in.
 - Last line of the reply:  "All done ..." (see the top).
 
 ## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)

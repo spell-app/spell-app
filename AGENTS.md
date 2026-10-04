@@ -82,8 +82,9 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - A branch that changes those files merges onto `main` only once the flag is off:  back up the local files,
     `git update-index --no-skip-worktree`, `git checkout --` them, merge, write the local edits back on top, set the
     flag again (`PAPERCUTS.md`, "claude-code").
-- A new window:  open it at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
-  `... close <name>` on leaving.  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
+- A new window:  open it at once, from the worktree's root:  `node scripts/window.mjs open <name>`.
+  On leaving (`/isolate done`), the session does NOT move back:  it stays in that window, which Owen closes
+  (`... close <name>` closes it and deletes its file).  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
   moves to that window, in an editor tab (never the sidebar), `continue` typed into it, and its old tab closes
   (the `Stop` hook, `.claude/hooks/handoff.mjs`).
   - So END THE TURN right after `handoff`:  the rest (`yarn install` ...) happens in the new window.
