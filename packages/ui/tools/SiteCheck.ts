@@ -19,7 +19,7 @@ import { TocIndex } from "../src/docs-components/ui-docs-toc/TocIndex.ts"
  * - Problems (exit 1):
  *   - console errors, page errors, failed requests and responses >= 400 (the favicon too:  the page server has one)
  *   - `ui-*` / `spell-*` elements still undefined once settled;  defined `ui-*` with no shadow root
- *   - component pages (`components/ui-*.html`, not the index):  not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming`;  a pane
+ *   - component pages (`components/ui-*.html`, not the index):  not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming` (`theming` optional);  a pane
  *     that isn't the shown one when loaded with its `#hash`, or shows under 50px
  *   - `ui-docs-toc`:  hidden or empty on desktop, visible on phone
  *   - sections (`yarn site:sections`):  an id that doesn't follow its nesting, a flat level 2 header left, a deep link
@@ -44,8 +44,14 @@ export class SiteCheck {
   /** Default screenshot folder;  `tools/results` is git-ignored. */
   static readonly OUT = join(SiteCheck.PACKAGE, "tools", "results", "site-check")
 
-  /** Component pages' tab panes, in order. */
+  /**
+   * Component pages' tab panes, in order.
+   * - `theming` may be left out:  a page whose tag has no tokens of its own (`ui-meta`, styled by its owners)
+   */
   static readonly TABS = ["examples", "usage", "api", "theming"]
+
+  /** Panes a component page may leave out (the last of `TABS`). */
+  static readonly OPTIONAL_TABS = ["theming"]
 
   /** Desktop viewport. */
   static readonly DESKTOP: BrowserContextOptions = { viewport: { width: 1440, height: 900 } }
@@ -278,13 +284,14 @@ export class SiteCheck {
       for (const [tag, count] of Object.entries(elements.unrendered)) problem(`${count} <${tag}> without a shadow root`)
 
       const tabs = await page.evaluate(tabsState)
-      // a family page (`components/ui-<name>.html`);  NOT the component index, `components/index.html`
+      // a component page (`components/ui-<tag>.html`:  a family's or a sub-tag's), NOT `components/index.html`
       const component = check.path.startsWith("components/ui-")
       report.counts.tabs = tabs.values
       let values: string[] = []
       if (component) {
         if (tabs.count !== 1) problem(`${tabs.count} ui-tabs.site-tabs (a component page needs exactly one)`)
-        if (tabs.values.join() !== SiteCheck.TABS.join())
+        const required = SiteCheck.TABS.filter((value) => !SiteCheck.OPTIONAL_TABS.includes(value))
+        if (tabs.values.join() !== SiteCheck.TABS.join() && tabs.values.join() !== required.join())
           problem(`tab panes [${tabs.values.join(", ")}], expected [${SiteCheck.TABS.join(", ")}]`)
         values = tabs.values.filter((value) => SiteCheck.TABS.includes(value))
       } else if (tabs.count) values = tabs.values.filter(Boolean)
@@ -325,7 +332,8 @@ export class SiteCheck {
    *   nothing) + `-` + the slug of its header (`TocIndex.slug()`), maybe + `-<n>` (made unique)
    * - no `<ui-header level="2">` in a tab pane (outside examples), nor straight inside a page's article
    * - a deep link to the first NESTED section (else the first), with its top-level section saved folded:  lands with
-   *   that pane shown, every section around it unfolded, its title on its line below the stuck ones;  screenshot
+   *   that pane shown, every section around it unfolded, its title on its line below the stuck ones (or below it, on
+   *   a page too short to scroll it that far:  scrolled to the bottom);  screenshot
    *   `<page>-desk-deep.png`
    */
   private async checkSections(check: CheckContext): Promise<void> {
@@ -358,7 +366,9 @@ export class SiteCheck {
       else {
         if (!landed.shown) problem(`deep link #${target.id}:  its pane isn't the shown one`)
         if (landed.folded) problem(`deep link #${target.id}:  still folded (it or a section around it)`)
-        if (Math.abs(landed.top - landed.line) > 3)
+        // a short page can't scroll its last sections up to the line:  below it, at the bottom, is as far as it goes
+        const clamped = landed.bottom && landed.top > landed.line
+        if (Math.abs(landed.top - landed.line) > 3 && !clamped)
           problem(`deep link #${target.id}:  its title at ${landed.top}px, not on its line ${landed.line}px`)
       }
       await this.shoot(page, check, `${name}-desk-deep.png`)
@@ -702,7 +712,8 @@ function landedState(id: string) {
     top: Math.round(box.getBoundingClientRect().top),
     line: Math.round(line),
     folded: [target, ...around].some((section) => section.hasAttribute("collapsed")),
-    shown
+    shown,
+    bottom: scrollY >= document.documentElement.scrollHeight - innerHeight - 2
   }
 }
 

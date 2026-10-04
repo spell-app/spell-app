@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Docs Rework</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · Page Split</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Doc Review</ui-label></span
             >
           </header></ui-sticky
         >
@@ -79,7 +79,7 @@
               icon which shows the current state, clicking it switches it.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 3h-4h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 1h left</p>
           <ui-section id="o1" header="1.1 Today" sticky collapsible dividing>
             <p>Where the site stands, so the rest reads against it.</p>
             <ui-table celled compact striped unstackable>
@@ -438,7 +438,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="7" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="8" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -605,8 +605,8 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p7" data-phase="7" data-status="todo" header="P7 · Page Split" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p7" data-phase="7" data-status="done" header="P7 · Page Split" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Q3 hybrid: own pages for ui-radio, ui-textarea and the 12 Parts tags besides ui-header;
@@ -614,10 +614,23 @@
               ><ui-item icon="folder"
                 ><b>Files:</b> _data/pages.json, site-new.ts, split pages, nav + catalog links, site:index</ui-item
               ><ui-item icon="flask"><b>Verify:</b> site:check; old #ui-radio anchors forward to the new page</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j45">J45</a> <a href="#j46">J46</a> <a href="#j47">J47</a>
+                <a href="#j48">J48</a> <a href="#j49">J49</a> <a href="#j50">J50</a> <a href="#j51">J51</a></ui-item
+              ></ui-list
             >
           </ui-section>
-          <ui-section id="p8" data-phase="8" data-status="done" header="P8 · Search" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p8"
+            data-phase="8"
+            data-status="done"
+            header="P8 · Search"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -1881,6 +1894,135 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j45" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j45">J45</a>
+                  <span class="plan-title"
+                    >P7: split pages named in pages.json as a pages map on the family entry</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Each family entry in
+                    <a href="../../../ui/site/_data/pages.json" target="src-packages-ui-site-data-pages-json"
+                      ><code>site/_data/pages.json</code></a
+                    >
+                    may carry <code>pages: { tag: { title, summary, status } }</code>;
+                    <code>yarn site:data</code> copies it to <code>SiteFamily.pages</code> and gives those tags
+                    <code>href: components/TAG.html</code> plus a new <code>SiteTag.page</code> flag (main tag or
+                    own-page sub-tag). The nav marks a row current by <code>page</code>, not <code>main</code>; a row
+                    shows its own page status. <code>SiteSearchPage.mainTag</code> became <code>tag</code> (the tag the
+                    page documents); the search boost for a main tag now goes to every tag with its own page. A typo in
+                    <code>pages</code> throws in <code>site:data</code>. The 14 summaries are mine.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j46" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j46">J46</a>
+                  <span class="plan-title"
+                    >P7: own pages show one tag API; #tag lands on it; family pages keep the whole API</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A split page has <code>&lt;ui-docs-api tag=TAG&gt;</code>; <code>SiteSections.resolve()</code> now
+                    lands <code>#ui-radio</code> on it, so search attribute hits go to the own page. The family page
+                    keeps <code>&lt;ui-docs-api family&gt;</code> (old <code>ui-checkbox.html#ui-radio</code> links
+                    still land) plus a one-line <code>p.site-own-pages</code> in the masthead linking the split pages
+                    (no CSS added).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j47" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j47">J47</a>
+                  <span class="plan-title"
+                    >P7: no Theming tab on the 12 parts pages; SiteCheck accepts a page without one</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The parts have no tokens of their own (their looks are owner tokens like
+                    <code>--ui-card-header-font-size</code>), so their pages have Examples / Usage / API only.
+                    <code>SiteCheck.OPTIONAL_TABS</code> lets theming be absent. <code>yarn site:new TAG</code> keeps
+                    the Theming tab for a split tag only when a family token names it
+                    (<code>--ui-checkbox-radio-size</code>). Radio and textarea Theming show a filtered
+                    <code>tokens=</code> subset of the family table with a live preview of the tag, linking the family
+                    page for the full list.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j48" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j48">J48</a>
+                  <span class="plan-title">P7: what moved off the checkbox and input pages</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Checkbox page: Types / Radio keeps ONE radio example plus a link; the radio slider example, the
+                    radio rows of Right aligned / Colored / Size, the Radio groups usage section and the radio keyboard
+                    and a11y lines moved to <code>ui-radio.html</code>; the Invisible example now uses checkboxes
+                    (Fomantic uses radios there; the radio version is on the radio page). Input page: Types / Textarea
+                    keeps one example plus a link; Variations / Textarea inputs (gap I101) moved. Section ids kept where
+                    sections stay.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j49" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j49">J49</a>
+                  <span class="plan-title"
+                    >P7: parts pages layout: Owners, then Variations / Content; Usage is Using it, Owners,
+                    Accessibility</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Each part page shows the part in each owner that styles it (one example section per owner, borrowed
+                    from owner pages and <code>ui-parts/examples/elements/</code>), then its attributes; overlay-only
+                    owners (toast, flyout, popup, search) are listed in Usage / Owners, not demoed (modal is, behind a
+                    Show button). No Keyboard section (folded into Accessibility). Fomantic link: radio to
+                    modules/checkbox, textarea to collections/form, parts none. Kitchen sink: the family example links
+                    each split page; its examples stay per family.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j50" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j50">J50</a>
+                  <span class="plan-title"
+                    >P7: SiteCheck deep-link check tolerates a short page scrolled to the bottom</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    On short pages (ui-summary, ui-avatar) the first nested section cannot scroll up to its sticky line:
+                    the page ends. <code>landedState</code> now reports <code>bottom</code>, and a target below its line
+                    at the bottom is not a problem. Alternative was padding those pages with filler examples.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j51" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j51">J51</a>
+                  <span class="plan-title"
+                    >P7: template gained site:family / site:tag / site:theming blocks</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../templates/spell-ui-docs.html" target="src-packages-docs-templates-spell-ui-docs-html"
+                      ><code>packages/docs/templates/spell-ui-docs.html</code></a
+                    >
+                    (in the docs package) now has the API pane twice (family vs tag) and the Theming tab in a block;
+                    <a href="../../../ui/scripts/site-new.ts" target="src-packages-ui-scripts-site-new-ts"
+                      ><code>scripts/site-new.ts</code></a
+                    >
+                    keeps one. Only that template changed in packages/docs.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1922,7 +2064,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c4" data-status="open"
+            ><ui-item id="c4" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c4">C4</a>
@@ -1944,7 +2086,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c5" data-status="open"
+            ><ui-item id="c5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c5">C5</a>
@@ -2085,6 +2227,41 @@
                     at 64px slides under them. The kitchen sink's own theme bar was fixed:
                     <code>class="site-sticky-bar"</code>, which <code>SiteSections</code> stacks between the tabs and
                     the titles. The demos' offsets are the examples' code, left alone.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c14">C14</a>
+                  <span class="plan-title">P7: PAGES.md still says one page per family</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../spell-ui-pages/PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+                      ><code>packages/docs/epics/spell-ui-pages/PAGES.md</code></a
+                    >
+                    (section 1) is not updated for split pages: left for the lead, who owns packages/docs.
+                    <a href="../../../ui/site/README.md" target="src-packages-ui-site-readme-md"
+                      ><code>packages/ui/site/README.md</code></a
+                    >
+                    and
+                    <a href="../../../ui/AGENTS.md" target="src-packages-ui-agents-md"
+                      ><code>packages/ui/AGENTS.md</code></a
+                    >
+                    are.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c15">C15</a>
+                  <span class="plan-title">P7: item avatar draws at its image size (SUSPECTED-BUGS)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Seen on ui-avatar.html, Owners / Item: <code>:state(in-item) &gt; .avatar</code> has no size, so it
+                    is ~3em with the name on its baseline, while a card avatar is 2em. Logged in SUSPECTED-BUGS.md, ui;
+                    the page describes it neutrally.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2539,6 +2716,42 @@
                   ui-docs-search in the nav panel header (on this page, components, pages, sections, attributes), slash
                   and Cmd-K, search.json from site:data, top bar search button on phones; checks: ui review passed (4549
                   browser), site:check ui-divider index OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:08-04:00">2026-10-04 04:08</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:09-04:00">2026-10-04 04:09</time></ui-date> C5 closed: The
+                  theme lands a beat after first paint</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:09-04:00">2026-10-04 04:09</time></ui-date> C4 closed: P052
+                  fonts add ~540 KB to packages/docs' spell-ui.js</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:49-04:00">2026-10-04 04:49</time></ui-date> P7
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T04:49-04:00">2026-10-04 04:49</time></ui-date> P7 done: own pages
+                  for ui-radio, ui-textarea and 12 Parts tags (pages.json pages map, own-page hrefs everywhere); checks:
+                  ui review passed (4550 browser), site:check --all 80 OK</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

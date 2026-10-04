@@ -54,6 +54,7 @@
               >A checkbox allows a user to select a value from a small set of options, often binary.</ui-header
             >
           </ui-header>
+          <p class="site-own-pages"><code>&lt;ui-radio&gt;</code> has its own page: <a href="ui-radio.html">Radio</a>.</p>
           <ui-docs-themes for="ui-checkbox" show="theme" class="site-themes"></ui-docs-themes>
         </ui-container>
       </ui-segment>
@@ -63,8 +64,8 @@
           <ui-tab value="examples" label="Examples">
             <!--
               EXAMPLES:  Fomantic's checkbox page, section by section, in its order (Types, States, Variations, then its
-              Examples tab), plus our own extra (Colored).  `<ui-checkbox>` and `<ui-radio>` are one family.
-              - Radios group by `name` across the whole page when there is no form, so every example's group has its own name.
+              Examples tab), plus our own extra (Colored).  `<ui-checkbox>` and `<ui-radio>` are one family, but the radio
+              examples are on `ui-radio.html` (epic ui-docs-rework P7):  here only a pointer to it.
             -->
             <ui-section id="examples-types" header="Types" sticky collapsible dividing>
               <ui-section id="examples-types-checkbox" header="Checkbox" sticky collapsible dividing>
@@ -76,37 +77,10 @@
               <ui-section id="examples-types-radio" header="Radio" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A checkbox can be formatted as a radio element. This means it is an exclusive option:
-                    <code>&lt;ui-radio&gt;</code>s with the same <code>name</code> form a group, and choosing one
-                    unchooses the rest.
+                    A checkbox can be formatted as a radio element: <code>&lt;ui-radio&gt;</code>, an exclusive option.
+                    Groups, sliders, toggles and the rest are on the <a href="ui-radio.html">Radio</a> page.
                   </p>
                   <ui-radio name="radio" selected>Radio choice</ui-radio>
-                </ui-docs-example>
-                <ui-docs-example>
-                  <ui-form>
-                    <form>
-                      <ui-fields inline role="radiogroup" aria-labelledby="checkbox-frequency-label">
-                        <label id="checkbox-frequency-label">How often do you use checkboxes?</label>
-                        <ui-field><ui-radio name="frequency" value="week" selected>Once a week</ui-radio></ui-field>
-                        <ui-field><ui-radio name="frequency" value="2-3">2-3 times a week</ui-radio></ui-field>
-                        <ui-field><ui-radio name="frequency" value="day">Once a day</ui-radio></ui-field>
-                        <ui-field><ui-radio name="frequency" value="twice">Twice a day</ui-radio></ui-field>
-                      </ui-fields>
-                    </form>
-                  </ui-form>
-                </ui-docs-example>
-                <ui-docs-example>
-                  <ui-form>
-                    <form>
-                      <ui-fields grouped role="radiogroup" aria-labelledby="checkbox-example2-label">
-                        <label id="checkbox-example2-label">How often do you use checkboxes?</label>
-                        <ui-field><ui-radio name="example2" value="week" selected>Once a week</ui-radio></ui-field>
-                        <ui-field><ui-radio name="example2" value="2-3">2-3 times a week</ui-radio></ui-field>
-                        <ui-field><ui-radio name="example2" value="day">Once a day</ui-radio></ui-field>
-                        <ui-field><ui-radio name="example2" value="twice">Twice a day</ui-radio></ui-field>
-                      </ui-fields>
-                    </form>
-                  </ui-form>
                 </ui-docs-example>
               </ui-section>
 
@@ -115,23 +89,6 @@
                   description='A checkbox can be formatted to emphasize the current selection state:  `type="slider"`.'
                 >
                   <ui-checkbox type="slider" name="newsletter">Accept terms and conditions</ui-checkbox>
-                </ui-docs-example>
-                <ui-docs-example description="Radios can be sliders too.">
-                  <ui-form>
-                    <form>
-                      <ui-fields grouped role="radiogroup" aria-labelledby="checkbox-throughput-label">
-                        <label id="checkbox-throughput-label">Outbound Throughput</label>
-                        <ui-field><ui-radio type="slider" name="throughput" value="20">20 mbps max</ui-radio></ui-field>
-                        <ui-field><ui-radio type="slider" name="throughput" value="10">10mbps max</ui-radio></ui-field>
-                        <ui-field><ui-radio type="slider" name="throughput" value="5">5mbps max</ui-radio></ui-field>
-                        <ui-field
-                          ><ui-radio type="slider" name="throughput" value="unmetered" selected
-                            >Unmetered</ui-radio
-                          ></ui-field
-                        >
-                      </ui-fields>
-                    </form>
-                  </ui-form>
                 </ui-docs-example>
               </ui-section>
 
@@ -159,14 +116,14 @@
                   <ui-form>
                     <form>
                       <ui-fields grouped>
-                        <ui-radio invisible name="invisible-example" value="one"
-                          ><b>Option One</b><br />I am a radio checkbox styled as a bordered label</ui-radio
+                        <ui-checkbox invisible name="invisible-one"
+                          ><b>Option One</b><br />I am a checkbox styled as a bordered label</ui-checkbox
                         >
-                        <ui-radio invisible name="invisible-example" value="two"
-                          ><b>Option Two</b><br />I am tinted when chosen</ui-radio
+                        <ui-checkbox invisible name="invisible-two"
+                          ><b>Option Two</b><br />I am tinted when chosen</ui-checkbox
                         >
-                        <ui-radio invisible name="invisible-example" value="three" selected
-                          ><b>Option Three</b><br />I am chosen</ui-radio
+                        <ui-checkbox invisible name="invisible-three" selected
+                          ><b>Option Three</b><br />I am chosen</ui-checkbox
                         >
                       </ui-fields>
                     </form>
@@ -284,7 +241,6 @@
                     <form>
                       <ui-fields grouped>
                         <ui-field><ui-checkbox right-aligned selected>Checkbox</ui-checkbox></ui-field>
-                        <ui-field><ui-radio right-aligned name="right-aligned" selected>Radio</ui-radio></ui-field>
                         <ui-field><ui-checkbox right-aligned type="slider" selected>Slider</ui-checkbox></ui-field>
                         <ui-field><ui-checkbox right-aligned type="toggle" selected>Toggle</ui-checkbox></ui-field>
                       </ui-fields>
@@ -300,50 +256,42 @@
                   <ui-checkbox color="red" selected>Red</ui-checkbox>
                   <ui-checkbox color="green" type="toggle" selected>Green</ui-checkbox>
                   <ui-checkbox color="blue" type="slider" selected>Blue</ui-checkbox>
-                  <ui-radio color="purple" name="colored" selected>Purple</ui-radio>
                 </ui-docs-example>
               </ui-section>
 
               <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
                 <ui-docs-example description="A checkbox can have different sizes.">
                   <ui-checkbox size="mini">Checkbox</ui-checkbox>
-                  <ui-radio size="mini" name="size-mini">Radio</ui-radio>
                   <ui-checkbox size="mini" type="toggle">Toggle</ui-checkbox>
                   <ui-checkbox size="mini" type="slider">Slider</ui-checkbox>
                 </ui-docs-example>
                 <ui-docs-example>
                   <ui-checkbox size="tiny">Checkbox</ui-checkbox>
-                  <ui-radio size="tiny" name="size-tiny">Radio</ui-radio>
                   <ui-checkbox size="tiny" type="toggle">Toggle</ui-checkbox>
                   <ui-checkbox size="tiny" type="slider">Slider</ui-checkbox>
                 </ui-docs-example>
                 <ui-docs-example>
                   <ui-checkbox size="small">Checkbox</ui-checkbox>
-                  <ui-radio size="small" name="size-small">Radio</ui-radio>
                   <ui-checkbox size="small" type="toggle">Toggle</ui-checkbox>
                   <ui-checkbox size="small" type="slider">Slider</ui-checkbox>
                 </ui-docs-example>
                 <ui-docs-example>
                   <ui-checkbox size="large">Checkbox</ui-checkbox>
-                  <ui-radio size="large" name="size-large">Radio</ui-radio>
                   <ui-checkbox size="large" type="toggle">Toggle</ui-checkbox>
                   <ui-checkbox size="large" type="slider">Slider</ui-checkbox>
                 </ui-docs-example>
                 <ui-docs-example>
                   <ui-checkbox size="big">Checkbox</ui-checkbox>
-                  <ui-radio size="big" name="size-big">Radio</ui-radio>
                   <ui-checkbox size="big" type="toggle">Toggle</ui-checkbox>
                   <ui-checkbox size="big" type="slider">Slider</ui-checkbox>
                 </ui-docs-example>
                 <ui-docs-example>
                   <ui-checkbox size="huge">Checkbox</ui-checkbox>
-                  <ui-radio size="huge" name="size-huge">Radio</ui-radio>
                   <ui-checkbox size="huge" type="toggle">Toggle</ui-checkbox>
                   <ui-checkbox size="huge" type="slider">Slider</ui-checkbox>
                 </ui-docs-example>
                 <ui-docs-example>
                   <ui-checkbox size="massive">Checkbox</ui-checkbox>
-                  <ui-radio size="massive" name="size-massive">Radio</ui-radio>
                   <ui-checkbox size="massive" type="toggle">Toggle</ui-checkbox>
                   <ui-checkbox size="massive" type="slider">Slider</ui-checkbox>
                 </ui-docs-example>
@@ -418,14 +366,15 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <!-- USAGE:  forms, `selected` / `checked`, radio groups, events, keyboard, accessibility, frameworks. -->
+            <!-- USAGE:  forms, `selected` / `checked`, events, keyboard, accessibility, frameworks;  radios:  ui-radio.html. -->
             <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  Write `<ui-checkbox>` with its label inside; `<ui-radio>` for an exclusive option. No JavaScript to call: both
-                  work as soon as the elements are defined, like Fomantic's checkbox without its module.
+                  Write `<ui-checkbox>` with its label inside. No JavaScript to call: it works as soon as the element is defined,
+                  like Fomantic's checkbox without its module. For an exclusive option, `<ui-radio>` (same family, sheet and tokens)
+                  has its own page: [Radio](ui-radio.html).
 
-                  - `type="toggle"` / `type="slider"` changes the look (on either tag); a `<ui-radio>` is round by default.
+                  - `type="toggle"` / `type="slider"` changes the look.
                   - `selected` is the chosen state, as an attribute and a property. `checked` is an alias: the `checked`
                     attribute in markup selects the box, and `el.checked` reads and writes `el.selected`.
                   - `indeterminate` is an attribute (Fomantic needs JavaScript for it); a click clears it, as natively.
@@ -437,22 +386,13 @@
             <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  Both elements are real form controls.
+                  A checkbox is a real form control.
 
-                  - While chosen, a checkbox submits `name=value` with its form (`value` defaults to `on`, as natively);
-                    unchosen, it submits nothing. A radio group submits the chosen radio's `value`.
-                  - `form.reset()` restores the starting state, and a disabled `<fieldset>` disables them.
-                  - `required` asks for a choice; on a radio, any member makes the whole group required.
+                  - While chosen, it submits `name=value` with its form (`value` defaults to `on`, as natively); unchosen, it
+                    submits nothing.
+                  - `form.reset()` restores the starting state, and a disabled `<fieldset>` disables it.
+                  - `required` asks for it to be chosen.
                   - `disabled` leaves it out of the form; `readonly` keeps it in but cancels clicks.
-                </script>
-              </ui-markdown>
-            </ui-section>
-
-            <ui-section id="usage-radio-groups" header="Radio groups" sticky collapsible dividing>
-              <ui-markdown>
-                <script type="text/markdown">
-                  Radios group by `name` within their form, or the whole page when there is none, even though each `<ui-radio>`
-                  keeps its input in its own shadow root. Choosing one unchooses the others without firing events on them.
                 </script>
               </ui-markdown>
             </ui-section>
@@ -460,15 +400,15 @@
             <ui-section id="usage-events" header="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  `ui-change` fires when the user chooses or unchooses (for a radio, only on the newly chosen one), with
-                  `{ selected, value, originalEvent }`. Setting `selected` from code fires nothing -- Fomantic's `set checked`.
+                  `ui-change` fires when the user chooses or unchooses, with `{ selected, value, originalEvent }`. Setting
+                  `selected` from code fires nothing -- Fomantic's `set checked`.
                 </script>
               </ui-markdown>
               <ui-code language="js">
                 <script type="text/plain">
                   const news = document.querySelector("ui-checkbox[name=news]")
                   news.addEventListener("ui-change", (event) => console.log(event.detail.selected, event.detail.value))
-                  document.querySelector("ui-radio[value=day]").checked = true // same as .selected = true;  no event
+                  document.querySelector("ui-checkbox[name=terms]").checked = true // same as .selected = true;  no event
                 </script>
               </ui-code>
             </ui-section>
@@ -521,10 +461,9 @@
             <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  - **Space** toggles the checkbox, or chooses the focused radio.
-                  - **Arrow Down** / **Arrow Right** (radio): choose the next enabled radio of the group and focus it (wraps).
-                  - **Arrow Up** / **Arrow Left** (radio): choose the previous enabled radio of the group (wraps).
-                  - **Tab** moves into or out of a radio group, through its one tab stop.
+                  - **Space** toggles the checkbox.
+                  - **Tab** moves to the next checkbox: each is a tab stop of its own.
+                  - Radios' arrow keys: the [Radio](ui-radio.html#usage-keyboard) page.
                 </script>
               </ui-markdown>
             </ui-section>
@@ -532,20 +471,17 @@
             <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  - The shadow root holds a real `<input type="checkbox">` (or `radio`) tied to a `<label>`, so clicking the label,
+                  - The shadow root holds a real `<input type="checkbox">` tied to a `<label>`, so clicking the label,
                     Space, and the checked state come from the browser. `delegatesFocus` keeps the host out of the tab order and
                     draws the focus ring on the box.
                   - Toggles and sliders are `role="switch"` (on / off); an `indeterminate` checkbox reports `aria-checked="mixed"`;
                     `readonly` sets `aria-readonly` and cancels clicks.
                   - The accessible name is the label text. A `fitted` box (or an `invisible` one holding only an image) has none,
                     so give it an `aria-label` or a `<label for>` pointing at the host.
-                  - Wrap a radio group in `role="radiogroup"` with a name (`aria-label` or `aria-labelledby`), as the examples do.
-                  - Only the chosen radio of a group (else the first enabled one) is a tab stop, as with native radios.
                   - A box that fails `required` after the user has interacted gets `aria-invalid="true"`.
                   - Without JavaScript the native fallback keeps the same markup with a plain native input: it still submits,
-                    validates `required` and fires `ui-change`. It drops grouping radios across elements (each fallback radio
-                    stands alone, with no arrow keys), vetoing `ui-change`, the invalid state, reset to the starting state, and
-                    naming a `fitted` box through `<label for>` (only `aria-label` works).
+                    validates `required` and fires `ui-change`. It drops vetoing `ui-change`, the invalid state, reset to the
+                    starting state, and naming a `fitted` box through `<label for>` (only `aria-label` works).
                 </script>
               </ui-markdown>
             </ui-section>

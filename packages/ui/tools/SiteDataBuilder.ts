@@ -14,7 +14,8 @@ import {
   type SiteFamily,
   type SitePageSeed,
   type SitePagesFile,
-  type SiteTag
+  type SiteTag,
+  type SiteTagPage
 } from "../src/docs-components/docs-components.types.ts"
 import type { AttributeSpec, ComponentVocabulary, ValueSetName } from "../src/vocabulary/vocabulary.types.ts"
 
@@ -118,6 +119,7 @@ export class SiteDataBuilder {
         status: seed.status,
         docs: isDocs,
         tags: ordered.map((entry) => entry.tag),
+        ...SiteDataBuilder.pagesOf(folder, tags, mainTag, seed),
         tokens: tokens.read(sheets, folder, seed.tokens)
       }
     }
@@ -230,8 +232,9 @@ export class SiteDataBuilder {
   }
 
   /**
-   * `tags` A-Z by name, each with what its family says:  main tag, and the docs page (`components/<main>.html`, plus
-   * `#<tag>` for a sub-tag;  none for a doc-only tag).
+   * `tags` A-Z by name, each with what its family says:  main tag, and the docs page:  `components/<tag>.html` for
+   * the main tag and a sub-tag with its own page (`SiteFamily.pages`), else `components/<main>.html#<tag>`;  none for
+   * a doc-only tag.
    */
   private static finishTags(tags: RawTag[], families: Record<string, SiteFamily>): SiteTag[] {
     return [...tags]
@@ -239,14 +242,37 @@ export class SiteDataBuilder {
       .map((entry) => {
         const family = families[entry.folder]!
         const main = entry.tag === family.mainTag
-        const page = `components/${family.mainTag}.html`
+        const page = !family.docs && (main || Object.hasOwn(family.pages ?? {}, entry.tag))
         return {
           ...entry,
           mainTag: family.mainTag,
           main,
-          ...(!family.docs && { href: main ? page : `${page}#${entry.tag}` })
+          page,
+          ...(!family.docs && {
+            href: page ? `components/${entry.tag}.html` : `components/${family.mainTag}.html#${entry.tag}`
+          })
         }
       })
+  }
+
+  /**
+   * A family's `pages` (sub-tags with a page of their own), from its seed:  A-Z, as `{ pages }` to spread, or nothing
+   * when it has none.
+   * - Throws on a tag the family doesn't have, or its main tag:  a typo in pages.json would else drop a page silently.
+   */
+  private static pagesOf(
+    folder: string,
+    tags: RawTag[],
+    mainTag: string,
+    seed: SitePageSeed
+  ): { pages?: Record<string, SiteTagPage> } {
+    const names = Object.keys(seed.pages ?? {}).sort()
+    for (const tag of names) {
+      if (tag === mainTag || !tags.some((entry) => entry.tag === tag))
+        throw new Error(`pages.json:  ${folder}.pages names ${tag}, not a sub-tag of the family`)
+    }
+    if (!names.length) return {}
+    return { pages: Object.fromEntries(names.map((tag) => [tag, { ...seed.pages![tag]! }])) }
   }
 
   /** A vocabulary object (a `tag` and `attributes`), not a constant its module also exports. */
@@ -282,7 +308,8 @@ export class SiteDataBuilder {
     }
     return {
       $comment:
-        "Hand-kept facts per family (title, summary, status, mainTag, token-table overrides) and per theme sheet " +
+        "Hand-kept facts per family (title, summary, status, mainTag, `pages`:  sub-tags with a page of their own, " +
+        "token-table overrides) and per theme sheet " +
         "(`themes`:  title), read by `yarn " +
         "site:data`.  Shape:  `SitePagesFile` in src/docs-components/docs-components.types.ts.  Edit by hand;  a new " +
         "family is added (seeded) by `yarn site:data`.",
@@ -304,7 +331,7 @@ export class SiteDataBuilder {
 }
 
 /** A tag before its family is known. */
-type RawTag = Omit<SiteTag, "mainTag" | "main" | "href">
+type RawTag = Omit<SiteTag, "mainTag" | "main" | "page" | "href">
 
 /** `packages/ui/`. */
 const UI_ROOT = fileURLToPath(new URL("../", import.meta.url))

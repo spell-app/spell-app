@@ -123,7 +123,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       sections, for `<ui-docs-search>`, read from the page files), GENERATED, committed (`yarn site:data`;  shapes
       `SiteDataFile` / `SiteIconsFile` / `SiteSearchFile` in `src/docs-components/docs-components.types.ts`;  rerun
       after renaming or moving a section too), and `pages.json`, hand-kept per-family facts it reads (title, summary,
-      status, token-table overrides)
+      status, token-table overrides, `pages`:  the sub-tags with a page of their own)
     - `_parts/` -- shared header / footer, pulled in with `<ui-include>`
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
@@ -173,8 +173,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     hashed chunks:  `yarn site:build` before committing
   - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
     (`packages/docs/templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a
-    tag, else `site/<page>.html`;  title / summary / status from `site/_data/pages.json`.  How to write one:
-    `packages/docs/epics/spell-ui-pages/PAGES.md`
+    tag (`<tag>.html` for a sub-tag its family's `pages` lists:  `ui-radio`), else `site/<page>.html`;  title /
+    summary / status from `site/_data/pages.json`.  How to write one:  `packages/docs/epics/spell-ui-pages/PAGES.md`
   - `yarn site:sections [--check] [page...]` -- `scripts/site-sections.ts`:  nests every page's flat level 2 / 3
     headers and headed examples into `<ui-section>`s and writes (or fixes) their ids, `<tab>-<section>-<example>`;
     idempotent.  `site:index`, `site:kitchen` and `site:new` run it on what they write

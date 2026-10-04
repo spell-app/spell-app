@@ -4,6 +4,9 @@
  * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `site/components/<main tag>.html`, the
  *   component layout:  masthead with the family's theme picker, Examples / Usage / API / Theming tabs.  Title, summary
  *   and status come from `site/_data/pages.json` (`--title` / `--summary` override them).
+ * - A sub-tag with a page of its OWN (pages.json `pages`, e.g. `ui-radio`) writes `site/components/<tag>.html`:  its
+ *   own title, summary and status, ONE tag's API tables (`<ui-docs-api tag>`), and the Theming tab only when one of
+ *   the family's tokens names it (`--ui-checkbox-radio-size`;  `ui-meta` has none:  its owners style it).
  * - Anything else is a PAGE:  `site/<page>.html`, one content column, no tabs;  `--title` (default:  the name in
  *   Title Case) and `--summary`.
  * - Fills the template's `{{...}}` placeholders, keeps the `site:component` OR `site:page` blocks (and drops the
@@ -40,11 +43,30 @@ const FOMANTIC_PAGES: Record<string, string> = {
   "ui-visibility": "behaviors/visibility"
 }
 
+/**
+ * Fomantic pages of the sub-tags with a page of their own, where Fomantic has one;  the rest get no Fomantic link
+ * (the content parts are spread over its card, item, feed ... pages).
+ */
+const FOMANTIC_TAG_PAGES: Record<string, string> = {
+  "ui-radio": "modules/checkbox",
+  "ui-textarea": "collections/form"
+}
+
 /** Words shown for a family's `status` in the masthead label. */
 const STATUS_TEXT: Record<string, string> = { planned: "Planned", "in-progress": "In progress" }
 
 /** A family as `components.json` describes it (the fields used here). */
-type Family = { folder: string; mainTag: string; title: string; summary: string; status: string; tags: string[] }
+type Family = {
+  folder: string
+  mainTag: string
+  title: string
+  summary: string
+  status: string
+  tags: string[]
+  /** sub-tags with a page of their own:  tag => title, summary, status */
+  pages?: Record<string, { title: string; summary: string; status: string }>
+  tokens: { name: string }[]
+}
 
 /** What fills a template. */
 type PageFacts = {
@@ -54,8 +76,12 @@ type PageFacts = {
   summary: string
   /** `done` drops the status label */
   status: string
-  /** main tag, e.g. `ui-button`;  empty for a page */
+  /** the tag the page documents, e.g. `ui-button` (a main tag) or `ui-radio`;  empty for a page */
   tag: string
+  /** a sub-tag's own page:  ONE tag's API tables (`site:tag`), not the family's (`site:family`) */
+  own: boolean
+  /** keep the Theming tab */
+  theming: boolean
   /** family folder, e.g. `ui-button`;  empty for a page */
   family: string
   /** fomantic-ui.com URL, or empty */
@@ -86,8 +112,26 @@ class SitePageWriter {
         summary: options.summary ?? "",
         status: "done",
         tag: "",
+        own: false,
+        theming: false,
         family: "",
         fomantic: ""
+      }
+    }
+    const tag = SitePageWriter.tagOf(name)
+    const own = family.pages && Object.hasOwn(family.pages, tag) ? family.pages[tag]! : undefined
+    if (own) {
+      const noun = tag.replace(/^ui-/, "")
+      return {
+        file: `components/${tag}.html`,
+        title: options.title ?? own.title,
+        summary: options.summary ?? own.summary,
+        status: own.status,
+        tag,
+        own: true,
+        theming: family.tokens.some((token) => token.name.includes(`-${noun}-`)),
+        family: family.folder,
+        fomantic: FOMANTIC_TAG_PAGES[tag] ? `https://fomantic-ui.com/${FOMANTIC_TAG_PAGES[tag]}.html` : ""
       }
     }
     return {
@@ -96,6 +140,8 @@ class SitePageWriter {
       summary: options.summary ?? family.summary,
       status: family.status,
       tag: family.mainTag,
+      own: false,
+      theming: true,
       family: family.folder,
       fomantic: SitePageWriter.fomantic(family)
     }
@@ -112,6 +158,9 @@ class SitePageWriter {
     html = SitePageWriter.block(html, "page", !component)
     html = SitePageWriter.block(html, "status", facts.status !== "done")
     html = SitePageWriter.block(html, "fomantic", !!facts.fomantic)
+    html = SitePageWriter.block(html, "family", !facts.own)
+    html = SitePageWriter.block(html, "tag", facts.own)
+    html = SitePageWriter.block(html, "theming", facts.theming)
     html = html
       .replace(/<title>[^<]*<\/title>/, `<title>${SitePageWriter.escape(`${facts.title} | Spell UI`)}</title>`)
       .replace(/(<meta\s+name="description"\s+content=")[^"]*(")/, `$1${SitePageWriter.escape(facts.summary)}$2`)
@@ -131,9 +180,14 @@ class SitePageWriter {
     )
   }
 
+  /** `name` as a tag:  `button` => `ui-button`. */
+  private static tagOf(name: string): string {
+    return name.startsWith("ui-") ? name : `ui-${name}`
+  }
+
   /** The family `name` names:  a folder, a main tag, any tag of a family, or a bare name (`button`). */
   private family(name: string): Family | undefined {
-    const tag = name.startsWith("ui-") ? name : `ui-${name}`
+    const tag = SitePageWriter.tagOf(name)
     const families = Object.values(this.families)
     return (
       this.families[tag] ??
@@ -199,7 +253,10 @@ if (existsSync(file) && !args.includes("--force")) {
 }
 // the template's section ids are written for its placeholder title:  fixed for the page's own (`#examples-types-card`)
 writeFileSync(file, SiteSections.convert(writer.render(facts)))
-console.log(`wrote ${path.relative(process.cwd(), file)}  (${facts.tag ? `component ${facts.tag}` : "page"})`)
+const kind = facts.own ? `own page of ${facts.tag}` : facts.tag ? `component ${facts.tag}` : "page"
+console.log(
+  `wrote ${path.relative(process.cwd(), file)}  (${kind}${facts.own && !facts.theming ? ", no Theming tab" : ""})`
+)
 console.log(`  view:  yarn server url ${file}   (from the repo root);  check:  yarn site:check ${facts.file}`)
 
 /** The value after `flag` in the arguments. */

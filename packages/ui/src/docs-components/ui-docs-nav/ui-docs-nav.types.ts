@@ -81,13 +81,19 @@ export type NavRow = {
   readonly tag: string
   /** display name, e.g. `Or` */
   readonly name: string
-  /** docs page, relative to the site root:  `components/ui-button.html`, plus `#ui-or` for a sub-tag */
+  /**
+   * docs page, relative to the site root:  `components/<tag>.html` for a tag with its own page, else its family
+   * page plus `#<tag>` (`components/ui-button.html#ui-or`)
+   */
   readonly href: string
-  /** its family's main tag, whose page IS the family page (the one that can be current) */
-  readonly main: boolean
+  /**
+   * `href` is a page of its own (a family's main tag, or a sub-tag split onto its own page:  `ui-radio`):  the row
+   * that can be current
+   */
+  readonly page: boolean
   /** topic ids it's filed under */
   readonly topics: readonly string[]
-  /** its family's status, when not `done`:  shown as a badge */
+  /** its page's status (its own page's, else its family's), when not `done`:  shown as a badge */
   readonly status?: Exclude<SiteStatus, "done">
   /** search key (`NavIndex.key()`):  name, tag, topics (ids and titles), other names */
   readonly search: string

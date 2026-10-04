@@ -45,7 +45,7 @@ export class DocsNavFallback extends NativeFallback<typeof docsNavVocabulary> {
     void SiteData.load().then(
       (data) =>
         this.components.replaceChildren(
-          ...new NavIndex(data).rows.map((row) => this.link(row.href, row.name, row.main && row.tag === this.current()))
+          ...new NavIndex(data).rows.map((row) => this.link(row.href, row.name, row.page && row.tag === this.current()))
         ),
       () => undefined
     )

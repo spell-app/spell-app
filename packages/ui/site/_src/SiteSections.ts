@@ -215,6 +215,7 @@ export class SiteSections {
    * - an element with that id
    * - an OLD link:  a pane's section of that name (`#types` => `#examples-types`), else the first page section whose
    *   id ends with it (an example's old slug:  `#vertical-divider` => `#examples-types-vertical-divider`)
+   * - a tag's own page's `<ui-docs-api tag>` for that tag (`ui-radio.html#ui-radio`):  the tables, headerless
    * - a tag of the family (`#ui-or`):  its tables in the `<ui-docs-api>`, drawn in its shadow root later
    */
   private static resolve(main: HTMLElement, id: string): Found | undefined {
@@ -228,6 +229,10 @@ export class SiteSections {
     const suffix = `-${id}`
     const section = SiteSections.pageSections(main).find((element) => element.id.endsWith(suffix))
     if (section) return { target: section, id: section.id }
+    const single = [...main.querySelectorAll<HTMLElement>("ui-docs-api[tag]")].find(
+      (element) => element.getAttribute("tag") === id
+    )
+    if (single) return { target: single, id }
     const api = main.querySelector<HTMLElement>("ui-docs-api[family]")
     if (api && /^[a-z][a-z0-9]*(-[a-z0-9]+)+$/.test(id)) return { api, tag: id }
     return undefined

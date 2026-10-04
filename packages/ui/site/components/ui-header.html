@@ -55,6 +55,21 @@
               messages share.</ui-header
             >
           </ui-header>
+          <p class="site-own-pages">
+            The other parts have their own pages:
+            <a href="ui-actions.html">Actions</a>,
+            <a href="ui-author.html">Author</a>,
+            <a href="ui-avatar.html">Avatar</a>,
+            <a href="ui-content.html">Content</a>,
+            <a href="ui-date.html">Date</a>,
+            <a href="ui-description.html">Description</a>,
+            <a href="ui-detail.html">Detail</a>,
+            <a href="ui-extra.html">Extra</a>,
+            <a href="ui-meta.html">Meta</a>,
+            <a href="ui-summary.html">Summary</a>,
+            <a href="ui-title.html">Title</a>,
+            <a href="ui-value.html">Value</a>.
+          </p>
           <ui-docs-themes for="ui-header" show="theme" class="site-themes"></ui-docs-themes>
         </ui-container>
       </ui-segment>
@@ -410,8 +425,8 @@
               <ui-message size="small" state="info"
                 >The other content parts style themselves by their OWNER: the same <code>&lt;ui-meta&gt;</code> reads
                 differently in a card, an item, a feed and a comment. Outside any owner they are unstyled blocks.
-                Their own pages (card, items, comment, feed, statistic, step, label) show every owner in
-                full.</ui-message
+                Each part has its own page too (linked above), and the owners' pages
+                (card, items, comment, feed, statistic, step, label) show every owner in full.</ui-message
               >
 
               <ui-section id="examples-parts-content" header="Content" sticky collapsible dividing>
@@ -663,7 +678,8 @@
                 <script type="text/markdown">
                   One family, thirteen tags: `<ui-header>`, `<ui-content>`, `<ui-description>`, `<ui-meta>`, `<ui-extra>`,
                   `<ui-actions>`, `<ui-title>`, `<ui-summary>`, `<ui-date>`, `<ui-author>`, `<ui-avatar>`, `<ui-detail>` and
-                  `<ui-value>`.
+                  `<ui-value>`. This page is the header's and the family's overview; every other part has a page of its own
+                  (its owners, examples and API): [`<ui-meta>`](ui-meta.html), [`<ui-content>`](ui-content.html) ...
 
                   - Only a STANDALONE `<ui-header>` is a component in its own right (Fomantic's `ui header`), with its own
                     attributes: `level`, `size`, `sub`, `icon`, `dividing`, `block`, `attached`, `color`, `inverted` ...

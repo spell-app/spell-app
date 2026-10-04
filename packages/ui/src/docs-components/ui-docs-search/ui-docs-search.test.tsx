@@ -31,6 +31,7 @@ function tag(name: string, tagName: string, extra: Partial<SiteTag> = {}): SiteT
     folder,
     mainTag: folder,
     main: folder === tagName,
+    page: folder === tagName,
     href: folder === tagName ? `components/${folder}.html` : `components/${folder}.html#${tagName}`,
     topics: [],
     aka: [],
@@ -107,7 +108,7 @@ const SEARCH: SiteSearchFile = {
     {
       path: "components/ui-button.html",
       title: "Button",
-      mainTag: "ui-button",
+      tag: "ui-button",
       tabs: { examples: "Examples", usage: "Usage" },
       sections: [
         { id: "examples-variations", title: "Variations", tab: "examples" },
@@ -118,7 +119,7 @@ const SEARCH: SiteSearchFile = {
     {
       path: "components/ui-divider.html",
       title: "Divider",
-      mainTag: "ui-divider",
+      tag: "ui-divider",
       tabs: { examples: "Examples" },
       sections: [
         { id: "examples-types", title: "Types", tab: "examples" },

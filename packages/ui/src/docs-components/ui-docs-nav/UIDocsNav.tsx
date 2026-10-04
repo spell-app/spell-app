@@ -154,7 +154,7 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
   /** The current page's row, when it's a component's page. */
   readonly currentRow = createMemo(() => {
     const row = this.index.get()?.row(this.current())
-    return row?.main ? row : undefined
+    return row?.page ? row : undefined
   })
 
   /** The topic Topics opens for the current page:  its first, unless an open topic already holds it. */

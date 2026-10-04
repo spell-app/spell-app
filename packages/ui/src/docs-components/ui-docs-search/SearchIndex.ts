@@ -30,8 +30,8 @@ import {
  * - Plain data, no Solid:  the element keeps the query in a signal and asks `search()`.
  ****************/
 export class SearchIndex {
-  /** Boost of a family's main tag over its sub-tags. */
-  static readonly MAIN_TAG_BOOST = 20
+  /** Boost of a tag with a page of its own (a family's main tag, `ui-radio`) over a sub-tag on its family's page. */
+  static readonly PAGE_BOOST = 20
 
   /** Boost of an entry on the page shown (its attributes). */
   static readonly HERE_BOOST = 40
@@ -68,7 +68,7 @@ export class SearchIndex {
       }
     }
     for (const page of search?.pages ?? []) {
-      if (!page.mainTag) {
+      if (!page.tag) {
         const entry: SearchEntry = {
           kind: "page",
           title: page.title,
@@ -279,11 +279,14 @@ export class SearchIndex {
       ...(!tag.main && { context: family }),
       href: tag.href ?? `components/${tag.mainTag}.html#${tag.tag}`,
       terms: [tag.tag, ...tag.aka, ...(tag.main ? [] : [family]), ...topics],
-      ...(tag.main && { boost: SearchIndex.MAIN_TAG_BOOST })
+      ...(tag.page && { boost: SearchIndex.PAGE_BOOST })
     }
   }
 
-  /** `tag`'s attributes:  each lands on its tag's API tables (`<ui-docs-api>`'s `#<tag>` header). */
+  /**
+   * `tag`'s attributes:  each lands on its tag's API tables, `#<tag>` on `page`:  a family `<ui-docs-api>`'s header for
+   * that tag, or a page's own `<ui-docs-api tag>` (`ui-radio.html#ui-radio`;  `SiteSections` lands both).
+   */
   private static attributes(tag: SiteTag, page: string, family: string): SearchEntry[] {
     return tag.attributes.map((attribute) => ({
       kind: "attribute",
