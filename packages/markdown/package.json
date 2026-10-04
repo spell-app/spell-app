@@ -1,0 +1,39 @@
+{
+  "name": "@spell-app/markdown",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "/////// CORRECTNESS": "",
+    "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
+    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p tsconfig.node.json && echo '<< TSC PASSED\n'",
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && oxlint --report-unused-disable-directives --max-warnings 0 src && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && oxlint --fix src && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && oxfmt . && echo '<< OXFMT PASSED\n'",
+    "format:check": "oxfmt --check .",
+    "/////// TESTING": "",
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vitest run && echo '<< TESTS PASSED\n'",
+    "test:watch": "vitest",
+    "/////// SPEC": "",
+    "spec:update": "node scripts/gfm-spec.mjs"
+  },
+  "dependencies": {
+    "@spell-app/parser": "workspace:*",
+    "@spell-app/util": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@typescript/typescript6": "^6.0.2",
+    "esbuild": "^0.28.2",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
+    "oxlint-tsgolint": "^7.0.2003",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=22.17"
+  },
+  "packageManager": "yarn@4.18.0"
+}

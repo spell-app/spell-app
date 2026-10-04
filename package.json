@@ -9,6 +9,7 @@
     "packages/cli",
     "packages/docs",
     "packages/lsp",
+    "packages/markdown",
     "packages/parser",
     "packages/solid-element",
     "packages/spell",
