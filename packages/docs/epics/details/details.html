@@ -69,7 +69,7 @@
               type a letter) when the page server or extension isn't available.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 5h-6h in all, 0m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 6h 30m-8h in all, 0m left</p>
           <ui-section id="o1" header="1.1 What already works" sticky collapsible dividing>
             <ul>
               <li>
@@ -188,7 +188,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="5" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="6" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -262,7 +262,10 @@
                   ><code>check-spell.js</code></a
                 >
                 on a sample page; click through in Chrome against a running page server</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t1">T1</a> <a href="#t2">T2</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -298,7 +301,8 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> new -&gt; show -&gt; answer in the side bar -&gt; background <code>wait</code> exits
                 with the answer</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t3">T3</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -331,7 +335,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 45m</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="done" header="P5 · Doc Review" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p5"
+            data-phase="5"
+            data-status="done"
+            header="P5 · Doc Review"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> plan doc true to what was built; durable doc; changelog</ui-item
@@ -348,6 +361,30 @@
                   ><code>check-spell.js</code></a
                 >, <code>doc-links.py --check</code></ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 45m</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Sidebar Links" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> a clicked link in chat shows the page in the side bar: page server route
+                <code>GET /api/docs/show</code> tells this session's window to show it, the browser tab closes itself,
+                VS Code comes back to the front; <code>yarn docs:link</code> prints the link + <code>(_browser_)</code>;
+                skills use it, and show pages themselves</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../scripts/showRoutes.ts" target="src-packages-docs-scripts-showroutes-ts"
+                  ><code>packages/docs/scripts/showRoutes.ts</code></a
+                >,
+                <a href="../../scripts/link.ts" target="src-packages-docs-scripts-link-ts"
+                  ><code>packages/docs/scripts/link.ts</code></a
+                >, skills (<code>details</code>, <code>epic</code>), root
+                <a href="../../../../CLAUDE.md" target="src-claude-md"><code>CLAUDE.md</code></a
+                >, durable doc</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> route tests; a link clicked in the Claude panel shows the page in the side bar
+                (Owen)</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item></ui-list
             >
           </ui-section></ui-section
         >
@@ -453,11 +490,10 @@
                 ><ui-title
                   ><a class="plan-id" href="#d3">D3</a>
                   <span class="plan-title"
-                    >In an epic: committed in &lt;code&gt;epics/&amp;lt;name&amp;gt;/details/&lt;/code&gt;, linked from
-                    its decision; else scratch &lt;code&gt;packages/docs/details/&lt;/code&gt;, swept after 14 days (<a
-                      href="#q3"
-                      >Q3</a
-                    >)</span
+                    >In an epic: committed in <code>epics/&lt;name&gt;/details/</code>, linked from its decision; else
+                    scratch
+                    <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/details/</code></a
+                    >, swept after 14 days (<a href="#q3">Q3</a>)</span
                   ></ui-title
                 ><ui-content
                   ><p class="meta">Answers <a href="#q3">Q3</a>: Keep the pages afterwards?</p></ui-content
@@ -468,8 +504,8 @@
                 ><ui-title
                   ><a class="plan-id" href="#d4">D4</a>
                   <span class="plan-title"
-                    >No extension change: &lt;code&gt;DocPreview&lt;/code&gt; / &lt;code&gt;DocView&lt;/code&gt; already
-                    show any page in the side bar</span
+                    >No extension change: <code>DocPreview</code> / <code>DocView</code> already show any page in the
+                    side bar</span
                   ></ui-title
                 ><ui-content
                   ><p>
@@ -498,7 +534,9 @@
                   ><a class="plan-id" href="#d6">D6</a>
                   <span class="plan-title"
                     >Options are stacked cards, their details (long text, pictures) collapsible; built with
-                    &lt;code&gt;@spell-app/ui&lt;/code&gt;</span
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"
+                      ><code>@spell-app/ui</code></a
+                    ></span
                   ></ui-title
                 ><ui-content
                   ><p>
@@ -526,8 +564,7 @@
                 ><ui-title
                   ><a class="plan-id" href="#d8">D8</a>
                   <span class="plan-title"
-                    >Owen typing &lt;code&gt;/details [topic]&lt;/code&gt;: Claude explains the current topic as a
-                    page</span
+                    >Owen typing <code>/details [topic]</code>: Claude explains the current topic as a page</span
                   ></ui-title
                 ><ui-content
                   ><p>
@@ -562,6 +599,51 @@
                       >morning review</a
                     >
                     (Q2 · A).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d11">D11</a>
+                  <span class="plan-title"
+                    >Pages reach the side bar two ways: Claude shows them itself, and the link Claude gives opens them
+                    there; then a <code>(_browser_)</code> link</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-03. The Claude panel follows only http and file links (<code>vscode://</code> does
+                    nothing), so the side bar link goes through the page server (P6).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title"
+                    >Details pages open with a Where we are box; questions stand alone, in plain short lines, no bare
+                    ids</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-03: the questions were too dense and lacked context; he runs 5+ epics at once.
+                    Template and skill (Writing for Owen) changed; memory saved.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d13">D13</a>
+                  <span class="plan-title"
+                    >The browser link goes through the page server too, and opens Chrome in front</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-03: the plain <code>(_browser_)</code> link opened in a VS Code tab: the Claude panel
+                    opens localhost links there. <code>/api/docs/show?in=browser</code> opens Chrome, reusing the page's
+                    tab.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -662,7 +744,7 @@
                 ><ui-title
                   ><a class="plan-id" href="#t4">T4</a>
                   <span class="plan-title"
-                    >Option cards as Solid widgets, e.g. &lt;code&gt;&amp;lt;claude-option&amp;gt;&lt;/code&gt;</span
+                    >Option cards as Solid widgets, e.g. <code>&lt;claude-option&gt;</code></span
                   ></ui-title
                 ><ui-content
                   ><p>
@@ -700,8 +782,8 @@
                 ><ui-title
                   ><a class="plan-id" href="#t6">T6</a>
                   <span class="plan-title"
-                    >Show a page by URL: &lt;code&gt;yarn details show&lt;/code&gt; uses the worktree's own page server
-                    before a merge</span
+                    >Show a page by URL: <code>yarn details show</code> uses the worktree's own page server before a
+                    merge</span
                   ></ui-title
                 ><ui-content
                   ><p>
@@ -767,11 +849,11 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t10" data-status="open"
+            ><ui-item id="t10" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t10">T10</a>
-                  <span class="plan-title">Links in chat open in the side bar</span></ui-title
+                  <span class="plan-title">Links in chat open in the side bar</span> </ui-title
                 ><ui-content
                   ><p>
                     Owen, 2026-10-03: links Claude gives in chat should open in the side bar, not the browser. The
@@ -788,9 +870,7 @@
 
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed>
-            <ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t1">T1</a> <a href="#t2">T2</a></ui-item></ui-list
-          >
+          <ui-list class="plan-items" data-kind="issue" divided relaxed> </ui-list>
         </ui-section>
 
         <ui-section id="tests" header="7. To test" sticky collapsible dividing>
@@ -799,8 +879,7 @@
             What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
           </p>
           <ui-list class="plan-items" data-kind="test" divided relaxed>
-            <ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t3">T3</a></ui-item
-            ><ui-item id="v1" data-status="open"
+            <ui-item id="v1" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v1">V1</a>
@@ -903,9 +982,9 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T19:33-04:00">2026-10-03 19:33</time></ui-date> Q3 answered: D3 In
-                  an epic: committed in &lt;code&gt;epics/&amp;lt;name&amp;gt;/details/&lt;/code&gt;, linked from its
-                  decision; else scratch &lt;code&gt;packages/docs/details/&lt;/code&gt;, swept after 14
-                  days</ui-summary
+                  an epic: committed in <code>epics/&lt;name&gt;/details/</code>, linked from its decision; else scratch
+                  <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/details/</code></a
+                  >, swept after 14 days</ui-summary
                 ></ui-content
               ></ui-event
             ><ui-event icon="pen to square"
@@ -1069,6 +1148,52 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T20:29-04:00">2026-10-03 20:29</time></ui-date> Morning review
                   answered on the page: the first real /details round trip</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T20:46-04:00">2026-10-03 20:46</time></ui-date> T10: Claude panel
+                  ignores clicked vscode:// links; the same URI via open from a terminal shows the page in the side
+                  bar</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T21:01-04:00">2026-10-03 21:01</time></ui-date> P6 added: Sidebar
+                  Links</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T21:01-04:00">2026-10-03 21:01</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T21:16-04:00">2026-10-03 21:16</time></ui-date> T10 closed: Links
+                  in chat open in the side bar</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T21:16-04:00">2026-10-03 21:16</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T21:16-04:00">2026-10-03 21:16</time></ui-date> P6 done: GET
+                  /api/docs/show (showRoutes.ts) + yarn docs:link: side bar link + (_browser_) via Chrome in front,
+                  landing on --hash unfolded; Where we are box + Writing for Owen; epic / spell-docs / wtf skills and
+                  CLAUDE.md link pages this way; checks: docs tests 53, ts, lint, check-spell on details / server /
+                  changelog; Owen clicked both links: ok</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

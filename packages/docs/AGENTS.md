@@ -192,6 +192,8 @@ In this order, from `packages/docs`:
   tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" view (`/spell-docs`).
 - `yarn details` (`scripts/details.js`) -- details pages (see "Details pages");  `scripts/detailsRoutes.ts`, the
   page server's route module for their answers.
+- `yarn docs:link <page> [--hash <id>] [--text "..."] [--show]` (`scripts/link.ts`) -- the markdown links Claude
+  gives for a page:  side bar, then `(_browser_)`, both through `scripts/showRoutes.ts` (`GET /api/docs/show`).
 - `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `atDepth()` (a template at a page's depth),
   `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
   through the spell extension's `DocPreview`).

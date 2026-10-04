@@ -230,6 +230,36 @@
           </ui-section>
         </ui-section>
 
+        <ui-section id="links" header="Links to pages" sticky collapsible dividing>
+          <ul>
+            <li>
+              Every page Claude names (a details page, a plan doc, any docs page) comes as two links, from
+              <code>yarn docs:link &lt;page&gt; --hash &lt;id&gt; --show</code>: the title shows it in the side bar,
+              <code>(_browser_)</code> opens it in Chrome. <code>--show</code> also shows it at once.
+            </li>
+            <li>
+              Both go through the page server, <code>GET /api/docs/show</code> (<a
+                href="scripts/showRoutes.ts"
+                target="src-packages-docs-scripts-showroutes-ts"
+                ><code>scripts/showRoutes.ts</code></a
+              >): the Claude panel ignores <code>vscode://</code> links, and opens <code>localhost</code> ones in a VS
+              Code tab.
+              <ul>
+                <li>
+                  side bar: the server asks the session's VS Code window (its pid is in the link) to show the page
+                </li>
+                <li><code>in=browser</code>: the server opens Chrome, in front, reusing the page's tab</li>
+                <li>either way the tab the click opened closes itself, and VS Code comes back to the front</li>
+                <li>refused unless the click started it (<code>Sec-Fetch-Site</code>): no other site can trigger it</li>
+              </ul>
+            </li>
+            <li>
+              <code>--hash</code>: the page lands on that id, below the sticky titles, unfolded (the docs runtime does
+              this for any <code>#id</code>).
+            </li>
+          </ul>
+        </ui-section>
+
         <ui-section id="4-why" header="4. Why" sticky collapsible dividing>
           <ul>
             <li>
@@ -251,6 +281,10 @@
             <li>Locked after Send, with Change answer: one answer at a time, but a change of mind is one click.</li>
             <li>
               Short option markup, built by script: a third of the typing per question, and card fixes reach every page.
+            </li>
+            <li>
+              A "Where we are" box on every page, questions that stand alone, plain short lines: Owen runs 5+ epics at
+              once and reads each page cold.
             </li>
           </ul>
           <p>

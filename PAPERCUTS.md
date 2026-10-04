@@ -1149,6 +1149,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-03 · In a worktree-isolated session, a `python3 - <<'PY'` heredoc that edits a page was refused ("feeds
   python text naming git"):  the guard scans the heredoc's text, and prose like "git-ignored" counts. · Write the
   script to the scratchpad and run `python3 <file>`.  (Also:  `yarn -s` isn't a Yarn 4 option.) · claude-code
+- 2026-10-03 · A `vscode://spell-app.spell-language/doc-preview?url=...` link in a Claude panel reply did nothing
+  when clicked;  the same URI via `open` from a terminal showed the page in the side bar.  The panel only follows
+  http(s) and file links. · Don't hand Owen `vscode://` links;  show the page yourself (`window.mjs show`). ·
+  claude-code
 
 ## vscode
 

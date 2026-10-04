@@ -149,7 +149,7 @@ export async function openInVSCode(file, { hash } = {}) {
  *   the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded.
  *   The page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`).
  * - Never brings Chrome or its window forward:  the tab is made active in ITS window only;  a new tab goes in the
- *   front window.
+ *   front window.  (`openUrlInChrome()` with `front` does, for a link Owen clicked.)
  * - Chrome not running, or AppleScript refused:  `open -g -a "Google Chrome"`, which can't reuse a tab, and Chrome
  *   may still raise itself for a URL it's handed (seen 2026-10-01).
  * - NOTE: `key` is an AppleScript keyword:  the variable is `pageKey`.
@@ -157,7 +157,15 @@ export async function openInVSCode(file, { hash } = {}) {
 export function openInChrome(file) {
   const served = ensurePageServer()
   const url = served ? serverUrl(served.base, file) : pathToFileURL(resolve(file)).href
-  const key = `/packages/docs/${relative(DOCS, resolve(file))}`
+  openUrlInChrome(url, `/packages/docs/${relative(DOCS, resolve(file))}`)
+}
+
+/**
+ * Show `url` in Chrome, reusing the tab whose URL contains `key` (see `openInChrome()`).
+ * - `front`:  bring Chrome and that tab's window forward -- a link Owen clicked (`showRoutes.ts`);  else in the
+ *   background
+ */
+export function openUrlInChrome(url, key, { front = false } = {}) {
   const script = `
 set target to ${JSON.stringify(url)}
 set pageKey to ${JSON.stringify(key)}
@@ -174,20 +182,23 @@ tell application "Google Chrome"
           set URL of t to target
         end if
         set active tab index of w to i
+        ${front ? "set index of w to 1\n        activate" : ""}
         return "reused"
       end if
     end repeat
   end repeat
   if (count of windows) is 0 then make new window
   tell front window to make new tab with properties {URL:target}
+  ${front ? "activate" : ""}
   return "new tab"
 end tell`
+  const where = front ? "in front" : "in the background"
   const run = spawnSync("osascript", ["-e", script], { encoding: "utf8" })
   const how = run.stdout.trim()
-  if (run.status === 0 && how !== "launch") return console.log(`opened ${url} (${how}, in the background)`)
+  if (run.status === 0 && how !== "launch") return console.log(`opened ${url} (${how}, ${where})`)
   if (run.status !== 0) console.error(`Chrome via AppleScript failed (${run.stderr.trim()}):  falling back to \`open\``)
-  spawnSync("open", ["-g", "-a", "Google Chrome", url])
-  console.log(`opened ${url} (Chrome launched in the background)`)
+  spawnSync("open", [...(front ? [] : ["-g"]), "-a", "Google Chrome", url])
+  console.log(`opened ${url} (Chrome launched ${where})`)
 }
 
 /**

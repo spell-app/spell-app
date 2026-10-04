@@ -12,6 +12,7 @@
     "docs:open": "node scripts/open.js",
     "plan-doc": "tsx scripts/plan-doc.js",
     "details": "node scripts/details.js",
+    "docs:link": "tsx scripts/link.ts",
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc -p tsconfig.json && echo '<< TSC PASSED\n'",
