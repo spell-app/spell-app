@@ -24,9 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Epic Review</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · Doc Review</ui-label></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -48,10 +46,11 @@
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
-            <code>/epic review &lt;name&gt;</code>: walk a plan doc's open items with Owen, one section and one item at
-            a time: the item as clean bullets, then a modal to accept, explore, explain further or defer. Answers land
-            in the doc at once; reviewed items are marked, and work they call for is queued, to start now in its own
-            worktree or pick up in a later review.
+            <code>/epic review [&lt;name&gt;]</code>: walk an epic's open items with Owen, a section at a time: he ticks
+            the items on a details page, then each comes up in chat with a modal to accept, explore, explain further (a
+            details page) or defer. Answers land in the plan doc at once, each item is marked reviewed, and work an
+            answer calls for goes on a to-do list the next review offers to start; the docs index shows every epic in
+            one Epics list with its state.
           </p>
           <blockquote class="plan-prompt">
             <p>`/epic review &lt;name&gt;`<br />- If I don't specify name, present list and ask which one I want</p>
@@ -80,48 +79,43 @@
             </p>
             <p>Update plan doc with decisions.</p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 10h-13h 30m in all, 1h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 10h-13h 30m in all, 0m left</p>
           <ui-section id="o1" header="1.1 The Flow" sticky collapsible dividing>
             <p>
-              As decided in <a href="#d1">D1</a>-<a href="#d5">D5</a>. <a href="#p1">P1</a> mocks it on canned data
-              first, so the steps may still change.
+              As built; the rules are the epic skill's section 7. Every modal is headed
+              <code>Epic Review: &lt;name&gt;</code>, asks one plain question, and never shows a bare id (Owen comes to
+              a review cold).
             </p>
             <ui-steps class="spell-steps" ordered>
               <ui-step
-                header="Pick a doc"
-                description="no name:  every epic listed in chat, most outstanding first;  modal with the top 4"
+                header="Pick an epic"
+                description="no name:  every epic in chat, in progress first, then a modal of 2 + More"
               ></ui-step>
               <ui-step
-                header="Start"
-                description="work waiting first:  'Work on it now, or review first?';  then modal 'unified-server Review':  sections (Issues · 2/9), More… when over 3, Finish Review last"
+                header="Where things stand"
+                description="when it was last reviewed;  work an earlier review decided on:  'Resume review' or 'Start work'"
               ></ui-step>
               <ui-step
-                header="Section review"
-                description="chat list;  reply ids, go, all, open, reviewed, queued or back"
+                header="Pick a section"
+                description="modal:  sections by most not reviewed (Todos · 17/21), More… past 3, Finish Review last"
               ></ui-step>
               <ui-step
-                header="Item review"
-                description="item as clean bullets;  checkbox modal:  Accept (if a recommendation exists), Explore, Explain further, Defer"
+                header="Pick items"
+                description="a details page:  a card per open item, its whole text, the not-reviewed ones ticked;  (?) asks for more details"
+              ></ui-step>
+              <ui-step
+                header="Each item"
+                description="clean bullets, then Accept (if it has a recommendation) · Explore · Explain further · Defer;  Exit typed"
               ></ui-step>
               <ui-step
                 header="Record"
-                description="answer written at once, item marked reviewed;  work it calls for queued"
+                description="answer written at once, marked reviewed;  work it calls for on the to-do list"
               ></ui-step>
               <ui-step
-                header="Section done"
-                description="queue not empty:  'Do this now or keep planning?'  Now:  new worktree + window"
+                header="Finish"
+                description="a log line, a summary;  the to-do list waits for the next review"
               ></ui-step>
             </ui-steps>
-            <ui-accordion class="spell-code" styled open="0">
-              <ui-title>Section review in chat · example</ui-title>
-              <ui-content>
-                <pre><code class="language-text">Issues · 2 outstanding of 9 (filter:  unreviewed)
-- I7  Editor home lists @system:guides, which doesn't exist
-- I8  cli yarn lint fails on an existing warning
-
-Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued · back</code></pre>
-              </ui-content>
-            </ui-accordion>
           </ui-section>
           <ui-section id="o2" header="1.2 Reviewed vs Outstanding" sticky collapsible dividing>
             <ul>
@@ -155,32 +149,66 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
               <li>
                 <a href="../../../../.claude/skills/epic/SKILL.md" target="src-claude-skills-epic-skill-md"
                   ><code>.claude/skills/epic/SKILL.md</code></a
-                >: a "Review" section, run when the first word is <code>review</code>. So <code>review</code> can never
-                be an epic's name.
+                >: section 7, "Review", run when the first word is <code>review</code> (a reserved name); and in "5.
+                Each phase", every session marks the items it talks through.
               </li>
               <li>
                 <a href="../../../../.claude/hooks/prompt-gate.mjs" target="src-claude-hooks-prompt-gate-mjs"
                   ><code>.claude/hooks/prompt-gate.mjs</code></a
-                >: today it renames the session to the first word and blocks <code>/epic</code> in plan mode or another
-                worktree. <code>/epic review ...</code> must pass untouched: a review can run from any window.
+                >: lets <code>/epic review ...</code> through untouched: no rename, no block, any window.
               </li>
               <li>
                 <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
                   ><code>packages/docs/scripts/plan-doc.js</code></a
-                >: new commands so the skill never hand-edits review state (<code>review</code>,
-                <code>items --json</code> ...).
+                >: <code>review</code>, <code>defer</code>, <code>queue</code> / <code>unqueue</code>,
+                <code>items</code> (and <code>--spec</code>, the picker page), <code>list</code>, <code>backfill</code>.
+                Every command but <code>new</code> edits the epic's LIVE doc (its worktree, else main).
               </li>
               <li>
-                Visuals: a throwaway page under <code>packages/docs/epics/&lt;name&gt;/review/</code> (git-ignored),
-                shown with <code>node scripts/window.mjs show</code>; the plan doc shows again after.
+                <a href="../../scripts/review-backfill.js" target="src-packages-docs-scripts-review-backfill-js"
+                  ><code>packages/docs/scripts/review-backfill.js</code></a
+                >: the one-off walk through past sessions.
               </li>
+              <li>
+                Details pages (<a href="../../_assets/details.js" target="src-packages-docs-assets-details-js"
+                  ><code>_assets/details.js</code></a
+                >,
+                <a href="../../_assets/details.css" target="src-packages-docs-assets-details-css"
+                  ><code>details.css</code></a
+                >,
+                <a href="../../scripts/details.js" target="src-packages-docs-scripts-details-js"
+                  ><code>scripts/details.js</code></a
+                >): ticked-to-start boxes, two-column cards with a state icon and (?), Select all / none, Open | All, no
+                site header, the Send bar pinned as the page's bottom.
+              </li>
+              <li>
+                Plan docs and the docs index: Open | All on every item section (<a
+                  href="../../_assets/spell-doc-runtime.js"
+                  target="src-packages-docs-assets-spell-doc-runtime-js"
+                  ><code>spell-doc-runtime.js</code></a
+                >), review labels after an item's id.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o4" header="1.4 The Epics Index" sticky collapsible dividing>
+            <ul>
+              <li>
+                One Epics section in the docs index, running and merged epics together (<a href="#p5">P5</a>):
+                <code>yarn docs:index</code> writes the merged cards and a slot; the main checkout's page server
+                (<code>RunningEpics</code>) fills the slot with the running ones.
+              </li>
+              <li>
+                Each card's title starts with its state: <code>[3/6]</code> in progress, a green check done, a blue
+                thought bubble planning, a yellow pause stalled (phases left, no update for 3 days).
+              </li>
+              <li>Open | All in its title: Open hides the done ones, with "12 hidden · show all" under them.</li>
             </ul>
           </ui-section>
         </ui-section>
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="6" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="7" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -306,7 +334,16 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
               ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Dry Run" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p6"
+            data-phase="6"
+            data-status="done"
+            header="P6 · Dry Run"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -317,8 +354,8 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
               ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p7" data-phase="7" data-status="todo" header="P7 · Doc Review" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p7" data-phase="7" data-status="done" header="P7 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> Prune, durable doc, changelog, finish</ui-item
               ><ui-item icon="folder"><b>Files:</b> packages/docs/epic-review.html, changelog.html</ui-item
@@ -922,7 +959,7 @@ back      to Start</code></pre>
               <span class="plan-title"
                 >The doc preview shows one doc: a visual page replaces the plan doc until reopened</span
               ></ui-item
-            ><ui-item id="c5" data-status="open"
+            ><ui-item id="c5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c5">C5</a>
@@ -1048,7 +1085,7 @@ back      to Start</code></pre>
             What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
           </p>
           <ui-list class="plan-items" data-kind="test" divided relaxed
-            ><ui-item id="v1" data-status="open"
+            ><ui-item id="v1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v1">V1</a>
@@ -1533,6 +1570,41 @@ back      to Start</code></pre>
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:06-04:00">2026-10-04 02:06</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:07-04:00">2026-10-04 02:07</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:07-04:00">2026-10-04 02:07</time></ui-date> V1 closed: Click
+                  through the mock review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:08-04:00">2026-10-04 02:08</time></ui-date> C5 closed: Until
+                  merged, /epic review runs only in plain words</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:08-04:00">2026-10-04 02:08</time></ui-date> P7: Overview made
+                  true to what was built (flow, plug-in points, Epics index); mock-era items closed</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:09-04:00">2026-10-04 02:09</time></ui-date> P7
                   done</ui-summary
                 ></ui-content
               ></ui-event
