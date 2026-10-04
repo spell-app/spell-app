@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@spell-app/core": "workspace:*",
+    "@spell-app/markdown": "workspace:*",
     "@spell-app/parser": "workspace:*",
     "@spell-app/spell": "workspace:*",
     "@spell-app/util": "workspace:*",

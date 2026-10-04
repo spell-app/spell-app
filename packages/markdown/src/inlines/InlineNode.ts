@@ -13,6 +13,14 @@ export class InlineNode {
     public text = ""
   ) {}
 
+  /**
+   * Where it came from in the parsed text:  `start` inclusive, `end` exclusive -- delimiters and brackets included
+   * (`**b**` spans all 5).  For editors colouring the source (spell's docstrings).
+   * - Unset on nodes no single span of text made, e.g. the `root`.
+   */
+  start?: number
+  end?: number
+
   /** `link` / `image`:  where it goes. */
   destination?: string
   /** `link` / `image`:  its title, `""` for none. */

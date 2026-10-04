@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Markdown on the parser</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p6">next: P6 · Docstrings</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · ui Bundle</ui-label></span
             >
           </header></ui-sticky
         >
@@ -67,6 +67,12 @@
                 / tagfilter; GFM spec 670/670 (was 342); checks: markdown 21 tests, ts, lint green;
                 <a href="#j4">J4</a>, <a href="#j5">J5</a>
               </li>
+              <li>
+                <b>P5</b> 60bee860 MD.render() with ui-* elements (ui-header ids + outline, ui-code, ui-list,
+                ui-checkbox, ui-message alerts, ui-table ...); marked comparison 156/172 same (the rest: MD follows the
+                spec); speed 6x -&gt; 1.7x marked; checks: markdown 30 tests, spec 670/670; <a href="#j6">J6</a>,
+                <a href="#j7">J7</a>
+              </li>
             </ul>
           </ui-section>
           <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
@@ -97,7 +103,7 @@
               preview editor); scope = useful GFM subset first.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 9h-14h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 7h-11h left</p>
           <ui-section id="o1" header="1.1 Shape" sticky collapsible dividing collapsed>
             <p>
               New package
@@ -268,7 +274,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -492,14 +498,14 @@
           <ui-section
             id="p6"
             data-phase="6"
-            data-status="todo"
+            data-status="done"
             header="P6 · Docstrings"
             sticky
             collapsible
             dividing
             collapsed
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> App render + LSP highlight (<a href="#q4">Q4</a>):
@@ -522,6 +528,7 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> ScopeDetailsPane renders the same; LSP test for doc-comment tokens;
                 <code>yarn vscode</code> + Owen looks</ui-item
+              ><ui-item icon="compass"><b>Judgement calls:</b> <a href="#j8">J8</a> <a href="#j9">J9</a></ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
             >
           </ui-section>
@@ -1884,6 +1891,63 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j8">J8</a>
+                  <span class="plan-title"
+                    >Didn't run yarn vscode from the worktree: the build bakes in ITS path</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen OK'd changing the extension and rebuilding it (D28). The extension change is made (4
+                    semantic-token modifiers + their styles in
+                    <a href="../../../vscode/package.json" target="src-packages-vscode-package-json"
+                      ><code>packages/vscode/package.json</code></a
+                    >), but NOT installed: <code>build.mjs</code> sets <code>REPO_ROOT</code> to the checkout it builds
+                    in, and the installed extension runs THAT checkout's
+                    <a href="../../../lsp/" target="src-packages-lsp"><code>packages/lsp</code></a
+                    >. Built here, VS Code would run the worktree's LSP, and break when the worktree goes after the
+                    merge.
+                  </p>
+                  <ul>
+                    <li>
+                      Options: install now (works tonight, breaks on worktree removal), or install from
+                      <code>main</code> after the merge (todo).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j9">J9</a>
+                  <span class="plan-title"
+                    >&lt;Markdown&gt; loads $/markdown lazily; every comment (not only docstrings) gets markdown
+                    colouring</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      <b>lazy</b>: the VS Code runner and <code>&lt;spell-app&gt;</code> show docstrings too (Type /
+                      Thing Explorer), and a runner page carries no parser. A static import would put
+                      <code>$/parser</code> in every runner bundle, so <code>&lt;Markdown&gt;</code> imports
+                      <code>$/markdown</code> on first use (async memo + <code>&lt;Loading&gt;</code>, plain text
+                      meanwhile). Pinned by
+                      <a
+                        href="../../../app/src/solid/Markdown.browser.test.tsx"
+                        target="src-packages-app-src-solid-markdown-browser-test-tsx"
+                        ><code>Markdown.browser.test.tsx</code></a
+                      >.
+                    </li>
+                    <li>
+                      <b>all comments</b>: the LSP colours markdown in every comment, not just docstrings: spell's
+                      comments are markdown-styled already (<code>#</code> headings), and telling a docstring from a
+                      comment needs the parse; a plain comment without <code>* _ ~ ` [ &lt;</code> is untouched.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1982,6 +2046,11 @@
               ><a class="plan-id" href="#t3">T3</a>
               <span class="plan-title"
                 >GFM spec: odd edge cases are deferred (Owen, D28) -- list them here as P3/P4 find them</span
+              > </ui-item
+            ><ui-item id="t4" data-status="open"
+              ><a class="plan-id" href="#t4">T4</a>
+              <span class="plan-title"
+                >After merging: yarn vscode from main, to get markdown colouring in spell docstrings</span
               >
             </ui-item></ui-list
           >
@@ -2165,6 +2234,22 @@
                     Headings, lists (ordered starting at 3, nested), task boxes, alerts of each kind, tables, code with
                     copy: each should look like its <code>ui-*</code> element, not like plain HTML. Copy-paste a list
                     and a table into a text editor: the text should come out readable.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v2">V2</a>
+                  <span class="plan-title"
+                    >Spell docstrings in VS Code (after yarn vscode from main): **bold**, *italic*, `code`, links
+                    coloured</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    In a <code>.spell</code> file, a comment like <code># a **b** *c* `d` [e](f)</code>:
+                    <code>**b**</code> bold, <code>*c*</code> italic, <code>`d`</code> in the string colour,
+                    <code>[e](f)</code> underlined, the rest in the comment colour.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2563,6 +2648,30 @@
                   alerts, ui-segment, ui-table, ui-divider; breaks, headingOffset); GitHub task / alert markup in plain
                   mode; marked comparison 156/172 same, the 16 left are spec differences (MD follows the spec); speed 95
                   vs 58 ms after line guards; checks: markdown 30 tests (spec 670/670), ts, lint green</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:21-04:00">2026-10-04 03:21</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:28-04:00">2026-10-04 03:28</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:28-04:00">2026-10-04 03:28</time></ui-date> P6 done: app
+                  &lt;Markdown&gt; on MD (lazy import, plain text until loaded); LSP colours markdown in comments (bold
+                  / italic / link / strikethrough modifiers, code spans as strings) from MD inline positions; extension
+                  declares + styles the modifiers (not installed: J8); checks: markdown 32, lsp 97, app Markdown +
+                  explorer browser tests green</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
