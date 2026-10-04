@@ -1,8 +1,8 @@
 /**
  * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.html`.
  * Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic` skill and its agents.
- * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `close`, `reopen`, `log`, `prompt`, `summary`, `check`,
- *   `open`, `migrate` (`node scripts/plan-doc.js` with no command lists them).
+ * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `close`, `reopen`, `log`, `overnight`, `prompt`,
+ *   `summary`, `check`, `open`, `migrate` (`node scripts/plan-doc.js` with no command lists them).
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
  *   linkedom, changes it through `PlanDoc`, stamps "updated", writes it, then tidies it (link targets, oxfmt).
  * - `PlanDoc` is pure (a parsed document in, changes on it):  `plan-doc.test.js` drives it directly.
@@ -767,8 +767,102 @@ ${list}`
         .querySelector("p.plan-estimate")
         ?.textContent.replace(/^Estimate:\s*/, "")
         .trim(),
+      overnight: this.overnight,
       open
     }
+  }
+
+  ////////////////
+  // ## Overnight
+  ////////////////
+
+  /**
+   * The `#overnight` section's state:  `"active"` while a `/bedtime` run goes on, `"done"` once it's over, `null`
+   * when there's none.
+   * - how a compacted session knows it's still in bedtime mode
+   */
+  get overnight() {
+    return this.document.getElementById("overnight")?.getAttribute("data-bedtime") ?? null
+  }
+
+  /**
+   * Start a `/bedtime` run's report:  a fresh `#overnight` section, UNNUMBERED, first in `main` (above the Overview),
+   * with Phases and Problems lists.
+   * - `phases`:  what the night runs (`P3-P6`);  `branch`:  where its commits go
+   * - TEMPORARY:  `/epic review` removes it (`removeOvernight()`) once Owen has gone through the night;  the record
+   *   stays in the items (judgement calls, issues, todos) and the log
+   * - SIDE EFFECT:  replaces an earlier run's section
+   */
+  startOvernight(phases, branch) {
+    this.removeOvernight()
+    const section = this.element("ui-section", {
+      id: "overnight",
+      header: `Overnight · ${this.today}`,
+      "data-bedtime": "active",
+      sticky: "",
+      collapsible: "",
+      dividing: ""
+    })
+    const on = branch ? ` on branch <code>${text(branch)}</code>` : ""
+    section.innerHTML = `
+      <ui-icon slot="icon" name="calendar"></ui-icon>
+      <p class="overnight-summary">Running ${text(phases)} unattended${on}, since ${timeTag(this.now)}.</p>
+      <ui-section id="overnight-phases" header="Phases" sticky collapsible dividing>
+        <ul class="overnight-phases"><li class="overnight-none">None yet.</li></ul>
+      </ui-section>
+      <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
+        <ul class="overnight-problems"><li class="overnight-none">None.</li></ul>
+      </ui-section>
+    `
+    this.section("overview").before(section, this.document.createTextNode("\n"))
+  }
+
+  /** A line under Phases:  `P<n>` and what came of it;  ids in `line` (`J4`) link to their items. */
+  overnightPhase(n, line) {
+    this.overnightLine(".overnight-phases", `<b>P${Number(n)}</b>  ${this.linkIds(line)}`)
+  }
+
+  /** A line under Problems;  ids in `line` (`I3`) link to their items. */
+  overnightProblem(line) {
+    this.overnightLine(".overnight-problems", this.linkIds(line))
+  }
+
+  /** The run is over:  `data-bedtime="done"`, and `summary` replaces the "Running ..." line. */
+  finishOvernight(summary) {
+    const section = this.overnightSection()
+    section.setAttribute("data-bedtime", "done")
+    section.querySelector(".overnight-summary").innerHTML = this.linkIds(summary)
+  }
+
+  /** Remove the `#overnight` section;  was there one? */
+  removeOvernight() {
+    const section = this.document.getElementById("overnight")
+    section?.remove()
+    return Boolean(section)
+  }
+
+  /** Append `html` to list `selector` in `#overnight`, dropping its "None" placeholder. */
+  overnightLine(selector, html) {
+    const list = this.overnightSection().querySelector(selector)
+    list.querySelector(":scope > .overnight-none")?.remove()
+    const li = this.element("li")
+    li.innerHTML = html
+    list.append(li)
+  }
+
+  /** The `#overnight` section;  throws when no run started one. */
+  overnightSection() {
+    const section = this.document.getElementById("overnight")
+    if (!section) throw new PlanDocError("no overnight section:  `overnight <name> start` first")
+    return section
+  }
+
+  /** `line`, escaped, each item id in it (`J4`, `I12`) a link to that item when the doc has it. */
+  linkIds(line) {
+    return text(line).replace(/\b([A-Z])(\d+)\b/g, (whole, letter, n) => {
+      const id = `${letter.toLowerCase()}${n}`
+      return this.document.getElementById(id) ? `<a href="#${id}">${whole}</a>` : whole
+    })
   }
 
   /**
@@ -1400,6 +1494,9 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   decide <name> <Q id> "decision" [--details html]  answer a question:  a decision, the question struck beside it
   close <name> <id>  /  reopen <name> <id>         strike / unstrike an item
   log <name> "text"                                timestamped line in the log
+  overnight <name> start "P3-P6" [--branch b]       a /bedtime run's report:  an "Overnight" section on top
+  overnight <name> phase <N> "text"  /  problem "text"  /  done "summary"  /  remove
+                                                   a line under Phases / Problems;  the run is over;  gone
   prompt <name> "text" | --file path               set the prompt that started the plan ("" removes it)
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
   review <name> <id> ["outcome"]                   mark an item reviewed today;  the outcome goes in the log
@@ -1415,7 +1512,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   summaries <file.html> ...                        \`summary --json\` of each doc, by path (worktrees' too):
                                                    JSON \`{ <file>: summary | { error } }\`;  for \`/epics\`
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
-  open <name>                                      show in VS Code, beside the editor (reloads its tab)
+  open <name>                                      show in VS Code's doc preview (right side bar)
   migrate <name>                                   bring an older doc (any layout) into the current one
 Every command but \`new\` edits the epic's LIVE doc:  its own worktree's, else main's, else any worktree's.`
 
@@ -1506,6 +1603,8 @@ function main(argv) {
       return printItems(read(file), file, flags)
     case "log":
       return edit(file, (plan) => plan.log(need(rest[0], "the text")))
+    case "overnight":
+      return edit(file, (plan) => overnight(plan, rest, flags))
     case "prompt": {
       const prompt = flags.file ? readFileSync(flags.file, "utf8") : need(rest[0], "the prompt text")
       return edit(file, (plan) => plan.setPrompt(prompt))
@@ -1522,6 +1621,31 @@ function main(argv) {
       return open(file)
     default:
       return usage()
+  }
+}
+
+/** `overnight <name> <action> ...`:  the `/bedtime` run's temporary report section (`PlanDoc.startOvernight()`). */
+function overnight(plan, [action, ...args], flags) {
+  switch (action) {
+    case "start": {
+      const phases = need(args[0], "the phases, e.g. P3-P6")
+      plan.startOvernight(phases, flags.branch)
+      return plan.log(`Bedtime started:  ${phases}`)
+    }
+    case "phase":
+      return plan.overnightPhase(need(args[0], "a phase number"), need(args[1], "what came of it"))
+    case "problem":
+      return plan.overnightProblem(need(args[0], "the problem"))
+    case "done": {
+      const summary = need(args[0], "a one-line summary")
+      plan.finishOvernight(summary)
+      return plan.log(`Bedtime done:  ${summary}`)
+    }
+    case "remove":
+      if (plan.removeOvernight()) plan.log("Overnight report gone through:  section removed")
+      return
+    default:
+      throw new PlanDocError(`overnight what?  start | phase | problem | done | remove (not '${action ?? ""}')`)
   }
 }
 
