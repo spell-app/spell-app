@@ -1,4 +1,4 @@
-import { afterEach, onTestFinished } from "vitest"
+import { afterEach, onTestFinished } from "vite-plus/test"
 
 /**
  * Render HTML into the live document for a test, and remove it again afterwards.

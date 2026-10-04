@@ -1,5 +1,5 @@
 import solid from "@solidjs/vite-plugin"
-import { defineConfig, type Plugin, type UserConfig } from "vite"
+import { defineConfig, type Plugin, type UserConfig } from "vite-plus"
 import dts, { type PluginOptions } from "vite-plugin-dts"
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import path from "node:path"

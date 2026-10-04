@@ -174,8 +174,8 @@
             <ul>
               <li>
                 <b>Taken with Owen:</b>
-                <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> from
-                SOURCE; CLEAN BREAK in spell JSX (no <code>SUI.*</code>, raw <code>&lt;ui-*&gt;</code> tags,
+                <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                from SOURCE; CLEAN BREAK in spell JSX (no <code>SUI.*</code>, raw <code>&lt;ui-*&gt;</code> tags,
                 <code>class=</code>); INCREMENTAL phases, each green, stop for review after each.
               </li>
               <li>
@@ -226,8 +226,8 @@
               </li>
               <li>
                 <b>Bundles</b> -- BUILT (P7, <a href="#d21">D21</a>): Solid +
-                <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> in ONE
-                shared <code>spell-solid.js</code> (+
+                <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> in
+                ONE shared <code>spell-solid.js</code> (+
                 <a href="../../../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
                   ><code>spell-ui.js</code></a
                 >) across element / runner / editor builds, never in <code>spell-runtime.js</code>. The import-map
@@ -397,7 +397,9 @@
                   <tr>
                     <td><code>@spell/ui</code>, <code>@spell/solid-element</code>, <code>@spell/core</code></td>
                     <td>
-                      <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                      <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"
+                        ><code>@spell-app/ui</code></a
+                      >
                       (<code>$/ui</code>),
                       <a href="../../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
                         ><code>@spell-app/solid-element</code></a
@@ -557,7 +559,9 @@
                     <td><a href="#p8">P8</a> Editor Shell</td>
                     <td>
                       pages ~400 lines; router; hotkeys;
-                      <a href="../../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                      <a
+                        href="../../../../parser/src/ast/renderAST.ts"
+                        target="src-packages-parser-src-ast-renderast-ts"
                         ><code>renderAST.ts</code></a
                       >
                       350 + AST views
@@ -674,8 +678,8 @@
                 ><b>Files:</b> packages/ui/package.json, packages/solid-element/package.json, yarn.lock; solid-2.md if
                 behaviour changed</ui-item
               ><ui-item icon="flask"
-                ><b>Verify:</b> ui yarn review, test:visual, test:fork; re-run packages/docs/content/solid/experiments/* and
-                diff</ui-item
+                ><b>Verify:</b> ui yarn review, test:visual, test:fork; re-run packages/docs/content/solid/experiments/*
+                and diff</ui-item
               ></ui-list
             >
           </ui-section>
@@ -1401,7 +1405,9 @@
                       rc.13 moved <code>createErrorBoundary</code> (and <code>createLoadingBoundary</code>,
                       <code>createRevealOrder</code>, <code>sharedConfig</code>, <code>$DEVCOMP</code>) from
                       <code>solid-js</code> to <code>solid-js/internal</code>.
-                      <a href="../../../../solid-element/src/errors.ts" target="src-packages-solid-element-src-errors-ts"
+                      <a
+                        href="../../../../solid-element/src/errors.ts"
+                        target="src-packages-solid-element-src-errors-ts"
                         ><code>packages/solid-element/src/errors.ts</code></a
                       >
                       now calls the public <code>Errored</code> as a function (<code>children</code> as a getter), the
@@ -1552,7 +1558,9 @@
                     <p>
                       <code>src/solid/ASTViewer.tsx</code> keeps <code>ast.component</code> (React, from
                       <code>$/parser</code>'s
-                      <a href="../../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                      <a
+                        href="../../../../parser/src/ast/renderAST.ts"
+                        target="src-packages-parser-src-ast-renderast-ts"
                         ><code>renderAST.ts</code></a
                       >, P8's) and mounts it with a private <code>&lt;ReactHost&gt;</code>: a React root on a
                       <code>display: contents</code> div, re-rendered per new element, unmounted on a microtask at
@@ -1777,7 +1785,9 @@
                         ><code>packages/parser/src/ast/AST.ts</code></a
                       >
                       (was <code>.tsx</code>) and
-                      <a href="../../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                      <a
+                        href="../../../../parser/src/ast/renderAST.ts"
+                        target="src-packages-parser-src-ast-renderast-ts"
                         ><code>renderAST.ts</code></a
                       >
                       build <code>P.Markup</code>: plain data (<code>{ tag, attrs, children }</code>, text, arrays) from
@@ -2083,7 +2093,8 @@
                     </li>
                     <li>
                       What stays: two renderers per page, React only in <code>spell-runtime.js</code>. Tracked in
-                      <a href="../../../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a
+                      <a href="../../../../../agents/CODE-DEBT.md" target="src-code-debt-md"
+                        ><code>agents/CODE-DEBT.md</code></a
                       >, "app", "React for spell programs, beside the app's Solid".
                     </li>
                   </ul></ui-content
@@ -2120,10 +2131,9 @@
                   <span class="plan-title">App tests run Solid's SERVER build</span> </ui-title
                 ><ui-content
                   ><p>
-                    <a href="../../../../app/" target="src-packages-app"><code>packages/app</code></a> tests run in node,
-                    so <code>solid-js</code> resolves to its server build: writes are applied at once, not staged (<a
-                      href="../../../../app/src/solid.test.tsx"
-                      target="src-packages-app-src-solid-test-tsx"
+                    <a href="../../../../app/" target="src-packages-app"><code>packages/app</code></a> tests run in
+                    node, so <code>solid-js</code> resolves to its server build: writes are applied at once, not staged
+                    (<a href="../../../../app/src/solid.test.tsx" target="src-packages-app-src-solid-test-tsx"
                       ><code>packages/app/src/solid.test.tsx</code></a
                     >
                     pins it). P4's cells-to-Solid bridge tests need the client build: a browser project (as ui's) or the

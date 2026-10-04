@@ -1,5 +1,5 @@
-import { onTestFinished } from "vitest"
-import { page } from "vitest/browser"
+import { onTestFinished } from "vite-plus/test"
+import { page } from "vite-plus/test/browser"
 
 /****************
  * ### `Viewport`

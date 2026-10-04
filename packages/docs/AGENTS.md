@@ -153,7 +153,7 @@ In `tools/`:
   - ALWAYS folded and colored:  `<ui-accordion class="spell-code" styled>` + `<ui-title>What it is · N lines</ui-title>`
     + `<ui-content><pre><code class="language-ts">`.  30 lines or fewer start open (`open="0"`).
   - TypeScript by default, formatted by oxfmt:  write the snippet to a `.ts` / `.tsx` file and run
-    `yarn oxfmt <file>`
+    `yarn vp fmt <file>`
   - valid code only:  no bare JSX statements after other statements -- assign them to a `const`
   - prefer excerpts pasted from a real, runnable file over hand-typed examples
 - Colors only from the `spell-doc.css` / UI tokens, so dark mode keeps working.
@@ -220,7 +220,7 @@ In `tools/`:
 In this order, from `packages/docs`:
 
 1. `node tools/doc-links.js <page>`
-2. `yarn oxfmt <page>` (`yarn format` would reformat it anyway)
+2. `yarn vp fmt <page>` (`yarn format` would reformat it anyway)
 3. `node tools/doc-links.js --check <page>`
 4. `node tools/check-spell.js <page>` must pass -- and LOOK at its four screenshots:  the checks can't see
    overlap, clipping or bad wrapping

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { Fixture } from "$/ui/test/fixture"
 import { Ids } from "./Ids"

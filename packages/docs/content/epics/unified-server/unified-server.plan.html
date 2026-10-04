@@ -84,13 +84,16 @@
             </p>
             <ul>
               <li>
-                <a href="../../../../spell/src/node/server.types.ts" target="src-packages-spell-src-node-server-types-ts"
+                <a
+                  href="../../../../spell/src/node/server.types.ts"
+                  target="src-packages-spell-src-node-server-types-ts"
                   ><code>server.types.ts</code></a
                 >: <code>Handler</code>, <code>RouteParams</code>, <code>HtmlTransform</code>,
                 <code>FileTransform</code>, <code>Mount</code>, <code>ServerInfo</code>, <code>HttpError</code>
               </li>
               <li>
-                <a href="../../../../server/src/mime.ts" target="src-packages-server-src-mime-ts"><code>mime.ts</code></a
+                <a href="../../../../server/src/mime.ts" target="src-packages-server-src-mime-ts"
+                  ><code>mime.ts</code></a
                 >: ONE <code>TYPES</code> table (union of cli / goals / DocPreview copies)
               </li>
               <li>
@@ -122,7 +125,8 @@
               <li><code>PidFile</code>: status (ping + root match), ensure (spawn detached, poll), stop</li>
               <li><code>FileLock</code>: <code>&lt;file&gt;.lock</code>, from goals' <code>withLock</code></li>
               <li>
-                <a href="../../../../server/src/open.ts" target="src-packages-server-src-open-ts"><code>open.ts</code></a
+                <a href="../../../../server/src/open.ts" target="src-packages-server-src-open-ts"
+                  ><code>open.ts</code></a
                 >: browser, new window, reused Chrome tab, VS Code
               </li>
               <li><code>WebServer</code>: <code>node:http</code> + all of the above</li>
@@ -136,7 +140,9 @@
             <ul>
               <li>
                 one per checkout root (main + each worktree): pid <code>&lt;root&gt;/.spell-server.json</code>, log
-                <a href="../../../../../.spell-server.log" target="src-spell-server-log"><code>.spell-server.log</code></a>
+                <a href="../../../../../.spell-server.log" target="src-spell-server-log"
+                  ><code>.spell-server.log</code></a
+                >
               </li>
               <li>
                 port: prefer 4747, else any free; real port in pid file; pages read injected
@@ -433,7 +439,8 @@
                   </li>
                 </ul></ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> packages/docs/tools/goals/goalsRoutes.ts, launch.js, goals.js, goals.sh, goals-live.js</ui-item
+                ><b>Files:</b> packages/docs/tools/goals/goalsRoutes.ts, launch.js, goals.js, goals.sh,
+                goals-live.js</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> route-module tests, startup time, yarn goals open, every button</ui-item
               ><ui-item icon="gavel"
@@ -1040,7 +1047,8 @@
                     <li>It crashed even with the tsconfig untouched.</li>
                     <li>
                       Logged in
-                      <a href="../../../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a
+                      <a href="../../../../../agents/PAPERCUTS.md" target="src-papercuts-md"
+                        ><code>agents/PAPERCUTS.md</code></a
                       >.
                     </li>
                     <li>
@@ -1101,8 +1109,8 @@
                       <a href="../../templates/epics/plan.html" target="src-packages-docs-templates-epics-plan-html"
                         ><code>templates/epics/plan.html</code></a
                       >, sits at the same depth as the plan docs' own folders (<code>plans/&lt;name&gt;/</code> then,
-                      <code>epics/&lt;name&gt;/</code> now). So its <code>root="../../../../.."</code> is already right, as
-                      are its asset paths, which aren't rewritten either.
+                      <code>epics/&lt;name&gt;/</code> now). So its <code>root="../../../../.."</code> is already right,
+                      as are its asset paths, which aren't rewritten either.
                     </li>
                     <li>
                       The catch: goals is meant to be portable. In another project, the header's spell-specific
@@ -1591,7 +1599,9 @@
                     </li>
                     <li>
                       Since then (checked 2026-10-04): the page server starts Vite itself (<code>EditorServer</code>, in
-                      <a href="../../../../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                      <a
+                        href="../../../../app/src/server/appRoutes.ts"
+                        target="src-packages-app-src-server-approutes-ts"
                         ><code>packages/app/src/server/appRoutes.ts</code></a
                       >) and reads its address from its record; when the editor isn't up yet,
                       <code>/editor</code> answers 503 with a "reload" message.
@@ -1614,8 +1624,8 @@
                 ><ui-content
                   ><p>
                     In the Spell Serve phase (<a href="#p7">P7</a>), <code>yarn start</code> in
-                    <a href="../../../../app/" target="src-packages-app"><code>packages/app</code></a> was changed to run
-                    <code>spell serve --headless</code>. You'd notice the API on a different port.
+                    <a href="../../../../app/" target="src-packages-app"><code>packages/app</code></a> was changed to
+                    run <code>spell serve --headless</code>. You'd notice the API on a different port.
                   </p>
                   <ul>
                     <li>The API is now on the page server: port 4747, or a free one. It used to be on 3001.</li>
@@ -1843,7 +1853,9 @@
                     The bar is <code>height: 44px</code> plus a 1px <code>border-bottom</code> (content-box), so it
                     covers 45px while <code>--spell-site-header-height</code> says 44: every stuck h2 / filter bar /
                     drawer sits 1px under the bar's border. Measured: bar bottom 45, stuck h2 top 44. Fix in
-                    <a href="../../../../server/src/site/SiteHeader.ts" target="src-packages-server-src-site-siteheader-ts"
+                    <a
+                      href="../../../../server/src/site/SiteHeader.ts"
+                      target="src-packages-server-src-site-siteheader-ts"
                       ><code>SiteHeader.ts</code></a
                     >
                     STYLE: <code>box-sizing: border-box</code> on <code>header</code>. Not mine to edit
@@ -1957,7 +1969,9 @@
                   <ul>
                     <li>
                       The file:
-                      <a href="../../../../cli/src/ui/TargetPrompt.tsx" target="src-packages-cli-src-ui-targetprompt-tsx"
+                      <a
+                        href="../../../../cli/src/ui/TargetPrompt.tsx"
+                        target="src-packages-cli-src-ui-targetprompt-tsx"
                         ><code>TargetPrompt.tsx</code></a
                       >.
                     </li>

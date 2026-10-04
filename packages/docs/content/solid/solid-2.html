@@ -41,8 +41,8 @@
         </ui-message>
         <p class="meta">
           Solid <code>2.0.0-rc.13</code> (current, 2026-09-30), researched on <code>rc.11</code>. Every package,
-          <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> included, is on
-          rc.13 since 2026-10-02.
+          <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> included, is
+          on rc.13 since 2026-10-02.
         </p>
         <ul>
           <li>
@@ -1850,7 +1850,8 @@ class ThingD extends ThingA {
               <li>That's one small object and two <code>Set</code> calls per computation run</li>
               <li>
                 Measure it on the
-                <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> demo page
+                <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> demo
+                page
               </li>
               <li>
                 Register it once, before anything renders. Built: <code>bridgeSolid()</code> in <code>$/util</code>,
@@ -2122,8 +2123,8 @@ class ThingD extends ThingA {
             <p>Delegated events, context, the scheduler and element definitions are all module state.</p>
             <ul>
               <li>
-                <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> is built
-                for this:
+                <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> is
+                built for this:
                 <ul>
                   <li>Solid is a peer it never bundles</li>
                   <li>
@@ -2140,8 +2141,8 @@ class ThingD extends ThingA {
                 <ul>
                   <li>
                     Solid and
-                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> go in
-                    the shared chunk
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> go
+                    in the shared chunk
                   </li>
                   <li>
                     Each <code>&lt;spell-app&gt;</code> keeps its own <code>spellCore</code> copy but imports Solid from
@@ -2162,7 +2163,8 @@ class ThingD extends ThingA {
                 <ul>
                   <li>
                     Build Solid,
-                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> and
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                    and
                     <a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
                       ><code>@spell-app/solid-element</code></a
                     >
@@ -2435,8 +2437,8 @@ class ThingD extends ThingA {
               <li>events as <code>onUiX</code>, with a documented directive for the hyphenated name</li>
             </ul>
             Parser needs these types too, and
-            <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> can ship them
-            once for every consumer.
+            <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> can ship
+            them once for every consumer.
           </ui-section>
           <ui-section id="robustness" header="Robustness" sticky collapsible dividing>
             <h4 id="errors-that-heal">Errors that heal</h4>
@@ -2638,7 +2640,9 @@ class ThingD extends ThingA {
                 (batching and effects, signals and ownership, stores, async, actions).
               </li>
               <li>
-                <a href="../../../../node_modules/solid-js/CHEATSHEET.md" target="src-node-modules-solid-js-cheatsheet-md"
+                <a
+                  href="../../../../node_modules/solid-js/CHEATSHEET.md"
+                  target="src-node-modules-solid-js-cheatsheet-md"
                   ><code>solid-js/CHEATSHEET.md</code></a
                 >
                 and <code>@solidjs/signals</code> type docs in
@@ -2651,7 +2655,8 @@ class ThingD extends ThingA {
                 >: AGENTS.md "Solid authoring",
                 <a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
                   ><code>solid-element/README.md</code></a
-                >, <a href="../../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a
+                >,
+                <a href="../../../../agents/PAPERCUTS.md" target="src-papercuts-md"><code>agents/PAPERCUTS.md</code></a
                 >.
               </li>
             </ul>
@@ -2666,8 +2671,8 @@ class ThingD extends ThingA {
             <ul>
               <li>
                 Each imports <code>@solidjs/signals</code> by path from
-                <a href="../../../../node_modules/" target="src-node-modules"><code>../ui/node_modules</code></a> (or from
-                <code>$SOLID_NODE_MODULES</code>, to try another Solid version) and runs as
+                <a href="../../../../node_modules/" target="src-node-modules"><code>../ui/node_modules</code></a> (or
+                from <code>$SOLID_NODE_MODULES</code>, to try another Solid version) and runs as
                 <code>node docs/solid/experiments/&lt;file&gt; [dev|prod]</code>
               </li>
               <li>Re-run them on every RC bump</li>

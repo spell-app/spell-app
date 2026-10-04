@@ -49,7 +49,10 @@ test("Claude's status, without a token", async () => {
 
 test("writes need the token, our origin and our host", async () => {
   const body = JSON.stringify({ target: "spell", text: "x" })
-  const noToken = await ask(port, "POST", "/api/goals/thought", { body, headers: { "content-type": "application/json" } })
+  const noToken = await ask(port, "POST", "/api/goals/thought", {
+    body,
+    headers: { "content-type": "application/json" }
+  })
   assert.equal(noToken.status, 403)
   const evil = await ask(port, "POST", "/api/goals/thought", { body, headers: page({ origin: "http://evil.example" }) })
   assert.equal(evil.status, 403)
@@ -64,7 +67,10 @@ test("goals' own errors keep their answers", async () => {
   })
   assert.equal(missing.status, 404)
   assert.ok(Array.isArray(JSON.parse(missing.text).choices))
-  const skill = await ask(port, "POST", "/api/goals/run", { body: JSON.stringify({ skill: "rm", target: "spell" }), headers: page() })
+  const skill = await ask(port, "POST", "/api/goals/run", {
+    body: JSON.stringify({ skill: "rm", target: "spell" }),
+    headers: page()
+  })
   assert.equal(skill.status, 400)
   assert.match(JSON.parse(skill.text).error, /no skill/)
 })

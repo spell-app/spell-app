@@ -772,7 +772,8 @@
                   </li>
                 </ul></ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> packages/docs/content/seo/seo.html (durable doc), packages/docs/content/epics/seo/seo.plan.html</ui-item
+                ><b>Files:</b> packages/docs/content/seo/seo.html (durable doc),
+                packages/docs/content/epics/seo/seo.plan.html</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> yarn plan-doc check seo; doc-links --check; check-spell</ui-item
               ></ui-list
@@ -1802,7 +1803,8 @@
                     <p>
                       <code>StaticDocument.ELEMENT_SCRIPT</code>: a <code>&lt;script&gt;</code> (src or text) or
                       <code>&lt;link rel=modulepreload&gt;</code> naming
-                      <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
+                      <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"
+                        ><code>@spell-app/ui</code></a
                       >, <code>$/ui</code>,
                       <a href="../../../../ui/src/" target="src-packages-ui-src"><code>ui/src/</code></a> /
                       <a href="../../../../ui/dist/" target="src-packages-ui-dist"><code>ui/dist/</code></a
@@ -1910,7 +1912,9 @@
                       <code>value</code>, <code>form*</code> and <code>commandfor</code> / <code>command</code> on a
                       server only (<code>UIButton.nativeType()</code> / <code>staticControl()</code>); the per-family
                       <code>STATIC_CONTROL</code> copies are now one <code>UIT.STATIC_CONTROL</code>. Round trip pinned:
-                      <a href="../../../../ui/test/static-form.cases.ts" target="src-packages-ui-test-static-form-cases-ts"
+                      <a
+                        href="../../../../ui/test/static-form.cases.ts"
+                        target="src-packages-ui-test-static-form-cases-ts"
                         ><code>test/static-form.cases.ts</code></a
                       >
                       (one form of every value control) -- the ssr test computes the HTML spec's entry list from the
@@ -2688,9 +2692,10 @@
                 ><ui-content
                   ><p>
                     From the plan-to-epic session: 1.
-                    <code>git mv packages/docs/content/plans/seo packages/docs/content/epics/seo</code> (git may flag plans/seo/ as a
-                    conflict); 2. in <a href="seo.plan.html" target="seo"><code>epics/seo/seo.plan.html</code></a> the
-                    breadcrumb <code>../../index.html#plans</code> -&gt; <code>#epics</code>, text Plans -&gt; Epics; 3.
+                    <code>git mv packages/docs/content/plans/seo packages/docs/content/epics/seo</code> (git may flag
+                    plans/seo/ as a conflict); 2. in
+                    <a href="seo.plan.html" target="seo"><code>epics/seo/seo.plan.html</code></a> the breadcrumb
+                    <code>../../index.html#plans</code> -&gt; <code>#epics</code>, text Plans -&gt; Epics; 3.
                     <code>yarn docs:index</code>. <code>/plan-doc</code> is now <code>/epic</code>;
                     <code>yarn plan-doc</code> keeps its name.
                   </p></ui-content
@@ -2844,8 +2849,8 @@
                 ><ui-content
                   ><p>
                     chose <code>page.static.html</code> beside <code>page.html</code> over a separate
-                    <a href="../../../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a> folder because the
-                    page's own relative links (<code>../_assets/spell-doc.css</code>, images) keep working without
+                    <a href="../../../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a> folder because
+                    the page's own relative links (<code>../_assets/spell-doc.css</code>, images) keep working without
                     copying assets, and <code>*.static.html</code> is easy to ignore / clean.
                     <code>-o &lt;folder&gt;</code> keeps names unchanged for a deploy folder.
                   </p></ui-content
@@ -2910,7 +2915,9 @@
                       ><code>ui/tools/StaticDocument.ts</code></a
                     >
                     over adding <code>StaticRender.resetUsage()</code> because
-                    <a href="../../../../ui/src/server/" target="src-packages-ui-src-server"><code>src/server/</code></a>
+                    <a href="../../../../ui/src/server/" target="src-packages-ui-src-server"
+                      ><code>src/server/</code></a
+                    >
                     was being edited by other agents; a <code>resetUsage()</code> (or a per-render usage) in
                     <code>StaticRender</code> would be cleaner.
                   </p></ui-content
@@ -3223,7 +3230,8 @@
                     </li>
                     <li>
                       To do: run <code>yarn measure</code> in
-                      <a href="../../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> on <code>main</code>
+                      <a href="../../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> on
+                      <code>main</code>
                       and on this branch, then compare the library, core and forms totals.
                     </li>
                   </ul></ui-content
@@ -3345,7 +3353,9 @@
                   <ul>
                     <li>
                       The line, in
-                      <a href="../../../../ui/src/runtime/UIRuntime.ts" target="src-packages-ui-src-runtime-uiruntime-ts"
+                      <a
+                        href="../../../../ui/src/runtime/UIRuntime.ts"
+                        target="src-packages-ui-src-runtime-uiruntime-ts"
                         ><code>UIRuntime.ts</code></a
                       >: "Constructs outside a browser too (SSR): services touch the DOM only when used." Still there
                       (checked 2026-10-04).
@@ -3891,7 +3901,9 @@
                     <a href="../../../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
                       ><code>spell-ui.js</code></a
                     >, which goes; (2) no Contents sidebar:
-                    <a href="../../../tools/_assets/spell-doc-runtime.js" target="src-packages-docs-assets-spell-doc-runtime-js"
+                    <a
+                      href="../../../tools/_assets/spell-doc-runtime.js"
+                      target="src-packages-docs-assets-spell-doc-runtime-js"
                       ><code>spell-doc-runtime.js</code></a
                     >
                     builds it, also in
@@ -4697,8 +4709,9 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T23:31-04:00">2026-10-02 23:31</time></ui-date> P6: durable doc
-                  packages/docs/content/seo/seo.html; 8 items closed (T2, T14, T15, C3, C6, C8, C12, C14); added C20, C21, I25,
-                  T31, T32, review todos T33-T36; Overview 1.1-1.6 and summary brought to what was built</ui-summary
+                  packages/docs/content/seo/seo.html; 8 items closed (T2, T14, T15, C3, C6, C8, C12, C14); added C20,
+                  C21, I25, T31, T32, review todos T33-T36; Overview 1.1-1.6 and summary brought to what was
+                  built</ui-summary
                 ></ui-content
               ></ui-event
             ><ui-event icon="pen to square"
@@ -4735,8 +4748,8 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T23:38-04:00">2026-10-02 23:38</time></ui-date> P6 done: plan
-                  pruned (8 closed), Overview true to the build, durable doc packages/docs/content/seo/seo.html; checks: ui yarn
-                  review green (202 ssr, 4149 browser, 145 fork), cli 132</ui-summary
+                  pruned (8 closed), Overview true to the build, durable doc packages/docs/content/seo/seo.html; checks:
+                  ui yarn review green (202 ssr, 4149 browser, 145 fork), cli 132</ui-summary
                 ></ui-content
               ></ui-event
             ><ui-event icon="pen to square"

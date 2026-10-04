@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import type { UIElement, UIHost } from "$/ui/elements"
 import { UI } from "$/ui/runtime"

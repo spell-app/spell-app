@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest"
-import { userEvent } from "vitest/browser"
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vite-plus/test"
+import { userEvent } from "vite-plus/test/browser"
 
 import { UI } from "$/ui/runtime"
 import type { SearchResult } from "$/ui/components/components.types"

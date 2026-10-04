@@ -21,7 +21,7 @@ import {
   type Accessor
 } from "solid-js"
 import { render, type JSX } from "@solidjs/web"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { lookupOwner } from "./owner"

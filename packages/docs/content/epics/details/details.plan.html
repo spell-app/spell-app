@@ -68,13 +68,14 @@
                 <p>Chosen scope (modal answer: "Epic: answer on the page"):</p>
                 <p>
                   A `/details` skill: when a question needs a visual or has more than 4 options, Claude writes a small
-                  HTML page (from a new `packages/docs/content/templates/details.html`, into a git-ignored folder) and shows it
-                  in the right sidebar's "Spell Docs" view (`node scripts/window.mjs show &lt;file&gt;`, which already
-                  works -- no extension change needed for showing). Owen answers ON THE PAGE: radio/checkbox options, a
-                  notes box, Submit; the answer goes back to the session through the page server (new endpoint), and
-                  Claude waits for it (Monitor / a script that blocks until answered), so AskUserQuestion's 4-option
-                  limit stops mattering. Also: a CLAUDE.md line so Claude reaches for it unprompted; the modal stays as
-                  fallback (top 3 + Other to type a letter) when the page server or extension isn't available.
+                  HTML page (from a new `packages/docs/content/templates/details.html`, into a git-ignored folder) and
+                  shows it in the right sidebar's "Spell Docs" view (`node scripts/window.mjs show &lt;file&gt;`, which
+                  already works -- no extension change needed for showing). Owen answers ON THE PAGE: radio/checkbox
+                  options, a notes box, Submit; the answer goes back to the session through the page server (new
+                  endpoint), and Claude waits for it (Monitor / a script that blocks until answered), so
+                  AskUserQuestion's 4-option limit stops mattering. Also: a CLAUDE.md line so Claude reaches for it
+                  unprompted; the modal stays as fallback (top 3 + Other to type a letter) when the page server or
+                  extension isn't available.
                 </p>
               </blockquote></ui-content
             ></ui-accordion
@@ -115,7 +116,9 @@
                   ><code>templates/details.html</code></a
                 >
                 in
-                <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/content/details/</code></a>
+                <a href="../../details/" target="src-packages-docs-details"
+                  ><code>packages/docs/content/details/</code></a
+                >
                 (ignored by version control, swept after 14 days), or with <code>--epic &lt;name&gt;</code> in
                 <code>epics/&lt;name&gt;/details/</code> (committed, linked from the decision it led to:
                 <a href="#d3">D3</a>); prints its path.
@@ -158,8 +161,8 @@
                   ><code>packages/docs/tools/_assets/details.js</code></a
                 >
                 (+ css) -- turns the question markup into
-                <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> cards,
-                posts the answer, shows the answered state on load (through the route's <code>GET</code>).
+                <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                cards, posts the answer, shows the answered state on load (through the route's <code>GET</code>).
               </li>
               <li>
                 <a href="../../../tools/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
@@ -189,8 +192,8 @@
                 -- when to reach for it, how to write a good page, the flow above.
               </li>
               <li>
-                Root <a href="../../../../../CLAUDE.md" target="src-claude-md"><code>CLAUDE.md</code></a> line + the "modal
-                questions" memory: more than 4 options, or a picture needed -&gt; <code>/details</code>.
+                Root <a href="../../../../../CLAUDE.md" target="src-claude-md"><code>CLAUDE.md</code></a> line + the
+                "modal questions" memory: more than 4 options, or a picture needed -&gt; <code>/details</code>.
               </li>
             </ul>
           </ui-section>
@@ -342,7 +345,8 @@
                 <a href="../../../tools/details.js" target="src-packages-docs-scripts-details-js"
                   ><code>packages/docs/tools/details.js</code></a
                 >, package scripts, ignore rule for
-                <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/content/details/</code></a
+                <a href="../../details/" target="src-packages-docs-details"
+                  ><code>packages/docs/content/details/</code></a
                 >, skip <a href="../../details/" target="src-packages-docs-details"><code>details/</code></a> in
                 <code>docs:index</code> /
                 <code>doc-links.py</code>
@@ -561,7 +565,8 @@
                     <div class="plan-answer-title">
                       <b>D3</b> · In an epic: committed in <code>epics/&lt;name&gt;/details/</code>, linked from its
                       decision; else scratch
-                      <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/content/details/</code></a
+                      <a href="../../details/" target="src-packages-docs-details"
+                        ><code>packages/docs/content/details/</code></a
                       >, swept after 14 days
                     </div>
                   </div>
@@ -571,7 +576,8 @@
                       <b>Epic: committed; else scratch (recommended)</b>: in an epic, the page goes in
                       <code>epics/&lt;name&gt;/details/</code> and the decision it led to links it, so the plan doc
                       keeps the picture behind each call. Outside an epic: ignored
-                      <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/content/details/</code></a
+                      <a href="../../details/" target="src-packages-docs-details"
+                        ><code>packages/docs/content/details/</code></a
                       >, swept after 14 days.
                     </li>
                     <li><b>Always scratch</b>: ignored, swept after 14 days, never committed.</li>
@@ -633,7 +639,9 @@
                   ><div class="plan-answer-block" id="d6">
                     <div class="plan-answer-title">
                       <b>D6</b> · Options are stacked cards, their details (long text, pictures) collapsible; built with
-                      <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                      <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"
+                        ><code>@spell-app/ui</code></a
+                      >
                     </div>
                     <p>
                       Bedtime up-front answer. One full-width card per option, radio / checkbox at left, recommended one
@@ -1242,7 +1250,8 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T19:33-04:00">2026-10-03 19:33</time></ui-date> Q3 answered: D3 In
                   an epic: committed in <code>epics/&lt;name&gt;/details/</code>, linked from its decision; else scratch
-                  <a href="../../details/" target="src-packages-docs-details"><code>packages/docs/content/details/</code></a
+                  <a href="../../details/" target="src-packages-docs-details"
+                    ><code>packages/docs/content/details/</code></a
                   >, swept after 14 days</ui-summary
                 ></ui-content
               ></ui-event

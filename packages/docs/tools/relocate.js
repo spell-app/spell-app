@@ -63,6 +63,8 @@ function isRelative(link) {
  */
 export function relocateLink(link, oldFile, newFile) {
   if (!isRelative(link)) return link
+  // a page already in `content/` that didn't move links the new way:  re-mapping would send `../app/` into content
+  if (oldFile === newFile && newFile.startsWith("packages/docs/content/")) return link
   const [, path, rest = ""] = /^([^?#]*)(.*)$/.exec(link)
   if (!path) return link
   const target = posix.normalize(posix.join(posix.dirname(oldFile), path))
@@ -84,6 +86,26 @@ export function relocateLinks(text, oldFile, newFile) {
   return text
     .replace(/\b(href|src|root)="([^"]*)"/g, (all, attr, link) => `${attr}="${relocateLink(link, oldFile, newFile)}"`)
     .replace(/\]\(([^)\s]+)\)/g, (all, link) => `](${relocateLink(link, oldFile, newFile)})`)
+}
+
+/**
+ * `text` of page `file` (repo-relative, under `packages/docs/content/`) with each relative link that points nowhere
+ * re-read as if written at the page's old place (`packages/docs/<path>`), when that finds a file.
+ * - for edits made against the old layout and merged in afterwards (a worktree, `main` before the cutover):  their
+ *   links are relative to the old place, the rest of the page's to the new
+ * - `exists(repoPath)` -- whether a repo-relative path exists
+ */
+export function repairLinks(text, file, exists) {
+  const oldFile = file.replace(/^packages\/docs\/content\//, "packages/docs/")
+  if (oldFile === file) return text
+  return text.replace(/\b(href|src)="([^"]*)"/g, (all, attr, link) => {
+    if (!isRelative(link)) return all
+    const path = link.replace(/[?#].*$/, "")
+    if (!path || exists(posix.normalize(posix.join(posix.dirname(file), path)))) return all
+    const fixed = relocateLink(link, oldFile, file)
+    const target = posix.normalize(posix.join(posix.dirname(file), fixed.replace(/[?#].*$/, "")))
+    return fixed !== link && exists(target) ? `${attr}="${fixed}"` : all
+  })
 }
 
 /** Repo paths written out in prose or code, longest first, so `packages/docs/scripts/x` beats `packages/docs`. */

@@ -82,7 +82,8 @@
             <li>
               One Solid per page, across our builds: element, editor and runner bundles import
               <code>spell-solid.js</code> /
-              <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"><code>spell-ui.js</code></a
+              <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                ><code>spell-ui.js</code></a
               >, built once. The app's chunks hold no React (pinned by
               <a href="../../app/src/build.test.ts" target="src-packages-app-src-build-test-ts"
                 ><code>packages/app/src/build.test.ts</code></a
@@ -151,7 +152,9 @@
 
           <ui-section id="app-ui" header="The app's UI" sticky collapsible dividing>
             <p>
-              <a href="../../app/src/solid/" target="src-packages-app-src-solid"><code>packages/app/src/solid/</code></a>
+              <a href="../../app/src/solid/" target="src-packages-app-src-solid"
+                ><code>packages/app/src/solid/</code></a
+              >
               (<code>$/app/solid</code>: 26 <code>.tsx</code> with
               <a href="../../app/src/solid/modals/" target="src-packages-app-src-solid-modals"
                 ><code>packages/app/src/solid/modals/</code></a
@@ -179,7 +182,8 @@
                 >,
                 <a href="../../app/src/solid/tracked.ts" target="src-packages-app-src-solid-tracked-ts"
                   ><code>tracked.ts</code></a
-                >, <a href="../../app/src/solid/on.ts" target="src-packages-app-src-solid-on-ts"><code>on.ts</code></a> (a
+                >,
+                <a href="../../app/src/solid/on.ts" target="src-packages-app-src-solid-on-ts"><code>on.ts</code></a> (a
                 <code>ref</code> listening for a <code>ui-*</code> event),
                 <a href="../../app/src/solid/solid.types.ts" target="src-packages-app-src-solid-solid-types-ts"
                   ><code>solid.types.ts</code></a
@@ -229,7 +233,9 @@
               </li>
               <li>
                 <b>Pages:</b>
-                <a href="../../app/src/pages/" target="src-packages-app-src-pages"><code>packages/app/src/pages/</code></a>
+                <a href="../../app/src/pages/" target="src-packages-app-src-pages"
+                  ><code>packages/app/src/pages/</code></a
+                >
                 -- <code>ProjectChooser</code>, <code>SpellEditor</code>, <code>SpellRunner</code>,
                 <code>ProjectSettings</code>, the router (<a href="#router">below</a>).
               </li>
@@ -343,7 +349,8 @@
               </li>
               <li>
                 <code>appConfig()</code> (same file) is every <code>vite*.config.ts</code> and
-                <a href="../vitest.config.ts" target="src-packages-docs-vitest-config-ts"><code>vitest.config.ts</code></a
+                <a href="../vitest.config.ts" target="src-packages-docs-vitest-config-ts"
+                  ><code>vitest.config.ts</code></a
                 >'s base: standard decorators FIRST (the Solid compiler must see decorator-free code), both JSX plugins,
                 <a href="../../solid-element/README.md" target="src-packages-solid-element-readme-md"
                   ><code>@spell-app/solid-element</code></a
@@ -361,7 +368,8 @@
           <ui-section id="spell-cells" header="Spell cells" sticky collapsible dividing>
             <p>
               Under <code>Observable</code>, <code>Thing</code>, <code>List</code> and the editor store, in
-              <a href="../../util/src/spell/" target="src-packages-util-src-spell"><code>packages/util/src/spell/</code></a
+              <a href="../../util/src/spell/" target="src-packages-util-src-spell"
+                ><code>packages/util/src/spell/</code></a
               >:
               <a href="../../util/src/spell/cells.ts" target="src-packages-util-src-spell-cells-ts"
                 ><code>cells.ts</code></a
@@ -483,7 +491,9 @@
                 <a href="../../app/src/runner/main.tsx" target="src-packages-app-src-runner-main-tsx"
                   ><code>packages/app/src/runner/main.tsx</code></a
                 >,
-                <a href="../../app/src/runner/SpellAppElement.tsx" target="src-packages-app-src-runner-spellappelement-tsx"
+                <a
+                  href="../../app/src/runner/SpellAppElement.tsx"
+                  target="src-packages-app-src-runner-spellappelement-tsx"
                   ><code>SpellAppElement.tsx</code></a
                 >,
                 <a
@@ -662,7 +672,8 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
                 <code>vite.solid.config.ts</code>: ONE entry, a virtual module re-exporting Solid and the fork WHOLE
                 (other builds can't say which names they use), plus <code>loadSpellUI = () =&gt; import($/ui)</code>,
                 which makes <code>ui</code>'s barrel the lazy chunk
-                <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"><code>spell-ui.js</code></a
+                <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                  ><code>spell-ui.js</code></a
                 >; its own lazy chunks go in <a href="../../ui/" target="src-packages-ui"><code>ui/</code></a
                 >.
               </li>
@@ -700,7 +711,9 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
                 >
                 (from each chunk's sourcemap <code>sources</code>): Solid only in <code>spell-solid.js</code>,
                 <code>ui</code> only in
-                <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"><code>spell-ui.js</code></a>
+                <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                  ><code>spell-ui.js</code></a
+                >
                 + <a href="../../ui/" target="src-packages-ui"><code>ui/</code></a
                 >, <code>spellCore</code> only in <code>spell-runtime.js</code>, which never loads Solid or
                 <code>ui</code>; Monaco only in <code>&lt;spell-editor&gt;</code>'s lazy chunks; every bundle parses.
@@ -741,7 +754,9 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
                 listeners and mount point.
               </li>
               <li>
-                The VS Code runner (<a href="../../app/src/runner/main.tsx" target="src-packages-app-src-runner-main-tsx"
+                The VS Code runner (<a
+                  href="../../app/src/runner/main.tsx"
+                  target="src-packages-app-src-runner-main-tsx"
                   ><code>packages/app/src/runner/main.tsx</code></a
                 >,
                 <a href="../../app/src/runner/VSCodeRunner.tsx" target="src-packages-app-src-runner-vscoderunner-tsx"
@@ -760,7 +775,8 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               <li>
                 The app speaks Fomantic's icon names (<code>"ellipsis horizontal"</code>, <code>"app store ios"</code>).
                 Each surface says so with <code>&lt;ui-root icons="fomantic"&gt;</code> around itself: the editor's
-                <a href="../../app/index.html" target="src-packages-app-index-html"><code>packages/app/index.html</code></a
+                <a href="../../app/index.html" target="src-packages-app-index-html"
+                  ><code>packages/app/index.html</code></a
                 >, <code>&lt;spell-app&gt;</code>'s shadow root, the VS Code webview (<code>display="immediately"</code>
                 on the last two).
               </li>
@@ -783,7 +799,9 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
                   >appConfig({ iconPacks: true })</code
                 >, <code>iconPacksBesideBuiltIns()</code>; a build error if no chunk holds it):
                 <code>assets/icon-packs</code> for the app, <code>icon-packs</code> beside
-                <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"><code>spell-ui.js</code></a>
+                <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                  ><code>spell-ui.js</code></a
+                >
                 for element / runner. All three packs: 2,170 files, 2.2 MB.
               </li>
             </ul>
@@ -841,7 +859,9 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 So the parser has no React and no Solid:
-                <a href="../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"><code>AST.ts</code></a>
+                <a href="../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                  ><code>AST.ts</code></a
+                >
                 loads wherever the parser does, and the CLI / language server / package tests compile with tools that
                 can't do Solid JSX.
               </li>
@@ -876,8 +896,8 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               </li>
               <li>
                 Cost: two renderers in the app's builds, both JSX plugins in every config, marked React files.
-                <a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a> "app: React for
-                spell programs, beside the app's Solid".
+                <a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a>
+                "app: React for spell programs, beside the app's Solid".
               </li>
               <li>
                 <a href="../../cli/" target="src-packages-cli"><code>packages/cli</code></a
@@ -1025,7 +1045,9 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
               <li>
                 <b
                   ><code>@thing</code> in
-                  <a href="../../util/src/spell/spellDecorators.ts" target="src-packages-util-src-spell-spelldecorators-ts"
+                  <a
+                    href="../../util/src/spell/spellDecorators.ts"
+                    target="src-packages-util-src-spell-spelldecorators-ts"
                     ><code>spellDecorators.ts</code></a
                   >; <code>runsCreate()</code> guard</b
                 >
@@ -1093,7 +1115,8 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
                   target="solid-migration"
                   >D21</a
                 >): a third build makes <code>spell-solid.js</code> /
-                <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"><code>spell-ui.js</code></a
+                <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                  ><code>spell-ui.js</code></a
                 >.
               </li>
               <li>
@@ -1289,7 +1312,8 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
                   ><code>packages/app/src/solid/Actions.tsx</code></a
                 >); an inverted coloured menu draws dark item text; a host <code>aria-label</code> never reaches
                 <code>&lt;ui-dropdown&gt;</code>'s combobox. In
-                <a href="../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>agents/SUSPECTED-BUGS.md</code></a
+                <a href="../../../agents/SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                  ><code>agents/SUSPECTED-BUGS.md</code></a
                 >; known ones in
                 <a href="spell-docs/spell-ui-findings.md" target="src-packages-docs-spell-docs-spell-ui-findings-md"
                   ><code>spell-docs/spell-ui-findings.md</code></a
@@ -1580,7 +1604,9 @@ function memoOf&lt;T&gt;(read: () =&gt; T): Accessor&lt;T&gt; {
             <ui-item>
               <ui-content>
                 <ui-header
-                  ><a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"><code>agents/CODE-DEBT.md</code></a></ui-header
+                  ><a href="../../../agents/CODE-DEBT.md" target="src-code-debt-md"
+                    ><code>agents/CODE-DEBT.md</code></a
+                  ></ui-header
                 >
                 <ui-meta>debt · "app: React for spell programs, beside the app's Solid"</ui-meta>
                 <ui-description>Cost, cause, fix and pins of the React that remains.</ui-description>
