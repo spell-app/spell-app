@@ -1,6 +1,6 @@
 ---
 name: session
-description: Find and reopen a saved Claude Code session in the VS Code Claude panel, or title THIS session -- things the panel has no `/resume` or `/rename` for.  Use for `/session` (asks which session), `/session <words or id>` (find and open), `/session name [title]` (title this one), or when Owen says "resume / reopen / go back to the <x> session", "name this session", "call this session <x>".
+description: Find and reopen a saved Claude Code session in the VS Code Claude panel, or title THIS session -- things the panel has no `/resume` or `/rename` for.  Use for `/session` (asks which session), `/session <words or id>` (find and open), `/session name [title]` (title this one, as `/title` does), or when Owen says "resume / reopen / go back to the <x> session".
 argument-hint: "[<words> | <id> | name [<title>]]"
 ---
 
@@ -9,7 +9,7 @@ argument-hint: "[<words> | <id> | name [<title>]]"
 The command:  `spell dev session <verb>`, run from the session's folder (it lists THAT repo's sessions:  main
 checkout, worktrees and package folders together).  `spell help dev` lists the verbs;  the logic is
 `packages/cli/src/dev/sessions.ts`.  (Moved into the repo from `~/.claude/skills/session` on 2026-10-03, its
-python ported to `spell dev session`.)
+python ported to `spell dev session`;  naming split out as `/title` on 2026-10-04.)
 
 ## 1. Arguments
 
@@ -41,10 +41,5 @@ python ported to `spell dev session`.)
 
 ## 4. Name this session
 
-- With a title:  `spell dev session title <title>`.
-- Without:  offer 3 short titles (2-4 words, the work's name, e.g. `session tools`) in the modal, then queue the
-  pick.
-- The title lands when Owen sends the NEXT message (the `UserPromptSubmit` hook
-  `~/.claude/hooks/session-title.mjs` applies it) -- say so.
-- NOTE:  undocumented hook output, found in CLI 2.1.287.  If a later message shows the title didn't change:
-  say so, and fall back to "rename it from the tab's context menu" (VS Code) or `/rename <title>` (terminal).
+- `/session name [<title>]` is `/title [<title>]`:  follow `.claude/skills/title/SKILL.md` (a skill can't invoke
+  another).

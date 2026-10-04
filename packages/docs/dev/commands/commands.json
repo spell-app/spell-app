@@ -521,16 +521,16 @@
             "note": "`title <title>` queues it;  needs `CLAUDE_CODE_SESSION_ID`"
           },
           "skill": {
-            "mark": "other",
-            "names": ["/session"],
-            "note": "`/session name`;  `/isolate` reminds to `/rename`"
+            "mark": "same",
+            "names": ["/title", "/session"],
+            "note": "`/title [<title>]`;  `/session name` hands off to it;  /isolate /park /unpark rename the same way"
           },
           "yarn": {
             "mark": "no"
           },
           "runs": "`queueTitle()` writes `~/.claude/session-titles/<id>`;  `~/.claude/hooks/session-title.mjs` applies it",
           "notes": "Lands on the NEXT prompt.  Undocumented hook output (`sessionTitle`, CLI 2.1.287).",
-          "target": "(R4) built:  `spell dev session title`;  /session calls it"
+          "target": "(R4) built:  `spell dev session title`;  /title calls it"
         },
         {
           "op": "Message another session",
