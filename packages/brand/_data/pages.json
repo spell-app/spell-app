@@ -1,0 +1,101 @@
+{
+  "$comment": "Hand-kept facts per family (title, summary, status, mainTag, `pages`:  sub-tags with a page of their own, token-table overrides) and per theme sheet (`themes`:  title), read by `yarn site:data`.  Shape:  `SitePagesFile` in src/docs-components/docs-components.types.ts.  Edit by hand;  a new family is added (seeded) by `yarn site:data`.",
+  "families": {
+    "ui-brand-field": {
+      "title": "Brand field",
+      "summary": "A brand field wraps one control with its label, a value readout, action buttons, an info tip, help and errors.",
+      "status": "done"
+    },
+    "ui-brand-panel": {
+      "title": "Brand panel",
+      "summary": "A brand panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.",
+      "status": "done"
+    }
+  },
+  "themes": {
+    "amazon": {
+      "title": "Amazon"
+    },
+    "basic": {
+      "title": "Basic"
+    },
+    "bookish": {
+      "title": "Bookish"
+    },
+    "bootstrap3": {
+      "title": "Bootstrap 3"
+    },
+    "chubby": {
+      "title": "Chubby"
+    },
+    "classic": {
+      "title": "Classic"
+    },
+    "colored": {
+      "title": "Colored"
+    },
+    "dark": {
+      "title": "Dark"
+    },
+    "duo": {
+      "title": "Duo"
+    },
+    "famfamfam": {
+      "title": "Famfamfam"
+    },
+    "fixed-width": {
+      "title": "Fixed-width"
+    },
+    "flat": {
+      "title": "Flat"
+    },
+    "fomantic-classic": {
+      "title": "Fomantic-classic"
+    },
+    "github": {
+      "title": "GitHub"
+    },
+    "gmail": {
+      "title": "Gmail"
+    },
+    "instagram": {
+      "title": "Instagram"
+    },
+    "material": {
+      "title": "Material"
+    },
+    "pulsar": {
+      "title": "Pulsar"
+    },
+    "raised": {
+      "title": "Raised"
+    },
+    "resetcss": {
+      "title": "Resetcss"
+    },
+    "round": {
+      "title": "Round"
+    },
+    "rtl": {
+      "title": "Rtl"
+    },
+    "spell": {
+      "title": "Spell"
+    },
+    "spell-brand": {
+      "title": "Spell Brand"
+    },
+    "striped": {
+      "title": "Striped"
+    },
+    "systemfont": {
+      "title": "Systemfont"
+    },
+    "timeline": {
+      "title": "Timeline"
+    },
+    "twitter": {
+      "title": "Twitter"
+    }
+  }
+}

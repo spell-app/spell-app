@@ -9,11 +9,15 @@ const ROOT = fileURLToPath(new URL("./", import.meta.url))
 /** Where the bundle goes:  `_assets/ui/`, COMMITTED (like Spell UI's site bundle). */
 export const BRAND_ASSETS = `${ROOT}_assets/ui`
 
-/** The entry:  `src/brand-ui.ts`. */
+/** The pages' entry:  `src/brand-ui.ts`. */
 export const BRAND_ENTRY = `${ROOT}src/brand-ui.ts`
 
+/** The docs pages' entry:  `src/brand-docs.ts` (`brand-ui.ts` + Spell UI's docs widgets). */
+export const DOCS_ENTRY = `${ROOT}src/brand-docs.ts`
+
 /**
- * The brand pages' bundle (`yarn build`, run by `scripts/build.ts`):  `src/brand-ui.ts` => `_assets/ui/brand-ui.js`
+ * The brand pages' bundle (`yarn build`, run by `scripts/build.ts`):  `src/brand-ui.ts` => `_assets/ui/brand-ui.js`,
+ * and the docs pages' `src/brand-docs.ts` => `brand-docs.js` (the same chunks under it)
  * + `brand-ui.css` + lazy chunks.  See the entry for what's in it.
  * - Modelled on Spell UI's site bundle (`packages/ui/vite.site.config.ts`):  `baseConfig()` (decorators BEFORE
  *   Solid, Solid dedupe, Lightning CSS targets), an APP build of one entry, code-split, `base: "./"` so chunk URLs
@@ -58,7 +62,7 @@ export default defineConfig(() => {
       reportCompressedSize: false,
       chunkSizeWarningLimit: 1500,
       rolldownOptions: {
-        input: { "brand-ui": BRAND_ENTRY },
+        input: { "brand-ui": BRAND_ENTRY, "brand-docs": DOCS_ENTRY },
         preserveEntrySignatures: "allow-extension",
         output: {
           // custom element class names are read by dev-time warnings and the manifest (see ui's `vite.config.ts`)

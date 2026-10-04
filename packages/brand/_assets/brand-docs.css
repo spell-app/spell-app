@@ -1,0 +1,77 @@
+/*
+ * Brand docs pages (`components/<tag>.html`):  Spell UI's docs format (`packages/docs/templates/spell-ui-docs.html`)
+ * without its site shell:  the site header, a masthead, then the Examples / Usage / API / Theming tabs.
+ * - Layout glue only, after Spell UI's site (`packages/ui/site/_src/site.css`, "Masthead and body"):  colours, fonts
+ *   and radii come from the theme.
+ * - The tabs' bar sticks under the site header (`--spell-site-header-height`, set by the header).
+ */
+
+body {
+  margin: 0;
+  background: var(--ui-background);
+  color: var(--ui-text-color);
+}
+
+/* ## Masthead:  eyebrow, title + status, the summary as its sub header */
+.brand-docs-masthead::part(segment) {
+  padding-block: 2.5em 2em;
+}
+.brand-docs-masthead > ui-container::part(container),
+.brand-docs-body::part(container) {
+  width: auto;
+  max-width: 1120px;
+  margin-inline: auto;
+  padding-inline: 40px;
+}
+.brand-docs-eyebrow {
+  margin-block-end: 0.5em;
+  color: var(--spell-text-accent, var(--ui-primary-text));
+  font: var(--spell-type-eyebrow, 500 12px / 1 var(--ui-font-family-mono));
+  letter-spacing: var(--spell-tracking-eyebrow, 0.14em);
+  text-transform: uppercase;
+}
+.brand-docs-eyebrow a {
+  color: inherit;
+}
+.brand-docs-title {
+  --ui-header-margin-top: 0;
+}
+
+/* ## Body:  the tabs, their bar stuck under the site header */
+.brand-docs-body::part(container) {
+  padding-block: 1em 6em;
+}
+.brand-docs-tabs > ui-tab::part(tab) {
+  padding-inline: 0;
+}
+.brand-docs-tabs::part(menu) {
+  position: sticky;
+  top: var(--spell-site-header-height, 0px);
+  z-index: calc(var(--ui-z-sticky, 100) + 1);
+  box-shadow: 0 0 0 8px var(--ui-background);
+  background: var(--ui-background);
+}
+.brand-docs-tabs [id] {
+  scroll-margin-top: calc(var(--spell-site-header-height, 0px) + 4em);
+}
+
+/* an example's panel:  a sensible width, so the box reads as an inspector */
+/* several small panels side by side (the Colors example) */
+.brand-docs-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.brand-docs-panel {
+  display: block;
+  width: min(380px, 100%);
+}
+
+@media (max-width: 700px) {
+  .brand-docs-masthead > ui-container::part(container),
+  .brand-docs-body::part(container) {
+    padding-inline: 16px;
+  }
+}

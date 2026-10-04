@@ -8,6 +8,7 @@
  *     <script type="module" src="../_assets/ui/brand-ui.js"></script>
  *   An ES module:  from the page server, not `file://` (judgement J4).
  * - What it holds, in import order (ES modules evaluate top to bottom):
+ *   0. `./hues`:  the brand's `accent` hue, added to Spell UI's `hues` before any element is defined
  *   1. the page CSS:  `@spell-app/ui`'s foundation (`ui.css`:  layers, tokens, reset, typography, native markup),
  *      extracted to `brand-ui.css`
  *   2. `BuiltInPacks`:  pointed at `_assets/ui/icon-packs/` (a symlink to ui's packs) from THIS file's URL, so
@@ -18,6 +19,7 @@
  * - Lazy, by `import()`:  the runtime, the theme sheets, `<ui-code>`'s and `<ui-markdown>`'s engines, emoji names.
  * - `window.UI`:  the runtime, for poking in DevTools.
  */
+import "./hues"
 import "$/ui/styles/ui.css"
 
 import { BuiltInPacks } from "$/ui/icons"

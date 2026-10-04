@@ -25853,6 +25853,7 @@
         "ui-progress",
         "ui-section",
         "ui-segment",
+        "ui-slider",
         "ui-statistic",
         "ui-table",
         "ui-toast"

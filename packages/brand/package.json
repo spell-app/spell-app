@@ -8,6 +8,8 @@
   "scripts": {
     "build": "tsx scripts/build.ts",
     "compare": "tsx scripts/compare.ts",
+    "site:data": "tsx scripts/site-data.ts",
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vitest run && echo '<< TESTS PASSED\n'",
     "/////// CORRECTNESS": "",
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && echo '<< TSC PASSED\n'",
     "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && oxfmt src components scripts vite.config.ts index.html compare.html _assets/brand-pages.js _assets/brand-pages.css && echo '<< OXFMT PASSED\n'"

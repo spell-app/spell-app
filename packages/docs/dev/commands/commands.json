@@ -3098,6 +3098,7 @@
               "lsp test",
               "parser test",
               "server test",
+              "brand test",
               "spell test",
               "ui test",
               "util test",
@@ -4252,7 +4253,7 @@
           "notes": "Plain HTML since Astro was retired on main (2026-10-03)."
         },
         {
-          "op": "Build the brand pages' bundle",
+          "op": "Build the brand pages' bundle and docs data",
           "cli": {
             "mark": "no"
           },
@@ -4261,10 +4262,10 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["brand build"],
-            "note": "`packages/brand/_assets/ui/`:  Spell UI, the `<ui-brand-*>` elements and the `spell-brand` theme, for the `.spell.html` pages"
+            "names": ["brand build", "brand site:data"],
+            "note": "`build`:  `packages/brand/_assets/ui/` (`brand-ui.js` for the `.spell.html` pages, `brand-docs.js` for the elements' docs pages);  `site:data`:  `packages/brand/_data/components.json`, the docs pages' API and tokens"
           },
-          "runs": "`packages/brand/scripts/build.ts` (Vite, `packages/brand/vite.config.ts`)",
+          "runs": "`packages/brand/scripts/build.ts` (Vite, `packages/brand/vite.config.ts`), `scripts/site-data.ts` (Spell UI's `SiteDataBuilder`)",
           "target": "stays:  tool-native package script",
           "notes": "Epic `design-system`, P2."
         },

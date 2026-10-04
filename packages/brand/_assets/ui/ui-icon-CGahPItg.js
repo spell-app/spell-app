@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-icon-BW4Wud2o.js";export{e as UIIcon,t as UIIcons};
