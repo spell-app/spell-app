@@ -116,7 +116,7 @@ A TARGET names a set, a topic, or one place on a page:  `[set/]topic[/anchor]`.
 - Keep the `.md` in step after every dialog or update:  new decisions, work status (`proposed` → `ready` →
   `done`), closed questions.  Same ids, same titles.
 - Links between goals pages open in the SAME tab (`target="_self"`, added by the tool);  every other link gets a
-  named new-tab target from `packages/docs/scripts/doc-links.py`.  Write code references as
+  named new-tab target from `packages/docs/scripts/doc-links.js`.  Write code references as
   `<code>path/from/repo/root</code>`:  the tool links them.
 - History (`#history`):  newest first, one line per session or change, via `yarn goals log`.
 

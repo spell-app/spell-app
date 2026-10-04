@@ -15,6 +15,10 @@ Collected as `parser`'s "Suspected bugs found during documentation pass".
 Collected 2026-09-19 while documenting `src/` per `AGENTS.md`.  Everything you annotated `>>` has been
 fixed and removed from this file; what's left is unannotated and untouched in the code.
 `[V]` = checked against the code by hand.  Everything else is a subagent's reading and unverified.
+
+- `[V]` `packages/spell/package.json` `test:coverage` (`vitest run --coverage`):  no `@vitest/coverage-*` provider
+  is installed (only `istanbul-lib-coverage`), so it likely fails asking for one.  Nothing references it.  Prove:
+  `yarn workspace @spell-app/spell test:coverage`.  (found by epic `commands`, P2)
 Delete this file when done -- it is untracked scratch, not project documentation.
 
 Disproven while fixing: `Tokenizer.matchJSXChildren` same-name nesting was NOT a bug -- `matchJSXChild()`
@@ -447,9 +451,17 @@ every entry below that date was fixed or disproven;  what's left:
 - `src/components/ui-dropdown/ui-dropdown.vocabulary.en.ts` `parts`:  the root `div.ui.dropdown` has no part name, so tokens
   read at its root can't be themed via `::part()` (search got `::part(search)` on 2026-10-01).  (2026-10-01)
 
+- `package.json` `smoke`:  needs `vendor/importmap.json` from `yarn vendor`, but doesn't run it, and throws when it's
+  missing.  `test:all` skips the fork tests plain `test` runs (`yarn test:fork`).  Prove:  fresh checkout,
+  `yarn smoke`.  (found by epic `commands`, P2;  unverified)
+
 ## app
 
 ### 1. Behavior bugs
+
+- `package.json` `clean`:  removes `.cache` and `build`, but the builds write `dist/`, `dist-runner/`,
+  `dist-element/`, which it leaves.  Prove:  `yarn build:element && yarn clean && ls`.  (found by epic `commands`,
+  P2;  unverified)
 
 - `packages/spell/src/node/response-utils.ts` `sendJSFile` / `request_getCompiled` / `request_getScopes` [V]: the content-type is set
   to `text/javascript` BEFORE the existence check, so a not-found 404 carries a JSON `{errors}` body labelled `text/javascript`.
@@ -507,8 +519,16 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
-- (none yet:  the CLI's spell-side suspicions -- `SpellDiskWorkspace.diskChanged(uri, "created")`, `ScopeExplorer`
+- (the CLI's spell-side suspicions -- `SpellDiskWorkspace.diskChanged(uri, "created")`, `ScopeExplorer`
   property names -- are under `spell`.)
+- `[V]` `src/main.ts` `.version(globalThis.__PACKAGE_VERSION__)`:  `spell --version` prints `@spell-app/spell`'s
+  version, not the CLI's (`0.8.0`):  `$/spell/node/packageVersion.node` reads the `package.json` three folders up
+  from ITSELF.  Prove:  `spell --version` vs `packages/cli/package.json`.  (found by epic `commands`, P2)
+  NOTE: `main.ts`'s comment calls this deliberate ("the PARSER's, which `spell --version` prints"), so maybe not a
+  bug -- but then the CLI's own `0.8.0` is shown nowhere.
+- `package.json` `spell` script (`node bin/spell.mjs`):  yarn runs it with the cwd at `packages/cli`, so a relative
+  target or `@workspace` resolves there, not where you typed it.  Prove:  `yarn workspace @spell-app/cli spell check .`
+  from `packages/spell/projects/...`.  Nothing references the script;  drop it or document `INIT_CWD`.
 
 ## docs
 
@@ -518,6 +538,11 @@ every entry below that date was fixed or disproven;  what's left:
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
   tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
   `yarn plan-doc add-phase x "A" --goal "write <Project>.js"`, then look at the `#p1` body.
+- `scripts/doc-links.js` `resolve()`:  the alias form is still `#name/...` (from before the `$/` aliases), and `$`
+  isn't in the path character class, so `<code>$/util/index.ts</code>` never links;  `cli.html`, `server.html`,
+  `solid-migration.html` list dozens of `$/...` spans as unresolved.  Kept as-is in the python port (P10, epic
+  `commands`) to stay byte-identical.  Prove:  `node scripts/doc-links.js server.html`, see `'$/server'` in the
+  unresolved list.
 - `scripts/plan-doc.js` `summary` (and likely other commands) fails on a plan doc made before judgement calls became
   their own item kind (`195ab6a4`):  "no .plan-items[data-kind="judgement"] in the doc:  is it a plan doc?".  Breaks
   `packages/cli`'s `spell plan-doc > summarizes a plan doc` test (`unified-server`).  Prove:
@@ -546,3 +571,14 @@ every entry below that date was fixed or disproven;  what's left:
   `workbench.action.closeWindow` from a `setTimeout` after the reply runs too late or is refused;  or the window
   that opened wasn't the one registered.  Prove:  `node scripts/window.mjs open <name> --pkg docs`, wait for its
   `~/.spell/windows/*.json`, then `close <name>`, and watch the window.
+
+## claude-code
+
+Skills, hooks and their scripts (`.claude/`, `goals/_skills/`).
+
+- `[V]` `.claude/skills/isolate/SKILL.md` step 0 and `.claude/skills/park/SKILL.md` step 2:  carry edits over with a
+  BARE `git stash pop`.  The stash stack is shared by every worktree and session, so it can pop another session's
+  stash.  Fix:  `push -u -m <tag>`, find its sha, `stash apply <sha>`, then drop it by sha.  (found by epic `commands`, P2)
+- `[V]` `.claude/skills/whassup/scripts/whassup.py` `merge()`:  `git merge --no-edit` (a merge commit), while its
+  docstring says "as `/isolate done` would", which is `git merge --ff-only`.  One policy, one command:  roadmap
+  `spell dev worktree merge` (epic `commands`).

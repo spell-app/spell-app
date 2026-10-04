@@ -37,12 +37,12 @@ export function findPages(dir = DOCS) {
 
 /**
  * Tidy `files` (paths relative to `DOCS`) the way a page must be committed:  link targets, then oxfmt.
- * - `doc-links.py` first:  it may add attributes oxfmt then wraps
+ * - `doc-links.js` first:  it may add attributes oxfmt then wraps
  * - returns whether both succeeded;  their output is echoed
  */
 export function tidy(files) {
   for (const [command, args] of [
-    ["python3", ["scripts/doc-links.py", ...files]],
+    [process.execPath, ["scripts/doc-links.js", ...files]],
     ["yarn", ["oxfmt", ...files]]
   ]) {
     const run = spawnSync(command, args, { cwd: DOCS, encoding: "utf8" })
