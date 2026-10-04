@@ -1217,6 +1217,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   it's found by its label, and a new session has none (`no tabs titled ''`), while sessions opened in a worktree's
   window share that worktree's title. · `.claude/hooks/prompt-gate.mjs` renames the session on `/isolate|epic|unpark
   <name>` before Claude runs, and blocks those inside another worktree. · claude-code
+- 2026-10-03 · `/epic`'s plan doc opened in the OLD window's Spell Docs side bar, not the new window's:  its
+  skill ran `yarn plan-doc open` BEFORE `window.mjs handoff`, and `Window.show()` defers to the new window only
+  while a move is pending (handoff logs:  no "showed ..." line). · `/epic` "2. Session" now hands off first, then
+  opens the doc, and checks it printed "shows in ... once this session moves there". · claude-code
 
 ## vscode
 

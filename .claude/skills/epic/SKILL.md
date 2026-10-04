@@ -73,13 +73,16 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
    - Reusing a doc:  its prompt missing:  `yarn plan-doc prompt <name> --file <file>`;  an older doc (before
      2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.  No phases yet:  a restart after
      a hang.  Plan again from its prompt ("3. Plan");  explore only what the doc doesn't say.
-4. `yarn plan-doc open <name>`:  shown in VS Code's doc preview (the right side bar's "Spell Docs" view) of the
-   window the session moves to, once it has (`yarn window`;  one tab, reloaded on every later `open`).  Needs the
-   spell extension (`yarn vscode`).
-5. Isolate "Start", steps 4-6:  the worktree's own window, `handoff <name> --prompt continue` (name alone, no plan
-   yet:  no `--prompt`), END THE TURN.  Last line:  "moving to `<pkg> ⎇ <name>`:  press enter on `continue`
+4. Isolate "Start", steps 4-5:  the worktree's own window, then `handoff <name> --prompt continue` (name alone, no
+   plan yet:  no `--prompt`).
+5. `yarn plan-doc open <name>`, AFTER the handoff:  shown in VS Code's doc preview (the right side bar's "Spell
+   Docs" view) of the window the session moves to, once it has (one tab, reloaded on every later `open`).  Needs
+   the spell extension (`yarn vscode`).
+   - MUST print "... shows in ... once this session moves there".  Why:  only a PENDING move defers it;  before
+     the handoff it shows in THIS window's side bar, the one being left.
+6. Isolate "Start", step 6:  END THE TURN.  Last line:  "moving to `<pkg> ⎇ <name>`:  press enter on `continue`
    there" (no plan yet:  "send the plan there").
-6. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
+7. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
 
 ## 3. Plan
 
