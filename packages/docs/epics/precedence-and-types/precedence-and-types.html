@@ -1208,7 +1208,7 @@ card.pile = pile</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d17" data-status="decided"
+            ><ui-item id="d17" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d17">D17</a>
@@ -1845,6 +1845,106 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d31" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d31">D31</a>
+                  <span class="plan-title"
+                    >Bedtime 2026-10-04: run every remaining phase, P4-P9, no merge</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Answered on the
+                    <a
+                      href="details/bedtime-2026-10-04.html"
+                      target="src-packages-docs-epics-precedence-and-types-details-bedtime-2026-10-04-html"
+                      >bedtime page</a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d32" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d32">D32</a>
+                  <span class="plan-title"
+                    >`is a &lt;word&gt;` must name a known type, else a parse error</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Bedtime Q2. Types declared later in the file or elsewhere in the project still count (stubs).
+                    Catches typos like <code>is a crad</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d33" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d33">D33</a>
+                  <span class="plan-title">`wait for` gets the same two rules as calls, in P5</span></ui-title
+                ><ui-content
+                  ><p>
+                    Bedtime Q3. As a statement: <code>wait for x is 1</code> → <code>await (x == 1)</code>; inside an
+                    expression: <code>if wait for x is 1</code> → <code>(await x) == 1</code>. Completes
+                    <a href="#d28">D28</a>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d34" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d34">D34</a>
+                  <span class="plan-title"
+                    >Built-in member tables: today's members, plus the obvious ones</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Bedtime Q4. Every built-in member spell has today goes into the tables, and the Type Explorer pack
+                    is generated from them; plus members people will reach for (<code>the length of a text</code>,
+                    <code>the first character of</code>, <code>the last item of</code>,
+                    <code>the size of a list</code> ...), each pinned to a real <code>spellCore</code> method.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d35" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d35">D35</a>
+                  <span class="plan-title"
+                    >Rewrite the live examples in the new syntax as each phase lands</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Bedtime Q5. Live cards library and Solitaire examples only; frozen fixtures under
+                    <code>projects/test/</code> never.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d36" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d36">D36</a>
+                  <span class="plan-title">Keep a thin `to move a card to a pile`</span></ui-title
+                ><ui-content
+                  ><p>
+                    Bedtime Q6. Once piles are exclusive: <code>add the card to the pile</code>, then
+                    <code>pause for 50 msec</code>, so Solitaire's calls and move animation stay.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d37" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d37">D37</a>
+                  <span class="plan-title">No `SPELL_VERSION` bump</span></ui-title
+                ><ui-content
+                  ><p>
+                    Bedtime Q7, Owen: "no bump needed, it's all still just me". Supersedes <a href="#d17">D17</a>. Saved
+                    declarations gain keys; missing ones load as unknown. Regenerate the repo's own compiled libraries
+                    instead.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2084,6 +2184,19 @@ the first card of {list:NAME}
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j9">J9</a>
+                  <span class="plan-title">Parse slowdown: keep going and flag it (Q8 unanswered)</span></ui-title
+                ><ui-content
+                  ><p>
+                    Bedtime Q8 had no answer. Chose the recommended option: measure after every phase; more than 25%
+                    slower than after P3 (speedTest 54.5ms, BENCH 55.2ms) goes in the morning report, after one try at a
+                    fix. Other option: stop the night on a slowdown.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2233,6 +2346,26 @@ the first card of {list:NAME}
                       'summarizes a plan doc' (SUSPECTED-BUGS).
                     </li>
                   </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c8">C8</a>
+                  <span class="plan-title"
+                    >The installed VS Code extension now runs this worktree's parser</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn vscode</code> (end of P3) bakes the checkout it was built from into the extension (<a
+                      href="../../../vscode/build.mjs"
+                      target="src-packages-vscode-build-mjs"
+                      ><code>packages/vscode/build.mjs</code></a
+                    >, <code>REPO_ROOT</code>), so EVERY VS Code window's spell support -- squiggles, hover, completion,
+                    Run Project -- now runs <code>.claude/worktrees/precedence-and-types</code>. Rebuild from
+                    <code>main</code> after this branch merges, or before the worktree is removed; until then, other
+                    branches see this branch's grammar.
+                  </p></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -2874,6 +3007,20 @@ the first card of {list:NAME}
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:38-04:00">2026-10-04 02:38</time></ui-date> P3
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:47-04:00">2026-10-04 02:47</time></ui-date> D17 closed:
+                  `SPELL_VERSION` major bump in P4</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:47-04:00">2026-10-04 02:47</time></ui-date> Bedtime started:
+                  P4-P9 unattended; answers recorded</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
