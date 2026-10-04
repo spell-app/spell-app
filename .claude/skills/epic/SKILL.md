@@ -20,14 +20,15 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 - Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
   OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
   order or reference matters.
-- Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  link it on the page server,
-  `[<name>](<url>)`, `<url>` from `yarn server url <ABSOLUTE path>` run in the checkout the doc is in (a relative
-  path resolves wrongly).  A worktree's doc gets the MAIN server's URL (`/worktrees/<name>/...`) when that one runs;
-  else the worktree's own server's.
+- Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  paste what
+  `yarn docs:link <ABSOLUTE path> --hash <id> [--text "..."]`, run in the checkout the doc is in:  it prints
+  the side bar link, then `(_browser_)` (`.claude/skills/details/SKILL.md`, "Links to pages").
+  `--hash`:  the id of what you mean (`p2`, `q3`, `t4`).  A worktree's doc goes on the MAIN server when that one
+  has the route, else the worktree's own.
 - Phase complete:  the LAST line of that reply's text says where we are, each phase linked to its heading in the
-  plan doc (`<url>#p1`):
-  - "[P1 · Short Name](<url>#p1) complete.  Next is [P2 · Short Name](<url>#p2)."
-  - after the last phase:  "All done:  [P<N> · Doc Review](<url>#p<N>) complete."
+  plan doc (`yarn docs:link <plan doc> --hash p1 --text "P1 · Short Name"`):
+  - "<P1 link pair> complete.  Next is <P2 link pair>."
+  - after the last phase:  "All done:  <P<N> · Doc Review link pair> complete."
 
 ## 1. Name
 

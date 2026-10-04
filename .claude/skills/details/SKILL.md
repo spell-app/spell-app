@@ -10,9 +10,22 @@ A DETAILS PAGE:  a small page that explains one decision, shown in the "Spell Do
 bar).  Owen picks on the page and clicks Send;  the page server writes his answer beside the page, and a waiter
 running in the background exits with it, which wakes this session.  Docs:  `packages/docs/details.html`.
 
-- Style, on the page and in replies:  caveman lite, as in `/epic`.  Explain as `templates/epics/plan-doc.md`
-  "Explaining a question or issue" says:  plain words, coined words defined, the real code, tables, options side by
-  side, one recommended.
+- Explain as `templates/epics/plan-doc.md` "Explaining a question or issue" says:  plain words, coined words
+  defined, the real code, tables, options side by side, one recommended.
+
+## Writing for Owen
+
+Owen runs 5+ epics at once, and reads a page cold, coming from another session.  Dense, terse pages make him ask
+"what do you mean?" (2026-10-03).  So:
+- The "Where we are" box first, every time:  which epic or session, what that work is for (one line), what just
+  happened, what this choice changes for him.
+- Every question stands alone:  say what it's about in plain words BEFORE the options, as if nothing above it was
+  read.
+- Short sentences, one idea per line, bullets over paragraphs.  Not caveman:  full words, the articles back in.
+- No bare internal ids (`J1`, `T3`, `D6`, `C1`), phase numbers or file names:  say what the thing is ("the call I
+  made about how option cards are built").  Add the id after, in brackets, for reference.
+- Options say what he'd SEE or GET, and the cost, not how it's built.  How it's built goes in the folded details.
+- A concrete example per option:  what the page, the command or the output would look like.
 
 ## 1. Page or modal?
 
@@ -34,6 +47,7 @@ running in the background exits with it, which wakes this session.  Docs:  `pack
    - `<slug>`:  lower-kebab-case, about the decision (`answer-path`, `card-layout`), unique.
 2. Edit the page (the template's placeholders show where):
    - lede:  what's being decided, and why now;  meta:  "Asked by:  session `<name>`, while <doing what>"
+   - the "Where we are" box:  filled in, never left as the template's placeholder ("Writing for Owen")
    - `1. Context`:  the picture.  Page widgets:  `packages/docs/AGENTS.md`, "Writing a page" (tables, code
      folded, pros / cons, steps ...).  Icons only from `ICONS` in `packages/docs/scripts/bundle-spell-ui.js`.
    - one `ui-section.spell-question` per question, ids `q1`, `q2` ... header `Q1 · Short question`:
@@ -61,10 +75,22 @@ running in the background exits with it, which wakes this session.  Docs:  `pack
 
 ## 3. Show it, and wait
 
-- Answer page:  `yarn details show <slug> --wait` with Bash `run_in_background: true`.  Then END THE TURN, one line:
-  "answer in the side bar:  <Title>".  Don't also ask in chat or the modal.
+- Answer page:  `yarn details show <slug> --wait` with Bash `run_in_background: true`.  Then END THE TURN with the
+  page's link pair (`yarn docs:link <page>`, below):  "answer in the side bar:  <link>".  Don't also ask in chat or
+  the modal.
 - Picture page:  `yarn details show <slug>` (foreground), then AskUserQuestion.
 - Outside VS Code (a CLI session in a terminal):  `show` opens Chrome instead;  same flow.
+
+## Links to pages
+
+Any page you name to Owen (a details page, a plan doc, any docs page):  `yarn docs:link <page> --hash <id> --show`,
+and paste what it prints.
+- It shows the page in this session's side bar NOW (`--show`), and prints two links:  the title opens it in the
+  side bar (again), `(_browser_)` in Chrome.  Both go through the page server (`packages/docs/scripts/showRoutes.ts`):
+  the Claude panel ignores `vscode://` links and opens `localhost` ones in a VS Code tab.
+- `--hash`:  ALWAYS the id of what you mean (`q2`, `t4`, `p3` ...):  the page lands there, below the sticky titles,
+  unfolded.
+- No page server here has the route yet (older than it):  it prints a plain link and says so.
 
 ## 4. The answer
 

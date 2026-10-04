@@ -13,7 +13,7 @@
  * - `list` -- every details page, answered or waiting
  * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's.  `new` sweeps
  *   first, by itself
- * - `<page>`:  a slug (`pick-layout`), a path (from where `yarn` was run), or `<epic>/<slug>`
+ * - `<page>`:  a slug (`pick-layout`), `<epic>/<slug>`, or a path (absolute, or from `packages/docs` or the root)
  * - paths print absolute:  they mean the same in whichever checkout Claude reads them
  * - The answer itself is written by the page server's route module (`scripts/detailsRoutes.ts`) into
  *   `<slug>.answer.json` beside the page.
@@ -34,9 +34,6 @@ const POLL = 1000
 
 /** Scratch pages older than this many days go in a `sweep`. */
 const SWEEP_DAYS = 14
-
-/** Folder `yarn details` was run from:  `yarn workspace` runs scripts in `packages/docs`, but says where in `INIT_CWD`. */
-const CALLER = process.env.INIT_CWD ?? process.cwd()
 
 /** A slug:  lower-kebab-case. */
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -125,8 +122,9 @@ export function createPage(docs, slug, { title = "Details", epic, description } 
  */
 export function findPage(docs, target) {
   if (!target) throw new Error("which page?  a slug, a path or <epic>/<slug>")
-  const path = resolve(CALLER, target)
-  if (target.endsWith(".html") && existsSync(path)) return path
+  // `yarn workspace` sets `INIT_CWD` to `packages/docs`, not where `yarn` was run:  so a path is from the docs or the root
+  const path = [docs, resolve(docs, "../..")].map((base) => resolve(base, target)).find((each) => existsSync(each))
+  if (target.endsWith(".html") && path) return path
   const slug = target.replace(/\.html$/, "")
   const candidates = [join(docs, "details", `${slug}.html`)]
   if (slug.includes("/")) {

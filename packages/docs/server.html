@@ -858,13 +858,14 @@
               </li>
             </ul>
             <ui-accordion class="spell-code" styled open="0">
-              <ui-title>The root package.json's pageServer field · 10 lines</ui-title>
+              <ui-title>The root package.json's pageServer field · 11 lines</ui-title>
               <ui-content>
                 <pre><code class="language-json">{
   "pageServer": {
     "routes": [
       "goals/_tools/goalsRoutes.ts",
       "packages/docs/scripts/detailsRoutes.ts",
+      "packages/docs/scripts/showRoutes.ts",
       "packages/app/src/server/appRoutes.ts"
     ],
     "watch": ["packages/docs"]
@@ -892,6 +893,13 @@
                   target="src-packages-docs-details-html"
                   >Details Pages</a
                 >).
+              </li>
+              <li>
+                <a href="scripts/showRoutes.ts" target="src-packages-docs-scripts-showroutes-ts"
+                  ><code>packages/docs/scripts/showRoutes.ts</code></a
+                >
+                -- <code>/api/docs/show</code>: a link clicked in the Claude panel shows a page in VS Code's side bar,
+                or in Chrome (<code>yarn docs:link</code>).
               </li>
               <li>
                 ORDER matters: the app's <code>/api</code> router ends in a catch-all 404, so a module adding
