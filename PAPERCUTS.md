@@ -1225,6 +1225,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   ("too complex to verify that it stays inside the worktree"), and Edit refused the main checkout's git-ignored
   `workspaces/ongoing/<name>.code-workspace`. · One plain command per Bash call;  for a multi-line edit, a node
   script in the scratchpad.  Files outside the worktree:  ask Owen to edit them. · claude-code
+- 2026-10-03 · `git merge --ff-only stay-put` on `main` refused:  "local changes ... would be overwritten" for all
+  13 `workspaces/<pkg>.code-workspace`, though `git status` was clean -- they're `skip-worktree`, and git won't
+  update a flagged file even when it's unchanged.  `git checkout -- <file>` alone doesn't help while flagged. ·
+  Back them up, `git update-index --no-skip-worktree` (paths from the REPO ROOT), `git checkout -- workspaces`,
+  merge, write the local edits back on top, `git update-index --skip-worktree` again. · claude-code
 
 ## vscode
 

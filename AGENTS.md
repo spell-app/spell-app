@@ -75,8 +75,13 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   only one.
   - A session that stays:  same tab, only its folder changes;  its changes show in Source Control, since every
     package window has `git.detectWorktrees` on (each worktree its own repo there).
-  - NEVER add a worktree's folders to a package window (`window.mjs add`):  VS Code writes them into the
-    COMMITTED `workspaces/<pkg>.code-workspace`, which leaves uncommitted changes on `main`.
+  - NEVER add a worktree's folders to a package window (`window.mjs add`):  VS Code writes them into
+    `workspaces/<pkg>.code-workspace`, and they stay there after the worktree is gone (three did, by 2026-10-03).
+    Nobody sees them:  those files are `skip-worktree` in the main checkout, so Owen's theme changes never show
+    as changes either.
+  - A branch that changes those files merges onto `main` only once the flag is off:  back up the local files,
+    `git update-index --no-skip-worktree`, `git checkout --` them, merge, write the local edits back on top, set the
+    flag again (`PAPERCUTS.md`, "claude-code").
 - A new window:  open it at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
   `... close <name>` on leaving.  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
   moves to that window, in an editor tab (never the sidebar), `continue` typed into it, and its old tab closes

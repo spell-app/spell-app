@@ -10,8 +10,8 @@
  * - The root folder hides `packages/` and `.claude/worktrees/`:  the package folder is the window's focus.
  * - A saved workspace can gain and lose folders (a worktree, while a session works in it) without restarting
  *   extensions;  a one-folder window can't, and its Claude panel restarts.
- *   - NEVER add one any more:  VS Code writes the folder into the COMMITTED window file, so `main` has changes
- *     nobody made on purpose, and `/isolate done` won't merge onto it.
+ *   - NEVER add one any more:  VS Code writes the folder into the window file, where it outlives the worktree,
+ *     unseen:  the files are `skip-worktree` in the main checkout (so Owen's theme changes never show either)
  * - `git.detectWorktrees` on:  Source Control lists every worktree as its own repo, changes and diffs included,
  *   so a session that STAYS in its window when it isolates (below) is still reviewable there.
  *   - every package window lists every worktree;  takes a window reload
