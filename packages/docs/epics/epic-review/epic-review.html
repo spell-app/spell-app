@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Epic Review</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p6">next: P6 · Dry Run</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · Doc Review</ui-label></span
             >
           </header></ui-sticky
         >
@@ -80,7 +80,7 @@
             </p>
             <p>Update plan doc with decisions.</p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 10h-13h 30m in all, 2h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 10h-13h 30m in all, 1h left</p>
           <ui-section id="o1" header="1.1 The Flow" sticky collapsible dividing>
             <p>
               As decided in <a href="#d1">D1</a>-<a href="#d5">D5</a>. <a href="#p1">P1</a> mocks it on canned data
@@ -180,7 +180,7 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -255,7 +255,16 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
             >
           </ui-section>
 
-          <ui-section id="p4" data-phase="4" data-status="done" header="P4 · Real Review" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p4"
+            data-phase="4"
+            data-status="done"
+            header="P4 · Real Review"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -297,8 +306,8 @@ Which?  ids ("I7, I8") · go (all shown) · all · open · reviewed · queued ·
               ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Dry Run" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Dry Run" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Real review on a copy of unified-server's doc (epics/review-fixture/, deleted after),
@@ -845,6 +854,37 @@ back      to Start</code></pre>
                   ><p>There's no section list any more: the picker page replaced it (D15).</p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d22" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d22">D22</a>
+                  <span class="plan-title"
+                    >Item picker page: titled 'Choose &lt;section&gt; to review', no site header, each item's whole text
+                    with its state a badge top right, Select all / none, Open | All</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, in the dry run: the one-line summaries were too dense, and 'More on T3' only repeated them.
+                    Now the item's details as the plan doc has them (links rewritten to work from the page), long ones
+                    clamped at 150px with Show more / Show less; Open (default) hides reviewed items.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d23" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d23">D23</a>
+                  <span class="plan-title"
+                    >Every details page: Send pinned to the window's bottom; long option text clamped with Show more; a
+                    fold only when it holds more, titled for what it holds</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Changes to the details skill's page runtime (_assets/details.js, details.css) and spec
+                    (scripts/details.js): bare, selectAll, filter, body, badge, done, detailsTitle.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -937,6 +977,22 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title"
+                    >The dry run didn't exercise recording answers, Defer, the to-do list's Start work, or Show
+                    more</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen exited after the first explanation and finished. Recording (review / decide / queue / defer) is
+                    covered by plan-doc's unit tests; Start work and Show more are covered only by reading the skill and
+                    the page code. First real reviews will show the rest.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -964,6 +1020,21 @@ back      to Start</code></pre>
                   ><p>
                     src/liveClient.ts:167 and :170, no-meaningless-void-operator. From main (Spell Docs panel buttons
                     commit), not this branch; left for that work's owner.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title"
+                    >plan-doc items --spec crashed: a const used by the picker was declared below main()'s call</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Found in the dry run. The CLI runs main() at module load, before any later const exists (temporal
+                    dead zone); the unit test imports the whole module first, so it passed. Fixed: the const moved up;
+                    then dropped when the picker stopped trimming text.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1045,7 +1116,7 @@ back      to Start</code></pre>
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="v5" data-status="open"
+            ><ui-item id="v5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#v5">V5</a>
@@ -1054,6 +1125,21 @@ back      to Start</code></pre>
                   ><p>
                     In the dry run (P6): the picker opens in the side bar with the not-reviewed items ticked; Send
                     without changing anything, and the review goes through exactly those.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v6">V6</a>
+                  <span class="plan-title"
+                    >First real /epic review after merge: record an answer, defer one, queue one</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    After this merges, on any epic: answer one item (it's marked reviewed, the outcome in the log),
+                    defer one (grey pause on the next picker), put one on the to-do list (next review offers 'Start
+                    work').
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1379,6 +1465,74 @@ back      to Start</code></pre>
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T00:00-04:00">2026-10-04 00:00</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T00:06-04:00">2026-10-04 00:06</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T00:52-04:00">2026-10-04 00:52</time></ui-date> P6 feedback:
+                  picker page reworked (whole text, badges, Open | All, select all/none, no site header); Send pinned on
+                  every details page</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:24-04:00">2026-10-04 01:24</time></ui-date> P6 feedback: one
+                  Select all/none toggle; 'Review:' dropped from titles; (?) Provide more details per card; smaller
+                  question header; Send bar = notes + round blue button, no title</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:34-04:00">2026-10-04 01:34</time></ui-date> P6 feedback:
+                  two-column cards (tick box, (?), state icon | title, text); footer twice as tall; header 'Todos
+                  (17/21)'</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T01:58-04:00">2026-10-04 01:58</time></ui-date> P6 feedback: Send
+                  bar just wraps the notes box and ends the page; 'Asked' date moved up under 'Asked by', footer
+                  gone</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:06-04:00">2026-10-04 02:06</time></ui-date> V5 closed: Item
+                  picker page: ticked boxes send</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:06-04:00">2026-10-04 02:06</time></ui-date> I3 closed:
+                  plan-doc items --spec crashed: a const used by the picker was declared below main()'s call</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:06-04:00">2026-10-04 02:06</time></ui-date> P6 dry run: start,
+                  work-waiting modal, section modal, picker page (reworked over 6 rounds of feedback), Send through
+                  main's page server, more-details, explanation page, Exit, Finish</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:06-04:00">2026-10-04 02:06</time></ui-date> P6
                   done</ui-summary
                 ></ui-content
               ></ui-event

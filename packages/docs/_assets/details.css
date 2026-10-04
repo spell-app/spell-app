@@ -3,23 +3,95 @@
  * section `details.js` builds.  Colors only from the doc / UI tokens, so dark mode keeps working.
  */
 
-/* one card per option, stacked, full width */
+/* one card per option, stacked, full width;  even padding, no trailing gap */
 .spell-option-card {
   display: block;
   margin: 0.75em 0;
+  --ui-segment-padding: 0.9em 1em;
+}
+.spell-option-card[hidden] {
+  display: none;
 }
 
-/* the control (letter · title) and the Recommended label on one line, wrapping on a narrow side bar */
-.spell-option-head {
+/*
+ * Two columns:  left, the tick box, "more details" (?) and the state icon, stacked;  right, the title on its own
+ * line, then the text.  So a long title wraps under itself, never under the box.
+ */
+.spell-option-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 0.75em;
+}
+.spell-option-side {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
   gap: 0.5em;
+  padding-top: 0.1em;
+}
+.spell-option-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25em 0.5em;
+}
+.spell-option-name {
+  font-weight: 600;
+  cursor: pointer;
+}
+.spell-option-name > b {
+  font-family: var(--spell-mono);
+  font-size: 0.9em;
 }
 
-/* the summary sits under the control's label, not under its box */
+/* "Provide more details":  just the (?), no border;  grey, blue while on */
+.spell-more-details {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--spell-muted);
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+.spell-more-details:hover,
+.spell-more-details[active] {
+  color: var(--spell-accent);
+}
+.spell-more-details:disabled {
+  cursor: default;
+}
+
 .spell-option-summary {
-  margin: 0.4em 0 0 1.85em;
+  margin: 0.4em 0 0;
+}
+
+/* long text:  the first 150px (`CLAMP` in `details.js`), faded out, until "Show more" */
+.spell-option-summary.spell-clamped {
+  max-height: 150px;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, black 70%, transparent);
+}
+.spell-show-more {
+  margin: 0.4em 0 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--spell-accent);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.spell-show-more:hover {
+  text-decoration: underline;
+}
+
+/* a question's tools in its title:  Select all / none, Open | All */
+.spell-question-tools {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  align-items: center;
 }
 
 .spell-option-summary > :first-child {
@@ -32,7 +104,7 @@
 
 .spell-option-more {
   display: block;
-  margin: 0.6em 0 0 1.85em;
+  margin: 0.6em 0 0;
 }
 
 .spell-option-more::part(accordion) {
@@ -40,7 +112,7 @@
 }
 
 /* the chosen card stands out */
-.spell-option-card:has(> .spell-option-head > [selected]) {
+.spell-option-card:has(.spell-option-side > [selected]) {
   border-color: var(--spell-accent);
   box-shadow: 0 0 0 1px var(--spell-accent);
 }
@@ -55,9 +127,43 @@
   margin-bottom: 0.75em;
 }
 
+/* the notes, then the round Send button to their right */
 .spell-send-row {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+.spell-send-row > .spell-notes {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+/*
+ * The Send bar stays in view:  pinned to the window's bottom while the questions scroll above it, no title.  A
+ * little wider than the column (negative margins, padding back), so the cards scrolling under it don't show at its
+ * edges.
+ */
+#send.spell-send-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 1em -16px 0;
+  padding: 6px 16px;
+  border-top: 1px solid var(--spell-border, rgb(0 0 0 / 0.12));
+  background: var(--spell-bg);
+  box-shadow: 0 -8px 16px -10px rgb(0 0 0 / 0.3);
+}
+#send.spell-send-bar > ui-message {
+  margin: 8px 0 0;
+}
+/* the Send bar is the page's bottom:  no room left under it (the doc column's own bottom padding goes) */
+.spell-doc-main:has(> #send.spell-send-bar) {
+  padding-bottom: 0;
+}
+
+/* a question's title a size down:  the cards are what matter */
+ui-section.spell-question::part(heading) {
+  font-size: 1.1rem;
 }
 
 .spell-sent-summary ul {
@@ -65,6 +171,6 @@
 }
 
 /* answered:  the cards not picked fade back */
-.spell-details-answered .spell-option-card:not(:has(> .spell-option-head > [selected])) {
+.spell-details-answered .spell-option-card:not(:has(.spell-option-side > [selected])) {
   opacity: 0.55;
 }

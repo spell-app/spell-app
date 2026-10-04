@@ -96,7 +96,7 @@ const USAGE = `usage:  yarn details new <slug> [--title "..."] [--epic <name>] [
 /**
  * Write a new details page `slug` under `docs` from the template;  its absolute path.
  * - `--epic <name>`:  in that epic's `details/` (the epic must exist);  else the scratch `details/`
- * - sets `<title>`, the h1, the breadcrumb, the description and the footer's date;  refuses to overwrite
+ * - sets `<title>`, the h1, the breadcrumb, the description and the "Asked" date;  refuses to overwrite
  */
 export function createPage(docs, slug, { title, epic, description, spec } = {}) {
   title ??= spec?.title ?? "Details"
@@ -112,8 +112,9 @@ export function createPage(docs, slug, { title, epic, description, spec } = {}) 
   const crumb = document.querySelector("ui-breadcrumb-section[active]")
   if (crumb) crumb.textContent = title
   document.querySelector('meta[name="description"]').setAttribute("content", description ?? `Details:  ${title}`)
-  const footer = document.querySelector("footer .meta")
-  if (footer) footer.textContent = `Asked ${today()}.`
+  // the date up top, under "Asked by":  the Send bar is the page's bottom, so no footer
+  const asked = document.querySelector("[data-details-asked]")
+  if (asked) asked.textContent = `Asked:  ${today()}`
   if (spec) fillFromSpec(document, spec)
   mkdirSync(folder, { recursive: true })
   writeFileSync(file, serialize(document))
@@ -126,6 +127,8 @@ export function createPage(docs, slug, { title, epic, description, spec } = {}) 
  * - text fields are HTML (Claude writes them);  titles and letters go in attributes, escaped
  */
 function fillFromSpec(document, spec) {
+  // a page that's only a form (`/epic review`'s item picker):  no site header
+  if (spec.bare) document.querySelector("spell-site-header")?.remove()
   const lede = document.querySelector("p.lede")
   if (lede && spec.lede) lede.innerHTML = spec.lede
   const asked = document.querySelector('ui-item[icon="comments"]')
@@ -154,13 +157,26 @@ function questionHtml(question, i) {
   const id = question.id ?? `q${i + 1}`
   const options = (question.options ?? []).map((option, j) => {
     const letter = option.letter ?? String.fromCharCode(65 + j)
-    const more = option.details ? `<div class="spell-option-details">${option.details}</div>` : ""
-    const flag = `${option.recommended ? " data-recommended" : ""}${option.checked ? " data-checked" : ""}`
-    return `<div class="spell-option" data-option="${attr(letter)}" data-title="${attr(option.title ?? letter)}"${flag}><p>${option.summary ?? ""}</p>${more}</div>`
+    const fold = option.detailsTitle ? ` data-title="${attr(option.detailsTitle)}"` : ""
+    const more = option.details ? `<div class="spell-option-details"${fold}>${option.details}</div>` : ""
+    const flags = [
+      option.recommended && " data-recommended",
+      option.checked && " data-checked",
+      option.done && " data-done",
+      option.badge && ` data-badge="${attr(option.badge)}"`,
+      option.badgeColor && ` data-badge-color="${attr(option.badgeColor)}"`,
+      option.state && ` data-state-icon="${attr(option.state.icon)}"`,
+      option.state?.color && ` data-state-color="${attr(option.state.color)}"`,
+      option.state?.label && ` data-state-label="${attr(option.state.label)}"`
+    ]
+    const summary = option.summary ? `<p>${option.summary}</p>` : ""
+    return `<div class="spell-option" data-option="${attr(letter)}" data-title="${attr(option.title ?? letter)}"${flags.filter(Boolean).join("")}>${summary}${option.body ?? ""}${more}</div>`
   })
   const multiple = question.multiple ? " data-multiple" : ""
+  const tools = `${question.selectAll ? " data-select-all" : ""}${question.filter ? " data-filter" : ""}${question.moreDetails ? " data-more" : ""}`
   const header = attr(question.title ?? `Q${i + 1}`)
-  return `<ui-section id="${attr(id)}" class="spell-question" header="${header}" sticky collapsible dividing${multiple}><ui-icon slot="icon" name="circle question"></ui-icon><p>${question.text ?? ""}</p>${options.join("")}</ui-section>`
+  const text = question.text ? `<p>${question.text}</p>` : ""
+  return `<ui-section id="${attr(id)}" class="spell-question" header="${header}" sticky collapsible dividing${multiple}${tools}><ui-icon slot="icon" name="circle question"></ui-icon>${text}${options.join("")}</ui-section>`
 }
 
 /** `path` as given:  absolute, else from `packages/docs` or the repo root (`yarn workspace` hides where yarn ran). */
@@ -180,8 +196,18 @@ function attr(text) {
  * - `title`, `lede`, `askedBy` (`session <code>x</code>, while ...`);  HTML allowed except in `title`
  * - `where`:  `{ epic, justNow, decides }`, the "Where we are" box (`.claude/skills/details/SKILL.md`, "Writing for Owen")
  * - `context`:  HTML for "1. Context" (the picture);  none:  the section goes
- * - `questions[]`:  `{ id?, title, text, multiple?, options[] }`;  an option:  `{ letter?, title, summary,
- *   details?, recommended?, checked? }` (letters default to A, B ...;  `checked`:  ticked to start with)
+ * - `bare`:  no site header (a page that's only a form)
+ * - `questions[]`:  `{ id?, title, text?, multiple?, selectAll?, filter?, options[] }`
+ *   - `selectAll`:  "Select all" / "Select none" in its title (with `multiple`)
+ *   - `filter`:  "Open | All" in its title;  Open (the default) hides options marked `done`
+ *   - `moreDetails`:  a (?) "Provide more details" on each option;  the ones pressed come back as `<id>-more`
+ * - an option:  `{ letter?, title, summary?, body?, details?, detailsTitle?, recommended?, checked?, done?, badge?,
+ *   badgeColor? }`
+ *   - letters default to A, B ...
+ *   - `summary`:  one line;  `body`:  block HTML after it (the whole text:  long ones clamp to 150px, "Show more")
+ *   - `details`:  folded, under `detailsTitle` (default "Details");  only when there IS more than the body
+ *   - `checked`:  ticked to start with;  `done`:  hidden under "Open";  `badge` / `badgeColor`:  a label beside the
+ *     title;  `state`:  `{ icon, color, label }`, an icon under the tick box (in `ICONS`), `label` on hover
  * - plain JS:  no type, this comment is the spec
  */
 
@@ -293,6 +319,11 @@ export function formatAnswer(page, answer) {
     })
     if (got.other) picked.push(`Other:  ${got.other}`)
     lines.push(`  ${question.getAttribute("header") ?? question.id}:  ${picked.join(";  ") || "(no answer)"}`)
+  }
+  // "Provide more details" (`moreDetails`):  `<question id>-more`, the options' letters
+  for (const question of document.querySelectorAll(".spell-question[data-more]")) {
+    const more = answer.answers?.[`${question.id}-more`]?.picked ?? []
+    if (more.length) lines.push(`  More details wanted on:  ${more.join(", ")}`)
   }
   if (answer.notes) lines.push(`  Notes:  ${answer.notes}`)
   return lines.join("\n")

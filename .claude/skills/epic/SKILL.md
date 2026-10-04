@@ -288,12 +288,14 @@ Owen picks the items on a details page, a checkbox per open item, the not-review
 1. The spec, then the page (scratch:  it's thrown away once answered):
    ```
    yarn plan-doc items <name> --section issues --spec <scratchpad>/pick-<name>-issues.json
-   yarn details new review-<name>-issues --title "<Epic title> · issues to review" --from <that file>
+   yarn details new review-<name>-issues --title "Choose issues to review" --from <that file>
    ```
 2. `yarn details show review-<name>-issues --wait`, Bash `run_in_background: true`, then END THE TURN with one line
    and the page's links (`yarn docs:link <page> --show`):  "Pick the issues in the side bar:  <link>".
 3. The waiter's output is the answer:  `Which issues?:  I7 · ...;  I8 · ...`, maybe `Other:  ...` and `Notes:  ...`.
    - the ids, in page order:  go through them (7.4)
+   - `More details wanted on:  T4, T9` (the card's (?) button):  for those, skip the short version, start with the
+     full explanation (7.4 step 3's "Explain further"), then the second modal
    - none ticked:  back to the Start modal
    - Other / Notes:  do what they say first (an item to add, an order to follow)
    - Owen answers in chat instead:  stop the waiter (`TaskStop`), use his answer

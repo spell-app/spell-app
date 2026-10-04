@@ -655,26 +655,36 @@ describe("PlanDoc review", () => {
     expect(items.map((item) => item.recommendation)).toEqual(["A. Mark + links", "Skip short sections", null, null])
   })
 
-  it("picker spec:  a checkbox per open item, labelled by id, the not-reviewed ones ticked", () => {
+  it("picker spec:  a checkbox per open item, labelled by id, its whole text, its state a badge", () => {
     const plan = freshPlan()
-    for (const title of ["one", "two", "three", "struck"]) plan.addItem("issue", title, { details: "<p>why</p>" })
+    const details =
+      '<p>why:  see <a href="#c1">C1</a> and <a href="../../scripts/x.js">x.js</a></p><ul><li>more</li></ul>'
+    for (const title of ["one", "two", "three", "struck"]) plan.addItem("issue", title, { details })
     plan.review("i2")
     plan.defer("i3")
     plan.setItem("i4", "done")
     const section = plan.reviewSections({ filter: "open" }).find((s) => s.kind === "issue")
-    const spec = pickerSpec(plan, "/x/epics/demo/demo.html", section, plan.reviewStatus())
+    const spec = pickerSpec(plan, "/r/docs/epics/demo/demo.html", section, plan.reviewStatus(), "/r/docs/details")
     const [question] = spec.questions
-    expect(question.multiple).toBe(true)
-    expect(question.options.map((option) => [option.letter, option.checked])).toEqual([
-      ["I1", true],
-      ["I2", false],
-      ["I3", true]
+    expect([spec.bare, question.multiple, question.selectAll, question.filter, question.moreDetails]).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true
     ])
-    expect(question.options[2].summary).toBe("Deferred on 2026-10-01.  why")
-    // short details show whole in the summary:  no "More on I1" fold
+    expect(question.options.map((o) => [o.letter, o.checked, o.done, o.state.icon, o.state.label])).toEqual([
+      ["I1", true, false, "circle outline", "Not reviewed yet"],
+      ["I2", false, true, "circle check", "Reviewed 2026-10-01"],
+      ["I3", true, false, "circle pause", "Deferred 2026-10-01"]
+    ])
+    // the whole text, its links made to work from the page's folder;  no fold
+    expect(question.options[0].body).toBe(
+      '<p>why:  see <a href="../epics/demo/demo.html#c1">C1</a> and <a href="../scripts/x.js">x.js</a></p><ul><li>more</li></ul>'
+    )
     expect(question.options[0].details).toBeUndefined()
+    expect(question.title).toBe("Issues (2/4)")
     expect(spec.askedBy).toBe("<code>/epic review demo</code>")
-    expect(spec.where.justNow).toContain("2 of 4 not reviewed")
   })
 
   it("status:  last review date and count, deferred, the to-do list", () => {

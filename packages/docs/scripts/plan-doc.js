@@ -664,6 +664,8 @@ ${list}`
       queued: item.getAttribute("data-queued"),
       work: item.getAttribute("data-work"),
       details: details ? details.textContent.replace(/\s+/g, " ").trim() : "",
+      // the details as written, for a page that shows them whole (`pickerSpec()`)
+      detailsHtml: details ? details.innerHTML.trim() : "",
       recommendation: recommendation(details)
     }
   }
@@ -1816,7 +1818,7 @@ function printItems(plan, file, { section, filter = "unreviewed", json, spec }) 
   if (json) return console.log(JSON.stringify({ file, status, sections }, null, 2))
   const lines = [
     status.last
-      ? `last reviewed ${status.last}:  ${status.reviewedThen} items;  ${status.deferred} deferred`
+      ? `last reviewed ${status.last}:  ${status.reviewedThen} item${status.reviewedThen === 1 ? "" : "s"};  ${status.deferred} deferred`
       : "never reviewed"
   ]
   if (status.queued.length) {
@@ -1855,59 +1857,79 @@ function printSummaries(files) {
  * `DetailsSpec`, for `yarn details new --from`):  one checkbox per open item of `section` (`reviewSections()`'s,
  * filter `open`), the not-reviewed ones ticked.
  * - each option's letter is the item's id (`I4`), so the answer names the ids
- * - written for Owen coming cold ("Writing for Owen" in the details skill):  where reviews stand, what each item is
+ * - written for Owen coming cold ("Writing for Owen" in the details skill):  where reviews stand, and each item's
+ *   WHOLE text, as the plan doc has it (the page clamps long ones, "Show more"), its state a badge
+ * - the page:  no site header (`bare`), "Select all / none", "Open | All" (Open:  only the not-reviewed)
+ * - `pageDir`:  where the page will live (the scratch `details/`), so the item's links still work from there
  */
-export function pickerSpec(plan, file, section, status) {
+export function pickerSpec(plan, file, section, status, pageDir = join(DOCS, "details")) {
   const name = basename(file, ".html")
   const title = plan.document.querySelector("h1")?.textContent.trim() ?? name
   const label = section.label.toLowerCase()
-  const notReviewed = section.items.filter((item) => item.state === "outstanding" || item.state === "deferred")
   const last = status.last
     ? `You last reviewed this epic on ${status.last}${status.queued.length ? `;  ${status.queued.length} decided to do, not done yet` : ""}.`
     : "This epic hasn't been reviewed before."
   return {
-    lede: `Pick the ${label} to go through.  Each comes up in chat, one at a time.`,
+    bare: true,
+    lede: `Tick the ${label} to go through.  Each comes up in chat, one at a time, and what you decide goes into the plan doc.`,
     askedBy: `<code>/epic review ${name}</code>`,
     where: {
       epic: `${text(title)} (<code>${name}</code>)`,
-      justNow: `${last}  ${section.label}:  ${section.notReviewed} of ${section.total} not reviewed yet (ticked).`,
-      decides: `Which ${label} to go through now.  Unticked ones stay as they are.`
+      justNow: `${last}  ${section.label}:  ${section.notReviewed} of ${section.total} not reviewed yet;  those are ticked.`,
+      decides: `Which ${label} to go through now.  Unticked ones stay as they are, for another review.`
     },
     questions: [
       {
         id: "items",
-        title: `Which ${label}?`,
-        text: notReviewed.length
-          ? `The ticked ones haven't been reviewed.  Untick any to skip;  tick a reviewed one to go through it again.`
-          : `All of them have been reviewed;  tick any to go through again.`,
+        title: `${section.label} (${section.notReviewed}/${section.total})`,
         multiple: true,
+        selectAll: true,
+        filter: true,
+        moreDetails: true,
         options: section.items.map((item) => ({
           letter: item.id,
-          title: item.title,
-          summary: pickerSummary(item),
-          // the summary already shows a short one whole
-          details: item.details.length > PICKER_SUMMARY ? `<p>${text(item.details)}</p>` : undefined,
-          checked: item.state === "outstanding" || item.state === "deferred"
+          // "Review:  ..." is how some docs file their review notes;  on a review page it says nothing
+          title: item.title.replace(/^review:\s*/i, ""),
+          body: rehome(item.detailsHtml, file, pageDir) || "<p><i>No details in the plan doc.</i></p>",
+          state: pickerState(item),
+          checked: item.state === "outstanding" || item.state === "deferred",
+          done: item.state === "reviewed" || item.state === "queued"
         }))
       }
     ]
   }
 }
 
-/** One picker option's line:  its review state in words, and the start of its details. */
-function pickerSummary(item) {
-  const state = {
-    outstanding: "Not reviewed yet.",
-    deferred: `Deferred on ${item.deferred}.`,
-    reviewed: item.reviewed ? `Reviewed ${item.reviewed}.` : "Settled (closed, decided, or a decision links it).",
-    queued: `Reviewed ${item.reviewed};  to do:  ${item.work}.`
-  }[item.state]
-  const start = item.details.length > PICKER_SUMMARY ? `${item.details.slice(0, PICKER_SUMMARY)}…` : item.details
-  return text(start ? `${state}  ${start}` : state)
+/**
+ * A picker option's review state, as the icon under its tick box:  `{ icon, color, label }` (`label` on hover).
+ * - not reviewed:  an orange empty circle;  deferred:  a grey pause;  reviewed:  a green check;  to do:  a blue list
+ * - every icon in `bundle-spell-ui.js` `ICONS`
+ */
+function pickerState(item) {
+  if (item.state === "deferred") return { icon: "circle pause", color: "grey", label: `Deferred ${item.deferred}` }
+  if (item.state === "queued") return { icon: "list check", color: "blue", label: `To do:  ${item.work}` }
+  if (item.state === "reviewed") {
+    const label = item.reviewed ? `Reviewed ${item.reviewed}` : "Settled:  closed, decided, or a decision links it"
+    return { icon: "circle check", color: "green", label }
+  }
+  return { icon: "circle outline", color: "orange", label: "Not reviewed yet" }
 }
 
-/** How much of an item's details a picker option's line shows;  longer ones fold the rest in "More on I4". */
-const PICKER_SUMMARY = 140
+/**
+ * `html` from the plan doc at `file`, its links made to work from `pageDir` instead:
+ * - `#c3` -> the plan doc's `#c3`
+ * - a relative `href` / `src` -> the same file, relative to `pageDir`
+ * - absolute ones (`https:`, `/x`) as they are
+ */
+function rehome(html, file, pageDir) {
+  const docDir = dirname(file)
+  return html.replace(/\b(href|src)="([^"]*)"/g, (whole, name, value) => {
+    if (/^([a-z][a-z0-9+.-]*:|\/)/i.test(value)) return whole
+    const [path, hash = ""] = value.split("#")
+    const target = path ? resolve(docDir, path) : file
+    return `${name}="${relative(pageDir, target)}${hash ? `#${hash}` : ""}"`
+  })
+}
 
 /** `check`:  structural problems, then the browser check;  exits 1 on any. */
 function check(file, { noBrowser }) {
