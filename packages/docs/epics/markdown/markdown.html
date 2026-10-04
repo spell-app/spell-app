@@ -1846,6 +1846,93 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="q11" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q11">Q11</a>
+                  <span class="plan-title"
+                    >T8: how to cut the AST and scope classes out of spell's markdown bundle?</span
+                  >
+                  <a class="plan-answer" href="#d32">→ D32</a></ui-title
+                ><ui-content
+                  ><p>
+                    After <a href="#d31">D31</a> the bundle is 59.4 kB gz. About 45 kB of it (raw, ~12 kB gz) is the
+                    parser's AST classes (<code>ast/AST.ts</code> 31 kB, <code>renderAST</code>,
+                    <code>stringifyAST</code>) and its scope classes (<code>TypeScope</code>, <code>RootScope</code>,
+                    which bring <code>pluralize</code> and lodash's case helpers). Markdown never builds an AST or a
+                    scope, but esbuild can't drop them: the generic parser refers to them in 27 files
+                    (<code>Rule.getAST()</code>, <code>Match.AST</code>), all through the one <code>P</code> namespace,
+                    and a namespace keeps every export it holds.
+                  </p>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>Move AST + scope into spell</th>
+                        <th>Stub them in the bundle</th>
+                        <th>Stop at 59 kB</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>What</td>
+                        <td>
+                          The parser stops shipping spell's AST and scopes; spell owns them (as <code>SP.AST…</code> or
+                          an opt-in <code>$/parser/ast</code>, like rulex)
+                        </td>
+                        <td>
+                          <code>gen-markdown.ts</code> swaps those files for empty stand-ins; the node-vs-browser spec
+                          check proves nothing calls them
+                        </td>
+                        <td>Nothing</td>
+                      </tr>
+                      <tr>
+                        <td>Saves</td>
+                        <td>~12 kB gz</td>
+                        <td>~12 kB gz</td>
+                        <td>0</td>
+                      </tr>
+                      <tr>
+                        <td>Cost</td>
+                        <td>4-8 h; ~60 files across parser, spell, lsp, app</td>
+                        <td>~1 h; one script</td>
+                        <td>0</td>
+                      </tr>
+                      <tr>
+                        <td>Risk</td>
+                        <td>A big refactor on a branch 61 commits behind <code>main</code></td>
+                        <td>
+                          A later parser change that calls an AST method on markdown's path breaks only the bundle; the
+                          spec check catches it when the bundle is regenerated
+                        </td>
+                        <td>None; the preview stays at 59 kB, loaded only when editing</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p><b>Net effect</b></p>
+                  <ul>
+                    <li>
+                      Recommended: stub in the bundle now; the move into spell is the right shape for the parser, but
+                      belongs in its own epic.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d32" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d32">D32</a>
+                  <span class="plan-title"
+                    >Stop at 59 kB: the editable preview loads the bundle only when someone edits. Moving AST + scope
+                    into spell stays a possible epic of its own. (<a href="#q11">Q11</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q11">Q11</a>: T8: how to cut the AST and scope classes out of spell's markdown
+                    bundle?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2403,10 +2490,11 @@
               <span class="plan-title"
                 >Merge markdown into main (/isolate done or /epic finish): bedtime never merges</span
               > </ui-item
-            ><ui-item id="t8" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="t8" data-status="open"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t8">T8</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >Slim spell's bundle further: util's barrel and the parser's AST</span
                   ></ui-title
@@ -3299,6 +3387,35 @@
                   ><ui-date><time datetime="2026-10-04T19:43-04:00">2026-10-04 19:43</time></ui-date> I6 reviewed: Done
                   at bundle time: D30 (sanitized opt-in, marked 26.2 -&gt; 14.2 kB gz) and D31 (spell's bundle 88.3
                   -&gt; 59.4 kB gz). The rest needs source changes: T8.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:47-04:00">2026-10-04 19:47</time></ui-date> Q11 answered: D32
+                  Stop at 59 kB: the editable preview loads the bundle only when someone edits. Moving AST + scope into
+                  spell stays a possible epic of its own.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:47-04:00">2026-10-04 19:47</time></ui-date> T8 closed: Slim
+                  spell's bundle further: util's barrel and the parser's AST</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:47-04:00">2026-10-04 19:47</time></ui-date> T8 reviewed: Owen:
+                  stop at 59 kB (Q11).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:48-04:00">2026-10-04 19:48</time></ui-date> T8 reopened: Slim
+                  spell's bundle further: util's barrel and the parser's AST</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
