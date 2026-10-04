@@ -58,7 +58,10 @@ describe("PlanDoc layout", () => {
     }
     expect(plan.document.querySelector("#overview > ui-section#o1").getAttribute("header")).toBe("1.1 Structure")
     expect(plan.document.querySelector("section, h2, h3")).toBeNull()
-    expect(plan.document.querySelector("ui-sticky.spell-h1 > header.spell-page-head > h1")).not.toBeNull()
+    expect(plan.document.querySelector("ui-sticky.spell-h1 > header.spell-page-head > h1").textContent).toBe(
+      "Epic: {{title}}"
+    )
+    expect(plan.title).toBe("{{title}}")
     expect(plan.document.getElementById("plan")).toBeNull()
     expect(plan.check()).toEqual([])
   })
@@ -83,14 +86,44 @@ describe("PlanDoc phases", () => {
       '<ui-section id="p2" data-phase="2" data-status="todo" header="P2 · Runtime + Index" sticky collapsible dividing>'
     )
     const body = plan.document.querySelector('ui-section[data-phase="2"] > ui-list.plan-phase-body')
-    expect(Array.from(body.children, (item) => item.getAttribute("icon"))).toEqual([
-      "bullseye",
-      "folder",
-      "flask",
-      "clock"
-    ])
+    // the estimate is the title's badge, not a field
+    expect(Array.from(body.children, (item) => item.getAttribute("icon"))).toEqual(["bullseye", "folder", "flask"])
     expect(body.textContent).toContain("sidebar from headings")
     expect(plan.check()).toEqual([])
+  })
+
+  it("puts the estimate in the phase title's badge", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { estimate: "1-2h" })
+    expect(plan.document.getElementById("p1").getAttribute("badge")).toBe("1-2h")
+    expect(plan.phases[0].estimate).toBe("1-2h")
+    plan.setEstimate(1, "3h")
+    expect(plan.document.getElementById("p1").getAttribute("badge")).toBe("3h")
+    expect(plan.document.querySelector("p.plan-estimate").textContent).toContain("3h in all")
+  })
+
+  it("writes a done phase's Done field, after its Goal, replacing an earlier one", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { goal: "<ul><li>a goal</li></ul>" })
+    plan.setPhase(1, "done", { done: "<ul><li>built it</li></ul>" })
+    const fields = () =>
+      Array.from(plan.document.querySelectorAll("#p1 .plan-phase-body > ui-item"), (item) => item.getAttribute("icon"))
+    expect(fields()).toEqual(["bullseye", "circle check", "folder", "flask"])
+    plan.setDone(1, "<ul><li>built it again</li></ul>")
+    expect(fields()).toEqual(["bullseye", "circle check", "folder", "flask"])
+    expect(plan.document.querySelector('#p1 ui-item[icon="circle check"]').textContent).toContain("built it again")
+  })
+
+  it("migrate moves an old Estimate field into the badge", () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.document
+      .querySelector("#p1 .plan-phase-body")
+      .append(plan.fragment('<ui-item icon="clock"><b>Estimate:</b>  2h</ui-item>'))
+    plan.document.getElementById("p1").removeAttribute("badge")
+    expect(plan.estimatesToBadges()).toBe(1)
+    expect(plan.document.getElementById("p1").getAttribute("badge")).toBe("2h")
+    expect(plan.document.querySelector('#p1 ui-item[icon="clock"]')).toBe(null)
   })
 
   it("sets status on the section and its heading, and logs it", () => {
@@ -228,16 +261,15 @@ describe("PlanDoc estimates", () => {
     plan.addPhase("One")
     expect(total(plan)).toBeUndefined()
     plan.setEstimate(1, "2h")
-    expect(plan.document.querySelector("blockquote.plan-prompt").nextElementSibling.className).toBe("plan-estimate")
+    expect(plan.document.querySelector(".plan-prompt-panel").nextElementSibling.className).toBe("plan-estimate")
   })
 
-  it("adds the field to a phase made without one", () => {
+  it("estimates a phase made without one", () => {
     const plan = freshPlan()
     plan.addPhase("One")
-    plan.document.querySelector('#p1 ui-item[icon="clock"]').remove()
     expect(plan.phases[0].estimate).toBeUndefined()
     plan.setEstimate(1, "1h")
-    expect(plan.document.querySelector('#p1 ui-item[icon="clock"]').textContent).toBe("Estimate:  1h")
+    expect(plan.phases[0].estimate).toBe("1h")
     expect(() => plan.setEstimate(9, "1h")).toThrow(PlanDocError)
   })
 })
@@ -357,15 +389,32 @@ describe("PlanDoc prompt", () => {
     const plan = freshPlan()
     plan.setPrompt("Update the template\n- make <h1> sticky\n\nAlso & more")
     const quote = plan.document.querySelector("blockquote.plan-prompt")
-    expect(quote.parentElement.id).toBe("overview")
+    expect(quote.closest("ui-section").id).toBe("overview")
     expect(quote.innerHTML).toBe("<p>Update the template<br>- make &lt;h1&gt; sticky</p><p>Also &amp; more</p>")
     plan.setPrompt("")
-    expect(plan.document.querySelector("blockquote.plan-prompt")).toBeNull()
+    expect(plan.document.querySelector("blockquote.plan-prompt, .plan-prompt-panel")).toBeNull()
     plan.setPrompt("again")
-    expect(plan.document.querySelector(".plan-summary + blockquote.plan-prompt").textContent).toBe("again")
+    const panel = "ui-section#overview > .plan-summary + ui-accordion.plan-prompt-panel"
+    expect(plan.document.querySelector(`${panel} > ui-content > blockquote.plan-prompt`).textContent).toBe("again")
   })
 
-  it('copies it into the "Plan hung?" notice, exact, with a copy button;  the notice goes once a phase starts', () => {
+  it('folds it away in a "Kickoff prompt" aside, closed;  an old bare quote moves into one', () => {
+    const plan = freshPlan()
+    plan.setPrompt("make it so")
+    const panel = plan.document.querySelector("ui-accordion.plan-prompt-panel.spell-aside")
+    expect(panel.querySelector(":scope > ui-title").textContent).toBe("Kickoff prompt")
+    expect(panel.hasAttribute("open")).toBe(false)
+    // a doc from before 2026-10-04:  the quote bare under the summary
+    const quote = panel.querySelector("blockquote.plan-prompt")
+    panel.replaceWith(quote)
+    expect(plan.migrate()).toContain('kickoff prompt folded into a "Kickoff prompt" aside')
+    expect(plan.document.querySelector(".plan-summary + .plan-prompt-panel blockquote.plan-prompt").textContent).toBe(
+      "make it so"
+    )
+    expect(plan.document.querySelectorAll("blockquote.plan-prompt").length).toBe(1)
+  })
+
+  it('copies it into the "Plan hung?" notice, exact, with a copy button;  the notice goes with the first phase', () => {
     const plan = freshPlan()
     const copy = () => plan.document.querySelector("ui-message.plan-hung > ui-code.plan-hung-prompt[copy]")
     plan.setPrompt("make <h1> & co\n\nline 3 </script> x")
@@ -376,9 +425,6 @@ describe("PlanDoc prompt", () => {
     plan.setPrompt("again")
     expect(plan.document.querySelectorAll("ui-code.plan-hung-prompt").length).toBe(1)
     plan.addPhase("First")
-    plan.setPhase(1, "todo")
-    expect(plan.document.querySelector("ui-message.plan-hung")).not.toBeNull()
-    plan.setPhase(1, "active")
     expect(plan.document.querySelector("ui-message.plan-hung")).toBeNull()
     // and with it gone, a new prompt doesn't bring it back
     plan.setPrompt("later")
@@ -499,6 +545,26 @@ describe("PlanDoc migrate", () => {
     expect(order(converted)).toEqual(order(direct))
     expect(converted.document.querySelector("ui-section#overview > .plan-summary.lede")).not.toBeNull()
     expect(converted.check()).toEqual([])
+  })
+
+  it('titles the page "Epic: <title>", h1 and <title>;  readers drop the prefix', () => {
+    const plan = filledOldPlan()
+    plan.document.querySelector("h1").textContent = "Old Title"
+    plan.document.querySelector("title").textContent = "Old Title"
+    expect(plan.migrate()).toContain('page title "Epic: <title>"')
+    expect(plan.document.querySelector("h1").textContent).toBe("Epic: Old Title")
+    expect(plan.document.querySelector("title").textContent).toBe("Epic: Old Title")
+    expect(plan.title).toBe("Old Title")
+    expect(plan.summary().title).toBe("Old Title")
+  })
+
+  it("moves each section's intro into its data-tip:  the title's tooltip", () => {
+    const plan = filledOldPlan()
+    plan.migrate()
+    const judgements = plan.document.getElementById("judgements")
+    expect(judgements.getAttribute("data-tip")).toMatch(/^Choices made without you/)
+    expect(plan.document.querySelector("main > ui-section > p.meta")).toBe(null)
+    expect(freshPlan().document.querySelector("main > ui-section > p.meta")).toBe(null)
   })
 
   it("does nothing to a current doc", () => {

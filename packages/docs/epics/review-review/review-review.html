@@ -1,0 +1,2327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epic: Review Review</title>
+    <meta name="description" content="Plan doc:  Review Review." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="review-review">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Review Review</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Epic: Review Review</h1>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p3"
+                >next: P3 · Status And Commits</ui-label
+              ></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch"
+            >Plan doc for <code>/epic review-review</code>, branch <code>review-review</code></ui-item
+          >
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/review-review</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-04</time>, updated
+            <time id="plan-updated">2026-10-04</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            The plan doc becomes the place you review an epic: you mark items right on the page, and Claude picks up
+            your marks in one batch, or at once in the background. Along the way the doc gets easier to read cold:
+            fuller, bulleted descriptions, status colors, the commits behind each phase, and calmer page chrome.
+          </p>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled
+            ><ui-title>Kickoff prompt</ui-title
+            ><ui-content
+              ><blockquote class="plan-prompt">
+                <p>
+                  I want to re-think the entire epic/bedtime/review process, so it takes advantage of having the "epic
+                  review" skill. Goal: make more of the review process HTML driven, so it's less modal.
+                </p>
+                <p>
+                  The following is a sketch of what I want. While formulating the plan, think deeply about what I'm
+                  trying to accomplish and suggest better ways of doing this. I don't care about the order you tackle
+                  things in general, but I'd like to see the visual changes in the plan docs first before adding the
+                  "Item Actions" bit.
+                </p>
+                <p>
+                  First, a couple of random things to get out of the way<br />- Use the spell logo for the "spell docs"
+                  icon in the sidebar<br />- teach VSC extension about another mode for the sidebar -- "review mode" --
+                  this is a separate "tab" so I can switch betwen "Spell Docs" and "Review" at any tume. Use the
+                  circle-check-outline for the tab. If I say "the review sidebar" I mean this functionality.<br />-
+                  Rename the plan doc to e.g. `wwod.plan.html` Ressurect the actual plan docs from git for all epics in
+                  their last state (right before the conversion to a durable doc page). The durable doc page should have
+                  a link to the plan doc at the top.
+                </p>
+                <p>
+                  In general: <br />- the description you give for each phase, question etc is too dense and terse; I
+                  can't parse it quickly. Make these descriptions more verbose, using bullets rather than lists in text.
+                  Provide examples, especially for tricky questions/issues/etc. Goal is enough information that I can
+                  pick that one phase/question/issue up cold later.
+                </p>
+                <p>
+                  In plan docs:<br />- Make the page title: `Epic: &lt;name&gt;`<br />- In section/subsection/etc
+                  headers, put the open/close thing all the way to the right rather than on the left, so the icons stand
+                  out more.<br />- The segments that show options are ugly and don't lay out correctly, see first
+                  attached image.<br />- The left sidebar is really really ugly. Re-do with brand styling, with accent
+                  color semantics. Make narrow state narrower, hover should expand it horizontally in this sate. The
+                  hamburger shouldn't be in a circle. The badges are off screen in a narrow window. In a really narrow
+                  window, contract the entire sidebar to just the hamburger. <br />- Every time you referesh the doc it
+                  flashes and sometimes rescrolls in vscode. Stop the flash somehow.<br />- As we scroll down in the
+                  doc, update the URL with the section header so reloading goes back to the same spot<br />- In the page
+                  header, add a `round grey send icon` (the "send to claude icon") which sends deferred instructions for
+                  you to chunk on as a group (see Item Review Steps below).
+                </p>
+                <p>
+                  For the Phases section of the plan doc:<br />- I don't really care about "files" or "verify" steps.
+                  Hide them by default. Add bare Folder + Flask icons to the section header -- when clicked they show
+                  that section and are colored.<br />- Change the time estimate into the section header to as a badge to
+                  the left of the progress badge, e.g. `1-2h`<br />- Change the "done" section to be a high-level
+                  bulleted list rather than a dense paragraph. Prioritize items that I am likely to ask about based on
+                  your experience with me over the past few days.<br />- Add a "commits" sub-section with the git
+                  commit(s) that landed that feature/phase/whatever. Show the shortened git hash and 1-2 sentences of
+                  what changed in that commit regarding this feature. Clicking the hash should open that commit in
+                  github in a browser window. Have a "Git" icon in the page header which shows/hides this info. Add this
+                  to questions/judgement calls/etc.<br />- Instead of "Judgement calls" make the last line in the
+                  section "To Review: I3, T4, J1, J2, J3, C4` with links, in the same order those sections appear in the
+                  doc.
+                </p>
+                <p>
+                  In the "items" lists of the plan doc:<br />- Provide a lot more detail for each item, with bullets
+                  rather than dense paragraphs. Again, assume I'm coming back to this cold.<br />- Change icons to:
+                  <br />
+                  - questions: file-circle-question, rename to section to just "Questions"<br />
+                  - judgement calls: gavel<br />- Color the `Q1` badge according too the "item status"<br />
+                  - orange = in progress<br />
+                  - red = open / unreviewed, needs attention (e.g. unreviewed judgement calls)<br />
+                  - blue = open / unreviewed, not urgent<br />
+                  - green = recently decided in this or the last commit<br />
+                  - grey = decided or reviewed in a previous commit<br />- In the header of each item:<br />
+                  - keep the expand icon to the left (contrary to section rule)<br />
+                  - divide the header into columns, so a short window doesn't wrap title under the badge/actions<br />
+                  - Add "files", "verify", "git" icons as per section headers, but only if they are necessary.<br />
+                  - add a `round grey ellipsis` icon ("action menu") at the far right which shows a menu for each item
+                  with menu items. Change the color of the menu button to the state color when chosen. See below for
+                  "item review steps" to take when these are chosen.<br />
+                  - "Approve" (state color: green)<br />
+                  - "Add Details" (blue)<br />
+                  - "Revisit" (orange)
+                </p>
+                <p>
+                  In each section header, e.g. `Questions`<br />
+                  - add a single `round filter icon` which toggles between the the items statuses, with the same color
+                  as the status itself. Start with grey (all) then orange (in progress), red (needs attention), etc.<br />
+                  - make the 3/3 badge bigger
+                </p>
+                <p>
+                  Item review steps<br />We are switch the paradigm -- the plan doc becomes the primary method of
+                  reviewing, rather than having a separate chat-based flow. There are two modes: "do it now" ("Add
+                  Details" and "Revisit Now")
+                </p>
+                <p>
+                  - "Approve" means mark as approved in the next step (or inline if you can, don't scroll in any case)
+                </p>
+                <p>
+                  - "Add Details" means immediately think about this more and provide more detail inline. Do this "in
+                  the background" if you can, don't interrupt my flow. Show a "loading" indicator which tells me you're
+                  doing this. Do this in an agent if possible. Once the agent comes back, change out of "add details"
+                  mode.
+                </p>
+                <p>
+                  - "Revisit" -- show a textarea where I can add questions/comments about the item. On the right side,
+                  vertically stack two buttons:<br />
+                  - top: `rounded grey check icon` -- "revisit soon" -- when I click this, add to the list of items to
+                  be "reviewed in a chunk" -- this is the equivalent of the "talk it over" option in the morning pages
+                  doc. Make the page-level "send to claude" icon blue, to indicate that there is pending feedback.
+                </p>
+                <p>
+                  - below: `rounded blue send icon` -- "revisit now" -- when I click this, add to the "reviewed in a
+                  chunk" list and also start an agent to immediately pursue the topic now and provide feedback, which
+                  goes inline. If there is nothing going on in the main chat, start the "talk it over" immediately. If
+                  there is, queue it up to happen ASAP.
+                </p>
+                <p>
+                  At any time, if there are choices that I can make (as in the pasted image), clicking those selects
+                  that option and adds it to the "process in a chunk" list. The goal of "Revisit Soon" and "Revisit Now"
+                  is to make it so I can see those options and make a call in the doc, where I have more context.
+                </p>
+                <p>
+                  When I say `/review &lt;name&gt;` that means:<br />
+                  - show the plan doc in the review sidebar (don't worry about what is in the spell docs pane)<br />
+                  - Jump to the first thing that you think I should review if appropriate.<br />
+                  - I'll then mark items with the "actions menu" that I want to deal with.
+                </p>
+                <p>
+                  When I say `/bedtime`, I think that just puts you in "get it all done" mode, without need for morning
+                  pages etc, correct?
+                </p>
+                <p>
+                  [Attached image: an option card from a plan doc, "A · ui keeps i18n; MSG.ts elsewhere (recommended)":
+                  a grey header bar, then the body text ("`app`, `cli`, `spell` ... get a `MSG.ts` as they grow
+                  user-facing text; ui's vocabulary IS its MSG. Existing inline strings: debt."), its code chips
+                  misaligned, with a large empty space below the text. Saved at
+                  /private/tmp/claude-501/-Users-owen-www-spell-app-spell-app/7dc4d9f9-fb66-408c-9ec1-b57f2cd3e5ed/images/2.png]
+                </p>
+              </blockquote></ui-content
+            ></ui-accordion
+          >
+          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 16h-23h left</p>
+          <ui-section id="o1" header="1.1 The new review loop" sticky collapsible dividing>
+            <p>What a review looks like once this epic is done, step by step:</p>
+            <ol>
+              <li>You type <code>/epic review wwod</code> (<a href="#d3">D3</a>).</li>
+              <li>
+                The wwod plan doc opens in the <b>Review</b> tab of VS Code's right side bar, scrolled to the first
+                thing worth your time (say, an unreviewed judgement call, shown with a red id badge).
+              </li>
+              <li>
+                You read down the doc. On any item you open its <b>action menu</b> (the round ellipsis at the right of
+                its title) and pick one:
+                <ul>
+                  <li><b>Approve</b>: fine as it is. The menu button turns green.</li>
+                  <li><b>Add to todo</b>: follow it up later, as a todo.</li>
+                  <li>
+                    <b>Add Details</b>: Claude writes a fuller explanation into the item, in the background, with a
+                    spinner on the item until it's done. You keep reading.
+                  </li>
+                  <li>
+                    <b>Revisit</b>: a text box opens under the item for your question or comment, with two buttons:
+                    <b>revisit soon</b> (talk it over in the next batch) and <b>revisit now</b> (Claude starts on it at
+                    once, and answers inline).
+                  </li>
+                </ul>
+              </li>
+              <li>Where an item offers options (A / B / C cards), clicking a card picks it.</li>
+              <li>
+                Anything waiting for Claude turns the page header's round <b>send to Claude</b> button blue. Clicking it
+                hands the whole batch to the Claude session: approvals and picks are recorded, todos filed, and the
+                "revisit soon" items talked through in the chat, one after another.
+              </li>
+            </ol>
+            <p>
+              Why this shape: today a review is a string of modals in the chat, each showing one item without the doc
+              around it. On the page you have the whole context, and you decide at your own pace.
+            </p>
+          </ui-section>
+
+          <ui-section id="o2" header="1.2 How the page reaches Claude" sticky collapsible dividing>
+            <p>The one hard limit, found while exploring:</p>
+            <ul>
+              <li>
+                Nothing outside a Claude Code session can push a message into it. A session wakes only when you type, or
+                when a background command it started finishes.
+              </li>
+              <li>
+                The VS Code Claude extension can type a prompt into a session's tab, but only when it opens that tab
+                fresh; into a tab that's already open, it refuses ("Your prompt was not applied").
+              </li>
+            </ul>
+            <p>So the page and the session meet in a file, the way details pages already work:</p>
+            <ul>
+              <li>
+                The page saves your marks through a small page-server route into an <b>inbox file</b> beside the plan
+                doc, e.g. <code>epics/wwod/wwod.inbox.json</code> (<a href="#d1">D1</a>).
+              </li>
+              <li>
+                The <code>/epic review</code> session keeps a background command waiting on that file. "Send to Claude"
+                or "revisit now" makes it finish, which wakes the session.
+              </li>
+              <li>
+                A busy session (mid-answer) gets the wake as soon as its turn ends: that's the "queue it up to happen
+                ASAP" you asked for, for free.
+              </li>
+              <li>
+                "Add Details" and "revisit now" run as background agents started by that session, so the chat stays
+                free; each writes into the item and clears its spinner.
+              </li>
+              <li>
+                No session waiting (it was closed): the marks stay in the inbox until the next
+                <code>/epic review</code>, and the page says so (<a href="#d6">D6</a>).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o3" header="1.3 Easier to read cold" sticky collapsible dividing>
+            <ul>
+              <li>
+                Where the terse style comes from: the plan-doc rules and the <code>/epic</code> skill both say "caveman
+                lite" (drop articles, fragments OK). The details-page rules already say the opposite ("Not caveman").
+                The plan-doc rules switch to the details-page rules.
+              </li>
+              <li>
+                Every phase: a bulleted <b>Goal</b>, then, once done, a bulleted <b>Done</b> (what was built, with the
+                things you tend to ask about first: where to see it, what changed in how you work, what's still rough),
+                then <b>Commits</b>.
+              </li>
+              <li>
+                <b>Commits</b>: short hash (a link to GitHub) and one or two sentences on what it changed for this phase
+                or item. Phase commits can be filled in for past epics from git history; for items it's a new habit
+                (<code>Fix I3:</code> in the commit message). A "Git" button in the page header shows or hides them.
+              </li>
+              <li>Files and Verify: hidden until you click the folder or flask icon in a phase's header.</li>
+              <li>
+                Every item: a lead sentence in plain words, then bullets; a tricky one gets a concrete example (real
+                code, a table, before / after).
+              </li>
+              <li>Old docs: their open items are rewritten in P4, the rest in P8 (<a href="#d4">D4</a>).</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o4" header="1.4 Item status colors" sticky collapsible dividing>
+            <p>Each item's id badge (<code>Q1</code>, <code>J4</code> ...) gets a color for where it stands:</p>
+            <ul>
+              <li><b>Red</b>: open and needs you, e.g. a judgement call nobody has reviewed.</li>
+              <li><b>Blue</b>: open, but not urgent, e.g. a todo for later.</li>
+              <li><b>Orange</b>: in progress: Claude is working on it, or it's waiting in your batch.</li>
+              <li>
+                <b>Green</b>: changed in this or the last commit, or during a <code>/bedtime</code> run (<a href="#d2"
+                  >D2</a
+                >).
+              </li>
+              <li><b>Grey</b>: decided or reviewed a while ago.</li>
+            </ul>
+            <ul>
+              <li>
+                Each section's title gets a round filter button that steps through these (all, then orange, red ...),
+                colored like the status it shows.
+              </li>
+              <li>
+                Today orange means "not reviewed" and blue means "queued" in a few places (the review picker, open
+                question chips); those follow the new meanings.
+              </li>
+              <li>
+                Each phase ends with a <b>To review</b> line, e.g. <code>To review: I3, T4, J1, J2</code>, linking the
+                items found during that phase that you haven't reviewed, in page order. It replaces the hand-written
+                "Judgement calls" line.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o5" header="1.5 Page chrome" sticky collapsible dividing>
+            <ul>
+              <li>Title: <code>Epic: wwod</code>.</li>
+              <li>
+                Section titles: the fold chevron moves to the far right, so the section icons line up on the left; the
+                <code>3/5</code> count gets bigger. Item titles keep their chevron on the left, and lay out in columns,
+                so a narrow side bar never wraps the title under its badges and buttons.
+              </li>
+              <li>
+                Option cards (A / B / C): a lighter header bar and no empty band under the text. The cause is default
+                paragraph margins inside the card, not the card itself.
+              </li>
+              <li>
+                Contents (the rail of section icons and its drawer): brand colors, accent for the current section, a
+                narrower rail that widens on hover, a plain hamburger (no circle), badges that stay on screen, and in a
+                very narrow side bar just the hamburger.
+              </li>
+              <li>
+                Reloads: no white flash and no jump. Today each show replaces the whole frame (white before it paints),
+                a phase change reloads twice, and a remembered <code>#section</code> in the address fights the restored
+                scroll position.
+              </li>
+              <li>The address follows the section you're reading, so a reload lands where you were.</li>
+              <li>Page header buttons: send to Claude, Git (show commits), and the Files / Verify toggles.</li>
+              <li>
+                Section icons: Questions (renamed from "Questions &amp; Decisions") get a file-with-question-mark;
+                judgement calls get the gavel.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o6" header="1.6 Side bar, file names, skills" sticky collapsible dividing>
+            <ul>
+              <li>
+                VS Code's right side bar gets two tabs: <b>Spell Docs</b> (the spell hat logo) and <b>Review</b> (a
+                circle-check outline). Each keeps its own page; <code>/epic review</code> uses the Review tab,
+                everything else the Spell Docs tab.
+              </li>
+              <li>
+                Plan docs are renamed <code>epics/wwod/wwod.plan.html</code>. Old addresses redirect, and epics still
+                running in other worktrees keep working under the old name until they merge.
+              </li>
+              <li>
+                Nothing to bring back from git: every past plan doc is still there, complete. Doc Review always made a
+                <i>separate</i> durable doc and left the plan doc in
+                <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
+                >. What's missing is a consistent link: each durable doc gets a "Plan doc" link at the top (the commands
+                page has none today), and each plan doc links its durable doc.
+              </li>
+              <li>
+                <code>/bedtime</code>: yes, just "get it all done" mode. Its judgement calls show up red in the doc, so
+                no morning report is needed, and the Overnight section goes (<a href="#d5">D5</a>).
+              </li>
+              <li>
+                <code>/isolate done</code>: also offers to open a pull request for the branch, so the whole epic's
+                changes are in one place.
+              </li>
+              <li><code>/epic review</code> keeps its name; its modal flow is replaced by the page.</li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="2" total="10" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            collapsed
+            badge="3-4h"
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Side Bar And Chrome"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    Two tabs in VS Code's right side bar: <b>Spell Docs</b> (the spell hat) and <b>Review</b> (a
+                    circle-check outline), each keeping its own page.
+                  </li>
+                  <li>
+                    No white flash and no jump when a doc reloads; the address follows the section you're reading.
+                  </li>
+                  <li>
+                    Section titles with the fold chevron at the far right and a bigger count; option cards without the
+                    empty band; a redesigned contents rail and drawer.
+                  </li>
+                  <li>
+                    Page title <code>Epic: &lt;name&gt;</code>; the kickoff prompt folded away; the "Plan hung?" notice
+                    gone once the plan is filled in; a "To review this doc, type <code>/epic review &lt;name&gt;</code>"
+                    line that copies the command on click.
+                  </li>
+                  <li>Built by three agents at once (side bar, reloads, chrome), each on its own files.</li>
+                </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    Where to see it: VS Code's right side bar has two tabs, <b>Spell Docs</b> (the spell hat) and
+                    <b>Review</b> (a circle check); each keeps its own page.
+                  </li>
+                  <li>
+                    A plan doc changing under you no longer reloads: the page swaps in what changed, so your scroll,
+                    open sections and typed text stay. The address follows the section you're reading, so a reload or a
+                    VS Code restart lands you back there.
+                  </li>
+                  <li>
+                    The contents rail: a 32px ivory strip, only as tall as its entries; an orange bar marks sections
+                    with open items, and hovering widens it to show names and counts. The contents drawer is ivory too.
+                  </li>
+                  <li>
+                    Section titles: the fold chevron at the far right, a bigger count; folding a section you're inside
+                    no longer bounces. Each section's one-line intro is now the tooltip on its title.
+                  </li>
+                  <li>Option cards (A / B / C): a lighter header bar and no empty band under the text.</li>
+                  <li>
+                    Plan docs are titled <code>Epic: &lt;name&gt;</code>; the kickoff prompt is folded away; a line
+                    under the header copies <code>/epic review &lt;name&gt;</code> on click.
+                  </li>
+                  <li>
+                    Not tried by hand in VS Code yet: the "To test" items V1-V6 (tabs, no flash, rail in the side bar,
+                    the copy line).
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../../vscode/" target="src-packages-vscode"><code>packages/vscode/</code></a> (<a
+                  href="../../../../package.json"
+                  target="src-package-json"
+                  ><code>package.json</code></a
+                >,
+                <a href="../../../vscode/src/DocView.ts" target="src-packages-vscode-src-docview-ts"
+                  ><code>DocView.ts</code></a
+                >,
+                <a href="../../../vscode/src/DocPreview.ts" target="src-packages-vscode-src-docpreview-ts"
+                  ><code>DocPreview.ts</code></a
+                >,
+                <a href="../../../vscode/src/WindowBridge.ts" target="src-packages-vscode-src-windowbridge-ts"
+                  ><code>WindowBridge.ts</code></a
+                >, <code>media/spell.svg</code>),
+                <a href="../../../../scripts/window.mjs" target="src-scripts-window-mjs"
+                  ><code>scripts/window.mjs</code></a
+                >,
+                <a href="../../_assets/" target="src-packages-docs-assets"><code>packages/docs/_assets/</code></a> (<a
+                  href="../../_assets/spell-doc-runtime.js"
+                  target="src-packages-docs-assets-spell-doc-runtime-js"
+                  ><code>spell-doc-runtime.js</code></a
+                >,
+                <a href="../../_assets/spell-doc.css" target="src-packages-docs-assets-spell-doc-css"
+                  ><code>spell-doc.css</code></a
+                >,
+                <a href="../../_assets/plan-doc.css" target="src-packages-docs-assets-plan-doc-css"
+                  ><code>plan-doc.css</code></a
+                >),
+                <a href="../../../server/src/liveClient.ts" target="src-packages-server-src-liveclient-ts"
+                  ><code>packages/server/src/liveClient.ts</code></a
+                >,
+                <a href="../../scripts/" target="src-packages-docs-scripts"><code>packages/docs/scripts/</code></a> (<a
+                  href="../../scripts/pages.js"
+                  target="src-packages-docs-scripts-pages-js"
+                  ><code>pages.js</code></a
+                >,
+                <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                  ><code>plan-doc.js</code></a
+                >,
+                <a href="../../scripts/bundle-spell-ui.js" target="src-packages-docs-scripts-bundle-spell-ui-js"
+                  ><code>bundle-spell-ui.js</code></a
+                >),
+                <a href="../../templates/epics/plan.html" target="src-packages-docs-templates-epics-plan-html"
+                  ><code>templates/epics/plan.html</code></a
+                ></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> Both tabs after <code>yarn vscode</code> and a reload; repeated
+                <code>plan-doc open</code> without a flash; editing the doc mid-page keeps your place; window and
+                plan-doc tests;
+                <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                  ><code>check-spell.js</code></a
+                >
+                on three docs, screenshots looked at</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            badge="1-2h"
+            id="p2"
+            data-phase="2"
+            data-status="done"
+            header="P2 · Fuller Writing"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    The plan-doc rules switch from "caveman lite" to the details pages' "Writing for Owen": full
+                    sentences, bullets, an example for anything tricky.
+                  </li>
+                  <li>
+                    Each phase: a bulleted Goal, then once done a bulleted Done (what you tend to ask about first) and
+                    its Commits.
+                  </li>
+                  <li>Files and Verify hidden until you click the folder or flask icon in the phase's title.</li>
+                  <li>
+                    <b>Updated:</b> the estimate moves out of the body into the phase's title, as a badge just left of
+                    its status, e.g. <code>1-2h</code> (it was in your kickoff, but no phase had it).
+                  </li>
+                  <li>
+                    <b>Updated:</b> every question, issue and decision ends with a Net effect list (<a href="#d12"
+                      >D12</a
+                    >).
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    The writing rules changed: plan docs are now written for you coming back cold: a plain lead
+                    sentence, then bullets, full words, an example for anything tricky, ids explained, and a
+                    <b>Net effect</b> list closing every question, issue, judgement call and decision (<a
+                      href="../../templates/epics/plan-doc.md"
+                      target="src-packages-docs-templates-epics-plan-doc-md"
+                      ><code>plan-doc.md</code></a
+                    >
+                    "Rules"; the <code>/epic</code> and <code>/bedtime</code> skills point to it).
+                  </li>
+                  <li>
+                    Phases: the estimate is the title's badge (e.g. <code>3-4h</code>); Goal is bullets; a finished
+                    phase gets a <b>Done</b> list like this one (<code
+                      >yarn plan-doc phase &lt;name&gt; &lt;N&gt; done --done "&lt;ul&gt;..."</code
+                    >).
+                  </li>
+                  <li>
+                    Files and Verify are hidden: the folder and flask buttons on the Phases title show them, and
+                    remember your choice per doc.
+                  </li>
+                  <li>
+                    Old docs get the estimate badge and the hidden intros when P4 migrates them; this doc already has
+                    them.
+                  </li>
+                  <li>Not done here: commits per phase (P3), and rewriting old docs' text (P4, P8).</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../templates/epics/plan-doc.md" target="src-packages-docs-templates-epics-plan-doc-md"
+                  ><code>templates/epics/plan-doc.md</code></a
+                >,
+                <a href="../../../../.claude/skills/epic/SKILL.md" target="src-claude-skills-epic-skill-md"
+                  ><code>.claude/skills/epic/SKILL.md</code></a
+                >,
+                <a href="../../../../.claude/skills/bedtime/SKILL.md" target="src-claude-skills-bedtime-skill-md"
+                  ><code>.claude/skills/bedtime/SKILL.md</code></a
+                >,
+                <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                  ><code>plan-doc.js</code></a
+                >, the runtime</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> plan-doc tests; this doc rewritten in the new shape</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            badge="3-4h"
+            id="p3"
+            data-phase="3"
+            data-status="todo"
+            header="P3 · Status And Commits"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    Item id badges colored by where they stand: red needs you, blue not urgent, orange in progress,
+                    green recent, grey older (<a href="#d2">D2</a>).
+                  </li>
+                  <li>A filter button on each section's title steps through those colors.</li>
+                  <li>
+                    <b>Updated:</b> item titles laid out in columns (chevron left, id, title, then icons and buttons),
+                    so a narrow side bar never wraps the title under them; per item, folder / flask / git icons only
+                    when it has files, a check or commits (it was in your kickoff, but no phase had it).
+                  </li>
+                  <li><b>Updated:</b> questions and decisions merge: one Q id per topic (<a href="#d13">D13</a>).</li>
+                  <li>
+                    Each phase ends with a "To review: I3, T4, J1" line linking what it raised that you haven't
+                    reviewed.
+                  </li>
+                  <li>
+                    Commits per phase and item: short hash (a GitHub link) and a sentence or two; a Git button in the
+                    page header shows or hides them.
+                  </li>
+                  <li>
+                    Questions (renamed from "Questions &amp; Decisions") get a file-with-question-mark icon; judgement
+                    calls the gavel.
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                  ><code>plan-doc.js</code></a
+                >
+                (dates and states, <code>commits</code> command), the runtime,
+                <a href="../../_assets/plan-doc.css" target="src-packages-docs-assets-plan-doc-css"
+                  ><code>plan-doc.css</code></a
+                ></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> plan-doc tests;
+                <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                  ><code>check-spell.js</code></a
+                >; commits filled in on one old doc look right</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            badge="2-3h"
+            id="p4"
+            data-phase="4"
+            data-status="todo"
+            header="P4 · Rename And Migrate"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    Plan docs become <code>epics/&lt;name&gt;/&lt;name&gt;.plan.html</code>; old addresses redirect;
+                    epics running in other worktrees keep working under the old name.
+                  </li>
+                  <li>Every plan doc migrated: title, icons, states, commits filled in from git.</li>
+                  <li>Each durable doc links its plan doc at the top, and each plan doc its durable doc.</li>
+                  <li>
+                    The OPEN items and unfinished phases of every old doc rewritten in the new style, by agents (<a
+                      href="#d4"
+                      >D4</a
+                    >).
+                  </li>
+                  <li>Then a checkpoint: you look at the visual changes before the item actions.</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                  ><code>plan-doc.js</code></a
+                >,
+                <a href="../../scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                  ><code>doc-links.js</code></a
+                >, the runtime, <code>epics.py</code>,
+                <a href="../../../cli/src/dev/worktrees.ts" target="src-packages-cli-src-dev-worktrees-ts"
+                  ><code>packages/cli/src/dev/worktrees.ts</code></a
+                >,
+                <a href="../../../server/src/page/" target="src-packages-server-src-page"
+                  ><code>packages/server/src/page/</code></a
+                >
+                (<a
+                  href="../../../server/src/page/RunningEpics.ts"
+                  target="src-packages-server-src-page-runningepics-ts"
+                  ><code>RunningEpics.ts</code></a
+                >,
+                <a href="../../../server/src/page/PageServer.ts" target="src-packages-server-src-page-pageserver-ts"
+                  ><code>PageServer.ts</code></a
+                >), every plan doc, durable docs, index, changelog, skills</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> Tests of every package touched; <code>yarn docs:update</code>; an old address redirects;
+                running epics still found</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            badge="3-4h"
+            id="p5"
+            data-phase="5"
+            data-status="todo"
+            header="P5 · Item Actions"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    A round ellipsis menu on every item: Approve (green), Add to todo, Add Details (blue), Revisit
+                    (orange).
+                  </li>
+                  <li>Revisit opens a note box with "revisit soon" and "revisit now" buttons.</li>
+                  <li>Clicking an option card picks it.</li>
+                  <li>
+                    The page header's send-to-Claude button turns blue while anything is waiting; your marks survive
+                    reloads, kept in an inbox file beside the doc (<a href="#d1">D1</a>).
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> new <code>_assets/review.js</code> and css, new
+                <code>scripts/reviewRoutes.ts</code> (registered in the root
+                <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                >),
+                <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                  ><code>plan-doc.js</code></a
+                >
+                (<code>inbox</code>)</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> Route tests; Playwright clicks through the menu; marks survive a live reload</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            badge="3-4h"
+            id="p6"
+            data-phase="6"
+            data-status="todo"
+            header="P6 · Claude Side"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    <code>/epic review &lt;name&gt;</code> opens the doc in the Review tab, at the first thing worth
+                    your time, and waits for your marks (<a href="#d3">D3</a>).
+                  </li>
+                  <li>
+                    On send: approvals and picks recorded, todos filed, "revisit soon" items talked through in the chat.
+                  </li>
+                  <li>
+                    Add Details and "revisit now": background agents write into the item, with a spinner until done.
+                  </li>
+                  <li>
+                    No session reviewing: the page says the mark waits for the next review (<a href="#d6">D6</a>).
+                  </li>
+                  <li>The modal review flow goes.</li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../../../.claude/skills/epic/SKILL.md" target="src-claude-skills-epic-skill-md"
+                  ><code>.claude/skills/epic/SKILL.md</code></a
+                >
+                section 7,
+                <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                  ><code>plan-doc.js</code></a
+                >
+                (<code>inbox wait | apply | clear</code>), <code>commands.json</code></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> A dry run on a real doc: approve, todo, pick, revisit soon and now; the doc ends up
+                right</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            badge="1h"
+            id="p7"
+            data-phase="7"
+            data-status="todo"
+            header="P7 · Bedtime And Isolate"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    <code>/bedtime</code> becomes plain "get it all done" mode: the Overnight section goes (<a
+                      href="#d5"
+                      >D5</a
+                    >).
+                  </li>
+                  <li>
+                    <code>/isolate done</code> also offers to open a pull request for the branch (asked first: it
+                    publishes).
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b>
+                <a href="../../../../.claude/skills/bedtime/SKILL.md" target="src-claude-skills-bedtime-skill-md"
+                  ><code>.claude/skills/bedtime/SKILL.md</code></a
+                >,
+                <a href="../../../../.claude/skills/isolate/SKILL.md" target="src-claude-skills-isolate-skill-md"
+                  ><code>.claude/skills/isolate/SKILL.md</code></a
+                >,
+                <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                  ><code>plan-doc.js</code></a
+                >, <code>epics.py</code>, <code>/wtf</code> and <code>/epics</code></ui-item
+              ><ui-item icon="flask"><b>Verify:</b> Skills read end to end; plan-doc tests</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            badge="2-3h"
+            id="p8"
+            data-phase="8"
+            data-status="todo"
+            header="P8 · Rewrite The Rest"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    The closed and decided items and finished phases of every old plan doc rewritten in the new style,
+                    by agents, so every doc reads the same (<a href="#d4">D4</a>).
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"><b>Files:</b> <code>epics/*/*.plan.html</code></ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>yarn docs:update</code>; three docs compared with their git versions: nothing
+                lost</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            badge="1-2h"
+            id="p9"
+            data-phase="9"
+            data-status="todo"
+            header="P9 · Planning Review"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    Explore the same on-page flow for planning: you read the Overview and open questions while the plan
+                    is still being drafted, mark and answer them on the page, and the planning session picks them up
+                    instead of asking in modals.
+                  </li>
+                  <li>
+                    Output: a written proposal in this doc (what works with plan mode's read-only limit, what the
+                    session would wait on), plus a prototype if it's cheap.
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> this doc; maybe
+                <a href="../../../../.claude/skills/epic/SKILL.md" target="src-claude-skills-epic-skill-md"
+                  ><code>.claude/skills/epic/SKILL.md</code></a
+                >
+                "3. Plan"</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> You read the proposal</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            badge="1-2h"
+            id="p10"
+            data-phase="10"
+            data-status="todo"
+            header="P10 · Doc Review"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b>
+                <ul>
+                  <li>
+                    This doc made true to what was built; the durable doc for the new review flow; the changelog entry.
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> a durable doc under
+                <a href="../../" target="src-packages-docs"><code>packages/docs/</code></a
+                >,
+                <a href="../../changelog.html" target="src-packages-docs-changelog-html"><code>changelog.html</code></a
+                >, this doc</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b>
+                <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                  ><code>check-spell.js</code></a
+                >; links checked</ui-item
+              ></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, don't re-argue without new facts. An answered question sits just above its decision."
+          id="decisions"
+          header="3. Questions & Decisions"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="q1" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a>
+                  <span class="plan-title">Where should your marks wait until Claude picks them up?</span>
+                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                ><ui-content
+                  ><p>
+                    When you click Approve, pick an option card, or type a "revisit" note, it has to be saved somewhere
+                    before Claude acts on it.
+                  </p>
+                  <ul>
+                    <li>
+                      Example: you approve J2, add T4 to the todos, and write "why not reuse the details route?" on I3.
+                      Nothing has gone to Claude yet.
+                    </li>
+                    <li>
+                      Those three marks must survive a reload of the page (a background agent writing into the doc
+                      reloads it).
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · An inbox file beside the plan doc (recommended)</ui-label>
+                        <ul>
+                          <li><code>epics/wwod/wwod.inbox.json</code> holds the marks and notes.</li>
+                          <li>The page draws them over the doc (green menu button, your note in its box).</li>
+                          <li>
+                            Claude applies them to the plan doc itself when you send, through
+                            <code>yarn plan-doc</code>, so the doc's history stays Claude's edits.
+                          </li>
+                          <li>The doc doesn't reload under you while you mark things.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Written straight into the plan doc</ui-label>
+                        <ul>
+                          <li>
+                            Each click edits the plan doc at once (e.g. a
+                            <code>data-pending="approve"</code> attribute).
+                          </li>
+                          <li>One place for everything, visible in the file.</li>
+                          <li>
+                            But every click reloads the page, and a half-typed note has to be rescued from the reload.
+                          </li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title"
+                    >Your marks wait in an inbox file beside the plan doc (<a href="#q1">Q1</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>e.g. <code>epics/wwod/wwod.inbox.json</code>; the page draws the marks over the doc.</li>
+                    <li>Claude applies them to the plan doc when you send.</li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q1">Q1</a>: Where should your marks wait until Claude picks them up?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a>
+                  <span class="plan-title">What does "recently" mean for a green (recently decided) item?</span>
+                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                ><ui-content
+                  ><p>You asked for green = decided "in this or the last commit", grey = decided earlier.</p>
+                  <ul>
+                    <li>
+                      Example: D7 was decided yesterday in a /review; since then there were six commits (P4, P5, two
+                      fixes ...). By the commit rule D7 is already grey, though you haven't looked at the doc since.
+                    </li>
+                    <li>The point of green, as I read it: "this changed since you last looked".</li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Since your last review (recommended)</ui-label>
+                        <ul>
+                          <li>Each <code>/review</code> stamps the doc with when it started.</li>
+                          <li>
+                            Green: decided or reviewed after the stamp before last, i.e. new since your previous review.
+                          </li>
+                          <li>Survives any number of commits in between.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · This or the last commit</ui-label>
+                        <ul>
+                          <li>As you wrote it: the item's change is in HEAD or HEAD~1.</li>
+                          <li>Simple, but a busy phase turns everything grey before you look.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C · The last N days</ui-label>
+                        <ul>
+                          <li>Green for, say, 2 days after the decision.</li>
+                          <li>Easy to reason about, but unrelated to when you actually read it.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title"
+                    >Green: changed in this or the last commit, or during a /bedtime run; grey: older (<a href="#q2"
+                      >Q2</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>A /bedtime run's changes stay green until you review them.</li>
+                    <li>
+                      plan-doc stamps each change with its time, and the doc with the last commit's time, so the page
+                      can color without running git.
+                    </li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q2">Q2</a>: What does "recently" mean for a green (recently decided) item?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title">What should the review command be called?</span>
+                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                ><ui-content
+                  ><p>You asked for <code>/review &lt;name&gt;</code>.</p>
+                  <ul>
+                    <li>
+                      Claude Code has had a built-in <code>/review</code> (review a pull request). A project skill with
+                      the same name may be shadowed by it, or shadow it; I'll test which in the phase that builds it.
+                    </li>
+                    <li>
+                      Example of the clash: you type <code>/review wwod</code> and get a pull-request review of "wwod"
+                      instead of the plan doc.
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · /review, if it works (recommended)</ui-label>
+                        <ul>
+                          <li>Your name for it. If the built-in wins, fall back to B.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · /epic review</ui-label>
+                        <ul>
+                          <li>Already exists and is free of clashes; it gets the new behaviour.</li>
+                          <li>Longer to type.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title">The command stays /epic review (<a href="#q3">Q3</a>)</span></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>No clash with Claude Code's built-in /review.</li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q3">Q3</a>: What should the review command be called?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q4" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title">Should the existing plan docs be rewritten in the new, fuller style?</span>
+                  <a class="plan-answer" href="#d4">→ D4</a></ui-title
+                ><ui-content
+                  ><p>There are 15 plan docs, several hundred items, mostly in the terse style.</p>
+                  <ul>
+                    <li>
+                      Example: todo T5 in unified-server reads "Review: live client is a stringified function: P2.
+                      liveClient() is TypeScript served as (fn)()...": one dense paragraph.
+                    </li>
+                    <li>
+                      Cheap and mechanical either way: new titles, icons, the rename, and phase commits filled in from
+                      git.
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Going forward, plus Add Details on demand (recommended)</ui-label>
+                        <ul>
+                          <li>New items and phases use the new style.</li>
+                          <li>Old items get rewritten when you pick "Add Details" on them.</li>
+                          <li>No big rewrite to check.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Rewrite the open items of every doc</ui-label>
+                        <ul>
+                          <li>Agents rewrite every item not yet closed or decided (a few hours of agent time).</li>
+                          <li>Every review starts readable, but it's a lot of text for you to trust unchecked.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C · Rewrite everything</ui-label>
+                        <ul>
+                          <li>Every item and phase, closed ones too. Most thorough, most to check.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title"
+                    >Rewrite the open items of every old doc now (P4), the rest in a later phase (P8) (<a href="#q4"
+                      >Q4</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>So you can see the new style on real items right away.</li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q4">Q4</a>: Should the existing plan docs be rewritten in the new, fuller style?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q5" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q5">Q5</a>
+                  <span class="plan-title">Should /bedtime keep its new Overnight section?</span>
+                  <a class="plan-answer" href="#d5">→ D5</a></ui-title
+                ><ui-content
+                  ><p>
+                    Yesterday's change put a temporary "Overnight" report at the top of the plan doc (what each phase
+                    did, what went wrong).
+                  </p>
+                  <ul>
+                    <li>
+                      With status colors, the night's judgement calls show up red where they belong, and each phase gets
+                      its Done list and Commits.
+                    </li>
+                    <li>
+                      Example of what would be left only in the Overnight section: "P5 skipped: builds on WIP P4".
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Drop it (recommended)</ui-label>
+                        <ul>
+                          <li>
+                            <code>/bedtime</code> = get it all done. Problems become issues (red), skipped phases say so
+                            in their own body.
+                          </li>
+                          <li>The doc's top shows the usual summary.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Keep it</ui-label>
+                        <ul>
+                          <li>One place that says what happened overnight, at a glance.</li>
+                          <li>Removed after a review, as now.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d5">D5</a>
+                  <span class="plan-title">/bedtime's Overnight section goes (<a href="#q5">Q5</a>)</span></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>/bedtime is plain "get it all done" mode; its calls show up red in the doc.</li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q5">Q5</a>: Should /bedtime keep its new Overnight section?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q6" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q6">Q6</a>
+                  <span class="plan-title">What happens on "revisit now" when no Claude session is listening?</span>
+                  <a class="plan-answer" href="#d6">→ D6</a></ui-title
+                ><ui-content
+                  ><p>"Revisit now" needs a session to start the background agent.</p>
+                  <ul>
+                    <li>
+                      Example: you open the plan doc from the docs index on Sunday, no /review running, and click
+                      "revisit now" on I3.
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Wait for the next /review (recommended)</ui-label>
+                        <ul>
+                          <li>
+                            The page says "no Claude session is reviewing this doc: it goes in the next /review", and
+                            keeps the mark.
+                          </li>
+                          <li>Nothing runs without you seeing it.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Start a background Claude</ui-label>
+                        <ul>
+                          <li>
+                            The page server starts a headless Claude (<code>claude -p</code>) on that one item, which
+                            writes its answer inline.
+                          </li>
+                          <li>
+                            Works anywhere, but runs unattended, needs allow-rules, and has none of a live session's
+                            context.
+                          </li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d6">D6</a>
+                  <span class="plan-title"
+                    >"Revisit now" with no session reviewing waits for the next /epic review (<a href="#q6">Q6</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>The page says so and keeps the mark; nothing runs without you.</li>
+                  </ul>
+                  <p class="meta">
+                    Answers <a href="#q6">Q6</a>: What happens on "revisit now" when no Claude session is listening?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d7">D7</a>
+                  <span class="plan-title">Page to Claude goes through a file and a background waiter</span></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Nothing can push a message into a running Claude session: it wakes only when you type, or when a
+                      background command it started finishes.
+                    </li>
+                    <li>The Claude extension types a prompt only into a tab it opens fresh.</li>
+                    <li>So, like details pages: the page writes a file, the session's waiter finishes and wakes it.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d8">D8</a>
+                  <span class="plan-title"
+                    >No plan docs to bring back from git: links standardized instead</span
+                  ></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Every past plan doc is still in
+                      <a href="../" target="src-packages-docs-epics"><code>epics/</code></a
+                      >, complete: Doc Review always made a separate durable doc.
+                    </li>
+                    <li>What's missing is a consistent link both ways (the commands durable page has none).</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><a class="plan-id" href="#d9">D9</a>
+              <span class="plan-title"
+                >Visual changes first (P1-P4), then a checkpoint, then the item actions (P5-P6)</span
+              ></ui-item
+            ><ui-item id="d10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d10">D10</a>
+                  <span class="plan-title"
+                    >Reloads update the page in place instead of splitting it into includes</span
+                  ></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      On a change the page fetches its new version and swaps in only what changed: no reload, so scroll,
+                      folds and a half-typed note survive.
+                    </li>
+                    <li>
+                      Not &lt;ui-include&gt; pieces: those need the page server (blank when opened from disk), arrive
+                      after the contents list is built, and turn one doc into many files.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d11">D11</a>
+                  <span class="plan-title"
+                    >Side bar views: new message { spell: "go", hash } into the page</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    When something asks a side bar tab to show the page it ALREADY shows (same path, whatever its
+                    <code>?t=</code> stamp), the view no longer reloads it. It reveals the tab and, if a
+                    <code>#hash</code> was asked for, posts <code>{ spell: "go", hash }</code> into the page's frame
+                    (hash without the <code>#</code>).
+                  </p>
+                  <ul>
+                    <li>
+                      The page's live client (<a
+                        href="../../../server/src/liveClient.ts"
+                        target="src-packages-server-src-liveclient-ts"
+                        ><code>packages/server/src/liveClient.ts</code></a
+                      >, agent B) must handle it: scroll to that id, the way a link to it lands. Until it does, a
+                      repeated <code>yarn plan-doc open --hash ...</code> on the same page only reveals the tab.
+                    </li>
+                    <li>
+                      Only a DIFFERENT page changes the frame's <code>src</code>. The reload button and "Restart page
+                      server" still reload.
+                    </li>
+                    <li>
+                      Between the extension and the view's own script there is also
+                      <code>{ spell: "navigate", url }</code>, which points the existing frame at a new page; the page
+                      never sees it.
+                    </li>
+                    <li>
+                      The page's own messages (<code>place</code>, <code>open</code>, <code>history</code>) are
+                      unchanged.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title"
+                    >Questions, issues and other items end with a Net effect list</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-04: every question, issue, judgement call and decision gets a short
+                    <b>Net effect</b> block, so the consequence is clear without reading the reasoning.
+                  </p>
+                  <ul>
+                    <li>
+                      Shape: a bold "Net effect:" line, then one bullet per concrete change, e.g. "<code>x</code>
+                      becomes <code>y</code>", "rule semantics changed: ...".
+                    </li>
+                    <li>
+                      For a question: the net effect of the recommended option (each option card may carry its own).
+                    </li>
+                    <li>
+                      Goes into the writing rules in P2 (<a
+                        href="../../templates/epics/plan-doc.md"
+                        target="src-packages-docs-templates-epics-plan-doc-md"
+                        ><code>plan-doc.md</code></a
+                      >, the epic skill), and into the rewrites in P4 and P8.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d13">D13</a>
+                  <span class="plan-title"
+                    >Decisions merge into questions: one Q id per topic, old docs too</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Owen, 2026-10-04: a decision is a question that has been answered.</p>
+                  <ul>
+                    <li>
+                      Answering Q3 writes the answer INTO Q3 (status decided, badge green, later grey); no new D item,
+                      no struck copy.
+                    </li>
+                    <li>
+                      A choice made without asking first is a question born answered (<code>add question --answer</code
+                      >, or <code>add decision</code> kept as an alias).
+                    </li>
+                    <li>
+                      Old docs are merged too (P4): each Q+D pair becomes one answered Q; a decision with no question
+                      becomes an answered Q with the next free number; the old <code>#dN</code> anchors stay as aliases
+                      on the new item, so links from durable docs and the changelog still land.
+                    </li>
+                    <li>
+                      Tooling in P3 (<code>decide</code>, <code>items --json</code>, the review picker, counts);
+                      migration in P4.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li><code>D7 (Q3)</code> becomes <code>Q3</code>, answered</li>
+                    <li>the Questions section lists open questions first, then answered ones</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d14" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d14">D14</a>
+                  <span class="plan-title"
+                    >P1 reloads: the docs runtime patches the page, the live client only fetches</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      When the page's own file changes, the live client (<a
+                        href="../../../server/src/liveClient.ts"
+                        target="src-packages-server-src-liveclient-ts"
+                        ><code>packages/server/src/liveClient.ts</code></a
+                      >) fetches the new version and fires a cancelable <code>spell-server:change</code> event on
+                      <code>window</code> (detail: <code>{ path, html, etag, reload() }</code>). If nothing takes it,
+                      the page reloads as before.
+                    </li>
+                    <li>
+                      The docs runtime (<a
+                        href="../../_assets/spell-doc-runtime.js"
+                        target="src-packages-docs-assets-spell-doc-runtime-js"
+                        ><code>spell-doc-runtime.js</code></a
+                      >
+                      <code>wireLiveUpdate()</code>) takes it and patches the page. It does the patching because only it
+                      knows what it built from the markup (contents, rail, counts, item filters, folds) and how to
+                      rebuild those; pages without the runtime (Spell UI's site, proxied pages) keep reloading.
+                    </li>
+                    <li>
+                      The patch compares the source as the page LOADED with the new source, never the live page (which
+                      the runtime and the elements have added to). The runtime reads that baseline once at start, and
+                      trusts it only when its ETag is the one the page was served with.
+                    </li>
+                    <li>
+                      Only what changed is touched: elements are matched by <code>id</code>, else in order by tag; a
+                      changed attribute is set in place, changed text replaces the smallest element that holds it, new
+                      elements are added folded as the reader would expect. Scroll, folds, open panels, focus and typed
+                      text survive.
+                    </li>
+                    <li>
+                      After the patch the runtime re-wires (counts, item filters, contents and rail only when their
+                      entries changed, sticky lines when sections came in, code colors) and fires
+                      <code>spell-doc:updated</code> with the changed elements.
+                    </li>
+                    <li>
+                      For agent C (runtime chrome): an element the runtime adds inside <code>main</code> should carry
+                      <code>data-spell-added</code> (or join <code>ADDED</code>), and the patch never calls
+                      <code>wireFolds()</code> again (that would refold link-opened sections on a plan doc).
+                      <code>trackStickyHeights()</code> is called again when sections are added; making it drop its
+                      previous ResizeObserver would stop a small leak.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
+          id="judgements"
+          header="4. Judgement calls"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="compass"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed
+            ><ui-item id="j1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j1">J1</a>
+                  <span class="plan-title">Review tab: a codicon, an empty state, no Docs Index button</span> </ui-title
+                ><ui-content
+                  ><p>Three small choices about the new "Review" tab in the right side bar:</p>
+                  <ul>
+                    <li>
+                      Its icon is VS Code's own <code>$(pass)</code> codicon (a circle with a check, outline), not an
+                      SVG of Font Awesome's <code>regular/circle-check</code>. It is drawn at the same weight and size
+                      as VS Code's other side bar icons. Swapping to the Font Awesome one is a two-line change if you
+                      prefer it.
+                    </li>
+                    <li>
+                      Opened by hand before anything was shown in it, the Review tab says how to fill it (<code
+                        >/epic review &lt;name&gt;</code
+                      >, or <code>yarn docs:open &lt;page&gt; --review</code>) instead of showing the docs index, so it
+                      never looks like a second copy of the Spell Docs tab.
+                    </li>
+                    <li>
+                      Its title bar has the same buttons as Spell Docs (back, forward, reload, restart the page server,
+                      open in the browser). "Docs Index" stays a palette command for the Spell Docs tab only.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j2">J2</a>
+                  <span class="plan-title"
+                    >Review pages ignore the "beside" setting; a pending move keeps one doc</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      The setting <code>spell.docPreview.location</code> <code>beside</code> (Simple Browser in an
+                      editor column) still applies to the Spell Docs tab only. A page sent to the Review tab always
+                      opens in the side bar's Review tab, since the point of it is to sit next to the Claude tab while
+                      you answer.
+                    </li>
+                    <li>
+                      While a session is moving to another window (<code>/isolate</code>, <code>/epic</code>), the move
+                      still remembers ONE doc to show when it lands, now with its tab. If both a docs page and a review
+                      page are asked for during that turn, the last one wins, as before. Keeping one per tab would
+                      change the handoff record's shape for a case that hasn't come up.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j3">J3</a>
+                  <span class="plan-title">Very narrow rail cut-off: 400px</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Below 400px wide, the contents rail shrinks to just its bars button, floating at the top right of
+                    the page header; above it, the 36px strip of section icons shows.
+                  </p>
+                  <ul>
+                    <li>
+                      <b>Chosen: 400px.</b> A phone (390px) and VS Code's side bar at its usual width (about 250-380px)
+                      get the full page width with only the bars; a side bar dragged wider than 400px gets the strip
+                      back, with hover-to-widen labels.
+                    </li>
+                    <li>
+                      <b>Option: 480px.</b> The bars-only look up to a wider side bar; you'd almost never see the strip
+                      in the side bar.
+                    </li>
+                    <li>
+                      <b>Option: 360px.</b> The strip stays in most side bars, costing 36px of a 300px column (12%).
+                    </li>
+                    <li>
+                      One number in
+                      <a href="../../_assets/spell-doc.css" target="src-packages-docs-assets-spell-doc-css"
+                        ><code>spell-doc.css</code></a
+                      >
+                      (the <code>@media (max-width: 400px)</code> block under "Rail"), so it's a one-line change.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j4">J4</a>
+                  <span class="plan-title">Kickoff prompt in a folded aside, not a sub-section</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The kickoff prompt now sits in a closed aside titled "Kickoff prompt" under the Overview's summary
+                    (<code>ui-accordion.plan-prompt-panel.spell-aside</code>), the docs' standard look for a digression.
+                  </p>
+                  <ul>
+                    <li>
+                      <b>Chosen: an aside.</b> One line when closed; it isn't a contents entry, so the rail and the
+                      drawer stay about the plan itself.
+                    </li>
+                    <li>
+                      <b>Option: a nested section</b> (<code>ui-section</code> "Kickoff prompt"). It would be in the
+                      contents and stick like the 1.x sections, but it has no number, so it would read oddly next to
+                      "1.1 ...".
+                    </li>
+                    <li>
+                      New docs get it from the template; <code>yarn plan-doc migrate</code> folds an old doc's bare
+                      quote (P4).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j5">J5</a>
+                  <span class="plan-title">Section chevron: down when open, left when folded</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Section titles' fold chevrons moved to the far right (after the count and the Open | All buttons).
+                    Open, it points down, as before; folded, it now points LEFT, back along the title.
+                  </p>
+                  <ul>
+                    <li>
+                      <b>Chosen: left.</b> UI's own folded chevron points right, which at the right edge points off the
+                      page.
+                    </li>
+                    <li><b>Option: Material's convention</b>, down when folded and up when open.</li>
+                    <li>Item titles (Q1, J2 ...) keep their chevron on the left, unchanged.</li>
+                    <li>
+                      On narrow pages (560px and less) a title's count and buttons wrap under its text instead of
+                      squeezing it to a word per line; the chevron stays on the title's first line.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j6">J6</a>
+                  <span class="plan-title"
+                    >Contents rail: accent for the current section, counts as accent pills</span
+                  > </ui-title
+                ><ui-content
+                  ><p>The rail and the drawer use the brand's accent (Spell purple) for one meaning: where you are.</p>
+                  <ul>
+                    <li>
+                      The current section's rail entry is filled with the accent (white / aubergine icon), as the
+                      brand's selected nav item; hover is a lavender wash.
+                    </li>
+                    <li>
+                      Open-item counts are small accent pills (they were orange), on the icon's corner in the rail and
+                      after the link in the drawer; on the current entry the pill inverts.
+                    </li>
+                    <li>
+                      <b>Why not orange:</b> orange now means "in progress" in the item colors (overview 1.4), and an
+                      open count isn't that.
+                    </li>
+                    <li>
+                      <b>Option:</b> red pills when a section holds items needing you (unreviewed judgement calls), once
+                      P3 brings item status colors.
+                    </li>
+                    <li>
+                      Hovering (or tabbing into) the 36px strip widens it leftward to 240px with the section names; the
+                      icons stay put under the pointer. No tooltips any more.
+                    </li>
+                    <li>The bars button is a plain icon, no circle.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j7">J7</a>
+                  <span class="plan-title"
+                    >Pages with their own scripts, and the goals pages, still reload on an edit</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Chosen: in-place updates only on <code>&lt;ui-section&gt;</code> pages whose only scripts are the
+                      bundle and highlight.js, without a cheatsheet filter.
+                    </li>
+                    <li>
+                      Over: patching every page. Details pages (<code>details.js</code>), goals pages (<a
+                        href="../../_assets/goals-live.js"
+                        target="src-packages-docs-assets-goals-live-js"
+                        ><code>goals-live.js</code></a
+                      >, old heading markup) and command pages (<a
+                        href="../../_assets/commands.js"
+                        target="src-packages-docs-assets-commands-js"
+                        ><code>commands.js</code></a
+                      >) build parts of themselves from the markup, and the runtime can't re-run that.
+                    </li>
+                    <li>They reload as before, now keeping their scroll position.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j8">J8</a>
+                  <span class="plan-title"
+                    >A script change reloads only pages that load scripts from that folder</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Chosen: a changed <code>.js</code> reloads a page only when it's in (or under) the folder of a
+                      script the page loads, e.g.
+                      <a href="../../_assets/" target="src-packages-docs-assets"><code>_assets/</code></a> for the
+                      bundle and its lazy chunks.
+                    </li>
+                    <li>
+                      Over: reloading every open page on any <code>.js</code> change, as before. Editing a repo tool
+                      such as
+                      <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                        ><code>scripts/plan-doc.js</code></a
+                      >
+                      used to reload every doc.
+                    </li>
+                    <li>
+                      A changed stylesheet the page links (or <code>@import</code>s) is swapped in place, no reload.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j9">J9</a>
+                  <span class="plan-title"
+                    >A reload lands on the remembered section without unfolding it</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      The address now follows the section being read, so a reload or a VS Code restart lands on it.
+                    </li>
+                    <li>
+                      Chosen: that landing unfolds what's around the section, but leaves the section itself folded if it
+                      was folded, as the reader left it. A live reload's saved scroll position wins over the address.
+                    </li>
+                    <li>Over: unfolding the target, as a link click does.</li>
+                    <li>No hash at all while above the first section.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j10">J10</a>
+                  <span class="plan-title">Showing the page again at an id adds a history entry</span> </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      When VS Code's view shows the page it already has, with a hash, it posts
+                      <code>{ spell: "go", hash }</code> into the page, and the page jumps there with its own jump
+                      (unfolding around it, landing below the stuck titles).
+                    </li>
+                    <li>
+                      Chosen: that jump adds a history entry, as a link click does, so Back returns to where the reader
+                      was.
+                    </li>
+                    <li>Over: replacing the current entry (no Back).</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j11">J11</a>
+                  <span class="plan-title">Undefined elements are hidden for at most 2 seconds</span> </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Chosen: a cloak in
+                      <a href="../../_assets/spell-doc.css" target="src-packages-docs-assets-spell-doc-css"
+                        ><code>spell-doc.css</code></a
+                      >
+                      hides custom elements until they're defined, so raw markup never flashes before the bundle runs;
+                      after 2 seconds they show anyway.
+                    </li>
+                    <li>
+                      Why 2 seconds: a page opened from disk whose bundle failed to load must not stay blank forever.
+                      <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                        ><code>check-spell.js</code></a
+                      >
+                      still reports elements that never define.
+                    </li>
+                    <li>Over: no cloak, or a longer timeout.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title">Only a session waiting on the inbox wakes</span></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>A session in the middle of an answer gets your batch as soon as that answer ends.</li>
+                    <li>A closed session misses it: the marks stay in the inbox for the next /epic review.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">Commit links 404 until the branch is pushed</span></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Links go to github.com/spell-app/spell-app/commit/&lt;hash&gt;; a commit only on a local branch
+                      isn't there yet.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">The VS Code extension is installed once for every window</span></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>Whichever checkout runs <code>yarn vscode</code> last wins.</li>
+                    <li>
+                      Never run it from a branch behind <code>main</code>: it would take away features other windows
+                      use.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><a class="plan-id" href="#c4">C4</a>
+              <span class="plan-title"
+                >Plan docs in other running worktrees keep the old markup until they merge or migrate</span
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          data-tip="For later: not caveats, not issues."
+          id="todos"
+          header="6. Todos"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="list check"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title">The phases' progress bar label is cut off at its left end</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The green bar above the phases shows its label ("1 of 10") inside the filled part, so with one phase
+                    of ten done the label overflows the bar's left edge and is clipped.
+                  </p>
+                  <ul>
+                    <li>Seen at 700px wide, in the side bar too.</li>
+                    <li>
+                      It's the <code>ui-progress.plan-progress</code> the script writes, with
+                      <code>bar-text="ratio"</code>.
+                    </li>
+                    <li>
+                      Likely fix: put the text after the bar (a label), or let it sit outside the fill while the fill is
+                      narrow.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the progress line reads "1 of 10 phases done" in full, at any width</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          data-tip="What to check by hand before merging: each a step, and what should happen. Struck through once it passes."
+          id="tests"
+          header="8. To test"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="flask"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="test" divided relaxed
+            ><ui-item id="v1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v1">V1</a>
+                  <span class="plan-title">Two side bar tabs, each with its own icon and page</span> </ui-title
+                ><ui-content
+                  ><p>After installing the extension (<code>yarn vscode</code>) and reloading the window:</p>
+                  <ul>
+                    <li>
+                      The right (secondary) side bar shows two tabs: "Spell Docs" with the spell hat, and "Review" with
+                      a circle-check outline. Both icons should be crisp and the same colour as VS Code's other side bar
+                      icons.
+                    </li>
+                    <li>
+                      <code>yarn docs:open --vs</code> shows the docs index in Spell Docs.
+                      <code>yarn docs:open epics/review-review/review-review.html --review</code> shows the plan doc in
+                      Review.
+                    </li>
+                    <li>
+                      Switching between the two tabs keeps each page as it was, scroll position included; neither
+                      reloads.
+                    </li>
+                    <li>
+                      Opening the Review tab by hand in a fresh window, before anything was sent to it, shows a line
+                      saying how to fill it.
+                    </li>
+                    <li>
+                      Each tab's title-bar buttons act on its own page: back / forward, reload, restart the page server,
+                      open in the browser.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v2">V2</a>
+                  <span class="plan-title">No white flash when a doc is shown again</span> </ui-title
+                ><ui-content
+                  ><p>With a dark VS Code theme:</p>
+                  <ul>
+                    <li>
+                      Run <code>yarn plan-doc open review-review</code> several times in a row. The plan doc should stay
+                      put: no white (or blank) frame, no jump back to the top.
+                    </li>
+                    <li>
+                      Run it with <code>--hash</code> of a section further down (once agent B's page handles it): the
+                      page scrolls there without reloading.
+                    </li>
+                    <li>
+                      Show a DIFFERENT page (<code>yarn docs:open --vs</code>): it replaces the plan doc, and while it
+                      loads the side bar shows the theme's background, never white.
+                    </li>
+                    <li>The reload button in the title bar still reloads the page.</li>
+                    <li>
+                      Links clicked inside the page still work: docs pages open in the tab, source files in the editor,
+                      other sites in the browser.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v3">V3</a>
+                  <span class="plan-title">Side bar link with --review</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn docs:link epics/review-review/review-review.html --review</code> prints a side bar link
+                    that opens the page in the Review tab (once the page server has been restarted, so it has the new
+                    route code). <code>--show</code> with <code>--review</code> shows it there at once. Without
+                    <code>--review</code>, links keep using the Spell Docs tab.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v4">V4</a>
+                  <span class="plan-title">Contents rail and drawer in the side bar</span> </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>Open a plan doc in the Spell Docs tab; drag the side bar from about 300px to 700px wide.</li>
+                    <li>
+                      Below 400px: only the bars button, at the top right of the page header; clicking it slides the
+                      contents drawer in.
+                    </li>
+                    <li>
+                      Above 400px: a thin strip of section icons, the current one filled purple, counts as small purple
+                      pills fully on screen.
+                    </li>
+                    <li>Hover the strip: it widens to show the section names; click one to jump there.</li>
+                    <li>Dark theme (sun / moon in the site header): same, purple on aubergine.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v5">V5</a>
+                  <span class="plan-title">Review line copies its command</span> </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Open any plan doc; under the title: "To review this doc, type
+                      <code>/epic review &lt;name&gt;</code>".
+                    </li>
+                    <li>
+                      Click it: the line flashes yellow, says "copied", and pasting gives
+                      <code>/epic review &lt;name&gt;</code>.
+                    </li>
+                    <li>
+                      Try it in VS Code's side bar too: a webview may refuse the clipboard; the runtime falls back to
+                      the old copy command, but say so if nothing lands.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v6">V6</a>
+                  <span class="plan-title">Editing a plan doc in VS Code's side bar keeps your place</span> </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      After <code>yarn vscode</code> and a window reload, open a plan doc in the side bar, unfold a
+                      section, scroll halfway down and start typing in a field (or just leave a code block open).
+                    </li>
+                    <li>
+                      Run <code>yarn plan-doc log &lt;name&gt; "test"</code>, then
+                      <code>yarn plan-doc add &lt;name&gt; todo "test"</code>.
+                    </li>
+                    <li>
+                      Expected: no white flash, no jump; the new log line and todo appear, the counts and contents
+                      follow; folds and typed text stay. Remove the test lines afterwards.
+                    </li>
+                    <li>
+                      Then <code>yarn plan-doc phase &lt;name&gt; &lt;N&gt; active</code>: the doc comes forward once,
+                      without reloading.
+                    </li>
+                    <li>Then reload the side bar (or restart VS Code): it opens on the section you were reading.</li>
+                    <li>
+                      Rerunnable in a headless browser: <code>node scripts/check-live.js</code> in
+                      <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
+                      >.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          data-tip="Plan changes, oldest first, local time."
+          id="log"
+          header="9. Log"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-04T10:58-04:00">2026-10-04 10:58</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:03-04:00">2026-10-04 11:03</time></ui-date> Owen adds to the
+                  kickoff: item action menu gets "Add to todo": flags the item to become a todo (an issue to follow up
+                  later), applied when the page-level "send to Claude" fires</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:07-04:00">2026-10-04 11:07</time></ui-date> Owen adds:
+                  /isolate done also asks whether to open a pull request for the branch, so the whole epic's changes can
+                  be read in one place</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P1 added: Side Bar
+                  And Chrome</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P2 added: Fuller
+                  Writing</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P3 added: Status
+                  And Commits</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P4 added: Rename
+                  And Migrate</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P5 added: Item
+                  Actions</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P6 added: Claude
+                  Side</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P7 added: Bedtime
+                  And Isolate</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P8 added: Rewrite
+                  The Rest</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P9 added: Planning
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> P10 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> Q1 answered: D1
+                  Your marks wait in an inbox file beside the plan doc</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> Q2 answered: D2
+                  Green: changed in this or the last commit, or during a /bedtime run; grey: older</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> Q3 answered: D3
+                  The command stays /epic review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> Q4 answered: D4
+                  Rewrite the open items of every old doc now (P4), the rest in a later phase (P8)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> Q5 answered: D5
+                  /bedtime's Overnight section goes</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:33-04:00">2026-10-04 11:33</time></ui-date> Q6 answered: D6
+                  "Revisit now" with no session reviewing waits for the next /epic review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T11:35-04:00">2026-10-04 11:35</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:01-04:00">2026-10-04 12:01</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:01-04:00">2026-10-04 12:01</time></ui-date> P1 done: two side
+                  bar tabs (Spell Docs, Review), pages update in place without reloading, address follows the section,
+                  chevrons right, option cards fixed, contents rail redesigned, Epic: titles, review-command line;
+                  checks: docs scripts 89, server 85, window 19, vscode typecheck, check-spell on 3 docs, check-live
+                  ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:22-04:00">2026-10-04 12:22</time></ui-date> P1 follow-up
+                  (Owen's look): rail flyout icons on the left, strip and drawers in the accent colors, no bounce when
+                  folding a section you're inside, section intros moved into title tooltips</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:38-04:00">2026-10-04 12:38</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:42-04:00">2026-10-04 12:42</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:43-04:00">2026-10-04 12:43</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T12:43-04:00">2026-10-04 12:43</time></ui-date> P2 done: writing
+                  rules (cold reader, bullets, Net effect), estimate badges, Done field, Files / Verify toggles; checks:
+                  docs scripts 93, check-spell on 2 docs, check-live ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>

@@ -17,9 +17,10 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   prose:  the summary, Overview, phase bodies, item details.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
   doc review):  `yarn plan-doc open <name>` reloads it in the side bar's doc preview.  `yarn plan-doc phase` does it for you.
-- Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
-  OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
-  order or reference matters.
+- Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):  a plain lead sentence, then
+  bullets (never a list run together in a sentence), full words, a concrete example for anything tricky, ids
+  explained, and a **Net effect** list closing every question, issue, judgement call and decision.  NOT caveman
+  (Owen, 2026-10-04).  Replies:  short, the same plain words.
 - Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  paste what
   `yarn docs:link <ABSOLUTE path> --hash <id> [--text "..."]`, run in the checkout the doc is in:  it prints
   the side bar link, then `(_browser_)` (`.claude/skills/details/SKILL.md`, "Links to pages").
@@ -115,8 +116,12 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 
 ## 4. Fill the doc (right after ExitPlanMode is approved)
 
-- `yarn plan-doc add-phase <name> "Short Name" --goal "..." --files "..." --verify "..." --estimate "1-2h"` per
-  phase, in order:  the Overview's total (`p.plan-estimate`) follows by itself
+- Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04):  in `~/.claude/plans/`,
+  `mv <file>.md epic-<name>--<file>.md`, then `ln -s epic-<name>--<file>.md <file>.md` (the harness still reads
+  the old name).
+- `yarn plan-doc add-phase <name> "Short Name" --goal "<ul><li>...</li></ul>" --files "..." --verify "..." --estimate
+  "1-2h"` per phase, in order:  the goal one bullet per outcome, in Owen's terms;  the estimate becomes the title's
+  badge, and the Overview's total (`p.plan-estimate`) follows by itself
 - `yarn plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
 - Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
 - Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
@@ -144,8 +149,9 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
      just before it (the script marks items itself)
 3. Subagents:  paste the cheat sheet below into their prompts, with "record caveats, issues and decisions in the
    plan doc as you find them".
-4. `yarn plan-doc phase <name> <N> done` (drops that phase's UPDATE markers, reloads the tab), then
-   `yarn plan-doc summary <name>`.
+4. `yarn plan-doc phase <name> <N> done --done "<ul><li>...</li></ul>"` (drops that phase's UPDATE markers, writes
+   its Done field, brings the doc forward), then `yarn plan-doc summary <name>`.  Done:  what was BUILT, ordered by
+   what Owen asks about first:  where to see it, what changed in how he works, what's rough or not yet tried by hand.
 5. Reply:  a short bulleted list (done, issues, caveats, next), the "complete.  Next is" line (see the top), THEN
    AskUserQuestion so the user picks without copying anything.  Options, most useful first:
    - "Start P<N+1> · <Name> (Recommended)"

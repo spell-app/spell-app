@@ -104,15 +104,20 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
     gets a nested one-pair accordion
   - every link carries `data-target="{id}"` for scroll-follow
   - an entry's `<ui-icon>`s (a plan phase's status) are copied in front of it;  `ui-label` badges are not
-  - a group with open items gets their count as a round badge (`ui-label.spell-toc-count`)
+  - a group with open items gets their count as a small accent pill (`span.spell-toc-count`)
 - Layout:  content column (max ~880px) + ~300px contents column that scrolls on its own.  Under 1100px the contents
   become a right drawer;  clicking a contents link closes it.
 - Rail (`buildRail()`, `nav.spell-rail`):  a fixed strip at the right edge, shown while the contents column isn't
   (under 1100px, or `body.spell-toc-hidden`):
-  - on top, the contents button (`ui-button.spell-toc-open`, bars):  narrow, it slides the drawer;  wide, it brings
-    the column back
-  - then one `ui-item` per top-level section (h2), its icon (else its number), its open count floating on it;
-    scroll-follow selects the current section's
+  - plain elements, styled by `spell-doc.css` "Rail":  each entry `label | icon`, the labels showing only while
+    hover or focus widens the strip leftward (36px -> 240px);  the current section filled with the accent
+  - on top, the contents button (`button.spell-toc-open`, plain bars):  narrow, it slides the drawer;  wide, it
+    brings the column back
+  - then one `a.spell-rail-item[data-rail]` per top-level section (h2), its icon (else its number), its open count
+    a pill on the icon's corner;  scroll-follow marks the current section's `selected`
+  - 400px wide and under:  only the bars button, at the top right over the page header's end
+  - `buildContents()` / `buildRail()` / `wireContents()` can run again (a page updated in place):  each replaces
+    what it built, or drops its listeners, first
   - pages from before 2026-10-01 hand-wrote a "Contents" `.spell-toc-open`:  the runtime removes it
 - The site header (`<spell-site-header>`, `$/server/site`):  fixed on top of every page, its height
   `--spell-site-header-height` on `:root` (`siteHeaderHeight()`).  Everything that sticks or lands starts below it:

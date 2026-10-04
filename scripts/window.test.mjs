@@ -13,16 +13,7 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { after, beforeEach, test } from "node:test"
 
-import {
-  Window,
-  claudeSessions,
-  mainRoot,
-  parseLsof,
-  processTable,
-  stayAdvice,
-  tint,
-  worktreeOf
-} from "./window.mjs"
+import { Window, claudeSessions, mainRoot, parseLsof, processTable, stayAdvice, tint, worktreeOf } from "./window.mjs"
 
 /** The temp registry folder. */
 const dir = mkdtempSync(join(tmpdir(), "spell-windows-"))
@@ -90,6 +81,30 @@ test("request():  POSTs the op with the token;  throws the window's error", asyn
     assert.deepEqual(await Window.request("show-doc", { file: "/x.html" }, window), { ok: true, file: "/x.html" })
     assert.deepEqual(seen[0], { url: "/show-doc", auth: "Bearer abc", body: { file: "/x.html" } })
     await assert.rejects(Window.request("nope", {}, window), /`nope` failed:  unknown op/)
+  } finally {
+    server.close()
+  }
+})
+
+test("show():  sends `show-doc` to this session's window, with `hash` and `view` only when given", async () => {
+  const seen = []
+  const server = createServer((request, response) => {
+    let body = ""
+    request.on("data", (chunk) => (body += chunk))
+    request.on("end", () => {
+      seen.push(JSON.parse(body))
+      response.writeHead(200, { "Content-Type": "application/json" })
+      response.end(JSON.stringify({ ok: true }))
+    })
+  })
+  await new Promise((done) => server.listen(0, "127.0.0.1", done))
+  const window = { pid: process.ppid, port: server.address().port, token: "t", folders: [], workspaceFile: null }
+  writeFileSync(join(dir, `${process.ppid}.json`), JSON.stringify(window))
+  try {
+    // no session:  nothing pending, so straight to the window
+    assert.equal((await Window.show("/a.html", { sessionId: "" })).window.pid, process.ppid)
+    await Window.show("/b.html", { hash: "q3", view: "review", sessionId: "" })
+    assert.deepEqual(seen, [{ file: "/a.html" }, { file: "/b.html", hash: "q3", view: "review" }])
   } finally {
     server.close()
   }
@@ -195,6 +210,10 @@ test("resume():  opens the session in the target window, then closes its tab, or
       ["/show-doc", show],
       ["/close-session-tab", { titles: ["isolate-me"] }]
     ])
+    // ... in the tab it was asked for
+    const review = { file: "/plan.html", view: "review" }
+    assert.equal((await Window.resume({ ...tab, show: review }, "isolate-me")).shown, true)
+    assert.deepEqual(seen.splice(0)[1], ["/show-doc", review])
     // a prompt to type into the new tab, and every title the old tab may show
     assert.equal((await Window.resume({ ...tab, prompt: "continue" }, ["iso", "Claude's title"])).closed, true)
     assert.deepEqual(seen.splice(0), [
@@ -253,6 +272,12 @@ test("show():  while a move is pending, the doc waits for the target window;  th
     assert.deepEqual(await Window.show("/b.html", { hash: "g1", sessionId: SESSION }), { later: record.to })
     const { show } = JSON.parse(readFileSync(Window.handoffFile(SESSION), "utf8"))
     assert.deepEqual(show, { file: "/b.html", hash: "g1" })
+    // the Review tab:  the record keeps `view`, for `resume` to send
+    await Window.show("/c.html", { view: "review", sessionId: SESSION })
+    assert.deepEqual(JSON.parse(readFileSync(Window.handoffFile(SESSION), "utf8")).show, {
+      file: "/c.html",
+      view: "review"
+    })
   } finally {
     rmSync(Window.handoffFile(SESSION), { force: true })
   }
@@ -281,10 +306,13 @@ test("processTable() + claudeSessions():  a window's sessions are its extension 
 
 test("parseLsof() + worktreeOf():  each session's folder, and the worktree it's in", () => {
   const cwds = parseLsof("p301\nfcwd\nn/repo/.claude/worktrees/seo/packages/ui\np302\nfcwd\nn/repo\n")
-  assert.deepEqual([...cwds], [
-    [301, "/repo/.claude/worktrees/seo/packages/ui"],
-    [302, "/repo"]
-  ])
+  assert.deepEqual(
+    [...cwds],
+    [
+      [301, "/repo/.claude/worktrees/seo/packages/ui"],
+      [302, "/repo"]
+    ]
+  )
   assert.equal(worktreeOf(cwds.get(301)), "seo")
   assert.equal(worktreeOf(cwds.get(302)), null)
   assert.equal(worktreeOf(null), null)
