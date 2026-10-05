@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 import { SpellLocation } from "$/spell/SpellLocation"
 
 // Make sure we don't re-use registry items.

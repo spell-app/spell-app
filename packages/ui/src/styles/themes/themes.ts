@@ -10,10 +10,12 @@ import type { Styles } from "$/ui/runtime"
  * - Both go on the page AND into every component shadow root (`UI.styles.register(..., { page, shadow })`):
  *   - tokens on `:root` reach components by inheritance either way
  *   - the theme's class-grammar overrides (`.ui.button { ... }`) only reach component markup from INSIDE the root
- * - Two sheets here are NOT Fomantic themes, and are left out of `names`:
+ * - Three sheets here are NOT Fomantic themes, and are left out of `names`:
  *   - `classic`:  the base every Fomantic theme sits on;  `apply("classic")` applies it alone
  *   - `dark`:  a colour SCHEME, not a look;  switch it with `color-scheme` / `ui-dark` / `<ui-root theme>`, on top
  *     of any theme.  `apply("dark")` throws.
+ *   - `spell`:  OUR OWN theme (`OWN`), the Spell brand;  applied exactly like a Fomantic theme (on `classic`), but
+ *     a picker lists it apart from them
  * - Registry names in `UI.styles`:  `classic` (the base;  the same name the Astro site's toggle used) and `theme`
  *   (the current Fomantic theme).  ONE `theme` slot, so switching themes replaces its text in place.
  */
@@ -22,6 +24,8 @@ export class ThemeSheets {
   static readonly BASE = "classic"
   /** sheets in this folder that are not themes you pick from a list */
   static readonly NOT_THEMES: readonly string[] = [ThemeSheets.BASE, "dark"]
+  /** our own themes (not Fomantic ports):  applied like one, listed apart from `names` */
+  static readonly OWN: readonly string[] = ["spell"]
   /** `UI.styles` names:  base slot and theme slot */
   static readonly SLOTS = { base: "classic", theme: "theme" } as const
 
@@ -36,8 +40,10 @@ export class ThemeSheets {
   /** every sheet in this folder, `classic` and `dark` included, A-Z */
   static readonly sheets: readonly string[] = Object.keys(ThemeSheets.loaders).sort()
 
-  /** the Fomantic themes:  every sheet but `NOT_THEMES`, A-Z */
-  static readonly names: readonly string[] = ThemeSheets.sheets.filter((name) => !ThemeSheets.NOT_THEMES.includes(name))
+  /** the Fomantic themes:  every sheet but `NOT_THEMES` and `OWN`, A-Z */
+  static readonly names: readonly string[] = ThemeSheets.sheets.filter(
+    (name) => !ThemeSheets.NOT_THEMES.includes(name) && !ThemeSheets.OWN.includes(name)
+  )
 
   /** name last passed to `apply()`, `undefined` for our own look */
   static current: string | undefined
@@ -60,7 +66,7 @@ export class ThemeSheets {
 
   /**
    * Apply theme `name` page-wide, on the page and in every component shadow root.
-   * - A Fomantic theme (`names`):  `classic` + the theme.
+   * - A Fomantic theme (`names`) or one of `OWN`:  `classic` + the theme.
    * - `"classic"`:  `classic` alone.
    * - `undefined` (or `""`):  neither, our own look.
    * - `styles`:  the registry to use, default the page runtime's `UI.styles` (loading the runtime if need be;

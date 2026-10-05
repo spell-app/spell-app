@@ -60,7 +60,8 @@ Every command takes one or more targets:
 |---|---|
 | `spell help [command]` | Lists the commands, or shows one's options:  `spell help compile` ~== `spell compile --help`. |
 | `spell serve [target]` | Runs everything -- the spell app's editor (vite, hot reload) and this checkout's page server (`yarn server`:  the app's `/api`, which saves files to disk, plus docs, epics, goals and Spell UI) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (the editor's;  default 3000), `--headless`. |
-| `spell plan-doc <command> <name> ...` | Edits a plan doc (`packages/docs/epics/<name>/<name>.html`) as the `/epic` skill does:  `yarn plan-doc` from anywhere, in the nearest checkout (a worktree's, when run in one).  `spell plan-doc` alone lists its commands, e.g. `summary <name>`, `phase <name> 2 done`. |
+| `spell plan-doc <command> <name> ...` | Edits a plan doc (`packages/docs/content/epics/<name>/<name>.plan.html`) as the `/epic` skill does:  `yarn plan-doc` from anywhere, in the nearest checkout (a worktree's, when run in one).  `spell plan-doc` alone lists its commands, e.g. `summary <name>`, `phase <name> 2 done`. |
+| `spell dev commands [list\|check]` | Every yarn script, `spell` command and skill, against the commands page (`packages/docs/content/dev/commands/commands.json`):  `list` marks each ✓ / ✗, `check` prints only the gaps and exits 1 on any.  `--json`.  The first of the repo-tool commands, `spell dev <noun> <verb>`:  the plan for the rest is that page's Roadmap.  Root `yarn commands:check`. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword:  name, pack, other names.  `--pack <id>`, `--json`.  `--open` shows them as pictures in your browser (click one to copy its name), until `Ctrl-C`. |
 | `spell static <pages...>` | `@spell-app/ui` pages as plain HTML for crawlers and no-JS readers:  each `ui-*` element rendered to light DOM (no shadow DOM), the scripts that load the elements removed.  Writes `page.static.html` beside `page.html`, and ONE minified stylesheet per output folder, `ui.static.css`, which every page there links (the browser caches it).  `-o <file>` (one page) or `-o <folder>` (several), `--css <file>` (one stylesheet elsewhere), `--inline-css` (each page's own `<style>` instead), `--no-minify`.  A folder:  every `.html` in it. |
 | `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  `--force` recompiles the projects it imports, too.  A `.spell` file prints its javascript. |
@@ -138,7 +139,7 @@ Every command takes one or more targets:
 
 ### `static`
 
-- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `packages/docs/epics/seo/seo.html`)
+- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `packages/docs/content/epics/seo/seo.plan.html`)
   in a child process, `src/runner/renderStatic.ts`, on an SSR-only Vite server (`ui/tools/StaticRenderer.ts`):  `ui`'s
   Solid JSX must compile for the server, which `tsx` can't.  Each run starts Vite and compiles every family, so a page
   takes about 3 seconds;  several pages share one run.
@@ -180,7 +181,7 @@ Every command takes one or more targets:
 - Watching both a project and one it imports:  the importer rebuilds, from scratch, after the imported one does.
   A project imported but not watched isn't seen changing.
 - On macOS a save arrives as a `rename` event, so `watch` ignores event types and looks at what's on disk.
-  See `PAPERCUTS.md`.
+  See `agents/PAPERCUTS.md`.
 
 ### `explore`
 
@@ -202,7 +203,7 @@ Every command takes one or more targets:
   lookup.  Write output with `session.out()` / `session.err()`.  An Ink screen MUST render with
   `patchConsole: false`.
 - **Property names show as `short_suit`, not `short-suit`:**  that's what the Type Explorer gives.  See the
-  parser's `SUSPECTED-BUGS.md`.
+  parser's `agents/SUSPECTED-BUGS.md`.
 - **Name clashes:**  a shell alias or function named `spell` hides the command.  Check `type -a spell` in a login
   shell.
 - **Test projects:**  running a `projects/test/` project from VS Code's ▶ Run Project writes `<Project>.compiled.js`
@@ -239,6 +240,6 @@ Every command takes one or more targets:
   - the first line of `describe <name>` is worked out here -- see `summary()` in `describeText.ts` -- as details
     no longer carry one
   - members list in the order they're declared, as the Type Explorer now shows them
-- Two suspected bugs found along the way, in the parser's `SUSPECTED-BUGS.md`:
+- Two suspected bugs found along the way, in the parser's `agents/SUSPECTED-BUGS.md`:
   - `SpellDiskWorkspace.diskChanged(uri, "created")` keeps a loaded file's old text
   - `ScopeExplorer` property names

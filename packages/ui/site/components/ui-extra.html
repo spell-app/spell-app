@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Extra | Spell UI</title>
+    <meta
+      name="description"
+      content="Extra content is set apart from the main content, such as a card's footer."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Extra">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-extra.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-extra%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Extra
+            <ui-header>Extra content is set apart from the main content, such as a card's footer.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-extra" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  `<ui-extra>` in each owner that gives it a look (from the owners' own pages and
+              `src/components/ui-parts/examples/elements/`), then its attributes.  The Content parts page
+              (`ui-header.html`) shows every part together.
+            -->
+            <ui-section id="examples-owners" header="Owners" sticky collapsible dividing>
+              <ui-section id="examples-owners-card" header="Card" sticky collapsible dividing>
+                <ui-docs-example description="A card's extra content:  its footer band.">
+                  <ui-card>
+                    <ui-content>
+                      <ui-header>Elliot</ui-header>
+                      <ui-description>Elliot is a sound engineer living in Nashville.</ui-description>
+                    </ui-content>
+                    <ui-extra><ui-icon name="user"></ui-icon> 16 Friends</ui-extra>
+                  </ui-card>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-owners-item" header="Item" sticky collapsible dividing>
+                <ui-docs-example description="An item's extra content:  a line under its description.">
+                  <ui-items>
+                    <ui-item image="../images/wireframe/image.png">
+                      <ui-content>
+                        <ui-header href="#">Cute Dog</ui-header>
+                        <ui-description>Many people also have their own barometers for what makes a cute dog.</ui-description>
+                        <ui-extra><ui-icon name="check" color="green"></ui-icon> 121 Votes</ui-extra>
+                      </ui-content>
+                    </ui-item>
+                  </ui-items>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-owners-feed" header="Feed" sticky collapsible dividing>
+                <ui-docs-example description="A feed event's extra images;  with `text`, extra text.">
+                  <ui-feed>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary><ui-author href="#helen">Helen Troy</ui-author> added 2 new photos</ui-summary>
+                        <ui-extra>
+                          <ui-images size="tiny">
+                            <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                            <ui-image src="../images/wireframe/image.png" alt=""></ui-image>
+                          </ui-images>
+                        </ui-extra>
+                      </ui-content>
+                    </ui-event>
+                    <ui-event>
+                      <ui-content>
+                        <ui-summary><ui-author href="#laura">Laura Faucet</ui-author> created a post</ui-summary>
+                        <ui-extra text>Have you seen what's going on in Israel? Can you believe it.</ui-extra>
+                      </ui-content>
+                    </ui-event>
+                  </ui-feed>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-extra>` is extra content, set apart from the main content: a card's footer, an item's extra line, a feed
+                  event's extra text or images.
+
+                  - In a card it is a bottom band, divided from the content above, muted until hovered.
+                  - In a feed, `text` makes it a block of quoted text; without it, it holds images or other markup.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-owners" header="Owners" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `<ui-extra>` finds its nearest owner and sets `:state(in-<owner>)` on itself; `ui-parts.css` styles it by that
+                  state. Its owners, and what each makes of it:
+
+                  - [Card](ui-card.html) (`:state(in-card)`): the bottom band, divided from the content and muted
+                  - [Item](ui-items.html) (`:state(in-item)`): a muted line under the description
+                  - [Feed](ui-feed.html) (`:state(in-feed)`): extra text (`text`) or images under the summary
+
+                  Anywhere else it is an unstyled block. More on how parts find their owners: [Content parts](ui-header.html#usage-owners).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A neutral block with no role. Its muted colour is a look only: put nothing in it that a reader must not miss.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api tag="ui-extra"></ui-docs-api>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

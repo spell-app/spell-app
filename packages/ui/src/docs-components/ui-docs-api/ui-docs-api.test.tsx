@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -31,6 +31,7 @@ function tagOf(tag: string, folder: string, overrides: Partial<SiteTag> = {}): S
     folder,
     mainTag: folder,
     main: tag === folder,
+    page: tag === folder,
     topics: [],
     aka: [],
     noun: tag.replace(/^x-/, ""),

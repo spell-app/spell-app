@@ -15,7 +15,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   that the app's own chunks hold none:
   - Solid is the DEFAULT JSX:  a new `.tsx` is Solid.  A React file's FIRST line is `/** @jsxImportSource react */`
     -- `tsc` reads it, and so does `vite.shared.ts` (`reactFiles()`), which every `vite*.config.ts` /
-    `vitest.config.ts` here builds on.  Restart `vite` after adding or dropping one.  `CODE-DEBT.md` "app".
+    `vitest.config.ts` here builds on.  Restart `vite` after adding or dropping one.  `agents/CODE-DEBT.md` "app".
   - Two test projects (`vitest.config.ts`):  `node` for most tests, where `solid-js` is its SERVER build
     (`renderToString`;  writes NOT staged, see `src/solid.test.tsx`), and `browser` (chromium) for
     `*.browser.test.ts(x)`:  Solid's client build, as in the app.

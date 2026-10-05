@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { E, V } from "$/ui/api"
 import * as elements from "$/ui/elements"

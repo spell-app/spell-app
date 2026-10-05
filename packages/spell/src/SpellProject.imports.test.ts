@@ -3,7 +3,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } fro
 import { tmpdir } from "os"
 import { resolve } from "path"
 import { pathToFileURL } from "url"
-import { describe, test, expect, beforeAll } from "vitest"
+import { describe, test, expect, beforeAll } from "vite-plus/test"
 
 import environment from "$/spell/node/environment"
 import { P } from "$/parser"

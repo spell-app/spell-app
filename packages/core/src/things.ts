@@ -91,9 +91,9 @@ export class ThingRegistry {
   /**
    * Remember the program's top-level things:  its module's exports, e.g. `export let deck = new Deck()`.
    * - Pass the module namespace itself:  its bindings are live, so a thing a top-level variable is set to
-   *   later shows too -- but only when something else redraws the explorer.  See `CODE-DEBT.md`.
+   *   later shows too -- but only when something else redraws the explorer.  See `agents/CODE-DEBT.md`.
    * - Only `Thing`s and `List`s count -- see `topLevel()`.
-   * - Only the main program's -- NOT those of the projects it imports.  See `CODE-DEBT.md`.
+   * - Only the main program's -- NOT those of the projects it imports.  See `agents/CODE-DEBT.md`.
    * - SIDE EFFECT:  ends the program's last `heading()`.
    */
   setTopLevel(exports: Record<string, unknown>): void {
@@ -253,7 +253,7 @@ export class ThingRegistry {
    * - the explorer reading a value.  Registering what that makes would also redraw the explorer, which would
    *   read the value again, and make another -- forever.
    * - a collection helper's result, e.g. the new `Pile` `spellCore.map()` makes -- see `spellCore.newThingLike()`
-   *   and `CODE-DEBT.md`.
+   *   and `agents/CODE-DEBT.md`.
    */
   quietly<T>(work: () => T): T {
     this.quiet++

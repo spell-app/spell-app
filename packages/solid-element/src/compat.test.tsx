@@ -13,7 +13,7 @@ import { register as originalRegister, compose as originalCompose } from "compon
 import { withSolid as originalWithSolid } from "@solidjs/element"
 import { createContext, createSignal, flush, getOwner, onCleanup, useContext } from "solid-js"
 import { render } from "@solidjs/web"
-import { afterEach, describe, expect, test, vi } from "vitest"
+import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 
 import { compose, register } from "./customElement"
 import { withSolid } from "./withSolid"

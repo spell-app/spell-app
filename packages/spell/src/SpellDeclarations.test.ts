@@ -1,5 +1,5 @@
 import semver from "semver"
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 
 import { P } from "$/parser"
 import { SP } from "$/spell"

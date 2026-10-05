@@ -74,7 +74,8 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
       ]
     }
   },
-  "ui-docs-themes": { folder: "ui-docs-themes", skeleton: { display: "inline", width: "16em", height: "2.5em" } },
+  "ui-docs-search": { folder: "ui-docs-search", skeleton: { width: "16em", height: "2.25em" } },
+  "ui-docs-themes": { folder: "ui-docs-themes", skeleton: { display: "inline", width: "5em", height: "2.25em" } },
   "ui-docs-toc": {
     folder: "ui-docs-toc",
     skeleton: {
@@ -161,6 +162,7 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-row": { folder: "ui-grid" },
   "ui-search": { folder: "ui-search", skeleton: { display: "inline", width: "15em", height: "2.5em" } },
   "ui-section": { folder: "ui-section", skeleton: { parts: [{ shape: "header" }, { shape: "paragraph" }] } },
+  "ui-sections": { folder: "ui-section" },
   "ui-segment": { folder: "ui-segment", skeleton: { parts: [{ shape: "header" }, { shape: "paragraph" }] } },
   "ui-segments": { folder: "ui-segment" },
   "ui-select": { folder: "ui-select", skeleton: { display: "inline", width: "12em", height: "2.5em" } },

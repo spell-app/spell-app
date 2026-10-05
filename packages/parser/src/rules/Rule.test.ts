@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 import { proto } from "$/util"
 import { P, Match, Parser, Tokenizer, WhitespacePolicy } from "$/parser"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.
@@ -396,7 +396,7 @@ describe("P.Choice tie-breaking", () => {
   }
 
   test("same precedence and length -- EARLIEST-registered rule wins", () => {
-    // NOTE: `getBestMatch()` long claimed the opposite in its comments -- see SUSPECTED-BUGS.md.
+    // NOTE: `getBestMatch()` long claimed the opposite in its comments -- see agents/SUSPECTED-BUGS.md.
     expect(tieParser().parse("x", "either")?.rule.name).toBe("first_rule")
   })
 

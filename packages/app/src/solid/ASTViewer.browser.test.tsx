@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from "vitest"
+import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { createSignal, flush } from "solid-js"
 import { render } from "@solidjs/web"
 
@@ -69,7 +69,7 @@ describe("<ASTViewer>", () => {
   })
 
   test("one `ast` draws in two viewers at once:  fresh nodes for each, the Javascript it compiles to", async () => {
-    // NOTE: no declaration -- its `/*! SPELL: DECLARES` comment draws as `/* ...` (SUSPECTED-BUGS.md)
+    // NOTE: no declaration -- its `/*! SPELL: DECLARES` comment draws as `/* ...` (agents/SUSPECTED-BUGS.md)
     const ast = compile("if 1 is 2\n  print 1\nprint 2")
     const host = await mount(() => (
       <>

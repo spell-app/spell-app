@@ -12,77 +12,64 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Visibility">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-visibility.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-visibility%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/behaviors/visibility.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Visibility
+            <ui-header>Visibility provides a set of callbacks for when content appears in the viewport.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-visibility" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-visibility.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-visibility%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/behaviors/visibility.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Visibility
-                <ui-header>Visibility provides a set of callbacks for when content appears in the viewport.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-visibility" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Visibility"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
-                  Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/epics/spell-ui-pages/PAGES.md.
-                  - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
-                  - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
-                    IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
-                  - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
-                -->
-
-                <ui-header level="2" dividing id="how-it-works">Usage</ui-header>
-
-                <ui-docs-example header="How To Use">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
+              Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/content/epics/spell-ui-pages/PAGES.md.
+              - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
+              - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
+                IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
+              - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
+            -->
+            <ui-section id="examples-usage" header="Usage" sticky collapsible dividing>
+              <ui-section id="examples-usage-how-to-use" header="How To Use" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     Visibility reports an element's position on screen: wrap the content in
                     <code>&lt;ui-visibility&gt;</code> and listen for its events, each with the calculations as
@@ -174,8 +161,16 @@
                     </ui-column>
                   </ui-grid>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Changing Callback Frequency">
+              <ui-section
+                id="examples-usage-changing-callback-frequency"
+                header="Changing Callback Frequency"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     By default each event fires only <b>the first time</b> its conditions are met.
                     <code>once="false"</code> fires it each time its condition <b>becomes true</b>, and
@@ -192,10 +187,12 @@
                     <ui-segment><code>once="false" continuous</code>: <ui-label size="small">0</ui-label></ui-segment>
                   </ui-visibility>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="callbacks">Callbacks</ui-header>
-
-                <ui-docs-example header="Standard Events">
+            <ui-section id="examples-callbacks" header="Callbacks" sticky collapsible dividing>
+              <ui-section id="examples-callbacks-standard-events" header="Standard Events" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     Events occur at the first check where their conditions turn true. Each is Fomantic's callback as a
                     <code>ui-*</code> event. The log below shows the demo's events as you scroll past it.
@@ -261,15 +258,17 @@
                     </ui-list>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I112:  no grouped `onPassed` thresholds (pixels / percentages);  shown as a note. -->
-                <ui-message size="small" class="site-not-ported"
-                  >Not yet: Grouped Events -- Fomantic's <code>onPassed: { 40: fn, "80%": fn }</code>, callbacks after a
-                  distance into the element. There is no event or <code>UI.observeVisibility()</code> option for
-                  them.</ui-message
-                >
+              <!-- GAP I112:  no grouped `onPassed` thresholds (pixels / percentages);  shown as a note. -->
+              <ui-message size="small" class="site-not-ported"
+                >Not yet: Grouped Events -- Fomantic's <code>onPassed: { 40: fn, "80%": fn }</code>, callbacks after a
+                distance into the element. There is no event or <code>UI.observeVisibility()</code> option for
+                them.</ui-message
+              >
 
-                <ui-docs-example header="Reverse Events">
+              <ui-section id="examples-callbacks-reverse-events" header="Reverse Events" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     Reverse events occur under the same conditions, but as the user scrolls back up the page:
                     <code>UI.observeVisibility(element, options)</code> takes Fomantic's <code>...Reverse</code>
@@ -284,11 +283,19 @@
                     </ui-list>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="visibility-examples">Examples</ui-header>
-
-                <!-- C19:  items stack inside the docs column (under 768px), so these are unstackable (a 125px image). -->
-                <ui-docs-example header="Lazy Loading Images">
+            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
+              <!-- C19:  items stack inside the docs column (under 768px), so these are unstackable (a 125px image). -->
+              <ui-section
+                id="examples-examples-lazy-loading-images"
+                header="Lazy Loading Images"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     <code>type="image"</code> gives every <code>&lt;img data-src&gt;</code> inside its
                     <code>data-src</code> as <code>src</code> once its top is on screen. Keep a placeholder in
@@ -431,20 +438,22 @@
                     </ui-items>
                   </ui-visibility>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: Gradual Changes -- per-pixel <code>onPassing</code> updates (checks happen at crossings
-                  only); for a style that follows the scroll, use CSS scroll-driven animations (<code
-                    >animation-timeline: view()</code
-                  >), which need no script at all.</ui-message
-                >
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: Fixing Content To Viewport (<code>type: 'fixed'</code>) -- that's
-                  <a href="ui-sticky.html"><code>&lt;ui-sticky&gt;</code></a
-                  >, on CSS <code>position: sticky</code> with no placeholder element.</ui-message
-                >
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Gradual Changes -- per-pixel <code>onPassing</code> updates (checks happen at crossings
+                only); for a style that follows the scroll, use CSS scroll-driven animations (<code
+                  >animation-timeline: view()</code
+                >), which need no script at all.</ui-message
+              >
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Fixing Content To Viewport (<code>type: 'fixed'</code>) -- that's
+                <a href="ui-sticky.html"><code>&lt;ui-sticky&gt;</code></a
+                >, on CSS <code>position: sticky</code> with no placeholder element.</ui-message
+              >
 
-                <ui-docs-example header="Infinite Scroll">
+              <ui-section id="examples-examples-infinite-scroll" header="Infinite Scroll" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     As an alternative to pagination, listen for <code>ui-bottom-visible</code> with
                     <code>once="false"</code> and load more content when the bottom of a container is reached. Here the
@@ -462,265 +471,272 @@
                     </ui-segment>
                   </ui-visibility>
                 </ui-docs-example>
+              </ui-section>
 
-                <script type="module">
-                  /*
-                   * Live readouts for the examples above:  the calculations table, the counters, the event logs and the
-                   * infinite list, all from `<ui-visibility>` events (and one `UI.observeVisibility()`).  `UI` is the
-                   * runtime's global.
-                   */
-                  const EVENTS = [
-                    "ui-visible",
-                    "ui-hidden",
-                    "ui-top-visible",
-                    "ui-bottom-visible",
-                    "ui-top-passed",
-                    "ui-bottom-passed",
-                    "ui-passing"
-                  ]
+              <script type="module">
+                /*
+                 * Live readouts for the examples above:  the calculations table, the counters, the event logs and the
+                 * infinite list, all from `<ui-visibility>` events (and one `UI.observeVisibility()`).  `UI` is the
+                 * runtime's global.
+                 */
+                const EVENTS = [
+                  "ui-visible",
+                  "ui-hidden",
+                  "ui-top-visible",
+                  "ui-bottom-visible",
+                  "ui-top-passed",
+                  "ui-bottom-passed",
+                  "ui-passing"
+                ]
 
-                  // How To Use:  every event's calculations into the table
-                  const table = document.getElementById("visibility-calculations")
-                  for (const name of EVENTS) {
-                    document.getElementById("visibility-demo").addEventListener(name, (event) => {
-                      for (const row of table.rows) {
-                        const value = event.detail[row.dataset.key]
-                        row.cells[1].textContent =
-                          typeof value === "number" ? String(Math.round(value * 100) / 100) : String(value)
-                      }
-                    })
-                  }
-
-                  // Changing Callback Frequency:  count `ui-top-visible`
-                  for (const counter of document.querySelectorAll(".visibility-counter")) {
-                    let count = 0
-                    counter.addEventListener("ui-top-visible", () => {
-                      counter.querySelector("ui-label").textContent = String(++count)
-                    })
-                  }
-
-                  // Standard / Reverse Events:  newest first, eight at most
-                  function log(list, text) {
-                    const item = document.createElement("ui-item")
-                    item.textContent = text
-                    list.prepend(item)
-                    while (list.children.length > 8) list.lastElementChild.remove()
-                  }
-                  const logList = document.getElementById("visibility-log")
-                  for (const name of EVENTS) {
-                    document
-                      .getElementById("visibility-logged")
-                      .addEventListener(name, (event) => log(logList, `${name}  (scrolling ${event.detail.direction})`))
-                  }
-                  await customElements.whenDefined("ui-root")
-                  await globalThis.UI?.load?.()
-                  const reverseList = document.getElementById("visibility-reverse-log")
-                  const reverse = {}
-                  for (const name of [
-                    "onTopVisibleReverse",
-                    "onBottomVisibleReverse",
-                    "onTopPassedReverse",
-                    "onBottomPassedReverse",
-                    "onPassingReverse"
-                  ]) {
-                    reverse[name] = (calculations) => log(reverseList, `${name}  (scrolling ${calculations.direction})`)
-                  }
-                  globalThis.UI?.observeVisibility(document.getElementById("visibility-reversed"), {
-                    once: false,
-                    ...reverse
-                  })
-
-                  // Infinite Scroll:  three more items at each bottom, up to twelve
-                  const list = document.getElementById("visibility-infinite-list")
-                  const loader = document.getElementById("visibility-infinite-loader")
-                  document.getElementById("visibility-infinite").addEventListener("ui-bottom-visible", () => {
-                    if (list.children.length >= 12) return loader.remove()
-                    loader.setAttribute("active", "")
-                    setTimeout(() => {
-                      for (let i = 0; i < 3; i++) {
-                        const item = document.createElement("ui-item")
-                        item.textContent = `Item ${list.children.length + 1}`
-                        list.append(item)
-                      }
-                      loader.removeAttribute("active")
-                      if (list.children.length >= 12) loader.remove()
-                    }, 500)
-                  })
-                </script>
-              </ui-tab>
-
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Visibility fires events when its content reaches a position on screen. Common uses:
-
-                    - **Lazy loading images**: start loading an image just before the user sees it (`type="image"`).
-                    - **Reactive content**: change an element as the user scrolls past it.
-                    - **Event tracking**: log engagement, e.g. when a post is scrolled past (`ui-bottom-passed`).
-                    - **Infinite scroll**: load more content when the bottom of a list comes on screen
-                      (`ui-bottom-visible`).
-                    - Sticky headers are `<ui-sticky>`'s job, on CSS `position: sticky`.
-
-                    Wrap the content in `<ui-visibility>` and listen. It runs Fomantic's callbacks on an
-                    `IntersectionObserver`: no scroll listener, nothing measured while the page scrolls. The checks
-                    happen at crossings (the element entering or leaving, an edge crossing the screen's top or bottom),
-                    so `continuous` means "at each crossing", not "at every scrolled pixel". `offset` moves the
-                    screen's top down, under a fixed menu.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Each event carries the calculations as `detail` (`topPassed`, `bottomVisible`, `percentagePassed`,
-                    `pixelsPassed`, `direction` ...), and the element keeps `:state(visible)` while any of it is on
-                    screen. By default each event fires at most once (`once`, Fomantic's default); `once="false"` fires
-                    it each time its condition turns true.
-
-                    - `ui-visible` (`onOnScreen`): some of it came on screen.
-                    - `ui-hidden` (`onOffScreen`): none of it is on screen.
-                    - `ui-top-visible` (`onTopVisible`): its top came on screen.
-                    - `ui-bottom-visible` (`onBottomVisible`): its bottom came on screen.
-                    - `ui-top-passed` (`onTopPassed`): its top passed the screen's top.
-                    - `ui-bottom-passed` (`onBottomPassed`): its bottom passed the screen's top.
-                    - `ui-passing` (`onPassing`): it spans the screen's top.
-                    - `ui-load` (`{ image }`): with `type="image"`, an image got its source (and finished its fade).
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const watched = document.querySelector("#watched")
-                    watched.addEventListener("ui-visible", (event) => console.log("on screen", event.detail.percentagePassed))
-                    watched.addEventListener("ui-bottom-passed", () => analytics.track("read to the end"))
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="observe-visibility">UI.observeVisibility()</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `UI.observeVisibility(element, options)` runs the same checks on any element, without wrapping it.
-                    It takes Fomantic's names, including the `...Reverse` callbacks (the condition turned false again)
-                    and `onUpdate` (every check), plus `once`, `continuous`, `offset` and `context` (a scroll container
-                    to measure against instead of the viewport). It returns the function that stops watching.
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    import { UI } from "@spell-app/ui/core"
-
-                    await UI.load()
-                    const stop = UI.observeVisibility(box, {
-                      once: false,
-                      context: scroller,
-                      onTopPassed: (calculations) => console.log("top passed", calculations.direction),
-                      onBottomVisible: () => loadMore(),
-                      onOffScreen: () => pause()
-                    })
-                    // later:  stop()
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="lazy-images">Lazy images</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `type="image"` is Fomantic's lazy image loading: each `<img data-src>` (and `data-srcset`) inside
-                    gets its source once it's on screen, preloaded, then fades in; `ui-load` fires per image. For
-                    images alone, the browser's own `loading="lazy"` needs no script at all; `type="image"` adds the
-                    fade and the event.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    None of its own: it's a plain block around its content, which keeps its own keyboard behaviour.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - Visibility changes nothing for assistive technology: it watches, and its content reads as usual.
-                    - Don't hide content until it's scrolled to: keyboard and screen reader users move through a page
-                      without scrolling it the way a mouse does. Load more, or animate, but keep the content reachable.
-                    - Lazy images keep their `alt` and their `width` / `height`, so the layout doesn't jump when they
-                      load.
-                    - If the element can't render, its native fallback gives every `<img data-src>` its source at once,
-                      with `loading="lazy"`, so the browser still defers them and no image stays empty. The events are
-                      lost.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Listen for the events you need; in a component, call `UI.observeVisibility()` in a mount hook, and
-                    call what it returns on unmount.
-                  </script>
-                </ui-markdown>
-                <ui-header level="4" id="framework-react">React 19</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    <ui-visibility once="false" onui-bottom-visible={loadMore}>...</ui-visibility>
-                    useEffect(() => UI.observeVisibility(ref.current, { onTopPassed: showBackToTop, once: false }), [])
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                    <ui-visibility once="false" @ui-bottom-visible="loadMore">...</ui-visibility>
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    // no `on:` namespace:  listen through a ref
-                    <ui-visibility once="false" ref={(el) => el.addEventListener("ui-bottom-visible", loadMore)}>
-                      ...
-                    </ui-visibility>
-                  </script>
-                </ui-code>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-visibility"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A visibility draws nothing: it's a plain block around its content, with no tokens of its own. Style
-                    it through `::part(visibility)`, and the images' fade with `transition` and `duration`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    ui-visibility::part(visibility) {
-                      min-height: 50vh;
+                // How To Use:  every event's calculations into the table
+                const table = document.getElementById("visibility-calculations")
+                for (const name of EVENTS) {
+                  document.getElementById("visibility-demo").addEventListener(name, (event) => {
+                    for (const row of table.rows) {
+                      const value = event.detail[row.dataset.key]
+                      row.cells[1].textContent =
+                        typeof value === "number" ? String(Math.round(value * 100) / 100) : String(value)
                     }
-                  </script>
-                </ui-code>
-                <ui-docs-tokens family="ui-visibility" playground></ui-docs-tokens>
+                  })
+                }
 
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    No Fomantic theme restyles visibility: it has no look to restyle.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
+                // Changing Callback Frequency:  count `ui-top-visible`
+                for (const counter of document.querySelectorAll(".visibility-counter")) {
+                  let count = 0
+                  counter.addEventListener("ui-top-visible", () => {
+                    counter.querySelector("ui-label").textContent = String(++count)
+                  })
+                }
 
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+                // Standard / Reverse Events:  newest first, eight at most
+                function log(list, text) {
+                  const item = document.createElement("ui-item")
+                  item.textContent = text
+                  list.prepend(item)
+                  while (list.children.length > 8) list.lastElementChild.remove()
+                }
+                const logList = document.getElementById("visibility-log")
+                for (const name of EVENTS) {
+                  document
+                    .getElementById("visibility-logged")
+                    .addEventListener(name, (event) => log(logList, `${name}  (scrolling ${event.detail.direction})`))
+                }
+                await customElements.whenDefined("ui-root")
+                await globalThis.UI?.load?.()
+                const reverseList = document.getElementById("visibility-reverse-log")
+                const reverse = {}
+                for (const name of [
+                  "onTopVisibleReverse",
+                  "onBottomVisibleReverse",
+                  "onTopPassedReverse",
+                  "onBottomPassedReverse",
+                  "onPassingReverse"
+                ]) {
+                  reverse[name] = (calculations) => log(reverseList, `${name}  (scrolling ${calculations.direction})`)
+                }
+                globalThis.UI?.observeVisibility(document.getElementById("visibility-reversed"), {
+                  once: false,
+                  ...reverse
+                })
+
+                // Infinite Scroll:  three more items at each bottom, up to twelve
+                const list = document.getElementById("visibility-infinite-list")
+                const loader = document.getElementById("visibility-infinite-loader")
+                document.getElementById("visibility-infinite").addEventListener("ui-bottom-visible", () => {
+                  if (list.children.length >= 12) return loader.remove()
+                  loader.setAttribute("active", "")
+                  setTimeout(() => {
+                    for (let i = 0; i < 3; i++) {
+                      const item = document.createElement("ui-item")
+                      item.textContent = `Item ${list.children.length + 1}`
+                      list.append(item)
+                    }
+                    loader.removeAttribute("active")
+                    if (list.children.length >= 12) loader.remove()
+                  }, 500)
+                })
+              </script>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Visibility fires events when its content reaches a position on screen. Common uses:
+
+                  - **Lazy loading images**: start loading an image just before the user sees it (`type="image"`).
+                  - **Reactive content**: change an element as the user scrolls past it.
+                  - **Event tracking**: log engagement, e.g. when a post is scrolled past (`ui-bottom-passed`).
+                  - **Infinite scroll**: load more content when the bottom of a list comes on screen
+                    (`ui-bottom-visible`).
+                  - Sticky headers are `<ui-sticky>`'s job, on CSS `position: sticky`.
+
+                  Wrap the content in `<ui-visibility>` and listen. It runs Fomantic's callbacks on an
+                  `IntersectionObserver`: no scroll listener, nothing measured while the page scrolls. The checks
+                  happen at crossings (the element entering or leaving, an edge crossing the screen's top or bottom),
+                  so `continuous` means "at each crossing", not "at every scrolled pixel". `offset` moves the
+                  screen's top down, under a fixed menu.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Each event carries the calculations as `detail` (`topPassed`, `bottomVisible`, `percentagePassed`,
+                  `pixelsPassed`, `direction` ...), and the element keeps `:state(visible)` while any of it is on
+                  screen. By default each event fires at most once (`once`, Fomantic's default); `once="false"` fires
+                  it each time its condition turns true.
+
+                  - `ui-visible` (`onOnScreen`): some of it came on screen.
+                  - `ui-hidden` (`onOffScreen`): none of it is on screen.
+                  - `ui-top-visible` (`onTopVisible`): its top came on screen.
+                  - `ui-bottom-visible` (`onBottomVisible`): its bottom came on screen.
+                  - `ui-top-passed` (`onTopPassed`): its top passed the screen's top.
+                  - `ui-bottom-passed` (`onBottomPassed`): its bottom passed the screen's top.
+                  - `ui-passing` (`onPassing`): it spans the screen's top.
+                  - `ui-load` (`{ image }`): with `type="image"`, an image got its source (and finished its fade).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const watched = document.querySelector("#watched")
+                  watched.addEventListener("ui-visible", (event) => console.log("on screen", event.detail.percentagePassed))
+                  watched.addEventListener("ui-bottom-passed", () => analytics.track("read to the end"))
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-ui-observevisibility" header="UI.observeVisibility()" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `UI.observeVisibility(element, options)` runs the same checks on any element, without wrapping it.
+                  It takes Fomantic's names, including the `...Reverse` callbacks (the condition turned false again)
+                  and `onUpdate` (every check), plus `once`, `continuous`, `offset` and `context` (a scroll container
+                  to measure against instead of the viewport). It returns the function that stops watching.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  import { UI } from "@spell-app/ui/core"
+
+                  await UI.load()
+                  const stop = UI.observeVisibility(box, {
+                    once: false,
+                    context: scroller,
+                    onTopPassed: (calculations) => console.log("top passed", calculations.direction),
+                    onBottomVisible: () => loadMore(),
+                    onOffScreen: () => pause()
+                  })
+                  // later:  stop()
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-lazy-images" header="Lazy images" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `type="image"` is Fomantic's lazy image loading: each `<img data-src>` (and `data-srcset`) inside
+                  gets its source once it's on screen, preloaded, then fades in; `ui-load` fires per image. For
+                  images alone, the browser's own `loading="lazy"` needs no script at all; `type="image"` adds the
+                  fade and the event.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  None of its own: it's a plain block around its content, which keeps its own keyboard behaviour.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - Visibility changes nothing for assistive technology: it watches, and its content reads as usual.
+                  - Don't hide content until it's scrolled to: keyboard and screen reader users move through a page
+                    without scrolling it the way a mouse does. Load more, or animate, but keep the content reachable.
+                  - Lazy images keep their `alt` and their `width` / `height`, so the layout doesn't jump when they
+                    load.
+                  - If the element can't render, its native fallback gives every `<img data-src>` its source at once,
+                    with `loading="lazy"`, so the browser still defers them and no image stays empty. The events are
+                    lost.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Listen for the events you need; in a component, call `UI.observeVisibility()` in a mount hook, and
+                  call what it returns on unmount.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-visibility once="false" onui-bottom-visible={loadMore}>...</ui-visibility>
+                  useEffect(() => UI.observeVisibility(ref.current, { onTopPassed: showBackToTop, once: false }), [])
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-visibility once="false" @ui-bottom-visible="loadMore">...</ui-visibility>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-visibility once="false" ref={(el) => el.addEventListener("ui-bottom-visible", loadMore)}>
+                    ...
+                  </ui-visibility>
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-visibility"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A visibility draws nothing: it's a plain block around its content, with no tokens of its own. Style
+                  it through `::part(visibility)`, and the images' fade with `transition` and `duration`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-visibility::part(visibility) {
+                    min-height: 50vh;
+                  }
+                </script>
+              </ui-code>
+              <ui-docs-tokens family="ui-visibility" playground></ui-docs-tokens>
+            </ui-section>
+
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles visibility: it has no look to restyle.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

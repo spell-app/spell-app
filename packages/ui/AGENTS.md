@@ -89,7 +89,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     `ui-*` markup into plain light-DOM HTML (no shadow DOM, no JS) in node, for SEO.  Stand-in hosts are linkedom
     elements (`ServerHost`), controllers render with `renderToString`, `StaticFlattener` swaps each host for its
     root, `StaticInteractions` wires what works without JS.  Node only:  NEVER imported by a component or `$/ui`.
-    Plan:  `packages/docs/epics/seo/seo.html`
+    Plan:  `packages/docs/content/epics/seo/seo.plan.html`
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
     (`FormElement`, `FormHost`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
@@ -119,18 +119,22 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       NEVER edit
     - `_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS (`site.css`);
       config `vite.site.config.ts`
-    - `_data/` -- `components.json` and `icons.json` (the icon browser's search terms), GENERATED, committed
-      (`yarn site:data`;  shapes `SiteDataFile` / `SiteIconsFile` in `src/docs-components/docs-components.types.ts`),
-      and `pages.json`, hand-kept per-family facts it reads (title, summary, status, token-table overrides)
+    - `_data/` -- `components.json`, `icons.json` (the icon browser's search terms) and `search.json` (every page's
+      sections, for `<ui-docs-search>`, read from the page files), GENERATED, committed (`yarn site:data`;  shapes
+      `SiteDataFile` / `SiteIconsFile` / `SiteSearchFile` in `src/docs-components/docs-components.types.ts`;  rerun
+      after renaming or moving a section too), and `pages.json`, hand-kept per-family facts it reads (title, summary,
+      status, token-table overrides, `pages`:  the sub-tags with a page of their own)
     - `_parts/` -- shared header / footer, pulled in with `<ui-include>`
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
-  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`, `gen-site-data.ts`,
-    `site-new.ts`, `site-components-index.ts`, `site-kitchen-sink.ts`) and the site bundle's build (`site-bundle.ts`,
-    watched by `site-dev.ts`)
+  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`,
+    `gen-markdown.ts`, `gen-site-data.ts`, `site-new.ts`, `site-components-index.ts`, `site-kitchen-sink.ts`) and the
+    site bundle's build (`site-bundle.ts`, watched by `site-dev.ts`)
   - `src/languages/` -- GENERATED, committed:  `spell.<lang>.js`, spell's pre-compiled highlighter for
     `<ui-code language="spell">` (`yarn gen:spell`;  the root `AGENTS.md`'s one `ui` -> spell exception).  NEVER edit;
     lint and format skip it
+  - `src/components/ui-markdown/md.bundle.js` (+ `.d.ts`, `MDBundle.ts`) -- GENERATED, committed the same way:  the
+    pre-compiled markdown engine (`@spell-app/markdown`, `yarn gen:markdown`).  NEVER edit;  lint and format skip it
   - `reference/Fomantic-UI/` -- READ-ONLY, git-ignored clone of Fomantic for porting.  NEVER edit or import it.
 - Commands:
   - `yarn review` -- tsc (root, node configs, the fork) + oxlint `--fix` + oxfmt + every test (`ssr`, `browser`,
@@ -170,15 +174,18 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     reloads the open pages.  Not watched:  `site:data` / `site:index` / `site:kitchen`.  A watch rebuild leaves stale
     hashed chunks:  `yarn site:build` before committing
   - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
-    (`packages/docs/templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a
-    tag, else `site/<page>.html`;  title / summary / status from `site/_data/pages.json`.  How to write one:
-    `packages/docs/epics/spell-ui-pages/PAGES.md`
+    (`packages/docs/content/templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a
+    tag (`<tag>.html` for a sub-tag its family's `pages` lists:  `ui-radio`), else `site/<page>.html`;  title /
+    summary / status from `site/_data/pages.json`.  How to write one:  `packages/docs/content/epics/spell-ui-pages/PAGES.md`
+  - `yarn site:sections [--check] [page...]` -- `scripts/site-sections.ts`:  nests every page's flat level 2 / 3
+    headers and headed examples into `<ui-section>`s and writes (or fixes) their ids, `<tab>-<section>-<example>`;
+    idempotent.  `site:index`, `site:kitchen` and `site:new` run it on what they write
   - `yarn site:check <page...> | --all` -- `tools/SiteCheck.ts`:  loads pages from the page server (Playwright),
     fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an empty toc, phone-width overflow,
     a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK at them
   - Use `yarn tsc`, not `npx tsc`:  yarn picks the workspace's TypeScript 7.  (The `@typescript/typescript6` that
     `vite-plugin-dts` needs once linked `.bin/tsc` as TypeScript 6;  with hoisting the root `.bin/tsc` is 7 today,
-    but that's luck of the hoister -- see the root's `PAPERCUTS.md`, `## ui`.)
+    but that's luck of the hoister -- see the root's `agents/PAPERCUTS.md`, `## ui`.)
   - NEVER hardcode `<package>/node_modules/<dep>`:  yarn hoists to the root.  Node code asks `tools/NodePackage.ts`.
 
 ## UI rules

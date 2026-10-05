@@ -1,4 +1,4 @@
-import { describe, test, expect, afterAll } from "vitest"
+import { describe, test, expect, afterAll } from "vite-plus/test"
 import { spawn } from "child_process"
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "fs"
 import { tmpdir } from "os"

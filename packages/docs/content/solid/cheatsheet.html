@@ -1,0 +1,1095 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Solid 2 Cheat Sheet</title>
+    <meta
+      name="description"
+      content="What's new in Solid 2 (rc.13, researched on rc.11), one card per feature, with spell-specific notes where our experiments found more than the docs say."
+    />
+    <link rel="stylesheet" href="../../tools/_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <header>
+          <h1>Solid 2 Cheat Sheet</h1>
+          <p>What's <em>new or different</em> in Solid 2, one card per feature.</p>
+          <ul>
+            <li>measured against Solid 1 and against the React habits this repo is moving off</li>
+            <li>
+              <ui-label size="mini" color="orange">spell</ui-label> notes are where our own experiments found more than
+              the docs say
+            </li>
+          </ul>
+          <p>
+            <code>2.0.0-rc.13</code>, what every package pins, including
+            <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
+            >; researched on rc.11, same behaviour on both; the docs at
+            <a href="https://v2.solidjs.com/" target="ext-v2-solidjs-com">v2.solidjs.com</a> track rc.13.
+          </p>
+          <ul>
+            <li>
+              why spell is built the way it is:
+              <a href="solid-2.html" target="src-packages-docs-solid-solid-2-html">Spell on Solid 2</a>
+            </li>
+            <li>
+              the measurements behind the spell notes:
+              <a href="experiments/" target="src-packages-docs-solid-experiments"><code>solid/experiments/</code></a>
+            </li>
+          </ul>
+        </header>
+
+        <div class="spell-filter">
+          <ui-input
+            icon="search"
+            type="search"
+            id="filter"
+            placeholder="Filter cards, e.g. flush, store, prop:"
+            aria-label="Filter cards"
+            data-spell-filter="solid2-cheatsheet-filter"
+          ></ui-input>
+        </div>
+        <p class="spell-filter-empty" id="empty" hidden>No card matches.</p>
+
+        <ui-section id="packages" header="Packages" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="new-package-graph">
+                  New package graph <ui-label size="mini" color="orange">changed</ui-label>
+                </h3>
+                <pre><code>import { createSignal, createStore, For, Loading } from "solid-js"
+import { render, Portal, dynamic } from "@solidjs/web"</code></pre>
+                <ul>
+                  <li>
+                    the reactive core is <code>@solidjs/signals</code>; <code>solid-js</code> re-exports it and holds
+                    stores too
+                  </li>
+                  <li>
+                    <code>solid-js/web</code> → <code>@solidjs/web</code>; <code>solid-js/store</code> →
+                    <code>solid-js</code>
+                  </li>
+                  <li>
+                    <code>solid-js/h</code>, <code>/html</code>, <code>/universal</code> → <code>@solidjs/h</code>,
+                    <code>@solidjs/html</code>, <code>@solidjs/universal</code>
+                  </li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="jsx-config">JSX config <ui-label size="mini" color="orange">changed</ui-label></h3>
+                <pre><code>// tsconfig.json
+"jsx": "preserve",
+"jsxImportSource": "@solidjs/web"</code></pre>
+                <ul>
+                  <li><code>solid-js</code> no longer ships JSX types; the renderer does</li>
+                  <li>augment custom elements on <code>"@solidjs/web/types/jsx.js"</code></li>
+                  <li>augmenting <code>"@solidjs/web"</code> itself fails: it only re-exports <code>JSX</code></li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="vite-plugin">Vite plugin <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>import solid from "@solidjs/vite-plugin"   // was vite-plugin-solid
+plugins: [standardDecorators(), solid()]</code></pre>
+                <ul>
+                  <li>Rust / OXC compiler by default: 23× to 355× faster than the Babel preset</li>
+                  <li>our decorator pre-pass must run first</li>
+                  <li>the Solid compiler has to see decorator-free code</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="exactly-one-solid-per-page">Exactly one Solid per page</h3>
+                <ul>
+                  <li>scheduler, delegated events, context and element definitions are all module state</li>
+                  <li>two copies means two graphs that can't see each other</li>
+                </ul>
+                <pre><code>resolve: { dedupe: ["solid-js", "@solidjs/web"] }</code></pre>
+                <ui-message state="warning" size="small">
+                  Solid and
+                  <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> go
+                  in <code>spell-shared.js</code>, never in <code>spell-runtime.js</code>. Compiled spell never imports
+                  Solid directly.
+                </ui-message>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="timing" header="Write timing and scheduling" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="writes-are-staged">
+                  Writes are staged <ui-label size="mini" color="orange">changed</ui-label>
+                </h3>
+                <pre><code>setCount(1)
+count()    // still 0
+flush()
+count()    // 1</code></pre>
+                <ul>
+                  <li>every write waits for the next microtask, or <code>flush()</code></li>
+                  <li>the price of "the UI never shows half an update"</li>
+                </ul>
+                <ui-message state="warning" size="small">
+                  <ul>
+                    <li>
+                      holds everywhere
+                      <ul>
+                        <li>top level</li>
+                        <li>event handlers</li>
+                        <li><code>untrack</code></li>
+                        <li>
+                          even inside <code>flush(() =&gt; { set(); read() })</code>: drains only when the callback
+                          returns
+                        </li>
+                      </ul>
+                    </li>
+                    <li>hence spell cells</li>
+                  </ul>
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="flush-flush-fn">
+                  <code>flush()</code> / <code>flush(fn)</code> <ui-label size="mini" color="green">new</ui-label>
+                </h3>
+                <pre><code>flush()                     // drain queued updates now
+flush(() =&gt; setCount(6))    // run fn, drain as it returns
+flush(() =&gt; { a(); flush(() =&gt; b()) })   // nested drains</code></pre>
+                <ul>
+                  <li>never inside an <code>action</code> body: <code>FLUSH_IN_ACTION</code></li>
+                  <li>
+                    not in an effect's apply function or <code>onSettled</code>: a warning, and nothing to drain --
+                    writes made there are already visible
+                  </li>
+                  <li>it doesn't wait for async work; use <code>await resolve(() =&gt; x())</code></li>
+                </ul>
+                <ui-message state="warning" size="small">
+                  Measured: about 0.7 µs per flush on a small queue. In a memo's compute it drains, on rc.11 and rc.13
+                  (a downstream memo updates too).
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="batch-is-gone">
+                  <code>batch()</code> is gone <ui-label size="mini" color="red">removed</ui-label>
+                </h3>
+                <ul>
+                  <li>everything batches by default</li>
+                  <li>several writes before a flush coalesce into one recompute per dependant</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="no-writes-in-owned-scope">
+                  No writes in owned scope <ui-label size="mini" color="green">new</ui-label>
+                </h3>
+                <pre><code>createMemo(() =&gt; { setX(1) })   // dev: REACTIVE_WRITE_IN_OWNED_SCOPE
+createSignal(0, { ownedWrite: true })   // opt in, narrowly
+runWithOwner(null, () =&gt; setX(1))      // also escapes</code></pre>
+                <ul>
+                  <li>
+                    applies in
+                    <ul>
+                      <li>component bodies</li>
+                      <li>memos</li>
+                      <li>effect computes</li>
+                      <li>even a <code>createRoot</code> body</li>
+                    </ul>
+                  </li>
+                  <li><code>untrack</code> does NOT exempt a write: the guard is owner-based</li>
+                  <li>dev-only; prod doesn't check</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="peek-at-a-staged-value">Peek at a staged value</h3>
+                <pre><code>setX(5)
+setX(p =&gt; { seen = p; return p })   // seen === 5</code></pre>
+                <ul>
+                  <li>updater receives the latest staged value</li>
+                  <li>documented behaviour, but not a read API: it's still a write</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="signals" header="Signals and memos" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="writable-memo">Writable memo <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>const [value, setValue] = createSignal(() =&gt; props.initial)</code></pre>
+                <ul>
+                  <li>derived value you can also overwrite</li>
+                  <li>resets when its inputs change</li>
+                  <li>replaces "copy prop into state on change" and <code>createComputed</code></li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="signal-options">Signal options <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>createSignal(v, {
+  equals: false,               // notify on every write
+  ownedWrite: true,            // allow writes in owned scope
+  unobserved: () =&gt; stop(),    // last subscriber left
+  name: "count"                // dev / devtools
+})</code></pre>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="memo-options">Memo options <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>createMemo(fn, {
+  lazy: true,         // compute on first read;  autodispose when unobserved
+  equals: (a, b) =&gt; a.id === b.id,
+  sync: true,         // promise it never returns a Promise
+  loadingValue: null, // "commit #0" shown while the first async answer loads
+  unobserved: () =&gt; {}
+})</code></pre>
+                <p>
+                  Memos are <b>eager</b> by default: they compute on creation. <code>initialValue</code> is gone; the
+                  compute gets <code>prev</code>.
+                </p>
+                <ui-message state="warning" size="small">
+                  <ul>
+                    <li>
+                      an unowned eager memo recomputes on every relevant flush <em>forever</em>, even with no readers
+                    </li>
+                    <li>a lazy memo read from untracked code recomputes every time</li>
+                    <li>a memo read before <code>flush()</code> is stale, lazy ones included</li>
+                  </ul>
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="getobserver">
+                  <code>getObserver()</code> <ui-label size="mini" color="orange">renamed</ui-label>
+                </h3>
+                <pre><code>function trackIfTracked(src) { if (getObserver()) src() }</code></pre>
+                <p>
+                  Was <code>getListener</code>. It's <code>null</code> at top level and in a root body, and set inside
+                  memos, effect computes and JSX expressions.
+                </p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="enableexternalsource">
+                  <code>enableExternalSource</code> <ui-label size="mini" color="green">new</ui-label>
+                </h3>
+                <pre><code>enableExternalSource({
+  factory(fn, trigger) { return { track(prev) {...}, dispose() {...} } },
+  untrack(fn) {...}
+})</code></pre>
+                <p>
+                  Lets Solid computations track a non-Solid reactive system, such as MobX or Vue. It's global, and
+                  registrations chain.
+                </p>
+                <ui-message state="warning" size="small">
+                  This is how spell cells tell Solid about changes. Register it once, in the shared chunk.
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="isequal-untrack"><code>isEqual</code>, <code>untrack</code></h3>
+                <p>
+                  <code>isEqual</code> replaces <code>equalFn</code>. <code>untrack(fn)</code> stops tracking, not
+                  owning.
+                </p>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="effects" header="Effects and lifecycle" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="split-effects">Split effects <ui-label size="mini" color="orange">changed</ui-label></h3>
+                <pre><code>createEffect(
+  () =&gt; count(),               // compute:  tracks
+  (value, prev) =&gt; {           // apply:  untracked side effects
+    el.title = value
+    return () =&gt; {}            // optional cleanup
+  },
+  { defer: true }              // skip the first run
+)</code></pre>
+                <ul>
+                  <li>the single-argument form is an error</li>
+                  <li>every compute runs before any apply</li>
+                  <li>replaces <code>on(...)</code> and <code>onCleanup</code>-in-effect</li>
+                </ul>
+                <ui-message state="warning" size="small">
+                  <ul>
+                    <li>the apply's return value IS the cleanup</li>
+                    <li>
+                      <code>v =&gt; list.push(v)</code> returns a number that Solid then calls, and that halts the whole
+                      page
+                    </li>
+                    <li>always use braces</li>
+                  </ul>
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="error-handling-effect">
+                  Error-handling effect <ui-label size="mini" color="green">new</ui-label>
+                </h3>
+                <pre><code>createEffect(() =&gt; load(id()), {
+  effect: (data) =&gt; show(data),
+  error: (err, cleanup) =&gt; report(err)
+})</code></pre>
+                <p>Catches compute-phase errors only; a throw in the effect phase isn't routed here.</p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="onsettled"><code>onSettled</code> <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>onSettled(() =&gt; {
+  const id = setInterval(tick, 1000)
+  return () =&gt; clearInterval(id)
+})</code></pre>
+                <ul>
+                  <li>replaces <code>onMount</code> + <code>onCleanup</code> for component setup and teardown</li>
+                  <li>also works in event handlers ("after this change settles")</li>
+                  <li>never sees its own write</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="render-effect-reaction-tracked-effect">Render effect, reaction, tracked effect</h3>
+                <pre><code>createRenderEffect(() =&gt; props.t, v =&gt; { el.title = v })  // renderer plumbing
+const track = createReaction(() =&gt; onChange())           // one-shot, re-arm
+track(() =&gt; count())</code></pre>
+                <p><code>createTrackedEffect</code>: the docs site marks it deprecated; rc.13's types don't.</p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="an-uncaught-error-halts-everything">An uncaught error halts everything</h3>
+                <ul>
+                  <li>
+                    a computation error with no boundary stops the scheduler page-wide (<code>REACTIVITY_HALTED</code>)
+                  </li>
+                  <li>every later update is ignored</li>
+                  <li>recover with <code>resetErrorHalt()</code></li>
+                  <li>
+                    better, don't let it escape:
+                    <ul>
+                      <li><code>&lt;Errored&gt;</code></li>
+                      <li>effect <code>error</code></li>
+                    </ul>
+                  </li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="owners-and-roots">Owners and roots <ui-label size="mini" color="orange">changed</ui-label></h3>
+                <pre><code>createRoot(dispose =&gt; { ...; dispose() })   // owned by its parent by default
+runWithOwner(null, () =&gt; createRoot(...))  // detach (module singletons)</code></pre>
+                <p>An effect with no owner warns <code>NO_OWNER_EFFECT</code>; it's never disposed.</p>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="async" header="Async lives in the graph" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="async-memo">Async memo <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>const user = createMemo(() =&gt; fetchUser(props.id))
+&lt;Loading fallback={&lt;Skeleton /&gt;}&gt;
+  &lt;h1&gt;{user().name}&lt;/h1&gt;
+&lt;/Loading&gt;</code></pre>
+                <ul>
+                  <li>any memo may return a Promise or an async iterable</li>
+                  <li><code>user()</code> is a <code>User</code>, never <code>undefined</code></li>
+                  <li>replaces <code>createResource</code></li>
+                  <li>passing isn't reading: only the expression that reads the value waits</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="held-writes-built-in-transitions">
+                  Held writes = built-in transitions <ui-label size="mini" color="green">new</ui-label>
+                </h3>
+                <ul>
+                  <li>once content has shown, a write feeding pending async is <b>held</b></li>
+                  <li>old content stays until the new answer lands</li>
+                  <li><b>every other write in the same batch</b> is held with it</li>
+                  <li><code>startTransition</code> is gone</li>
+                </ul>
+                <ui-message state="warning" size="small">
+                  Measured: a hold happens only when a <em>render</em> effect reads the async value with no
+                  <code>&lt;Loading&gt;</code> to catch it. Writes in later batches go through.
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="ispending-latest">
+                  <code>isPending</code> / <code>latest</code> <ui-label size="mini" color="green">new</ui-label>
+                </h3>
+                <pre><code>&lt;ul class={{ stale: isPending(() =&gt; results()) }}&gt;
+&lt;List selected={latest(selectedId)} /&gt;   // value being worked toward</code></pre>
+                <p>
+                  These are questions, not state. <code>isPending</code> is true only while a <em>change</em> is in
+                  flight, not for every fetch.
+                </p>
+                <ui-message state="warning" size="small">
+                  <code>latest()</code> does NOT see a plain synchronous write before flush; it only sees values held
+                  for async work.
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="refresh-affects-resolve">
+                  <code>refresh</code>, <code>affects</code>, <code>resolve</code>
+                  <ui-label size="mini" color="green">new</ui-label>
+                </h3>
+                <pre><code>refresh(user)              // re-ask quietly;  isPending stays false
+affects(user); refresh(user)   // re-ask AND read as pending
+const v = await resolve(() =&gt; user())   // tests / imperative code</code></pre>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="boundaries">Boundaries <ui-label size="mini" color="orange">renamed</ui-label></h3>
+                <pre><code>&lt;Loading fallback={...} on={id()}&gt;...&lt;/Loading&gt;   // was Suspense
+&lt;Errored fallback={(err, reset) =&gt; ...}&gt;...&lt;/Errored&gt;   // was ErrorBoundary
+&lt;Reveal order="sequential" collapsed&gt;...&lt;/Reveal&gt;   // was SuspenseList</code></pre>
+                <ul>
+                  <li><code>Loading</code> covers only the <em>first</em> load; revalidation keeps content visible</li>
+                  <li><code>on</code> is a dependency list, not a key</li>
+                  <li><code>Errored</code> <b>heals by itself</b> when the data underneath recovers</li>
+                  <li><code>reset</code> retries the data, not the UI</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="notreadyerror"><code>NotReadyError</code></h3>
+                <ul>
+                  <li>reading a not-ready value throws it; the graph catches it and retries</li>
+                  <li>you'll never see one unless you write a primitive: <code>throw new NotReadyError()</code></li>
+                </ul>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="actions" header="Actions and optimistic state" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="action"><code>action</code> <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>const add = action(function* (todo) {
+  setTodos(s =&gt; { s.push(todo) })  // optimistic
+  yield api.add(todo)                // async work
+  refresh(todos)                     // reconcile with truth
+})</code></pre>
+                <p>
+                  A generator, so the transaction survives across <code>yield</code>; JavaScript has no async context
+                  yet. Its writes are held until the action settles.
+                </p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="optimistic-overlays">Optimistic overlays <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>const [todos, setTodos] = createOptimisticStore(() =&gt; api.list(), [])
+const [saving, setSaving] = createOptimistic(false)   // "saving…" flag</code></pre>
+                <ul>
+                  <li>optimistic writes are a layer over the confirmed value</li>
+                  <li>dropped when the transaction settles, pass or fail</li>
+                  <li>there's no rollback code</li>
+                  <li>if the prediction matches the result, nothing re-runs</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="stores" header="Stores" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="draft-first-setters">
+                  Draft-first setters <ui-label size="mini" color="orange">changed</ui-label>
+                </h3>
+                <pre><code>const [store, setStore] = createStore({ user: { name: "A" }, list: [] })
+setStore(s =&gt; { s.user.name = "B"; s.list.push("x") })
+setStore(s =&gt; s.list.filter(x =&gt; x !== "x"))  // return = shallow replace</code></pre>
+                <p>
+                  <code>produce</code> is gone because it's now the default. Store writes follow the same staged timing
+                  as signals.
+                </p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="no-mutable-store">No mutable store <ui-label size="mini" color="red">removed</ui-label></h3>
+                <pre><code>store.a = 2   // silently IGNORED:  no throw, no warning</code></pre>
+                <p><code>createMutable</code> and <code>modifyMutable</code> are gone.</p>
+                <ui-message state="warning" size="small">
+                  The editor's <code>editor.x = y</code> would quietly break. It moves onto spell cells instead.
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="derived-stores">Derived stores <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>const items = createProjection(async () =&gt; api.list(), [], { key: "id" })
+const [cache, setCache] = createStore(d =&gt; { d.x = compute() }, { x: 0 })
+setStore(s =&gt; { reconcile(serverTodos, "id")(s.todos) })</code></pre>
+                <p>
+                  Replaces <code>createSelector</code> and write-back patterns. Only the rows whose value changed
+                  update.
+                </p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="snapshot-deep-storepath"><code>snapshot</code>, <code>deep</code>, <code>storePath</code></h3>
+                <pre><code>JSON.stringify(snapshot(store))    // was unwrap:  plain, untracked
+createEffect(() =&gt; deep(store), save)   // track every nested change
+setStore(storePath("user", "city", "Paris"))   // 1.x path-setter compat</code></pre>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="what-gets-wrapped">What gets wrapped</h3>
+                <ul>
+                  <li>plain objects, arrays <b>and class instances</b> are wrapped in proxies</li>
+                  <li><code>Map</code>, <code>Date</code> and frozen objects are stored raw</li>
+                  <li>tracking is per property, created on first tracked read</li>
+                  <li><code>{ shallow: true }</code> means records are replaced, never edited</li>
+                </ul>
+                <ui-message state="warning" size="small">
+                  Never put Things in a store: the proxy fails <code>===</code> against the raw instance.
+                </ui-message>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="flow" header="Control flow" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="one-for-three-keyings">
+                  One <code>&lt;For&gt;</code>, three keyings <ui-label size="mini" color="orange">changed</ui-label>
+                </h3>
+                <pre><code>&lt;For each={items()}&gt;{(item, i) =&gt; ...}&lt;/For&gt;          // by identity:  item value, i accessor
+&lt;For each={items()} keyed={false}&gt;{(item, i) =&gt; ...}  // by position:  item accessor, i number
+&lt;For each={items()} keyed={t =&gt; t.id}&gt;{item =&gt; ...}   // by key:  item accessor</code></pre>
+                <p>
+                  <code>Index</code> is gone. The callback body is an owner, <em>not</em> a tracking scope: read
+                  accessors in JSX or a memo.
+                </p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="repeat"><code>&lt;Repeat&gt;</code> <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>&lt;Repeat count={rows.length} from={first()} fallback={&lt;Empty /&gt;}&gt;
+  {i =&gt; &lt;Row data={rows[i]} /&gt;}
+&lt;/Repeat&gt;</code></pre>
+                <p>
+                  Renders by count with no diffing, and <code>i</code> is a number. It's the building block for
+                  windowing and virtualization.
+                </p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="narrowing-show-match">Narrowing <code>Show</code> / <code>Match</code></h3>
+                <pre><code>&lt;Show when={user()} fallback={&lt;Login /&gt;}&gt;{u =&gt; &lt;Profile user={u()} /&gt;}&lt;/Show&gt;
+&lt;Show when={user()} keyed&gt;{u =&gt; ...}&lt;/Show&gt;   // raw value;  remount on change</code></pre>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="dynamic"><code>dynamic()</code> <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>const Active = dynamic(() =&gt; editing() ? Editor : Viewer)   // create once
+return &lt;Active value={value()} /&gt;</code></pre>
+                <p><code>&lt;Dynamic component&gt;</code> still exists as a convenience; the factory is canonical.</p>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="components" header="Components, props, context" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="components-run-once">Components run once</h3>
+                <ul>
+                  <li>there's no re-render</li>
+                  <li>
+                    the compiler turns each dynamic prop into a getter (<code>get quantity() { return quantity() }</code
+                    >), so the read happens where the child uses it
+                  </li>
+                  <li>a component body is untracked</li>
+                </ul>
+                <pre><code>&lt;Counter value={count()} /&gt;   // pass the VALUE
+function Counter(props) { return &lt;div&gt;{props.value}&lt;/div&gt; }   // read via props.x</code></pre>
+                <p>Destructuring props freezes them (<code>STRICT_READ_UNTRACKED</code>).</p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="merge-omit">
+                  <code>merge</code> / <code>omit</code> <ui-label size="mini" color="orange">renamed</ui-label>
+                </h3>
+                <pre><code>const all = merge(defaults, props)       // was mergeProps
+const rest = omit(props, "class", "ref")  // was splitProps</code></pre>
+                <p><code>undefined</code> is a real value in <code>merge</code>: it overrides.</p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="context-is-its-own-provider">
+                  Context is its own provider <ui-label size="mini" color="orange">changed</ui-label>
+                </h3>
+                <pre><code>const Todos = createContext&lt;TodosCtx&gt;()       // no default:  missing provider throws
+&lt;Todos value={createTodos()}&gt;&lt;List /&gt;&lt;/Todos&gt;   // no .Provider
+const Theme = createContext&lt;"light" | "dark"&gt;("light")   // default:  primitives only</code></pre>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="children-lazy"><code>children()</code>, <code>lazy</code></h3>
+                <pre><code>const list = children(() =&gt; props.children); list.toArray()
+const Heavy = lazy(() =&gt; import("./Heavy"))   // inside &lt;Loading&gt;;  Heavy.preload()</code></pre>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="dom" header="DOM" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="render-per-root"><code>render()</code> per root</h3>
+                <pre><code>const dispose = render(() =&gt; &lt;App /&gt;, el)   // pass a FUNCTION
+dispose()   // removes DOM, disposes the root and its delegated listeners</code></pre>
+                <ul>
+                  <li>event delegation is scoped to each render root; <code>clearDelegatedEvents</code> is gone</li>
+                  <li>
+                    a ShadowRoot works as a container (verified in rc.11 and rc.13 source, "needs integration testing"
+                    in the docs)
+                  </li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="refs-and-directive-factories">
+                  Refs and directive factories <ui-label size="mini" color="orange">changed</ui-label>
+                </h3>
+                <pre><code>&lt;button ref={el =&gt; (btn = el)} /&gt;
+&lt;input ref={autofocus} /&gt;
+&lt;button ref={[autofocus, tooltip({ content: "Save" })]} /&gt;   // compose</code></pre>
+                <ul>
+                  <li>
+                    <code>use:</code> is gone, and so is <code>.current</code> or <code>forwardRef</code>: a component
+                    gets
+                    <code>props.ref</code>
+                  </li>
+                  <li>ref callbacks run unowned, so create effects in the factory, not in the callback</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="class-objects-and-arrays">
+                  <code>class</code> objects and arrays <ui-label size="mini" color="orange">changed</ui-label>
+                </h3>
+                <pre><code>&lt;li class={["todo", props.class, { done: done(), error: !!err() }]} /&gt;</code></pre>
+                <ul>
+                  <li><code>classList</code> is gone</li>
+                  <li>don't concatenate class strings</li>
+                  <li>React's <code>className</code> is <code>class</code></li>
+                  <li>style keys are kebab-case, and numbers get no unit</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="attributes-are-html-again">
+                  Attributes are HTML again <ui-label size="mini" color="orange">changed</ui-label>
+                </h3>
+                <pre><code>&lt;video muted={false} /&gt;       // boolean = presence / absence
+&lt;div tabindex="0" /&gt;          // lowercase built-in names</code></pre>
+                <p><code>attr:</code> and <code>bool:</code> are gone.</p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="custom-elements-attributes-by-default">Custom elements: attributes by default</h3>
+                <pre><code>&lt;ui-dropdown value="a" prop:options={opts()} /&gt;</code></pre>
+                <ul>
+                  <li>
+                    on a tag with a dash, a plain name is a <em>string attribute</em>, and objects get stringified
+                  </li>
+                  <li><code>prop:x</code> assigns a property</li>
+                  <li>the server emits attributes and skips <code>prop:</code></li>
+                </ul>
+                <ui-message state="warning" size="small">
+                  <code>spellCore.element()</code> routes non-primitive values on <code>ui-*</code> tags to
+                  <code>prop:</code> for you.
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="events">Events <ui-label size="mini" color="orange">changed</ui-label></h3>
+                <pre><code>&lt;button onClick={e =&gt; go(e)} /&gt;       // camelCase;  delegated per root
+&lt;button ref={on("click", fn, { capture: true })} /&gt;   // native options
+const on = (t, fn, o) =&gt; el =&gt; el.addEventListener(t, fn, o)</code></pre>
+                <ul>
+                  <li><code>on:</code> and <code>oncapture:</code> are gone</li>
+                  <li>the binding expression is not reactive: <code>onClick={c() ? a : b}</code> picks once</li>
+                  <li><code>onChange</code> is the native change event; use <code>onInput</code> per keystroke</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="custom-events-with-a-dash">Custom events with a dash</h3>
+                <ul>
+                  <li>
+                    <code>onDatechange</code> listens for <code>datechange</code>, lower-casing everything after
+                    <code>on</code>
+                  </li>
+                  <li>
+                    so <code>onUiChange</code> listens for <b><code>uichange</code></b
+                    >, not <code>ui-change</code>
+                  </li>
+                  <li>use a ref directive with the exact name</li>
+                  <li>
+                    a custom element dispatching a <em>delegated</em> name (<code>click</code>...) needs
+                    <code>bubbles: true, composed: true</code>
+                  </li>
+                </ul>
+                <ui-message state="warning" size="small">
+                  In hyperscript, the key <code>"onui-change"</code> works (rc.11 and rc.13 source), but it's
+                  undocumented. <code>spellCore.element()</code> maps spell's spelling explicitly.
+                </ui-message>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="portal"><code>Portal</code></h3>
+                <pre><code>&lt;Portal mount={shadowRoot}&gt;&lt;Modal /&gt;&lt;/Portal&gt;</code></pre>
+                <ul>
+                  <li>defaults to <code>document.body</code></li>
+                  <li>inside a shadow root always pass <code>mount</code>, or content and styles escape</li>
+                  <li>throws on the server</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="h" sticky collapsible dividing>
+          <span slot="header">Hyperscript (<code>@solidjs/h</code>): no compiler</span>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="functions-are-the-only-reactivity">Functions are the only reactivity</h3>
+                <pre><code>h("div", { id: () =&gt; props.id, class: "row" },
+  () =&gt; first() + " " + last(),
+  h(Child, { name: () =&gt; name() }))</code></pre>
+                <ul>
+                  <li>a function prop or child is reactive, and anything else is static</li>
+                  <li><code>h()</code> returns a thunk; pass <code>() =&gt; h(App)</code> to <code>render</code></li>
+                  <li>fragments are arrays</li>
+                  <li>refs must be callbacks</li>
+                  <li>spreads need <code>merge()</code></li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="the-arity-trap">The arity trap</h3>
+                <pre><code>h(Comp, { onPick: () =&gt; go() })   // ✗ becomes a GETTER:  passes go()'s result
+h(Comp, { onPick: e =&gt; go() })    // ✓ arity ≥ 1 = callback</code></pre>
+                <p>
+                  This is for <em>component</em> props only; element <code>on*</code> props and <code>ref</code> are
+                  exempt. It applies to render props too, e.g. <code>&lt;For&gt;</code> children.
+                </p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="cost-and-wiring">Cost and wiring</h3>
+                <ul>
+                  <li>"the least efficient way to use Solid": not tree-shakeable, with no static analysis</li>
+                  <li><code>@solidjs/html</code> is slightly better</li>
+                  <li>
+                    <code>h.js</code> imports <code>@solidjs/web</code> by bare specifier, so it must resolve to the
+                    page's single copy
+                  </li>
+                </ul>
+                <ui-message state="warning" size="small">
+                  Keep <code>h</code> inside bundled <code>spellCore</code>; compiled spell imports only
+                  <code>@spell/core</code>.
+                </ui-message>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="tooling" header="Tooling and ecosystem" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="start-mode-server-functions">
+                  Start mode, server functions <ui-label size="mini" color="green">new</ui-label>
+                </h3>
+                <pre><code>solid({ start: true, ssr: true })   // SolidStart is retired
+export async function add(t) { "use server"; await db.insert(t) }</code></pre>
+                <ul>
+                  <li>
+                    <code>GET(...)</code>, <code>respond(v, { headers })</code> and
+                    <code>live(async function* ...)</code> are in <code>@solidjs/web/server-functions</code>
+                  </li>
+                  <li>none of this is on our path; noted so it isn't mistaken for ours</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="router-2">Router 2 <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code>// @solidjs/router@next  (2.0.0-next.32)
+export const Router = createRouter({ routes: [{ path: "/", component: Home }] })
+const navigate = useNavigate(); navigate(Router.paths.home())</code></pre>
+                <p>Typed routes and one <code>createRouter</code>; not Solid 1's <code>&lt;Route&gt;</code> tree.</p>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="testing">Testing</h3>
+                <pre><code>fireEvent.click(btn); flush(); expect(...)     // flush before asserting
+import { render } from "@solidjs/testing-library"   // @next = 1.0.0-beta.3</code></pre>
+                <ul>
+                  <li>
+                    under Node, <code>@solidjs/web</code> resolves to the <em>server</em> build, with no DOM
+                    <code>render</code>
+                  </li>
+                  <li>
+                    component tests need the <code>browser</code> + <code>development</code> conditions plus jsdom or
+                    browser mode
+                  </li>
+                  <li>an SSR test project needs its own <code>solid()</code> instance</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="diagnostics-tooling">Diagnostics tooling</h3>
+                <ul>
+                  <li>
+                    import <code>solid-js/attribution</code> and call <code>attribution.enable()</code> for costs and
+                    feedback (relay / tear reports only appear after that)
+                  </li>
+                  <li><code>@solidjs/web/performance-tracks</code> paints the Chrome Performance panel</li>
+                  <li><code>name:</code> options label nodes</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="diagnostics" header="Dev diagnostic codes" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card data-spell-wide>
+              <ui-content>
+                <ui-table celled compact striped unstackable>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th>Code</th>
+                        <th>Means</th>
+                        <th>Fix</th>
+                      </tr>
+                      <tr>
+                        <td><code>REACTIVE_WRITE_IN_OWNED_SCOPE</code></td>
+                        <td>write in a component, memo, effect compute or root body</td>
+                        <td>move it to a handler or <code>onSettled</code>; <code>ownedWrite</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>STRICT_READ_UNTRACKED</code></td>
+                        <td>reactive read in a component body or flow callback body</td>
+                        <td>read in JSX or a memo; don't destructure props</td>
+                      </tr>
+                      <tr>
+                        <td><code>REACTIVITY_HALTED</code></td>
+                        <td>an uncaught computation error stopped the scheduler</td>
+                        <td><code>&lt;Errored&gt;</code>, effect <code>error</code>; <code>resetErrorHalt()</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>NO_OWNER_EFFECT</code></td>
+                        <td>effect created outside any owner, so never disposed</td>
+                        <td>create it inside a component or <code>createRoot</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>FLUSH_IN_ACTION</code></td>
+                        <td><code>flush()</code> inside an action body</td>
+                        <td>drop it; the action commits on settle</td>
+                      </tr>
+                      <tr>
+                        <td><code>FLUSH_IN_EFFECT_CALLBACK</code></td>
+                        <td><code>flush()</code> in an effect apply or <code>onSettled</code></td>
+                        <td>drop it; writes continue in the same flush</td>
+                      </tr>
+                      <tr>
+                        <td><code>UNSTABLE_LIST_IDENTITY</code></td>
+                        <td><code>.map()</code> in JSX, or fresh objects per update</td>
+                        <td><code>&lt;For&gt;</code>, keyed by id</td>
+                      </tr>
+                      <tr>
+                        <td><code>IMMUTABLE_UPDATE_IN_STORE</code></td>
+                        <td>setter returned a rebuilt object</td>
+                        <td>mutate the draft</td>
+                      </tr>
+                      <tr>
+                        <td><code>LOADING_ON_OUTSIDE_HOLD</code></td>
+                        <td><code>&lt;Loading on&gt;</code> data also read outside it</td>
+                        <td>move the read under the boundary</td>
+                      </tr>
+                      <tr>
+                        <td><code>ContextNotFoundError</code></td>
+                        <td><code>useContext</code> with no default and no provider</td>
+                        <td>add the provider, or a primitive default</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </ui-table>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+        <ui-section id="renames" header="1.x → 2.0 at a glance" sticky collapsible dividing>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card data-spell-wide>
+              <ui-content>
+                <ui-table celled compact striped unstackable>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th>Solid 1</th>
+                        <th>Solid 2</th>
+                        <th>Solid 1</th>
+                        <th>Solid 2</th>
+                      </tr>
+                      <tr>
+                        <td><code>Suspense</code></td>
+                        <td><code>Loading</code></td>
+                        <td><code>batch</code></td>
+                        <td>default; <code>flush()</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>SuspenseList</code></td>
+                        <td><code>Reveal</code></td>
+                        <td><code>createComputed</code></td>
+                        <td>memo / split effect / writable memo</td>
+                      </tr>
+                      <tr>
+                        <td><code>ErrorBoundary</code></td>
+                        <td><code>Errored</code></td>
+                        <td><code>createResource</code></td>
+                        <td>async <code>createMemo</code> + <code>Loading</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>mergeProps</code> / <code>splitProps</code></td>
+                        <td><code>merge</code> / <code>omit</code></td>
+                        <td><code>startTransition</code></td>
+                        <td>automatic holds; <code>isPending</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>unwrap</code></td>
+                        <td><code>snapshot</code></td>
+                        <td><code>on(...)</code></td>
+                        <td>split effect compute</td>
+                      </tr>
+                      <tr>
+                        <td><code>onMount</code></td>
+                        <td><code>onSettled</code></td>
+                        <td><code>onError</code> / <code>catchError</code></td>
+                        <td><code>Errored</code> / effect <code>error</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>createSelector</code></td>
+                        <td><code>createProjection</code></td>
+                        <td><code>produce</code></td>
+                        <td>draft setters</td>
+                      </tr>
+                      <tr>
+                        <td><code>getListener</code></td>
+                        <td><code>getObserver</code></td>
+                        <td><code>createMutable</code></td>
+                        <td><b>none</b>; draft setters</td>
+                      </tr>
+                      <tr>
+                        <td><code>equalFn</code></td>
+                        <td><code>isEqual</code></td>
+                        <td><code>from</code> / <code>observable</code></td>
+                        <td>async iterables / effects</td>
+                      </tr>
+                      <tr>
+                        <td><code>Context.Provider</code></td>
+                        <td><code>&lt;Ctx value&gt;</code></td>
+                        <td><code>Index</code></td>
+                        <td><code>&lt;For keyed={false}&gt;</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>classList</code></td>
+                        <td><code>class</code> object / array</td>
+                        <td><code>indexArray</code></td>
+                        <td><code>mapArray</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>&lt;Dynamic&gt;</code></td>
+                        <td><code>dynamic()</code></td>
+                        <td><code>use:x</code></td>
+                        <td><code>ref={x()}</code></td>
+                      </tr>
+                      <tr>
+                        <td><code>renderToStringAsync</code></td>
+                        <td><code>await renderToStream()</code></td>
+                        <td><code>attr:</code> / <code>bool:</code> / <code>on:</code></td>
+                        <td>plain attributes; ref listeners</td>
+                      </tr>
+                      <tr>
+                        <td><code>initialValue</code> option</td>
+                        <td>compute's <code>prev</code></td>
+                        <td><code>resetErrorBoundaries</code></td>
+                        <td>boundaries heal</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </ui-table>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

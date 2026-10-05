@@ -9,77 +9,64 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Dropdown">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-dropdown.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-dropdown%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/dropdown.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Dropdown
+            <ui-header>A dropdown allows a user to select a value from a series of options.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-dropdown" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-dropdown.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-dropdown%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/modules/dropdown.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Dropdown
-                <ui-header>A dropdown allows a user to select a value from a series of options.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-dropdown" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Dropdown"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's dropdown page, section by section, in its order (Types, Content, States, Variations, then
-                  its Examples tab:  Selection Dropdowns, Remote Content, Menus, Adjusting Actions, Coupling), plus our extras
-                  (Form states, Colored, Invoker commands).
-                  - Options are slotted `<ui-item>`s;  Fomantic's long country / state lists are shortened.
-                  - Fomantic's `<select class="ui dropdown">` forms are `<ui-dropdown selection>` (with `multiple` for a multi-select).
-                -->
-
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <!-- GAP I53:  no nested sub-menu (`Publish To Web`);  left out. -->
-                <ui-docs-example header="Dropdown">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's dropdown page, section by section, in its order (Types, Content, States, Variations, then
+              its Examples tab:  Selection Dropdowns, Remote Content, Menus, Adjusting Actions, Coupling), plus our extras
+              (Form states, Colored, Invoker commands).
+              - Options are slotted `<ui-item>`s;  Fomantic's long country / state lists are shortened.
+              - Fomantic's `<select class="ui dropdown">` forms are `<ui-dropdown selection>` (with `multiple` for a multi-select).
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <!-- GAP I53:  no nested sub-menu (`Publish To Web`);  left out. -->
+              <ui-section id="examples-types-dropdown" header="Dropdown" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown. Items are <code>&lt;ui-item&gt;</code>s; <code>description</code> sits at the end of a
                     row, <code>icon</code> before the text.
@@ -97,8 +84,10 @@
                     <ui-item>E-mail Collaborators</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Selection">
+              <ui-section id="examples-types-selection" header="Selection" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown can be used to select between choices in a form: <code>selection</code>, with a
                     <code>name</code> and a <code>placeholder</code>.
@@ -129,9 +118,10 @@
                     <ui-item value="justen" image="../images/avatar/small/justen.jpg">Justen Kitsune</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-search-selection" header="Search Selection" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Search Selection"
                   description="A selection dropdown can allow a user to search through a large list of choices:  `search`."
                 >
                   <ui-dropdown fluid search selection name="country" placeholder="Select Country">
@@ -212,9 +202,17 @@
                     <ui-item value="WY">Wyoming</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I106:  no unfilterable items. -->
-                <ui-docs-example header="Unfilterable items in Search Selection">
+              <!-- GAP I106:  no unfilterable items. -->
+              <ui-section
+                id="examples-types-unfilterable-items-in-search-selection"
+                header="Unfilterable items in Search Selection"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     Fomantic can keep some items listed whatever the search (<code>unfilterable</code> items). Ours
                     filters every item; the example shows the list without the extra rule.
@@ -229,9 +227,17 @@
                     <ui-item value="OK">Oklahoma</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I106:  no ignore-diacritics setting on the element (MenuOptions has one). -->
-                <ui-docs-example header="Search ignoring Diacritics">
+              <!-- GAP I106:  no ignore-diacritics setting on the element (MenuOptions has one). -->
+              <ui-section
+                id="examples-types-search-ignoring-diacritics"
+                header="Search ignoring Diacritics"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     Fomantic can ignore diacritics while searching (<code>ignoreDiacritics</code>). Ours matches them as
                     typed: type <code>cafe</code> and only <code>cafetería</code> matches, not <code>café</code>.
@@ -259,8 +265,16 @@
                     <ui-item>Zoë</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Highlight search matches">
+              <ui-section
+                id="examples-types-highlight-search-matches"
+                header="Highlight search matches"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     The matching strings inside the search results are highlighted: always on, no setting.
                   </p>
@@ -318,9 +332,16 @@
                     <ui-item value="WY">Wyoming</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-types-clearable-selection"
+                header="Clearable Selection"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Clearable Selection"
                   description="A clearable selection dropdown can allow a user to cancel a previous selection:  `clearable`."
                 >
                   <ui-dropdown clearable selection name="language" value="English" placeholder="Select Language">
@@ -379,9 +400,16 @@
                     <ui-item>Vietnamese</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-types-multiple-selection"
+                header="Multiple Selection"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Multiple Selection"
                   description="A selection dropdown can allow multiple selections:  `multiple`.  `value` is a comma-separated list."
                 >
                   <ui-dropdown fluid multiple selection name="skills" placeholder="Skills">
@@ -405,11 +433,16 @@
                     <ui-item value="ux">User Experience</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Multiple Search Selection"
-                  description="A selection dropdown can allow multiple search selections."
-                >
+              <ui-section
+                id="examples-types-multiple-search-selection"
+                header="Multiple Search Selection"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="A selection dropdown can allow multiple search selections.">
                   <ui-dropdown fluid multiple search selection placeholder="State">
                     <ui-item value="AL">Alabama</ui-item>
                     <ui-item value="AK">Alaska</ui-item>
@@ -548,12 +581,11 @@
                     <ui-item value="by" flag="by">Belarus</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I11:  no basic button look. -->
-                <ui-docs-example
-                  header="Search Dropdown"
-                  description="A dropdown can be searchable, on a labeled icon button too."
-                >
+              <!-- GAP I11:  no basic button look. -->
+              <ui-section id="examples-types-search-dropdown" header="Search Dropdown" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can be searchable, on a labeled icon button too.">
                   <ui-dropdown floating labeled button search icon="world" placeholder="Select Language">
                     <ui-item>Arabic</ui-item>
                     <ui-item>Chinese</ui-item>
@@ -578,9 +610,11 @@
                     <ui-item>Vietnamese</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I106:  an input in the menu doesn't filter it (Fomantic's search in-menu);  the header slot just shows it. -->
-                <ui-docs-example header="Search In-Menu">
+              <!-- GAP I106:  an input in the menu doesn't filter it (Fomantic's search in-menu);  the header slot just shows it. -->
+              <ui-section id="examples-types-search-in-menu" header="Search In-Menu" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown can include content at the top of its menu: the <code>header</code> slot. Fomantic's
                     in-menu search input also filters the items; ours is only shown, so use <code>search</code> to
@@ -627,11 +661,10 @@
                     <ui-item value="discussion"><ui-label color="green" empty circular></ui-label>Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Inline"
-                  description="A dropdown can be formatted to appear inline in other content."
-                >
+              <ui-section id="examples-types-inline" header="Inline" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can be formatted to appear inline in other content.">
                   <p>
                     Show me posts by
                     <ui-dropdown inline value="jenny">
@@ -656,9 +689,11 @@
                     </ui-dropdown>
                   </ui-header>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I53:  no dropdown menu item, no nested sub-menus;  the menu examples keep a dropdown inside an item. -->
-                <ui-docs-example header="Pointing">
+              <!-- GAP I53:  no dropdown menu item, no nested sub-menus;  the menu examples keep a dropdown inside an item. -->
+              <ui-section id="examples-types-pointing" header="Pointing" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown can be formatted so that its menu is pointing: <code>pointing</code>, with a value for
                     where the menu's arrow sits.
@@ -754,11 +789,10 @@
                     <ui-item value="discussion"><ui-label color="black" empty circular></ui-label>Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Floating"
-                  description="A dropdown menu can appear to be floating below an element."
-                >
+              <ui-section id="examples-types-floating" header="Floating" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown menu can appear to be floating below an element.">
                   <ui-buttons color="teal">
                     <ui-button>Save</ui-button>
                     <ui-dropdown floating button color="teal" aria-label="More actions">
@@ -768,9 +802,10 @@
                     </ui-dropdown>
                   </ui-buttons>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-simple" header="Simple" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Simple"
                   description="A simple dropdown can open without JavaScript:  on hover and focus, with no popover."
                 >
                   <ui-dropdown simple text="Dropdown">
@@ -779,11 +814,13 @@
                     <ui-item>Choice 3</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="content">Content</ui-header>
-
-                <!-- GAP I107:  a header item's `icon` draws nothing;  slotted labels are tiny dots touching the text. -->
-                <ui-docs-example header="Header" description='A dropdown menu can contain a header:  `type="header"`.'>
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <!-- GAP I107:  a header item's `icon` draws nothing;  slotted labels are tiny dots touching the text. -->
+              <ui-section id="examples-content-header" header="Header" sticky collapsible dividing>
+                <ui-docs-example description='A dropdown menu can contain a header:  `type="header"`.'>
                   <ui-dropdown floating labeled button icon="filter" text="Filter">
                     <ui-item type="header" icon="tags">Filter by tag</ui-item>
                     <ui-item>Important</ui-item>
@@ -791,9 +828,10 @@
                     <ui-item>Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-content-divider" header="Divider" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Divider"
                   description='A dropdown menu can contain dividers to separate related content:  `type="divider"`.'
                 >
                   <ui-dropdown floating labeled button icon="filter" text="Filter">
@@ -804,8 +842,10 @@
                     <ui-item>Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Icon" description="A dropdown menu can contain an icon:  `icon`.">
+              <ui-section id="examples-content-icon" header="Icon" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown menu can contain an icon:  `icon`.">
                   <ui-dropdown floating labeled button icon="filter" text="Filter">
                     <ui-item type="header" icon="tags">Filter by tag</ui-item>
                     <ui-item type="divider"></ui-item>
@@ -814,11 +854,10 @@
                     <ui-item icon="comments">Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Description"
-                  description="A dropdown menu can contain a description:  `description`."
-                >
+              <ui-section id="examples-content-description" header="Description" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown menu can contain a description:  `description`.">
                   <ui-dropdown floating labeled button icon="filter" text="Filter Tags">
                     <ui-item type="header">Filter by tag</ui-item>
                     <ui-item type="divider"></ui-item>
@@ -827,14 +866,15 @@
                     <ui-item description="5 new">Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
-                <!-- GAP I107:  no vertical item (the description under the text). -->
-                <ui-message size="small" class="site-not-ported"
-                  >Fomantic's <code>vertical item</code> (the description underneath the entry) has no attribute yet
-                  (plan issue I107).</ui-message
-                >
+              </ui-section>
+              <!-- GAP I107:  no vertical item (the description under the text). -->
+              <ui-message size="small" class="site-not-ported"
+                >Fomantic's <code>vertical item</code> (the description underneath the entry) has no attribute yet
+                (plan issue I107).</ui-message
+              >
 
+              <ui-section id="examples-content-label" header="Label" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Label"
                   description="A dropdown menu can contain a label:  any markup inside an item is projected into its row."
                 >
                   <ui-dropdown floating labeled button icon="filter" text="Filter">
@@ -847,10 +887,11 @@
                     <ui-item value="discussion"><ui-label color="black" empty circular></ui-label>Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I107:  the header slot is unpadded, and an item-less menu adds "No results found." under the message. -->
+              <!-- GAP I107:  the header slot is unpadded, and an item-less menu adds "No results found." under the message. -->
+              <ui-section id="examples-content-message" header="Message" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Message"
                   description="A dropdown menu can contain a message:  the `header` slot holds any markup."
                 >
                   <ui-dropdown floating labeled button icon="filter" text="Login">
@@ -885,9 +926,11 @@
                     <ui-item value="by" flag="by">Belarus</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I107:  no floated content in an item (`right floated icon`). -->
-                <ui-docs-example header="Floated Content">
+              <!-- GAP I107:  no floated content in an item (`right floated icon`). -->
+              <ui-section id="examples-content-floated-content" header="Floated Content" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown menu can contain floated content. Ours has <code>description</code> at the end of a row;
                     an icon can't float right yet.
@@ -898,8 +941,10 @@
                     <ui-item icon="comments">Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Input">
+              <ui-section id="examples-content-input" header="Input" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown menu can contain an input, in the <code>header</code> slot. It doesn't filter the items:
                     use <code>search</code> for that.
@@ -921,8 +966,10 @@
                     <ui-item value="discussion"><ui-label color="black" empty circular></ui-label>Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Image" description="A dropdown menu can contain an image:  `image`.">
+              <ui-section id="examples-content-image" header="Image" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown menu can contain an image:  `image`.">
                   <ui-dropdown floating labeled button icon="user plus" text="Add User">
                     <ui-item type="header">People You Might Know</ui-item>
                     <ui-item image="../images/avatar/small/jenny.jpg">Jenny Hess</ui-item>
@@ -941,16 +988,18 @@
                     <ui-item value="jp" flag="jp">Japan</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I53:  no actionable items (an item that runs a callback instead of being chosen). -->
-                <ui-message size="small" class="site-not-ported"
-                  >Actionable (an item that runs a callback instead of being chosen) can't be built yet: every item is
-                  an option (plan issue I53). Listen for <code>ui-change</code> and set the value back.</ui-message
-                >
+              <!-- GAP I53:  no actionable items (an item that runs a callback instead of being chosen). -->
+              <ui-message size="small" class="site-not-ported"
+                >Actionable (an item that runs a callback instead of being chosen) can't be built yet: every item is
+                an option (plan issue I53). Listen for <code>ui-change</code> and set the value back.</ui-message
+              >
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
-                <ui-docs-example header="Loading" description="A dropdown can show that it is currently loading data.">
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-loading" header="Loading" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can show that it is currently loading data.">
                   <ui-dropdown loading text="Dropdown">
                     <ui-item>Choice 1</ui-item>
                     <ui-item>Choice 2</ui-item>
@@ -972,11 +1021,10 @@
                     <ui-item>Choice 3</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Error"
-                  description='An errored dropdown can alert a user to a problem:  `state="error"`.'
-                >
+              <ui-section id="examples-states-error" header="Error" sticky collapsible dividing>
+                <ui-docs-example description='An errored dropdown can alert a user to a problem:  `state="error"`.'>
                   <ui-dropdown floating state="error" text="Dropdown">
                     <ui-item>Choice 1</ui-item>
                     <ui-item>Choice 2</ui-item>
@@ -990,8 +1038,9 @@
                     <ui-item>Choice 3</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-states-form-states" header="Form states" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Form states"
                   description="`state` also takes `info`, `success` and `warning`:  it tints the box, the text and the menu."
                 >
                   <ui-dropdown state="info" selection text="Info"><ui-item>One</ui-item></ui-dropdown>
@@ -1001,8 +1050,10 @@
                     <ui-item>One</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Active">
+              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     An active dropdown has its menu open: <code>open</code>. Setting it fires no event.
                   </p>
@@ -1011,9 +1062,10 @@
                     <ui-item>Choice 2</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Disabled"
                   description="A disabled dropdown menu or item does not allow user interaction.  A disabled dropdown isn't submitted."
                 >
                   <ui-dropdown disabled text="Dropdown">
@@ -1029,9 +1081,10 @@
                     <ui-item>Choice 3</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-states-read-only" header="Read-Only" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Read-Only"
                   description="A dropdown can be read-only and does not allow user interaction, but still submits with a form."
                 >
                   <ui-dropdown readonly text="Dropdown">
@@ -1040,10 +1093,12 @@
                     <ui-item>Choice 3</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <ui-docs-example header="Size" description="A dropdown can have different sizes.">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can have different sizes.">
                   <ui-dropdown size="mini" selection name="gender" placeholder="Mini">
                     <ui-item value="1">Male</ui-item>
                     <ui-item value="0">Female</ui-item>
@@ -1079,8 +1134,10 @@
                     <ui-item value="0">Female</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Scrolling">
+              <ui-section id="examples-variations-scrolling" header="Scrolling" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown can have its menu scroll: <code>scrolling</code>; add <code>resizable</code> for a native
                     resize handle at the bottom of the menu.
@@ -1133,8 +1190,10 @@
                     <ui-item value="discussion"><ui-label color="green" empty circular></ui-label>Discussion</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Inverted" description="A dropdown can be inverted.">
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can be inverted.">
                   <ui-segment inverted>
                     <ui-dropdown inverted selection name="choices" placeholder="Select choice">
                       <ui-item>Choice 1</ui-item>
@@ -1143,13 +1202,15 @@
                     </ui-dropdown>
                   </ui-segment>
                 </ui-docs-example>
-                <!-- GAP I107:  no inverted menu on a plain dropdown. -->
-                <ui-message size="small" class="site-not-ported"
-                  >Fomantic can invert only the menu of a non-inverted dropdown (<code>inverted menu</code>); ours
-                  inverts the whole dropdown (plan issue I107).</ui-message
-                >
+              </ui-section>
+              <!-- GAP I107:  no inverted menu on a plain dropdown. -->
+              <ui-message size="small" class="site-not-ported"
+                >Fomantic can invert only the menu of a non-inverted dropdown (<code>inverted menu</code>); ours
+                inverts the whole dropdown (plan issue I107).</ui-message
+              >
 
-                <ui-docs-example header="Compact" description="A compact dropdown has no minimum width:  `compact`.">
+              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+                <ui-docs-example description="A compact dropdown has no minimum width:  `compact`.">
                   <ui-dropdown compact selection text="Compact">
                     <ui-item>A</ui-item>
                     <ui-item>B</ui-item>
@@ -1160,11 +1221,10 @@
                     <ui-item>B</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Fluid"
-                  description="A dropdown can take the full width of its parent:  `fluid`."
-                >
+              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+                <ui-docs-example description="A dropdown can take the full width of its parent:  `fluid`.">
                   <ui-menu vertical>
                     <ui-item href="#link-1">Link 1</ui-item>
                     <ui-item href="#link-2">Link 2</ui-item>
@@ -1178,8 +1238,10 @@
                     </ui-item>
                   </ui-menu>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Height">
+              <ui-section id="examples-variations-height" header="Height" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A selection dropdown can be <code>long</code> (2x of default height) so that more items can be
                     glanced.
@@ -1354,8 +1416,10 @@
                     <ui-item value="WY">Wyoming</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Menu Direction">
+              <ui-section id="examples-variations-menu-direction" header="Menu Direction" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown menu can specify the direction it should open: <code>direction="left"</code> right-aligns
                     it, so it extends toward the start; <code>upward</code> opens it above.
@@ -1373,8 +1437,10 @@
                     <ui-item>Two</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Columnar Menu">
+              <ui-section id="examples-variations-columnar-menu" header="Columnar Menu" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A selection dropdown can allow its menu to be equally divided so that more items can be glanced:
                     <code>columnar="2"</code> ... <code>"5"</code>.
@@ -1558,9 +1624,10 @@
                     <ui-item value="WY">Wyoming</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Colored"
                   description="`color` accents the focus border and the labels of a multiple selection, and fills a button dropdown."
                 >
                   <ui-dropdown color="red" multiple selection placeholder="Colors" value="red">
@@ -1572,13 +1639,12 @@
                     <ui-item>Delete</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="selection-dropdowns">Selection Dropdowns</ui-header>
-
-                <ui-docs-example
-                  header="Clearable"
-                  description="`clearable` lets users remove their selection from a dropdown."
-                >
+            <ui-section id="examples-selection-dropdowns" header="Selection Dropdowns" sticky collapsible dividing>
+              <ui-section id="examples-selection-dropdowns-clearable" header="Clearable" sticky collapsible dividing>
+                <ui-docs-example description="`clearable` lets users remove their selection from a dropdown.">
                   <ui-dropdown clearable fluid search selection name="country" placeholder="Select Country">
                     <ui-item value="af" flag="af">Afghanistan</ui-item>
                     <ui-item value="ax" flag="ax">Aland Islands</ui-item>
@@ -1627,9 +1693,17 @@
                     classes currently available.
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I106:  no `useLabels: false` (a count instead of labels). -->
-                <ui-docs-example header="Maximum Selections">
+              <!-- GAP I106:  no `useLabels: false` (a count instead of labels). -->
+              <ui-section
+                id="examples-selection-dropdowns-maximum-selections"
+                header="Maximum Selections"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     <code>max-selections</code> forces a maximum number of selections. Form validation can also set a
                     minimum and a maximum for multi-selects inside forms.
@@ -1687,8 +1761,16 @@
                     <ui-item value="by" flag="by">Belarus</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Tagging and User Additions">
+              <ui-section
+                id="examples-selection-dropdowns-tagging-and-user-additions"
+                header="Tagging and User Additions"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     <code>allow-additions</code> gives users the ability to add their own options. This can work with
                     either single or multiple search selection dropdowns; <code>addition-text</code> words the add item.
@@ -1736,17 +1818,25 @@
                     <ui-item value="ux">User Experience</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: Stuck User Additions (<code>hideAdditions: false</code> + <code>stuck</code>) -- our add
-                  item is the first row of the filtered menu, so it is always in view.</ui-message
-                >
+              </ui-section>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Stuck User Additions (<code>hideAdditions: false</code> + <code>stuck</code>) -- our add
+                item is the first row of the filtered menu, so it is always in view.</ui-message
+              >
 
-                <ui-message size="small" class="site-not-ported"
-                  >Text Labels (<code>useLabels: false</code>: a "3 selected" count instead of labels) can't be set yet
-                  (plan issue I106).</ui-message
-                >
+              <ui-message size="small" class="site-not-ported"
+                >Text Labels (<code>useLabels: false</code>: a "3 selected" count instead of labels) can't be set yet
+                (plan issue I106).</ui-message
+              >
 
-                <ui-docs-example header="Clearing Dropdown">
+              <ui-section
+                id="examples-selection-dropdowns-clearing-dropdown"
+                header="Clearing Dropdown"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     You can reset a dropdown to its placeholder: set its <code>value</code> to <code>""</code> (see
                     Usage, "Values"). Here a <code>clearable</code> dropdown's own clear button does it.
@@ -1760,8 +1850,16 @@
                     <ui-item value="0">Female</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Restoring Defaults">
+              <ui-section
+                id="examples-selection-dropdowns-restoring-defaults"
+                header="Restoring Defaults"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     A form reset restores a dropdown to its <code>value</code> attribute (Fomantic's
                     <code>restore defaults</code>). Change them, then reset.
@@ -1787,8 +1885,10 @@
                     </form>
                   </ui-form>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Upward">
+              <ui-section id="examples-selection-dropdowns-upward" header="Upward" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown menu will automatically change which direction it opens if it can't fit on screen. To
                     open in a specific direction, use <code>upward</code>.
@@ -1812,28 +1912,36 @@
                     </ui-item>
                   </ui-menu>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="remote-content">Remote Content</ui-header>
+            <ui-section id="examples-remote-content" header="Remote Content" sticky collapsible dividing>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Fomantic's API settings (<code>apiSettings</code>, <code>filterRemoteData</code>,
+                response mapping) -- fetch the data yourself on <code>ui-search</code> and set the
+                <code>options</code> property (Usage tab, "Rich data").</ui-message
+              >
+            </ui-section>
 
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: Fomantic's API settings (<code>apiSettings</code>, <code>filterRemoteData</code>,
-                  response mapping) -- fetch the data yourself on <code>ui-search</code> and set the
-                  <code>options</code> property (Usage tab, "Rich data").</ui-message
-                >
+            <ui-section id="examples-menus" header="Menus" sticky collapsible dividing>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Changing Transitions (<code>transition</code>) -- the menu fades through CSS; restyle it
+                with <code>::part(menu)</code>.</ui-message
+              >
+              <ui-message size="small" class="site-not-ported"
+                >Multiple Levels and Category Selection (sub-menus inside the menu,
+                <code>allowCategorySelection</code>) can't be built: the menu is one listbox deep (plan issue
+                I53).</ui-message
+              >
 
-                <ui-header level="2" dividing id="menus">Menus</ui-header>
-
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: Changing Transitions (<code>transition</code>) -- the menu fades through CSS; restyle it
-                  with <code>::part(menu)</code>.</ui-message
-                >
-                <ui-message size="small" class="site-not-ported"
-                  >Multiple Levels and Category Selection (sub-menus inside the menu,
-                  <code>allowCategorySelection</code>) can't be built: the menu is one listbox deep (plan issue
-                  I53).</ui-message
-                >
-
-                <ui-docs-example header="Preserving User Selections">
+              <ui-section
+                id="examples-menus-preserving-user-selections"
+                header="Preserving User Selections"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown shows the item whose value is its <code>value</code> on page load;
                     <code>text</code> shows a text before the items (or <code>options</code>) arrive.
@@ -1844,8 +1952,16 @@
                     <ui-item value="trash">Trash</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Dropdown Dividers / Headers">
+              <ui-section
+                id="examples-menus-dropdown-dividers-headers"
+                header="Dropdown Dividers / Headers"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     A dropdown menu can contain dividers and headers to separate related content. While searching, they
                     hide and only the matching items show (Fomantic's <code>hideDividers</code>).
@@ -1864,20 +1980,21 @@
                     <ui-item value="year">This Year</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="adjusting-actions">Adjusting Actions</ui-header>
+            <ui-section id="examples-adjusting-actions" header="Adjusting Actions" sticky collapsible dividing>
+              <ui-message size="small" class="site-not-ported"
+                >Combo Dropdowns and Link Dropdowns (<code>action: "combo" | "nothing" | "hide"</code>: an item that
+                changes a button, or a menu of links) can't be built yet: every dropdown is a select with a value
+                (plan issue I53).</ui-message
+              >
+            </ui-section>
 
-                <ui-message size="small" class="site-not-ported"
-                  >Combo Dropdowns and Link Dropdowns (<code>action: "combo" | "nothing" | "hide"</code>: an item that
-                  changes a button, or a menu of links) can't be built yet: every dropdown is a select with a value
-                  (plan issue I53).</ui-message
-                >
-
-                <ui-header level="2" dividing id="coupling">Coupling</ui-header>
-
-                <!-- GAP I11:  no basic look, so the button group's dropdowns are filled. -->
+            <ui-section id="examples-coupling" header="Coupling" sticky collapsible dividing>
+              <!-- GAP I11:  no basic look, so the button group's dropdowns are filled. -->
+              <ui-section id="examples-coupling-button-group" header="Button Group" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Button Group"
                   description="A button group can be formatted to show additional content as a dropdown."
                 >
                   <ui-buttons>
@@ -1895,9 +2012,11 @@
                     </ui-dropdown>
                   </ui-buttons>
                 </ui-docs-example>
+              </ui-section>
 
-                <!-- GAP I53:  no dropdown that IS a menu item;  a dropdown sits inside an item. -->
-                <ui-docs-example header="Menu">
+              <!-- GAP I53:  no dropdown that IS a menu item;  a dropdown sits inside an item. -->
+              <ui-section id="examples-coupling-menu" header="Menu" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     A menu can contain a dropdown, inside an item. Fomantic's dropdown that IS the item (<code
                       >ui dropdown item</code
@@ -1914,9 +2033,10 @@
                     </ui-item>
                   </ui-menu>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-coupling-form" header="Form" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Form"
                   description="A dropdown can be formatted to allow selection inside a form:  it is a form control."
                 >
                   <ui-form>
@@ -1931,9 +2051,10 @@
                     </form>
                   </ui-form>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-coupling-invoker-commands" header="Invoker commands" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Invoker commands"
                   description='Buttons drive a dropdown with no script:  `commandfor` + `command="--show"`, `--close` or `--toggle`.'
                 >
                   <ui-button commandfor="dropdown-invoker" command="--show">Open the menu</ui-button>
@@ -1943,214 +2064,223 @@
                     <ui-item value="b">Beta</ui-item>
                   </ui-dropdown>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  items vs options, values, forms, events, invokers, keyboard, accessibility, frameworks. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  items vs options, values, forms, events, invokers, keyboard, accessibility, frameworks. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Write `<ui-dropdown>` with `<ui-item>`s inside: the options, headers (`type="header"`) and dividers
+                  (`type="divider"`), in order. No JavaScript to call: Fomantic's settings are attributes.
+
+                  - The look: `selection` (a form select), `search`, `multiple`, `inline`, `button` (+ `labeled` with an `icon`),
+                    `floating`, `pointing`, `simple`, `compact`, `fluid`, `scrolling`, the heights ...
+                  - An item's `value` defaults to its text; `text` overrides what the dropdown shows once it's chosen;
+                    `description`, `icon`, `image` and `flag` decorate the row, and any markup inside is projected into it.
+                  - Slots: `trigger` (your own trigger content), `header` (content at the top of the menu), `icon` (replaces the
+                    caret, or a `labeled` icon).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-values" header="Values" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `value` is the chosen value: a string, or with `multiple` a `string[]` property (the attribute is a comma / space
+                  list). Set it to choose from code (no event); set it to `""` (or `[]`) to clear, which shows the placeholder
+                  again -- Fomantic's `clear` behaviour. A form reset restores the `value` attribute (`restore defaults`).
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-rich-data" header="Rich data" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Attributes carry primitives and are reflected; the rich `options` array is a JS property (frameworks find it with
+                  `"options" in element`), and first paint never needs it -- slotted `<ui-item>`s or the `value` / `text`
+                  attributes carry what server rendering must show. Options set through the property are added after the slotted
+                  items. For remote data, fetch on `ui-search` and set `options`.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  // <ui-dropdown selection clearable placeholder="Pick a framework"></ui-dropdown>
+                  const dropdown = document.querySelector("ui-dropdown")
+                  dropdown.options = [
+                    { value: "react", text: "React" },
+                    { value: "vue", text: "Vue" },
+                    { value: "solid", text: "Solid", description: "2.0" },
+                    { value: "svelte", text: "Svelte", disabled: true }
+                  ]
+                  dropdown.addEventListener("ui-change", (event) => console.log(event.detail.value))
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A dropdown is a form control: `name` submits the value (`multiple`: one entry per value), `required` validates,
+                  `disabled` leaves it out and `readonly` keeps it in but unchangeable. `max-selections` caps a `multiple`.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-change` (`{ value }`): the user chose, added, removed or cleared a value.
+                  - `ui-open` / `ui-close` (`{ open }`): the menu is about to open / close; cancelable.
+                  - `ui-search` (`{ query }`): a `search` dropdown's query changed.
+                  - `ui-add` / `ui-remove` (`{ value }`): a `multiple` dropdown gained or lost a value (`ui-add` also for an
+                    `allow-additions` addition).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const tags = document.querySelector("ui-dropdown[name=tags]")
+                  tags.addEventListener("ui-add", (event) => console.log("added", event.detail.value))
+                  tags.addEventListener("ui-search", async (event) => {
+                    tags.options = await fetch(`/tags?q=${encodeURIComponent(event.detail.query)}`).then((r) => r.json())
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-invoker-commands" header="Invoker commands" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A button with `commandfor="id"` and `command="--toggle"` (or `--show` / `--close`) opens and closes the menu with
+                  no script, as a user action (the cancelable `ui-open` / `ui-close` first), and focuses the dropdown so the arrow
+                  keys work. A disabled or read-only dropdown ignores commands. Live: "Invoker commands" on the Examples tab.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - **Arrow Down** / **Arrow Up**: open the menu, then move the highlight.
+                  - **Home** / **End**: highlight the first / last enabled option (open).
+                  - **Page Down** / **Page Up**: move the highlight several rows (open).
+                  - **Enter**: choose the highlighted option (or the addition); opens a `search` dropdown.
+                  - **Space**: choose the highlighted option (not in `search`, where it types a space).
+                  - **Escape**: close the menu. **Tab**: close it and move on.
+                  - **Backspace** (`multiple` + `search`, empty query): remove the last label.
+                  - Any character (no `search`): type-ahead -- open and highlight the next matching option.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The trigger is an ARIA 1.2 combobox with a listbox popup (the WAI-ARIA authoring practices pattern).
+
+                  - `role="combobox"` with `aria-expanded`, `aria-controls`, `aria-haspopup="listbox"` and `aria-activedescendant`
+                    pointing at the highlighted row. Focus stays on the trigger while you move through the list.
+                  - The menu is `role="listbox"` (`aria-multiselectable` for `multiple`); rows are `role="option"` with
+                    `aria-selected` and `aria-disabled`. Headers and dividers are presentational.
+                  - `aria-label` on the host names the combobox, otherwise the placeholder does. `loading`, `readonly`, `required`
+                    and validation set `aria-busy`, `aria-readonly`, `aria-required` and `aria-invalid`.
+                  - The clear button and each `multiple` label's delete button get translated names (`Clear`, `Remove {value}`).
+                  - Escape and outside clicks close the menu; leaving the dropdown with Tab closes it too.
+                  - Without JavaScript the native fallback is a real `<select>` (`multiple` when `multiple`), built from the same
+                    `<ui-item>`s or `options`. It keeps the value, the form submission, `ui-change`, and the browser's own keyboard
+                    pattern; it drops search, additions, clearable, option icons and images, and the open / close events.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set `options` as a property, not an attribute, and listen for `ui-change`.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-dropdown selection options={options} value="x" onui-change={(e) => setValue(e.detail.value)} />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-dropdown selection :options="options" value="x" @ui-change="(e) => (value = e.detail.value)" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref;  `prop:` for the rich data
+                  <ui-dropdown
+                    selection
+                    prop:options={options}
+                    value="x"
+                    ref={(el) => el.addEventListener("ui-change", (e) => setValue(e.detail.value))}
+                  />
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-dropdown"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-dropdown-*` tokens: set one on the element or on any ancestor (`:root` included).
+                  They inherit into the shadow root, where the sheet reads each through a private alias, so nothing inside blocks
+                  them. Style the pieces with `::part()`: `trigger`, `text`, `icon`, `menu`, `item`, `label`, `search` and
+                  `clear`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-dropdown::part(menu) {
+                    max-height: 20em;
+                  }
+                  ui-dropdown {
+                    --ui-dropdown-arrow-size: 0.8em;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
                 <ui-markdown>
                   <script type="text/markdown">
-                    Write `<ui-dropdown>` with `<ui-item>`s inside: the options, headers (`type="header"`) and dividers
-                    (`type="divider"`), in order. No JavaScript to call: Fomantic's settings are attributes.
-
-                    - The look: `selection` (a form select), `search`, `multiple`, `inline`, `button` (+ `labeled` with an `icon`),
-                      `floating`, `pointing`, `simple`, `compact`, `fluid`, `scrolling`, the heights ...
-                    - An item's `value` defaults to its text; `text` overrides what the dropdown shows once it's chosen;
-                      `description`, `icon`, `image` and `flag` decorate the row, and any markup inside is projected into it.
-                    - Slots: `trigger` (your own trigger content), `header` (content at the top of the menu), `icon` (replaces the
-                      caret, or a `labeled` icon).
+                    Variations build on the tokens: `floating` and `pointing` swap in their own `--ui-dropdown-floating-*` /
+                    `--ui-dropdown-pointing-*` values. A `button` dropdown reads the button tokens. Never set the
+                    `--_ui-dropdown-*` names: they're the sheet's private plumbing.
                   </script>
                 </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-dropdown" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="values">Values</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `value` is the chosen value: a string, or with `multiple` a `string[]` property (the attribute is a comma / space
-                    list). Set it to choose from code (no event); set it to `""` (or `[]`) to clear, which shows the placeholder
-                    again -- Fomantic's `clear` behaviour. A form reset restores the `value` attribute (`restore defaults`).
-                  </script>
-                </ui-markdown>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
 
-                <ui-header level="2" dividing id="rich-data">Rich data</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Attributes carry primitives and are reflected; the rich `options` array is a JS property (frameworks find it with
-                    `"options" in element`), and first paint never needs it -- slotted `<ui-item>`s or the `value` / `text`
-                    attributes carry what server rendering must show. Options set through the property are added after the slotted
-                    items. For remote data, fetch on `ui-search` and set `options`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    // <ui-dropdown selection clearable placeholder="Pick a framework"></ui-dropdown>
-                    const dropdown = document.querySelector("ui-dropdown")
-                    dropdown.options = [
-                      { value: "react", text: "React" },
-                      { value: "vue", text: "Vue" },
-                      { value: "solid", text: "Solid", description: "2.0" },
-                      { value: "svelte", text: "Svelte", disabled: true }
-                    ]
-                    dropdown.addEventListener("ui-change", (event) => console.log(event.detail.value))
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="forms">Forms</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A dropdown is a form control: `name` submits the value (`multiple`: one entry per value), `required` validates,
-                    `disabled` leaves it out and `readonly` keeps it in but unchangeable. `max-selections` caps a `multiple`.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - `ui-change` (`{ value }`): the user chose, added, removed or cleared a value.
-                    - `ui-open` / `ui-close` (`{ open }`): the menu is about to open / close; cancelable.
-                    - `ui-search` (`{ query }`): a `search` dropdown's query changed.
-                    - `ui-add` / `ui-remove` (`{ value }`): a `multiple` dropdown gained or lost a value (`ui-add` also for an
-                      `allow-additions` addition).
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const tags = document.querySelector("ui-dropdown[name=tags]")
-                    tags.addEventListener("ui-add", (event) => console.log("added", event.detail.value))
-                    tags.addEventListener("ui-search", async (event) => {
-                      tags.options = await fetch(`/tags?q=${encodeURIComponent(event.detail.query)}`).then((r) => r.json())
-                    })
-                  </script>
-                </ui-code>
-
-                <ui-header level="2" dividing id="invoker-commands">Invoker commands</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A button with `commandfor="id"` and `command="--toggle"` (or `--show` / `--close`) opens and closes the menu with
-                    no script, as a user action (the cancelable `ui-open` / `ui-close` first), and focuses the dropdown so the arrow
-                    keys work. A disabled or read-only dropdown ignores commands. Live: "Invoker commands" on the Examples tab.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - **Arrow Down** / **Arrow Up**: open the menu, then move the highlight.
-                    - **Home** / **End**: highlight the first / last enabled option (open).
-                    - **Page Down** / **Page Up**: move the highlight several rows (open).
-                    - **Enter**: choose the highlighted option (or the addition); opens a `search` dropdown.
-                    - **Space**: choose the highlighted option (not in `search`, where it types a space).
-                    - **Escape**: close the menu. **Tab**: close it and move on.
-                    - **Backspace** (`multiple` + `search`, empty query): remove the last label.
-                    - Any character (no `search`): type-ahead -- open and highlight the next matching option.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The trigger is an ARIA 1.2 combobox with a listbox popup (the WAI-ARIA authoring practices pattern).
-
-                    - `role="combobox"` with `aria-expanded`, `aria-controls`, `aria-haspopup="listbox"` and `aria-activedescendant`
-                      pointing at the highlighted row. Focus stays on the trigger while you move through the list.
-                    - The menu is `role="listbox"` (`aria-multiselectable` for `multiple`); rows are `role="option"` with
-                      `aria-selected` and `aria-disabled`. Headers and dividers are presentational.
-                    - `aria-label` on the host names the combobox, otherwise the placeholder does. `loading`, `readonly`, `required`
-                      and validation set `aria-busy`, `aria-readonly`, `aria-required` and `aria-invalid`.
-                    - The clear button and each `multiple` label's delete button get translated names (`Clear`, `Remove {value}`).
-                    - Escape and outside clicks close the menu; leaving the dropdown with Tab closes it too.
-                    - Without JavaScript the native fallback is a real `<select>` (`multiple` when `multiple`), built from the same
-                      `<ui-item>`s or `options`. It keeps the value, the form submission, `ui-change`, and the browser's own keyboard
-                      pattern; it drops search, additions, clearable, option icons and images, and the open / close events.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Set `options` as a property, not an attribute, and listen for `ui-change`.
-                  </script>
-                </ui-markdown>
-                <ui-header level="4" id="framework-react">React 19</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    <ui-dropdown selection options={options} value="x" onui-change={(e) => setValue(e.detail.value)} />
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                    <ui-dropdown selection :options="options" value="x" @ui-change="(e) => (value = e.detail.value)" />
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    // no `on:` namespace:  listen through a ref;  `prop:` for the rich data
-                    <ui-dropdown
-                      selection
-                      prop:options={options}
-                      value="x"
-                      ref={(el) => el.addEventListener("ui-change", (e) => setValue(e.detail.value))}
-                    />
-                  </script>
-                </ui-code>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-dropdown"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-dropdown-*` tokens: set one on the element or on any ancestor (`:root` included).
-                    They inherit into the shadow root, where the sheet reads each through a private alias, so nothing inside blocks
-                    them. Style the pieces with `::part()`: `trigger`, `text`, `icon`, `menu`, `item`, `label`, `search` and
-                    `clear`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    ui-dropdown::part(menu) {
-                      max-height: 20em;
-                    }
-                    ui-dropdown {
-                      --ui-dropdown-arrow-size: 0.8em;
-                    }
-                  </script>
-                </ui-code>
-                <ui-message state="info" size="small">
-                  <ui-markdown>
-                    <script type="text/markdown">
-                      Variations build on the tokens: `floating` and `pointing` swap in their own `--ui-dropdown-floating-*` /
-                      `--ui-dropdown-pointing-*` values. A `button` dropdown reads the button tokens. Never set the
-                      `--_ui-dropdown-*` names: they're the sheet's private plumbing.
-                    </script>
-                  </ui-markdown>
-                </ui-message>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-dropdown" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                    theme to the whole site.
-
-                    Themes that restyle dropdowns: Chubby, Flat, GitHub and Material.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+                  Themes that restyle dropdowns: Chubby, Flat, GitHub and Material.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

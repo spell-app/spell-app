@@ -6,7 +6,7 @@ import type { JSX } from "@solidjs/web"
  *   plus anything else, as a string-attribute or `prop:` form.  Loose ON PURPOSE until `ui` ships typed tags:  a
  *   misspelt attribute isn't caught here.
  * - Augments `"@solidjs/web/types/jsx.js"`, NOT `"@solidjs/web"` (that one only re-exports `JSX`;  see
- *   `packages/docs/solid/solid-2.md`).
+ *   `packages/docs/content/solid/solid-2.md`).
  */
 
 declare module "@solidjs/web/types/jsx.js" {

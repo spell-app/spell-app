@@ -9,77 +9,64 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Tab">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-tab.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-tab%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/modules/tab.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Tab
+            <ui-header>A tab is a hidden section of content activated by a menu.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-tab" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-tab.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-tab%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/modules/tab.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Tab
-                <ui-header>A tab is a hidden section of content activated by a menu.</ui-header>
-              </ui-header>
-              <ui-docs-themes for="ui-tab" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Tab"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
-                  Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/epics/spell-ui-pages/PAGES.md.
-                  - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
-                  - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
-                    IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
-                  - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
-                -->
-
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <ui-docs-example header="Tab">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
+              Groups ...).  Rules, the class-grammar mappings, gaps:  packages/docs/content/epics/spell-ui-pages/PAGES.md.
+              - A section:  `<ui-header level="2" dividing id="types">Types</ui-header>`, then its examples.
+              - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
+                IS the code shown.  A richer description:  `<p slot="description">` (+ `<ui-message slot="description">`).
+              - A gap:  an HTML comment `GAP I<n>:  ...` BEFORE the example (a comment inside it shows in its code).
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-tab" header="Tab" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A basic tab.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Two tags: <code>&lt;ui-tab&gt;</code> is the pane (Fomantic's <code>.ui.tab</code>), and
@@ -93,40 +80,38 @@
                     </ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Pointing"
-                  description="A `pointing secondary` tab menu underlines the selected tab."
-                >
+              <ui-section id="examples-types-pointing" header="Pointing" sticky collapsible dividing>
+                <ui-docs-example description="A `pointing secondary` tab menu underlines the selected tab.">
                   <ui-tabs pointing secondary aria-label="Pointing demo">
                     <ui-tab label="First">First pane</ui-tab>
                     <ui-tab label="Second">Second pane</ui-tab>
                     <ui-tab label="Third">Third pane</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Basic menu"
-                  description="With no look words, the tabs are a plain menu above separate panes."
-                >
+              <ui-section id="examples-types-basic-menu" header="Basic menu" sticky collapsible dividing>
+                <ui-docs-example description="With no look words, the tabs are a plain menu above separate panes.">
                   <ui-tabs aria-label="Basic demo">
                     <ui-tab label="First">First pane</ui-tab>
                     <ui-tab label="Second">Second pane</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Text"
-                  description="Tabs can be plain text;  `basic` drops the panes' segment box."
-                >
+              <ui-section id="examples-types-text" header="Text" sticky collapsible dividing>
+                <ui-docs-example description="Tabs can be plain text;  `basic` drops the panes' segment box.">
                   <ui-tabs text basic aria-label="Text demo">
                     <ui-tab label="First">First pane</ui-tab>
                     <ui-tab label="Second">Second pane</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-types-segmented" header="Segmented" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Segmented"
                   description='The tabs can be a segmented control:  `appearance="segmented"`, the selected tab filled with the primary colour (or `color`).  `appearance` takes the menu&apos;s looks;  the booleans above are its aliases.'
                 >
                   <ui-tabs appearance="segmented" aria-label="Segmented demo">
@@ -135,11 +120,12 @@
                     <ui-tab label="API">API pane</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Active"
                   description="A tab can be activated, and visible on the page:  `selected` (alias `active`)."
                 >
                   <ui-tabs tabular attached aria-label="Active demo">
@@ -149,8 +135,10 @@
                     </ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Loading" description="A tab can display a loading indicator.">
+              <ui-section id="examples-states-loading" header="Loading" sticky collapsible dividing>
+                <ui-docs-example description="A tab can display a loading indicator.">
                   <ui-tabs tabular attached aria-label="Loading demo">
                     <ui-tab label="Tab" loading>
                       <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
@@ -158,23 +146,24 @@
                     </ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Disabled"
-                  description="A `disabled` pane's tab can't be chosen, and the arrow keys skip it."
-                >
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="A `disabled` pane's tab can't be chosen, and the arrow keys skip it.">
                   <ui-tabs tabular attached aria-label="Disabled demo">
                     <ui-tab label="First">First pane</ui-tab>
                     <ui-tab label="Second" selected>Second pane</ui-tab>
                     <ui-tab label="Third" disabled>Third pane</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-                <!-- GAP I51:  no centered tab item (Fomantic's `center item`);  the Two tab sits in line.  `alignment="center"`
-                     centres the whole tab list, not one tab between its neighbours. -->
-                <ui-docs-example header="Centered Item" description="A tab can have center aligned items.">
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <!-- GAP I51:  no centered tab item (Fomantic's `center item`);  the Two tab sits in line.  `alignment="center"`
+                   centres the whole tab list, not one tab between its neighbours. -->
+              <ui-section id="examples-variations-centered-item" header="Centered Item" sticky collapsible dividing>
+                <ui-docs-example description="A tab can have center aligned items.">
                   <ui-tabs tabular attached aria-label="Centered demo">
                     <ui-tab label="One">
                       <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
@@ -190,8 +179,10 @@
                     </ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Inverted" description="A tab can be shown inverted;  the panes follow.">
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A tab can be shown inverted;  the panes follow.">
                   <ui-segment inverted>
                     <ui-tabs inverted tabular attached aria-label="Inverted demo">
                       <ui-tab label="Active Tab"><p>content one</p></ui-tab>
@@ -200,9 +191,16 @@
                     </ui-tabs>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-variations-bottom-attached-menu"
+                header="Bottom attached menu"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Bottom attached menu"
                   description='You can display the tabbed menu at the bottom of the tab segments:  `attached="bottom"`.'
                 >
                   <ui-segment inverted>
@@ -213,9 +211,10 @@
                     </ui-tabs>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-vertical" header="Vertical" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Vertical"
                   description="Tabs can stack in a column beside the panes;  Arrow Up / Down move between them."
                 >
                   <ui-tabs vertical tabular aria-label="Vertical demo">
@@ -224,16 +223,19 @@
                     <ui-tab label="Companies">Companies</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Fluid" description="The tab menu can take the full width.">
+              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+                <ui-docs-example description="The tab menu can take the full width.">
                   <ui-tabs fluid pointing secondary aria-label="Fluid demo">
                     <ui-tab label="First">First pane</ui-tab>
                     <ui-tab label="Second">Second pane</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-alignment" header="Alignment" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Alignment"
                   description='`alignment` places the tabs:  `left`, `center` or `right` packs them at that end;  `fluid` makes them fill the row.  A segmented tab list moves as a whole.'
                 >
                   <ui-tabs appearance="segmented" alignment="center" aria-label="Centered demo, segmented">
@@ -242,9 +244,10 @@
                     <ui-tab label="Month">This month's numbers</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-equal" header="Equal" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Equal"
                   description='`equal` makes every tab the same width, from the tabs themselves:  each as wide as the widest, or, with `alignment="fluid"`, an equal share of the row (Fomantic&apos;s `four item` tab menu, without the count).  This site&apos;s own tabs are `appearance="segmented" alignment="fluid" equal`.'
                 >
                   <ui-tabs appearance="segmented" equal aria-label="Equal demo">
@@ -258,35 +261,46 @@
                     <ui-tab label="Friends">Friends</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Compact" description="The tab menu can be only as wide as its tabs.">
+              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+                <ui-docs-example description="The tab menu can be only as wide as its tabs.">
                   <ui-tabs compact aria-label="Compact demo">
                     <ui-tab label="Day">Today's numbers</ui-tab>
                     <ui-tab label="Week">This week's numbers</ui-tab>
                     <ui-tab label="Month">This month's numbers</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Colored and sized"
-                  description="Tabs take a `color` (the selected tab's hue) and a `size`."
-                >
+              <ui-section
+                id="examples-variations-colored-and-sized"
+                header="Colored and sized"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="Tabs take a `color` (the selected tab's hue) and a `size`.">
                   <ui-tabs size="small" color="red" pointing secondary aria-label="Colored demo">
                     <ui-tab label="First">First pane</ui-tab>
                     <ui-tab label="Second">Second pane</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Icons" description="A pane's `icon` shows on its tab, before the label.">
+              <ui-section id="examples-variations-icons" header="Icons" sticky collapsible dividing>
+                <ui-docs-example description="A pane's `icon` shows on its tab, before the label.">
                   <ui-tabs pointing secondary aria-label="Icon demo">
                     <ui-tab label="Mail" icon="envelope">Inbox</ui-tab>
                     <ui-tab label="Settings" icon="gear">Preferences</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="basic-examples">Basic Examples</ui-header>
-
-                <ui-docs-example header="Basic Tabs">
+            <ui-section id="examples-basic-examples" header="Basic Examples" sticky collapsible dividing>
+              <ui-section id="examples-basic-examples-basic-tabs" header="Basic Tabs" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">
                     Each <code>&lt;ui-tab&gt;</code> inside a <code>&lt;ui-tabs&gt;</code> is a pane; its
                     <code>label</code> becomes a tab. No script, and no <code>data-tab</code> paths to pair up.
@@ -301,8 +315,16 @@
                     <ui-tab label="Third">Third</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Multiple Tab Groups">
+              <ui-section
+                id="examples-basic-examples-multiple-tab-groups"
+                header="Multiple Tab Groups"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     Every <code>&lt;ui-tabs&gt;</code> is its own independent tab group, even nested inside another
                     one's pane.
@@ -342,9 +364,10 @@
                     <ui-tab label="Sixth">6</ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-basic-examples-default-paths" header="Default Paths" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Default Paths"
                   description="Opening a pane shows its nested tab set's default pane too:  the first `selected` one, else the first enabled one, for as many levels as you nest."
                 >
                   <ui-tabs pointing secondary aria-label="Default paths demo">
@@ -371,10 +394,18 @@
                     </ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="remote-examples">Remote Examples</ui-header>
-
-                <ui-docs-example header="Retrieving Remote Content">
+            <ui-section id="examples-remote-examples" header="Remote Examples" sticky collapsible dividing>
+              <ui-section
+                id="examples-remote-examples-retrieving-remote-content"
+                header="Retrieving Remote Content"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example>
                   <p slot="description">
                     A <code>lazy</code> pane stamps its <code>&lt;template&gt;</code> into itself the first time it's
                     shown, so hidden panes cost nothing up front. To fetch content instead, listen for
@@ -404,231 +435,238 @@
                     </ui-tab>
                   </ui-tabs>
                 </ui-docs-example>
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: Evaluating Scripts in HTML (<code>evaluateScripts</code>) -- panes load no remote HTML,
-                  so there are no scripts to evaluate.</ui-message
-                >
+              </ui-section>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: Evaluating Scripts in HTML (<code>evaluateScripts</code>) -- panes load no remote HTML,
+                so there are no scripts to evaluate.</ui-message
+              >
+            </ui-section>
 
-                <ui-header level="2" dividing id="history-examples">History Examples</ui-header>
+            <ui-section id="examples-history-examples" header="History Examples" sticky collapsible dividing>
+              <ui-header level="4" id="using-hash-history">Using Hash History</ui-header>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `history` mirrors the selected pane in the URL hash (`#photos`): picking a tab pushes a history
+                  entry, Back and Forward switch panes, a link to `#photos` selects that pane, and a page opened on
+                  `#photos` starts there. Shown as code only: a live one would fight this page's own tabs for the
+                  hash, which use `history` too (switch between Examples and Usage above, then press Back).
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-tabs pointing secondary history aria-label="Profile">
+                    <ui-tab label="Bio" value="bio">...</ui-tab>
+                    <ui-tab label="Photos" value="photos" icon="image">...</ui-tab>
+                  </ui-tabs>
+                </script>
+              </ui-code>
+              <ui-message size="small" class="site-not-ported"
+                >Not ported: HTML5 state history (<code>historyType: 'state'</code>, <code>path</code>) -- it needs a
+                server route for every tab; <code>history</code> uses the hash only.</ui-message
+              >
+            </ui-section>
+          </ui-tab>
 
-                <ui-header level="4" id="using-hash-history">Using Hash History</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `history` mirrors the selected pane in the URL hash (`#photos`): picking a tab pushes a history
-                    entry, Back and Forward switch panes, a link to `#photos` selects that pane, and a page opened on
-                    `#photos` starts there. Shown as code only: a live one would fight this page's own tabs for the
-                    hash, which use `history` too (switch between Examples and Usage above, then press Back).
-                  </script>
-                </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <ui-tabs pointing secondary history aria-label="Profile">
-                      <ui-tab label="Bio" value="bio">...</ui-tab>
-                      <ui-tab label="Photos" value="photos" icon="image">...</ui-tab>
-                    </ui-tabs>
-                  </script>
-                </ui-code>
-                <ui-message size="small" class="site-not-ported"
-                  >Not ported: HTML5 state history (<code>historyType: 'state'</code>, <code>path</code>) -- it needs a
-                  server route for every tab; <code>history</code> uses the hash only.</ui-message
-                >
-              </ui-tab>
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Two tags, in Fomantic's own words: its `.ui.tab` is the PANE, so `<ui-tab>` is a pane, and the tabs
+                  you click are the items of a menu that `<ui-tabs>` draws from its panes' `label` and `icon`. One
+                  element per tab keeps a label with its content, with nothing to pair up.
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Two tags, in Fomantic's own words: its `.ui.tab` is the PANE, so `<ui-tab>` is a pane, and the tabs
-                    you click are the items of a menu that `<ui-tabs>` draws from its panes' `label` and `icon`. One
-                    element per tab keeps a label with its content, with nothing to pair up.
+                  - The tab menu is styled by the menu's own sheet, so its look words are the menu's: `tabular`,
+                    `pointing`, `secondary`, `text`, `vertical`, `fluid`, `compact`, `inverted`, `size`, `color`.
+                  - The panes are segments: `attached` joins them to the menu, `basic` drops their box.
+                  - `value` is the selected pane: its `value`, else its index. With no `value`, the first `selected`
+                    pane shows, else the first enabled one.
+                  - Name the tab list with `aria-label` on `<ui-tabs>`.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-tabs tabular attached aria-label="Profile">
+                    <ui-tab label="Bio" value="bio">...</ui-tab>
+                    <ui-tab label="Photos" value="photos" icon="image" lazy><template>...</template></ui-tab>
+                  </ui-tabs>
+                </script>
+              </ui-code>
+            </ui-section>
 
-                    - The tab menu is styled by the menu's own sheet, so its look words are the menu's: `tabular`,
-                      `pointing`, `secondary`, `text`, `vertical`, `fluid`, `compact`, `inverted`, `size`, `color`.
-                    - The panes are segments: `attached` joins them to the menu, `basic` drops their box.
-                    - `value` is the selected pane: its `value`, else its index. With no `value`, the first `selected`
-                      pane shows, else the first enabled one.
-                    - Name the tab list with `aria-label` on `<ui-tabs>`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <ui-tabs tabular attached aria-label="Profile">
-                      <ui-tab label="Bio" value="bio">...</ui-tab>
-                      <ui-tab label="Photos" value="photos" icon="image" lazy><template>...</template></ui-tab>
-                    </ui-tabs>
-                  </script>
-                </ui-code>
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-change` on `<ui-tabs>` (`{ value, tab }`, cancelable): the user is about to pick a tab
+                    (click, key, or the URL hash with `history`); `preventDefault()` keeps the current one.
+                  - `ui-show` on `<ui-tab>` (`{ value, first }`): the pane was shown; `first` is true the first
+                    time, the moment to fill a pane yourself.
+                  - Writing `value` from code switches panes and fires no `ui-change`.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const tabs = document.querySelector("ui-tabs")
+                  tabs.addEventListener("ui-change", (event) => {
+                    if (form.dirty && !confirm("Leave unsaved changes?")) event.preventDefault()
+                  })
+                  tabs.value = "photos" // switch from code:  no event
+                  document.querySelector("ui-tab[value=stats]").addEventListener("ui-show", async (event) => {
+                    if (!event.detail.first) return
+                    const pane = event.target
+                    pane.toggleAttribute("loading", true)
+                    pane.innerHTML = await (await fetch("/stats.html")).text()
+                    pane.toggleAttribute("loading", false)
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - `ui-change` on `<ui-tabs>` (`{ value, tab }`, cancelable): the user is about to pick a tab
-                      (click, key, or the URL hash with `history`); `preventDefault()` keeps the current one.
-                    - `ui-show` on `<ui-tab>` (`{ value, first }`): the pane was shown; `first` is true the first
-                      time, the moment to fill a pane yourself.
-                    - Writing `value` from code switches panes and fires no `ui-change`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const tabs = document.querySelector("ui-tabs")
-                    tabs.addEventListener("ui-change", (event) => {
-                      if (form.dirty && !confirm("Leave unsaved changes?")) event.preventDefault()
-                    })
-                    tabs.value = "photos" // switch from code:  no event
-                    document.querySelector("ui-tab[value=stats]").addEventListener("ui-show", async (event) => {
-                      if (!event.detail.first) return
-                      const pane = event.target
-                      pane.toggleAttribute("loading", true)
-                      pane.innerHTML = await (await fetch("/stats.html")).text()
-                      pane.toggleAttribute("loading", false)
-                    })
-                  </script>
-                </ui-code>
+            <ui-section id="usage-history" header="History" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `history` puts the selection in the URL hash (`#photos`): picking a tab pushes a history entry, Back
+                  and Forward switch panes, a link to `#photos` selects that pane, and a page opened on `#photos`
+                  starts there. Where the browser has View Transitions, the pane swap runs in one (not under reduced
+                  motion). Give the panes a `value`, so the hash reads as a word. One `history` tab set per page:
+                  two would fight for the hash.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="history">History</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    `history` puts the selection in the URL hash (`#photos`): picking a tab pushes a history entry, Back
-                    and Forward switch panes, a link to `#photos` selects that pane, and a page opened on `#photos`
-                    starts there. Where the browser has View Transitions, the pane swap runs in one (not under reduced
-                    motion). Give the panes a `value`, so the hash reads as a word. One `history` tab set per page:
-                    two would fight for the hash.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-panes-without-tabs" header="Panes without tabs" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A `<ui-tab>` outside a `<ui-tabs>` is a plain pane, shown only while it's `selected`: switch it
+                  from your own buttons (Fomantic's `$.tab('change tab', path)`).
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  document.querySelector("#show-inbox").addEventListener("click", () => {
+                    for (const pane of document.querySelectorAll("ui-tab.mail")) pane.toggleAttribute("selected", pane.id === "inbox")
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="standalone-panes">Panes without tabs</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A `<ui-tab>` outside a `<ui-tabs>` is a plain pane, shown only while it's `selected`: switch it
-                    from your own buttons (Fomantic's `$.tab('change tab', path)`).
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    document.querySelector("#show-inbox").addEventListener("click", () => {
-                      for (const pane of document.querySelectorAll("ui-tab.mail")) pane.toggleAttribute("selected", pane.id === "inbox")
-                    })
-                  </script>
-                </ui-code>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The APG tabs pattern: the tab list is one Tab stop (the selected tab), and the shown pane is the
+                  next.
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The APG tabs pattern: the tab list is one Tab stop (the selected tab), and the shown pane is the
-                    next.
+                  - **Arrow Left** / **Arrow Right**: previous / next tab (**Arrow Up** / **Down** when `vertical`),
+                    wrapping, skipping disabled tabs.
+                  - **Home** / **End**: first / last tab.
+                  - **Enter** / **Space**: select the focused tab, with `activation="manual"` (where the arrows only
+                    move focus). Use it when showing a pane is slow.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                    - **Arrow Left** / **Arrow Right**: previous / next tab (**Arrow Up** / **Down** when `vertical`),
-                      wrapping, skipping disabled tabs.
-                    - **Home** / **End**: first / last tab.
-                    - **Enter** / **Space**: select the focused tab, with `activation="manual"` (where the arrows only
-                      move focus). Use it when showing a pane is slow.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The whole pattern lives in one shadow root: a `role="tablist"` (named by the host's `aria-label`)
+                    of `<button role="tab">`s with `aria-selected` and `aria-controls`; each `<ui-tab>` host is the
+                    `role="tabpanel"`, named by its `label`.
+                  - Disabled tabs stay in the list (announced as unavailable), but the arrow keys skip them.
+                  - If the element can't render, its native fallback still draws the tab list and shows the selected
+                    pane, in the same class grammar, but a click selects nothing: the arrow keys, `ui-change`,
+                    `history`, `lazy` templates and tab icons are lost.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - The whole pattern lives in one shadow root: a `role="tablist"` (named by the host's `aria-label`)
-                      of `<button role="tab">`s with `aria-selected` and `aria-controls`; each `<ui-tab>` host is the
-                      `role="tabpanel"`, named by its `label`.
-                    - Disabled tabs stay in the list (announced as unavailable), but the arrow keys skip them.
-                    - If the element can't render, its native fallback still draws the tab list and shows the selected
-                      pane, in the same class grammar, but a click selects nothing: the arrow keys, `ui-change`,
-                      `history`, `lazy` templates and tab icons are lost.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Bind `value` and listen for `ui-change`.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  <ui-tabs tabular attached value={tab} onui-change={(e) => setTab(e.detail.value)}>
+                    <ui-tab label="Bio" value="bio">...</ui-tab>
+                  </ui-tabs>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-tabs tabular attached :value="tab" @ui-change="(e) => (tab = e.detail.value)">
+                    <ui-tab label="Bio" value="bio">...</ui-tab>
+                  </ui-tabs>
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <ui-tabs
+                    tabular
+                    attached
+                    value={tab()}
+                    ref={(el) => el.addEventListener("ui-change", (e) => setTab(e.detail.value))}
+                  >
+                    <ui-tab label="Bio" value="bio">...</ui-tab>
+                  </ui-tabs>
+                </script>
+              </ui-code>
+            </ui-section>
+          </ui-tab>
 
-                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Bind `value` and listen for `ui-change`.
-                  </script>
-                </ui-markdown>
-                <ui-header level="4" id="framework-react">React 19</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    <ui-tabs tabular attached value={tab} onui-change={(e) => setTab(e.detail.value)}>
-                      <ui-tab label="Bio" value="bio">...</ui-tab>
-                    </ui-tabs>
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                    <ui-tabs tabular attached :value="tab" @ui-change="(e) => (tab = e.detail.value)">
-                      <ui-tab label="Bio" value="bio">...</ui-tab>
-                    </ui-tabs>
-                  </script>
-                </ui-code>
-                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-                <ui-code language="jsx">
-                  <script type="text/plain">
-                    // no `on:` namespace:  listen through a ref
-                    <ui-tabs
-                      tabular
-                      attached
-                      value={tab()}
-                      ref={(el) => el.addEventListener("ui-change", (e) => setTab(e.detail.value))}
-                    >
-                      <ui-tab label="Bio" value="bio">...</ui-tab>
-                    </ui-tabs>
-                  </script>
-                </ui-code>
-              </ui-tab>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-tab"></ui-docs-api>
+          </ui-tab>
 
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-tab"></ui-docs-api>
-              </ui-tab>
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The tab menu adopts the [menu](ui-menu.html)'s stylesheet and the panes the segment's, so they read
+                  those families' `--ui-menu-*` and `--ui-segment-*` tokens: set them on the tab set or any ancestor.
+                  The set's own token, `--ui-tabs-pane-margin` (the space between the tab list and the panes), works
+                  the same way, or through `::part(tabs)`; attached and vertical sets swap it. Never set the `--_*`
+                  names: they're the sheets' private plumbing.
 
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The tab menu adopts the [menu](ui-menu.html)'s stylesheet and the panes the segment's, so they read
-                    those families' `--ui-menu-*` and `--ui-segment-*` tokens: set them on the tab set or any ancestor.
-                    The set's own token, `--ui-tabs-pane-margin` (the space between the tab list and the panes), works
-                    the same way, or through `::part(tabs)`; attached and vertical sets swap it. Never set the `--_*`
-                    names: they're the sheets' private plumbing.
+                  Style the pieces with `::part()`: on `<ui-tabs>`, `tabs` (the whole set), `menu` (the tab list),
+                  `tab` (each tab button) and `icon`; on a `<ui-tab>`, `tab` is the pane's box.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-tabs {
+                    --ui-tabs-pane-margin: 1.5em;
+                  }
+                  ui-tabs::part(tab) {
+                    font-weight: 600;
+                  }
+                  ui-tab::part(tab) {
+                    padding: 2em;
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-tab" playground></ui-docs-tokens>
+            </ui-section>
 
-                    Style the pieces with `::part()`: on `<ui-tabs>`, `tabs` (the whole set), `menu` (the tab list),
-                    `tab` (each tab button) and `icon`; on a `<ui-tab>`, `tab` is the pane's box.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    ui-tabs {
-                      --ui-tabs-pane-margin: 1.5em;
-                    }
-                    ui-tabs::part(tab) {
-                      font-weight: 600;
-                    }
-                    ui-tab::part(tab) {
-                      padding: 2em;
-                    }
-                  </script>
-                </ui-code>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-tab" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    No Fomantic theme restyles tabs themselves; the themes that restyle menus and segments reach the tab
-                    menu and the panes through those sheets. The one in the header applies a theme to the whole site.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles tabs themselves; the themes that restyle menus and segments reach the tab
+                  menu and the panes through those sheets. The one in the header applies a theme to the whole site.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

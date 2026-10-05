@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { Fixture } from "$/ui/test/fixture"
 import { expectAccessible } from "$/ui/test/a11y"
@@ -18,6 +18,7 @@ function serve(): string {
     name,
     folder,
     main: true,
+    page: true,
     href: `components/${folder}.html`,
     topics: [],
     aka: []
@@ -56,7 +57,12 @@ describe("DocsNavFallback", () => {
       "#/components/ui-input.html"
     ])
     expect(nav.querySelector("[aria-current=page]")!.textContent).toBe("Button")
-    expect([...nav.querySelectorAll("h2")].map((heading) => heading.textContent)).toEqual(["Components", "Foundation"])
+    expect([...nav.querySelectorAll("h2")].map((heading) => heading.textContent)).toEqual([
+      "Get started",
+      "Components",
+      "Foundation"
+    ])
+    expect(nav.querySelector("[aria-current=page]")!.className).toBe("item")
     await expectAccessible(host)
   })
 
