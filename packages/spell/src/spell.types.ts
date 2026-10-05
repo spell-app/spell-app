@@ -365,9 +365,9 @@ export type SpellDeclaration = {
    */
   itemType?: string
   /**
-   * `true` if `type` is an exclusive list type, e.g. `a pile is an exclusive list of cards`.
-   * - See `P.TypeScope.exclusive`.
-   * - Loading also gives `itemType` the member naming `type`, e.g. `pile` on `Card`:  NOT written on its own.
+   * `true` if `property` names the ONE list of a family holding its item,
+   * e.g. `pile` on `Card` for `a card belongs to one pile` -- its `datatype` is the list type.
+   * - Read-only:  see `P.ScopeVariable.exclusive`.
    */
   exclusive?: boolean
   /** Instance property it declares, e.g. `suit`. */

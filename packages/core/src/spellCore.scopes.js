@@ -13,6 +13,14 @@
       ]
     },
     {
+      path: "type:Thing/method:(a thing) belongs to one (list)",
+      description: "In ONE list of a kind at a time, e.g. `a card belongs to one pile`:\n- putting the card on one pile takes it off the other, tableaus and other piles included\n- `the pile of the card` is the pile it's in, or nothing\n- a list of another kind, e.g. a deck, doesn't count:  a card can be in the deck AND one pile\n- say it after both types, e.g. after `a pile is a list of cards`\n- `a card can belong to many piles`:  the opposite, which lists do anyway",
+      rules: [
+        { name: "belongs_to_one", syntax: "(a|an) {type} belongs to one {list:type}" },
+        { name: "can_belong_to_many", syntax: "(a|an) {type:known_type} can belong to many {list:known_type}" }
+      ]
+    },
+    {
       path: "type:Thing/method:draw (a thing)",
       description: "Draw it on the page -- write how with your own `to draw (a card)`.\n- `draw the card` draws it wherever that's used, e.g. inside another thing's `to draw`.\n- Redraws by itself when a property it shows changes.\n- A thing with no `to draw` of its own can't be drawn:  drawing it is an error.",
       rules: [
@@ -24,8 +32,8 @@
       detail: "counts from 1",
       description: "Things in order -- `a deck is a list of cards` makes a deck.\n- Counts from 1:  `card 1 of the deck` is the first.  Negative counts from the end, so\n  `card -1 of the deck` is the last -- as is `the last card of the deck`.\n- Reactive, like a thing:  add or remove an item and whatever drew the list redraws.\n- The word for its items is just for reading:  `number of cards in the deck`\n  ~== `number of items in the deck`.\n- Its actions also work on a plain list, e.g. `number of items in [1, 2, 3]`.\n\n```spell\na deck is a list of cards\nset the deck to a new deck\nadd a new card to the deck\nshuffle the deck\nfor each card in the deck\n  set the direction of the card to \"down\"\n```",
       rules: [
-        { name: "create_list_type", syntax: "create a type (named|called) {type} as (a|an) (exclusive:exclusive)? list of {instanceType:type}" },
-        { name: "create_list_type", syntax: "(a|an) {type} is (a|an) (exclusive:exclusive)? list of {instanceType:type}" },
+        { name: "create_list_type", syntax: "create a type (named|called) {type} as (a|an) list of {instanceType:type}" },
+        { name: "create_list_type", syntax: "(a|an) {type} is (a|an) list of {instanceType:type}" },
         { name: "new_list", syntax: "a new (list|List) of {instanceType:type}?" }
       ]
     },
@@ -38,6 +46,26 @@
       path: "type:List/property:size",
       detail: "number",
       description: "How many items it has, e.g. `the size of the deck` -- its `length`."
+    },
+    {
+      path: "type:List/method:(a list) can give up (a thing)",
+      description: "Would it let go of a thing moving elsewhere, e.g. `if the stock can give up the card`?\n- Yes, unless its type says otherwise:  `a stock-pile can give up a card if: the card is its last card`,\n  or `a foundation can never let go of a card`.\n- `release`, `remove` and `let go of` mean the same.\n- Only `move` asks.  `remove` and `empty` never do.",
+      rules: [
+        { name: "can_give_up", syntax: "{operator:can} (release|remove|give up|let go of) {expression:operand}" },
+        { name: "list_guard", syntax: "(a|an) {type:known_type} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?" },
+        { name: "list_guard", syntax: "(a|an) {type:known_type} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?" },
+        { name: "list_guard", syntax: "(a|an) {type:known_type} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" }
+      ]
+    },
+    {
+      path: "type:List/method:(a list) can take (a thing)",
+      description: "Would it take a thing moving to it, e.g. `if the tableau can take the card`?\n- Yes, unless its type says otherwise:  `a tableau can take a card if: ...`, answering yes or no.\n- `add` means the same.\n- Only `move` asks.  `add` never does.",
+      rules: [
+        { name: "can_take", syntax: "{operator:can} (add|take) {expression:operand}" },
+        { name: "list_guard", syntax: "(a|an) {type:known_type} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?" },
+        { name: "list_guard", syntax: "(a|an) {type:known_type} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?" },
+        { name: "list_guard", syntax: "(a|an) {type:known_type} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" }
+      ]
     },
     {
       path: "type:List/method:(a list) has items where",
@@ -130,6 +158,13 @@
       description: "One new list with the items of each list in a list of lists, in order, e.g. `merge the piles`.\n- Same type as the first, unless you say `as a list`.",
       rules: [
         { name: "merge_lists", syntax: "merge lists? {expression:operand} ((as|into) (a|an) new? {type:known_type})?" }
+      ]
+    },
+    {
+      path: "type:List/method:move (a thing) to (a list)",
+      description: "Move it, if both lists agree, e.g. `move the card to the tableau`:\n- the list it belongs to must give it up -- see `a card belongs to one pile`\n- and the new list must take it -- see `can take`\n- `if move the card to the tableau ...`:  whether it moved.  Refused, nothing changes.\n- `add` and `remove` never ask:  for dealing, or gathering every card back.",
+      rules: [
+        { name: "list_move", syntax: "move {thing:expression} to {list:expression}" }
       ]
     },
     {

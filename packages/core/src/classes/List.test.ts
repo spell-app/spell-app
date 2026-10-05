@@ -4,26 +4,26 @@ import { observe } from "$/util"
 import { spellCore, Thing, List } from "$/core"
 
 /**
- * Exclusive lists:  an item is in at most ONE list of a family at a time.
- * - See `List`'s class docs, and plan doc D7 / D8 of precedence-and-types.
+ * Exclusive lists:  an item is in at most ONE list of a family at a time -- and guards on a move.
+ * - See `List`'s class docs, and plan doc D7 / D8, Q22 - Q25 of precedence-and-types.
  * - The classes below are what spell compiles from:
- *   - `a pile is an exclusive list of cards`
+ *   - `a pile is a list of cards` + `a card belongs to one pile`
  *   - `a tableau is a pile`
  *   - `a deck is a list of cards`
- *   - `a hand is an exclusive list of cards`
+ *   - `a hand is a list of cards` + `a card belongs to one hand`
  */
 
 ////////////////
 // ## Classes under test
 ////////////////
 
-/** A card:  `pile` and `hand` are what the exclusive lists' lines patch on. */
+/** A card:  `pile` and `hand` are what its `belongs to one` lines patch on. */
 class Card extends Thing {
   declare pile: List | undefined
   declare hand: List | undefined
 }
 
-/** `a pile is an exclusive list of cards`:  the family's root. */
+/** `a pile is a list of cards` + `a card belongs to one pile`:  the family's root. */
 class Pile extends List {
   static instanceType = Card
   static exclusive = true
@@ -43,7 +43,7 @@ class Deck extends List {
   static instanceType = Card
 }
 
-/** `a hand is an exclusive list of cards`:  a family of its own. */
+/** `a hand is a list of cards` + `a card belongs to one hand`:  a family of its own. */
 class Hand extends List {
   static instanceType = Card
   static exclusive = true
@@ -54,6 +54,27 @@ Object.defineProperty(Card.prototype, "hand", {
   },
   configurable: true
 })
+
+/**
+ * `a foundation is a pile` with guards, as spell compiles them into its class:
+ * - `a foundation can take a card if: it is empty` -- one card at most
+ * - `a foundation can never let go of a card`
+ */
+class Foundation extends Pile {
+  canTake(_card: unknown): boolean {
+    return spellCore.isEmpty(this)
+  }
+  canGiveUp(_card: unknown): boolean {
+    return false
+  }
+}
+
+/** `a stock-pile can give up a card if: the card is its last card`. */
+class StockPile extends Pile {
+  canGiveUp(card: unknown): boolean {
+    return card === spellCore.getItemOf(this, -1)
+  }
+}
 
 /** `count` new cards. */
 function cards(count: number): Card[] {
@@ -228,5 +249,71 @@ describe("exclusive lists", () => {
     spellCore.remove(tableau, card)
     stop()
     expect(seen).toEqual([undefined, pile, tableau, undefined])
+  })
+})
+
+describe("guards:  only a move asks them", () => {
+  test("a move asks the card's pile to give it up, then the new pile to take it", () => {
+    const [a, b] = cards(2)
+    const stock = new StockPile({})
+    const foundation = new Foundation({})
+    spellCore.append(stock, a, b)
+    // `a` isn't the stock's last card:  the stock won't give it up
+    expect(spellCore.move(a, foundation)).toBe(false)
+    expect(itemsOf(stock)).toEqual([a, b])
+    expect(a!.pile).toBe(stock)
+    // `b` is, and the foundation is empty:  it moves, its owner changing once
+    expect(spellCore.move(b, foundation)).toBe(true)
+    expect(itemsOf(stock)).toEqual([a])
+    expect(itemsOf(foundation)).toEqual([b])
+    expect(b!.pile).toBe(foundation)
+  })
+
+  test("refused by the new pile:  nothing changes", () => {
+    const [a, b] = cards(2)
+    const foundation = new Foundation({})
+    const pile = new Pile({})
+    spellCore.append(foundation, a)
+    spellCore.append(pile, b)
+    expect(spellCore.move(b, foundation)).toBe(false)
+    expect(itemsOf(pile)).toEqual([b])
+    expect(itemsOf(foundation)).toEqual([a])
+  })
+
+  test("a list that can never let go still lets `add`, `remove` and `clear` through", () => {
+    const [a, b, c] = cards(3)
+    const foundation = new Foundation({})
+    const pile = new Pile({})
+    spellCore.append(foundation, a, b, c)
+    expect(spellCore.move(a, pile)).toBe(false)
+    spellCore.append(pile, a)
+    spellCore.remove(foundation, b)
+    expect(itemsOf(pile)).toEqual([a])
+    expect(itemsOf(foundation)).toEqual([c])
+    spellCore.clear(foundation)
+    expect(c!.pile).toBe(undefined)
+  })
+
+  test("outside a family, only the new list is asked:  a card in no pile, or a plain list", () => {
+    const [a, b] = cards(2)
+    const foundation = new Foundation({})
+    const deck = new Deck({})
+    expect(spellCore.move(a, foundation)).toBe(true)
+    // the deck is outside the pile family:  the foundation isn't asked to give it up
+    expect(spellCore.move(a, deck)).toBe(true)
+    expect(itemsOf(deck)).toEqual([a])
+    expect(a!.pile).toBe(foundation)
+    const plain: unknown[] = []
+    expect(spellCore.move(b, plain)).toBe(true)
+    expect(plain).toEqual([b])
+  })
+
+  test("asking without moving:  `can take`, `can give up` -- a plain list allows anything", () => {
+    const [a] = cards(1)
+    const foundation = new Foundation({})
+    expect(spellCore.canTake(foundation, a)).toBe(true)
+    expect(spellCore.canGiveUp(foundation, a)).toBe(false)
+    expect(spellCore.canTake(new Pile({}), a)).toBe(true)
+    expect(spellCore.canGiveUp([a], a)).toBe(true)
   })
 })

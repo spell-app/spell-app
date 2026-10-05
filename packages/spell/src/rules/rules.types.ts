@@ -19,6 +19,12 @@ import type { P } from "$/parser"
  * - A new level is a new name here, with a why.  `expressions.test.ts` pins every rule's.
  */
 export const Priority = {
+  /**
+   * A built-in reading which a project's own method of the same words replaces,
+   * e.g. `move the card to the pile` when the project says `to move (a card) to (a pile)`:
+   * its method must run, not the built-in one.
+   */
+  overridable: -1,
   /** Default, from `P.Rule`:  most rules, e.g. a call to a project's method, `x is y`. */
   normal: 0,
   /**
