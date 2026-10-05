@@ -1,7 +1,7 @@
 /**
  * Property types:  a schema per class, saying what each property holds.
  * - DECLARED props:  compiled spell's `static { this.declareProp("suit", { type: "text" }) }`, or a hand-written
- *   class's `@prop({ type: "text" })` -- both land HERE, the same runtime shape (`packages/docs/content/solid/solid-2.md`).
+ *   class's `@prop({ type: "text" })` -- both land HERE, the same runtime shape (`guides/solid/solid-2.md`).
  *   Declared types win.
  * - UNDECLARED props, e.g. a hand-written class's bare `setProp("contents", ...)`:  their types are OBSERVED, per
  *   class, and WIDENED on a mismatch (`number | text`) with a dev warning -- never thrown.  `nothing` never counts;

@@ -37,7 +37,7 @@ house style every package shares.  Only what's local is below;  a section named 
   in `main.ts`.
 - Two kinds of command:  the spell LANGUAGE's, bare (`spell compile`), and the repo's own tools, `spell dev <noun>
   <verb>` (`spell dev commands`):  each finds the nearest checkout with `CLI.findCheckout()`.
-  - A new or renamed command:  first `packages/docs/content/dev/commands/commands.md` (root `AGENTS.md`, "Commands"):
+  - A new or renamed command:  first `guides/dev/commands/commands.md` (root `AGENTS.md`, "Commands"):
     suggest where it belongs, then add it to the commands page's `commands.json` and run `spell dev commands check`.
   - `spell dev commands` reads the TEXT of `main.ts` and `devProgram.ts` for `program.command(...)` /
     `dev.command(...)`:  keep those receivers' names.

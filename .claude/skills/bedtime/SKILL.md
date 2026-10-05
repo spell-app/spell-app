@@ -21,7 +21,7 @@ morning report (D5 of `review-review`):  in the morning, `/epic review <name>` g
 
 ## 1. Find the phases
 
-- Plan doc (`packages/docs/content/epics/<name>/`, or the one this session has been keeping):
+- Plan doc (`epics/<name>/`, or the one this session has been keeping):
   `spell dev plan-doc summary <name> --json`.  To-do phases:  every one whose `status` isn't `done`.
 - No plan doc (only a plan drafted in this session):  make one FIRST, as `/epic` does mid-session
   (`.claude/skills/epic/SKILL.md`, "Mid-session":  "make this a plan doc"), which isolates it too.  Its name
@@ -111,7 +111,7 @@ Everything else stands:  `spell dev vscode` after each stage, the parser speed t
 6. `spell dev plan-doc log <name> "P<n> done|WIP:  <what was built>;  checks:  <results>;  J4, J5"`, ids its
    judgement calls.
 7. Commit:  `P<n>:  <Name> -- <one-line summary>` (`WIP P<n>:  ...` for WIP;  an item fix `<name> I3:  ...`).  The
-   plan doc is never in it:  shared content (`packages/docs/content`, a link into `../spell-app-dev`), committed
+   plan doc is never in it:  shared content (`epics/`, a link into `../spell-app-dev`), committed
    for you at the turn's end.
 8. `spell dev plan-doc commit <name> <sha> --phase <N> "<what was built>"`:  the commit under the phase's Commits.
 

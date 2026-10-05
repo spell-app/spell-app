@@ -8,11 +8,11 @@ when working with code in this repository.
 table names the spoke to read for what you're touching.
 
 **If working with Solid (2.0) -- components, JSX, effects / signals / stores, `core` rendering, `$/util`
-reactivity, `@spell-app/ui` elements, or any React-to-Solid step:  READ `packages/docs/content/solid/solid-2.md`
+reactivity, `@spell-app/ui` elements, or any React-to-Solid step:  READ `guides/solid/solid-2.md`
 IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produces wrong code.
 
 **If asked for a new skill or `spell` command, or about to add, rename or remove a yarn script:  READ
-`packages/docs/content/dev/commands/commands.md` FIRST,** and suggest where it belongs before building it
+`guides/dev/commands/commands.md` FIRST,** and suggest where it belongs before building it
 (see "Commands").
 
 ## Overview
@@ -49,12 +49,10 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     `README.md`, and `UPSTREAM.md` for the upstream PR each fix maps to.
   - `packages/cli/` (`@spell-app/cli`, `$/cli`, `CLI`) -- the `spell` command-line tool, running the spell-family
     packages' SOURCE through `tsx`.  See `packages/cli/AGENTS.md` and its `README.md`.
-  - `packages/docs/` (`@spell-app/docs`) -- every package's docs, in two folders:
-    - `content/` -- hand-authored `.html` pages on `@spell-app/ui`, their templates, the plan docs `/epic` keeps,
-      details pages and the experiments behind them.  SHARED, not tracked here (see "Shared content").
-      Index:  `packages/docs/content/index.html`.
-    - `tools/` -- the tooling and `_assets`:  tracked, versioned per branch.
-    - See `packages/docs/AGENTS.md`.
+  - `packages/docs/` (`@spell-app/docs`) -- every package's docs:  its `tools/`, the tooling and `_assets`
+    (tracked, versioned per branch).  The pages themselves are SHARED root folders, not tracked here (see "Shared
+    content"):  `epics/`, `guides/`, `templates/`, `pages/` (the docs home, `pages/index.html`).
+    See `packages/docs/AGENTS.md`.
   - `packages/server/` (`@spell-app/server`, `$/server`, `SRV`) -- serving pages locally:  static folders, an
     Express-shaped router, live reload, ports, openers, a file lock, and the ONE page server per checkout
     (`spell dev server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
@@ -118,7 +116,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     beside the session in the window it moved to.
   - A running epic's plan doc is shared (see "Shared content"):  ONE file, the same in every checkout, so the MAIN
     checkout's page server shows it too, listed in the docs index's Epics section with the merged ones;
-    `spell dev server url` gives that URL (`packages/docs/content/server.html`, "Running epics").
+    `spell dev server url` gives that URL (`guides/server.html`, "Running epics").
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
   included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `spell dev window open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
@@ -130,8 +128,12 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 
 ## Shared content
 
-- Three folders are NOT tracked by spell-app (epic `shared-content`, live since 2026-10-04):
-  - `packages/docs/content/` -- docs pages, plan docs, templates, details pages (URLs `/packages/docs/content/...`)
+- These root folders are NOT tracked by spell-app (epic `shared-content`, live since 2026-10-04;  split into root
+  folders by epic `claude-design` P4, 2026-10-05), and page URLs follow them (`/epics/seo/seo.plan.html`):
+  - `epics/` -- plan docs, `epics/<name>/<name>.plan.html`, with their inboxes and details pages
+  - `guides/` -- every other docs page (`guides/solid/solid-2.html`), with its `.md`, `.json`, `experiments/`
+  - `templates/` -- one starting point per kind of page
+  - `pages/` -- the docs home, `pages/index.html`, and the scratch details pages, `pages/details/`
   - `goals/` -- the goal sets (their tooling:  `packages/docs/tools/goals/`, tracked)
   - `agents/` -- the three logs (`agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md`), and
     WWOD, the house style (`agents/wwod/`):  one copy of the rules for every branch
@@ -145,18 +147,26 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     worktree copy), before any hook could step in.  Reading and tools (`spell dev plan-doc`, the page server) use the
     links as usual.
   - The manifest:  the root `package.json`'s `"shared": { "dir", "links" }`, and `.gitignore`'s
-    `# shared:start` ... `# shared:end` block.
+    `# shared:start` ... `# shared:end` block.  A checkout's links are its OWN branch's manifest's:
+    `spell dev shared link` after merging a manifest change.
+  - Old paths (until every checkout has merged the reorg, claude-design T1):  the shared repo's
+    `packages/docs/content/` holds a link per old entry into the root folders (`epics -> ../../../epics`,
+    `solid -> ../../../guides/solid`), so older code still finds `packages/docs/content/...`;  the page server
+    redirects `/packages/docs/content/<x>` to the new URL.  Older code writes old-style links and pages at old
+    paths:  `spell dev shared commit` (every turn) runs the reorg's repair first, and `spell dev shared repair`
+    does it by hand (`packages/docs/tools/relocate.js` `reorgShared()`).
 - Commits:  the shared repo is committed by itself after every Claude turn (`Stop` hook
   `.claude/hooks/shared-commit.mjs` -> `spell dev shared commit`), as `auto: <checkout>` with `Session:` /
   `Checkout:` trailers.  Nobody commits those files by hand.
-  - NEVER `git add` / `git checkout --` / `git restore` the three paths in spell-app.
-  - NEVER run git inside `packages/docs/content` (it's the shared repo there):  run it in the spell-app checkout.
+  - NEVER `git add` / `git checkout --` / `git restore` the shared paths in spell-app.
+  - NEVER run git inside a shared folder (`epics/`, `guides/` ...:  it's the shared repo there):  run it in the
+    spell-app checkout.
 - `spell dev shared status | init | link | commit | migrate <worktree> | repair` (`--dry-run` on the last two).
   - A new worktree is linked by the `WorktreeCreate` hook.
   - A worktree cut before the cutover runs `spell dev shared migrate <name>` before it merges `main`;  first
     merging `0fc52e02` (main just before the cutover) if it predates the docs move.
   - After merging a branch from before the docs move:  `spell dev shared repair` moves pages it left at
-    `packages/docs/<x>` into `content/`, and fixes links (and their tab names) written for the old layout.
+    `packages/docs/<x>` into their shared folders, and fixes links (and their tab names) written for an old layout.
 - Shared docs may link code another branch has and this one doesn't yet:  `doc-links.js --check` reports those as
   missing in this checkout.
 - Package windows show `spell-app-dev` as a folder, with its own Source Control:  the auto commits.
@@ -166,7 +176,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 
 ## Changelog
 
-- `packages/docs/content/changelog.html` -- what the repo shipped, newest first.  MUST be kept up to date by every
+- `guides/changelog.html` -- what the repo shipped, newest first.  MUST be kept up to date by every
   `/isolate` and `/epic`:
   - `/epic`:  at its Doc Review, add the entry to "2. In worktrees";  when it merges into `main`, move it under
     its month in "3. Merged into main"
@@ -184,12 +194,12 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 ## Commands
 
 - Three ways to make the repo do something:  the `spell` CLI, Claude skills, yarn scripts.  Their map, one row
-  per operation:  `packages/docs/content/dev/commands/commands.html` (data:  `commands.json` beside it;  shown by
-  the page server:  `spell dev docs open dev/commands/commands.html`).
+  per operation:  `guides/dev/commands/commands.html` (data:  `commands.json` beside it;  shown by
+  the page server:  `spell dev docs open guides/dev/commands/commands.html`).
 - Target:  the CLI drives everything.  Repo tools are `spell dev <noun> <verb>`;  skills keep judgement and dialog
   and call it;  yarn keeps each package's own scripts and aliases the rest.
 - Owen asks for a new skill or `spell` command, or you add a yarn script to solve a problem:  READ
-  `packages/docs/content/dev/commands/commands.md`, then SUGGEST, before building:  where it belongs, its name,
+  `guides/dev/commands/commands.md`, then SUGGEST, before building:  where it belongs, its name,
   what it replaces, which roadmap move it advances.
 - MUST keep the page true in the same change:  `commands.json`, then `spell dev commands check`.
   - `commands.json` / `commands.md` are shared, but the check reads each branch's CLI:  a branch adding a command
@@ -202,11 +212,11 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 
 - `spell`'s editor app, runners and web components are Solid 2 (`2.0.0-rc.13`, every package, one copy at the root)
   on `@spell-app/ui`;  compiled spell still draws with React, for now (`agents/CODE-DEBT.md`, "app").
-- The rules:  `packages/docs/content/solid/solid-2.md` (see the top of this file).  NOT `@`-imported on purpose:
+- The rules:  `guides/solid/solid-2.md` (see the top of this file).  NOT `@`-imported on purpose:
   it loads only when the task needs it.  Claude also has the `solid-2` skill (`.claude/skills/solid-2/`), which
   triggers on Solid work.
-- The why and the measurements:  `packages/docs/content/solid/solid-2.html`.
-  The API:  `packages/docs/content/solid/cheatsheet.html`.
+- The why and the measurements:  `guides/solid/solid-2.html`.
+  The API:  `guides/solid/cheatsheet.html`.
 - MUST keep `solid-2.md` up to date when a Solid decision changes or an RC bump changes behaviour.
 - How `ui` writes its elements on Solid:  "Solid authoring" in `packages/ui/AGENTS.md`.
 - House style for app components, on top of `solid-2.md`:  WWOD §17 (`agents/wwod/solid.md`).
@@ -235,7 +245,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 - Root `ts` / `test:packages` / `review` are `vp run` over every `@spell-app/*` package:  `ts` and
   `test:packages` 4 at a time, `review` one at a time (its tests flake under load).
   - NEVER `vp run --cache` a plain script:  its file tracking misses TS 7's native `tsc`, so it replays a stale
-    pass.  A cached task needs `run.tasks` with explicit `cache.input` (`packages/docs/content/epics/vite-plus`, I1).
+    pass.  A cached task needs `run.tasks` with explicit `cache.input` (`epics/vite-plus`, I1).
   - Flags BEFORE the task name (`vp run --cache -r ts`):  after it, they go to the task.
 
 ## Long-term debt

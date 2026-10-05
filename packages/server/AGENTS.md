@@ -10,7 +10,7 @@ house style every package shares.  Only what's local is below;  a section named 
 
 - Serving pages locally, for every package:  `$/server` (`SRV`).  Before this package, six servers each had their
   own mime table, path check, port choice and opener;  now they share these.
-  - Docs:  `packages/docs/content/server.html` (the library, the page server's flows, route modules, safety, why).
+  - Docs:  `guides/server.html` (the library, the page server's flows, route modules, safety, why).
   - `mime.ts` -- ONE content-type table, `typeFor()`
   - `safePath.ts` -- `resolveInside()`:  URL path -> file under a root, never outside it
   - `StaticHandler` -- folders under URL prefixes, with html / per-extension hooks and an `ETag`

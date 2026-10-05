@@ -1,7 +1,7 @@
 /**
  * `spell dev <noun> <verb>`:  the repo's OWN tools (worktrees, docs, servers ...), as opposed to the spell language --
  * the commander tree both entries build:  `main.ts` (so `spell --help` lists `dev`) and the lean `devMain.ts`.
- * - The plan for them, and every command the repo has:  `packages/docs/content/dev/commands/commands.html`
+ * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
  *   - pass-throughs (`plan-doc`, `goals`, `docs`, `details`, `server`, `window`, `vscode`):  a repo tool run with
@@ -40,7 +40,7 @@ export function spellProgram(): Command {
 export function devProgram(program: Command, runBarrel: RunBarrel): Command {
   const dev = program
     .command("dev")
-    .description("the repo's own tools -- worktrees, docs, servers ...:  packages/docs/content/dev/commands")
+    .description("the repo's own tools -- worktrees, docs, servers ...:  guides/dev/commands")
 
   ////////////////
   // ## Pass-throughs
@@ -48,7 +48,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 
   dev
     .command("plan-doc")
-    .description("edit a plan doc (packages/docs/content/epics/) -- `spell dev plan-doc` lists its commands")
+    .description("edit a plan doc (epics/) -- `spell dev plan-doc` lists its commands")
     .argument("[args...]", "a plan-doc command and its arguments, e.g. summary seo")
     .allowUnknownOption()
     .helpOption(false)
