@@ -44,6 +44,15 @@ export type PageSource = { html: string; etag?: string }
 export type PageChange = { path: string; html: string; etag?: string; reload: () => void }
 
 /**
+ * `detail` of `spell-server:file`, the event `liveClient()` fires on `window` when ANOTHER file changed:  not the
+ * page's own, not a stylesheet or a script.  Nothing reloads:  the page decides.
+ * - `path`:  its URL path, each segment URI-encoded, e.g. `/epics/x/parts/q2.htm`
+ * - e.g. a body the page loaded from a file (`<ui-section source>`):  the docs runtime re-fetches it in place
+ *   (`spell-doc-runtime.js` `wireSourceBodies()`:  a split plan doc's parts)
+ */
+export type FileChange = { path: string }
+
+/**
  * One save of a whole file (`PUT /_server/page`), or of one element of a page (`fragment`:  its `id`, `PATCH`).
  * - `path`:  URL path of the file, e.g. `/guides/notes.md`
  * - `etag`:  the version it was edited from (the `ETag` it was fetched with);  REQUIRED by the server
@@ -69,6 +78,8 @@ export type PageEditResult = { ok: boolean; status: number; etag?: string; error
  * - a stylesheet the page uses (linked, or `@import`ed by one it links) changed:  swapped in place, no reload
  * - a script changed in the folder of one the page loads (`_assets/`:  the bundle and its lazy chunks):  reloads.
  *   Any other `.js` (a repo tool) is none of the page's business
+ * - any other file changed:  says so (`spell-server:file`, `FileChange`), and does nothing else:  a page that loads
+ *   it (a body from a file) re-fetches it
  * - keeps the scroll position across a reload (`sessionStorage`, when it works)
  * - in a frame (VS Code's "Spell Docs" view, `packages/vscode/src/DocView.ts`):  posts its place to the parent on
  *   every load and hash change, and on `spell-doc:place` (the docs runtime moved the address with
@@ -115,7 +126,9 @@ export function liveClient(): void {
     const { path } = JSON.parse((event as MessageEvent<string>).data) as { path: string }
     if (path === config.file) updating = updating.then(updatePage).catch(reload)
     else if (/\.css$/.test(path)) swapStyles(path)
-    else if (/\.m?js$/.test(path) && loadsFrom(path)) reload()
+    else if (/\.m?js$/.test(path)) {
+      if (loadsFrom(path)) reload()
+    } else dispatchEvent(new CustomEvent("spell-server:file", { detail: { path } satisfies FileChange }))
   })
 
   let etag = config.etag

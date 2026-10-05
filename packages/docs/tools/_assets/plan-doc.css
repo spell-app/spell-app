@@ -1198,3 +1198,17 @@ button.plan-send:focus-visible {
 .plan-reply > :last-child {
   margin-bottom: 0;
 }
+
+/*******************************
+          Parts
+*******************************/
+
+/*
+ * A split doc's host shows this line until its body loads from `parts/<id>.htm` (`plan-parts.js`):  only for a
+ * moment, or for good without the loader (a bundle from before P2 of `claude-design`, `file://`)
+ */
+.plan-part-note {
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
