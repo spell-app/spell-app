@@ -16,88 +16,52 @@
     {
       path: "project:cards/file:Card.spell/type:Card/property:rank", line: 6,
       section: "properties of cards",
-      description: "card ranks",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      description: "card ranks"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/enumeration:Ranks", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:ace", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:jack", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:queen", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:king", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:suit", line: 9,
       section: "properties of cards",
-      description: "card suits",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      description: "card suits"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/enumeration:Suits", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:clubs", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:diamonds", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:hearts", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:spades", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:color", line: 12,
@@ -114,37 +78,26 @@
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:value", line: 15,
+      detail: "number",
       section: "properties of cards",
       description: "value as a derivation of rank"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:direction", line: 18,
       section: "properties of cards",
-      description: "card direction:  up or down",
-      rules: [
-        { name: "Card_Directions", syntax: "(Card|card) (Directions|directions)" }
-      ]
+      description: "card direction:  up or down"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/enumeration:Directions", line: 18,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Directions", syntax: "(Card|card) (Directions|directions)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:up", line: 18,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Directions", syntax: "(Card|card) (Directions|directions)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/constant:down", line: 18,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Directions", syntax: "(Card|card) (Directions|directions)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/method:is face up", line: 22,
@@ -195,31 +148,41 @@
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:name", line: 34,
+      detail: "text",
       section: "aliases",
       description: "name as a derivation of name/suit"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:short_suit", line: [36, 41],
+      name: "short suit",
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:short_rank", line: [43, 46],
+      name: "short rank",
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:short_direction", line: [48, 50],
+      name: "short direction",
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:short_name", line: 52,
+      name: "short name",
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:cards/file:Card.spell/type:Card/property:state", line: 54,
+      detail: "text",
       section: "aliases"
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:turn (a card) face up", line: [60, 62],
+      path: "project:cards/file:Card.spell/type:Card/method:turn a card face up", line: [60, 62],
       section: "actions",
       description: "Turn card face up or face down\nNote that this will animate if you `wait for turn the card face up`",
       rules: [
@@ -227,14 +190,14 @@
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:turn (a card) face down", line: [63, 65],
+      path: "project:cards/file:Card.spell/type:Card/method:turn a card face down", line: [63, 65],
       section: "actions",
       rules: [
         { name: "turn_face_down", syntax: "turn {thisArg:expression} face down" }
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:turn (a card) over", line: [69, 72],
+      path: "project:cards/file:Card.spell/type:Card/method:turn a card over", line: [69, 72],
       section: "actions",
       description: "Flip card to opposite direction\nNote that this will animate if you `wait for turn the card face up`",
       rules: [
@@ -242,7 +205,7 @@
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:draw (a card)", line: [74, 81],
+      path: "project:cards/file:Card.spell/type:Card/method:draw a card", line: [74, 81],
       section: "actions",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -253,14 +216,21 @@
       section: "A joker: a wild card with no rank or suit -- there's a red one and a black one",
       description: "\"card is the red joker\", \"...is the black joker\" -- asked of ANY card, which only a joker of that color is",
       rules: [
-        { name: "is_the_$color_joker", syntax: "{operator:is} the {expression:simple_expression} joker" }
+        { name: "is_the_$color_joker", syntax: "{operator:is} the {expression:operand} joker" }
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/method:move (a card) to (a pile)", line: [15, 19],
+      path: "project:cards/file:Card.spell/type:Card/property:pile", line: 2,
+      detail: "Pile",
       section: "Pile of playing cards",
       uri: "spell:/@system:library:cards/Pile.spell",
-      description: "\"move\" a card\nNOTE: use this rather than `add` to make sure card is only in one pile at a time\nif you `wait for: move the card to the pile` the move will be animated",
+      description: "## Pile of playing cards"
+    },
+    {
+      path: "project:cards/file:Card.spell/type:Card/method:move a card to a pile", line: [14, 16],
+      section: "Pile of playing cards",
+      uri: "spell:/@system:library:cards/Pile.spell",
+      description: "\"move\" a card:  piles are exclusive, so adding it takes it out of its old pile -- then pause a moment\nif you `wait for: move the card to the pile` the move will be animated",
       rules: [
         { name: "move_to_$pile", syntax: "move {thisArg:expression} to {callArgs:expression}" }
       ]
@@ -274,39 +244,30 @@
     {
       path: "project:cards/file:Card.spell/type:Joker/property:color", line: 87,
       section: "A joker: a wild card with no rank or suit -- there's a red one and a black one",
-      description: "joker color:  red or black -- set when it's made, as it has no suit to work it out from",
-      rules: [
-        { name: "Joker_Colors", syntax: "(Joker|joker) (Colors|colors)" }
-      ]
+      description: "joker color:  red or black -- set when it's made, as it has no suit to work it out from"
     },
     {
       path: "project:cards/file:Card.spell/type:Joker/enumeration:Colors", line: 87,
-      section: "A joker: a wild card with no rank or suit -- there's a red one and a black one",
-      rules: [
-        { name: "Joker_Colors", syntax: "(Joker|joker) (Colors|colors)" }
-      ]
+      section: "A joker: a wild card with no rank or suit -- there's a red one and a black one"
     },
     {
       path: "project:cards/file:Card.spell/type:Joker/constant:red", line: 87,
-      section: "A joker: a wild card with no rank or suit -- there's a red one and a black one",
-      rules: [
-        { name: "Joker_Colors", syntax: "(Joker|joker) (Colors|colors)" }
-      ]
+      section: "A joker: a wild card with no rank or suit -- there's a red one and a black one"
     },
     {
       path: "project:cards/file:Card.spell/type:Joker/constant:black", line: 87,
-      section: "A joker: a wild card with no rank or suit -- there's a red one and a black one",
-      rules: [
-        { name: "Joker_Colors", syntax: "(Joker|joker) (Colors|colors)" }
-      ]
+      section: "A joker: a wild card with no rank or suit -- there's a red one and a black one"
     },
     {
       path: "project:cards/file:Card.spell/type:Joker/property:name", line: 90,
+      detail: "text",
       section: "A joker: a wild card with no rank or suit -- there's a red one and a black one",
       description: "name as its color, e.g. \"red joker\""
     },
     {
       path: "project:cards/file:Card.spell/type:Joker/property:short_name", line: 92,
+      name: "short name",
+      detail: "text",
       section: "A joker: a wild card with no rank or suit -- there's a red one and a black one"
     },
     {
@@ -324,38 +285,45 @@
     {
       path: "project:cards/file:Deck.spell/type:Deck", line: 3,
       super: "type:List",
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes"
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes"
     },
     {
       path: "project:cards/file:Deck.spell/type:Deck/property:with_jokers", line: 6,
+      name: "with jokers",
       detail: "choice",
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
-      description: "with-jokers:  yes to add the red and the black joker when it's set up, after the 52 cards"
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
+      description: "with jokers:  yes to add the red and the black joker when it's set up, after the 52 cards"
     },
     {
-      path: "project:cards/file:Deck.spell/type:Deck/method:set up (a deck)", line: [8, 19],
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
+      path: "project:cards/file:Deck.spell/type:Deck/method:set up a deck", line: [8, 19],
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
       rules: [
         { name: "set_up", syntax: "set up {thisArg:expression}" }
       ]
     },
     {
-      path: "project:cards/file:Deck.spell/type:Deck/method:display (a deck)", line: [21, 25],
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
+      path: "project:cards/file:Deck.spell/type:Deck/property:is_set_up", line: 19,
+      name: "is-set-up",
+      detail: "choice",
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes"
+    },
+    {
+      path: "project:cards/file:Deck.spell/type:Deck/method:display a deck", line: [21, 25],
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
       rules: [
         { name: "display", syntax: "display {thisArg:expression}" }
       ]
     },
     {
-      path: "project:cards/file:Deck.spell/function:test deck creation", line: [27, 47],
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
+      path: "project:cards/file:Deck.spell/function:test deck creation", line: [27, 46],
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
       rules: [
         { name: "test_deck_creation", syntax: "test deck creation" }
       ]
     },
     {
-      path: "project:cards/file:Deck.spell/function:test deck with jokers", line: [50, 58],
-      section: "Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes",
+      path: "project:cards/file:Deck.spell/function:test deck with jokers", line: [49, 56],
+      section: "Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes",
       rules: [
         { name: "test_deck_with_jokers", syntax: "test deck with jokers" }
       ]
@@ -376,10 +344,12 @@
     },
     {
       path: "project:cards/file:Pile.spell/type:Pile/property:value", line: [8, 10],
+      detail: "number",
       section: "Pile of playing cards"
     },
     {
-      path: "project:cards/file:Pile.spell/type:Pile/property:state", line: [22, 26],
+      path: "project:cards/file:Pile.spell/type:Pile/property:state", line: [19, 23],
+      detail: "text",
       section: "Pile of playing cards"
     }
   ]
