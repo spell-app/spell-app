@@ -98,12 +98,15 @@ describe("migrateWorktree()", () => {
   test("a page changed on both sides is a conflict:  nothing written, the worktree as it was", () => {
     const clash = join(MAIN, ".claude", "worktrees", "clash")
     git(MAIN, "worktree", "add", "-q", "-b", "clash", clash, git(MAIN, "rev-list", "--max-parents=0", "HEAD"))
+    put(clash, "packages/docs/content/guide.html", "<p>guide, edited on clash</p>\n")
     put(clash, "packages/docs/content/index.html", "<h1>Docs, edited on clash</h1>\n")
     const shared = git(PEER, "rev-parse", "HEAD")
     const report = CLI.migrateWorktree(clash, config)
-    expect(report).toMatchObject({ conflicts: ["packages/docs/content/index.html"], done: false })
+    expect(report).toMatchObject({ conflicts: ["packages/docs/content/guide.html"], done: false })
+    // the docs index is built:  changed on both sides, it's rebuilt, not a conflict
+    expect(report.folds.find((each) => each.file === "packages/docs/content/index.html")?.action).toBe("rebuild")
     expect(git(PEER, "rev-parse", "HEAD")).toBe(shared)
-    expect(read(PEER, "packages/docs/content/index.html")).toBe("<h1>Docs, edited on main</h1>\n")
+    expect(read(PEER, "packages/docs/content/guide.html")).toBe("<p>guide, edited on feat</p>\n")
     expect(lstatSync(join(clash, "packages/docs/content")).isSymbolicLink()).toBe(false)
     expect(git(clash, "log", "-1", "--format=%s")).toBe("first")
   })
