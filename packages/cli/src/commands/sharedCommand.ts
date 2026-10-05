@@ -1,3 +1,4 @@
+import { spawnSync } from "child_process"
 import { existsSync } from "fs"
 import { join } from "path"
 
@@ -14,6 +15,9 @@ import { CLI } from "$/cli"
  * - `migrate <worktree> [--dry-run]`:  move a worktree cut before the cutover onto the shared content
  *   (`migrateWorktree()`):  its changes to the shared folders go into the shared repo, its branch stops tracking
  *   them, its folders become links;  stops, writing nothing, on a conflict
+ * - `repair [--dry-run] [--json]`:  after a branch from before the docs move merges `main`:  pages it left at
+ *   `packages/docs/<x>` go into `content/`, and links written for the old layout are fixed
+ *   (`packages/docs/tools/relocate.js` `repairCheckout()`)
  * - NOTE:  `SPELL_SHARED_DIR` points every verb at another shared repo (a scratch one, in tests)
  */
 export async function sharedCommand(
@@ -59,8 +63,15 @@ export async function sharedCommand(
       else for (const line of migrateLines(report, options.dryRun)) session.out(line)
       return report.conflicts.length ? CLI.EXIT.ERRORS : CLI.EXIT.OK
     }
+    case "repair": {
+      // the docs tools' own logic (`packages/docs/tools/relocate.js`):  run, never imported (nothing imports docs)
+      const tool = join(checkout, "packages", "docs", "tools", "relocate.js")
+      const flags = [...(options.dryRun ? ["--dry-run"] : []), ...(options.json ? ["--json"] : [])]
+      const run = spawnSync(process.execPath, [tool, "repair", "--root", checkout, ...flags], { stdio: "inherit" })
+      return run.status ?? CLI.EXIT.ERRORS
+    }
     default:
-      throw new CLI.CliError(`unknown verb '${verb}':  status, init, link, commit or migrate`)
+      throw new CLI.CliError(`unknown verb '${verb}':  status, init, link, commit, migrate or repair`)
   }
 }
 
