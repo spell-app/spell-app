@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { ClassBuilder, type ClassInput } from "$/ui/elements"
 import type { ComponentVocabulary } from "$/ui/vocabulary"

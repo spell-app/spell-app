@@ -36,10 +36,18 @@
         "enablement": "editorLangId == spell"
       },
       {
-        "command": "spell.docView.home",
-        "title": "Docs Index",
+        "command": "spell.docView.back",
+        "title": "Back",
         "category": "Spell",
-        "icon": "$(home)"
+        "icon": "$(arrow-left)",
+        "enablement": "spell.docView.canGoBack"
+      },
+      {
+        "command": "spell.docView.forward",
+        "title": "Forward",
+        "category": "Spell",
+        "icon": "$(arrow-right)",
+        "enablement": "spell.docView.canGoForward"
       },
       {
         "command": "spell.docView.reload",
@@ -48,8 +56,52 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "spell.docView.restartServer",
+        "title": "Restart Page Server",
+        "category": "Spell",
+        "icon": "$(server-process)"
+      },
+      {
         "command": "spell.docView.openExternal",
         "title": "Open Doc in Browser",
+        "category": "Spell",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "spell.docView.home",
+        "title": "Docs Index",
+        "category": "Spell",
+        "icon": "$(home)"
+      },
+      {
+        "command": "spell.reviewView.back",
+        "title": "Review:  Back",
+        "category": "Spell",
+        "icon": "$(arrow-left)",
+        "enablement": "spell.reviewView.canGoBack"
+      },
+      {
+        "command": "spell.reviewView.forward",
+        "title": "Review:  Forward",
+        "category": "Spell",
+        "icon": "$(arrow-right)",
+        "enablement": "spell.reviewView.canGoForward"
+      },
+      {
+        "command": "spell.reviewView.reload",
+        "title": "Review:  Reload Doc",
+        "category": "Spell",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "spell.reviewView.restartServer",
+        "title": "Review:  Restart Page Server",
+        "category": "Spell",
+        "icon": "$(server-process)"
+      },
+      {
+        "command": "spell.reviewView.openExternal",
+        "title": "Review:  Open Doc in Browser",
         "category": "Spell",
         "icon": "$(link-external)"
       }
@@ -75,10 +127,10 @@
           ],
           "default": "sidebar",
           "enumDescriptions": [
-            "The \"Spell Docs\" view, in the right (secondary) side bar.",
+            "The \"Spell Docs\" tab, in the right (secondary) side bar.",
             "Simple Browser, in an editor column beside the editor."
           ],
-          "description": "Where docs pages open (`yarn plan-doc open`, `/spell-docs`, `/goals-open-vs`)."
+          "description": "Where docs pages open (`yarn plan-doc open`, `/spell-docs`, `/goals-open-vs`).  Pages for review always open in the side bar's \"Review\" tab."
         }
       }
     },
@@ -117,19 +169,54 @@
       ],
       "view/title": [
         {
-          "command": "spell.docView.home",
+          "command": "spell.docView.back",
           "when": "view == spell.docView",
           "group": "navigation@1"
         },
         {
-          "command": "spell.docView.reload",
+          "command": "spell.docView.forward",
           "when": "view == spell.docView",
           "group": "navigation@2"
         },
         {
-          "command": "spell.docView.openExternal",
+          "command": "spell.docView.reload",
           "when": "view == spell.docView",
           "group": "navigation@3"
+        },
+        {
+          "command": "spell.docView.restartServer",
+          "when": "view == spell.docView",
+          "group": "navigation@4"
+        },
+        {
+          "command": "spell.docView.openExternal",
+          "when": "view == spell.docView",
+          "group": "navigation@5"
+        },
+        {
+          "command": "spell.reviewView.back",
+          "when": "view == spell.reviewView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "spell.reviewView.forward",
+          "when": "view == spell.reviewView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "spell.reviewView.reload",
+          "when": "view == spell.reviewView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "spell.reviewView.restartServer",
+          "when": "view == spell.reviewView",
+          "group": "navigation@4"
+        },
+        {
+          "command": "spell.reviewView.openExternal",
+          "when": "view == spell.reviewView",
+          "group": "navigation@5"
         }
       ]
     },
@@ -151,6 +238,18 @@
           },
           "comment.heading4:spell": {
             "bold": true
+          },
+          "comment.bold:spell": {
+            "bold": true
+          },
+          "comment.italic:spell": {
+            "italic": true
+          },
+          "comment.link:spell": {
+            "underline": true
+          },
+          "comment.strikethrough:spell": {
+            "strikethrough": true
           }
         }
       },
@@ -181,6 +280,22 @@
       {
         "id": "heading4",
         "description": "A fourth-level or deeper heading comment:  `####` ... at the start of a line."
+      },
+      {
+        "id": "bold",
+        "description": "Markdown `**bold**` inside a comment (spell docstrings are markdown)."
+      },
+      {
+        "id": "italic",
+        "description": "Markdown `*italic*` inside a comment."
+      },
+      {
+        "id": "link",
+        "description": "A markdown link inside a comment."
+      },
+      {
+        "id": "strikethrough",
+        "description": "Markdown `~~struck~~` inside a comment."
       }
     ],
     "viewsContainers": {
@@ -188,7 +303,12 @@
         {
           "id": "spell-docs",
           "title": "Spell Docs",
-          "icon": "$(book)"
+          "icon": "media/spell.svg"
+        },
+        {
+          "id": "spell-review",
+          "title": "Review",
+          "icon": "$(pass)"
         }
       ]
     },
@@ -198,6 +318,13 @@
           "type": "webview",
           "id": "spell.docView",
           "name": "Spell Docs"
+        }
+      ],
+      "spell-review": [
+        {
+          "type": "webview",
+          "id": "spell.reviewView",
+          "name": "Review"
         }
       ]
     }

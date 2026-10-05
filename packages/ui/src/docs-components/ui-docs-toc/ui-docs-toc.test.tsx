@@ -1,12 +1,14 @@
-import { describe, expect, it, onTestFinished, vi } from "vitest"
+import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
 import { TocIndex } from "./TocIndex"
+import type { TocEntry } from "./ui-docs-toc.types"
 
 import "$/ui/docs-components/ui-docs-toc"
+import "$/ui/components/ui-section"
 import "$/ui/components/ui-tab"
 
 /** Element-markup examples, by path. */
@@ -31,6 +33,29 @@ const PAGE = `
       </ui-docs-example>
       <ui-header level="3">Loading</ui-header>
     </section>
+  </div>`
+
+/**
+ * A page of nested `<ui-section>`s, as the site's converter writes them:  a section per example, a rich title, a
+ * section inside an example's demo (not listed).
+ */
+const SECTIONS = `
+  <div>
+    <ui-docs-toc for="nested"></ui-docs-toc>
+    <article id="nested">
+      <ui-section id="examples-types" header="Types">
+        <ui-section id="examples-types-button" header="Button">
+          <ui-docs-example><ui-button>A</ui-button></ui-docs-example>
+        </ui-section>
+        <ui-section id="examples-types-group">
+          <span slot="header">Group <code>ui-buttons</code></span>
+          <ui-section id="examples-types-group-or" header="Or"><p>Or</p></ui-section>
+        </ui-section>
+      </ui-section>
+      <ui-section id="examples-states" header="States">
+        <ui-docs-example header="Disabled"><ui-section header="Demo">not listed</ui-section></ui-docs-example>
+      </ui-section>
+    </article>
   </div>`
 
 /** Render `html`;  returns its toc host. */
@@ -92,6 +117,28 @@ describe("<ui-docs-toc> scan", () => {
         `<ui-header level="2">Tokens <ui-header>Light and dark</ui-header></ui-header></section></div>`
     )
     expect(links(toc, "section")).toEqual(["Tokens"])
+  })
+
+  it("lists `<ui-section>`s as a tree:  nested sections and examples under theirs, a slotted title's text", async () => {
+    const { wrapper, toc } = await render(SECTIONS)
+    const shape = (entries: readonly TocEntry[]): unknown[] =>
+      entries.map((entry) => (entry.entries.length ? [entry.id, entry.text, shape(entry.entries)] : entry.id))
+    expect(shape(TocIndex.scan(wrapper.querySelector("#nested")!))).toEqual([
+      [
+        "examples-types",
+        "Types",
+        ["examples-types-button", ["examples-types-group", "Group ui-buttons", ["examples-types-group-or"]]]
+      ],
+      ["examples-states", "States", ["disabled"]]
+    ])
+    expect(links(toc, "section")).toEqual(["Types", "States"])
+    // the first section is in view:  its entries show, not the ones nested deeper
+    await vi.waitFor(() => expect(links(toc, "entry")).toEqual(["Button", "Group ui-buttons"]))
+  })
+
+  it("`expanded` opens nested sections' entries too", async () => {
+    const { toc } = await render(SECTIONS.replace("<ui-docs-toc ", "<ui-docs-toc expanded "))
+    expect(links(toc, "entry")).toEqual(["Button", "Group ui-buttons", "Or", "Disabled"])
   })
 
   it("slugs text", () => {

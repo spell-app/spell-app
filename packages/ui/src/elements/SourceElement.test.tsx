@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test"
 import type { JSX } from "@solidjs/web"
 
 import { UI, type SourceSaver } from "$/ui/runtime"

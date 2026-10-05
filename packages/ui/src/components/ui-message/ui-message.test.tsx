@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from "vitest"
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { PART_OWNER_TOKENS, type MessageDismissDetail } from "$/ui/components/components.types"
 import { UI } from "$/ui/runtime"

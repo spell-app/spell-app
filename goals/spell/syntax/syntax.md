@@ -37,7 +37,7 @@ to turn (a card) over:
   compiled JavaScript so other projects can import them.
 - **What's missing:**  while/until loops, text with values inside, dates, money, maps;  `alert` / `ask` /
   `confirm` compile but don't run;  nothing saves or loads data.
-- **What bites today** (`CODE-DEBT.md`):
+- **What bites today** (`agents/CODE-DEBT.md`):
   - phrases ending in an expression swallow what follows:  `the number of cards in the deck is 52` compiles to
     `itemCountOf(deck == 52)`
   - `is a` accepts any word;  methods with the same wording on different types collide
@@ -101,6 +101,6 @@ _None yet._
 ## Pointers
 
 - `packages/spell/PARSING.md`, `packages/spell/AGENTS.md`, `packages/parser/AGENTS.md`
-- `packages/docs/precedence/precedence.html` and `/Users/owen/www/spell-app/outstanding/precedence-and-types/plan.md`
+- `packages/docs/content/precedence/precedence.html` and `/Users/owen/www/spell-app/outstanding/precedence-and-types/plan.md`
 - `packages/spell/projects/system/examples/` -- the examples
-- `CODE-DEBT.md` (`## spell`) -- what bites, and why
+- `agents/CODE-DEBT.md` (`## spell`) -- what bites, and why

@@ -1,7 +1,7 @@
 {
   // - `yarn ts`:  checks the vitest config and parses the scripts (`allowJs`, no `checkJs`).
   // - The experiments are NOT type-checked (they never were):  they're measurement scripts, run through `tsx`, and
-  //   `precedence/experiments/typescript-check.ts` is MEANT to report errors.  `tsx` still reads `paths` from here,
+  //   `content/precedence/experiments/typescript-check.ts` is MEANT to report errors.  `tsx` still reads `paths` from here,
   //   so they get the root's `#` aliases (e.g. `$/spell/test`).
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
@@ -18,5 +18,7 @@
     "strict": true,
     "types": ["node"]
   },
-  "include": ["scripts", "vitest.config.ts"]
+  "include": ["tools", "vitest.config.ts"],
+  // the page assets are browser code (`spell-ui.entry.js` pulls in UI source);  the goals tools aren't type-checked
+  "exclude": ["tools/_assets", "tools/goals"]
 }

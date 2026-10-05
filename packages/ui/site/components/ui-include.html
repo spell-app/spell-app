@@ -12,102 +12,97 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Include">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-include.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-include%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Include
+            <ui-header
+              >An include shows part of another page from this site in this one, loaded at once, when idle or when
+              scrolled into view.</ui-header
+            >
+          </ui-header>
+          <ui-docs-themes for="ui-include" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-include.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-include%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Include
-                <ui-header
-                  >An include shows part of another page from this site in this one, loaded at once, when idle or when
-                  scrolled into view.</ui-header
-                >
-              </ui-header>
-              <ui-docs-themes for="ui-include" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Include"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples (Types, Variations, States), restyled.
-                  Page included:  `site/examples/release-notes.html`.
-                -->
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples (Types, Variations, States), restyled.
+              Page included:  `site/examples/release-notes.html`.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-include" header="Include" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Include"
                   description="An include fetches `source` (a page of THIS site) and shows its `<body>`, in its own shadow root:  the page's CSS stays out, inherited fonts, colours and tokens come in.  Its children show until it loads."
                 >
                   <ui-include source="../examples/release-notes.html">Loading the release notes...</ui-include>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="One part"
-                  description="`select` shows only the first element a CSS selector matches."
-                >
+              <ui-section id="examples-types-one-part" header="One part" sticky collapsible dividing>
+                <ui-docs-example description="`select` shows only the first element a CSS selector matches.">
                   <ui-include source="../examples/release-notes.html" select="#notes"></ui-include>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-another-site" header="Another site" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Another site"
                   description="Only this site's pages can be included:  any other URL shows an error, and nothing is fetched."
                 >
                   <ui-include source="https://example.com/"></ui-include>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-page-styles" header="Page styles" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Page styles"
                   description="`page-styles` puts the included markup in the element's light DOM, where the page's stylesheets style it."
                 >
                   <ui-include source="../examples/release-notes.html" select="#notes" page-styles></ui-include>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-variations-load-when-visible"
+                header="Load when visible"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Load when visible"
                   description='`load="visible"` waits until the include scrolls into view;  `idle` until the browser has nothing else to do.  Like Astro&apos;s islands.'
                 >
                   <ui-include source="../examples/release-notes.html" select="#aside" load="visible"
@@ -117,145 +112,151 @@
                     >Waiting for the browser to be idle...</ui-include
                   >
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  from the old Astro page's Behaviour, plus the vocabulary's events and the element's a11y. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Point `source` at a page of this site (relative to the current page, same origin only). The include shows that
-                    page's `<body>`, or the first element `select` matches; its `<head>` (title, styles, scripts) is left out.
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  from the old Astro page's Behaviour, plus the vocabulary's events and the element's a11y. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Point `source` at a page of this site (relative to the current page, same origin only). The include shows that
+                  page's `<body>`, or the first element `select` matches; its `<head>` (title, styles, scripts) is left out.
 
-                    - Its children are a placeholder (e.g. a server-rendered copy), shown until the include loads, then replaced.
-                    - `load` says when to fetch: `eager` (at once, the default), `visible` (once scrolled into view) or `idle` (when
-                      the browser has nothing else to do). Like Astro's `client:visible` / `client:idle`.
-                    - By default the markup goes in a shadow root: the page's CSS stays out, inherited values (fonts, colours,
-                      `--ui-*` tokens) come in. `page-styles` puts it in the light DOM, where the page's stylesheets (and an outer
-                      `<ui-root>`) see it. This site's header and footer are `page-styles` includes.
-                  </script>
-                </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <ui-include source="_parts/footer.html" page-styles load="visible">
-                      <footer>Spell UI</footer>
-                    </ui-include>
-                  </script>
-                </ui-code>
+                  - Its children are a placeholder (e.g. a server-rendered copy), shown until the include loads, then replaced.
+                  - `load` says when to fetch: `eager` (at once, the default), `visible` (once scrolled into view) or `idle` (when
+                    the browser has nothing else to do). Like Astro's `client:visible` / `client:idle`.
+                  - By default the markup goes in a shadow root: the page's CSS stays out, inherited values (fonts, colours,
+                    `--ui-*` tokens) come in. `page-styles` puts it in the light DOM, where the page's stylesheets (and an outer
+                    `<ui-root>`) see it. This site's header and footer are `page-styles` includes.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-include source="_parts/footer.html" page-styles load="visible">
+                    <footer>Spell UI</footer>
+                  </ui-include>
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="included-markup">The included markup</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - Scripts in the included markup never run (it is parsed, not executed).
-                    - `ui-*` tags in it load their families on demand, as `<ui-root>` loads them: a shadow root is out of a root's
-                      sight, so the include does it itself.
-                    - Relative `href` / `src` / `action` / `poster` / `source` are rewritten against the included page's URL, so its
-                      links, images and nested includes still point where they did. The originals are kept for saving.
-                    - An include inside an include of the same page, or nested too deep, shows an error instead of looping.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-the-included-markup" header="The included markup" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - Scripts in the included markup never run (it is parsed, not executed).
+                  - `ui-*` tags in it load their families on demand, as `<ui-root>` loads them: a shadow root is out of a root's
+                    sight, so the include does it itself.
+                  - Relative `href` / `src` / `action` / `poster` / `source` are rewritten against the included page's URL, so its
+                    links, images and nested includes still point where they did. The originals are kept for saving.
+                  - An include inside an include of the same page, or nested too deep, shows an error instead of looping.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="editing">Editing and saving</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    For editors: `contentRoot` is where the markup lives. Edit it in place, then call `save()`.
+            <ui-section id="usage-editing-and-saving" header="Editing and saving" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  For editors: `contentRoot` is where the markup lives. Edit it in place, then call `save()`.
 
-                    - `content` is the FILE: the source as fetched while the markup is untouched; once edited, the live markup spliced
-                      back into the file's `<body>` (byte-exact outside it). With `select`, the matched element alone, saved by its
-                      `id`.
-                    - Saving goes through `UI.sources.saver`, which the page registers (`ui` ships none). The cancelable `ui-save`
-                      goes first, so an editor can save elsewhere; then `ui-saved` with the file's new `etag`, or `ui-error`.
-                    - `<ui-code>` and `<ui-markdown>` save the same way: all three show a text file.
-                  </script>
-                </ui-markdown>
+                  - `content` is the FILE: the source as fetched while the markup is untouched; once edited, the live markup spliced
+                    back into the file's `<body>` (byte-exact outside it). With `select`, the matched element alone, saved by its
+                    `id`.
+                  - Saving goes through `UI.sources.saver`, which the page registers (`ui` ships none). The cancelable `ui-save`
+                    goes first, so an editor can save elsewhere; then `ui-saved` with the file's new `etag`, or `ui-error`.
+                  - `<ui-code>` and `<ui-markdown>` save the same way: all three show a text file.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - `ui-load` -- the page arrived: `{ source, content }`.
-                    - `ui-change` -- `content` was set: `{ content }`; the include is `:state(dirty)` until saved.
-                    - `ui-save` (cancelable) -- `save()` is about to save: `{ source, content, etag }`.
-                    - `ui-saved` -- saved: `{ source, etag }`.
-                    - `ui-error` (cancelable) -- loading, showing or saving failed: `{ kind, source, error }`, `kind` one of `load`,
-                      `cross-origin`, `file-protocol`, `save`, `conflict`, `no-saver`, `render`. Cancel a load error to skip the
-                      message.
-                  </script>
-                </ui-markdown>
-                <ui-code language="js">
-                  <script type="text/plain">
-                    const notes = document.querySelector("ui-include")
-                    notes.addEventListener("ui-save", (event) => {
-                      event.preventDefault() // save it ourselves
-                      fetch("/api/pages", { method: "PUT", body: event.detail.content })
-                    })
-                    await notes.save()
-                  </script>
-                </ui-code>
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `ui-load` -- the page arrived: `{ source, content }`.
+                  - `ui-change` -- `content` was set: `{ content }`; the include is `:state(dirty)` until saved.
+                  - `ui-save` (cancelable) -- `save()` is about to save: `{ source, content, etag }`.
+                  - `ui-saved` -- saved: `{ source, etag }`.
+                  - `ui-error` (cancelable) -- loading, showing or saving failed: `{ kind, source, error }`, `kind` one of `load`,
+                    `cross-origin`, `file-protocol`, `save`, `conflict`, `no-saver`, `render`. Cancel a load error to skip the
+                    message.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const notes = document.querySelector("ui-include")
+                  notes.addEventListener("ui-save", (event) => {
+                    event.preventDefault() // save it ourselves
+                    fetch("/api/pages", { method: "PUT", body: event.detail.content })
+                  })
+                  await notes.save()
+                </script>
+              </ui-code>
+            </ui-section>
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Nothing of its own: whatever the included markup holds is in the page's tab order, in place.
-                  </script>
-                </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Nothing of its own: whatever the included markup holds is in the page's tab order, in place.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - The included markup is read in place, as part of the page: its headings and landmarks join the page's outline,
-                      so include parts whose structure fits where they land.
-                    - While it loads, a `<ui-loader>` (`role="status"`) says so.
-                    - A failed load shows a `<ui-message>` saying why; a page opened from disk (`file://`) says to open it from a
-                      web server.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The included markup is read in place, as part of the page: its headings and landmarks join the page's outline,
+                    so include parts whose structure fits where they land.
+                  - While it loads, a `<ui-loader>` (`role="status"`) says so.
+                  - A failed load shows a `<ui-message>` saying why; a page opened from disk (`file://`) says to open it from a
+                    web server.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-include"></ui-docs-api>
-              </ui-tab>
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-include"></ui-docs-api>
+          </ui-tab>
 
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  no tokens of its own;  what reaches the included markup instead. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    An include has no look of its own, so no `--ui-include-*` tokens. What styles the included markup:
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  no tokens of its own;  what reaches the included markup instead. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  An include has no look of its own, so no `--ui-include-*` tokens. What styles the included markup:
 
-                    - In a shadow root (the default): only inherited values reach it -- fonts, colours and every `--ui-*` token set
-                      on the include or above it. Style the box with `::part(content)`.
-                    - With `page-styles`: the page's own stylesheets, as for any other light-DOM markup.
-                    - The loader and the error message are `::part(loader)` and `::part(error)`.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    ui-include.notes {
-                      --ui-font-size: 14px;
-                      color: var(--ui-grey);
-                    }
-                    ui-include.notes::part(content) {
-                      padding: 1em;
-                    }
-                  </script>
-                </ui-code>
-                <ui-docs-tokens family="ui-include" playground></ui-docs-tokens>
+                  - In a shadow root (the default): only inherited values reach it -- fonts, colours and every `--ui-*` token set
+                    on the include or above it. Style the box with `::part(content)`.
+                  - With `page-styles`: the page's own stylesheets, as for any other light-DOM markup.
+                  - The loader and the error message are `::part(loader)` and `::part(error)`.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-include.notes {
+                    --ui-font-size: 14px;
+                    color: var(--ui-grey);
+                  }
+                  ui-include.notes::part(content) {
+                    padding: 1em;
+                  }
+                </script>
+              </ui-code>
+              <ui-docs-tokens family="ui-include" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Include is ours, not Fomantic's, and draws nothing itself, so no theme restyles it. The `ui-*` elements in the
-                    included markup follow the site's theme like any others.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Include is ours, not Fomantic's, and draws nothing itself, so no theme restyles it. The `ui-*` elements in the
+                  included markup follow the site's theme like any others.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

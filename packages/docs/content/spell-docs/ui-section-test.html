@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UI Section Test Page</title>
+    <meta
+      name="description"
+      content="The page runtime's test fixture: every piece of the ui-section page markup -- nested sticky sections, folds, counts, links into folded sections."
+    />
+    <link rel="stylesheet" href="../../tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../tools/_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../index.html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>UI Section Test Page</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>UI Section Test Page</h1>
+            <span class="plan-step"><ui-label color="orange" icon="circle half stroke">FIXTURE</ui-label></span>
+          </header></ui-sticky
+        >
+        <p class="lede">
+          A fixture for
+          <a href="../../tools/_assets/spell-doc-runtime.js" target="src-packages-docs-assets-spell-doc-runtime-js"
+            ><code>spell-doc-runtime.js</code></a
+          >: every piece of the <code>&lt;ui-section&gt;</code> page markup, with enough text to scroll. Keep it: it
+          documents the markup, and the probes run against it.
+        </p>
+        <ul>
+          <li>
+            Jump into a folded section: <a href="#t-deep">the deepest folded entry</a>, or
+            <a href="#t-item-2">item T2</a> inside the folded phase P2.
+          </li>
+          <li>Jump to a sub-sub-item: <a href="#t-h4">an h4</a>.</li>
+        </ul>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p>
+            Every section of a page is a <code>&lt;ui-section sticky collapsible dividing&gt;</code>: its title sticks
+            while any of it is on screen, folds the section, and has a rule under it. Nested sections stack their titles
+            under their parents'.
+          </p>
+          <p>
+            The runtime reads the sections into the contents sidebar and the rail, counts the items of each top-level
+            section, sets the top-level sections' <code>offset</code> below the page header, and remembers what the
+            reader folded.
+          </p>
+          <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
+            <p>
+              A section's label in the contents is its <code>header</code> attribute, or the text of its
+              <code>slot="header"</code> child. Its icon is its slotted <code>&lt;ui-icon&gt;</code>, or its
+              <code>icon</code> attribute.
+            </p>
+            <p>
+              Paragraph to scroll past. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+              incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            </p>
+            <h4 id="t-h4">A sub-sub-item (h4)</h4>
+            <p>
+              An <code>h4</code> in a section's own content is an entry under that section. It lands below every stuck
+              title above it.
+            </p>
+            <p>
+              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+              Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+              laborum.
+            </p>
+            <ui-section id="o1a" header="1.1.1 Three deep" sticky collapsible dividing>
+              <p>
+                A section three deep: its title sticks below 1.1's, which sticks below 1's, which sticks below the page
+                header.
+              </p>
+              <p>
+                Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam
+                rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt
+                explicabo.
+              </p>
+              <p>
+                Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni
+                dolores eos qui ratione voluptatem sequi nesciunt.
+              </p>
+              <p>
+                Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia
+                non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
+              </p>
+              <p>
+                Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut
+                aliquid ex ea commodi consequatur.
+              </p>
+            </ui-section>
+          </ui-section>
+          <ui-section id="o2" sticky collapsible dividing>
+            <span slot="header">1.2 A title with <code>markup</code></span>
+            <p>
+              This section's title is a <code>slot="header"</code> span: its text is the contents label, the
+              <code>code</code> keeps its look in the title.
+            </p>
+            <p>
+              Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel
+              illum qui dolorem eum fugiat quo voluptas nulla pariatur.
+            </p>
+            <p>
+              At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti
+              atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.
+            </p>
+          </ui-section>
+          <ui-section id="o3" header="1.3 Folded at the start" sticky collapsible dividing collapsed>
+            <p>Folded in the markup (<code>collapsed</code>): only the title shows until it's unfolded.</p>
+            <ui-section id="o3a" header="1.3.1 Inside the folded one" sticky collapsible dividing>
+              <p>Nested in a folded section: a link here unfolds 1.3 first.</p>
+              <ui-section id="t-deep" header="1.3.1.1 The deepest folded entry" sticky collapsible dividing collapsed>
+                <p>
+                  The target of the "deepest folded entry" link: two folded sections around it (1.3, and this one) and
+                  one open (1.3.1).
+                </p>
+                <p>
+                  Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et
+                  voluptates repudiandae sint et molestiae non recusandae.
+                </p>
+              </ui-section>
+            </ui-section>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <p class="meta">One section per phase: its status icon, and <code>data-status</code> for the count.</p>
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Done phase"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <p>A done phase: muted title, folded.</p>
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="active"
+            header="P2 · Active phase"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+            <p>The phase in progress, folded in the markup: the link to T2 above unfolds it.</p>
+            <ui-list class="plan-items" data-kind="todo" divided relaxed
+              ><ui-item id="t-item-1" data-status="done"
+                ><a class="plan-id" href="#t-item-1">T1</a> <span class="plan-title">A done item</span></ui-item
+              ><ui-item id="t-item-2" data-status="open"
+                ><ui-accordion class="plan-item"
+                  ><ui-title
+                    ><a class="plan-id" href="#t-item-2">T2</a>
+                    <span class="plan-title">An open item with details</span></ui-title
+                  ><ui-content><p>Its details: a jump to T2 opens this panel.</p></ui-content></ui-accordion
+                ></ui-item
+              ></ui-list
+            >
+            <p>
+              Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime
+              placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.
+            </p>
+          </ui-section>
+          <ui-section
+            id="p3"
+            data-phase="3"
+            data-status="not-started"
+            header="P3 · Next phase"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <p>Not started: open.</p>
+            <p>
+              Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias
+              consequatur aut perferendis doloribus asperiores repellat.
+            </p>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+            </p>
+            <p>
+              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+              Excepteur sint occaecat cupidatat non proident.
+            </p>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="issues" header="3. Issues" icon="bug" sticky collapsible dividing>
+          <p>
+            This section's icon is its <code>icon</code> attribute, not a slotted <code>&lt;ui-icon&gt;</code>. Its
+            empty item list says "none yet".
+          </p>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="todos" header="4. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p>Items straight in a top-level section: two open of three.</p>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="d1" data-status="open"
+              ><a class="plan-id" href="#d1">D1</a> <span class="plan-title">First open todo</span></ui-item
+            ><ui-item id="d2" data-status="done"
+              ><a class="plan-id" href="#d2">D2</a> <span class="plan-title">A done todo</span></ui-item
+            ><ui-item id="d3" data-status="open"
+              ><a class="plan-id" href="#d3">D3</a> <span class="plan-title">Second open todo</span></ui-item
+            ></ui-list
+          >
+          <p>
+            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem
+            aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+          </p>
+          <p>
+            Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni
+            dolores eos qui ratione voluptatem sequi nesciunt.
+          </p>
+          <p>
+            Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non
+            numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
+          </p>
+          <p>
+            Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex
+            ea commodi consequatur.
+          </p>
+          <p>
+            Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel
+            illum qui dolorem eum fugiat quo voluptas nulla pariatur.
+          </p>
+          <p>
+            At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti
+            atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.
+          </p>
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

@@ -12,77 +12,64 @@
     <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
     <script>
       try {
-        var s = localStorage.getItem("spell-ui-site:scheme")
-        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="../_assets/site.css" />
     <script type="module" src="../_assets/site.js"></script>
   </head>
   <body class="ui-typography">
-    <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
-      <ui-include class="site-header" source="../_parts/header.html" page-styles>
-        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
-      </ui-include>
+    <main id="main" class="site-main" data-toc-header="Items">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-items.html"
+              icon="pen to square"
+              aria-label="This page's source on GitHub"
+              title="This page's source on GitHub"
+            ></ui-item>
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-items%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+            <ui-item
+              href="https://fomantic-ui.com/views/item.html"
+              icon="up right from square"
+              aria-label="Fomantic UI's original page"
+              title="Fomantic UI's original page"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Items
+            <ui-header
+              >A group of items presents a set of site content for display, each an image beside its
+              text.</ui-header
+            >
+          </ui-header>
+          <ui-docs-themes for="ui-items" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
 
-      <div class="site-layout">
-        <aside class="site-nav">
-          <ui-docs-nav></ui-docs-nav>
-        </aside>
-
-        <main id="main" class="site-main">
-          <ui-segment vertical class="site-masthead">
-            <ui-container>
-              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-items.html"
-                  icon="pen to square"
-                  aria-label="This page's source on GitHub"
-                  title="This page's source on GitHub"
-                ></ui-item>
-                <ui-item
-                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-items%3A%20%20"
-                  icon="bug"
-                  aria-label="Report a bug"
-                  title="Report a bug"
-                ></ui-item>
-                <ui-item
-                  href="https://fomantic-ui.com/views/item.html"
-                  icon="up right from square"
-                  aria-label="Fomantic UI's original page"
-                  title="Fomantic UI's original page"
-                ></ui-item>
-              </ui-menu>
-              <ui-header level="1" class="site-title">
-                Items
-                <ui-header
-                  >A group of items presents a set of site content for display, each an image beside its
-                  text.</ui-header
-                >
-              </ui-header>
-              <ui-docs-themes for="ui-items" show="theme" class="site-themes"></ui-docs-themes>
-            </ui-container>
-          </ui-segment>
-
-          <ui-container class="site-body">
-            <ui-rail position="right" class="site-rail">
-              <ui-sticky class="site-toc" offset="64">
-                <ui-docs-toc for="site-tabs" header="Items"></ui-docs-toc>
-              </ui-sticky>
-            </ui-rail>
-
-            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
-              <ui-tab value="examples" label="Examples">
-                <!--
-                  EXAMPLES:  Fomantic's item page, section by section, in its order (Types, Content, States, Variations).
-                  Fomantic's `.item` is the generic `<ui-item>`;  its `.image` + `<img>` the `image` shorthand (or a `<ui-image size>`);
-                  `.middle aligned content` is `<ui-content vertical-align="middle">`;  `ui wireframe image`s are plain `<ui-image>`s.
-                -->
-
-                <ui-header level="2" dividing id="types">Types</ui-header>
-
-                <ui-docs-example header="Items">
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  Fomantic's item page, section by section, in its order (Types, Content, States, Variations).
+              Fomantic's `.item` is the generic `<ui-item>`;  its `.image` + `<img>` the `image` shorthand (or a `<ui-image size>`);
+              `.middle aligned content` is `<ui-content vertical-align="middle">`;  `ui wireframe image`s are plain `<ui-image>`s.
+            -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-items" header="Items" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">A group of items.</p>
                   <ui-message slot="description" state="positive" size="small"
                     >Item views are designed to be responsive, with images stacking at mobile widths. By default ours
@@ -112,11 +99,12 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="content">Content</ui-header>
-
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-image" header="Image" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Image"
                   description="An item can contain an image:  `image` is the shorthand, at the item's image width."
                 >
                   <ui-items divided>
@@ -125,8 +113,10 @@
                     <ui-item image="../images/wireframe/image.png"> </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Content" description="An item can contain content.">
+              <ui-section id="examples-content-content" header="Content" sticky collapsible dividing>
+                <ui-docs-example description="An item can contain content.">
                   <ui-items divided>
                     <ui-item>
                       <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
@@ -142,8 +132,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Header" description="An item can contain a header.">
+              <ui-section id="examples-content-header" header="Header" sticky collapsible dividing>
+                <ui-docs-example description="An item can contain a header.">
                   <ui-items>
                     <ui-item>
                       <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
@@ -161,8 +153,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Metadata">
+              <ui-section id="examples-content-metadata" header="Metadata" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">An item can contain content metadata.</p>
                   <ui-message slot="description" state="info" size="small"
                     >You can include an arbitrary amount of metadata in <code>&lt;ui-meta&gt;</code>: every child is
@@ -210,8 +204,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Link">
+              <ui-section id="examples-content-link" header="Link" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">An item can contain links as images, headers, or inside content.</p>
                   <ui-message slot="description" state="warning" size="small"
                     >To make the entire content of an item a link, see the Link Item variation below.</ui-message
@@ -252,11 +248,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Description"
-                  description="An item can contain a description with a single or multiple paragraphs."
-                >
+              <ui-section id="examples-content-description" header="Description" sticky collapsible dividing>
+                <ui-docs-example description="An item can contain a description with a single or multiple paragraphs.">
                   <ui-items>
                     <ui-item>
                       <ui-image size="small" href="#" src="../images/wireframe/image.png" alt=""></ui-image>
@@ -273,9 +268,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-content-extra-content" header="Extra Content" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Extra Content"
                   description="An item can contain extra content meant to be formatted separately from the main content."
                 >
                   <ui-items>
@@ -291,8 +287,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Rating">
+              <ui-section id="examples-content-rating" header="Rating" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">An item can contain icons signifying a 'like' or 'favorite' action.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Use <code>&lt;ui-rating&gt;</code> to attach events to like and favorite icons.</ui-message
@@ -312,10 +310,12 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="states">States</ui-header>
-
-                <ui-docs-example header="Disabled" description="An item can be disabled.">
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="An item can be disabled.">
                   <ui-items>
                     <ui-item disabled>
                       <ui-image size="tiny" href="#" src="../images/avatar/large/veronika.jpg" alt=""></ui-image>
@@ -331,11 +331,12 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-                <ui-header level="2" dividing id="variations">Variations</ui-header>
-
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-stacking" header="Stacking" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Stacking"
                   description="A group of items can specify how it stacks responsively:  `unstackable` keeps the image beside the content in a narrow group."
                 >
                   <ui-items unstackable>
@@ -361,11 +362,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Divided"
-                  description="Items can be divided to better distinguish between grouped content."
-                >
+              <ui-section id="examples-variations-divided" header="Divided" sticky collapsible dividing>
+                <ui-docs-example description="Items can be divided to better distinguish between grouped content.">
                   <ui-items divided>
                     <ui-item image="../images/wireframe/image.png">
                       <ui-content>
@@ -411,11 +411,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Relaxed"
-                  description="A group of items can relax its padding to provide more negative space."
-                >
+              <ui-section id="examples-variations-relaxed" header="Relaxed" sticky collapsible dividing>
+                <ui-docs-example description="A group of items can relax its padding to provide more negative space.">
                   <ui-items relaxed>
                     <ui-item>
                       <ui-image size="tiny" src="../images/wireframe/image.png" alt=""></ui-image>
@@ -452,9 +451,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section id="examples-variations-link-item" header="Link Item" sticky collapsible dividing>
                 <ui-docs-example
-                  header="Link Item"
                   description="An item can be formatted so that the entire contents link to another page:  `link` on the group is the hover look, `href` on an item the link."
                 >
                   <ui-items link>
@@ -487,9 +487,16 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
+              <ui-section
+                id="examples-variations-vertical-alignment"
+                header="Vertical Alignment"
+                sticky
+                collapsible
+                dividing
+              >
                 <ui-docs-example
-                  header="Vertical Alignment"
                   description="Content can specify its vertical alignment:  `vertical-align` on the `<ui-content>`."
                 >
                   <ui-items unstackable>
@@ -507,11 +514,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example
-                  header="Floated Content"
-                  description="Any content element can be floated left or right."
-                >
+              <ui-section id="examples-variations-floated-content" header="Floated Content" sticky collapsible dividing>
+                <ui-docs-example description="Any content element can be floated left or right.">
                   <ui-items>
                     <ui-item>
                       <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
@@ -545,8 +551,10 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Inverted">
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example>
                   <p slot="description">An item can be inverted to appear on a dark background.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Set a dark background yourself, or wrap the items in an
@@ -583,8 +591,10 @@
                     </ui-items>
                   </ui-segment>
                 </ui-docs-example>
+              </ui-section>
 
-                <ui-docs-example header="Size" description="Items can have different text sizes, `mini` ... `massive`.">
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="Items can have different text sizes, `mini` ... `massive`.">
                   <ui-items size="small">
                     <ui-item>
                       <ui-image size="small" src="../images/wireframe/image.png" alt=""></ui-image>
@@ -601,126 +611,130 @@
                     </ui-item>
                   </ui-items>
                 </ui-docs-example>
-              </ui-tab>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
 
-              <ui-tab value="usage" label="Usage">
-                <!-- USAGE:  from the old Astro page (Behaviour, Accessibility), tightened. -->
-                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  from the old Astro page (Behaviour, Accessibility), tightened. -->
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  An item here is the same `<ui-item>` that dropdowns, lists and menus use: there is no separate "items item".
+                  Inside `<ui-items>` it becomes a block with its image on one side and a `<ui-content>` on the other, and it styles
+                  the content parts inside it (`<ui-header>`, `<ui-meta>`, `<ui-description>`, `<ui-extra>`) as Fomantic's item
+                  header, meta and so on. The same parts inside a list item still look like list parts.
+
+                  - The image: the `image` shorthand, a slotted `<img>` (both at the item's image width), or a `<ui-image size>`
+                    (its own size).
+                  - `href` makes the whole item one link; `link` on the group is only the hover look.
+                  - `<ui-content vertical-align="middle|bottom">` aligns the content against the image; `floated` on a part
+                    (a `<ui-button floated="right">` in `<ui-extra>`) floats it.
+                  - Items stack, image above content, below 768px:  of the GROUP's width by default, of the window's with
+                    `stack-with="page"` (here, or on a `<ui-root>`);  `unstackable` keeps them side by side. A stacked
+                    image takes its natural width, up to 250px tall.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-items divided>
+                    <ui-item image="/covers/totoro.jpg">
+                      <ui-content>
+                        <ui-header href="/films/totoro">My Neighbor Totoro</ui-header>
+                        <ui-meta><span>IFC Cinema</span></ui-meta>
+                        <ui-description><p>Two sisters move to the country ...</p></ui-description>
+                        <ui-extra><ui-label>Limited</ui-label></ui-extra>
+                      </ui-content>
+                    </ui-item>
+                  </ui-items>
+                </script>
+              </ui-code>
+            </ui-section>
+
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A group has no events of its own. A link item is a normal link (`click`, then navigation); buttons and links
+                  inside an item's content fire their native events.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The group is never a tab stop. **Tab** reaches each link item (one stop per item) or the links and buttons inside
+                  an item's content, in reading order; **Enter** follows a link.
+                </script>
+              </ui-markdown>
+            </ui-section>
+
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The group is a `role="list"` and each item a `listitem`, so a screen reader hears how many there are.
+                  - A link item is one `<a>` whose name is all of its text. Keep other links and buttons out of it, and don't give a
+                    linked header its own `href` inside one.
+                  - Give a `<ui-header>` a `level` when an item's title should be a heading in the page outline.
+                  - A slotted image needs its own `alt`; the `image` shorthand is decorative (`alt=""`), so put what matters in
+                    the text.
+                  - `disabled` fades the item and sets `aria-disabled`.
+                  - If the element can't render, its native fallback keeps the list and class words, so the items still read as a
+                    list; they no longer stack in a narrow group, and their headers, metas and descriptions lose the item look.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+            <ui-docs-api family="ui-items"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-items-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
+                  the group's box through `::part(items)`. The items inside read them from the group, so set them there or above,
+                  not on one item.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  ui-items {
+                    --ui-items-image-width: 8em;
+                    --ui-items-divided-border: 2px solid var(--ui-border-color);
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
                 <ui-markdown>
                   <script type="text/markdown">
-                    An item here is the same `<ui-item>` that dropdowns, lists and menus use: there is no separate "items item".
-                    Inside `<ui-items>` it becomes a block with its image on one side and a `<ui-content>` on the other, and it styles
-                    the content parts inside it (`<ui-header>`, `<ui-meta>`, `<ui-description>`, `<ui-extra>`) as Fomantic's item
-                    header, meta and so on. The same parts inside a list item still look like list parts.
-
-                    - The image: the `image` shorthand, a slotted `<img>` (both at the item's image width), or a `<ui-image size>`
-                      (its own size).
-                    - `href` makes the whole item one link; `link` on the group is only the hover look.
-                    - `<ui-content vertical-align="middle|bottom">` aligns the content against the image; `floated` on a part
-                      (a `<ui-button floated="right">` in `<ui-extra>`) floats it.
-                    - Items stack, image above content, below 768px:  of the GROUP's width by default, of the window's with
-                      `stack-with="page"` (here, or on a `<ui-root>`);  `unstackable` keeps them side by side. A stacked
-                      image takes its natural width, up to 250px tall.
+                    `divided`, `relaxed`, `link` and `unstackable` switch private tokens the items read; use the attributes, and
+                    never set the `--_ui-*` / `--_items-*` names: they're the sheet's private plumbing.
                   </script>
                 </ui-markdown>
-                <ui-code language="html">
-                  <script type="text/plain">
-                    <ui-items divided>
-                      <ui-item image="/covers/totoro.jpg">
-                        <ui-content>
-                          <ui-header href="/films/totoro">My Neighbor Totoro</ui-header>
-                          <ui-meta><span>IFC Cinema</span></ui-meta>
-                          <ui-description><p>Two sisters move to the country ...</p></ui-description>
-                          <ui-extra><ui-label>Limited</ui-label></ui-extra>
-                        </ui-content>
-                      </ui-item>
-                    </ui-items>
-                  </script>
-                </ui-code>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-items" playground></ui-docs-tokens>
+            </ui-section>
 
-                <ui-header level="2" dividing id="events">Events</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    A group has no events of its own. A link item is a normal link (`click`, then navigation); buttons and links
-                    inside an item's content fire their native events.
-                  </script>
-                </ui-markdown>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
 
-                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The group is never a tab stop. **Tab** reaches each link item (one stop per item) or the links and buttons inside
-                    an item's content, in reading order; **Enter** follows a link.
-                  </script>
-                </ui-markdown>
-
-                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    - The group is a `role="list"` and each item a `listitem`, so a screen reader hears how many there are.
-                    - A link item is one `<a>` whose name is all of its text. Keep other links and buttons out of it, and don't give a
-                      linked header its own `href` inside one.
-                    - Give a `<ui-header>` a `level` when an item's title should be a heading in the page outline.
-                    - A slotted image needs its own `alt`; the `image` shorthand is decorative (`alt=""`), so put what matters in
-                      the text.
-                    - `disabled` fades the item and sets `aria-disabled`.
-                    - If the element can't render, its native fallback keeps the list and class words, so the items still read as a
-                      list; they no longer stack in a narrow group, and their headers, metas and descriptions lose the item look.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-
-              <ui-tab value="api" label="API">
-                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
-                <ui-docs-api family="ui-items"></ui-docs-api>
-              </ui-tab>
-
-              <ui-tab value="theming" label="Theming">
-                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    Theme with the public `--ui-items-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
-                    the group's box through `::part(items)`. The items inside read them from the group, so set them there or above,
-                    not on one item.
-                  </script>
-                </ui-markdown>
-                <ui-code language="css">
-                  <script type="text/plain">
-                    ui-items {
-                      --ui-items-image-width: 8em;
-                      --ui-items-divided-border: 2px solid var(--ui-border-color);
-                    }
-                  </script>
-                </ui-code>
-                <ui-message state="info" size="small">
-                  <ui-markdown>
-                    <script type="text/markdown">
-                      `divided`, `relaxed`, `link` and `unstackable` switch private tokens the items read; use the attributes, and
-                      never set the `--_ui-*` / `--_items-*` names: they're the sheet's private plumbing.
-                    </script>
-                  </ui-markdown>
-                </ui-message>
-                <ui-markdown>Edit a value below to try it.</ui-markdown>
-                <ui-docs-tokens family="ui-items" playground></ui-docs-tokens>
-
-                <ui-header level="2" dividing id="themes">Themes</ui-header>
-                <ui-markdown>
-                  <script type="text/markdown">
-                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                    theme to the whole site.
-
-                    No theme restyles items on their own -- the same as Fomantic's own item page (Default only). Site-wide themes
-                    still reach them through the foundation tokens.
-                  </script>
-                </ui-markdown>
-              </ui-tab>
-            </ui-tabs>
-          </ui-container>
-
-          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
-        </main>
-      </div>
-    </ui-root>
+                  No theme restyles items on their own -- the same as Fomantic's own item page (Default only). Site-wide themes
+                  still reach them through the foundation tokens.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
   </body>
 </html>

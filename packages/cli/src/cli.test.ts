@@ -3,7 +3,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync,
 import { createServer } from "net"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"
-import { afterAll, beforeAll, describe, test, expect } from "vitest"
+import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
 
 import { SRV } from "$/server"
 import { SP } from "$/spell"

@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
 import { parseHTML } from "linkedom"
-import { beforeAll, describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { StaticRender } from "$/ui/server"
 import { UIPushable } from "$/ui/components/ui-sidebar/UIPushable"

@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from "vitest"
+import { describe, test, expect, beforeEach } from "vite-plus/test"
 import { renderToString } from "@solidjs/web"
 
 import { spellCore, Thing, List } from "$/core"

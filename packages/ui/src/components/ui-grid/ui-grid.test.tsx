@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from "vitest"
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { GRID_CONTAINER_NAME } from "$/ui/components/components.types"
 import { expectAccessible } from "$/ui/test/a11y"

@@ -68,12 +68,22 @@ export class PageServer {
       })
     })
     const router = this.web.router
-    router.get("/", (_request, reply) => reply.redirect("/packages/docs/index.html"))
-    // plan docs moved from `plans/` to `epics/` (2026-10-02):  old links and open tabs still land.  302:  a 301 would
-    // be cached for good, and a worktree not yet merged still serves `plans/` itself
+    router.get("/", (_request, reply) => reply.redirect("/packages/docs/content/index.html"))
+    // plan docs moved from `plans/` to `epics/` (2026-10-02), then into `content/`:  old links and open tabs still
+    // land.  302:  a 301 would be cached for good
     router.get("/packages/docs/plans/*", (request, reply) =>
-      reply.redirect(request.originalUrl.replace("/packages/docs/plans/", "/packages/docs/epics/"))
+      reply.redirect(request.originalUrl.replace("/packages/docs/plans/", "/packages/docs/content/epics/"))
     )
+    // docs pages moved into `packages/docs/content/`, and plan docs renamed `epics/<n>/<n>.html` -> `<n>.plan.html`
+    // (both 2026-10-04):  old links and open tabs still land, here and in a worktree served from here
+    // (`/worktrees/<w>/`).  302, and only while the old file is gone:  a worktree cut before the move still has it
+    for (const prefix of ["/packages/docs/*", "/worktrees/*"])
+      router.get(prefix, (request, reply, next) => {
+        const url = request.originalUrl
+        const moved = movedDocsPage(url, this.root) ?? renamedPlanDoc(url, this.root)
+        if (moved) reply.redirect(moved)
+        else next()
+      })
     router.get("/_server/ping", (_request, reply) => reply.set("Cache-Control", "no-store").json(this.info))
     // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams
     new PageEditor(this.root).route(router, this.web.guard)
@@ -88,7 +98,7 @@ export class PageServer {
    */
   async start({ port = DEFAULT_PORT, routes = true, pidFile = true }: StartOptions = {}): Promise<this> {
     const settings = this.settings()
-    for (const dir of settings.watch ?? ["packages/docs"])
+    for (const dir of settings.watch ?? DEFAULT_WATCH)
       this.web.live!.watch(join(this.root, dir), { ignore: /(^|\/)(scripts|experiments)\// })
     this.web.live!.watch(join(this.root, UI_SITE.dir), { ignore: UI_SITE.ignore })
     this.epics.watch(this.web.live!)
@@ -193,6 +203,68 @@ function worktreeOf(file: string, root: string): { branch?: string; worktree?: s
 
 /** `worktreeOf()`'s cache, by worktree name. */
 const WORKTREES = new Map<string, { branch?: string; worktree?: string }>()
+
+/** Folders the page server live-reloads when the root `package.json` names none:  the docs pages and their bundle. */
+const DEFAULT_WATCH = ["packages/docs/content", "packages/docs/tools/_assets"]
+
+/**
+ * The new URL of an old docs page's URL `url` (`/packages/docs/<x>`, or the same under `/worktrees/<w>/`):
+ * `/packages/docs/content/<x>`, query kept, when the old page is gone and the new one is there;  else `undefined`.
+ * - pages and folders only (`.html`, `.md`, no extension):  the package's own files (`package.json` ...) stay put,
+ *   and so do its `.md`s (`README.md` ...), which are still there
+ * - `<x>` under `content/` or `tools/` is already new
+ * - an old plan doc name (`epics/<n>/<n>.html`) lands on its new name in ONE hop (`renamedPlanDoc()`)
+ * - `root`:  the checkout served;  `/worktrees/<w>/...` is its `.claude/worktrees/<w>/...` (`RunningEpics`)
+ */
+export function movedDocsPage(url: string, root: string): string | undefined {
+  const [path = "", query] = url.split("?")
+  const match = /^(\/(?:worktrees\/[^/]+\/)?packages\/docs)(?:\/(.*))?$/.exec(path)
+  if (!match) return undefined
+  const [, base = "", rest = ""] = match
+  if (/^(content|tools)(\/|$)/.test(rest) || !/(^|\/)([^/.]*|[^/]*\.(html|md))$/.test(rest)) return undefined
+  const moved = `${base}/content/${rest}`
+  const [before, after] = [decode(path), decode(moved)]
+  if (!before || !after || existsSync(servedFile(pageOf(before), root))) return undefined
+  const tail = query === undefined ? "" : `?${query}`
+  if (existsSync(servedFile(pageOf(after), root))) return `${moved}${tail}`
+  return renamedPlanDoc(`${moved}${tail}`, root)
+}
+
+/**
+ * The new URL of an old plan doc's URL `url` (`/packages/docs/content/epics/<n>/<n>.html`, or the same under
+ * `/worktrees/<w>/`, or without `content/`):  `<n>.plan.html`, query kept, when the old file is gone and the new one
+ * is there;  else `undefined`.
+ * - `root`:  the checkout served;  `/worktrees/<w>/...` is its `.claude/worktrees/<w>/...` (`RunningEpics`)
+ */
+export function renamedPlanDoc(url: string, root: string): string | undefined {
+  const [path = "", query] = url.split("?")
+  const decoded = decode(path)
+  if (!decoded) return undefined
+  if (!/^\/(?:worktrees\/[^/]+\/)?packages\/docs\/(?:content\/)?epics\/([^/]+)\/\1\.html$/.test(decoded))
+    return undefined
+  const renamed = decoded.replace(/\.html$/, ".plan.html")
+  if (existsSync(servedFile(decoded, root)) || !existsSync(servedFile(renamed, root))) return undefined
+  return `${path.replace(/\.html$/, ".plan.html")}${query === undefined ? "" : `?${query}`}`
+}
+
+/** URL path `path` decoded;  `undefined` when malformed. */
+function decode(path: string): string | undefined {
+  try {
+    return decodeURIComponent(path)
+  } catch {
+    return undefined
+  }
+}
+
+/** The page URL path `served` shows:  itself for a `.html` / `.md`, else its folder's `index.html`. */
+function pageOf(served: string): string {
+  return /\.(html|md)$/.test(served) ? served : `${served.replace(/\/$/, "")}/index.html`
+}
+
+/** URL path `served` (decoded) as a file under the checkout `root`:  `/worktrees/<w>/...` is under `.claude/`. */
+function servedFile(served: string, root: string): string {
+  return served.startsWith("/worktrees/") ? join(root, ".claude", served) : join(root, served)
+}
 
 /** Branch and worktree name of the checkout at `root`, when git knows. */
 function checkout(root: string): { branch?: string; worktree?: string } {

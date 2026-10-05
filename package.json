@@ -4,11 +4,11 @@
   "description": "Spell:  the parser, the spell language and its tools, and @spell-app/ui",
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell-app",
-  "type": "module",
   "workspaces": [
     "packages/cli",
     "packages/docs",
     "packages/lsp",
+    "packages/markdown",
     "packages/parser",
     "packages/solid-element",
     "packages/spell",
@@ -18,12 +18,13 @@
     "packages/ui",
     "packages/util"
   ],
+  "type": "module",
   "scripts": {
-    "ts": "yarn workspaces foreach -A --exclude spell-app run ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:packages": "yarn workspaces foreach -A --exclude spell-app run test",
-    "review": "yarn workspaces foreach -A --exclude spell-app run review",
+    "ts": "vp run --fail-if-no-match -F '@spell-app/*' ts",
+    "test": "vp test run",
+    "test:watch": "vp test",
+    "test:packages": "vp run --fail-if-no-match -F '@spell-app/*' test",
+    "review": "vp run --fail-if-no-match --concurrency-limit 1 -F '@spell-app/*' review",
     "vscode": "yarn vscode:build && yarn vscode:install",
     "vscode:build": "cd packages/vscode && yarn install && yarn build && yarn package",
     "vscode:install": "cd packages/vscode && yarn install-extension",
@@ -34,37 +35,51 @@
     "plan-doc": "yarn workspace @spell-app/docs plan-doc",
     "details": "yarn workspace @spell-app/docs details",
     "docs:link": "yarn workspace @spell-app/docs docs:link",
-    "goals": "TSX_TSCONFIG_PATH=goals/tsconfig.json node --import tsx goals/_tools/goals.js",
-    "goals:test": "TSX_TSCONFIG_PATH=goals/tsconfig.json node --import tsx --test goals/_tools/goalsRoutes.test.ts",
+    "goals": "TSX_TSCONFIG_PATH=packages/docs/tsconfig.json node --import tsx packages/docs/tools/goals/goals.js",
+    "goals:test": "TSX_TSCONFIG_PATH=packages/docs/tsconfig.json node --import tsx --test packages/docs/tools/goals/goalsRoutes.test.ts",
     "window": "node scripts/window.mjs",
     "server": "yarn workspace @spell-app/server server",
-    "serve": "node scripts/serve.mjs"
+    "serve": "node scripts/serve.mjs",
+    "commands:check": "node packages/cli/bin/spell.mjs dev commands check"
   },
+  "devDependencies": {
+    "@vitest/browser-playwright": "catalog:",
+    "playwright": "1.63.0",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "resolutions": {
+    "@solidjs/element": "2.0.0-rc.13",
+    "@solidjs/signals": "2.0.0-rc.13",
+    "@solidjs/web": "2.0.0-rc.13",
+    "solid-js": "2.0.0-rc.13",
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0",
+    "vitest": "5.0.1"
+  },
+  "engines": {
+    "node": ">=24.11"
+  },
+  "packageManager": "yarn@4.18.0",
   "pageServer": {
     "routes": [
-      "goals/_tools/goalsRoutes.ts",
-      "packages/docs/scripts/detailsRoutes.ts",
-      "packages/docs/scripts/showRoutes.ts",
+      "packages/docs/tools/goals/goalsRoutes.ts",
+      "packages/docs/tools/detailsRoutes.ts",
+      "packages/docs/tools/reviewRoutes.ts",
+      "packages/docs/tools/showRoutes.ts",
       "packages/app/src/server/appRoutes.ts"
     ],
     "watch": [
-      "packages/docs"
+      "packages/docs/content",
+      "packages/docs/tools/_assets"
     ]
   },
-  "devDependencies": {
-    "@vitest/browser-playwright": "5.0.2",
-    "playwright": "1.63.0",
-    "vite": "8.3.1",
-    "vitest": "5.0.2"
-  },
-  "engines": {
-    "node": ">=22.17"
-  },
-  "packageManager": "yarn@4.18.0",
-  "resolutions": {
-    "solid-js": "2.0.0-rc.13",
-    "@solidjs/web": "2.0.0-rc.13",
-    "@solidjs/signals": "2.0.0-rc.13",
-    "@solidjs/element": "2.0.0-rc.13"
+  "shared": {
+    "dir": "../spell-app-dev",
+    "links": [
+      "packages/docs/content",
+      "goals",
+      "agents"
+    ]
   }
 }

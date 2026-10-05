@@ -742,7 +742,7 @@ export class with_props_arg extends P.Sequence<never, MethodArgData> {
   }
 }
 methods.addRule(with_props_arg, {
-  syntax: "with [{simple_method_arg}(,|and)]"
+  syntax: "with [{simple_method_arg} (,|and)]"
 })
 
 ////////////////
@@ -839,7 +839,7 @@ class method_signature extends P.Repeat<never, MethodSignatureData> {
   }
 }
 methods.addRule(method_signature, {
-  syntax: `({method_keyword}|\\({method_arg}\\))+`
+  syntax: `({method_keyword}|\\( {method_arg} \\))+`
 })
 
 ////////////////

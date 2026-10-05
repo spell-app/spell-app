@@ -39,7 +39,16 @@ export const includeVocabulary = {
         "root, where only inherited values (fonts, colours, `--ui-*` tokens) reach it."
     }
   ],
-  events: [...UIT.SOURCE_EVENTS],
+  events: [
+    ...UIT.SOURCE_EVENTS,
+    {
+      name: "ui-insert",
+      detail: "{ fragment: DocumentFragment, source?: string }",
+      description:
+        "The markup is about to go in:  `fragment` holds it, parsed and URL-rewritten, not yet in the page.  A " +
+        "listener may read or change it first (a docs page keeps its examples' markup before they upgrade)."
+    }
+  ],
   slots: [
     {
       name: "",
