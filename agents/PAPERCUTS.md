@@ -1326,3 +1326,13 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   checkout's language server. · Check which checkout built it:
   `grep -o '"/Users/owen/www/spell-app/[^"]*"' ~/.vscode/extensions/spell-app.spell-language-*/out/extension.js`
   (its `REPO_ROOT`), then `yarn vscode` from the checkout you want and reload. · vscode
+
+## server
+
+- 2026-10-04 · A brand page framing eleven served pages (`Design System.spell.html`'s live thumbnails) never
+  finished loading:  every `<ui-*>` stayed undefined, Playwright's `load` / `networkidle` timed out (on the original
+  `Design System.dc.html` too, so `yarn compare` can't shoot it).  Each served page holds a live-reload
+  `EventSource` open, and Chrome allows 6 HTTP/1.1 connections per host:  the frames took them all. · Fixed:
+  `liveClient()` in a same-origin frame of a live page opens no connection;  the parent hands changes down
+  (`__spellLiveChange`).  Restart a running page server to pick it up (`yarn server stop`, `yarn server ensure`). ·
+  server

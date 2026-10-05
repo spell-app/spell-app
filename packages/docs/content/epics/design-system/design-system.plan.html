@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../../tools/_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../../tools/_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T19:21:27-04:00" class="spell-doc-page plan-doc" data-plan="design-system">
+  <body data-recent-since="2026-10-04T19:34:30-04:00" class="spell-doc-page plan-doc" data-plan="design-system">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Design System</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle right" href="#p6" title="Next:  P6 · Brand Pages"
-                >P6</ui-label
+              ><ui-label basic color="grey" icon="circle right" href="#p7" title="Next:  P7 · Mockup Pages"
+                >P7</ui-label
               ></span
             >
           </header></ui-sticky
@@ -85,7 +85,7 @@
               </blockquote></ui-content
             >
           </ui-accordion>
-          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 18h-24h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 15h-20h left</p>
           <ui-section id="o1" header="1.1 What Claude Design made" sticky collapsible dividing>
             <p>
               <a href="../../../../brand/spell-design-system/" target="src-packages-brand-spell-design-system"
@@ -533,7 +533,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -923,6 +923,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p5"
             data-phase="5"
             data-status="done"
@@ -998,14 +999,14 @@
           <ui-section
             id="p6"
             data-phase="6"
-            data-status="todo"
+            data-status="done"
             header="P6 · Brand Pages"
             badge="3-4h"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -1019,11 +1020,44 @@
                     <code>&lt;ui-brand-blob&gt;</code>
                   </li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    Six more copies on the Brand tab: Design System (live thumbnails of every copy), Design Guide (the
+                    readme in <code>&lt;ui-markdown&gt;</code>, with contents), Logo, Logo Explorations, Flourishes
+                    (click a card for another), Brand Montage. Compare: Design System 29.4%, Design Guide 15.8%, Logo
+                    18.5%, Logo Explorations 20.1%, Flourishes 16.7%, Brand Montage 44.4% (light; mostly the site
+                    header's 44px shift).
+                  </li>
+                  <li>
+                    Three page-art elements, each with a docs page: <code>&lt;ui-brand-logo&gt;</code> (the outlined
+                    logo, mark or lockups, six tones), <code>&lt;ui-brand-flourish&gt;</code> (a port of Claude Design's
+                    flourish script, path-for-path identical), <code>&lt;ui-brand-blob&gt;</code> (a corner blob,
+                    organic or mound).
+                  </li>
+                  <li>
+                    Live reload fixed for framed pages (I25): a page in a same-origin frame opens no connection of its
+                    own, its parent hands changes down; a page framing many served pages no longer stalls. The page
+                    server needed a restart (now on port 61402).
+                  </li>
+                  <li>
+                    New gaps for P8: I18-I22, I24, I26-I28 (button downloads, card dashed border, menu / list /
+                    card-header / markdown tokens, corner blob shapes, <code>&lt;ui-markdown&gt;</code> title and
+                    scrolling). Not yet in the Overview's table.
+                  </li>
+                  <li>Not tried by hand yet: the six pages in your browser, light and dark.</li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> 6 <code>.spell.html</code> pages;
                 <code>packages/brand/components/ui-brand-{flourish,logo,blob}/*</code></ui-item
-              ><ui-item icon="flask"
-                ><b>Verify:</b> <code>brand:compare</code>; by eye, light and dark</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> <code>brand:compare</code>; by eye, light and dark</ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#j24">J24</a>, <a href="#j25">J25</a>, <a href="#j26">J26</a>,
+                <a href="#j27">J27</a>, <a href="#j28">J28</a>, <a href="#j29">J29</a>, <a href="#j30">J30</a>,
+                <a href="#j31">J31</a>, <a href="#c9">C9</a>, <a href="#i18">I18</a>, <a href="#i19">I19</a>,
+                <a href="#i20">I20</a>, <a href="#i21">I21</a>, <a href="#i22">I22</a>, <a href="#i24">I24</a>,
+                <a href="#i26">I26</a>, <a href="#i27">I27</a>, <a href="#i28">I28</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -2744,6 +2778,306 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:37:45-04:00"
+              id="j24"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j24">J24</a>
+                  <span class="plan-title"
+                    >Logo Explorations: the final drawings as &lt;ui-brand-logo&gt;, the alternatives as their
+                    files</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    In <code>Logo Explorations.spell.html</code>, 2a and 2b are byte for byte the final logo's files
+                    (<code>explore/2a-*.svg</code> = <code>spell-lockup-*.svg</code>, <code>explore/2b-*.svg</code> =
+                    <code>spell-lockup-tagline-*.svg</code>), and Turn 1's "Current, for comparison" loads those same
+                    final files today: all three draw as <code>&lt;ui-brand-logo variant="lockup|tagline"&gt;</code>.
+                    1a, 1b and 1c are DIFFERENT drawings (other hat gaps and sizes) that the element doesn't have, so
+                    each stays an <code>&lt;img&gt;</code> of its file in <code>assets/logo/explore/</code>, as the
+                    original draws it.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      No element change needed for the explorations; <code>&lt;ui-brand-logo&gt;</code> keeps only the
+                      final four drawings.
+                    </li>
+                    <li>
+                      "Current, for comparison" shows the final tagline lockup, exactly as the original does now (its
+                      file was overwritten by 2b).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:37:56-04:00"
+              id="j25"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j25">J25</a>
+                  <span class="plan-title"
+                    >Logo pages: the logo grounds stay fixed, light ones held light with ui-light</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    On <code>Logo.spell.html</code> and <code>Logo Explorations.spell.html</code>, the grounds a logo
+                    sits on (white, aubergine, ivory, violet-950, lavender ...) are the brand's FIXED colours, as in the
+                    original: only the cards around them follow the page's scheme.
+                    <code>&lt;ui-brand-logo tone="purple"&gt;</code> and <code>tone="ink"</code> follow the scheme
+                    (lilac / near-white in dark), so every LIGHT ground carries <code>class="ui-light"</code>: the
+                    Purple mark stays #6550CA on its pale ground in dark mode. Neutral-50 (the "don't" cards' ground)
+                    maps to <code>--spell-brand-50</code>; the gradient "don't" uses
+                    <code>--ui-pink-on-dark</code> -&gt; <code>--spell-violet-600</code> -&gt;
+                    <code>--ui-blue-on-dark</code> for the original's literal #ff5fa2 / #29c6ff.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      In dark mode the logo cards read like the downloadable files: the logo on the ground it's meant
+                      for.
+                    </li>
+                    <li>The gradient "don't" is a little less cyan at its right end than the original.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:37:58-04:00"
+              id="j26"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j26">J26</a>
+                  <span class="plan-title"
+                    >Logo: the SVG download buttons are &lt;ui-button href&gt; plus a click handler</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The original's download links are <code>&lt;a download&gt;</code> soft pills. The copy uses
+                    <code>&lt;ui-button size="tiny" circular icon="download" href="assets/logo/…svg"&gt;</code> (the
+                    soft accent look from <code>--ui-button-background</code> / <code>-color</code> set to
+                    <code>--spell-accent-soft</code> / <code>--spell-text-accent</code>), and a page script that turns a
+                    click into a download, since <code>&lt;ui-button&gt;</code> has no <code>download</code> (issue).
+                    Icon-only mark buttons are named "Download SVG" (<code>aria-label</code>).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      Clicking downloads the file (checked: <code>spell-lockup-tagline-aubergine.svg</code>), the page
+                      stays put.
+                    </li>
+                    <li>Without the script, a click opens the SVG instead.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:41:35-04:00"
+              id="j27"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j27">J27</a>
+                  <span class="plan-title"
+                    >Flourishes: each panel is a ui-card whose inner box is the reseed button</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose <code>&lt;ui-card fluid&gt;</code> per variant (surface by <code>--ui-card-background</code>,
+                    the aubergine one <code>inverted</code>), with the card's content one
+                    <code>role=button tabindex=0</code> box holding the <code>&lt;ui-brand-flourish&gt;</code> and the
+                    text, over a plain click-anywhere <code>div</code>, because a card is the element that fits and a
+                    <code>ui-card</code> host is <code>display: contents</code> (can't take focus itself). Headline =
+                    the card's <code>&lt;ui-header&gt;</code>, lede = its sub header (the theme's italic serif lede);
+                    badge = a <code>basic</code> <code>&lt;ui-label&gt;</code> in mono (by remapping
+                    <code>--ui-font-family</code> on it), the inverse card's badge forced <code>ui-light</code> so it
+                    stays a white pill. The original's own light / dark pill flips <code>ui-dark</code> /
+                    <code>ui-light</code> on <code>&lt;html&gt;</code>, as Color Palette's does. The eyebrow and lede
+                    name the copy's element and tokens (<code>&lt;ui-brand-flourish&gt;</code>,
+                    <code>--spell-line-flourish</code> ...), not the original's <code>&lt;spell-flourish&gt;</code> /
+                    <code>--line-flourish</code>.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      click a card, or Tab to it and press Enter / Space, to reseed (seed + 1), as the original
+                      (keyboard is new)
+                    </li>
+                    <li>
+                      the five flourishes draw path-for-path what the original draws at the same seed (checked: 5
+                      variants x 6 seeds x 2 sizes, identical path data)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:41:37-04:00"
+              id="j28"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j28">J28</a>
+                  <span class="plan-title"
+                    >Brand Montage: the app mock on real elements, two forced schemes, tiles kept light</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The poster stays a 1600px square scaled to the window (never up), as the original; the script only
+                    sets <code>--scale</code>. The two app panels are the same markup, one <code>ui-light</code>, one
+                    <code>ui-dark</code>, so every token in each resolves in its scheme whatever the page's. Built from:
+                    <code>&lt;ui-brand-logo&gt;</code> (hero tagline lockup, nav lockups, app icons),
+                    <code>&lt;ui-menu vertical secondary&gt;</code> (nav), <code>&lt;ui-card&gt;</code> (prompt, build
+                    steps, Today, Streak), <code>&lt;ui-button&gt;</code> (send, Add habit),
+                    <code>&lt;ui-checkbox&gt;</code> (build steps and habits: the theme's round to-do circle),
+                    <code>&lt;ui-rating icon=circle max-rating=5 value=4 readonly&gt;</code> (the streak dots),
+                    <code>&lt;ui-icon&gt;</code>, <code>&lt;ui-brand-color&gt;</code> (palette chips, 144px, 18px
+                    radius), <code>&lt;ui-brand-blob&gt;</code> (corners, the ivory tile's ellipse, the CTA tile's lilac
+                    <code>mound</code>). The hero lockup is <code>tone=ink</code>, so it's aubergine on the light page
+                    and near-white on the dark one; the ivory and app-icon tiles are forced
+                    <code>ui-light</code> (they're brand colours, not page surfaces).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      the copy's "Finalizing your app" step is an empty ring (an unchecked checkbox), where the
+                      original's is a filled pale-lilac dot
+                    </li>
+                    <li>the steps and habits can be ticked (the original's are static pictures)</li>
+                    <li>
+                      the wand icon is Spell UI's <code>magic</code> glyph (a plain wand): no
+                      <code>wand-magic-sparkles</code> in its icon packs
+                    </li>
+                    <li>
+                      in dark mode the poster's canvas and blobs go aubergine / soft lilac; the original has no dark
+                      mode
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:41:39-04:00"
+              id="j29"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j29">J29</a>
+                  <span class="plan-title"
+                    >Docs pages for ui-brand-flourish and ui-brand-blob: examples in .stage boxes</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Both elements fill or hang off a positioned, clipping parent, so every example puts them in a
+                    <code>.stage</code> box (a page <code>&lt;style&gt;</code> in each docs page:
+                    <code>position: relative; overflow: hidden</code>, a hairline, 16px radius), and the Usage tab shows
+                    that CSS. Chose a shared class over inline styles so the code panes stay readable. Flourish: one
+                    section per variant (with the brand's use for it), Seed, Size (redraws on resize), Colours, Weight.
+                    Blob: the hero blob, Corner, Shape (both shapes in each corner, so the mound's flip shows), Tone, on
+                    coloured surfaces, Size tokens. The blob's Theming playground box sets no blob tokens of its own, so
+                    edited values reach the blobs (checked).
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      two new pages, <code>components/ui-brand-flourish.html</code> and
+                      <code>components/ui-brand-blob.html</code>, no console errors, light and dark
+                    </li>
+                    <li>
+                      the flourish's Theming tab is a hand-written token table plus a live example (issue: its tokens
+                      aren't in the docs data)
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:45:30-04:00"
+              id="j30"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j30">J30</a>
+                  <span class="plan-title"
+                    >Design System: thumbnails show the COPIES, live; a page with no copy yet shows the lockup</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The original's thumbnails are live <code>&lt;iframe&gt;</code>s of the <code>.dc.html</code> pages
+                    at quarter scale. Chose live frames of the <code>.spell.html</code> copies (the cards link to them
+                    too) over framing the originals, because a copy follows the index's light / dark switch and an
+                    original can't. The copy's 44px site header is cropped off the top of each frame (page layout: the
+                    frame shifted up a quarter of <code>--spell-site-header-height</code>). A page with no copy yet (the
+                    P7 mockups, today) shows the tagline lockup on ivory, the look the original's own image thumbnails
+                    have, rather than its original: framing an original would cost another live-reload connection (I25),
+                    and <code>support.js</code> can't run written into a frame. Frames fill in as they near the
+                    viewport. The 'Swoops &amp; blobs' card now says <code>&lt;ui-brand-flourish&gt;</code> element
+                    where the original says <code>&lt;spell-flourish&gt;</code> component.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the index's thumbnails go dark with the page</li>
+                    <li>
+                      until P7, the three mockup cards show the lockup instead of a preview; each turns into a live
+                      preview once its copy exists, with no change to this page
+                    </li>
+                    <li>the cards' file names read <code>*.spell.html</code></li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:45:32-04:00"
+              id="j31"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j31">J31</a>
+                  <span class="plan-title"
+                    >Design Guide: &lt;ui-markdown source&gt; for the readme, the contents from its headings</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The original parses
+                    <a href="../../../../../readme.md" target="src-readme-md"><code>readme.md</code></a> with its own
+                    30-line markdown subset (paragraphs, lists, <code>#</code>-<code>###</code>, rules, inline code /
+                    bold / italic / links) and inline styles. Chose
+                    <code>&lt;ui-markdown source="readme.md"&gt;</code> (full GitHub markdown, sanitized, its own loader
+                    and error message) styled by its tokens, over porting the parser. The contents list is built from
+                    the headings <code>ui-render</code> reports (levels 1-2, as the original), as a plain
+                    <code>&lt;ui-list&gt;</code> of links. The lede, eyebrow and headline are the brand's type roles.
+                    The original's 'Loading the guide…' line is <code>&lt;ui-markdown&gt;</code>'s own loader now.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      anything the readme gains (tables, code blocks, nested lists) renders, where the original's subset
+                      would drop it
+                    </li>
+                    <li>
+                      headings look GitHub's, not the brand's serif, until <code>&lt;ui-markdown&gt;</code> gets heading
+                      tokens (I26)
+                    </li>
+                    <li>
+                      a contents click or a <code>#heading</code> address scrolls to the heading; the address updates
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2925,6 +3259,34 @@
                     <code>flex: 1 1 auto</code> (harmless outside a flex row). Adding
                     <code>ui-brand-color-picker</code> to <code>ui-brand-field.css</code>'s list would be the tidier
                     fix.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T20:38:19-04:00"
+              id="c9"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title"
+                    >The spell-brand theme outlines every &lt;img&gt;, logo files too</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <a
+                      href="../../../../ui/src/styles/themes/spell-brand.css"
+                      target="src-packages-ui-src-styles-themes-spell-brand-css"
+                      ><code>spell-brand.css</code></a
+                    >
+                    gives <code>:where(img)</code> a 1px hairline <code>outline</code> (meant for photos). On a
+                    transparent logo SVG it draws a faint box round the artwork.
+                    <code>Logo Explorations.spell.html</code> turns it off for its <code>&lt;img&gt;</code>s of the
+                    explored lockups (<code>outline: none</code>, page CSS); any page that shows an
+                    <code>&lt;img&gt;</code> of artwork has to do the same. A theme opt-out (e.g. no outline on
+                    <code>img[src$=".svg"]</code>, or a class) would save that.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -3537,6 +3899,379 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:38:13-04:00"
+              id="i18"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i18">I18</a>
+                  <span class="plan-title">&lt;ui-button&gt; has no download attribute</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <b>What:</b> <code>&lt;ui-button href&gt;</code> renders an <code>&lt;a&gt;</code> but can't pass
+                    <code>download</code> to it, so a button can't download a file the way the Logo page's
+                    <code>&lt;a download&gt;</code> pills do.
+                  </p>
+                  <p>
+                    <b>Where:</b> <code>Logo.spell.html</code>, every SVG button (worked around with a page click
+                    handler that makes a throwaway <code>&lt;a download&gt;</code>).
+                  </p>
+                  <p>
+                    <b>Fix:</b> add <code>download</code> (string, optional file name) to <code>ui-button</code>'s
+                    vocabulary and forward it to the inner <code>&lt;a&gt;</code> when <code>href</code> is set; then
+                    drop the Logo page's script.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:38:15-04:00"
+              id="i19"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i19">I19</a>
+                  <span class="plan-title">&lt;ui-brand-logo&gt; can't take a gradient fill</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <b>What:</b> the logo's <code>&lt;svg part="logo"&gt;</code> is filled <code>currentColor</code>,
+                    and a <code>::part(logo) { fill: url(#gradient) }</code> pointing at a
+                    <code>&lt;linearGradient&gt;</code> in the page doesn't resolve across the shadow root (tried: the
+                    hat draws nothing). The Logo page's "No gradients or effects" card needs exactly that.
+                  </p>
+                  <p>
+                    <b>Where:</b> <code>Logo.spell.html</code>, Using it well. Worked around without touching the
+                    element: the hat drawn near-black on its ground's colour, <code>mix-blend-mode: lighten</code> over
+                    a CSS gradient, so the gradient shows through the hat only.
+                  </p>
+                  <p>
+                    <b>Fix:</b> probably none: the brand forbids gradients, and this is its one "don't". If wanted, a
+                    <code>--ui-brand-logo-gradient</code> token the element turns into its own
+                    <code>&lt;linearGradient&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:38:17-04:00"
+              id="i20"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i20">I20</a>
+                  <span class="plan-title">&lt;ui-card&gt; has no dashed (placeholder) border</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <b>What:</b> a card's border is a <code>box-shadow</code> (<code>--ui-card-border-shadow</code>), so
+                    it can't be dashed; Logo Explorations' "Current, for comparison" card is a dashed, flat placeholder.
+                  </p>
+                  <p>
+                    <b>Where:</b> <code>Logo Explorations.spell.html</code>: <code>&lt;ui-card basic&gt;</code> with
+                    <code>::part(card) { border: 1px dashed var(--spell-border-strong) }</code> (the public part, not
+                    internals).
+                  </p>
+                  <p>
+                    <b>Fix:</b> a <code>dashed</code> card variation (Fomantic has none; a theme
+                    <code>--ui-card-border-style</code> would do), or accept the part rule.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:40:51-04:00"
+              id="i21"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i21">I21</a>
+                  <span class="plan-title"
+                    >ui-menu: a vertical / secondary menu's item look ignores the public --ui-menu-* tokens</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <b>Where:</b> Brand Montage, the app panels' side nav (<code
+                      >&lt;ui-menu vertical secondary&gt;</code
+                    >).
+                  </p>
+                  <p>
+                    <b>What:</b> <code>.ui.vertical.menu</code> and <code>.ui.secondary.menu</code> set their item look
+                    as PRIVATE tokens directly (<code>--_ui-menu-item-radius</code>,
+                    <code>--_ui-menu-active-background</code>, <code>--_ui-menu-icon-float: right</code> ...), so
+                    <code>--ui-menu-item-radius</code>, <code>--ui-menu-active-background</code> / <code>-color</code>,
+                    <code>--ui-menu-icon-float</code> / <code>-margin</code> set on the page never reach a vertical or
+                    secondary menu. The original's nav (icon first, the chosen item tinted lavender / filled purple in
+                    dark) can't be had by tokens.
+                  </p>
+                  <p>
+                    <b>Fix:</b> in
+                    <a
+                      href="../../../../ui/src/components/ui-menu/ui-menu.css"
+                      target="src-packages-ui-src-components-ui-menu-ui-menu-css"
+                      ><code>ui-menu.css</code></a
+                    >, each variation's value becomes the FALLBACK of the public token (<code
+                      >--_ui-menu-icon-float: var(--ui-menu-icon-float, right)</code
+                    >), as the base block does. Then the page's <code>::part(item)</code> /
+                    <code>::part(icon)</code> rules (marked HACK) go.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:41:09-04:00"
+              id="i22"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i22">I22</a>
+                  <span class="plan-title"
+                    >ui-header: a card header's sub header (the lede) has no public colour, size or gap token</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <b>Where:</b> Flourishes, each card's headline over its italic lede (<code
+                      >&lt;ui-header&gt;Title&lt;ui-header&gt;lede&lt;/ui-header&gt;&lt;/ui-header&gt;</code
+                    >
+                    in a <code>&lt;ui-card&gt;</code>).
+                  </p>
+                  <p>
+                    <b>What:</b> the sub header reads <code>--_ui-header-sub-color</code> /
+                    <code>--_ui-header-sub-font-size</code>, private aliases only a STANDALONE
+                    <code>.ui.header</code> declares; owned by a card the header is a bare <code>.header</code>, so the
+                    lede falls back to <code>--ui-text-muted</code> at 1em of the headline, with
+                    <code>margin: 0</code> (the original: ink colour, 17px, 8px below the headline).
+                    <code>--ui-header-sub-color</code> (which the theme sets) doesn't reach it either.
+                  </p>
+                  <p>
+                    <b>Today:</b> the page remaps <code>--ui-text-muted</code> on the sub header and sets its host's
+                    <code>font-size</code>; the 8px gap is missing (2-3px tighter than the original).
+                  </p>
+                  <p>
+                    <b>Fix:</b> the in-header rule reads the public tokens with the private alias as fallback (<code
+                      >var(--ui-header-sub-color, var(--_ui-header-sub-color, ...))</code
+                    >), plus a <code>--ui-header-sub-margin</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T20:43:24-04:00"
+              id="i23"
+              data-status="done"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i23">I23</a>
+                  <span class="plan-title"
+                    >ui-brand-flourish: its colour tokens are missing from the docs data</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <b>Where:</b> <code>components/ui-brand-flourish.html</code>, Theming tab;
+                    <code>_data/components.json</code>, family <code>ui-brand-flourish</code>: <code>tokens: []</code>.
+                  </p>
+                  <p>
+                    <b>What:</b> <code>--ui-brand-flourish-stroke</code> / <code>-fill</code> / <code>-fill-2</code> are
+                    read in TypeScript (<code>DEFAULT_COLORS</code> in <code>ui-brand-flourish.types.ts</code>, written
+                    into the SVG's <code>fill</code> / <code>stroke</code>), never in
+                    <code>ui-brand-flourish.css</code>, so <code>SiteDataBuilder</code> finds none and
+                    <code>&lt;ui-docs-tokens&gt;</code> would show an empty table.
+                  </p>
+                  <p>
+                    <b>Today:</b> the Theming tab lists them in a hand-written markdown table, with a live example,
+                    instead of the playground.
+                  </p>
+                  <p>
+                    <b>Fix:</b> declare them in the sheet (e.g. private aliases on <code>:host</code> that the SVG
+                    reads, <code>fill: var(--_ui-brand-flourish-fill)</code>), or list them in
+                    <code>_data/pages.json</code>'s token overrides; then <code>yarn site:data</code> and swap the table
+                    for <code>&lt;ui-docs-tokens family="ui-brand-flourish" playground&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:41:12-04:00"
+              id="i24"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i24">I24</a>
+                  <span class="plan-title"
+                    >Brand Montage: the four corner blobs are drawn shapes ui-brand-blob only approximates</span
+                  > </ui-title
+                ><ui-content
+                  ><p><b>Where:</b> Brand Montage, the poster's four corners.</p>
+                  <p>
+                    <b>What:</b> the original draws them as one inline SVG of four hand-made paths: a long S-curved wash
+                    from the top-left, a tall bulge on the right edge, two low humps at the bottom, in
+                    <code>#DDD6FD</code>. <code>&lt;ui-brand-blob&gt;</code> has two shapes (an egg, a mound), so the
+                    copy uses four <code>organic</code> blobs sized and hung to cover about the same areas: same corners
+                    and extent, rounder edges, and the theme's <code>--spell-blob</code> (<code>#E0DFFF</code>, a touch
+                    paler).
+                  </p>
+                  <p>
+                    <b>Fix, if the exact silhouettes matter:</b> a <code>shape="wave"</code> (or the montage's four
+                    paths as <code>shape="swash"</code> per corner) on <code>&lt;ui-brand-blob&gt;</code>; or accept the
+                    approximation (my recommendation: it reads as the same poster).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T20:49:20-04:00"
+              id="i25"
+              data-status="done"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i25">I25</a>
+                  <span class="plan-title"
+                    >Live reload: a page framing 6+ served pages deadlocks (Design System's thumbnails)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Every page the page server serves opens an <code>EventSource</code> (<code>/_server/live.js</code>,
+                    <a href="../../../../server/src/liveClient.ts" target="src-packages-server-src-liveclient-ts"
+                      ><code>packages/server/src/liveClient.ts</code></a
+                    >), and Chrome allows 6 HTTP/1.1 connections per host. <code>Design System</code>'s eleven live
+                    thumbnails (<code>&lt;iframe&gt;</code>s of the copies, as the original's) took them all: the page's
+                    own lazy chunks never loaded, every <code>&lt;ui-*&gt;</code> stayed undefined. The original has the
+                    same problem (its lower thumbnails never load; <code>yarn compare "Design System"</code> times out
+                    waiting for <code>networkidle</code> on it).
+                  </p>
+                  <p>
+                    <b>Fix it needs:</b> <code>liveClient()</code> skips live reload in a frame whose parent is
+                    same-origin (<code>window.frameElement</code> non-null: a thumbnail; VS Code's doc view frame is
+                    cross-origin, so it keeps it), or shares the parent's connection. Then the page drops its workaround
+                    for plain <code>&lt;iframe src loading="lazy"&gt;</code>.
+                  </p>
+                  <p>
+                    <b>Workaround in the page:</b> the script fetches each copy, strips the server's
+                    <code>SPELL_SERVER</code> + <code>live.js</code> tags, and <code>document.write()</code>s it into
+                    the frame (same origin, so it follows light / dark; <code>location</code> is the index's, same
+                    folder, so pages resolving files against <code>location.href</code> still work, which
+                    <code>srcdoc</code> broke). Marked HACK.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:45:01-04:00"
+              id="i26"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i26">I26</a>
+                  <span class="plan-title"
+                    >&lt;ui-markdown&gt;: no heading font / weight / rule tokens, no hr weight (Design Guide)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The guide's headings are the brand's serif (Palatino 700, <code>##</code> 28px,
+                    <code>###</code> 19px, no rule under them), its rules a 1px hairline, its bold and inline code in
+                    <code>--spell-text-strong</code>. <code>&lt;ui-markdown&gt;</code> draws GitHub's look: sans 600
+                    headings, a rule under <code>h1</code> / <code>h2</code>, a 0.25em <code>hr</code>; its tokens give
+                    heading COLOUR only, and <code>::part(body)</code> can't reach the headings inside.
+                  </p>
+                  <p>
+                    <b>Fix it needs:</b> tokens <code>--ui-markdown-heading-font-family</code> (default
+                    <code>inherit</code>; the brand sets <code>--ui-font-family-heading</code>),
+                    <code>-heading-weight</code>, <code>-h1-size</code> ... <code>-h3-size</code>,
+                    <code>-heading-rule</code> (border under h1 / h2, <code>none</code> to drop),
+                    <code>-hr-height</code>, <code>-strong-color</code>, <code>-code-color</code>; and the brand theme
+                    setting them, so every <code>&lt;ui-markdown&gt;</code> on a brand page reads as the guide does.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:45:08-04:00"
+              id="i27"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i27">I27</a>
+                  <span class="plan-title"
+                    >&lt;ui-markdown&gt;: can't drop the document title, or scroll to a heading from outside (Design
+                    Guide)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Two things the guide's page script does by hand:</p>
+                  <ul>
+                    <li>
+                      <b>The title:</b> the original drops the readme's own <code># Spell Design System</code> (the page
+                      has its own headline). <code>&lt;ui-markdown&gt;</code> renders every heading, so the script
+                      strips the first <code># </code> line on <code>ui-load</code> and sets <code>content</code> (which
+                      marks it <code>dirty</code>). <b>Ask:</b> an attribute, e.g. <code>skip-title</code> (drop a
+                      leading <code>h1</code>).
+                    </li>
+                    <li>
+                      <b>Scrolling to a heading:</b> the table of contents sits outside the element, and the page's own
+                      <code>#id</code> navigation can't see ids in a shadow root. The script finds the heading in
+                      <code>shadowRoot</code> and scrolls it (HACK), and does the same for a <code>#id</code> in the
+                      address on load. <b>Ask:</b> a method, <code>reveal(id)</code>, and the element honouring
+                      <code>location.hash</code> after its first render.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T20:45:16-04:00"
+              id="i28"
+              data-status="open"
+              data-phase="6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i28">I28</a>
+                  <span class="plan-title"
+                    >&lt;ui-list&gt;: root ignores --ui-list-font-size; no token for its 1em margin; link / secondary
+                    colours private (Design Guide's contents)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The guide's table of contents is a plain <code>&lt;ui-list&gt;</code> of
+                    <code>&lt;ui-item href&gt;</code>s: <code>&lt;ui-menu secondary&gt;</code> and
+                    <code>&lt;ui-list link&gt;</code> set item colour and padding on PRIVATE tokens, out of the public
+                    <code>--ui-*-item-*</code>'s reach (as Brand Palette found for the menu), and
+                    <code>&lt;ui-menu&gt;</code>'s box shadow is hard-coded (no token).
+                  </p>
+                  <ul>
+                    <li>
+                      <a
+                        href="../../../../ui/src/components/ui-list/ui-list.css"
+                        target="src-packages-ui-src-components-ui-list-ui-list-css"
+                        ><code>ui-list.css</code></a
+                      >
+                      declares <code>--_ui-list-font-size: var(--ui-list-font-size, ...)</code>, but the root's
+                      <code>font-size</code> reads <code>--ui-font-size</code> directly, so
+                      <code>--ui-list-font-size</code> does nothing on a vertical list. The page uses
+                      <code>--ui-list-item-font-size</code>.
+                    </li>
+                    <li>
+                      The root's <code>margin: 1em 0</code> reads a private <code>--_list-margin-top</code> /
+                      <code>-bottom</code>: 16px more above the first link than the original.
+                    </li>
+                  </ul>
+                  <p>
+                    <b>Fix it needs:</b> the root reading <code>--_ui-list-font-size</code>; a public
+                    <code>--ui-list-margin</code>; the <code>link</code> / <code>secondary</code> variations setting
+                    their defaults THROUGH the public token (<code
+                      >var(--ui-list-link-color, var(--ui-text-unselected))</code
+                    >); a <code>--ui-menu-shadow</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -3701,6 +4436,20 @@
                     sets, fonts, size, corners, depth, Both / Light / Dark; the preview and the sheet follow; copy the
                     sheet. Color Palette: Hex / OKLCH / Swatch only, click a chip (a toast). Brand Palette: hover a chip
                     for its details. Light and dark.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" data-changed="2026-10-04T20:50:10-04:00" id="v11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v11">V11</a>
+                  <span class="plan-title">Look at the six P6 copies, light and dark</span></ui-title
+                ><ui-content
+                  ><p>
+                    From the Brand index, open Design System, Design Guide, Logo, Logo Explorations, Flourishes and
+                    Brand Montage, each beside its original in Compare. Each should read as the same page; Flourishes
+                    cards reseed on click; the Design System thumbnails show the copies and follow the sun / moon
+                    switch.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -4063,6 +4812,34 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T20:15-04:00">2026-10-04 20:15</time></ui-date> P5 committed;
                   stopped here (Owen). Next: P6 · Brand Pages</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:20-04:00">2026-10-04 20:20</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:43-04:00">2026-10-04 20:43</time></ui-date> I23 closed:
+                  ui-brand-flourish: its colour tokens are missing from the docs data</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:49-04:00">2026-10-04 20:49</time></ui-date> I25 closed: Live
+                  reload: a page framing 6+ served pages deadlocks (Design System's thumbnails)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:50-04:00">2026-10-04 20:50</time></ui-date> P6
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -1,0 +1,79 @@
+/*
+ * `<ui-brand-blob>`:  one shape in a corner of the positioned parent, hanging past its edges (the parent clips it).
+ * - Public tokens (`--ui-brand-blob-*`) are never declared here:  read through private aliases.
+ *   - `-width` / `-height`:  the shape's size (default 420 x 360px, the docs hero's)
+ *   - `-x` / `-y`:  how far it hangs past the parent's side / top or bottom edge (default 160 / 180px)
+ *   - `-color`:  overrides `tone`
+ * - The `mound`'s flat side faces out:  top corners flip it upside down, left corners mirror it.
+ */
+
+@layer ui.components.brand-blob.types, ui.components.brand-blob.variations;
+
+@layer ui.components.brand-blob.types {
+  :host {
+    --_ui-brand-blob-x: calc(-1 * var(--ui-brand-blob-x, 160px));
+    --_ui-brand-blob-y: calc(-1 * var(--ui-brand-blob-y, 180px));
+    position: absolute;
+    z-index: 0;
+    display: block;
+    width: var(--ui-brand-blob-width, 420px);
+    height: var(--ui-brand-blob-height, 360px);
+    pointer-events: none;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  :host(:not([corner])),
+  :host([corner="bottom-right"]) {
+    right: var(--_ui-brand-blob-x);
+    bottom: var(--_ui-brand-blob-y);
+  }
+  :host([corner="bottom-left"]) {
+    left: var(--_ui-brand-blob-x);
+    bottom: var(--_ui-brand-blob-y);
+  }
+  :host([corner="top-right"]) {
+    right: var(--_ui-brand-blob-x);
+    top: var(--_ui-brand-blob-y);
+  }
+  :host([corner="top-left"]) {
+    left: var(--_ui-brand-blob-x);
+    top: var(--_ui-brand-blob-y);
+  }
+  .blob {
+    width: 100%;
+    height: 100%;
+    background: var(--ui-brand-blob-color, currentColor);
+  }
+}
+
+@layer ui.components.brand-blob.variations {
+  .blob.organic {
+    border-radius: 58% 42% 50% 50% / 55% 45% 55% 45%;
+  }
+  .blob.mound {
+    border-radius: 60% 40% 0 0 / 70% 60% 0 0;
+  }
+  .blob.mound.top-right {
+    scale: 1 -1;
+  }
+  .blob.mound.bottom-left {
+    scale: -1 1;
+  }
+  .blob.mound.top-left {
+    scale: -1 -1;
+  }
+
+  .blob.tone-blob {
+    color: var(--spell-blob, #e0dfff);
+  }
+  .blob.tone-blob-2 {
+    color: var(--spell-blob-2, #eef0fa);
+  }
+  .blob.tone-lilac {
+    color: var(--spell-violet-300, #b8b4ff);
+  }
+  .blob.tone-violet {
+    color: var(--spell-violet-200, #d4d3ff);
+  }
+}
