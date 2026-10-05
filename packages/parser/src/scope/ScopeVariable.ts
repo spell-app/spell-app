@@ -51,11 +51,11 @@ export class ScopeVariable {
    */
   declare autoDeclared: boolean | undefined
   /**
-   * `true` for the member an EXCLUSIVE list type gives its item type, naming the list holding it,
-   * e.g. `pile` on `Card` for `a pile is an exclusive list of cards`.
+   * `true` for the member naming the ONE list of a family holding an item,
+   * e.g. `pile` on `Card` for `a card belongs to one pile`.
    * - Its value:  the pile holding the card, or nothing.
-   * - READ-ONLY -- see `P.TypeScope.exclusive`.
-   * - Declared by the list type's statement, NOT by a property statement of the item type.
+   * - READ-ONLY:  a move or an `add` changes it -- see `P.TypeScope.declareOwnerMember()`.
+   * - Declared by that membership statement, NOT by a property statement of the item type.
    */
   declare exclusive: boolean | undefined
   /**

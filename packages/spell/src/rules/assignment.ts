@@ -32,7 +32,7 @@ export const assignment = new SpellParser({ module: "assignment" })
  *   An existing one keeps its own:  the first datatype wins.
  * - SIDE EFFECT: `set the X of Y to V` declares property `X` if `Y`'s type doesn't -- see `declareProperty()`.
  * - A built-in type's member is read-only, e.g. `set the length of the name to 3`:  a parse error -- see `parse()`.
- * - So is an exclusive list's owner, e.g. `set the pile of the card to x`:  add the card to the pile instead.
+ * - So is the pile a card belongs to, e.g. `set the pile of the card to x`:  move the card to the pile instead.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
 class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
@@ -43,7 +43,7 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
   /**
    * Refused when `thing` reads a built-in type's member, e.g. `the length of the name`:  spell works those out.
    * - Its `readAs`, e.g. `spellCore.itemCountOf(deck)`, is no place to put a value.  See `SP.BUILT_IN_TYPE_TABLE`.
-   * - And when it reads an exclusive list's owner, e.g. `the pile of the card`:
+   * - And when it reads the pile a card belongs to (`a card belongs to one pile`), e.g. `the pile of the card`:
    *   it's whichever pile holds the card -- see `P.ScopeVariable.exclusive`.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
@@ -53,7 +53,7 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
     if (!match || !read || !(member instanceof P.ScopeVariable) || !(member.readAs || member.exclusive)) return match
     const type = read.type ? ` of a ${SP.typeName(read.type.name)}` : ""
     const why = member.exclusive
-      ? `it's the ${member.datatype} holding it -- add it to a ${member.datatype} instead`
+      ? `it's the ${member.datatype} holding it -- move it to a ${member.datatype} instead`
       : "spell works it out"
     return SpellStatement.refuse(match, `Can't set the ${read.property.raw}${type}:  ${why}`)
   }

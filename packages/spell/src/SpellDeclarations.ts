@@ -98,14 +98,10 @@ export class SpellDeclarations {
     const constantOutputs: Record<string, string> = {}
     for (const item of mine) {
       if (item instanceof P.TypeScope) {
-        if (!item.stub) {
-          merge({ type: item.name, superType: item.superType, itemType: item.itemType, exclusive: item.exclusive })
-        }
+        if (!item.stub) merge({ type: item.name, superType: item.superType, itemType: item.itemType })
       } else if (item instanceof P.ScopeMethod) {
         merge(SpellDeclarations.methodDeclaration(item))
       } else if (item instanceof P.ScopeVariable) {
-        // an exclusive list's owner member, e.g. `pile` on `Card`:  loading its type's `exclusive` gives it again
-        if (item.exclusive) continue
         if (item.scope instanceof P.TypeScope) merge(SpellDeclarations.variableDeclaration(item, item.scope, mine))
       } else if (item instanceof P.ScopeConstant) {
         constants.push(item.name)
@@ -224,8 +220,8 @@ export class SpellDeclarations {
       const declaredAt = SpellDeclarations.declaredAt(projectId, declaration.defined)
       if (declaration.type) {
         const runtimeName = declaration.type === original.type ? undefined : original.type
-        const { type, superType, itemType, exclusive } = declaration
-        const props = { name: type, superType, itemType, exclusive, runtimeName, declaredAt }
+        const { type, superType, itemType } = declaration
+        const props = { name: type, superType, itemType, runtimeName, declaredAt }
         SpellDeclarations.loadType(scope, from, names, props)
       }
       SpellDeclarations.loadVariables(scope, names, declaration, declaredAt)
@@ -267,26 +263,23 @@ export class SpellDeclarations {
   /**
    * Type `type`, if picked -- throws if another import already declared it.
    * - `runtimeName`:  its class's name when the code runs, if it was renamed -- see `P.TypeScope.runtimeName`.
-   * - `exclusive`:  its item type gains the member naming it, e.g. `pile` on `Card`.
-   *   - Not if the item type wasn't picked, or is built in.  See `P.TypeScope.declareOwnerMember()`.
    */
   private static loadType(scope: P.ImportScope, from: string, names: Set<string>, type: P.TypeScopeProps) {
-    const { name, itemType, exclusive, declaredAt } = type
+    const { name } = type
     if (!names.has(name)) return
     if (scope.types.get(name, "LOCAL_ONLY")) {
       SpellDeclarations.fail(from, `type '${name}' was already imported from '${scope.origins.get(name)}'`)
     }
-    const [loaded] = scope.types.add(definedOnly(type))
+    scope.types.add(definedOnly(type))
     scope.origins.set(name, from)
-    // an exclusive list's owner member, e.g. `pile` on `Card`:  if its item type was loaded, which it was first
-    const items = exclusive && itemType ? scope.types.get(itemType, "LOCAL_ONLY") : undefined
-    if (items) loaded!.declareOwnerMember(items, { declaredAt })
   }
 
   /**
    * `declaration`'s `property` and `classVariable`, if their type `of` was picked.
    * - A `classVariable` goes on instances too, with its `enumeration` as initializer -- as `define_property_has`
    *   declares it.
+   * - An `exclusive` property is the member `a card belongs to one pile` gave, e.g. `pile` on `Card`:
+   *   read-only, as there -- see `P.TypeScope.declareOwnerMember()`.
    */
   private static loadVariables(
     scope: P.ImportScope,
@@ -294,12 +287,13 @@ export class SpellDeclarations {
     declaration: SP.SpellDeclaration,
     declaredAt: P.DeclaredAt | undefined
   ) {
-    const { property, asWritten, classVariable, of, datatype, initializer, enumeration, autoDeclared } = declaration
+    const { property, asWritten, classVariable, of, datatype, initializer, enumeration, autoDeclared, exclusive } =
+      declaration
     const typeScope = of && names.has(of) ? scope.types.get(of, "LOCAL_ONLY") : undefined
     if (!typeScope) return
     if (property) {
       typeScope.variables.add(
-        definedOnly({ name: property, asWritten, datatype, initializer, autoDeclared, declaredAt })
+        definedOnly({ name: property, asWritten, datatype, initializer, autoDeclared, exclusive, declaredAt })
       )
     }
     if (classVariable) {
@@ -516,7 +510,7 @@ export class SpellDeclarations {
     typeScope: P.TypeScope,
     declared: unknown[]
   ): SP.SpellDeclaration {
-    const { name, asWritten, datatype, enumeration, initializer, autoDeclared } = variable
+    const { name, asWritten, datatype, enumeration, initializer, autoDeclared, exclusive } = variable
     const of = typeScope.name
     const derived = enumerationInitializer(enumeration)
     const ownInitializer = initializer === derived ? undefined : initializer
@@ -524,7 +518,8 @@ export class SpellDeclarations {
     const isTwin = declared.some(
       (it) => it instanceof P.ScopeVariable && it !== variable && it.kind === "static" && it.name === name
     )
-    return isTwin ? {} : { property: name, asWritten, of, datatype, autoDeclared, initializer: ownInitializer }
+    if (isTwin) return {}
+    return { property: name, asWritten, of, datatype, autoDeclared, exclusive, initializer: ownInitializer }
   }
 
   /**
