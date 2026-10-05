@@ -17,9 +17,9 @@ import type { PropCheck } from "$/core/spellCore.types"
  *   change made in place.
  * - Delegates JS collection duck-typing (`itemCount`, `getKeys`, `getItem`, ...) to `spellCore`'s
  *   generic collection methods -- see `CollectionLike` in `collection-core.ts`.
- * - EXCLUSIVE lists (`static exclusive = true`, from `a pile is an exclusive list of cards`):  an item is in at most
- *   ONE list of a FAMILY -- the exclusive class and its sub-classes, e.g. every `Pile`, `Tableau`, `Foundation`
- *   (plan doc D7, D8):
+ * - EXCLUSIVE lists (`static exclusive = true`, from `a pile is an exclusive list of cards`):
+ *   an item is in at most ONE list of a FAMILY (plan doc D7, D8).
+ *   - a family:  the exclusive class and its sub-classes, e.g. every `Pile`, `Tableau`, `Foundation`
  *   - adding an item takes it out of the list of its family holding it;  adding one we hold moves it
  *   - removing it leaves it with no owner
  *   - `Pile.ownerOf(card)` is who holds it, tracked -- what `the pile of a card` compiles to
@@ -58,8 +58,9 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   }
 
   /**
-   * SIDE EFFECT:  we own nothing, even if we're exclusive -- a SCRATCH result, e.g. what `filter()`, `map()`,
-   * `a copy of` make (plan doc D8):  filtering a pile mustn't take its cards.  Returns us.
+   * SIDE EFFECT:  we own nothing, even if we're exclusive.  Returns us.
+   * - For a SCRATCH result, e.g. what `filter()`, `map()`, `a copy of` make (plan doc D8):
+   *   filtering a pile mustn't take its cards.
    * - Call it before adding anything:  what we hold already stays owned.
    */
   asScratch(): this {
@@ -201,7 +202,8 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   }
   /**
    * Set item at `oneIndex` to `value`.  Replaces whatever was there.
-   * - NOTE: an exclusive list may hold an item twice for a moment, e.g. while `reverse()` sets each position in turn.
+   * - NOTE: an exclusive list may hold an item twice for a moment,
+   *   e.g. while `reverse()` sets each position in turn.
    */
   setItem(oneIndex: number, value: unknown): void {
     const items = [...this.items]
@@ -249,8 +251,8 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   /**
    * Make `next` our items -- EVERY change to them comes here, so an exclusive list keeps its family's owners:
    * - an item going out, no longer anywhere in `next`, has no owner (plan doc D8)
-   * - an item coming in is ours, THEN leaves the list of our family that held it -- in that order, so its owner
-   *   changes once:  a reader never sees it ownerless mid-move
+   * - an item coming in is ours, THEN leaves the list of our family that held it --
+   *   in that order, so its owner changes once:  a reader never sees it ownerless mid-move
    * - SIDE EFFECT:  the list it left changes too, and readers of each item's owner re-run
    */
   private writeItems(next: unknown[]): void {
@@ -292,7 +294,10 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   }
 }
 
-/** Lists that own nothing -- see `List.asScratch()`.  A `WeakSet`, as `items` may be set before our fields are. */
+/**
+ * Lists that own nothing -- see `List.asScratch()`.
+ * - A `WeakSet`, as `items` may be set before our fields are.
+ */
 const SCRATCH_LISTS = new WeakSet<List>()
 
 /** Each exclusive family's owners, by its root class -- see `ListFamily.of()`. */

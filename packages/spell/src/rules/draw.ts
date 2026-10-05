@@ -6,6 +6,7 @@ import { proto } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
+import { Priority } from "./rules.types"
 import { SpellStatement } from "./Statement"
 
 /**
@@ -26,8 +27,11 @@ export const draw = new SpellParser({ module: "draw" })
 class draw_thing extends SpellStatement<"expression"> {
   /** An expression (JSX `{draw …}`) AND a statement:  as a statement, a project's own `draw` method would win. */
   @proto static alias = ["statement", "expression"]
-  /** Beats a project's own `to draw (a card)` call (priority 0):  `card.draw()` would skip the re-rendering. */
-  @proto static priority = 1
+  /**
+   * Beats a call to the project's own `to draw (a card)` (`Priority.normal`):
+   * `card.draw()` would skip the re-rendering.
+   */
+  @proto static priority = Priority.preferred
 
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {
@@ -54,8 +58,11 @@ draw.addRule(draw_thing, {
 class draw_items extends SpellStatement<"variable?|plural_identifier?|expression"> {
   /** An expression (JSX `{draw …}`) AND a statement:  as a statement, a project's own `draw` method would win. */
   @proto static alias = ["statement", "expression"]
-  /** Beats `draw_thing` (1), which also matches `draw the cards of the deck`:  that's each card, not one thing. */
-  @proto static priority = 2
+  /**
+   * Beats `draw_thing` (`Priority.preferred`), which also matches `draw the cards of the deck`:
+   * that's each card, not one thing.
+   */
+  @proto static priority = Priority.specific
 
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {

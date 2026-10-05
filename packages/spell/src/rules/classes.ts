@@ -12,11 +12,11 @@ import { P } from "$/parser"
 import { SP } from "$/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
+import { Priority, declaredPrefix } from "./rules.types"
 import { SpellStatement } from "./Statement"
 import { getKnownType } from "./types"
 import { InfixOperatorSuffix, Precedence, SpellExpression, type SpellExpressionProps } from "./expressions"
 import { SpellConstant } from "./constants"
-import { declaredPrefix } from "./properties"
 
 /**
  * Ad-hoc fields this module sets/reads on `ScopeVariable` (src/parser/scope/ScopeVariable.ts), for a property
@@ -47,13 +47,13 @@ export const classes = new SpellParser({ module: "classes" })
 
 /**
  * `a card is a thing` -- declares `type` as a new class extending `superType`.
- * - `priority: 10` so this wins over other `{type} is {type}` -ish statement rules.
+ * - `Priority.declaration`, so this wins over other `{type} is {type}` -ish statement rules.
  * - SIDE EFFECT: adds `type` to `scope.types`, unless it's already defined (no redefinition/merge).
  * - Compiles to an exported class declaration, e.g. `a card is a thing` => `export class Card extends Thing {}`.
  *   Another project reaches it by `import`ing it -- no globals.
  */
 class create_type extends SpellStatement<"type|superType"> {
-  @proto static priority = 10
+  @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "superType" }
 
@@ -105,29 +105,31 @@ classes.addRule(create_type, {
 /**
  * `a deck is a list of cards` or `create a type called Deck as a list of cards` -- declares `type` as a
  * new class extending `List`, with its `instanceType` set to `instanceType`.
- * - `priority: 10` so this wins over the plainer `create_type` rule above for the `is a list of` form.
- * - SIDE EFFECT: adds `type` to `scope.types` (superType `"list"`), unless already defined -- with its
- *   `itemType`, e.g. `Card`, so `the first card of the deck` knows it's a card.
- * - Compiles to a class declaration extending `List` with a static `instanceType`, e.g.
- *   `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
- * - `exclusive` (`a pile is an exclusive list of cards`):  a card is in at most ONE list of its FAMILY -- piles and
- *   every sub-type of pile -- at a time;  adding it to one takes it out of the other (plan doc D7, D8).
- *   - SIDE EFFECT:  the item type gains a READ-ONLY member naming us, `the pile of a card` -- the pile holding it,
- *     or nothing.  Declared by THIS line, see `P.TypeScope.declareOwnerMember()`.
- *   - Compiles `static exclusive = true` -- the runtime `List` keeps who owns each item -- then that member, patched
- *     on:  `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) } ... })`.
- *   - A built-in item type, e.g. `an exclusive list of things`, gets NO member:  it would go on a type every project
- *     shares.  Its list is still exclusive at runtime -- for objects:  a number or text can't be owned.
+ * - `Priority.declaration`, so this wins over the plainer `create_type` rule above for the `is a list of` form.
+ * - SIDE EFFECT: adds `type` to `scope.types` (superType `"list"`), unless already defined --
+ *   with its `itemType`, e.g. `Card`, so `the first card of the deck` knows it's a card.
+ * - Compiles to a class declaration extending `List` with a static `instanceType`,
+ *   e.g. `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
+ * - `exclusive` (`a pile is an exclusive list of cards`):  a card is in at most ONE list of its FAMILY at a time --
+ *   piles and every sub-type of pile.  Adding it to one takes it out of the other (plan doc D7, D8).
+ *   - SIDE EFFECT:  the item type gains a READ-ONLY member naming us, `the pile of a card`:
+ *     the pile holding it, or nothing.  Declared by THIS line, see `P.TypeScope.declareOwnerMember()`.
+ *   - Compiles `static exclusive = true` -- the runtime `List` keeps who owns each item --
+ *     then that member, patched on:
+ *     `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) } ... })`.
+ *   - A built-in item type, e.g. `an exclusive list of things`, gets NO member:
+ *     it would go on a type every project shares.
+ *   - Its list is still exclusive at runtime -- for objects:  a number or text can't be owned.
  */
 class create_list_type extends SpellStatement<"type|exclusive?|instanceType"> {
-  @proto static priority = 10
+  @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
 
   /** SIDE EFFECT:  declares our type -- and, if `exclusive`, its owner member on the item type.  See class docs. */
   mutateScope(match: P.MatchFor<this>) {
     const { type, instanceType } = match.groups
-    const itemType = P.typeName(`${instanceType.value}`)
+    const itemType = SP.typeName(`${instanceType.value}`)
     const exclusive = match.groups.exclusive ? true : undefined
     // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
     // TODO: complain if existing type is set up differently!
@@ -165,16 +167,16 @@ class create_list_type extends SpellStatement<"type|exclusive?|instanceType"> {
     }
     const superType = new P.ASTTypeExpression(match, { raw: "list", name: "List" })
     const statements: P.ASTStatement[] = [new P.ASTClassDeclaration(match, { type: typeAST, superType, members })]
-    const itemType = P.typeName(`${instanceType.value}`)
+    const itemType = SP.typeName(`${instanceType.value}`)
     if (exclusive && !P.isBuiltInType(itemType)) statements.push(create_list_type.ownerMemberAST(match, typeAST))
     return new P.ASTStatementGroup(match, { statements })
   }
 
   /**
-   * Our item type's member naming us, patched on -- `Object.defineProperty(Card.prototype, 'pile', { get() { return
-   * Pile.ownerOf(this) }, ... })`.
-   * - Patched, NEVER hoisted into the item type's class:  it runs AFTER that class, and after any accessor a
-   *   property declaration gave it, so ours wins -- see `P.TypeScope.declareOwnerMember()`.
+   * Our item type's member naming us, patched on,
+   * e.g. `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) }, ... })`.
+   * - Patched, NEVER hoisted into the item type's class:  it runs AFTER that class,
+   *   and after any accessor a property declaration gave it, so ours wins -- see `P.TypeScope.declareOwnerMember()`.
    * - Named as `declareOwnerMember()` names it, e.g. `stock_pile` for `a stock-pile`.
    */
   static ownerMemberAST(match: P.MatchFor<create_list_type>, typeAST: P.ASTTypeExpression): P.ASTPatchedMember {
@@ -269,7 +271,7 @@ class new_thing extends SpellStatement<"type|props?"> {
 
   /** The type it makes, e.g. `Card`, `thing`. */
   getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
-    return P.typeName(`${match.groups.type.value}`)
+    return SP.typeName(`${match.groups.type.value}`)
   }
 
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
@@ -317,7 +319,7 @@ class new_list extends SpellStatement<"instanceType?"> {
   /** A `list`, or a `list of` what it says, e.g. `list of todos`. */
   getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
     const { instanceType } = match.groups
-    return instanceType ? P.listOf(P.typeName(`${instanceType.value}`)) : "list"
+    return instanceType ? P.listOf(SP.typeName(`${instanceType.value}`)) : "list"
   }
 
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
@@ -370,7 +372,7 @@ class create_thing extends SpellStatement<"type|props?"> {
 
   /** The type it makes, e.g. `Card`, `thing`. */
   getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
-    return P.typeName(`${match.groups.type.value}`)
+    return SP.typeName(`${match.groups.type.value}`)
   }
 
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
@@ -471,7 +473,7 @@ class type_specifier_datatype extends P.Sequence<"datatype"> {
 
   /** The type it names, in spell's words, e.g. `number`, `Automobile`. */
   getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
-    return P.typeName(`${match.groups.datatype.value}`)
+    return SP.typeName(`${match.groups.datatype.value}`)
   }
 
   getAST(match: P.MatchFor<this>): P.ASTTypeExpression {
@@ -552,15 +554,18 @@ classes.addRule(type_specifier_yes_or_no, {
 ////////////////
 
 /**
- * `{type} {member words}` -- a class variable of a known type, e.g. `card suits` / `Card Suits` ~== `Card.Suits`,
- * `bank-account account-types` ~== `Bank_Account.Account_types`.
- * - ONE rule for every type:  the member resolves through `type`'s `classVariables`, e.g. `Suits` as
- *   `cards have a suit as one of ...` declares it -- see `define_property_has`.  Was a rule per enumeration.
+ * `{type} {member words}` -- a class variable of a known type, e.g.:
+ * - `card suits` / `Card Suits` ~== `Card.Suits`
+ * - `bank-account account-types` ~== `Bank_Account.Account_types`
+ * - ONE rule for every type:  the member resolves through `type`'s `classVariables`,
+ *   e.g. `Suits` as `cards have a suit as one of ...` declares it -- see `define_property_has`.
+ *   Was a rule per enumeration.
  * - The LONGEST run of words the type declares, e.g. `suits` in `card suits includes x`.
- * - `priority: 20`, as the per-enumeration rule had:  a type's own member beats a longer built-in reading.
+ * - `Priority.userDeclared`, as the per-enumeration rule had:
+ *   a type's own member beats a longer built-in reading.
  */
 class class_member extends SpellExpression<"type|member", ClassMemberData> {
-  @proto static priority = 20
+  @proto static priority = Priority.userDeclared
   @proto static datatype = "list"
 
   /** Resolve the longest run of our words `type` declares as a class variable -- see class docs. */
@@ -569,11 +574,11 @@ class class_member extends SpellExpression<"type|member", ClassMemberData> {
     if (!match) return undefined
     const { type, member } = match.groups
     const typeScope = getKnownType(type)
-    const count = declaredPrefix(member, (words) => !!classVariableOf(typeScope, words))
+    const count = declaredPrefix(member, (words) => !!typeScope.getClassVariable(words))
     if (!count) return undefined
     // fewer words than we took:  parse just those -- the type and them
     if (count < member.length) return this.parse(scope, tokens.slice(0, 1 + count))
-    match.data.classVariable = classVariableOf(typeScope, `${member.raw}`)
+    match.data.classVariable = typeScope.getClassVariable(`${member.raw}`)
     return match
   }
 
@@ -617,15 +622,6 @@ type ClassMemberData = {
   classVariable?: P.ScopeVariable
 }
 
-/** Class variable `words` of `type`, or of the nearest super-type declaring it, e.g. `Suits` for a joker's `suits`. */
-function classVariableOf(type: P.TypeScope, words: string): P.ScopeVariable | undefined {
-  for (const it of type.chain()) {
-    const found = it.classVariables.get(words, "LOCAL_ONLY")
-    if (found) return found
-  }
-  return undefined
-}
-
 ////////////////
 // ## `define_property_has` rule
 //    e.g. "cards have a direction as either up or down"
@@ -634,11 +630,12 @@ function classVariableOf(type: P.TypeScope, words: string): P.ScopeVariable | un
 /**
  * `a card has a suit as one of clubs, diamonds, hearts, spades` / `todos have a title as text` -- declares
  * an instance property on `type`, optionally constrained/initialized by a `type_specifier`.
- * - `priority: 10` so this wins over other `{type} has|have ...` -ish statement rules.
+ * - `Priority.declaration`, so this wins over other `{type} has|have ...` -ish statement rules.
  * - SIDE EFFECT: stubs `type` into `scope.types` if not yet declared -- see `P.TypeScope.getOrStub()`.
- * - SIDE EFFECT: when `specifier` is an enumeration, also adds a pluralized class variable (e.g. `Suits`) --
- *   and its instance twin, so `the suits of the card` finds it -- holding the raw values, and adds string values to
- *   `scope.constants`.  `card suits` reads it through `class_member`.
+ * - SIDE EFFECT: when `specifier` is an enumeration, also:
+ *   - adds a pluralized class variable holding the raw values, e.g. `Suits`, which `card suits` reads
+ *     through `class_member` -- and its instance twin, so `the suits of the card` finds it
+ *   - adds string values to `scope.constants`
  * - Its name is `member_words`, e.g. `a card has short rank as text`;  the article is optional.
  * - Compiles to a reactive getter / setter pair in its class, its type declared in the class's schema -- see
  *   `P.ASTReactiveProperty` -- e.g. `a player has a name as text` =>
@@ -647,14 +644,14 @@ function classVariableOf(type: P.TypeScope, words: string): P.ScopeVariable | un
  * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `class_member`.
  */
 class define_property_has extends SpellStatement<"type|property|specifier?"> {
-  @proto static priority = 10
+  @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type", detail: "specifier" }
 
-  /** Refused on a built-in type -- see `refuseBuiltInType()`. */
+  /** Refused on a built-in type -- see `SpellStatement.refuseBuiltInType()`. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
-    return match && refuseBuiltInType(match, match.groups.type, match.groups.property)
+    return match && SpellStatement.refuseBuiltInType(match, match.groups.type, match.groups.property)
   }
 
   mutateScope(match: P.MatchFor<this>) {
@@ -665,7 +662,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?"> {
     const typeName = type.value
     const typeScope = P.TypeScope.getOrStub(scope, typeName, match)
     // what its specifier says it holds, e.g. `text`, `choice`, `thing` for `as a new thing`
-    typeScope.declareProperty(`${property.value}`, match, { words: property.raw, datatype: specifier?.datatype })
+    typeScope.declareProperty(`${property.value}`, match, { asWritten: property.raw, datatype: specifier?.datatype })
 
     // If there is a specifier as enumerated values, add rules to match it
     if (specifierAST instanceof P.ASTEnumeration) {
@@ -761,8 +758,8 @@ classes.addRule(define_property_has, {
       },
       compileAs: "statement",
       tests: [
-        // every way to reach an enumeration names its class variable -- was CODE-DEBT "Enumerated properties are
-        // reachable under inconsistent names"
+        // every way to reach an enumeration names its class variable --
+        // was CODE-DEBT "Enumerated properties are reachable under inconsistent names"
         ["print Card suits", "spellCore.console.log(Card.Suits)"],
         ["print card suits", "spellCore.console.log(Card.Suits)"],
         [
@@ -924,12 +921,12 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     of: "type_property.type"
   }
 
-  /** Refused on a built-in type -- see `refuseBuiltInType()`. */
+  /** Refused on a built-in type -- see `SpellStatement.refuseBuiltInType()`. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     const { type, property } = match.groups.type_property.groups
-    return refuseBuiltInType(match, type, property)
+    return SpellStatement.refuseBuiltInType(match, type, property)
   }
 
   mutateScope(match: P.MatchFor<this>) {
@@ -937,7 +934,9 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     const { value, otherValue, type_property } = match.groups
     const { type, property } = type_property.groups
     // make sure type is defined
-    P.TypeScope.getOrStub(scope, type.value, match).declareProperty(`${property.value}`, match, { words: property.raw })
+    P.TypeScope.getOrStub(scope, type.value, match).declareProperty(`${property.value}`, match, {
+      asWritten: property.raw
+    })
     // `is()` narrows `data` to what `SpellConstant` stashes on its matches.
     // Declare any unknown constant values, and record them on their matches for `SpellConstant.getAST()`.
     for (const constant of [value, otherValue]) {
@@ -1035,29 +1034,30 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type" }
 
-  /** Refused on a built-in type -- see `refuseBuiltInType()`. */
+  /** Refused on a built-in type -- see `SpellStatement.refuseBuiltInType()`. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
-    return match && refuseBuiltInType(match, match.groups.type, match.groups.property)
+    return match && SpellStatement.refuseBuiltInType(match, match.groups.type, match.groups.property)
   }
 
   /**
    * SIDE EFFECT:  records the property on its type -- see `P.TypeScope.declareProperty()`.
-   * - Later lines read it, e.g. `the value of the card`'s datatype:  so editing a getter's line re-parses what
-   *   follows (plan doc D9).  An edit to its indented body does only if what it returns changes -- see
-   *   `mutateScopeAfterBody()`.
+   * - Later lines read it, e.g. `the value of the card`'s datatype:
+   *   so editing a getter's line re-parses what follows (plan doc D9).
+   * - An edit to its indented body does only if what it returns changes -- see `mutateScopeFromBody()`.
    */
   mutateScope(match: P.MatchFor<this>) {
     const { type, property } = match.groups
-    getKnownType(type).declareProperty(`${property.value}`, match, { words: property.raw })
+    getKnownType(type).declareProperty(`${property.value}`, match, { asWritten: property.raw })
   }
 
   /**
-   * SIDE EFFECT:  now our body has parsed, what it returns is the property's `datatype` -- if we declared it, and
-   * nothing gave it one first, e.g. `a card has a value as number`.  See `getReturnedDatatype()`.
+   * SIDE EFFECT:  now our body has parsed, what it returns is the property's `datatype` --
+   * if we declared it, and nothing gave it one first, e.g. `a card has a value as number`.
+   * - See `getReturnedDatatype()`.
    * - Journaled.  Returns it, so `BlockLine.reparseBody()` can tell when an edit changes it.
    */
-  mutateScopeAfterBody(match: P.MatchFor<this>): string | undefined {
+  mutateScopeFromBody(match: P.MatchFor<this>): string | undefined {
     const { type, property } = match.groups
     const datatype = this.getReturnedDatatype(match)
     const variable = getKnownType(type).variables.get(`${property.value}`, "LOCAL_ONLY")
@@ -1078,7 +1078,7 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
       parentScope: match.scope,
       thisVar: typeScope.instanceName,
       mapItTo: "this",
-      itDatatype: P.typeName(typeScope.name),
+      itDatatype: SP.typeName(typeScope.name),
       declaredBy: match
     })
   }
@@ -1164,7 +1164,7 @@ type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 export class QuotedPropertyRule extends InfixOperatorSuffix {
   @proto static importableAs = "quoted_property"
   /** A user's alias wins over a built-in suffix matching the same words, e.g. `is the queen of spades`. */
-  @proto static priority = 20
+  @proto static priority = Priority.userDeclared
   @proto static precedence = Precedence.comparison
 
   /** Generated method to call, e.g. `is_the_$rank_of_$suits`. */
@@ -1271,7 +1271,7 @@ function placeholderData(
  * from a quoted phrase with `(placeholder)`s, plus a matching quoted-expression rule to call it,
  * e.g. `a card is the queen of spades`.
  * - NOTE: the first word in quotes must be `"is"` !!
- * - `priority: 10` so this wins over plainer statement rules that could otherwise partially match.
+ * - `Priority.declaration`, so this wins over plainer statement rules that could otherwise partially match.
  * - SIDE EFFECT: `getBits()` derives (and caches in `match.data.bits`) rulex `syntax`, per-placeholder
  *   `ruleData`, `vars` and the generated `property` name, consumed by `mutateScope()`/`getAST()` below.
  * - SIDE EFFECT: `mutateScope()` registers a `QuotedPropertyRule` for the quoted phrase,
@@ -1281,7 +1281,7 @@ function placeholderData(
  *   `this.rank === rank && this.suit === suit`.
  */
 class quoted_property_formula extends SpellStatement<"type|alias|sources", QuotedPropertyFormulaMatchData> {
-  @proto static priority = 10
+  @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "method", name: "alias", of: "type" }
 
@@ -1483,25 +1483,4 @@ type QuotedPropertyFormulaBits = {
 type QuotedPropertyFormulaMatchData = {
   /** Cached result of `getBits()` -- see the type above. */
   bits?: QuotedPropertyFormulaBits
-}
-
-////////////////
-// ## Shared helpers
-//    for the rules declaring a property, e.g. `define_property_has`
-////////////////
-
-/**
- * `match`, a statement declaring `property` on `type` -- or, when `type` is one of spell's BUILT-IN types, e.g.
- * `text` or `thing`, a parse error saying it can't be (plan doc caveat C9), e.g. `the length of a text is: ...`.
- * - Why:  a built-in type's `P.TypeScope` is the shared root scope's, which every project parses against and no
- *   project's journal records -- a property there would leak into every other project, and outlive its edit.  Its
- *   members are spell's own, in `SP.BUILT_IN_TYPE_TABLE`.
- * - A METHOD of a built-in type is fine:  its record goes in the project's `methods` -- see `MethodDefinition`.
- * - A lookup:  call it WHILE PARSING.
- */
-function refuseBuiltInType(match: P.Match, type: P.Match, property: P.Match | undefined): P.Match {
-  if (!SP.isBuiltInTypeScope(match.scope.types?.get(`${type.value}`))) return match
-  const words = property ? `"${property.raw}"` : "a property"
-  const message = `Can't add ${words} to ${P.typeName(`${type.value}`)}:  it's built in, and every project shares it`
-  return SpellStatement.refuse(match, message)
 }

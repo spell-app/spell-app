@@ -143,8 +143,9 @@ export type RuleMap = Record<string, P.Rule>
  * - `"internal"`:  nothing parsed AFTER it can see the change:
  *   - its OWN `match.scope`, e.g. `set x to 1` adds a variable there, so a method body's changes stay in that body
  *   - or a record only editors read
- * - `"global"`:  reaches the project, e.g. types, properties, constants or rules, so re-parsing it can change how
- *   anything after it parses -- even in other files.  e.g. spell's `set the X of Y to ...` when it declares `X`.
+ * - `"global"`:  reaches the project, e.g. types, properties, constants or rules,
+ *   so re-parsing it can change how anything after it parses -- even in other files.
+ *   - e.g. spell's `set the X of Y to ...`, when it declares `X`
  */
 export type ScopeChanges = "internal" | "global"
 

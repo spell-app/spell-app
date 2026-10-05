@@ -2,16 +2,19 @@ import type { P } from "$/parser"
 
 /**
  * `ScopeMethod` -- a method or function, as a scope RECORD:  what it's called, what it takes, what it gives back.
- * - Why:  a method is also a parser rule (its call site), but a rule can't say its parameters' types or what it
- *   returns.  This can, so a call's `datatype` can come from `returns`, and editors can read `params`.
- * - Lives in a scope's `methods`:  a type's instance methods in its `TypeScope`'s, a free function in its project's.
+ * - Why:  a method is also a parser rule (its call site),
+ *   but a rule can't say its parameters' types or what it returns.
+ * - This can, so a call's `datatype` can come from `returns`, and editors can read `params`.
+ * - Lives in a scope's `methods`:
+ *   - a type's instance methods:  its `TypeScope`'s
+ *   - a free function:  its project's
  * - Added by the defining statement's `mutateScope()` through `ScopeList.add()`, so the journal can take it back.
  */
 export class ScopeMethod {
   /** Name it compiles to, e.g. `turn_over` -- what `methods` is keyed by. */
   declare name: string
   /** Its words as written in its signature, e.g. `turn (a card) over`. */
-  declare words: string | undefined
+  declare asWritten: string | undefined
   /** Its parameters, in order, each with its datatype if known -- NOT the instance it's called on. */
   declare params: P.ScopeParam[]
   /**
@@ -42,8 +45,8 @@ export class ScopeMethod {
 export type ScopeMethodProps = {
   /** See `ScopeMethod.name`. */
   name: string
-  /** See `ScopeMethod.words`. */
-  words?: string
+  /** See `ScopeMethod.asWritten`. */
+  asWritten?: string
   /** See `ScopeMethod.params`. */
   params?: P.ScopeParam[]
   /** See `ScopeMethod.returns`. */

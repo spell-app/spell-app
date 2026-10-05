@@ -1,5 +1,6 @@
 import { proto } from "$/util"
 import { P } from "$/parser"
+import { SP } from "$/spell"
 // Import directly to avoid circular import -- rules are constructed while the `SP` barrel is still loading.
 import { BODY_KEYWORDS, type StatementBodySpec } from "$/spell/spell.types"
 import { Block } from "./Block"
@@ -23,17 +24,19 @@ export class SpellStatement<
   declare bodySpec: StatementBodySpec | undefined
   /**
    * `true`:  used INSIDE an expression, our LAST slot -- a trailing `{x:expression}` -- takes an `operand` instead,
-   * so it stops before an operator.  As a statement it keeps the whole expression:
-   * - `notify x + y` => `notify(x + y)`, but `if double x is 4` => `double(x) == 4`
-   * - `wait for x is 1` => `await (x == 1)`, but `if wait for x is 1` => `(await x) == 1`
-   * - Only for a rule aliased both `statement` and `expression`:  `SpellParser.addRule()` registers it as the
-   *   statement, plus a twin of it as the expression -- see `SpellParser.addStatementAndOperand()`.
+   * so it stops before an operator.
+   * - As a statement it keeps the whole expression:
+   *   - `notify x + y` => `notify(x + y)`, but `if double x is 4` => `double(x) == 4`
+   *   - `wait for x is 1` => `await (x == 1)`, but `if wait for x is 1` => `(await x) == 1`
+   * - Only for a rule aliased both `statement` and `expression`:
+   *   `SpellParser.addRule()` registers it as the statement, plus a twin of it as the expression.
+   *   See `SpellParser.addStatementAndOperand()`.
    */
   declare operandInExpressions: boolean
   @proto static operandInExpressions = false
   /**
-   * In the expression twin `operandInExpressions` makes:  the statement rule it's the twin of -- the one
-   * `scope.addRule()` recorded.  See `SpellStatement.statementRuleOf()`.
+   * In the expression twin `operandInExpressions` makes:  the statement rule it's the twin of,
+   * the one `scope.addRule()` recorded.  See `SpellStatement.statementRuleOf()`.
    */
   declare statementRule: P.Rule | undefined
   /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
@@ -59,10 +62,10 @@ export class SpellStatement<
   }
 
   /**
-   * A `parse_error` match in place of statement `match`, saying why spell won't take it -- e.g. a property
-   * declared on a built-in type.
-   * - For a `parse()` which understood what it read, but mustn't accept it:  return this, NOT `undefined`, so the
-   *   error says why, instead of "Don't understand ...".
+   * A `parse_error` match in place of statement `match`, saying why spell won't take it,
+   * e.g. a property declared on a built-in type.
+   * - For a `parse()` which understood what it read, but mustn't accept it:  return this, NOT `undefined`,
+   *   so the error says why, instead of "Don't understand ...".
    * - `BlockLine` reports it as its line's error, and commits nothing:  the line compiles to the error.
    */
   static refuse(match: P.Match, message: string): P.Match {
@@ -74,6 +77,26 @@ export class SpellStatement<
       tokens: [...tokens],
       message
     })
+  }
+
+  /**
+   * `match`, a statement declaring `property` on `type` -- or, when `type` is one of spell's BUILT-IN types,
+   * e.g. `text` or `thing`, a parse error saying it can't be (plan doc caveat C9).
+   * - e.g. `the length of a text is: ...`
+   * - Why:  a built-in type's `P.TypeScope` is the shared root scope's, which every project parses against
+   *   and no project's journal records.  A property there would leak into every other project,
+   *   and outlive its edit.  Its members are spell's own, in `SP.BUILT_IN_TYPE_TABLE`.
+   * - A METHOD of a built-in type is fine:  its record goes in the project's `methods` -- see `MethodDefinition`.
+   * - A lookup:  call it WHILE PARSING, e.g. from `define_property_has.parse()`.
+   */
+  static refuseBuiltInType(match: P.Match, type: P.Match, property: P.Match | undefined): P.Match {
+    if (!SP.isBuiltInTypeScope(match.scope.types?.get(`${type.value}`))) return match
+    const words = property ? `"${property.raw}"` : "a property"
+    const typeName = SP.typeName(`${type.value}`)
+    return SpellStatement.refuse(
+      match,
+      `Can't add ${words} to ${typeName}:  it's built in, and every project shares it`
+    )
   }
 
   /**
@@ -166,29 +189,31 @@ export class SpellStatement<
   /**
    * SIDE EFFECT hook:  change scope once our BODY has parsed, e.g. a method records what it returns.
    * - Run by `commitStatement()`, after `mutateScope()` and the body.  Default:  nothing.
-   * - Returns what it recorded, as a string, if anything:  `BlockLine.reparseBody()` compares it, so an edit to the
-   *   body which changes it re-parses what follows.
+   * - Returns what it recorded, as a string, if anything:  `BlockLine.reparseBody()` compares it,
+   *   so an edit to the body which changes it re-parses what follows.
    */
-  mutateScopeAfterBody(_match: P.Match): string | undefined {
+  mutateScopeFromBody(_match: P.Match): string | undefined {
     return undefined
   }
 
   /**
-   * If `match` RETURNS from the method it's in, e.g. `return the card`:  `{ value }`, the returned expression's
-   * match -- `undefined` for a bare `return`.  `undefined` if it doesn't return.  See `getReturnedDatatype()`.
+   * If `match` RETURNS from the method it's in, e.g. `return the card`:  `{ value }`, the returned expression's match.
+   * - `value` is `undefined` for a bare `return`.
+   * - `undefined` if it doesn't return.  See `getReturnedDatatype()`.
    * - Default:  it doesn't.  `return_statement` overrides.
    */
-  getReturned(_match: P.Match): { value: P.Match | undefined } | undefined {
+  getReturnValue(_match: P.Match): { value: P.Match | undefined } | undefined {
     return undefined
   }
 
   /**
    * What our body RETURNS, e.g. `Card` for a body whose every `return` returns a card -- `undefined` if unknown.
    * - An inline EXPRESSION body (`the value of a card is its rank`):  that expression's datatype.
-   * - Otherwise its `return` statements' (`getReturned()`), wherever they are -- inside an `if`, say -- but NOT
-   *   inside a body with a method scope of its own, e.g. a loop's:  that compiles to a callback, whose `return` is its
-   *   own.  All the same => that;  none, or any other mix => unknown.  A bare `return` is `nothing`.
-   * - Reads ONLY matches:  call it once the body has parsed, e.g. from `mutateScopeAfterBody()`.
+   * - Otherwise its `return` statements' (`getReturnValue()`), wherever they are, e.g. inside an `if`.
+   *   - But NOT inside a body with a method scope of its own, e.g. a loop's:
+   *     that compiles to a callback, whose `return` is its own.
+   *   - All the same => that;  none, or any other mix => unknown.  A bare `return` is `nothing`.
+   * - Reads ONLY matches:  call it once the body has parsed, e.g. from `mutateScopeFromBody()`.
    */
   getReturnedDatatype(match: P.Match): P.Datatype | undefined {
     const body = this.getBody(match)
@@ -207,7 +232,7 @@ export class SpellStatement<
       }
       const statement = item.rule instanceof SpellStatement ? item : (item.data as { statement?: P.Match }).statement
       if (!(statement?.rule instanceof SpellStatement)) return
-      const result = statement.rule.getReturned(statement)
+      const result = statement.rule.getReturnValue(statement)
       if (result) returned.add(result.value ? result.value.datatype : "nothing")
       // a callback's `return`s are its own
       else if (!(statement.nestedScope instanceof P.MethodScope)) visit(statement.rule.getBody(statement))
@@ -215,8 +240,9 @@ export class SpellStatement<
   }
 
   /**
-   * The rule `rule` stands for:  if it's the expression twin of a statement rule (see `operandInExpressions`), that
-   * statement rule -- else `rule` itself.  e.g. for editors, mapping a call back to the method's `P.ScopeRule`.
+   * The rule `rule` stands for:  the statement rule, if it's that rule's expression twin
+   * (see `operandInExpressions`) -- else `rule` itself.
+   * - e.g. for editors, mapping a call back to the method's `P.ScopeRule`
    */
   static statementRuleOf(rule: P.Rule): P.Rule {
     return (rule instanceof SpellStatement && rule.statementRule) || rule
@@ -259,7 +285,7 @@ export type SpellStatementProps = Prettify<
  *   - `bodyMark` in the parser's journal, if it has one, so incremental parsing can re-parse just the body
  *     -- see `P.IncrementalParse`
  *   - parse the body in its nested scope
- * - `mutateScopeAfterBody()` on it, e.g. a method records what its body returns
+ * - `mutateScopeFromBody()` on it, e.g. a method records what its body returns
  * - NOTE: this is the ONLY place a parsed statement changes scope.  Candidates which lose the line
  *   never do, so their types / rules / variables can't leak.  Call it for any statement you parse on
  *   its own and keep, e.g. a JSX `on...` handler.
@@ -274,7 +300,7 @@ export function commitStatement(statement: P.Match, nextItem?: P.Token): Committ
     committed.bodyMark = statement.scope.parser?.journal?.mark()
     committed.body = statement.rule.parseNestedBlock(statement, nextItem)
   }
-  committed.afterBody = statement.rule.mutateScopeAfterBody(statement)
+  committed.fromBody = statement.rule.mutateScopeFromBody(statement)
   return committed
 }
 
@@ -284,8 +310,8 @@ export type CommittedStatement = {
   body?: P.Match
   /** Journal mark just before the nested body was parsed, if there's a journal. */
   bodyMark?: P.JournalMark
-  /** What `mutateScopeAfterBody()` recorded, if anything. */
-  afterBody?: string
+  /** What `mutateScopeFromBody()` recorded, if anything. */
+  fromBody?: string
 }
 
 /**

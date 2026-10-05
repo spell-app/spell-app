@@ -59,9 +59,10 @@ export class ParseJournal {
   }
 
   /**
-   * Set `next`'s props on `target`, recording the change in `journal` if there is one, so it can be taken back.
-   * - For a change to a record that already EXISTS, e.g. a method's `returns` once its body has parsed --
-   *   a new record goes through `ScopeList.add()`, which journals itself.
+   * Set `next`'s props on `target`, recording the change in `journal` (if any) so it can be taken back.
+   * - For a change to a record which already EXISTS,
+   *   e.g. a method's `returns` once its body has parsed.
+   * - A new record goes through `ScopeList.add()`, which journals itself.
    */
   static assign<T extends object>(journal: ParseJournal | undefined, target: T, next: Partial<T>) {
     const previous = Object.fromEntries(Object.keys(next).map((key) => [key, target[key as keyof T]])) as Partial<T>

@@ -9,14 +9,18 @@ import { SP } from "$/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
+import { Priority, declaredPrefix } from "./rules.types"
 import { SpellExpression } from "./expressions"
 
 /**
- * Rule module for member rules:  words naming a member (`property`, `member_words`), reading one (`the X of Y`,
- * `its X`, `its third X`), and object literals (`object_literal_property`, `object_literal_properties`).
- * - A read RESOLVES its words through the type of what it reads from (`property_expression`,
- *   `its_known_property`) -- several words, blacklisted ones too, e.g. `the short rank of the card` -- or is LOOSE:
- *   ONE word nothing declared, as every read was before types (`property_expression` too, `its_property`).  Plan doc D5.
+ * Rule module for member rules:
+ * - words naming a member:  `property`, `member_words`
+ * - reading one:  `the X of Y`, `its X`, `its third X`
+ * - object literals:  `object_literal_property`, `object_literal_properties`
+ * - A read RESOLVES its words through the type of what it reads from (`property_expression`, `its_known_property`):
+ *   several words, blacklisted ones too, e.g. `the short rank of the card`.
+ * - Or it's LOOSE:  ONE word nothing declared, as every read was before types
+ *   (`property_expression` too, `its_property`).  Plan doc D5.
  * - A type's class members, e.g. `card suits`, are `class_member` in `classes.ts`.
  */
 export const properties = new SpellParser({ module: "properties" })
@@ -31,8 +35,8 @@ const LOWER_INITIAL_WORD = /^[a-z][\w-]*$/
 
 /**
  * ONE word naming a property:  initial-lower-case, not in `identifierBlacklist`.
- * - What a LOOSE read takes, e.g. `the is-set-up of the deck` -- see `property_expression`.  Declarations and
- *   resolved reads take `member_words`.
+ * - What a LOOSE read takes, e.g. `the is-set-up of the deck` -- see `property_expression`.
+ * - Declarations and resolved reads take `member_words`.
  * - `mapValue()` converts dashes to underscores, e.g. `foo-bar` compiles as `foo_bar`.
  */
 class property extends P.Pattern {
@@ -61,8 +65,8 @@ properties.addRule(property)
 
 /**
  * Words which end a run of `member_words`:  spell's structural words, never part of a member's name.
- * - e.g. `of` ends `the short rank of`, `as` ends `a card has short rank as text`, `is` a test, `and` a list,
- *   `where` / `whose` / `with` / `for` / `from` / `in` / `to` a clause.
+ * - e.g. `of` ends `the short rank of`, `as` ends `a card has short rank as text`,
+ *   `is` a test, `and` a list, `where` / `whose` / `with` / `for` / `from` / `in` / `to` a clause.
  * - Anything not a word ends a run too, e.g. `+`, `:`, `,` or a number.
  */
 const MEMBER_STOP_WORDS = new Set([
@@ -98,23 +102,25 @@ const MEMBER_STOP_WORDS = new Set([
 ])
 
 /**
- * Stop words which may still START a member's name, e.g. `with jokers` in `a deck has with jokers as yes or no`,
- *   `in play`, `on top`.
+ * Stop words which may still START a member's name,
+ * e.g. `with jokers` in `a deck has with jokers as yes or no`, `in play`, `on top`.
  * - They END a run anywhere else:  `the jokers with ...` is `jokers`.
  * - Safe:  a name starts only where a rule's syntax expects one, e.g. after `has` or `the`.
  */
 const MEMBER_LEADING_WORDS = new Set(["with", "for", "from", "in", "on", "by", "at", "into"])
 
 /**
- * 1..N words naming a member, e.g. `short rank`, `short-rank`, `rank`:  every word up to the first STRUCTURAL one
- * (`MEMBER_STOP_WORDS`), e.g. `of` in `the short rank of a card is:`.  No other bound.
- * - NOT the identifier blacklist:  `short` and `long` are fine.  Safe, as a READ takes these words only if the type
- *   it reads from declares them (`property_expression`), and a declaration's words sit between fixed ones,
- *   e.g. `the ... of a card is`.
- * - `value` is its name as it compiles:  its words joined by `_`, dashes too, e.g. `short_rank` for `short rank` or
- *   `short-rank` -- so either spelling finds the same member.  `raw` is its words as written, e.g. `short rank`.
- * - Greedy:  a rule wanting FEWER, e.g. the longest run a type declares (`its short rank + 1`), re-parses with
- *   fewer tokens -- see `declaredPrefix()`.
+ * 1..N words naming a member, e.g. `short rank`, `short-rank`, `rank`.
+ * - Every word up to the first STRUCTURAL one (`MEMBER_STOP_WORDS`),
+ *   e.g. `of` in `the short rank of a card is:`.  No other bound.
+ * - NOT the identifier blacklist:  `short` and `long` are fine.  Safe, as:
+ *   - a READ takes these words only if the type it reads from declares them (`property_expression`)
+ *   - a declaration's words sit between fixed ones, e.g. `the ... of a card is`
+ * - `value` is its name as it compiles:  its words joined by `_`, dashes too,
+ *   e.g. `short_rank` for `short rank` or `short-rank` -- so either spelling finds the same member.
+ * - `raw` is its words as written, e.g. `short rank`.
+ * - Greedy:  a rule wanting FEWER, e.g. the longest run a type declares (`its short rank + 1`),
+ *   re-parses with fewer tokens -- see `declaredPrefix()`.
  */
 class member_words extends P.Pattern {
   /** Any case, unlike `property`:  a class variable is Type_Case, e.g. `Card Suits`. */
@@ -123,13 +129,13 @@ class member_words extends P.Pattern {
 
   /** Does a member's word start at `start`:  a word, not a structural one -- or one which may lead a name? */
   test(scope: P.Scope, tokens: P.Token[], start = 0) {
-    return start < tokens.length && isMemberWord(tokens[start]!, this.pattern, true)
+    return start < tokens.length && member_words.isMemberWord(tokens[start]!, this.pattern, true)
   }
 
   /** Every member word from the first token on -- see class docs. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     let count = 0
-    while (count < tokens.length && isMemberWord(tokens[count]!, this.pattern, count === 0)) count++
+    while (count < tokens.length && member_words.isMemberWord(tokens[count]!, this.pattern, count === 0)) count++
     if (!count) return undefined
     const words = tokens.slice(0, count)
     return new P.Match({
@@ -144,6 +150,17 @@ class member_words extends P.Pattern {
 
   getAST(match: P.MatchFor<this>) {
     return new P.ASTPropertyLiteral(match)
+  }
+
+  /**
+   * Is `token` one of a member's words:  matches `pattern`, and isn't structural?  See `MEMBER_STOP_WORDS`.
+   * - `first`:  the name's first word, which may also be one of `MEMBER_LEADING_WORDS`,
+   *   e.g. `with` in `with jokers`.
+   */
+  private static isMemberWord(token: P.Token, pattern: RegExp, first = false): boolean {
+    if (!(token instanceof P.WordToken) || !token.matchesPattern(pattern)) return false
+    const word = `${token.value}`.toLowerCase()
+    return !MEMBER_STOP_WORDS.has(word) || (first && MEMBER_LEADING_WORDS.has(word))
   }
 }
 properties.addRule(member_words, {
@@ -162,14 +179,119 @@ properties.addRule(member_words, {
   ]
 })
 
+////////////////
+// ## `MemberReadExpression` base class
+//    e.g. base for the rules which read a member (`property_expression`, `its_known_property`, `its_property`)
+////////////////
+
 /**
- * Is `token` one of a member's words:  matches `pattern`, and isn't structural?  See `MEMBER_STOP_WORDS`.
- * - `first`:  the name's first word, which may also be one of `MEMBER_LEADING_WORDS`, e.g. `with` in `with jokers`.
+ * Base for rules which READ a member off an object or `it`, e.g. `the short rank of the card`, `its suit`.
+ * - What they found, noted while parsing, is in `data` (`MemberData`):  `getDatatype()` and `getMemberAST()` read it.
+ * - `MemberReadExpression.memberRead()` says what any of them reads, e.g. for `set the X of Y to ...`.
  */
-function isMemberWord(token: P.Token, pattern: RegExp, first = false): boolean {
-  if (!(token instanceof P.WordToken) || !token.matchesPattern(pattern)) return false
-  const word = `${token.value}`.toLowerCase()
-  return !MEMBER_STOP_WORDS.has(word) || (first && MEMBER_LEADING_WORDS.has(word))
+export class MemberReadExpression<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends SpellExpression<Groups, MatchData & MemberData> {
+  /** What the member we read holds:  a property's datatype, an enumeration's values (`list`), a method's return. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const { member } = match.data as MemberData
+    if (member instanceof P.ScopeMethod) return member.returns
+    return member?.enumeration ? "list" : member?.datatype
+  }
+
+  /**
+   * `object.property` for a resolved read -- or:
+   * - for an enumerated property's values, its type's class variable,
+   *   e.g. `Card.Suits` for `the suits of the card`
+   * - for a built-in type's member, what its `readAs` template says,
+   *   e.g. `spellCore.itemCountOf(deck)` for `the length of the deck` -- see `builtInMemberAST()`
+   */
+  getMemberAST(match: P.MatchFor<this>, object: P.ASTExpression, property: P.Match): P.ASTExpression {
+    const { member, enumerationOf } = match.data as MemberData
+    if (enumerationOf && member) {
+      const type = new P.ASTTypeExpression(match, { name: enumerationOf })
+      return new P.ASTPropertyExpression(match, { object: type, property: member.name })
+    }
+    if (member instanceof P.ScopeVariable && member.readAs) {
+      return MemberReadExpression.builtInMemberAST(match, object, member.readAs)
+    }
+    return new P.ASTPropertyExpression(match, { object, property: P.asAST<P.ASTPropertyLiteral>(property.AST) })
+  }
+
+  /**
+   * SIDE EFFECT:  notes property `words` of `type` as `match.data.member`
+   * -- and, for an enumeration, the type holding its values (`enumerationOf`).
+   * - `false` if there's no such property.
+   */
+  resolveMember(match: P.MatchFor<this>, type: P.TypeScope | undefined, words: string): boolean {
+    const member = MemberReadExpression.propertyOf(type, words)
+    if (!member) return false
+    const data = match.data as MemberData
+    data.member = member
+    if (member.enumeration && member.scope instanceof P.TypeScope) data.enumerationOf = member.scope.name
+    return true
+  }
+
+  /**
+   * The property `words` names on `type` (or a super-type) -- `undefined` if it's not one, or `type` is unknown.
+   * - Properties only:  `the X of Y` doesn't call a method.
+   * - A lookup:  call it WHILE PARSING.
+   */
+  static propertyOf(type: P.TypeScope | undefined, words: string): P.ScopeVariable | undefined {
+    const member = type?.getMember(words)
+    return member instanceof P.ScopeVariable ? member : undefined
+  }
+
+  /**
+   * What `match` reads, if it's a member read -- `the X of Y`, `its X`, loose or resolved -- else `undefined`.
+   * - `type`:  the type it reads from, if known -- for a resolved read, the one declaring what it found
+   * - `property`:  its `property` match, the member's words
+   * - `member`:  what it found, if anything
+   * - Why:  `set the X of Y to ...` declares `X` if `Y`'s type doesn't -- see `assignment_statement`.
+   * - Reads only `match.data`, as noted while parsing.
+   */
+  static memberRead(match: P.Match): MemberRead | undefined {
+    if (!(match.rule instanceof MemberReadExpression)) return undefined
+    const { ownerType, member } = match.data as MemberData
+    const property = match.groups.property as P.Match
+    const declaredOn = member?.scope instanceof P.TypeScope ? member.scope : undefined
+    return { type: declaredOn ?? ownerType, property, member }
+  }
+
+  /**
+   * A built-in type's member read off `object`, as its `readAs` template says -- see `SP.BuiltInMember.readAs`.
+   * - `{it}.length` => `object.length`
+   * - `{it}.getFullYear()` => `object.getFullYear()`
+   * - `spellCore.itemCountOf({it})` => `spellCore.itemCountOf(object)`
+   * - The table's templates are checked as it loads (`SP.loadBuiltInTypes()`), so one always reads.
+   */
+  private static builtInMemberAST(match: P.AnyMatch, object: P.ASTExpression, readAs: string): P.ASTExpression {
+    const { form, name } = SP.parseReadAsTemplate(readAs)!
+    if (form === "property") return new P.ASTPropertyExpression(match, { object, property: name })
+    if (form === "method") return new P.ASTScopedMethodInvocation(match, { thing: object, methodName: name })
+    return new P.ASTCoreMethodInvocation(match, { methodName: name, args: [object] })
+  }
+}
+
+/** What a `MemberReadExpression` stashes on its match. */
+type MemberData = {
+  /** Member it reads, found while parsing -- see `P.TypeScope.getMember()`.  `undefined` if none known. */
+  member?: P.ScopeVariable | P.ScopeMethod
+  /** LOOSE reads:  the type it reads from, if known -- see `memberRead()`. */
+  ownerType?: P.TypeScope
+  /** An enumerated property's values:  the type whose class variable holds them, e.g. `Card`. */
+  enumerationOf?: string
+}
+
+/** What `MemberReadExpression.memberRead()` says a member read reads. */
+export type MemberRead = {
+  /** Type it reads from, if known. */
+  type?: P.TypeScope
+  /** Its `property` match:  the member's words. */
+  property: P.Match
+  /** What it found, if anything. */
+  member?: P.ScopeVariable | P.ScopeMethod
 }
 
 ////////////////
@@ -179,44 +301,49 @@ function isMemberWord(token: P.Token, pattern: RegExp, first = false): boolean {
 
 /**
  * `the {member words} of {thing}` ~== `thing.member` -- ONE rule for both kinds of read (plan doc D5):
- * - RESOLVED:  the words name a PROPERTY the type of `thing` declares (or a super-type does), e.g.
- *   `the short rank of the card` -- several words, blacklisted ones too.  An enumerated property's values --
- *   `the suits of the card`, as `cards have a suit as one of ...` declares -- are its type's class variable,
- *   `Card.Suits`:  an instance has none.
- * - else LOOSE:  ONE word nothing need declare, not on the identifier blacklist, e.g. `the is-set-up of it` -- as
- *   spell read every property before types.  We still note a METHOD of that name, for our datatype.
- * - else NOT a property read:  several undeclared words, e.g. `the first card of the deck` is the ordinal rule's.
- * - `priority: 1` -- a declared member beats a built-in rule reading the SAME words, e.g. a deck's `last card` beats
- *   the ordinal `the last card of`.  NOT `the position of`, `the number of` (priority 3), nor `the biggest of`
- *   (2), which say more:  a type declaring `position` mustn't break `the position of x in the list`.
- * - ONE rule, not a resolved and a loose one, as `known_variable` / `variable` are:  two would parse every
- *   `the X of Y`'s operand twice -- 6% of a project's parse (plan doc judgement).
- * - `set` an undeclared one, on a type the project declares, and it's declared there -- see `memberRead()`.
+ * - RESOLVED:  the words name a PROPERTY the type of `thing` declares (or a super-type does),
+ *   e.g. `the short rank of the card` -- several words, blacklisted ones too.
+ *   - An enumerated property's values, e.g. `the suits of the card` as `cards have a suit as one of ...` declares,
+ *     are its type's class variable, `Card.Suits`:  an instance has none.
+ * - else LOOSE:  ONE word nothing need declare, not on the identifier blacklist,
+ *   e.g. `the is-set-up of it` -- as spell read every property before types.
+ *   - We still note a METHOD of that name, for our datatype.
+ * - else NOT a property read:  several undeclared words,
+ *   e.g. `the first card of the deck` is the ordinal rule's.
+ * - `Priority.preferred`:  a declared member beats a built-in rule reading the SAME words,
+ *   e.g. a deck's `last card` beats the ordinal `the last card of`.
+ *   - NOT `the position of`, `the number of` (`mostSpecific`), nor `the biggest of` (2), which say more:
+ *     a type declaring `position` mustn't break `the position of x in the list`.
+ * - ONE rule, not a resolved and a loose one, as `known_variable` / `variable` are:
+ *   two would parse every `the X of Y`'s operand twice -- 6% of a project's parse (plan doc judgement).
+ * - `set` an undeclared one, on a type the project declares, and it's declared there --
+ *   see `MemberReadExpression.memberRead()`.
  */
-class property_expression extends SpellExpression<"property|expression", MemberData> {
-  @proto static priority = 1
+class property_expression extends MemberReadExpression<"property|expression"> {
+  @proto static priority = Priority.preferred
 
   /**
-   * Resolve our words through the type of what follows `of`, while we can look it up -- else take ONE word,
-   * loose.  See class docs.
+   * Resolve our words through the type of what follows `of`, while we can look it up --
+   * else take ONE word, loose.  See class docs.
    */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     const { property, expression } = match.groups
     const ownerType = (match.data.ownerType = scope.getType(expression.datatype))
-    if (resolveMember(match, ownerType, `${property.raw}`)) return match
-    if (!isLooseProperty(scope, property)) return undefined
+    if (this.resolveMember(match, ownerType, `${property.raw}`)) return match
+    if (!property_expression.isLooseProperty(scope, property)) return undefined
     match.data.member = ownerType?.getMember(`${property.value}`)
     return match
   }
-  /** What the member we read holds, if known. */
-  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
-    return memberDatatype(match.data.member)
-  }
   getAST(match: P.MatchFor<this>) {
     const { property, expression } = match.groups
-    return memberAST(match, P.asAST<P.ASTExpression>(expression.AST), property)
+    return this.getMemberAST(match, P.asAST<P.ASTExpression>(expression.AST), property)
+  }
+
+  /** Is `property`, a `member_words` match, ONE word the `property` rule takes:  lower case, not blacklisted? */
+  private static isLooseProperty(scope: P.Scope, property: P.Match): boolean {
+    return property.length === 1 && scope.getRuleOrDie("property").test(scope, property.tokens, 0) !== false
   }
 }
 properties.addRule(property_expression, {
@@ -285,27 +412,23 @@ properties.addRule(property_expression, {
   ]
 })
 
-/** Is `property`, a `member_words` match, ONE word the `property` rule takes:  lower case, not blacklisted? */
-function isLooseProperty(scope: P.Scope, property: P.Match): boolean {
-  return property.length === 1 && scope.getRuleOrDie("property").test(scope, property.tokens, 0) !== false
-}
-
 ////////////////
 // ## `its_known_property` rule
 //    e.g. "its short rank", where `it` is a card, and cards declare `short rank`
 ////////////////
 
 /**
- * `its {member words}`, where the words name a PROPERTY `it`'s type declares -- the LONGEST run of them that does,
- * e.g. `short rank` in `its short rank + its short suit`.  As `property_expression` does for `the X of Y`.
+ * `its {member words}`, where the words name a PROPERTY `it`'s type declares:  the LONGEST run of them that does,
+ * e.g. `short rank` in `its short rank + its short suit`.
+ * - As `property_expression` does for `the X of Y`.
  * - Rejects the match unless `it`'s type is known and declares some -- then `its_property` may take one word.
- * - `priority: 1`, as `property_expression`:  a declared `last card` beats `its_ordinal`.  A rule of its own, unlike
- *   `property_expression`:  the loose read takes ONE of several words, so at `priority: 1` it would beat
- *   `its last card`, the ordinal.
+ * - `Priority.preferred`, as `property_expression`:  a declared `last card` beats `its_ordinal`.
+ * - A rule of its own, unlike `property_expression`:  the loose read takes ONE of several words,
+ *   so at `Priority.preferred` it would beat `its last card`, the ordinal.
  * - Tracks `it`, as `its_property` does.
  */
-class its_known_property extends SpellExpression<"property", ItsMatchData & MemberData> {
-  @proto static priority = 1
+class its_known_property extends MemberReadExpression<"property", ItsMatchData> {
+  @proto static priority = Priority.preferred
 
   /** Note `it`, and resolve the longest run of our words its type declares -- see class docs. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
@@ -314,20 +437,16 @@ class its_known_property extends SpellExpression<"property", ItsMatchData & Memb
     const itVar = scope.variables?.get("it")
     const ownerType = scope.getType(itVar?.datatype)
     const { property } = match.groups
-    const count = declaredPrefix(property, (words) => !!propertyOf(ownerType, words))
+    const count = declaredPrefix(property, (words) => !!MemberReadExpression.propertyOf(ownerType, words))
     if (!count) return undefined
     // fewer words than we took:  parse just those -- `its` and them
     if (count < property.length) return this.parse(scope, tokens.slice(0, 1 + count))
     match.data.itVar = itVar ?? NONE
-    resolveMember(match, ownerType, `${property.raw}`)
+    this.resolveMember(match, ownerType, `${property.raw}`)
     return match
   }
-  /** What the property holds, if known. */
-  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
-    return memberDatatype(match.data.member)
-  }
   getAST(match: P.MatchFor<this>) {
-    return memberAST(match, itsObject(match), match.groups.property)
+    return this.getMemberAST(match, itsObject(match), match.groups.property)
   }
 }
 properties.addRule(its_known_property, {
@@ -358,11 +477,12 @@ properties.addRule(its_known_property, {
 ////////////////
 
 /**
- * `its {property}` -- possessive shorthand, a LOOSE read:  ONE word nothing need declare, as `property_expression`.
+ * `its {property}` -- possessive shorthand.
+ * - A LOOSE read:  ONE word nothing need declare, as `property_expression`.
  * - Tracks `it`:  `get it` / `put its foo in the bar`.
  * - Synonym for `this` if `it` is not (yet) defined in scope.
  */
-class its_property extends SpellExpression<"property", ItsMatchData & MemberData> {
+class its_property extends MemberReadExpression<"property", ItsMatchData> {
   /** Note `it`, its type, and the member of it we read, while we can look them up. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -373,10 +493,6 @@ class its_property extends SpellExpression<"property", ItsMatchData & MemberData
       match.data.member = ownerType?.getMember(`${match.groups.property.value}`)
     }
     return match
-  }
-  /** What the member we read holds, if known. */
-  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
-    return memberDatatype(match.data.member)
   }
   getAST(match: P.MatchFor<this>) {
     const property = P.asAST<P.ASTPropertyLiteral>(match.groups.property.AST)
@@ -508,7 +624,8 @@ properties.addRule(its_ordinal, {
 
 /**
  * Single object-literal property declaration:  `{property} (=|is|of) {value:expression}`.
- * - Its name is `member_words`, e.g. `short rank is 1` -- or, for a structural word, e.g. `a = 1`, a `property`.
+ * - Its name is `member_words`, e.g. `short rank is 1`,
+ *   or a `property` for a structural word, e.g. `a = 1`.
  */
 class object_literal_property extends P.Sequence<"property|value"> {
   getAST(match: P.MatchFor<this>) {
@@ -595,119 +712,4 @@ function itsObject(match: P.Match<P.AnyGroups, ItsMatchData>): P.ASTExpression {
   const itVar = match.data.itVar === NONE ? undefined : match.data.itVar
   if (!itVar) return new P.ASTThisLiteral(match)
   return new P.ASTVariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
-}
-
-////////////////
-// ## Members
-//    shared by the rules which read a member, e.g. `property_expression`, and `class_member` in `classes.ts`
-////////////////
-
-/** What a rule reading a member stashes on its match. */
-type MemberData = {
-  /** Member it reads, found while parsing -- see `P.TypeScope.getMember()`.  `undefined` if none known. */
-  member?: P.ScopeVariable | P.ScopeMethod
-  /** LOOSE reads:  the type it reads from, if known -- see `memberRead()`. */
-  ownerType?: P.TypeScope
-  /** An enumerated property's values:  the type whose class variable holds them, e.g. `Card` -- see `memberAST()`. */
-  enumerationOf?: string
-}
-
-/**
- * How many of `words`' words -- from the first -- `isDeclared`, the most that are:  e.g. 2 for `short rank` in
- * `short rank plus`.  0 if none.
- * - For a rule taking `member_words` greedily which wants only what a type declares, e.g. `its short rank + 1`,
- *   `card suits includes x`:  it re-parses with that many.
- */
-export function declaredPrefix(words: P.Match, isDeclared: (words: string) => boolean): number {
-  const raw = words.tokens.map((token) => `${token.value}`)
-  for (let count = raw.length; count > 0; count--) {
-    if (isDeclared(raw.slice(0, count).join(" "))) return count
-  }
-  return 0
-}
-
-/**
- * The property `words` names on `type` (or a super-type) -- `undefined` if it's not one, or `type` is unknown.
- * - Properties only:  `the X of Y` doesn't call a method.
- * - A lookup:  call it WHILE PARSING.
- */
-function propertyOf(type: P.TypeScope | undefined, words: string): P.ScopeVariable | undefined {
-  const member = type?.getMember(words)
-  return member instanceof P.ScopeVariable ? member : undefined
-}
-
-/**
- * SIDE EFFECT:  notes property `words` of `type` as `match.data.member` -- and, for an enumeration, the type holding
- * its values (`enumerationOf`).  `false` if there's no such property.
- */
-function resolveMember(match: P.Match<P.AnyGroups, MemberData>, type: P.TypeScope | undefined, words: string) {
-  const member = propertyOf(type, words)
-  if (!member) return false
-  match.data.member = member
-  if (member.enumeration && member.scope instanceof P.TypeScope) match.data.enumerationOf = member.scope.name
-  return true
-}
-
-/** What `member` holds:  a property's datatype, an enumeration's values (`list`), a method's return type. */
-function memberDatatype(member: P.ScopeVariable | P.ScopeMethod | undefined): P.Datatype | undefined {
-  if (member instanceof P.ScopeMethod) return member.returns
-  return member?.enumeration ? "list" : member?.datatype
-}
-
-/**
- * `object.property` for a resolved read -- or:
- * - for an enumerated property's values, its type's class variable, e.g. `Card.Suits` for `the suits of the card`
- * - for a built-in type's member, what its `compile` template says, e.g. `spellCore.itemCountOf(deck)` for
- *   `the length of the deck` -- see `builtInMemberAST()`
- */
-function memberAST(match: P.Match<P.AnyGroups, MemberData>, object: P.ASTExpression, property: P.Match) {
-  const { member, enumerationOf } = match.data
-  if (enumerationOf && member) {
-    const type = new P.ASTTypeExpression(match, { name: enumerationOf })
-    return new P.ASTPropertyExpression(match, { object: type, property: member.name })
-  }
-  if (member instanceof P.ScopeVariable && member.compile) return builtInMemberAST(match, object, member.compile)
-  return new P.ASTPropertyExpression(match, { object, property: P.asAST<P.ASTPropertyLiteral>(property.AST) })
-}
-
-/**
- * A built-in type's member read off `object`, as its `compile` template says -- see `SP.BuiltInMember.compile`:
- * - `{it}.length` => `object.length`
- * - `{it}.getFullYear()` => `object.getFullYear()`
- * - `spellCore.itemCountOf({it})` => `spellCore.itemCountOf(object)`
- * - The table's templates are checked as it loads (`SP.loadBuiltInTypes()`), so one always reads.
- */
-function builtInMemberAST(match: P.AnyMatch, object: P.ASTExpression, compile: string): P.ASTExpression {
-  const { form, name } = SP.parseCompileTemplate(compile)!
-  if (form === "property") return new P.ASTPropertyExpression(match, { object, property: name })
-  if (form === "method") return new P.ASTScopedMethodInvocation(match, { thing: object, methodName: name })
-  return new P.ASTCoreMethodInvocation(match, { methodName: name, args: [object] })
-}
-
-/**
- * What `match` reads, if it's a member read -- `the X of Y`, `its X`, loose or resolved -- else `undefined`:
- * - `type`:  the type it reads from, if known -- for a resolved read, the one declaring what it found
- * - `property`:  its `property` match, the member's words
- * - `member`:  what it found, if anything
- * - Why:  `set the X of Y to ...` declares `X` if `Y`'s type doesn't -- see `assignment_statement`.
- * - Reads only `match.data`, as noted while parsing.
- */
-export function memberRead(match: P.Match): MemberRead | undefined {
-  const { rule } = match
-  const isRead = rule instanceof property_expression || rule instanceof its_property
-  if (!isRead && !(rule instanceof its_known_property)) return undefined
-  const { ownerType, member } = match.data as MemberData
-  const property = match.groups.property as P.Match
-  const declaredOn = member?.scope instanceof P.TypeScope ? member.scope : undefined
-  return { type: declaredOn ?? ownerType, property, member }
-}
-
-/** What `memberRead()` says a member read reads. */
-export type MemberRead = {
-  /** Type it reads from, if known. */
-  type?: P.TypeScope
-  /** Its `property` match:  the member's words. */
-  property: P.Match
-  /** What it found, if anything. */
-  member?: P.ScopeVariable | P.ScopeMethod
 }

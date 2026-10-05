@@ -1,7 +1,7 @@
 import { Derivative } from "$/util"
 import type { P } from "$/parser"
-// Import directly to avoid circular import:  a VALUE import of `P` here would make `$/parser/scope/Scope` an
-// entry which breaks the barrel -- see `barrel.test.ts`
+// Import directly to avoid circular import:  a VALUE import of `P` here
+// would make `$/parser/scope/Scope` an entry which breaks the barrel -- see `barrel.test.ts`
 import { itemTypeOf } from "$/parser/parser.types"
 
 /**
@@ -94,8 +94,8 @@ export class Scope extends Derivative {
   }
 
   /**
-   * What a list of `datatype` holds, e.g. `Card` for `list of cards`, or for `Deck` (`a deck is a list of cards`)
-   * -- the first `itemType` up its type's super-type chain.  `undefined` if we can't tell.
+   * What a list of `datatype` holds, e.g. `Card` for `list of cards` -- `undefined` if we can't tell.
+   * - A user's list type, e.g. `Deck` (`a deck is a list of cards`):  the first `itemType` up its super-type chain.
    * - A lookup:  call it WHILE PARSING, never from `getAST()` / `getDatatype()`.
    */
   getItemType(datatype: P.Datatype | undefined): P.Datatype | undefined {
@@ -107,8 +107,9 @@ export class Scope extends Derivative {
   }
 
   /**
-   * Could a value of datatype `actual` be a `wanted`, e.g. an argument for a parameter?  `false` only when SURE it
-   * can't:  both known, and neither is the other or a sub-type of it -- a `Deck` for a `Pile`, `text` for a `number`.
+   * Could a value of datatype `actual` be a `wanted`, e.g. an argument for a parameter?
+   * - `false` only when SURE it can't:  both known, and neither is the other or a sub-type of it,
+   *   e.g. a `Deck` for a `Pile`, `text` for a `number`.
    * - Unknown either side:  `true`.  So is `nothing`:  any value may be missing.
    * - A super-type could be:  a `list` may hold a `Pile`, a `number` may be an `integer`.
    * - A stub anywhere up either type's chain, or a super-type we can't find:  `true`, we can't be sure.

@@ -3,6 +3,7 @@ import { unitTestModuleRules } from "$/spell/test"
 import { P } from "$/parser"
 import { SP, spellParser } from "$/spell"
 import { Precedence } from "$/spell/rules/expressions"
+import { Priority } from "$/spell/rules/rules.types"
 import { spellCore } from "$/core"
 
 describe("testing spell module expressions", () => {
@@ -12,17 +13,19 @@ describe("testing spell module expressions", () => {
 })
 
 /**
- * Every built-in rule's non-default `priority`, and every operator's `precedence` -- so neither table drifts
- *   unseen.  A change here is a grammar change:  say why in the rule's docstring.
+ * Every built-in rule's non-default `priority`, and every operator's `precedence`:
+ *   so neither table, `Priority` nor `Precedence`, drifts unseen.
+ * - A change here is a grammar change:  say why in the rule's docstring.
  */
 describe("priority and precedence", () => {
   test("every rule which sets one", () => {
     const levels = new Map(Object.entries(Precedence).map(([name, level]) => [level, `Precedence.${name}`]))
+    const priorities = new Map(Object.entries(Priority).map(([name, level]) => [level, `Priority.${name}`]))
     const seen = new Map<string, string>()
     for (const rule of Object.values(spellParser.rules).flatMap(ruleAndAlternatives)) {
       const { precedence } = rule as { precedence?: unknown }
       const bits = [
-        rule.priority ? `priority ${rule.priority}` : "",
+        rule.priority ? (priorities.get(rule.priority) ?? `priority ${rule.priority}`) : "",
         typeof precedence === "number" ? (levels.get(precedence) ?? `precedence ${precedence}`) : ""
       ].filter(Boolean)
       if (bits.length && rule.name) seen.set(rule.name, `${rule.name}:  ${bits.join(", ")}`)
@@ -34,42 +37,42 @@ describe("priority and precedence", () => {
         "as_lowercase:  Precedence.comparison",
         "as_uppercase:  Precedence.comparison",
         "backwards_if:  Precedence.ternary",
-        "class_member:  priority 20",
-        "create_list_type:  priority 10",
-        "create_type:  priority 10",
-        "define_property_has:  priority 10",
+        "class_member:  Priority.userDeclared",
+        "create_list_type:  Priority.declaration",
+        "create_type:  Priority.declaration",
+        "define_property_has:  Priority.declaration",
         "divided_by:  Precedence.product",
         "does_not_include:  Precedence.comparison",
-        "draw_items:  priority 2",
-        "draw_thing:  priority 1",
-        "else_if:  priority 1",
+        "draw_items:  Priority.specific",
+        "draw_thing:  Priority.preferred",
+        "else_if:  Priority.preferred",
         "ends_with:  Precedence.comparison",
         "exists:  Precedence.comparison",
         "gt_lt:  Precedence.comparison",
         "includes:  Precedence.comparison",
         "is_a:  Precedence.comparison",
-        "is_defined:  priority 11, Precedence.comparison",
+        "is_defined:  Priority.preferred, Precedence.comparison",
         "is_empty:  Precedence.comparison",
         "is_equal:  Precedence.equality",
         "is_exactly:  Precedence.equality",
         "is_gt_lt:  Precedence.comparison",
         "is_in:  Precedence.comparison",
         "is_same_type_as:  Precedence.comparison",
-        "its_known_property:  priority 1",
-        "list_count:  priority 3",
-        "list_filter:  priority 2",
-        "list_length:  priority 3",
+        "its_known_property:  Priority.preferred",
+        "list_count:  Priority.mostSpecific",
+        "list_filter:  Priority.specific",
+        "list_length:  Priority.mostSpecific",
         "list_membership_test:  Precedence.comparison",
-        "list_position:  priority 3",
-        "max:  priority 2",
-        "min:  priority 2",
+        "list_position:  Priority.mostSpecific",
+        "max:  Priority.specific",
+        "min:  Priority.specific",
         "minus:  Precedence.sum",
         "or:  Precedence.or",
         "plus:  Precedence.sum",
-        "property_expression:  priority 1",
-        "quoted_property_formula:  priority 10",
-        "quoted_type_expression:  priority 9",
-        "round_number:  priority 1",
+        "property_expression:  Priority.preferred",
+        "quoted_property_formula:  Priority.declaration",
+        "quoted_type_expression:  Priority.belowDeclaration",
+        "round_number:  Priority.preferred",
         "starts_with:  Precedence.comparison",
         "times:  Precedence.product",
       ]

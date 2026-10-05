@@ -1,16 +1,18 @@
 /**
  * Spell's built-in types, as DATA:  each one's docs and members -- `the length of the name`, `shuffle (a list)`.
- * - The parser reads it:  `SpellParser.rootScope` loads it into each built-in type's `P.TypeScope` -- see
- *   `loadBuiltInTypes()` -- so a member read resolves through the type of what it reads, e.g. `the length of the
- *   name` => `name.length`, `the length of the deck` => `spellCore.itemCountOf(deck)`.
- * - Editors read it:  hover and completion show its members' docs, and the Type Explorer lists its types --
- *   `LSP.ScopeExplorer`, whose `yarn scopes --builtins` GENERATES `core`'s `src/spellCore.scopes.js` from it.
- * - Why data (plan doc D25):  no `.spell` file to parse at startup, and no statics on runtime classes -- the parser
- *   never imports `spellCore`'s code.
- * - Adding a member:  one entry here, and the `spellCore` method or javascript property its `compile` names --
+ * - The parser reads it:  `SpellParser.rootScope` loads it into each built-in type's `P.TypeScope`
+ *   (see `loadBuiltInTypes()`), so a member read resolves through the type of what it reads:
+ *   - `the length of the name` => `name.length`
+ *   - `the length of the deck` => `spellCore.itemCountOf(deck)`
+ * - Editors read it:  hover and completion show its members' docs, and the Type Explorer lists its types.
+ *   - `LSP.ScopeExplorer`'s `yarn scopes --builtins` GENERATES `core`'s `src/spellCore.scopes.js` from it.
+ * - Why data (plan doc D25):  no `.spell` file to parse at startup, and no statics on runtime classes --
+ *   the parser never imports `spellCore`'s code.
+ * - Adding a member:  one entry here, and the `spellCore` method or javascript property its `readAs` names.
  *   `builtinTypes.test.ts` pins each one.  See "Built-in types" in `PARSING.md`.
- * - NOTE:  a type's NAME and super-type are `P.BUILT_IN_TYPES`' (the parser's vocabulary) -- `superType` here MUST
- *   agree, which the test checks.  A built-in type with no entry here, e.g. `number`, has no members yet.
+ * - NOTE:  a type's NAME and super-type are `P.BUILT_IN_TYPES`' (the parser's vocabulary):
+ *   `superType` here MUST agree, which the test checks.
+ *   - A built-in type with no entry here, e.g. `number`, has no members yet.
  */
 
 import { snakeCase } from "$/util"
@@ -19,14 +21,17 @@ import { SP } from "$/spell"
 
 /**
  * Spell's built-in types, in the order the Type Explorer lists them -- see `SP.BuiltInType`.
- * - TODO:  `number`'s `absolute value` and `round` -- their rules (`math.ts`) compile to `spellCore` methods which
- *   don't exist yet;  a `date`'s `month` (javascript counts months from 0);  a text's `words`.
+ * - TODO:  members still to add:
+ *   - `number`'s `absolute value` and `round`:  their rules (`math.ts`) compile to `spellCore` methods
+ *     which don't exist yet
+ *   - a `date`'s `month` (javascript counts months from 0)
+ *   - a text's `words`
  */
 export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
   {
     name: "thing",
     detail: "base type",
-    doc: md(
+    docstring: md(
       "What your own types are made from -- `a card is a thing` makes a card.",
       "- Give it properties with `has`, e.g. `a card has a suit as one of clubs, diamonds, hearts, spades`.",
       "- Make one with `a new card` or `create a card`, optionally `with suit = hearts`.",
@@ -49,7 +54,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "draw (a thing)",
         kind: "method",
         rules: ["draw_thing"],
-        doc: md(
+        docstring: md(
           "Draw it on the page -- write how with your own `to draw (a card)`.",
           "- `draw the card` draws it wherever that's used, e.g. inside another thing's `to draw`.",
           "- Redraws by itself when a property it shows changes.",
@@ -61,7 +66,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
   {
     name: "list",
     detail: "counts from 1",
-    doc: md(
+    docstring: md(
       "Things in order -- `a deck is a list of cards` makes a deck.",
       "- Counts from 1:  `card 1 of the deck` is the first.  Negative counts from the end, so",
       "  `card -1 of the deck` is the last -- as is `the last card of the deck`.",
@@ -85,8 +90,8 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "length",
         kind: "property",
         datatype: "number",
-        compile: "spellCore.itemCountOf({it})",
-        doc: md(
+        readAs: "spellCore.itemCountOf({it})",
+        docstring: md(
           "How many items it has, e.g. `the length of the deck`.",
           "- ~== `the size of the deck`, `the number of cards in the deck`."
         )
@@ -95,14 +100,14 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "size",
         kind: "property",
         datatype: "number",
-        compile: "spellCore.itemCountOf({it})",
-        doc: md("How many items it has, e.g. `the size of the deck` -- its `length`.")
+        readAs: "spellCore.itemCountOf({it})",
+        docstring: md("How many items it has, e.g. `the size of the deck` -- its `length`.")
       },
       {
         words: "(a list) has items where",
         kind: "method",
         rules: ["list_membership_test"],
-        doc: md(
+        docstring: md(
           "Does ANY item pass a test?  e.g. `the deck has cards where the card is an ace`.",
           "- `has no ...` for none of them."
         )
@@ -111,7 +116,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "(a list) starts with (a thing)",
         kind: "method",
         rules: ["starts_with", "ends_with"],
-        doc: md(
+        docstring: md(
           "Is `thing` its first item, e.g. `the pile starts with the king`?",
           "- `ends with` for its last.",
           "- `does not start with` etc for the opposite."
@@ -121,7 +126,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "a copy of (a list)",
         kind: "method",
         rules: ["copy_list"],
-        doc: md(
+        docstring: md(
           "A new list with the same items, e.g. `a copy of the deck` -- change one, the other stays the same.",
           "- The items themselves are NOT copied:  both lists hold the same cards.",
           "- Same type as the original, unless you say `as a list`."
@@ -131,7 +136,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "a random item of (a list)",
         kind: "method",
         rules: ["random_item_expression", "random_items_expression"],
-        doc: md(
+        docstring: md(
           "An item picked at random, e.g. `a random card from the deck`.",
           "- Or several, as a new list:  `3 random cards from the deck`."
         )
@@ -140,7 +145,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "add (a thing) to (a list)",
         kind: "method",
         rules: ["list_add", "list_prepend", "list_append", "list_add_relative"],
-        doc: md(
+        docstring: md(
           "Add `thing` to the end -- or wherever you say:",
           "- `add the card to the deck`, or `... to the end of the deck`",
           "- `add the card to the start of the deck`, or `prepend the card to the deck`",
@@ -151,7 +156,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "draw (a list)",
         kind: "method",
         rules: ["draw_thing", "draw_items"],
-        doc: md(
+        docstring: md(
           "Draw each item, one after the other -- unless you write your own `to draw (a deck)`,",
           "e.g. to wrap them in a `<div>`.",
           "- `draw each card in the deck` draws just the items, even when the list has its own `to draw`.",
@@ -162,13 +167,13 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "empty (a list)",
         kind: "method",
         rules: ["list_empty"],
-        doc: md("Remove everything from it, e.g. `empty the deck` or `clear the deck`.")
+        docstring: md("Remove everything from it, e.g. `empty the deck` or `clear the deck`.")
       },
       {
         words: "for each (item) in (a list)",
         kind: "method",
         rules: ["list_iteration"],
-        doc: md(
+        docstring: md(
           "Do something with each item in turn, e.g. `for each card in the deck`.",
           "- Its position too, counting from 1:  `for card and index in the deck`."
         )
@@ -177,7 +182,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "item (n) of (a list)",
         kind: "method",
         rules: ["position_expression", "ordinal_position_expression"],
-        doc: md(
+        docstring: md(
           "Item at a position, e.g. `card 3 of the deck`, `the last card of the deck`.",
           "- Ordinals:  `first` to `tenth`, `penultimate`, `last` or `final`, `top` (first) and `bottom` (last).",
           "- Nothing if there's no item there."
@@ -187,7 +192,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "items (start) to (end) of (a list)",
         kind: "method",
         rules: ["range_between_expression", "range_count_expression", "range_starting_with_expression"],
-        doc: md(
+        docstring: md(
           "Several items in a row, as a new list of the same type -- the list itself doesn't change.",
           "- `card 1 to 3 of the deck`",
           "- `top 2 cards of the deck`, `last two cards of the deck`",
@@ -198,7 +203,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "items in (a list) where",
         kind: "method",
         rules: ["list_filter"],
-        doc: md(
+        docstring: md(
           "Items which pass a test, as a new list -- the list itself doesn't change.",
           "- e.g. `cards in the deck where the suit of the card is clubs`",
           "- `it` or the item's own word -- `the card` -- is each item in turn."
@@ -208,7 +213,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "merge (lists)",
         kind: "method",
         rules: ["merge_lists"],
-        doc: md(
+        docstring: md(
           "One new list with the items of each list in a list of lists, in order, e.g. `merge the piles`.",
           "- Same type as the first, unless you say `as a list`."
         )
@@ -217,13 +222,13 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "number of (items) in (a list)",
         kind: "method",
         rules: ["list_length", "list_count"],
-        doc: md("How many items it has, e.g. `number of cards in the deck`.")
+        docstring: md("How many items it has, e.g. `number of cards in the deck`.")
       },
       {
         words: "position of (a thing) in (a list)",
         kind: "method",
         rules: ["list_position"],
-        doc: md(
+        docstring: md(
           "Where `thing` first is in it, counting from 1, e.g. `position of the ace in the deck`.",
           "- Nothing if it isn't there."
         )
@@ -239,7 +244,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
           "list_remove_range_ordinal",
           "list_remove_where"
         ],
-        doc: md(
+        docstring: md(
           "Take items out -- later items move up to fill the gap:",
           "- `remove the card from the deck`",
           "- `remove card 4 of the deck`, `remove the last card of the deck`",
@@ -251,20 +256,20 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "reverse (a list)",
         kind: "method",
         rules: ["list_reverse"],
-        doc: md("Turn it back to front, in place, e.g. `reverse the cards of the deck`.")
+        docstring: md("Turn it back to front, in place, e.g. `reverse the cards of the deck`.")
       },
       {
         words: "shuffle (a list)",
         kind: "method",
         rules: ["list_shuffle"],
-        doc: md("Put it in random order, in place, e.g. `shuffle the deck` or `randomize the deck`.")
+        docstring: md("Put it in random order, in place, e.g. `shuffle the deck` or `randomize the deck`.")
       }
     ]
   },
   {
     name: "app",
     superType: "thing",
-    doc: md(
+    docstring: md(
       "A thing which is a whole program -- `a game is an app` makes a game.",
       "- Everything a thing has, plus `start`.",
       "- Write its `to draw (a game)` to lay out the page, then `start the game` to show it.",
@@ -284,7 +289,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "start (an app)",
         kind: "method",
         rules: ["start_app"],
-        doc: md(
+        docstring: md(
           "Show it on the page, drawn by its `to draw`, e.g. `start the game`.",
           "- Start it ONCE:  it redraws itself when things change.",
           "- In the editor, VS Code or `<spell-app>`, it shows in the app's own area;  anywhere else in",
@@ -296,7 +301,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
   {
     name: "text",
     itemType: "character",
-    doc: md(
+    docstring: md(
       'Words, letters -- anything in quotes, e.g. `"hello"`.',
       "- Counts from 1, as a list does:  `the first character of the name` is its first letter.",
       '- `+` joins two:  `"total: " + x`.',
@@ -312,8 +317,8 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "length",
         kind: "property",
         datatype: "number",
-        compile: "{it}.length",
-        doc: md(
+        readAs: "{it}.length",
+        docstring: md(
           "How many characters it has, e.g. `the length of the name`.",
           "- ~== `the number of characters in the name`."
         )
@@ -322,15 +327,15 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "characters",
         kind: "property",
         datatype: "list of characters",
-        compile: "spellCore.valuesOf({it})",
-        doc: md("Its characters, one by one, as a new list, e.g. `the characters of the name`.")
+        readAs: "spellCore.valuesOf({it})",
+        docstring: md("Its characters, one by one, as a new list, e.g. `the characters of the name`.")
       },
       {
         words: "character (n) of (a text)",
         kind: "method",
         datatype: "character",
         rules: ["position_expression", "ordinal_position_expression"],
-        doc: md(
+        docstring: md(
           "The character at a position, counting from 1, e.g. `character 2 of the name`.",
           "- Ordinals too:  `the first character of the name`, `the last character of the name`.",
           "- Nothing if there's no character there."
@@ -341,21 +346,21 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         kind: "method",
         datatype: "number",
         rules: ["list_length"],
-        doc: md("How many characters it has, e.g. `the number of characters in the name` -- its `length`.")
+        docstring: md("How many characters it has, e.g. `the number of characters in the name` -- its `length`.")
       },
       {
         words: "a random character of (a text)",
         kind: "method",
         datatype: "character",
         rules: ["random_item_expression"],
-        doc: md("A character picked at random, e.g. `a random character of the name`.")
+        docstring: md("A character picked at random, e.g. `a random character of the name`.")
       },
       {
         words: "(a text) as upper case",
         kind: "method",
         datatype: "text",
         rules: ["as_uppercase", "as_lowercase"],
-        doc: md(
+        docstring: md(
           "The same text in CAPITALS, e.g. `the name as upper case` -- or `as uppercase`.",
           "- `as lower case` for small letters."
         )
@@ -364,7 +369,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
   },
   {
     name: "date",
-    doc: md(
+    docstring: md(
       "A day and a time of day, e.g. a property declared `as date`:  `a todo has a due date as date`.",
       "- Its parts are numbers:  `the year of the due date of the todo`."
     ),
@@ -373,19 +378,66 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "year",
         kind: "property",
         datatype: "number",
-        compile: "{it}.getFullYear()",
-        doc: md("Its year, e.g. `2026`.")
+        readAs: "{it}.getFullYear()",
+        docstring: md("Its year, e.g. `2026`.")
       },
       {
         words: "day",
         kind: "property",
         datatype: "number",
-        compile: "{it}.getDate()",
-        doc: md("Its day of the month, from 1 to 31.")
+        readAs: "{it}.getDate()",
+        docstring: md("Its day of the month, from 1 to 31.")
       }
     ]
   }
 ]
+
+////////////////
+// ## Type words
+////////////////
+
+/**
+ * Every way a user may WRITE a built-in type in spell, lowercased and singular => its datatype.
+ * - Plurals are singularized before lookup, e.g. `numbers` => `number`.
+ * - Spell's vocabulary, not the parser's:  a translation brings its own, with its own `typeName()`.
+ */
+export const TYPE_WORDS: P.TypeWords = {
+  text: "text",
+  string: "text",
+  number: "number",
+  fraction: "number",
+  decimal: "number",
+  integer: "integer",
+  character: "character",
+  char: "character",
+  choice: "choice",
+  boolean: "choice",
+  "yes or no": "choice",
+  "true or false": "choice",
+  date: "date",
+  list: "list",
+  array: "list",
+  thing: "thing",
+  app: "app",
+  nothing: "nothing",
+  undefined: "nothing",
+  null: "nothing"
+}
+
+/**
+ * Datatype for a type name as a user WROTE it in spell -- `P.typeName()` with spell's `TYPE_WORDS`.
+ * - Built-ins lowercase, however written:
+ *   - `string` / `Text` => `text`
+ *   - `boolean` / `yes or no` => `choice`
+ *   - `array` / `List` => `list`
+ *   - `fraction` => `number`
+ *   - `char` => `character`
+ * - A list of something:  `list of cards` / `array of Card` => `list of cards`.
+ * - Anything else is a user's type, Type_Case and singular:  `cards` => `Card`.
+ */
+export function typeName(written: string): P.Datatype {
+  return P.typeName(written, TYPE_WORDS)
+}
 
 ////////////////
 // ## Loading
@@ -394,9 +446,10 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
 /**
  * Load `BUILT_IN_TYPE_TABLE` into `scope`, the root scope -- which MUST already have each type's `P.TypeScope`.
  * - Each type's `itemType`, e.g. `character` for `text`, so `the first character of the name` is a `character`.
- * - Each member with a `compile` template, as a `P.ScopeVariable` holding it:  `TypeScope.getMember()` finds it,
- *   for `the X of Y` / `its X`, and editors list it.  A member only built-in RULES spell is docs alone.
- * - Throws for a type the scope doesn't have, or a template `parseCompileTemplate()` can't read.
+ * - Each member with a `readAs` template, as a `P.ScopeVariable` holding it:
+ *   `TypeScope.getMember()` finds it, for `the X of Y` / `its X`, and editors list it.
+ *   - A member only built-in RULES spell is docs alone.
+ * - Throws for a type the scope doesn't have, or a template `parseReadAsTemplate()` can't read.
  * - SIDE EFFECT:  changes the shared root's types, once -- `SpellParser.rootScope` calls it as it builds.
  */
 export function loadBuiltInTypes(scope: P.RootScope): void {
@@ -405,13 +458,13 @@ export function loadBuiltInTypes(scope: P.RootScope): void {
     if (!type) throw new TypeError(`Built-in type '${entry.name}' isn't in the root scope:  see P.BUILT_IN_TYPES`)
     if (entry.itemType) type.itemType = entry.itemType
     for (const member of entry.members) {
-      if (!member.compile) continue
-      if (!parseCompileTemplate(member.compile)) {
-        throw new TypeError(`Built-in ${entry.name}'s '${member.words}':  can't read template '${member.compile}'`)
+      if (!member.readAs) continue
+      if (!parseReadAsTemplate(member.readAs)) {
+        throw new TypeError(`Built-in ${entry.name}'s '${member.words}':  can't read template '${member.readAs}'`)
       }
-      const { words, datatype, compile, doc } = member
+      const { words, datatype, readAs, docstring } = member
       const name = builtInMemberName(words)
-      type.variables.add({ name, ...(words !== name ? { words } : {}), datatype, compile, doc })
+      type.variables.add({ name, ...(words !== name ? { asWritten: words } : {}), datatype, readAs, docstring })
     }
   }
 }
@@ -422,11 +475,11 @@ export function builtInMemberName(words: string): string {
 }
 
 /**
- * `template`, a member's `compile`, taken apart -- `undefined` if it's none of the forms `SP.BuiltInMember.compile`
- * allows.
+ * `template`, a member's `readAs`, taken apart.
+ * - `undefined` if it's none of the forms `SP.BuiltInMember.readAs` allows.
  */
-export function parseCompileTemplate(template: string): SP.CompileTemplate | undefined {
-  const match = COMPILE_TEMPLATE.exec(template)
+export function parseReadAsTemplate(template: string): SP.ReadAsTemplate | undefined {
+  const match = READ_AS_TEMPLATE.exec(template)
   if (!match) return undefined
   const [, property, method, helper] = match
   if (property) return { form: "property", name: property }
@@ -434,8 +487,8 @@ export function parseCompileTemplate(template: string): SP.CompileTemplate | und
   return { form: "spellCore", name: helper! }
 }
 
-/** What `parseCompileTemplate()` reads:  `{it}.name`, `{it}.name()`, `spellCore.name({it})`. */
-const COMPILE_TEMPLATE = /^(?:\{it\}\.(\w+)|\{it\}\.(\w+)\(\)|spellCore\.(\w+)\(\{it\}\))$/
+/** What `parseReadAsTemplate()` reads:  `{it}.name`, `{it}.name()`, `spellCore.name({it})`. */
+const READ_AS_TEMPLATE = /^(?:\{it\}\.(\w+)|\{it\}\.(\w+)\(\)|spellCore\.(\w+)\(\{it\}\))$/
 
 ////////////////
 // ## Lookups
@@ -443,7 +496,7 @@ const COMPILE_TEMPLATE = /^(?:\{it\}\.(\w+)|\{it\}\.(\w+)\(\)|spellCore\.(\w+)\(
 
 /** Table entry of built-in type `name`, however written, e.g. `List` or `list` -- `undefined` if it has none. */
 export function builtInTypeEntry(name: string): SP.BuiltInType | undefined {
-  const datatype = P.typeName(name)
+  const datatype = typeName(name)
   return BUILT_IN_TYPE_TABLE.find((entry) => entry.name === datatype)
 }
 
@@ -459,8 +512,8 @@ export function builtInMembersOfRule(ruleName: string): Array<{ type: SP.BuiltIn
 
 /**
  * Is `type` one of spell's built-in types -- the shared root scope's own, which no project declares?
- * - Why:  a project mustn't declare a member on one -- every project shares it.  See `refuseBuiltInType()` in
- *   `rules/classes.ts`.
+ * - Why:  a project mustn't declare a member on one, as every project shares it.
+ * - See `SpellStatement.refuseBuiltInType()`.
  */
 export function isBuiltInTypeScope(type: P.TypeScope | undefined): boolean {
   return !!type && SP.SpellParser.rootScope.types.get(type.name, "LOCAL_ONLY") === type

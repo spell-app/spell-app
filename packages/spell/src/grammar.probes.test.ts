@@ -10,18 +10,19 @@ import { loadFixtureProject, parseSpellProject } from "$/spell/test"
  * - Changes to these snapshots are EXPECTED in phases P3-P6:  READ each one before blessing it
  *   (`yarn vitest run src/grammar.probes.test.ts -u`), and say in the phase's notes why it moved.
  *   A change in any other phase is a regression until shown otherwise.
- * - The design, and the problems the probe titles refer to:  `packages/docs/content/precedence/precedence.html`
- *   ("2. The problems").
+ * - The design, and the problems the probe titles refer to:
+ *   `packages/docs/content/precedence/precedence.html` ("2. The problems").
  *   - NOTE:  a title's `P1a` ... `P8e` is that page's PROBLEM number (P1 = greedy operands ...),
- *     NOT an epic phase.  Titles match the page's experiment,
- *     `packages/docs/content/precedence/experiments/grammar-today.mts`.
+ *     NOT an epic phase.
+ *   - Titles match the page's experiment, `packages/docs/content/precedence/experiments/grammar-today.mts`.
  * - Each probe parses scratch file `/Probe.spell` in memory with `parseSpellProject()`, exactly as a project
- *   compile does, after the frozen Solitaire fixture's `Card` / `Deck` / `Pile` (`projects/test/Solitaire/`),
- *   which predate jokers -- so no joker phrasing here.
- * - Snapshot:  the probe's compiled lines (after `SETUP`'s), then one `ERROR <line>:<ch> <message>` per parse error.
- *   `SPELL:` declaration comments are left out:  they repeat the declaring statement.
- * - "datatypes" (from P4 of precedence-and-types):  what each expression IS, as a variable set to it holds -- one
- *   `<expression>  =>  <datatype>` line each, `?` for unknown.  See `datatypes()`.
+ *   compile does, after the frozen Solitaire fixture's `Card` / `Deck` / `Pile` (`projects/test/Solitaire/`).
+ *   - Those predate jokers, so no joker phrasing here.
+ * - Snapshot:  the probe's compiled lines (after `SETUP`'s),
+ *   then one `ERROR <line>:<ch> <message>` per parse error.
+ *   - `SPELL:` declaration comments are left out:  they repeat the declaring statement.
+ * - "datatypes" (from P4 of precedence-and-types):  what each expression IS, as a variable set to it holds.
+ *   - One `<expression>  =>  <datatype>` line each, `?` for unknown.  See `datatypes()`.
  */
 describe("grammar probes", () => {
   ////////////////
@@ -707,8 +708,8 @@ const CARDS = loadFixtureProject("Solitaire").filter((file) => !file.path.endsWi
 /**
  * Types the probes use beside the cards library's, in a file of their own before the probe's.
  * - Why a file of their own:  a method on a type declared in the SAME file compiles INTO its `class` body,
- *   above `SETUP_END`, where `probe()` wouldn't see it (e.g. P4a's `to put (a chip) on (a pot)`).
- *   From another file it compiles to `Chip.prototype...`, as a method on `Card` does.
+ *   above `SETUP_END`, where `probe()` wouldn't see it, e.g. P4a's `to put (a chip) on (a pot)`.
+ * - From another file it compiles to `Chip.prototype...`, as a method on `Card` does.
  */
 const SETUP_TYPES = ["a chip is a thing", "a pot is a list of chips"]
 
@@ -740,8 +741,8 @@ const DECLARATION_LINE =
 
 /**
  * What each of `expressions` IS:  one `<expression>  =>  <datatype>` line each, `?` for unknown.
- * - Each is set to a variable after `SETUP`, e.g. `set d1 to the first card of the deck`, and we read the datatype
- *   it got -- the expression's `match.datatype`, through the assignment's sink.
+ * - Each is set to a variable after `SETUP`, e.g. `set d1 to the first card of the deck`,
+ *   and we read the datatype it got:  the expression's `match.datatype`, through the assignment's sink.
  */
 function datatypes(...expressions: string[]): string {
   return datatypesAfter([], ...expressions)
@@ -758,8 +759,9 @@ function datatypesAfter(setup: string[], ...expressions: string[]): string {
 }
 
 /**
- * Datatype of every variable `blocks` declare INSIDE a body or at the top -- each block a method, loop or line,
- * after `SETUP`.  One `<variable>  =>  <datatype>` line each, `?` for unknown.
+ * Datatype of every variable `blocks` declare INSIDE a body or at the top,
+ * each block a method, loop or line after `SETUP`.
+ * - One `<variable>  =>  <datatype>` line each, `?` for unknown.
  * - Variables inside a body are local to it:  found through each statement's `nestedScope`.
  */
 function sinks(...blocks: string[][]): string {
@@ -783,8 +785,8 @@ function sinks(...blocks: string[][]): string {
 }
 
 /**
- * Every match under `match` with a scope of its own (`nestedScope`), depth first -- through `matched`, and
- * bodies (`data.body`).
+ * Every match under `match` with a scope of its own (`nestedScope`), depth first.
+ * - Through `matched`, and bodies (`data.body`).
  */
 function statementsOf(match: P.Match | undefined, seen = new Set<P.Match>()): P.Match[] {
   if (!match || seen.has(match)) return []
@@ -824,8 +826,9 @@ function probe(...lines: string[]): string {
 }
 
 /**
- * `lines` parsed after the frozen `Card` / `Deck`, then `pileLines` as the project's `/Pile.spell` -- in place of the
- * fixture's, whose piles aren't exclusive -- then `EXCLUSIVE_SETUP`.
+ * `lines` parsed after the frozen `Card` / `Deck`, then `pileLines` as the project's `/Pile.spell`,
+ * then `EXCLUSIVE_SETUP`.
+ * - `pileLines` replace the fixture's `Pile.spell`, whose piles aren't exclusive.
  */
 function parseExclusive(pileLines: string[], lines: string[]) {
   return parseSpellProject([
@@ -839,8 +842,10 @@ function parseExclusive(pileLines: string[], lines: string[]) {
 const EXCLUSIVE_SETUP = ["the card is a new card", "the deck is a new deck", "the pile is a new pile"]
 
 /**
- * `/Pile.spell` -- `pileLines` -- as compiled, `---`, then what `lines` compiled to after `EXCLUSIVE_SETUP`, then
- * every parse error.  See `parseExclusive()`.
+ * What the exclusive-list probes compiled to, as one string -- see `parseExclusive()`:
+ * - `/Pile.spell` (`pileLines`) as compiled, then `---`
+ * - what `lines` compiled to after `EXCLUSIVE_SETUP`
+ * - every parse error
  */
 function probeExclusive(pileLines: string[], lines: string[]): string {
   const { files } = parseExclusive(pileLines, lines)
@@ -852,8 +857,8 @@ function probeExclusive(pileLines: string[], lines: string[]): string {
 }
 
 /**
- * `probe()`, plus what the probe file compiles to ABOVE `SETUP`'s lines, then `...` -- e.g. a property a `set`
- * declared, which its file declares at its top.
+ * `probe()`, plus what the probe file compiles to ABOVE `SETUP`'s lines, then `...`
+ * - e.g. a property a `set` declared, which its file declares at its top.
  */
 function probeWithTop(...lines: string[]): string {
   const { files } = parseProbe(lines)

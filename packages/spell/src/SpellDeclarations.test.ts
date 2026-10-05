@@ -113,10 +113,10 @@ describe("SpellDeclarations.importScope()", () => {
   test("the app compiles the same against the library's declarations as against its sources", () => {
     const fromSources = summarize(parseSpellProject(all)).filter(({ path }) => path === "/Solitaire.spell")
     const fromDeclarations = summarize(parseSpellProject(app, { parentScope: importLibrary() }))
-    // bar ONE thing:  `set the name of cards-to-move to ...` declares a pile's `name` only on a type the project
-    // declares itself -- see `assignment_statement.declareProperty()`
+    // bar ONE thing:  `set the name of cards-to-move to ...` declares a pile's `name`
+    // only on a type the project declares itself -- see `assignment_statement.declareProperty()`
     const autoDeclared =
-      /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", auto: true,\n.*\n\} \*\/\n(.*\n){5}/
+      /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", autoDeclared: true,\n.*\n\} \*\/\n(.*\n){5}/
     expect(fromSources[0]!.compiled).toMatch(autoDeclared)
     const withoutIt = fromSources.map((it) => ({ ...it, compiled: it.compiled?.replace(autoDeclared, "") }))
     expect(fromDeclarations).toEqual(withoutIt)
@@ -181,7 +181,7 @@ describe("SpellDeclarations.importScope()", () => {
     const imports = importLibrary()
     const move = imports.types.get("Card", "LOCAL_ONLY")?.methods.get("move_to_$pile", "LOCAL_ONLY")
     expect(move?.params).toEqual([{ name: "pile", datatype: "Pile" }])
-    expect(move?.words).toBe("move (a card) to (a pile)")
+    expect(move?.asWritten).toBe("move (a card) to (a pile)")
     expect(imports.types.get("Pile", "LOCAL_ONLY")?.itemType).toBe("Card")
     const renamed = importLibrary({ import: ["Card:Playingcard", "*"] })
     expect(renamed.types.get("Pile", "LOCAL_ONLY")?.itemType).toBe("Playingcard")
@@ -225,7 +225,8 @@ describe("SpellDeclarations.importScope()", () => {
     expect(scope.types.get("Card")).toBeDefined()
     expect(scope.parse("card suits", "expression")?.compile()).toBe("Card.Suits")
     expect(scope.types.get("Deck")).toBeUndefined()
-    // ...but what a card's properties hold comes along:  `set the pile of the card to the pile` declared one
+    // ...but what a card's properties hold comes along:
+    // `set the pile of the card to the pile` declared one
     expect(scope.types.get("Pile")).toBeDefined()
   })
 
@@ -300,8 +301,9 @@ describe("SpellDeclarations.importScope()", () => {
 })
 
 /**
- * An exclusive list type's declaration says `exclusive`;  loading it gives its item type the member naming it again,
- * e.g. `pile` on `Card` -- never written on its own.  See `P.TypeScope.declareOwnerMember()`.
+ * An exclusive list type's declaration says `exclusive`.
+ * - Loading it gives its item type the member naming it again, e.g. `pile` on `Card`:  never written on its own.
+ * - See `P.TypeScope.declareOwnerMember()`.
  */
 describe("SpellDeclarations of an exclusive list", () => {
   const library = [
@@ -351,17 +353,19 @@ describe("SpellDeclarations of an exclusive list", () => {
 
 /** A multi-word member keeps its words as written through an import, so an importer's editors show `short rank`. */
 describe("SpellDeclarations of a multi-word member", () => {
-  const library = [{ path: "/Card.spell", contents: "a card is a thing\na card has short rank as text\na card has a suit" }]
+  const library = [
+    { path: "/Card.spell", contents: "a card is a thing\na card has short rank as text\na card has a suit" }
+  ]
   const declarations = SP.SpellDeclarations.read(compiledProject(library))!
 
-  test("says its `words` when they aren't its name -- not for a one-word member", () => {
-    expect(declarations.statements.find(({ property }) => property === "short_rank")?.words).toBe("short rank")
-    expect(declarations.statements.find(({ property }) => property === "suit")?.words).toBeUndefined()
+  test("says its `asWritten` when it isn't its name -- not for a one-word member", () => {
+    expect(declarations.statements.find(({ property }) => property === "short_rank")?.asWritten).toBe("short rank")
+    expect(declarations.statements.find(({ property }) => property === "suit")?.asWritten).toBeUndefined()
   })
 
   test("loads them again", () => {
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from: "@library/c", declarations }])
     const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("short_rank", "LOCAL_ONLY")
-    expect(member?.words).toBe("short rank")
+    expect(member?.asWritten).toBe("short rank")
   })
 })

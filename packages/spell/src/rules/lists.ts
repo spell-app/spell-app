@@ -7,8 +7,10 @@
 
 import { proto, singularize } from "$/util"
 import { P } from "$/parser"
+import { SP } from "$/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
+import { Priority } from "./rules.types"
 import { SpellStatement } from "./Statement"
 import { SpellExpression, InfixOperatorSuffix, PostfixOperatorSuffix, Precedence } from "./expressions"
 
@@ -116,7 +118,7 @@ class copy_list extends SpellExpression<"expression|type?"> {
   /** The type it's copied `as`, else what it copies. */
   getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
     const { expression, type } = match.groups
-    return type ? P.typeName(`${type.value}`) : expression.datatype
+    return type ? SP.typeName(`${type.value}`) : expression.datatype
   }
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
@@ -159,7 +161,7 @@ class merge_lists extends SpellExpression<"expression|type?"> {
   /** The type it's merged `as`, else a `list`. */
   getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
     const { type } = match.groups
-    return type ? P.typeName(`${type.value}`) : "list"
+    return type ? SP.typeName(`${type.value}`) : "list"
   }
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
@@ -211,13 +213,15 @@ lists.addRule(merge_lists, {
 /**
  * Return length of a list, e.g. `number of items in my-list` => `spellCore.itemCountOf(my_list)`.
  * - `{arg}` (e.g. `items`) captured for readability only, unless there's a `where`.
- * - With `where`, counts the items which pass, as `list_filter` does:
- *   `the number of cards in the deck where its color is red` => `spellCore.itemCountOf(spellCore.filter(deck, ...))`.
- *   Its own syntax, as `cards in the deck where ...` can't be a `list_filter` here:  we've read `cards in` already.
- * - `priority: 3` -- preferred over lower-priority expression rules when tokens are ambiguous.
+ * - With `where`, counts the items which pass, as `list_filter` does,
+ *   e.g. `the number of cards in the deck where its color is red`
+ *   => `spellCore.itemCountOf(spellCore.filter(deck, ...))`
+ *   - Its own syntax, as `cards in the deck where ...` can't be a `list_filter` here:
+ *     we've read `cards in` already.
+ * - `Priority.mostSpecific` -- preferred over lower-priority expression rules when tokens are ambiguous.
  */
 class list_length extends SpellExpression<"arg|list|body?"> {
-  @proto static priority = 3
+  @proto static priority = Priority.mostSpecific
   @proto static datatype = "number"
 
   /** Nested scope for a `where` body -- singularized `{arg}` variable, also aliased from `it`. */
@@ -278,14 +282,14 @@ lists.addRule(list_length, {
 ////////////////
 
 /**
- * Length of something KNOWN to be a list, without naming its items, e.g. `the number of card suits` =>
- * `spellCore.itemCountOf(Card.Suits)`.
- * - Rejects the match unless its datatype says it's a list, or a list type, e.g. `Deck` -- else
- *   `the number of x` stays a property read, `x.number`.
- * - `priority: 3`, as `list_length`, which wins when it names the items:  it's longer.
+ * Length of something KNOWN to be a list, without naming its items,
+ * e.g. `the number of card suits` => `spellCore.itemCountOf(Card.Suits)`.
+ * - Rejects the match unless its datatype says it's a list, or a list type, e.g. `Deck`:
+ *   else `the number of x` stays a property read, `x.number`.
+ * - `Priority.mostSpecific`, as `list_length`, which wins when it names the items:  it's longer.
  */
 class list_count extends SpellExpression<"list"> {
-  @proto static priority = 3
+  @proto static priority = Priority.mostSpecific
   @proto static datatype = "number"
 
   /** Only a list -- see class docs. */
@@ -324,11 +328,11 @@ lists.addRule(list_count, {
  * Return position of an item in a list, e.g. `position of thing in my-list` => `spellCore.itemOf(my_list, thing)`.
  * - NOTE: position returned is **1-based**.
  * - Returns `undefined` if item is not found.
- * - `priority: 3` -- preferred over lower-priority expression rules when tokens are ambiguous.
+ * - `Priority.mostSpecific` -- preferred over lower-priority expression rules when tokens are ambiguous.
  * TODO: `positions`, `last position`, `after...`
  */
 class list_position extends SpellExpression<"thing|list"> {
-  @proto static priority = 3
+  @proto static priority = Priority.mostSpecific
   @proto static datatype = "number"
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
@@ -510,6 +514,43 @@ lists.addRule(ordinal, {
 })
 
 ////////////////
+// ## `ListItemExpression` base class
+//    e.g. base for the rules which pick an item out of a list (`position_expression`, `random_item_expression`)
+////////////////
+
+/**
+ * Base for rules which pick ONE item out of a list, e.g. `the first card of the deck`:  what we are is an item of it.
+ * - Notes what the list holds WHILE PARSING, into `data.itemType`, e.g. `Card` for `the deck`.
+ * - Why then:  it's a scope lookup -- a `Deck`'s item type is on its `TypeScope` -- and `getDatatype()` mustn't look.
+ */
+class ListItemExpression<Groups extends string | P.AnyGroups = P.AnyGroups> extends SpellExpression<
+  Groups,
+  ListItemData
+> {
+  /** Group holding the list, e.g. `list` in `a random {arg} of {list}`. */
+  declare listGroup: string
+  @proto static listGroup = "list"
+
+  /** Note what the list holds, while we can look it up -- see class docs. */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens)
+    const list = match?.groups[this.listGroup] as P.Match | undefined
+    if (match && list) (match.data as ListItemData).itemType = scope.getItemType(list.datatype)
+    return match
+  }
+  /** An item of the list, e.g. `Card` for `the first card of the deck`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.data.itemType
+  }
+}
+
+/** What a `ListItemExpression` stashes on its match. */
+type ListItemData = {
+  /** What the list holds, e.g. `Card`, looked up while parsing -- `undefined` if unknown. */
+  itemType?: P.Datatype
+}
+
+////////////////
 // ## `position_expression` rule
 //    e.g. "item 1 of my-list"
 ////////////////
@@ -521,17 +562,9 @@ lists.addRule(ordinal, {
  * - NOTE: positions are **1-based** while Javascript is **0-based**, e.g. `item 1 of the array` => `array[0]`.
  * - Compiles to `spellCore.getItemOf(list, position)`.
  */
-class position_expression extends SpellExpression<"arg|position|expression", ListItemData> {
-  /** Note the item type of the list, while we can look it up -- see `noteItemType()`. */
-  parse(scope: P.Scope, tokens: P.Token[]) {
-    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
-    if (match) noteItemType(match, match.groups.expression)
-    return match
-  }
-  /** An item of the list. */
-  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
-    return match.data.itemType
-  }
+class position_expression extends ListItemExpression<"arg|position|expression"> {
+  @proto static listGroup = "expression"
+
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { position, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -569,17 +602,9 @@ lists.addRule(position_expression, {
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Shares same `getItemOf` compile target as `position_expression`, with `{ordinal}` resolved to a number.
  */
-class ordinal_position_expression extends SpellExpression<"ordinal|arg|expression", ListItemData> {
-  /** Note the item type of the list, while we can look it up -- see `noteItemType()`. */
-  parse(scope: P.Scope, tokens: P.Token[]) {
-    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
-    if (match) noteItemType(match, match.groups.expression)
-    return match
-  }
-  /** An item of the list, e.g. `Card` for `the first card of the deck`. */
-  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
-    return match.data.itemType
-  }
+class ordinal_position_expression extends ListItemExpression<"ordinal|arg|expression"> {
+  @proto static listGroup = "expression"
+
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { ordinal, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -617,17 +642,7 @@ lists.addRule(ordinal_position_expression, {
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Compiles to `spellCore.randomItemOf(list)`.
  */
-class random_item_expression extends SpellExpression<"arg|list", ListItemData> {
-  /** Note the item type of the list, while we can look it up -- see `noteItemType()`. */
-  parse(scope: P.Scope, tokens: P.Token[]) {
-    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
-    if (match) noteItemType(match, match.groups.list)
-    return match
-  }
-  /** An item of the list. */
-  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
-    return match.data.itemType
-  }
+class random_item_expression extends ListItemExpression<"arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -845,11 +860,11 @@ lists.addRule(range_count_expression, {
  * - Trailing `where` expects an inline expression as filter body (`{inline_expression}?`),
  *   parsed in a nested `MethodScope` where singularized `{arg}` (e.g. `word`
  *   for `words`) and `it` both map to current item.
- * - `priority: 2` -- preferred over lower-priority expression rules when tokens are ambiguous.
+ * - `Priority.specific` -- preferred over lower-priority expression rules when tokens are ambiguous.
  * - Compiles to `spellCore.filter(list, (item) => { ... })`.
  */
 class list_filter extends SpellExpression<"arg|list|body?"> {
-  @proto static priority = 2
+  @proto static priority = Priority.specific
 
   /** Nested scope for filter body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
@@ -1601,8 +1616,8 @@ class list_iteration extends SpellStatement<"item|position?|list|body?"> {
 
   /**
    * Nested scope for body -- `{item}` (and optional numeric `{position}`) vars, `it` aliased to `{item}`.
-   * - `{item}` and `it` are what the list holds, e.g. `Card` for `for each card in the deck` -- looked up now,
-   *   while parsing:  a body parses in this scope.
+   * - `{item}` and `it` are what the list holds, e.g. `Card` for `for each card in the deck`.
+   * - Looked up now, while parsing:  a body parses in this scope.
    */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const { item, position, list } = match.groups
@@ -1796,10 +1811,10 @@ type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 ////////////////
 
 /**
- * Nested scope for `match`'s `where` clause's predicate:  singularized `arg` is the current item, also aliased
- * from `it`, e.g. `word` for `words in my-list where word starts with "a"`.
- * - Both are what `list` holds, if we can tell, e.g. `Card` for `the cards in the deck where ...` -- looked up
- *   now, while parsing:  the predicate parses in this scope.
+ * Nested scope for `match`'s `where` clause's predicate:  singularized `arg` is the current item,
+ * also aliased from `it`, e.g. `word` for `words in my-list where word starts with "a"`.
+ * - Both are what `list` holds, if we can tell, e.g. `Card` for `the cards in the deck where ...`
+ * - Looked up now, while parsing:  the predicate parses in this scope.
  */
 function getWhereScope(match: P.Match, arg: P.Match, list: P.Match | undefined): P.MethodScope {
   const name = singularize(arg.value)
@@ -1820,23 +1835,4 @@ function getWhereMethod(match: P.Match, arg: P.Match, body: P.Match | undefined)
     args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value) })],
     body: P.matchAST(body)
   })
-}
-
-////////////////
-// ## Item types
-//    shared by the rules which pick an item out of a list, e.g. `ordinal_position_expression`
-////////////////
-
-/** What a rule picking an item out of a list stashes on its match. */
-type ListItemData = {
-  /** What the list holds, e.g. `Card` -- looked up while parsing, see `noteItemType()`.  `undefined` if unknown. */
-  itemType?: P.Datatype
-}
-
-/**
- * Note on `match`, WHILE PARSING, what `list` holds -- its `data.itemType`, e.g. `Card` for `the deck`.
- * - Why now:  it's a scope lookup -- a `Deck`'s item type is on its `TypeScope` -- and `getDatatype()` mustn't look.
- */
-function noteItemType(match: P.Match<P.AnyGroups, ListItemData>, list: P.Match): void {
-  match.data.itemType = match.scope.getItemType(list.datatype)
 }

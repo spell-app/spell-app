@@ -52,8 +52,8 @@ export class Sequence<
   }
 
   /**
-   * Match our `rules` from the `index`th on, at `start` of `tokens`, after `matched` -- the body of `parse()`,
-   *   a method of its own so `giveBack()` can resume it.
+   * Match our `rules` from the `index`th on, at `start` of `tokens`, after `matched`.
+   * - The body of `parse()`, a method of its own so `giveBack()` can resume it.
    */
   private parseFrom(
     scope: P.Scope,
@@ -108,13 +108,13 @@ export class Sequence<
   }
 
   /**
-   * Our `index`th rule, a required word, failed right after a `{slot}` -- maybe because the slot took it, e.g. `of`
-   *   in `remove the card of the pile` for `remove {thisArg:expression} of {callArgs:expression}`.  Re-parse the slot
-   *   on tokens ending just before each place the word is, LAST first, and go on from there.
+   * Our `index`th rule, a required word, failed right after a `{slot}` -- maybe because the slot took it,
+   * e.g. `of` in `remove the card of the pile` for `remove {thisArg:expression} of {callArgs:expression}`.
+   * - Re-parse the slot on tokens ending just before each place the word is, LAST first, and go on from there.
    * - Only on the way to failing:  whatever parsed before still parses the same.
    * - Only a required `{slot}` straight before a required word -- so `matched`'s last match is the slot's.
-   * - NEVER in expecting mode (`parseFrom()` doesn't call us):  a cut-short slot would record that it ran out of
-   *   tokens, and completion would offer what can't come next.
+   * - NEVER in expecting mode (`parseFrom()` doesn't call us):
+   *   a cut-short slot would record that it ran out of tokens, and completion would offer what can't come next.
    */
   private giveBack(
     scope: P.Scope,

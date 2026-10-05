@@ -83,8 +83,8 @@ export class ScopeExplorer {
 
   /**
    * Pack of spell's built-in types, e.g. `Thing` and `List`, from `SP.BUILT_IN_TYPE_TABLE` -- see `LSP.ScopePack`.
-   * - What `yarn scopes --builtins` writes to `core`'s `src/spellCore.scopes.js`, for pages with no parser:  that
-   *   file is GENERATED, so its docs live in the table.
+   * - What `yarn scopes --builtins` writes to `core`'s `src/spellCore.scopes.js`, for pages with no parser.
+   * - That file is GENERATED, so its docs live in the table.
    */
   exportBuiltIns(): LSP.ScopePack {
     const tree = this.newTree([])
@@ -172,11 +172,12 @@ export class ScopeExplorer {
   }
 
   /**
-   * Built-in types a Type Explorer lists, from the root scope:  those in `SP.BUILT_IN_TYPE_TABLE`, in its order, then
-   * any other spell class (`SPELL_CLASSES`), bare.
+   * Built-in types a Type Explorer lists, from the root scope:
+   * - those in `SP.BUILT_IN_TYPE_TABLE`, in its order
+   * - then any other spell class (`SPELL_CLASSES`), bare
    * - NOT the rest of its root types, e.g. javascript's `Object`, which spell knows by name but isn't a spell class,
-   *   or `integer`, which has no members of its own.  A project's type made from one says so in its `detail`
-   *   instead, e.g. `is a Object`.
+   *   or `integer`, which has no members of its own.
+   * - A project's type made from one says so in its `detail` instead, e.g. `is a Object`.
    */
   private static builtInTypes(): P.TypeScope[] {
     const { types } = SP.SpellParser.rootScope
@@ -186,8 +187,9 @@ export class ScopeExplorer {
   }
 
   /**
-   * Entries for spell's built-in types -- see `builtInTypes()` -- each followed by its members, from its
-   * `SP.BUILT_IN_TYPE_TABLE` entry, with their docs and the built-in rules which spell them.
+   * Entries for spell's built-in types -- see `builtInTypes()`.
+   * - Each followed by its members, from its `SP.BUILT_IN_TYPE_TABLE` entry,
+   *   with their docs and the built-in rules which spell them.
    * - Why the table:  the types are javascript, so there's no spell to find their docs in.
    * - A type with no entry shows bare, as its scope has it.
    */
@@ -221,14 +223,14 @@ export class ScopeExplorer {
   }
 
   /** Details of a built-in type or member, from its table entry:  its docs, and the rules which spell it. */
-  private static builtInDetails({ doc, rules }: { doc?: string; rules?: string[] }): LSP.ScopeDetails {
+  private static builtInDetails({ docstring, rules }: { docstring?: string; rules?: string[] }): LSP.ScopeDetails {
     const syntaxes = ScopeExplorer.builtInRules(rules ?? [])
-    return { ...(doc ? { description: doc } : {}), ...(syntaxes.length ? { rules: syntaxes } : {}) }
+    return { ...(docstring ? { description: docstring } : {}), ...(syntaxes.length ? { rules: syntaxes } : {}) }
   }
 
   /**
-   * Built-in rules `names`, each syntax it was registered with, e.g. two for `create_list_type` -- from the live
-   * grammar, so they never go stale.
+   * Built-in rules `names`, each syntax it was registered with, e.g. two for `create_list_type`.
+   * - From the live grammar, so they never go stale.
    */
   private static builtInRules(names: string[]): Array<{ name: string; syntax: string }> {
     return names.flatMap((name) => {

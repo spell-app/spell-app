@@ -6,8 +6,9 @@ import { SP } from "$/spell"
 import { parseSpellProject } from "$/spell/test"
 
 /**
- * Exclusive lists END TO END:  spell compiled, then RUN on `core`'s source -- what `a pile is an exclusive list of
- * cards` does to a running program (plan doc D7, D8 of precedence-and-types).
+ * Exclusive lists END TO END:  spell compiled, then RUN on `core`'s source.
+ * - What `a pile is an exclusive list of cards` does to a running program
+ *   (plan doc D7, D8 of precedence-and-types).
  * - The runtime alone is `core`'s `src/classes/List.test.ts`;  the parse alone, `grammar.probes.test.ts` (`X1` ...).
  */
 describe("exclusive lists, compiled and run", () => {
@@ -76,8 +77,9 @@ describe("exclusive lists, compiled and run", () => {
 })
 
 /**
- * `lines`, one project file, parsed + compiled as a project is -- then a function running the compiled code on
- * `core`'s source, returning the top-level variables `names` lists, e.g. `"deck, card"`.
+ * `lines`, one project file, parsed + compiled as a project is.
+ * - Returns a function running the compiled code on `core`'s source,
+ *   returning the top-level variables `names` lists, e.g. `"deck, card"`.
  * - Fails on any parse error:  these programs MUST parse.
  */
 function runSpell(lines: string[]) {

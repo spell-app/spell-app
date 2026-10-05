@@ -212,10 +212,15 @@ export class Match<
    * - Rules which need a scope lookup for it do that WHILE PARSING, into `data` -- see `P.Rule.getDatatype()`.
    */
   get datatype(): P.Datatype | undefined {
+    // NOTE: memoize "unknown" as `null`:  `?? undefined` here would ask `getDatatype()` again on every read
     if (this._datatype === undefined) this._datatype = this.rule.getDatatype(this) ?? null
     return this._datatype ?? undefined
   }
-  /** Backing field for `datatype`:  `undefined` not worked out yet, `null` unknown. */
+  /**
+   * Memo for `datatype`:
+   * - `undefined`:  not worked out yet
+   * - `null`:  worked out, and unknown
+   */
   declare private _datatype: P.Datatype | null | undefined
 
   ////////////////////

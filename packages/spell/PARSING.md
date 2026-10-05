@@ -31,15 +31,16 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - A rule is `test()` (cheap "could this match at `start`?") plus `parse()` (build a `Match` or `undefined`).
 - `Choice.parse()` (`packages/parser/src/rules/Choice.ts`) calls `parse()` on EVERY alternative, then `getBestMatch()`:
   - highest `priority`, then longest match, then EARLIEST rule
-  - `priority` answers ONLY "several rules match the SAME words:  which wins?" (`Rule.priority`, default 0);  how
-    tightly an operator binds is spell's `precedence` (see "Expressions")
+  - `priority` answers ONLY "several rules match the SAME words:  which wins?" (`Rule.priority`, default 0)
+  - how tightly an operator binds is spell's `precedence` (see "Expressions")
 - `Sequence.parse()` (`packages/parser/src/rules/Sequence.ts`) first runs `Sequence.test()`:
   - fixed words / symbols / patterns are checked where they must fall, subrules are skipped
   - rejects ~92% of attempts before any child parses
   - then each child is parsed at the head of the remaining tokens
-  - GIVE-BACK:  a required word failing right after a required `{slot}` re-parses the slot shorter, cut just before
-    each place the word is (last first), and goes on from there -- e.g. `remove the card of the pile` for
-    `remove {thisArg:expression} of {callArgs:expression}`.  Only on the way to failing, NEVER in expecting mode.
+  - GIVE-BACK:  a required word failing right after a required `{slot}` re-parses the slot shorter,
+    cut just before each place the word is (last first), and goes on from there,
+    e.g. `remove the card of the pile` for `remove {thisArg:expression} of {callArgs:expression}`
+    - only on the way to failing, NEVER in expecting mode
 - `Subrule` looks its rule up BY NAME through `scope.getRuleOrDie()` at call time, so rules added mid-parse
   are visible to later lines.
 - `Literal` / `Literals` / `Pattern` / `TokenType` compare single tokens with `===` / regex -- cheap.
@@ -53,12 +54,14 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - rulex sets it from how the syntax is spaced:  parts written touching must touch (`isn't`, `\[{x}\]`),
     spaced ones may space;  `{space}` / `{spaces}` set the next part's;  a symbol touching its flag repeats as
     a run (`#+`).  See `packages/docs/content/rulex/rulex.html`.
-- Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-10-04, after P3 of precedence-and-types
-  halved it):  Card.spell (121 lines) ~12ms, Solitaire.spell (259 lines) ~32ms, whole Solitaire project ~55ms;
-  ~60ms after P5 (typed calls, return types), ~59ms after P6 (members), 57.4ms after P8 (exclusive lists:  no change).
-  Compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
-  `parser.rules` rebuilds after mid-parse `addRule()`s:  35 per project parse (38 before P6:  no rule per enumeration),
-  ~1ms total -- not worth optimizing.
+- Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-10-04,
+  after P3 of precedence-and-types halved it):
+  - Card.spell (121 lines) ~12ms, Solitaire.spell (259 lines) ~32ms, whole Solitaire project ~55ms
+  - whole project ~60ms after P5 (typed calls, return types), ~59ms after P6 (members),
+    57.4ms after P8 (exclusive lists:  no change)
+  - compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
+  - `parser.rules` rebuilds after mid-parse `addRule()`s:  35 per project parse
+    (38 before P6:  no rule per enumeration), ~1ms total -- not worth optimizing
 - "What can come NEXT?" -- `parser.expectedAfter(input, ruleName, scope)` parses a half-typed line in
   EXPECTING mode (`P.Expectations`), for editor completion:
   - rules record what they were waiting for where they ran out of tokens:  `Sequence` the child it hadn't got to
@@ -75,183 +78,231 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 ## Expressions
 
-- `expression` is ONE rule, `compound_expression` (`packages/spell/src/rules/expressions.ts`):  `{lhs:operand}
-  {rhsChain:expression_suffix}*` -- an `operand`, then each `expression_suffix` binding tighter than its `bound`
-  (0:  all).  No suffix => the operand's own match, as is, so `match.is(known_variable)` still works.
-- An `operand` is what an operator acts on:  one expression with no operator at its TOP -- `5`, `the deck`,
-  `the first card of the deck` (it nests), `(x + 1)`, `the cards in the deck where ...`.  Every rule aliased
-  `expression` other than `compound_expression` is registered as `operand` instead -- `SpellParser.getNamesForRule()`.
-  - That also throws for an operand whose syntax STARTS with an expression:  it would recurse forever.  Something
-    after an expression is an `expression_suffix`, e.g. `list_membership_test`.
+- `expression` is ONE rule, `compound_expression` (`packages/spell/src/rules/expressions.ts`):
+  `{lhs:operand} {rhsChain:expression_suffix}*`
+  - an `operand`, then each `expression_suffix` binding tighter than its `bound` (0:  all)
+  - no suffix => the operand's own match, as is, so `match.is(known_variable)` still works
+- An `operand` is what an operator acts on:  one expression with no operator at its TOP,
+  e.g. `5`, `the deck`, `the first card of the deck` (it nests), `(x + 1)`, `the cards in the deck where ...`
+  - every rule aliased `expression` other than `compound_expression` is registered as `operand` instead:
+    `SpellParser.getNamesForRule()`
+  - that also throws for an operand whose syntax STARTS with an expression:  it would recurse forever.
+    Something after an expression is an `expression_suffix`, e.g. `list_membership_test`.
 - Three slot kinds:
-  - `{x:expression}` -- everything:  statements, slots closed by a word (`position of {x} in`), method-call arguments
-    (but see "a statement and an operand" below)
+  - `{x:expression}` -- everything:  statements, slots closed by a word (`position of {x} in`),
+    method-call arguments (but see "a statement and an operand" below)
   - `{x:arithmetic_expression}` -- `+ - * /` only, stops before a comparison:  `absolute value`, `round`
     (bound `Precedence.takesSum`)
   - `{x:operand}` -- a prefix's LAST slot (`the first card of {list:operand}`), and every suffix's right side
-- `precedence` -- how tightly an operator binds -- is set on suffix rules ONLY (`InfixOperatorSuffix` /
-  `PostfixOperatorSuffix`), from the `Precedence` table:  `*` before `+` before `is` before `and` before `or`.
+- `precedence` -- how tightly an operator binds -- is set on suffix rules ONLY
+  (`InfixOperatorSuffix` / `PostfixOperatorSuffix`), from the `Precedence` table:
+  `*` before `+` before `is` before `and` before `or`.
   - The constructor throws without one:  a silent default is how `ends with` went wrong.
   - Read ONLY by the loop:  it stops at its `bound`, and `getAST()`'s shunting-yard groups the flat chain by it.
     A postfix pops like an infix, so `x + y is empty` => `isEmpty(x + y)`.
-  - NOT `priority`, which only breaks a `Choice`'s tie (see "Rules and matching") -- e.g. a user's quoted alias
-    (priority 20) beats a built-in suffix matching the same words.
+  - NOT `priority`, which only breaks a `Choice`'s tie (see "Rules and matching"),
+    e.g. a user's quoted alias (`Priority.userDeclared`) beats a built-in suffix matching the same words.
 - A statement and an operand:  a rule aliased both `statement` and `expression` that says
-  `@proto static operandInExpressions = true` (`SpellStatement`) is registered TWICE by `SpellParser.addRule()`
-  (`addStatementAndOperand()`):  as the statement, its syntax as is, and as an `operand`, a twin whose LAST
-  `{x:expression}` slot is `{x:operand}`, its `statementRule` pointing back.  Method calls and `wait for` do:
-  - statement `notify x + y` => `notify(x + y)`;  `if double x is 4` => `double(x) == 4`
-  - statement `wait for x is 1` => `await (x == 1)`;  `if wait for x is 1` => `await x == 1`
-  - `scope.addRule()` records only the statement rule, so a project's declarations write ONE rule;  loading it
-    registers both again.  Editors map a twin back with `SpellStatement.statementRuleOf()`.
+  `@proto static operandInExpressions = true` (`SpellStatement`)
+  is registered TWICE by `SpellParser.addRule()` (`addStatementAndOperand()`):
+  - as the statement, its syntax as is
+  - as an `operand`, a twin whose LAST `{x:expression}` slot is `{x:operand}`, its `statementRule` pointing back
+  - method calls and `wait for` do:
+    - statement `notify x + y` => `notify(x + y)`;  `if double x is 4` => `double(x) == 4`
+    - statement `wait for x is 1` => `await (x == 1)`;  `if wait for x is 1` => `await x == 1`
+  - `scope.addRule()` records only the statement rule, so a project's declarations write ONE rule;
+    loading it registers both again.  Editors map a twin back with `SpellStatement.statementRuleOf()`.
 - Give-back (`Sequence`, see "Rules and matching") lets a full `{x:expression}` slot before a word work:
   `remove {thisArg:expression} of {callArgs:expression}` on `remove the card of the pile`.
-- Expecting mode:  out of tokens after the operand or a suffix, the loop records `expression_suffix` as only
-  CONTINUING it -- what the old `expression` Choice worked out.
-- `expressions.test.ts` "priority and precedence" snapshots every built-in rule's non-default `priority` and every
-  suffix's `precedence`.
+- Expecting mode:  out of tokens after the operand or a suffix, the loop records `expression_suffix`
+  as only CONTINUING it -- what the old `expression` Choice worked out.
+- `expressions.test.ts` "priority and precedence" snapshots every built-in rule's non-default `priority`
+  and every suffix's `precedence`.
 
 ## Datatypes:  what an expression IS
 
-- `match.datatype` -- in spell's words (`P.Datatype`, `packages/parser/src/parser.types.ts`):  `text`, `number`,
-  `integer`, `character`, `choice`, `date`, `list`, `thing`, `app`, `nothing`, `list of cards`, and a user's type by
-  its `TypeScope` name, `Card`.  `undefined` ~== unknown, compatible with everything:  nothing stops parsing for it.
-- ONE normaliser, `P.typeName()`:  what a user WRITES (`string`, `boolean`, `yes or no`, `array`, `fraction`, `char`,
-  plurals) => those words.  `SpellType.mapValue()` uses it too, keeping classes Type_Case for compiled code (`List`).
-- `match.datatype` memoizes `rule.getDatatype(match)` -- default the rule's `@proto static datatype`;  about a dozen
-  rules override it, reading ONLY `match.data` and child matches' datatypes:
-  - `variable` / `SpellIdentifier`:  its `scopeVar`'s `datatype`;  a member read (`the X of Y`, `its X`, see
-    "Members"):  the member it read (`data.member`) -- a built-in's from its table entry, e.g. `the length of the
-    name` is a `number` -- an enumeration's values `list`;  `DynamicMethodRule`:  its
-    method record's `returns` (`data.method`), which the parser infers -- see "Return types" below
-  - `new_thing` / `create_thing` / `new_list`:  the type made;  list rules:  the item type (`data.itemType`), the
-    list's type, or `number`
-  - `compound_expression`:  `getAST()`'s shunting-yard again, over datatypes -- each suffix's
-    `getResultDatatype(match, lhs, rhs)`, default its `datatype`, which is `choice` for every suffix but `+ - * /`
-    (`number`;  `+` of text is `text`), `as upper case` (`text`), `as a <type>`, `X if C otherwise Y`
+- `match.datatype` -- in spell's words (`P.Datatype`, `packages/parser/src/parser.types.ts`):
+  - `text`, `number`, `integer`, `character`, `choice`, `date`, `list`, `thing`, `app`, `nothing`, `list of cards`
+  - and a user's type by its `TypeScope` name, `Card`
+  - `undefined` ~== unknown, compatible with everything:  nothing stops parsing for it
+- ONE normaliser, `SP.typeName()`:  what a user WRITES => those words,
+  e.g. `string`, `boolean`, `yes or no`, `array`, `fraction`, `char`, plurals.
+  - `SpellType.mapValue()` uses it too, keeping classes Type_Case for compiled code (`List`).
+  - The vocabulary is spell's, `SP.TYPE_WORDS` (`builtinTypes.ts`), handed to the parser's `P.typeName()`:
+    the parser knows only each datatype's own name, so a translation brings its own words.
+- `match.datatype` memoizes `rule.getDatatype(match)`, default the rule's `@proto static datatype`.
+  About a dozen rules override it, reading ONLY `match.data` and child matches' datatypes:
+  - `variable` / `SpellIdentifier`:  its `scopeVar`'s `datatype`
+  - a member read (`the X of Y`, `its X`, see "Members"):  the member it read (`data.member`)
+    - a built-in's from its table entry, e.g. `the length of the name` is a `number`
+    - an enumeration's values:  `list`
+  - `DynamicMethodRule`:  its method record's `returns` (`data.method`), which the parser infers --
+    see "Return types" below
+  - `new_thing` / `create_thing` / `new_list`:  the type made
+  - list rules:  the item type (`data.itemType`), the list's type, or `number`
+  - `compound_expression`:  `getAST()`'s shunting-yard again, over datatypes --
+    each suffix's `getResultDatatype(match, lhs, rhs)`, default its `datatype`:
+    - `choice` for every suffix but the ones below
+    - `+ - * /`:  `number`;  `+` of text is `text`
+    - `as upper case`:  `text`
+    - `as a <type>`, `X if C otherwise Y`
   - `parenthesized_expression`:  what's inside
-- A rule needing a LOOKUP for it (a member of a type, a list type's item type, a method's record) does it in
-  `parse()`, into `match.data` -- `scope.getType(datatype)`, `scope.getItemType(datatype)`,
-  `TypeScope.getMember(words)` -- never in `getDatatype()`, which may run later.
+- A rule needing a LOOKUP for it (a member of a type, a list type's item type, a method's record)
+  does it in `parse()`, into `match.data`:
+  - `scope.getType(datatype)`, `scope.getItemType(datatype)`, `TypeScope.getMember(words)`
+  - never in `getDatatype()`, which may run later
 - Sinks -- where a datatype is kept, so later lines know it:
   - a new variable from `set` / `X is Y` / `get` (and its `it`):  the value's datatype, on its `ScopeVariable`
-  - method arguments `(a card)` / `(x as text)`;  `this` / `it` in a method or getter, as its owner type
-    (`MethodScope.itDatatype`);  a loop's item and `it`, and a `where`'s, as the list's item type;
-    `on ... with a card`'s `card`
+  - method arguments `(a card)` / `(x as text)`
+  - `this` / `it` in a method or getter, as its owner type (`MethodScope.itDatatype`)
+  - a loop's item and `it`, and a `where`'s, as the list's item type
+  - `on ... with a card`'s `card`
   - `a deck is a list of cards`:  `Card`, as the `Deck` `TypeScope`'s `itemType`
-- First datatype wins:  a record's datatype is set when it's declared, never widened.  The one exception:  a getter's
-  property, and a method's `returns`, are set once the BODY has parsed -- see "Return types".
-- Return types:  `commitStatement()` runs `rule.mutateScopeAfterBody()` once a statement's body has parsed (inline or
-  nested).  `MethodDefinition` sets its record's `returns`, `property_value_getter` its property's `datatype` (if it
-  declared it, and nothing gave it one), each journaled (`P.ParseJournal.assign()`), from
-  `SpellStatement.getReturnedDatatype()`:
-  - an inline EXPRESSION body (`the value of a card is its rank`):  that expression's datatype
-  - else every `return` in the body (`getReturned()`, `return_statement`'s), inside `if`s too, but NOT in a body
-    with a `MethodScope` of its own, e.g. a loop's -- that compiles to a callback.  All the same => that;  none, or
-    a mix => unknown.  A bare `return` is `nothing`.
-  - a call's datatype reads it lazily:  `data.method.returns`.  A recursive call, parsed before its body ends, is
-    unknown.
-- Typed calls:  a call rule (`DynamicMethodRule`, `MethodInfixRule`) is `specialize()`d with its method's owner `of`
-  and `params`, as statics `thisType` / `paramTypes`.  Its `parse()` rejects a match whose argument's datatype is
-  KNOWN and can't be the parameter's (`scope.couldBeA()`:  neither is the other or a sub-type of it, no stubs) --
-  `put the chip on the pot` finds Chip's `put`, `add the card to the deck` falls past a user's
-  `to add a card to a pile` to the built-in `spellCore.append(deck, card)`.  Unknown always fits.
-  - `MethodInfixRule` checks only its right side:  a suffix can't see its left while parsing.  A `MethodPostfixRule`
-    checks nothing.
-  - Declarations need nothing new:  `of` / `params` are the method record's, in the same comment;  loading hands
-    `specialize()` the whole of it.
+- First datatype wins:  a record's datatype is set when it's declared, never widened.
+  - The one exception:  a getter's property, and a method's `returns`, are set once the BODY has parsed --
+    see "Return types".
+- Return types:  `commitStatement()` runs `rule.mutateScopeFromBody()` once a statement's body has parsed
+  (inline or nested).
+  - `MethodDefinition` sets its record's `returns`;  `property_value_getter` its property's `datatype`
+    (if it declared it, and nothing gave it one)
+  - each journaled (`P.ParseJournal.assign()`), from `SpellStatement.getReturnedDatatype()`:
+    - an inline EXPRESSION body (`the value of a card is its rank`):  that expression's datatype
+    - else every `return` in the body (`getReturnValue()`, `return_statement`'s), inside `if`s too,
+      but NOT in a body with a `MethodScope` of its own, e.g. a loop's:  that compiles to a callback.
+      All the same => that;  none, or a mix => unknown.  A bare `return` is `nothing`.
+  - a call's datatype reads it lazily:  `data.method.returns`
+    - a recursive call, parsed before its body ends, is unknown
+- Typed calls:  a call rule (`DynamicMethodRule`, `MethodInfixRule`) is `specialize()`d
+  with its method's owner `of` and `params`, as statics `thisType` / `paramTypes`.
+  - Its `parse()` rejects a match whose argument's datatype is KNOWN and can't be the parameter's
+    (`scope.couldBeA()`:  neither is the other or a sub-type of it, no stubs).  Unknown always fits.
+    - `put the chip on the pot` finds Chip's `put`
+    - `add the card to the deck` falls past a user's `to add a card to a pile`
+      to the built-in `spellCore.append(deck, card)`
+  - `MethodInfixRule` checks only its right side:  a suffix can't see its left while parsing.
+    A `MethodPostfixRule` checks nothing.
+  - Declarations need nothing new:  `of` / `params` are the method record's, in the same comment;
+    loading hands `specialize()` the whole of it.
 - Probe ledger (`src/grammar.probes.test.ts`), "datatypes":  what a set of expressions and sinks are.
 
 ## Adding an expression rule
 
-- An OPERAND stands alone:  a literal, `the X of Y`, `the first card of ...`.  `extends SpellExpression` (alias
-  `expression`, registered as `operand`).
+- An OPERAND stands alone:  a literal, `the X of Y`, `the first card of ...`.
+  `extends SpellExpression` (alias `expression`, registered as `operand`).
   - A slot at its END takes `{name:operand}`:  `the first card of {list:operand}` stops before any operator.
   - Math that should take a sum (`the absolute value of x + 1`):  `{name:arithmetic_expression}`.
   - A slot closed by a required word (`of`, `in`, `to`) stays `{name:expression}`, like a paren.
-- An OPERATOR follows an expression:  `extends InfixOperatorSuffix` (`x OP y`) or `PostfixOperatorSuffix`
-  (`x is empty`).  Its right side is `{expression:operand}`.  MUST set `@proto static precedence` from `Precedence`
-  (the constructor throws without it);  build output in `compileASTExpression()`.  Not a test?  Set its
-  `datatype` (default `choice`), or override `getResultDatatype()`.
-- `priority` only settles a tie between rules matching the SAME words.  Leave it unset unless a probe shows a
-  tie going wrong;  then set it, with a one-line why.
-- Always NAME a slot, so `match.groups` keeps its key.  Add one mixed-operator line to the probe ledger,
-  `src/grammar.probes.test.ts`.
+- An OPERATOR follows an expression:  `extends InfixOperatorSuffix` (`x OP y`)
+  or `PostfixOperatorSuffix` (`x is empty`).
+  - Its right side is `{expression:operand}`.
+  - MUST set `@proto static precedence` from `Precedence` (the constructor throws without it).
+  - Build output in `compileASTExpression()`.
+  - Not a test?  Set its `datatype` (default `choice`), or override `getResultDatatype()`.
+- `priority` only settles a tie between rules matching the SAME words.
+  - Leave it unset unless a probe shows a tie going wrong;
+    then set it from the `Priority` table (`src/rules/rules.types.ts`), with a one-line why.
+- Always NAME a slot, so `match.groups` keeps its key.
+- Add one mixed-operator line to the probe ledger, `src/grammar.probes.test.ts`.
 
 ## Members:  `the short rank of the card`
 
-- A member's NAME is `member_words` (`properties.ts`):  1..N words up to the first structural one (`MEMBER_STOP_WORDS`:
-  `of the a an is has have in to and or if where as with whose for from then else otherwise not ...`) -- NOT the
-  identifier blacklist, so `short` is fine.  `value` is its compiled name, `short_rank`;  `raw` its words, `short rank`.
-  Either spelling, or `short-rank`, finds the same record:  scope lists normalize keys (`snakeCase`).
-- Declarations take `{property:member_words}` (group name kept):  `the short rank of a card is:`, `a card has short
-  rank as text` (article optional), `a cards color is`, `its {property}` in a quoted formula, object literals.  Each
-  records the property with `TypeScope.declareProperty(name, declaredBy, { words, datatype, auto })`.
+- A member's NAME is `member_words` (`properties.ts`):  1..N words up to the first structural one.
+  - `MEMBER_STOP_WORDS`:
+    `of the a an is has have in to and or if where as with whose for from then else otherwise not ...`
+  - NOT the identifier blacklist, so `short` is fine.
+  - `value` is its compiled name, `short_rank`;  `raw` its words, `short rank`.
+  - Either spelling, or `short-rank`, finds the same record:  scope lists normalize keys (`snakeCase`).
+- Declarations take `{property:member_words}` (group name kept):
+  - `the short rank of a card is:`
+  - `a card has short rank as text` (article optional)
+  - `a cards color is`
+  - `its {property}` in a quoted formula
+  - object literals
+  - each records the property with `TypeScope.declareProperty(name, declaredBy, { words, datatype, auto })`
 - Reads come two ways (plan doc D5), worked out in `parse()`:
-  - RESOLVED:  the words name a PROPERTY the type of what's read declares (`getMember()`, up its super-types).  An
-    enumeration's instance twin compiles to its class variable:  `the suits of the card` => `Card.Suits`.
-  - LOOSE:  ONE word, blacklisted words out, which nothing need declare:  `the is-set-up of it`.  Several undeclared
-    words are NOT a property read, so `the first card of the deck` stays the ordinal rule's.
-  - `the X of Y` is ONE rule doing both, `property_expression` (`the {property:member_words} of
-    {expression:operand}`):  two would parse every operand twice.  `priority: 1`:  a declared `last card` beats the
-    ordinal `the last card of` -- but NOT `the position of` / `the number of` (priority 3).
-  - `its X` is two:  `its_known_property` (resolved, priority 1) takes the LONGEST run `it`'s type declares
-    (`declaredPrefix()`, re-parsing with fewer tokens), e.g. `its short rank + its short suit`;  `its_property` the
-    loose word, at priority 0 so `its last card` stays `its_ordinal`'s.
+  - RESOLVED:  the words name a PROPERTY the type of what's read declares (`getMember()`, up its super-types).
+    An enumeration's instance twin compiles to its class variable:  `the suits of the card` => `Card.Suits`.
+  - LOOSE:  ONE word, blacklisted words out, which nothing need declare:  `the is-set-up of it`.
+    Several undeclared words are NOT a property read, so `the first card of the deck` stays the ordinal rule's.
+  - `the X of Y` is ONE rule doing both, `property_expression` (`the {property:member_words} of {expression:operand}`):
+    two would parse every operand twice.
+    - `Priority.preferred`:  a declared `last card` beats the ordinal `the last card of`
+    - but NOT `the position of` / `the number of` (`Priority.mostSpecific`)
+  - `its X` is two:
+    - `its_known_property` (resolved, `Priority.preferred`) takes the LONGEST run `it`'s type declares
+      (`declaredPrefix()` in `rules.types.ts`, re-parsing with fewer tokens),
+      e.g. `its short rank + its short suit`
+    - `its_property` the loose word, at `Priority.normal`, so `its last card` stays `its_ordinal`'s
 - A type's class members:  ONE static rule, `class_member` (`classes.ts`), `{type:known_type} {member:member_words}`
-  -- the longest run that's a class variable of the type, e.g. `card suits includes x` => `Card.Suits`.  Was a rule
-  per enumeration (`EnumerationRule`).  `the number of card suits` counts:  `list_count` takes any operand whose
-  datatype is a list.
+  - the longest run that's a class variable of the type, e.g. `card suits includes x` => `Card.Suits`
+  - was a rule per enumeration (`EnumerationRule`)
+  - `the number of card suits` counts:  `list_count` takes any operand whose datatype is a list
 
 ## Built-in types:  `the length of the name`
 
-- `SP.BUILT_IN_TYPE_TABLE` (`src/builtinTypes.ts`) -- DATA, one entry per built-in type with anything to say
-  (`thing`, `list`, `app`, `text`, `date`):  its docs, `itemType` (`text` holds `character`s), and `members`
-  (`SP.BuiltInMember`).  Not a `.spell` file, not statics on runtime classes (plan doc D25).  A type's NAME and
-  super-type stay `P.BUILT_IN_TYPES`' -- the parser's vocabulary;  the entry's `superType` must agree (a test checks).
-- `SpellParser.rootScope` loads it (`loadBuiltInTypes()`) into the root's `TypeScope`s:  each `itemType`, and each
-  member with a `compile` template as a `P.ScopeVariable` holding it (`compile`, `doc`).  So member reads resolve it
-  like any declared property (see "Members"), up the super-type chain:  a `Deck` finds `List`'s `length`.
-- `compile` is how a read compiles, `{it}` what it's read from -- ONE of three forms (`parseCompileTemplate()`):
-  `{it}.length`, `{it}.getFullYear()`, `spellCore.itemCountOf({it})`.  `memberAST()` (`properties.ts`) builds it.
-  So the same words compile per type:  `the length of the name` => `name.length`, `the length of the deck` =>
-  `spellCore.itemCountOf(deck)`.  Its datatype is the member's.  An unknown type still reads loose:  `x.length`.
-- A member with only `rules` (no `compile`) is DOCS for what built-in rules already spell, e.g. `shuffle (a list)`
-  => `list_shuffle`:  their rules compile it, and it's NOT loaded into scope -- a `ScopeMethod` record there would
-  change which method a call finds (P5's typed calls).
+- `SP.BUILT_IN_TYPE_TABLE` (`src/builtinTypes.ts`) -- DATA,
+  one entry per built-in type with anything to say (`thing`, `list`, `app`, `text`, `date`):
+  - its docs, `itemType` (`text` holds `character`s), and `members` (`SP.BuiltInMember`)
+  - not a `.spell` file, not statics on runtime classes (plan doc D25)
+  - a type's NAME and super-type stay `P.BUILT_IN_TYPES`' -- the parser's vocabulary;
+    the entry's `superType` must agree (a test checks)
+- `SpellParser.rootScope` loads it (`loadBuiltInTypes()`) into the root's `TypeScope`s:
+  - each `itemType`
+  - each member with a `readAs` template, as a `P.ScopeVariable` holding it (`readAs`, `docstring`)
+  - so member reads resolve it like any declared property (see "Members"), up the super-type chain:
+    a `Deck` finds `List`'s `length`
+- `readAs` is how a read compiles, `{it}` what it's read from -- ONE of three forms (`parseReadAsTemplate()`):
+  `{it}.length`, `{it}.getFullYear()`, `spellCore.itemCountOf({it})`.
+  - `MemberReadExpression.getMemberAST()` builds it.
+  - So the same words compile per type:
+    - `the length of the name` => `name.length`
+    - `the length of the deck` => `spellCore.itemCountOf(deck)`
+  - Its datatype is the member's.  An unknown type still reads loose:  `x.length`.
+- A member with only `rules` (no `readAs`) is DOCS for what built-in rules already spell,
+  e.g. `shuffle (a list)` => `list_shuffle`.
+  - Their rules compile it, and it's NOT loaded into scope:
+    a `ScopeMethod` record there would change which method a call finds (P5's typed calls).
 - A project's own declaration wins:  its type is first in the chain, e.g. `the size of a pile is: 52`.
-- Spell's own:  declaring a property on a built-in type (`the length of a text is:`, `things have a tag`) or
-  setting a built-in member (`set the length of the deck to 3`) is refused, with a parse error saying why --
-  the root scope is shared by every project, and no journal records it.  See "Refused statements" below.
-  A METHOD of a built-in type is fine:  its record goes in the project's `methods`.
-- Editors:  hover shows a member's `doc` (and a built-in rule's member, `builtInMembersOfRule()`);  completion
-  offers them with their docs;  the Type Explorer lists the table's types and members, its rules' syntax from the
-  live grammar.  `core`'s `src/spellCore.scopes.js` -- the same, for pages with no parser -- is GENERATED from the
-  table:  `yarn scopes --builtins` in `packages/lsp`, and a test fails until you do.
-- Adding a member:  ONE table entry, plus the `spellCore` method or javascript property its `compile` names --
-  `src/builtinTypes.test.ts` reads each one off a sample value, so it must be real.  Then `yarn scopes --builtins`.
-  Adding a TYPE:  its name in `P.BUILT_IN_TYPES` first, then its entry.
+- Spell's own:  refused, with a parse error saying why -- the root scope is shared by every project,
+  and no journal records it.  See "Refused statements" below.
+  - declaring a property on a built-in type (`the length of a text is:`, `things have a tag`)
+  - setting a built-in member (`set the length of the deck to 3`)
+  - a METHOD of a built-in type is fine:  its record goes in the project's `methods`
+- Editors:
+  - hover shows a member's `docstring` (and a built-in rule's member, `builtInMembersOfRule()`)
+  - completion offers them with their docs
+  - the Type Explorer lists the table's types and members, its rules' syntax from the live grammar
+  - `core`'s `src/spellCore.scopes.js` -- the same, for pages with no parser -- is GENERATED from the table:
+    `yarn scopes --builtins` in `packages/lsp`, and a test fails until you do
+- Adding a member:  ONE table entry, plus the `spellCore` method or javascript property its `readAs` names.
+  - `src/builtinTypes.test.ts` reads each one off a sample value, so it must be real.
+  - Then `yarn scopes --builtins`.
+- Adding a TYPE:  its name in `P.BUILT_IN_TYPES` first, then its entry.
 
 ## Exclusive lists:  `a pile is an exclusive list of cards`
 
-- `create_list_type` (`classes.ts`) takes `(exclusive:exclusive)?`:  `a pile is an exclusive list of cards`,
-  `create a type called hand as an exclusive list of cards`.  A card is in at most ONE list of the pile FAMILY -- `Pile`
-  and its sub-types (`a tableau is a pile`) -- at a time;  `a deck is a list of cards` is outside it (plan doc D7).
-- Scope:  `exclusive` on the type's `P.TypeScope` (journaled with it, as `claim()` is);  a sub-type finds its family's
-  root with `exclusiveRoot()`.  The item type gains the read-only member naming the root,
-  `TypeScope.declareOwnerMember()`:  `pile` on `Card`, `datatype` `Pile`, `exclusive: true`, `declaredBy` the pile's
-  line -- so `the pile of the card` / `its pile` resolve as any member (see "Members"), and go-to-definition lands on
-  that line.  It REPLACES a `pile` another statement declared, e.g. auto-declared by an earlier `set`.  NOT for a
-  built-in item type (`an exclusive list of things`):  the root scope is shared.
+- `create_list_type` (`classes.ts`) takes `(exclusive:exclusive)?`:
+  `a pile is an exclusive list of cards`, `create a type called hand as an exclusive list of cards`.
+  - A card is in at most ONE list of the pile FAMILY at a time:  `Pile` and its sub-types (`a tableau is a pile`).
+  - `a deck is a list of cards` is outside it (plan doc D7).
+- Scope:  `exclusive` on the type's `P.TypeScope` (journaled with it, as `claim()` is).
+  - A sub-type finds its family's root with `exclusiveRoot()`.
+  - The item type gains the read-only member naming the root, `TypeScope.declareOwnerMember()`:
+    `pile` on `Card`, `datatype` `Pile`, `exclusive: true`, `declaredBy` the pile's line.
+    - So `the pile of the card` / `its pile` resolve as any member (see "Members"),
+      and go-to-definition lands on that line.
+    - It REPLACES a `pile` another statement declared, e.g. auto-declared by an earlier `set`.
+    - NOT for a built-in item type (`an exclusive list of things`):  the root scope is shared.
 - `set the pile of the card to ...` is refused (`assignment_statement.parse()`):  add the card to a pile instead.
-- Compiles `static exclusive = true` in the class, then the member, patched on after it (`P.ASTPatchedMember`, never
-  hoisted:  it must run after the item type's class, and win over any accessor it has):
+- Compiles `static exclusive = true` in the class, then the member, patched on after it:
   `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) }, configurable: true })`.
-- Declarations:  the type's statement says `exclusive: true`;  the member isn't written, loading rebuilds it from that
-  and `itemType` (`SpellDeclarations.loadType()`), if the item type was picked too.
+  - A `P.ASTPatchedMember`, never hoisted:  it must run after the item type's class,
+    and win over any accessor it has.
+- Declarations:  the type's statement says `exclusive: true`, and the member isn't written.
+  - Loading rebuilds it from that and `itemType` (`SpellDeclarations.loadType()`), if the item type was picked too.
 - Runtime:  `core`'s `List` keeps the owners -- see `packages/core/AGENTS.md`, "Exclusive lists".
-- Probe ledger, `X1` ... `X4` (`probeExclusive()`:  the frozen `Card` / `Deck`, a `Pile.spell` of the probe's own);
-  compiled and RUN:  `src/parserTests/exclusiveLists.test.ts`.
+- Probe ledger, `X1` ... `X4` (`probeExclusive()`:  the frozen `Card` / `Deck`, a `Pile.spell` of the probe's own).
+  - Compiled and RUN:  `src/parserTests/exclusiveLists.test.ts`.
 
 ## File => block => line => statement
 
@@ -263,13 +314,14 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `BlockLine.parse()` (`packages/spell/src/rules/BlockLine.ts`), in order:
   1. blank line => `blank_line`
   2. pop a trailing comment
-  3. parse the rest as `"statement"`;  leftovers become a `parse_error`.  A statement its rule REFUSED is a
-     `parse_error` already, saying why (`SpellStatement.refuse()`):  the line's error, never committed
+  3. parse the rest as `"statement"`;  leftovers become a `parse_error`
+     - a statement its rule REFUSED is a `parse_error` already, saying why (`SpellStatement.refuse()`):
+       the line's error, never committed
   4. `commitStatement()` -- the ONLY place a parsed statement changes scope, and only for the line's winner:
      - `mutateScope()` on the statement, then on each inline statement inside it, outermost first
      - if the rule takes a nested body and the next item is a `BlockToken` => `parseNestedBlock()`
-     - `mutateScopeAfterBody()` on the statement, e.g. a method records what it returns -- its result kept as the
-       line's `data.afterBody`
+     - `mutateScopeFromBody()` on the statement, e.g. a method records what it returns:
+       its result kept as the line's `data.fromBody`
 - `SpellStatement` (`packages/spell/src/rules/Statement.ts`):
   - A body keyword ending `syntax` -- `{statement_body}`, `{expression_body}`, etc, see `BODY_KEYWORDS` -- or a choice of them,
     is taken OUT of `rules` into `rule.bodySpec` at construction.
@@ -287,10 +339,11 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     `if`/`else` => new `BlockScope`;  methods, events, property getters, list loops => new `MethodScope`
 - Errors are never thrown.  `parse_error` matches roll up into `match.data.errors` on `line` / `block`
   matches (`Block.getParseErrors()`), and compile to `/* PARSE ERROR: ... */`.
-- Refused statements:  a `parse()` which understood a statement but mustn't take it returns
-  `SpellStatement.refuse(match, message)` -- a `parse_error` match over its tokens, with `message` -- NOT
-  `undefined`, which would say only "Don't understand ...".  `BlockLine` reports it.  Used by the property
-  declarations (`refuseBuiltInType()`, `classes.ts`) and `assignment_statement` -- see "Built-in types".
+- Refused statements:  a `parse()` which understood a statement but mustn't take it
+  returns `SpellStatement.refuse(match, message)`, NOT `undefined`, which would say only "Don't understand ...".
+  - a `parse_error` match over its tokens, with `message`:  `BlockLine` reports it
+  - used by the property declarations (`SpellStatement.refuseBuiltInType()`) and `assignment_statement` --
+    see "Built-in types"
   - errors inside JSX `{...}` live in the JSX rules' `match.data`, not `matched`;  `BlockLine` gathers them from
     anywhere in its statement (`SpellJSX.parseErrorsIn()`) into `data.errors` too -- reported, but compiled in place
 
@@ -300,16 +353,21 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   `get()` checks own items, then falls through to the parent list.  Changes are journaled -- see "Incremental parsing".
 - `Scope` owns nothing;  `variables` / `types` / `constants` / `rules` / `parser` all forward to `parentScope`.
   It resolves a datatype to its type -- `getType()`, `getItemType()` (`list of cards`, or a `Deck`'s `itemType`).
-- `BlockScope` owns `variables` + `methods` -- `P.ScopeMethod` records:  words, `params` with datatypes, `returns`,
-  `of`.  `FileScope` is a `BlockScope`, so a file owns only variables.
-- `RootScope` adds `types`, `constants`, `rules`.  `ProjectScope` is a `RootScope`, and holds the project's free
-  functions' records.  `SpellParser.rootScope` is ONE static root shared by every project:  spell's classes
-  (`Thing`, `List`, `App`, `Object`) and every built-in type's NAME (`P.BUILT_IN_TYPES`:  `text`, `number` ...,
-  with super-types, e.g. `integer` is a `number`), with their members from `SP.BUILT_IN_TYPE_TABLE` -- see
-  "Built-in types".
+- `BlockScope` owns `variables` + `methods`:  `P.ScopeMethod` records, with words, `params` with datatypes,
+  `returns`, `of`.  `FileScope` is a `BlockScope`, so a file owns only variables.
+- `RootScope` adds `types`, `constants`, `rules`.
+  - `ProjectScope` is a `RootScope`, and holds the project's free functions' records.
+  - `SpellParser.rootScope` is ONE static root shared by every project -- see "Built-in types":
+    - spell's classes (`Thing`, `List`, `App`, `Object`)
+    - every built-in type's NAME (`P.BUILT_IN_TYPES`:  `text`, `number` ...),
+      with super-types, e.g. `integer` is a `number`
+    - their members, from `SP.BUILT_IN_TYPE_TABLE`
 - `MethodScope` adds args, plus `this` / `it` alias variables (of type `itDatatype`).
-- `TypeScope` holds instance + class variables, instance methods' records, a list type's `itemType`, and member
-  lookup up its super-type chain:  `chain()`, `isA()`, `getMember(words)` -- a property, else a method.
+- `TypeScope` holds:
+  - instance + class variables
+  - instance methods' records
+  - a list type's `itemType`
+  - member lookup up its super-type chain:  `chain()`, `isA()`, `getMember(words)` -- a property, else a method
 
 ## Scope:  who changes it, and when
 
@@ -319,31 +377,36 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - `get` / `set it to` ALWAYS declare a new `it` (`declareIt()`):  plain `it`, then `it_2`, `it_3`... numbered
     from the visible `it`'s `output`, skipping names in use -- so callbacks keep the `it` they captured
   - each new variable holds its value's `datatype` -- see "Datatypes"
-  - types:  `create_type`, `create_list_type` (`classes.ts`, which sets `itemType` and `exclusive` too -- and
-    an exclusive list's owner member, see "Exclusive lists");  a type mentioned before
-    its own line is a `stub`, which its real declaration later claims (`TypeScope.claim()`, journaled)
-  - BEFORE a project's files parse, every type they declare is stubbed (`parser.stubDeclaredTypes()`, from
-    `SpellParser.typesDeclaredIn()`:  a scan for lines starting `a card is`, `create a type called hand`), so a line
-    can name a type declared further down or in a later file.  `P.IncrementalProject` and `parseSpellProject()`
-    both do.  An edit which changes WHICH types a file declares re-parses the whole project.
-  - `is a <type>` (`is_a`) names a KNOWN type -- built in, imported, declared or stubbed earlier -- else it's
-    a parse error, e.g. `is a crad`.  A type first mentioned in an `is a` above its own declaration is one too.
-  - properties:  every property statement records the property in its type's `variables`, with `declaredBy` and
-    its datatype (`TypeScope.declareProperty()`) -- read by `the X of Y` / `its X` (`getMember()`) for their
-    datatype, and by editors.  A getter's datatype is what it returns, set once its body has parsed (see
-    "Datatypes", "Return types"), so a getter changes scope as any declaration does:  editing its line re-parses
-    what follows.
-    An enumerated one (`define_property_has`) also adds constants for each value, and a plural `classVariables`
-    entry (e.g. `Suits`, with an instance twin in `variables`) -- which ONE static rule, `class_member`, reads
-    for any type:  no rule per enumeration (see "Members").
-  - auto-declared properties:  `set the X of Y to V` (`assignment_statement.declareProperty()`), where `Y`'s type is
-    one the PROJECT declares (not a stub, an import or a built-in) and `X` isn't on it, declares `X` there, `auto`,
-    holding `V`'s datatype -- so it's reactive.  `data.autoDeclared` makes that `set` `"global"`:  see
-    `getScopeChanges(match)` under "Incremental parsing".  Its FILE compiles the declaration -- see "Compile".
-- Every record a `mutateScope()` adds -- `ScopeVariable`, `ScopeConstant`, `TypeScope`, `ScopeMethod`, `ScopeRule` -- carries
-  `declaredBy`, the match which declared it (for go-to-definition etc.), and a `ScopeRule` its built
-  `instances`, so a call-site `match.rule` maps back to its definition.  `MethodScope` stamps its
-  `declaredBy` on the argument / alias variables it makes.
+  - types:  `create_type`, `create_list_type` (`classes.ts`)
+    - `create_list_type` sets `itemType` and `exclusive` too, and an exclusive list's owner member --
+      see "Exclusive lists"
+    - a type mentioned before its own line is a `stub`,
+      which its real declaration later claims (`TypeScope.claim()`, journaled)
+  - BEFORE a project's files parse, every type they declare is stubbed (`parser.stubDeclaredTypes()`),
+    so a line can name a type declared further down or in a later file
+    - from `SpellParser.declaredTypes()`:  a scan for lines starting `a card is`, `create a type called hand`
+    - `P.IncrementalProject` and `parseSpellProject()` both do
+    - an edit which changes WHICH types a file declares re-parses the whole project
+  - `is a <type>` (`is_a`) names a KNOWN type -- built in, imported, declared or stubbed earlier --
+    else it's a parse error, e.g. `is a crad`
+    - a type first mentioned in an `is a` above its own declaration is one too
+  - properties:  every property statement records the property in its type's `variables`,
+    with `declaredBy` and its datatype (`TypeScope.declareProperty()`)
+    - read by `the X of Y` / `its X` (`getMember()`) for their datatype, and by editors
+    - a getter's datatype is what it returns, set once its body has parsed (see "Datatypes", "Return types"),
+      so a getter changes scope as any declaration does:  editing its line re-parses what follows
+    - an enumerated one (`define_property_has`) also adds constants for each value,
+      and a plural `classVariables` entry (e.g. `Suits`, with an instance twin in `variables`)
+      -- which ONE static rule, `class_member`, reads for any type:  no rule per enumeration (see "Members")
+  - auto-declared properties:  `set the X of Y to V` (`assignment_statement.declareProperty()`)
+    declares `X` on `Y`'s type, `autoDeclared`, holding `V`'s datatype -- so it's reactive
+    - only where `Y`'s type is one the PROJECT declares (not a stub, an import or a built-in), and `X` isn't on it
+    - `data.autoDeclared` makes that `set` `"global"`:  see `getScopeChanges(match)` under "Incremental parsing"
+    - its FILE compiles the declaration -- see "Compile"
+- Every record a `mutateScope()` adds -- `ScopeVariable`, `ScopeConstant`, `TypeScope`, `ScopeMethod`,
+  `ScopeRule` -- carries `declaredBy`, the match which declared it (for go-to-definition etc.),
+  and a `ScopeRule` its built `instances`, so a call-site `match.rule` maps back to its definition.
+  `MethodScope` stamps its `declaredBy` on the argument / alias variables it makes.
   - `ScopeList.add()` also notes each such record on its declaring match, as `match.data.declared`
     (`ScopeList.noteDeclared()`;  `TypeScope.claim()` too) -- so COMPILING a statement can say what it declared,
     without looking up scope.  See `SP.SpellDeclarations.commentFor()`.
@@ -354,23 +417,25 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - How editors colour a match's OWN tokens comes from its rule's `highlightAs`, e.g. `property`:  defaults on
   `Keyword(s)` / `Symbol(s)` / `SpellIdentifier` / `SpellType` / `SpellConstant`, else on the rule class.
   `SpellLanguageService` refines it from `match.data`, e.g. an argument's `variable` becomes `parameter`.
-  - quoted aliases (`a card "is face up" if ...`):  `quoted_type_expression` (`methods.ts`) adds an
-    `expression_suffix` rule, a `MethodPostfixRule` / `MethodInfixRule`;  a quoted formula (`a card "is the (rank)
-    of (suits)" for its ranks and its suits`):  `quoted_property_formula` (`classes.ts`), a `QuotedPropertyRule`
-  - methods (`to turn a card over` ~== `to turn (a card) over`):  a signature's `a|an <KNOWN type>` is a typed
-    parameter (`bare_type_arg`), as `(a card)` is;  a word that isn't a type, or anything after `the`, stays words
-    (`to make a mess`, `to reset the stock pile`).  `MethodDefinition` adds a rule (`methods.ts`), its call site, AND a
-    `P.ScopeMethod` record (`addMethod()`):  in its type's `methods` if this project declares the type, else in the
-    project's, with `of` (a free function, or a method of a built-in or imported type -- whose lists every
-    project shares).  A call (`DynamicMethodRule`) finds its record while parsing (`MethodDefinition.findMethod()`).
+  - quoted aliases (`a card "is face up" if ...`):  `quoted_type_expression` (`methods.ts`)
+    adds an `expression_suffix` rule, a `MethodPostfixRule` / `MethodInfixRule`
+  - a quoted formula (`a card "is the (rank) of (suits)" for its ranks and its suits`):
+    `quoted_property_formula` (`classes.ts`), a `QuotedPropertyRule`
+  - methods (`to turn a card over` ~== `to turn (a card) over`):
+    - a signature's `a|an <KNOWN type>` is a typed parameter (`bare_type_arg`), as `(a card)` is
+    - a word that isn't a type, or anything after `the`, stays words (`to make a mess`, `to reset the stock pile`)
+    - `MethodDefinition` adds a rule (`methods.ts`), its call site, AND a `P.ScopeMethod` record (`addMethod()`):
+      in its type's `methods` if this project declares the type, else in the project's, with `of`
+      (a free function, or a method of a built-in or imported type -- whose lists every project shares)
+    - a call (`DynamicMethodRule`) finds its record while parsing (`MethodDefinition.findMethod()`)
 - Types, constants and rules ALWAYS go to the project, from any depth.
 - `scope.addRule()` (`packages/parser/src/scope/Scope.ts`) => `parser.addRule()` on the PROJECT's parser, plus a record in
   `ProjectScope.rules`.
   - `Parser.addRule()` clears the memoized `rules` map;  next `parser.rules` rebuilds the whole merge.
   - `mergeRule()` is copy-on-write:  existing `Group`s are cloned, never mutated.
   - There is NO `removeRule` -- but `parser.journal` can undo an `addRule()`, see "Incremental parsing".
-  - Generated rules are NAMED classes `specialize()`d with plain-data statics (`QuotedPropertyRule` in
-    `classes.ts`;  `DynamicMethodRule`, `MethodPostfixRule`, `MethodInfixRule` in
+  - Generated rules are NAMED classes `specialize()`d with plain-data statics
+    (`QuotedPropertyRule` in `classes.ts`;  `DynamicMethodRule`, `MethodPostfixRule`, `MethodInfixRule` in
     `methods.ts`), never closures -- so `SP.SpellDeclarations` can write a project's rules out as data, and
     another project can rebuild them:  each base class says `@proto static importableAs = "<id>"`, which registers
     it for `P.Rule.importableRule(name)` (`Rule.protoDefined()`).
@@ -413,20 +478,21 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     literal, 3-7 lines, merging the scope records it added (`declarationFor()`), e.g.
     `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`.
     - `rule` is the `importableAs` of the class its rule was `specialize()`d from;  what that took sits beside it,
-      e.g. `output` -- loading passes the whole object to `specialize()`, which picks out its own.  Loading SKIPS
-      `rule: "enumeration"`, which a compiler from before P6 of precedence-and-types wrote for each enumeration
-      (`LEGACY_ENUMERATION_RULE`):  no version bump (plan doc D37).
-    - An auto-declared property's (`auto: true`) sits on its declaration at its file's top, NOT on its `set` -- see
-      "Compile".
+      e.g. `output` -- loading passes the whole object to `specialize()`, which picks out its own.
+      - Loading SKIPS `rule: "enumeration"`, which a compiler from before P6 of precedence-and-types
+        wrote for each enumeration (`LEGACY_ENUMERATION_RULE`):  no version bump (plan doc D37).
+    - An auto-declared property's (`auto: true`) sits on its declaration at its file's top, NOT on its `set`.
+      See "Compile".
     - Leaves out what loading works out, e.g. an enumeration's constants, or a rule's owner (`of`, else `output`).
     - `defined: "/Card.spell:222-283"` -- where the statement is:  its character offsets, project-relative.
     - NO line numbers:  a page with no sources matches the code to a scope pack's entry by what it declares,
       e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit` -- see `ScopesSource` in `packages/app/src/runner/`.
     - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
       unless a key already says, e.g. `type`.
-    - a method's `params` (`[{ name: "pile", datatype: "Pile" }]`) and `returns`;  a list type's `itemType` and
-      `exclusive` -- only what's known.  An exclusive list's owner member goes without saying:  loading rebuilds it.  Loading rebuilds the `P.ScopeMethod` record;  a key an older compiler didn't write
-      loads as unknown.
+    - a method's `params` (`[{ name: "pile", datatype: "Pile" }]`) and `returns`;
+      a list type's `itemType` and `exclusive` -- only what's known
+      - an exclusive list's owner member goes without saying:  loading rebuilds it
+      - loading rebuilds the `P.ScopeMethod` record;  a key an older compiler didn't write loads as unknown
   - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +
     `provides`
   - `read(compiled)` collects them back from the TEXT (`JSON5.parse()`), never running it
@@ -479,9 +545,11 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     - ONE item's indented body changed => `"body"`:  rewind to `parser.getBodyMark()` (taken by `commitStatement()`
       just before the body parsed), `SpellParser.reparseBody()` => `BlockLine.reparseBody()`, then replay every
       later entry -- later items + files are kept.  Kept tokens after it are moved (`Tokenizer.moveTokens()`).
-      Only if nothing in old or new body `changesGlobalScope()`, the body's nested scope isn't the header's, and
-      its statement's `mutateScopeAfterBody()` records the same as before (`data.afterBody`), e.g. the method still
-      returns a `number`:  later lines may read it.
+      Only if:
+      - nothing in old or new body `changesGlobalScope()`
+      - the body's nested scope isn't the header's
+      - its statement's `mutateScopeFromBody()` records the same as before (`data.fromBody`),
+        e.g. the method still returns a `number`:  later lines may read it
     - anything else:  rewind to the item holding the first change -- or the one BEFORE it, if the change starts
       with an indented block that item may now take -- and re-parse from there.  Once back in step with the
       unchanged items at the end, `canKeepFrom()`:
@@ -496,10 +564,11 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     keeps everything after it:  same `lastGood` => same changes.  Deliberately NOT what a full parse gives.
     NOTE: a header broken so badly it no longer takes its indented body changes size => not kept.
   - file match rebuilt with `parser.assembleFile()` => `Block.assembleBlock()`.
-- `rule.getScopeChanges(match)`:  `changesScope` if set (`@proto static`), else `undefined` (no
-  `mutateScope()`) or `"global"` (has one -- assume the worst).  `get` says `"internal"`:  its `it` goes in its own
-  `match.scope`.  A rule may say PER MATCH, reading only `match.data`:  `assignment` is `"internal"` (a variable)
-  unless it auto-declared a property (`data.autoDeclared`), then `"global"` -- so a plain `set x to 1` stays cheap.
+- `rule.getScopeChanges(match)`:  `changesScope` if set (`@proto static`),
+  else `undefined` (no `mutateScope()`) or `"global"` (has one -- assume the worst).
+  - `get` says `"internal"`:  its `it` goes in its own `match.scope`.
+  - A rule may say PER MATCH, reading only `match.data`:  `assignment` is `"internal"` (a variable)
+    unless it auto-declared a property (`data.autoDeclared`), then `"global"` -- so a plain `set x to 1` stays cheap.
 - If an `update()` throws (a rule crashed committing a line), `IncrementalProject.isBroken`:  next update re-parses
   every file from scratch.
 - Cost, Solitaire, vs full parse ~110ms:  body edit ~10ms;  comment / blank line / top-level statement anywhere
@@ -541,13 +610,14 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - A project then does the same across ALL its files (`SpellProject.combineCompiled()`), so `Card.move_to_$pile`
     from `Pile.spell` ends up in `Card.spell`'s class.  So does `compiledFixture()`.  NEVER mutates an AST:  a class
     which gets members is a NEW `P.ASTClassDeclaration` (`withMembers()`).
-  - An AUTO-declared property (see "Scope:  who changes it") compiles ONCE, in the file of the `set` that declared
-    it:  at its top, or just after its type's declaration if that's in the same file (a class isn't defined above
-    its own line) -- `Card.declareProp('pile', { type: 'Pile' })` + `Object.defineProperty(Card.prototype, ...)`,
-    under that `set`'s `SPELL: DECLARES` comment (`Block.autoDeclarations()`, `autoDeclarationAST()`).  A
-    `P.ASTPatchedMember`, NOT a class member, so hoisting never moves it:  it can't change another file's output.
-    Why not on the `set` line:  that may be in a method's body, whose AST is memoized -- an edit above it which only
-    moves it would leave its `defined` offsets stale.  A file's AST is built afresh.
+  - An AUTO-declared property (see "Scope:  who changes it") compiles ONCE, in the file of the `set` that declared it:
+    `Card.declareProp('pile', { type: 'Pile' })` + `Object.defineProperty(Card.prototype, ...)`.
+    - at its top, or just after its type's declaration if that's in the same file
+      (a class isn't defined above its own line)
+    - under that `set`'s `SPELL: DECLARES` comment (`Block.autoDeclarations()`, `autoDeclarationAST()`)
+    - a `P.ASTPatchedMember`, NOT a class member, so hoisting never moves it:  it can't change another file's output
+    - why not on the `set` line:  that may be in a method's body, whose AST is memoized --
+      an edit above it which only moves it would leave its `defined` offsets stale.  A file's AST is built afresh.
 
 ## Language server
 
@@ -570,13 +640,15 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - definition / references from the scope record a word resolved to while parsing (`data.scopeVar` etc.)
     and that record's `declaredBy`;  method calls from `ScopeRule.instances`;  properties from their type's
     `variables` (`TypeScope.getMember()`), else by name
-  - hover says what a variable holds, its `datatype`, e.g. `variable **card**: Card · argument`;  a member by its
-    words as written (`ScopeVariable.words`), e.g. `property **short rank** of Card`
-  - completion offers properties where a member's words can come, e.g. after `the ` -- every visible type's, as
-    written;  the Type Explorer lists them so too (`ScopeEntry.name`, when the path's name -- as compiled -- differs)
-  - a built-in type's member:  its docs from `SP.BUILT_IN_TYPE_TABLE` (its record's `doc`), in hover and
-    completion;  hovering a built-in rule shows the member it spells.  The Type Explorer's built-in types come from
-    the table too (`ScopeExplorer.addBuiltIns()`) -- see "Built-in types"
+  - hover says what a variable holds, its `datatype`, e.g. `variable **card**: Card · argument`
+    - a member by its words as written (`ScopeVariable.asWritten`), e.g. `property **short rank** of Card`
+  - completion offers properties where a member's words can come, e.g. after `the `:  every visible type's,
+    as written
+    - the Type Explorer lists them so too (`ScopeEntry.name`, when the path's name -- as compiled -- differs)
+  - a built-in type's member:  its docs from `SP.BUILT_IN_TYPE_TABLE` (its record's `docstring`),
+    in hover and completion -- see "Built-in types"
+    - hovering a built-in rule shows the member it spells
+    - the Type Explorer's built-in types come from the table too (`ScopeExplorer.addBuiltIns()`)
 - Formatting is `P.TokenFormatter` (`packages/parser/src/tokenizer/`), indenting with TABS always:  whitespace only, from the tokens -- no
   pretty-printer, the AST is a javascript tree.  Indent LEVELS come from indent widths, not the tokenizer's blocks
   (which nest one per whitespace character).  It re-tokenizes its result and gives up if anything but whitespace
@@ -586,18 +658,20 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   (see Rules and matching).  Each expectation offers the rest of a method call as a snippet, the names that fit
   it -- by the `highlightAs` of the rules it can start with (`firstKinds()`), never rule names -- and its words.
   What only `continues` something complete, e.g. operators, only when the word being typed starts it.
-- A method's parameters come from its `P.ScopeMethod` record (`SpellLanguageService.slotNames()`:  the receiver by
-  its type, the rest by `params`) -- never from parens in its name, which a paren-free signature hasn't got.
-  Signature help's parameter ranges are where its `method_signature` found each argument (`data.argMatches`).
+- A method's parameters come from its `P.ScopeMethod` record,
+  never from parens in its name, which a paren-free signature hasn't got.
+  - `SpellLanguageService.slotNames()`:  the receiver by its type, the rest by `params`
+  - signature help's parameter ranges are where its `method_signature` found each argument (`data.argMatches`)
 - Signature help is `signatureHelp()`, from the same parse:  the INNERMOST call to one of the project's methods
   anything was waiting in (next, or `within`), its arguments its call rule's `{subrules}`, the active one counted
   from where it was waiting.
 - Quick fix (`codeActions()`):  words that didn't parse get "Define `to <phrase>`" -- the phrase a whole line, or
   a statement that parsed (an inline body's too) PLUS the words left over after it:  `shuffle the deck 3 times`.
-  Its words become a signature, each longest run that parses as an expression a parameter -- a type's name
-  paren-free (`to shuffle a deck (number) times`) -- inserted above its
-  top-level statement, as a method is only visible AFTER it.  Once defined, the longest match wins, so the line
-  parses as the new method.  NOT for a phrase that's just unfinished (`expectedAfter()` again):  `set x to`.
+  Its words become a signature, each longest run that parses as an expression a parameter,
+  a type's name paren-free (`to shuffle a deck (number) times`).
+  It's inserted above its top-level statement, as a method is only visible AFTER it.
+  Once defined, the longest match wins, so the line parses as the new method.
+  NOT for a phrase that's just unfinished (`expectedAfter()` again):  `set x to`.
 - Code lens (`codeLens()`):  "N references" above each type and method, counted only when an editor resolves it
   (`resolveCodeLens()`) -- counting walks the project.  Clicking runs `SHOW_REFERENCES`, which each EDITOR defines:
   the VS Code extension's `spell.showReferences`;  in the app, Monaco's own `editor.action.showReferences`.
