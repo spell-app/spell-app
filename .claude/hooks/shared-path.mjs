@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * Claude Code's `PreToolUse` hook on Edit / Write / NotebookEdit (`.claude/settings.json`):  a path through one of the
- * shared content links (`packages/docs/content`, `goals`, `agents`;  epic `shared-content`) becomes the file's real
- * path in the shared repo.
+ * Claude Code's `PreToolUse` hook on Edit / Write / NotebookEdit (`.claude/settings.json`):  an edit through one of
+ * the shared content links (`packages/docs/content`, `goals`, `agents`;  epic `shared-content`) is DENIED, with the
+ * file's real path in the shared repo to use instead.  Claude retries there.
  * - Why:  a WORKTREE session's Edit / Write refuses a path through a link ("spelled in a form that cannot be safely
- *   resolved"), but takes the real path (`../spell-app-dev/...`).  The main session doesn't mind;  rewriting there
- *   too keeps one rule.
- * - stdin `{ tool_name, tool_input: { file_path | notebook_path }, ... }`.  Rewrites only when some folder on the
- *   path is a link whose target is inside the shared repo;  prints `updatedInput` then, nothing otherwise.
+ *   resolved"), and refuses it too when a hook rewrites it (`updatedInput`:  "Edit the worktree copy ... instead of
+ *   the shared-checkout path"), but takes the real path (`/Users/.../spell-app-dev/...`) as given.  The main session
+ *   doesn't mind;  sending it to the real path too keeps one rule.
+ * - stdin `{ tool_name, tool_input: { file_path | notebook_path }, ... }`.  Denies only when some folder on the path
+ *   is a link whose target is inside the shared repo;  prints nothing otherwise.
  * - Always exits 0:  a hook that fails never blocks an edit.
  */
 import { lstatSync, readFileSync, realpathSync } from "node:fs"
@@ -26,9 +27,12 @@ try {
   const path = input.tool_input?.[key]
   const real = typeof path === "string" ? throughLink(path) : undefined
   if (real) {
+    const reason =
+      `Shared content (epic shared-content):  ${path} goes through a link into the shared repo, which an edit can't ` +
+      `go through.  Edit the real file instead, the same file every checkout sees:  ${real}`
     console.log(
       JSON.stringify({
-        hookSpecificOutput: { hookEventName: "PreToolUse", updatedInput: { ...input.tool_input, [key]: real } }
+        hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason }
       })
     )
   }
