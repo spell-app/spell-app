@@ -347,10 +347,15 @@ const CONSUMING = [
   "6. **Restyle with `--ui-*` custom properties** (live, and right in both schemes):  " +
     "`ui-card { --ui-card-radius: 8px }`, `color: var(--ui-primary)`.  `tokens.json` holds the same values without the " +
     "`ui-` prefix (`primary` mirrors `--ui-primary`), for this system's own views;  in page CSS prefer the `--ui-*` names.",
-  "7. **Icons:**  any Font Awesome Free name (solid and regular) works, written as on its site or with spaces:  " +
-    '`icon="wand-magic-sparkles"` ~== `icon="wand magic sparkles"`.',
+  "7. **Icons:**  any Font Awesome Free name (solid, regular and brands) works, written as on its site or with " +
+    'spaces:  `icon="wand-magic-sparkles"` ~== `icon="wand magic sparkles"`;  regular ones end in ` outline`.',
   "8. **Not here:**  emoji names (`<ui-emoji>`), and anything loaded from a file (`source=` on `<ui-include>`, " +
     "`<ui-code>`, `<ui-markdown>`):  write the content inline.",
+  "9. **Page typography is opt-in:**  the elements style themselves, but plain headings, paragraphs and lists " +
+    'take Spell\'s type only inside `class="ui-typography"` (on `<body>`, or any container).  There is no ' +
+    "`bundle.css`:  nothing else to link.",
+  "10. **Clicks run in Play:**  on a Design's canvas a click selects;  handlers run once a board is expanded to fill " +
+    "the window (its Play control).",
   ""
 ]
 

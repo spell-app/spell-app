@@ -14,6 +14,8 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * - `server`:  `packages/server`'s `server` script;  `serve`:  root `yarn serve`, `spell dev server start --all`
  * - `window`:  root `yarn window`;  plain `node`, so it runs in a worktree before its `yarn install`
  * - `design build`:  `packages/ui`'s `design:build`, under `tsx`, in the caller's folder (so `--out` is relative to it)
+ * - `design bundle` / `design check`:  `packages/docs`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
+ * - `design sync`:  `packages/docs/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
  * - `plan-doc`:  in the caller's folder, as `spell plan-doc` always ran it
  * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`)
  */
@@ -26,6 +28,9 @@ export const TOOLS = {
   "docs link": { tool: "packages/docs/tools/link.ts", tsx: "packages/docs/tsconfig.json", cwd: "packages/docs" },
   details: { tool: "packages/docs/tools/details.js", cwd: "packages/docs" },
   "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
+  "design bundle": { tool: "packages/docs/tools/bundle-spell-ui.js", cwd: "packages/docs" },
+  "design check": { tool: "packages/docs/tools/check-design-bundle.js", cwd: "packages/docs" },
+  "design sync": { tool: "packages/docs/tools/design.js" },
   server: { tool: "packages/server/src/page/cli.ts", tsx: "packages/server/tsconfig.json" },
   serve: { tool: "scripts/serve.mjs" },
   window: { tool: "scripts/window.mjs" }
@@ -37,8 +42,12 @@ export type ToolName = keyof typeof TOOLS
 /** `docs`' verbs, in the order help lists them. */
 export const DOCS_VERBS = ["update", "index", "new", "open", "link"] as const
 
-/** `design`'s verbs (epic `claude-design`:  `push` / `pull` come in P9). */
-export const DESIGN_VERBS = ["build"] as const
+/**
+ * `design`'s verbs (epic `claude-design`), in the order help lists them.
+ * - `build`, `bundle`, `check`:  write the system's files, its bundle, and prove the bundle
+ * - `pull`, `changed`, `pushed`, `state`:  `packages/docs/tools/design.js` (`design sync`), the local half of `/design`
+ */
+export const DESIGN_VERBS = ["build", "bundle", "check", "pull", "changed", "pushed", "state"] as const
 
 /**
  * Run tool `name` of the nearest checkout from the current folder (`findCheckout()`), with `args` verbatim and
