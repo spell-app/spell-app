@@ -1,4 +1,0 @@
-# the goals server's state and log, and page locks
-.server.json
-.server.log
-*.lock
