@@ -4149,6 +4149,141 @@ the first card of {list:NAME}
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="t15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t15">T15</a>
+                  <span class="plan-title"
+                    >When `vite-plus` lands on main: merge it in, take its test imports</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    From Owen's main session, 2026-10-04: branch <code>vite-plus</code> (one
+                    <code>vite-plus</code> dependency replaces vite / vitest / oxlint / oxfmt) is about to merge into
+                    <code>main</code>. On the next merge of <code>main</code> into this branch (before PR #24 merges):
+                  </p>
+                  <ul>
+                    <li>
+                      ~19 files overlap, mostly tests whose import line it rewrote (<a
+                        href="../../../cli/src/cli.test.ts"
+                        target="src-packages-cli-src-cli-test-ts"
+                        ><code>packages/cli/src/cli.test.ts</code></a
+                      >,
+                      <a
+                        href="../../../cli/src/ui/ExplorerScreen.test.tsx"
+                        target="src-packages-cli-src-ui-explorerscreen-test-tsx"
+                        ><code>ExplorerScreen.test.tsx</code></a
+                      >,
+                      <a
+                        href="../../../cli/src/ui/ReplScreen.test.tsx"
+                        target="src-packages-cli-src-ui-replscreen-test-tsx"
+                        ><code>ReplScreen.test.tsx</code></a
+                      >, <code>packages/lsp/src/*.test.ts</code> ...): keep this branch's changes, take main's
+                      <code>vite-plus/test</code> import
+                    </li>
+                    <li>
+                      this branch's NEW test files (<a
+                        href="../../../spell/src/grammar.probes.test.ts"
+                        target="src-packages-spell-src-grammar-probes-test-ts"
+                        ><code>grammar.probes.test.ts</code></a
+                      >,
+                      <a
+                        href="../../../spell/src/builtinTypes.test.ts"
+                        target="src-packages-spell-src-builtintypes-test-ts"
+                        ><code>builtinTypes.test.ts</code></a
+                      >,
+                      <a
+                        href="../../../spell/src/parserTests/exclusiveLists.test.ts"
+                        target="src-packages-spell-src-parsertests-exclusivelists-test-ts"
+                        ><code>exclusiveLists.test.ts</code></a
+                      >,
+                      <a
+                        href="../../../core/src/classes/List.test.ts"
+                        target="src-packages-core-src-classes-list-test-ts"
+                        ><code>packages/core/src/classes/List.test.ts</code></a
+                      >) import from <code>vitest</code>: switch to <code>vite-plus/test</code>
+                    </li>
+                    <li>
+                      then <code>yarn install</code>; <code>yarn vp fmt</code> / <code>yarn vp lint</code> replace
+                      <code>yarn oxfmt</code> / <code>oxlint</code> in a package; read
+                      <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                      >'s new Toolchain section
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t16" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t16">T16</a>
+                  <span class="plan-title"
+                    >When merging main: move this branch's new docs into packages/docs/content/</span
+                  ></ui-title
+                ><ui-content
+                  ><ui-message class="plan-update" state="warning" size="tiny" header="UPDATE"
+                    ><p>
+                      Superseded, same day (epic shared-content): docs, goals and the agents logs now live in a SHARED
+                      repo, <code>../spell-app-dev</code>; <code>main</code> no longer tracks
+                      <code>packages/docs/content</code>, <code>goals</code> or <code>agents</code>. Order:
+                    </p>
+                    <ol>
+                      <li>DON'T merge <code>main</code> first: git would delete this branch's tracked copies.</li>
+                      <li>
+                        Commit, then merge <code>0fc52e02</code> (main just before the cutover): brings the move into
+                        <code>content/</code>; keep both sides of the conflicts (core.ts, parser rules,
+                        SpellLanguageService.ts, the precedence pages, the logs).
+                      </li>
+                      <li>
+                        <code>spell dev shared migrate precedence-and-types --dry-run</code>, then without: folds this
+                        branch's docs / log changes into <code>../spell-app-dev</code>, one commit here untracking the
+                        folders, links in their place; stops on a real conflict.
+                      </li>
+                      <li>Then merge <code>main</code> as usual, with T15 (vite-plus).</li>
+                    </ol></ui-message
+                  ><p>
+                    From Owen's docs session, 2026-10-04: <code>main</code> moved every docs page, plan doc and template
+                    to <code>packages/docs/content/</code>, the scripts and <code>_assets</code> to
+                    <code>packages/docs/tools/</code>, and
+                    <a href="../../../../PAPERCUTS.md" target="src-papercuts-md"><code>PAPERCUTS.md</code></a> /
+                    <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      ><code>SUSPECTED-BUGS.md</code></a
+                    >
+                    / <a href="../../../../CODE-DEBT.md" target="src-code-debt-md"><code>CODE-DEBT.md</code></a> to
+                    <code>agents/</code>. Edits to files that existed on main follow the move (<a
+                      href="../../precedence/precedence.html"
+                      target="src-packages-docs-precedence-precedence-html"
+                      ><code>precedence/precedence.html</code></a
+                    >, the changelog, the logs); pages this branch ADDED need moving by hand:
+                  </p>
+                  <ul>
+                    <li>
+                      <a href="./" target="src-packages-docs-epics-precedence-and-types"
+                        ><code>packages/docs/epics/precedence-and-types/</code></a
+                      >
+                      (plan doc +
+                      <a href="details/" target="src-packages-docs-epics-precedence-and-types-details"
+                        ><code>details/</code></a
+                      >) to <code>packages/docs/content/epics/precedence-and-types/</code>
+                    </li>
+                    <li>
+                      <a
+                        href="../../precedence/parser-model.html"
+                        target="src-packages-docs-precedence-parser-model-html"
+                        ><code>packages/docs/precedence/parser-model.html</code></a
+                      >
+                      to <code>packages/docs/content/precedence/parser-model.html</code>
+                    </li>
+                    <li>
+                      then fix their links with <code>repairLinks()</code> from
+                      <code>packages/docs/tools/relocate.js</code>;
+                      <code>node tools/doc-links.js --check content/&lt;page&gt;</code> (from
+                      <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
+                      >) shows what's left
+                    </li>
+                    <li>in the same merge as T15 (vite-plus), before PR #24 merges</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
