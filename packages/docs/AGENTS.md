@@ -139,9 +139,7 @@ In `tools/`:
   - a nested `<ui-section>` for EVERY distinct sub-item, `h4` for sub-sub-items:  a list item with a bold title and
     several lines of body becomes a section, and long lists of such items are grouped under themed sections
   - titles are short labels (they're the contents entries);  the claim goes in the body
-- Text:  bullets, not dense prose.
-  - 3+ sentences => a short lead plus bullets, one idea each, nested for sub-points
-  - keep every fact, number and caveat when you condense
+- Text:  SEE:  WWOD §6 › "Writing for people".
 - Widgets (see the templates for exact markup):
   - recommendations / warnings:  `<ui-message state="positive|negative|warning|info" header="...">`
   - comparisons:  `<ui-table celled compact striped unstackable>` around a native `<table>`;  number cells
@@ -181,7 +179,7 @@ In `tools/`:
     `yarn vp fmt <file>`
   - valid code only:  no bare JSX statements after other statements -- assign them to a `const`
   - prefer excerpts pasted from a real, runnable file over hand-typed examples
-- Colors only from the `spell-doc.css` / UI tokens, so dark mode keeps working.
+- Colors:  WWOD §18 › "Colours and themes through `ui`'s tokens", plus `spell-doc.css`'s own.
 
 ## Templates
 

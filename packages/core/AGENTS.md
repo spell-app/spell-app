@@ -27,10 +27,6 @@ house style every package shares.  Only what's local is below;  a section named 
 - It runs in a shadow root:  `spellCore.appRoot` is where an app mounts, and `spellCore.domRoot()` where to look
   elements up and add styles -- NEVER `document`.
 
-## Imports
-
-- As WWOD §4, with `SC` ~== `$/core` as our one namespace.
-
 ## Decorators
 
 As WWOD §12, plus:
