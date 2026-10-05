@@ -293,7 +293,7 @@ export class IncrementalParse {
    * - `true` => re-parsing it could change how anything after it parses -- see `Rule.getScopeChanges()`.
    */
   static changesGlobalScope(match: P.Match): boolean {
-    if (match.rule.getScopeChanges() === "global") return true
+    if (match.rule.getScopeChanges(match) === "global") return true
     return match.matched.some((item) => item instanceof P.Match && IncrementalParse.changesGlobalScope(item))
   }
 }

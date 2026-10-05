@@ -1,7 +1,7 @@
 /**
  * Barrel for parser `scope` classes.
- * - `Scope` is the base class -- rest are its subclasses, plus `ScopeVariable`/`ScopeConstant` records
- *   that a scope holds.
+ * - `Scope` is the base class -- rest are its subclasses,
+ *   plus `ScopeVariable` / `ScopeConstant` / `ScopeMethod` records that a scope holds.
  */
 
 export * from "./ScopeList"
@@ -15,3 +15,4 @@ export * from "./TypeScope"
 export * from "./MethodScope"
 export * from "./ScopeVariable"
 export * from "./ScopeConstant"
+export * from "./ScopeMethod"

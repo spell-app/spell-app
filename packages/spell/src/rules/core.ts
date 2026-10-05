@@ -29,7 +29,7 @@ export const core = new SpellParser({ module: "core" })
  *   `constructor: class ... extends P.Subrule` only because it's dead code, never referenced elsewhere.
  */
 class eat_whitespace extends P.Repeat {
-  @proto static datatype = "string"
+  @proto static datatype = "text"
 }
 core.addRule(eat_whitespace, {
   syntax: "{whitespace}*"
@@ -42,7 +42,7 @@ core.addRule(eat_whitespace, {
 
 /** Any whitespace token -- space, tab, newline, etc., wrapped as-is into a `StringLiteral`. */
 class whitespace extends P.TokenType {
-  @proto static datatype = "string"
+  @proto static datatype = "text"
   @proto static tokenType = P.WhitespaceToken
 
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
@@ -59,7 +59,7 @@ core.addRule(whitespace)
 
 /** Indent whitespace specifically, e.g. leading spaces/tabs at start of a line. */
 class indent extends P.TokenType {
-  @proto static datatype = "string"
+  @proto static datatype = "text"
   @proto static tokenType = P.IndentToken
 
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
@@ -76,7 +76,7 @@ core.addRule(indent)
 
 /** Single newline. */
 class newline extends P.TokenType {
-  @proto static datatype = "string"
+  @proto static datatype = "text"
   @proto static tokenType = P.NewlineToken
 
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
@@ -96,7 +96,7 @@ core.addRule(newline)
  * - NOTE: normally filtered out when tokenizing, so this rule rarely matches in practice.
  */
 class inline_whitespace extends P.TokenType {
-  @proto static datatype = "string"
+  @proto static datatype = "text"
   @proto static tokenType = P.InlineWhitespaceToken
 
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
@@ -226,7 +226,7 @@ core.addRule(number_as_string, {
 class _boolean extends P.Pattern {
   static ruleName = "boolean"
   @proto static alias = "expression"
-  @proto static datatype = "boolean"
+  @proto static datatype = "choice"
   @proto static pattern = /^(true|false|yes|no|ok|cancel|always|never)$/
   @proto static VALUE_MAP = {
     true: true,
@@ -284,7 +284,7 @@ core.addRule(_boolean, {
 class text extends P.TokenType {
   @proto static alias = "expression"
   @proto static highlightAs: P.HighlightKind = "string"
-  @proto static datatype = "string"
+  @proto static datatype = "text"
   @proto static tokenType = P.TextToken
 
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
@@ -352,7 +352,7 @@ core.addRule(comment, {
 class undefined_literal extends P.Literal {
   static ruleName = "undefined"
   @proto static alias = "expression"
-  @proto static datatype = "undefined"
+  @proto static datatype = "nothing"
 
   getAST(match: P.MatchFor<this>): P.ASTUndefinedLiteral {
     return new P.ASTUndefinedLiteral(match)

@@ -32,7 +32,7 @@ import {
   type WorkspaceSymbol
 } from "vscode-languageserver"
 
-import { typeCase } from "$/util"
+import { instanceCase, typeCase } from "$/util"
 import { P } from "$/parser"
 import { MD, type InlineNode } from "$/markdown"
 import { SP } from "$/spell"
@@ -497,6 +497,8 @@ export class SpellLanguageService {
     if (kind === "keyword" && isGenerated && token instanceof P.WordToken) return "function"
     const { scopeVar } = match.data as { scopeVar?: unknown }
     if (kind === "variable" && scopeVar instanceof P.ScopeVariable && scopeVar.kind === "argument") return "parameter"
+    // a paren-free argument's type, e.g. `card` in `to give a card to a pile`:  the whole of it is a parameter
+    if (kind === "type" && parent?.rule.highlightAs === "parameter") return "parameter"
     return kind
   }
 
@@ -571,14 +573,22 @@ export class SpellLanguageService {
     return { contents: { kind: MarkupKind.Markdown, value: sections.join("\n\n---\n\n") }, range }
   }
 
-  /** Markdown for `match`'s rule:  its name, syntax, and the first example from its tests. */
+  /**
+   * Markdown for `match`'s rule:  its name, syntax, and the first example from its tests.
+   * - Then, for a built-in rule which spells a built-in type's member, e.g. `list_shuffle`:
+   *   that member and its docs -- see `SP.BUILT_IN_TYPE_TABLE`.
+   */
   private describeRule(match: P.Match): string {
     const { rule } = match
     const syntax = SpellLanguageService.truncate(rule.toRulexSyntax(), 160)
     const lines = [syntax ? `**${rule.name}** \`${syntax}\`` : `**${rule.name}**`]
     const example = SpellLanguageService.firstExample(rule)
     if (example) lines.push(`e.g. \`${example}\``)
-    return lines.join("  \n")
+    const members = rule.name ? SP.builtInMembersOfRule(rule.name) : []
+    const builtIn = members.map(({ type, member }) =>
+      [`built in:  **${member.words}** of ${type.name}`, member.docstring].filter(Boolean).join("\n\n")
+    )
+    return [lines.join("  \n"), ...builtIn].join("\n\n")
   }
 
   /** Markdown for what `subject` is, and where it was declared. */
@@ -586,17 +596,17 @@ export class SpellLanguageService {
     const lines: string[] = []
     if (subject.kind === "variable") {
       const { name, output, kind, datatype, isAlias } = subject.record
-      const bits = [`variable **${name}**`]
+      // what it holds, e.g. `card: Card` for an argument `(a card)`, a loop's item, `it` in a method
+      const bits = [`variable **${name}**${datatype ? `: ${datatype}` : ""}`]
       if (output && output !== name) bits.push(`as \`${output}\``)
       if (kind) bits.push(kind)
-      if (datatype) bits.push(`a ${datatype}`)
       if (isAlias) bits.push("alias")
       lines.push(bits.join(" · "))
     } else if (subject.kind === "type") {
       const { name, superType, stub, classVariables } = subject.record
       lines.push(`type **${name}**${superType ? ` is a ${superType}` : ""}${stub ? " (stub)" : ""}`)
       const properties = SpellLanguageService.propertiesOf(subject.record).map((it) =>
-        SpellLanguageService.asWritten(it.name)
+        SpellLanguageService.memberWords(it.name, it)
       )
       if (properties.length) lines.push(`properties:  ${properties.join(", ")}`)
       const enumerations = classVariables.get().map((variable) => variable.name)
@@ -613,8 +623,13 @@ export class SpellLanguageService {
     } else {
       const { record, owner } = subject
       const type = record?.scope instanceof P.TypeScope ? record.scope : owner
-      const bits = [`property **${SpellLanguageService.asWritten(subject.name)}**${type ? ` of ${type.name}` : ""}`]
+      const words = SpellLanguageService.memberWords(subject.name, record)
+      const bits = [`property **${words}**${type ? ` of ${type.name}` : ""}`]
       if (record?.datatype) bits.push(`a ${record.datatype}`)
+      if (record?.autoDeclared) bits.push("declared where it's first set")
+      // `the pile of a card`:  from `a pile is an exclusive list of cards`, which "declared in" links to
+      if (record?.exclusive)
+        bits.push(`the ${record.datatype} holding it, read-only:  ${record.datatype}s are exclusive`)
       lines.push(bits.join(" · "))
     }
     const declared = this.declarationsOf(subject)
@@ -792,13 +807,26 @@ export class SpellLanguageService {
    * - Properties only when we know which type they're on.
    */
   docsOf(subject: LSP.SpellSubject): string | undefined {
+    const builtIn = SpellLanguageService.builtInDoc(subject)
+    if (builtIn) return builtIn
     return subject.record && this.docsOfRecord(subject.record, subject.kind === "method")
   }
 
   /** Docstring of what `subject` names, as markdown -- see `docMarkdown()`. */
   docMarkdownOf(subject: LSP.SpellSubject): string | undefined {
+    const builtIn = SpellLanguageService.builtInDoc(subject)
+    if (builtIn) return builtIn
     const doc = subject.record && this.docCommentOfRecord(subject.record, subject.kind === "method")
     return doc && SpellLanguageService.docMarkdown(doc)
+  }
+
+  /**
+   * Docs of a built-in type's member, e.g. a list's `length`.
+   * - From its record, as `SP.BUILT_IN_TYPE_TABLE` gave them:  there's no statement to read them from.
+   */
+  private static builtInDoc(subject: LSP.SpellSubject): string | undefined {
+    const { record } = subject
+    return record instanceof P.ScopeVariable && !record.declaredBy ? record.docstring : undefined
   }
 
   /** Docstring of scope record `record`, if its declaration names it -- or always for a method's rule. */
@@ -1041,14 +1069,13 @@ export class SpellLanguageService {
   }
 
   /**
-   * Type of `variable`, looked up in `scope`:  its `datatype`, else the type a method's `it` / `this` stands for,
-   * e.g. `card` in `to turn (a card) over`.
+   * Type of `variable`, looked up in `scope` -- see `P.Scope.getType()`.
+   * - Its `datatype`, else the type a method's `it` / `this` stands for, e.g. `card` in `to turn (a card) over`.
    */
   private typeOfVariable(variable: P.ScopeVariable, scope: P.Scope): P.TypeScope | undefined {
     const { datatype, output } = variable
     const methodScope = variable.scope instanceof P.MethodScope ? variable.scope : undefined
-    const typeName = datatype ?? (output === "this" ? methodScope?.thisVar : undefined)
-    return typeName ? scope.types?.get(typeName) : undefined
+    return scope.getType(datatype ?? (output === "this" ? methodScope?.thisVar : undefined))
   }
 
   /**
@@ -1113,7 +1140,7 @@ export class SpellLanguageService {
 
     /** Is `match` a use of `subject`, which isn't a property? */
     function isOccurrence(match: P.Match): boolean {
-      if (subject.kind === "method") return subject.record.instance === match.rule
+      if (subject.kind === "method") return subject.record.instance === SP.SpellStatement.statementRuleOf(match.rule)
       if (!match.rule.highlightAs) return false
       const { scopeVar, scopeType, scopeConstant } = match.data as Record<string, unknown>
       return (scopeVar ?? scopeType ?? scopeConstant) === (subject as { record?: unknown }).record
@@ -1136,7 +1163,7 @@ export class SpellLanguageService {
     const type = subject.record?.scope
     if (!(type instanceof P.TypeScope)) return true
     const owner = this.ownerOf(match, ancestors)
-    return !owner || SpellLanguageService.isA(owner, type)
+    return !owner || owner.isA(type)
   }
 
   ////////////////
@@ -1262,7 +1289,9 @@ export class SpellLanguageService {
             ? this.variableItems(file, scope, offset)
             : kind === "enumMember"
               ? this.constantItems(file, scope, offset)
-              : this.methodItems(file, scope, offset, "expression")
+              : kind === "property"
+                ? this.propertyItems(scope)
+                : this.methodItems(file, scope, offset, "expression")
       for (const name of names) items.push([1, name])
     }
     // Words from categories too, e.g. `{expression}` => `the`, `a`, `its`... -- NOT `Card` when there's `card`
@@ -1278,7 +1307,7 @@ export class SpellLanguageService {
    * The rest of a call to one of `project`'s methods, from child `index` of its call rule `sequence`, as a
    * snippet, e.g. `to ${1:pile}` after `move the card` for `to move (a card) to (a pile)`.
    * - `undefined` if `sequence` isn't a method's call rule.
-   * - Leaves out optional parts;  placeholders are named for the signature's arguments.
+   * - Leaves out optional parts;  placeholders are named for the method's parameters -- see `slotNames()`.
    */
   private methodTail(
     project: SP.SpellProject,
@@ -1289,7 +1318,7 @@ export class SpellLanguageService {
     const scopeRule = this.generatedRules(project).get(sequence)
     const declaration = scopeRule?.declaredBy?.rule.getDeclaration(scopeRule.declaredBy)
     if (!scopeRule || !declaration) return undefined
-    const argNames = SpellLanguageService.argNamesOf(declaration.name)
+    const argNames = SpellLanguageService.slotNames(sequence, SpellLanguageService.methodOf(scopeRule))
     let argIndex = sequence.rules.slice(0, index).filter((rule) => rule instanceof P.Subrule).length
     const label: string[] = []
     const snippet: string[] = []
@@ -1326,7 +1355,8 @@ export class SpellLanguageService {
    * the argument being typed -- or next -- as `activeParameter`.  `null` if not in one.
    * - Parses the line up to the cursor in expecting mode, as `expectedNext()` does, then takes the INNERMOST
    *   method call rule anything was waiting in:  what comes next in it, or what we're partway `within`.
-   * - Its arguments are the call rule's `{subrules}`, in order, named by the signature's `(args)`.
+   * - Its arguments are the call rule's `{subrules}`, in order:  the signature's arguments,
+   *   `(a card)` or paren-free `a card`, where its `method_signature` found them -- see `argRanges()`.
    */
   signatureHelp(file: SP.SpellFile, position: Position): SignatureHelp | null {
     if (!file.match) return null
@@ -1348,9 +1378,9 @@ export class SpellLanguageService {
     if (!call || !scopeRule || !declaration) return null
 
     const label = declaration.name
-    const parameters: ParameterInformation[] = [...label.matchAll(/\([^)]*\)/g)].map((arg) => ({
-      label: [arg.index, arg.index + arg[0].length]
-    }))
+    const parameters: ParameterInformation[] = SpellLanguageService.argRanges(label, declaration.nameMatch).map(
+      (range) => ({ label: range })
+    )
     // args before `index`:  the one we're in, or the next one after a word like `to`
     const activeParameter = call.sequence!.rules.slice(0, call.index).filter((rule) => rule instanceof P.Subrule).length
     return {
@@ -1358,6 +1388,26 @@ export class SpellLanguageService {
       activeSignature: 0,
       activeParameter: Math.min(activeParameter, Math.max(parameters.length - 1, 0))
     }
+  }
+
+  /**
+   * Where each argument is in `label`, a method's signature as written,
+   * e.g. `[5, 11]` for `a card` in `move a card to a pile`.
+   * - In order, as its `method_signature` match (`signature`) found them:  `(a card)` or `a card`.
+   * - NOT a `(with ...)` clause:  its call takes it as an optional extra.
+   */
+  static argRanges(label: string, signature: P.Match | undefined): Array<[number, number]> {
+    const args = (signature?.data as { argMatches?: P.Match[] } | undefined)?.argMatches ?? []
+    const ranges: Array<[number, number]> = []
+    let from = 0
+    for (const arg of args) {
+      const text = arg.inputText.trim()
+      const start = label.indexOf(text, from)
+      if (start === -1) continue
+      ranges.push([start, start + text.length])
+      from = start + text.length
+    }
+    return ranges
   }
 
   ////////////////
@@ -1414,8 +1464,9 @@ export class SpellLanguageService {
   /**
    * Quick fixes for `range` of `file`:  for each WHOLE line in it that didn't parse, "Define `to <phrase>`" --
    * a method whose signature is the line's words, so the line becomes a call to it.
-   * - The phrase is the whole line -- or, for words left over after a statement that parsed, that statement AND
-   *   its leftovers:  `shuffle the deck 3 times`, where `shuffle the deck` parsed, => `to shuffle (a deck) (number) times`.
+   * - The phrase is the whole line -- or, for words left over after a statement that parsed,
+   *   that statement AND its leftovers,
+   *   e.g. `shuffle the deck 3 times`, where `shuffle the deck` parsed => `to shuffle a deck (number) times`.
    *   Once defined, the line parses as the new method:  it matches every word, and the longest match wins.
    * - NOT for a line that's just unfinished, e.g. `set x to` -- see `isUnfinished()`.
    * - Goes just above the top-level statement the line is in, as a method is only visible to lines AFTER it.
@@ -1456,12 +1507,13 @@ export class SpellLanguageService {
   }
 
   /**
-   * Method signature a line of `words` would call, e.g. `shuffle the deck twice` => `to shuffle (a deck) twice`.
+   * Method signature a line of `words` would call, e.g. `shuffle the deck twice` => `to shuffle a deck twice`.
    * - The first word stays a word:  it's the method's name.
    * - After that, the LONGEST run of words that parses as a whole expression in `scope` becomes a parameter:
-   *   - a type's name, e.g. `the deck` if there's a type `deck` => `(a deck)`
+   *   - a type's name, e.g. `the deck` if there's a type `deck` => `a deck`,
+   *     paren-free:  a known type after `a` is a parameter -- see spell's `bare_type_arg`
    *   - a number => `(number)`, text => `(text)`
-   *   - otherwise its last word => `(deck)`, numbered if it's already taken
+   *   - otherwise its last word => `(deck)`, numbered if it's already taken -- a type's name too, the second time
    * - `undefined` if there are no words, or `scope` has no parser.
    */
   private methodSignatureFor(words: string, scope: P.Scope): string | undefined {
@@ -1485,14 +1537,12 @@ export class SpellLanguageService {
       index += length
       const last = expression.at(-1)!
       const word = (last.raw ?? "").toLowerCase()
-      const param =
-        last instanceof P.NumberToken
-          ? "number"
-          : last instanceof P.TextToken
-            ? "text"
-            : types.has(word)
-              ? `a ${word}`
-              : word
+      if (types.has(word) && !names.has(word)) {
+        names.add(word)
+        bits.push(`a ${word}`)
+        continue
+      }
+      const param = last instanceof P.NumberToken ? "number" : last instanceof P.TextToken ? "text" : word
       let name = param
       for (let count = 2; names.has(name); count++) name = `${param}${count}`
       names.add(name)
@@ -1556,6 +1606,33 @@ export class SpellLanguageService {
     })
   }
 
+  /**
+   * Properties of every type visible in `scope`, as written, e.g. `short rank`.
+   * - Once each, with the types declaring it.
+   * - Every type's:  what's being typed, e.g. `the short`, doesn't know yet what it'll be read from.
+   * - NOT an enumeration's values, e.g. `suits`:  `card suits` reads those.
+   */
+  private propertyItems(scope: P.Scope): CompletionItem[] {
+    const owners = new Map<string, Array<{ type: string; doc?: string }>>()
+    for (const type of SpellLanguageService.visible(scope.types)) {
+      for (const property of SpellLanguageService.propertiesOf(type)) {
+        const words = SpellLanguageService.memberWords(property.name, property)
+        const doc = property.declaredBy ? undefined : property.docstring
+        owners.set(words, [...(owners.get(words) ?? []), { type: type.name, doc }])
+      }
+    }
+    return [...owners].map(([label, of]) => {
+      // a built-in's docs, e.g. a text's and a list's `length` -- each type's, if more than one says
+      const docs = of.filter((it) => it.doc).map((it) => (of.length > 1 ? `**${it.type}**:  ${it.doc}` : it.doc))
+      return {
+        label,
+        kind: CompletionItemKind.Property,
+        detail: `property of ${of.map((it) => it.type).join(", ")}`,
+        ...(docs.length ? { documentation: this.markdown(docs.join("\n\n")) } : {})
+      }
+    })
+  }
+
   /** Constants visible in `scope`, declared before `offset`. */
   private constantItems(file: SP.SpellFile, scope: P.Scope, offset: number): CompletionItem[] {
     return SpellLanguageService.visible(scope.constants).flatMap((constant) => {
@@ -1586,15 +1663,16 @@ export class SpellLanguageService {
   }
 
   /**
-   * Snippet calling the method `scopeRule` matches, e.g. `turn ${1:card} face up` for `to turn (a card) face up`.
-   * - Placeholders are named for the signature's arguments, in order.
+   * Snippet calling the method `scopeRule` matches, e.g. `turn ${1:card} face up` for `to turn a card face up`.
+   * - Placeholders are named for the method's parameters, in order -- see `slotNames()`.
    */
   private methodCompletion(scopeRule: P.ScopeRule): CompletionItem | undefined {
-    const { declaredBy, definition } = scopeRule
+    const { declaredBy, definition, instance } = scopeRule
     const { syntax } = definition
     const declaration = declaredBy?.rule.getDeclaration(declaredBy)
     if (!syntax || !declaration) return undefined
-    const argNames = SpellLanguageService.argNamesOf(declaration.name)
+    const method = SpellLanguageService.methodOf(scopeRule)
+    const argNames = instance instanceof P.Sequence ? SpellLanguageService.slotNames(instance, method) : []
     let argIndex = 0
     const snippet = syntax
       .split(/\s+/)
@@ -1692,13 +1770,43 @@ export class SpellLanguageService {
     return file?.isActive ? file : undefined
   }
 
-  /** Every rule `project`'s files generated while parsing, e.g. a method's call-site rule, to the record of it. */
+  /**
+   * Every rule `project`'s files generated while parsing, e.g. a method's call-site rule, to the record of it.
+   * - A call's expression twin finds its statement rule's record too -- see `GeneratedRules`.
+   */
   generatedRules(project: SP.SpellProject): Map<P.Rule, P.ScopeRule> {
-    const generated = new Map<P.Rule, P.ScopeRule>()
+    const generated = new GeneratedRules()
     for (const scopeRule of SpellLanguageService.visible(project.scope?.rules)) {
       if (scopeRule.instance) generated.set(scopeRule.instance, scopeRule)
     }
     return generated
+  }
+
+  /**
+   * Record of the method `scopeRule`'s call rule calls:  its `P.ScopeMethod`, which its declaring statement noted.
+   * - `undefined` if it has none, e.g. it was imported, or it's a property's rule.
+   */
+  static methodOf(scopeRule: P.ScopeRule): P.ScopeMethod | undefined {
+    const declared = (scopeRule.declaredBy?.data as { declared?: unknown[] } | undefined)?.declared ?? []
+    return declared.find((item): item is P.ScopeMethod => item instanceof P.ScopeMethod)
+  }
+
+  /**
+   * Name of each argument slot of `method`'s call rule `sequence`, in order,
+   * e.g. `move a card to a pile` => `card`, `pile`:
+   * - its receiver (`{thisArg}`) by its type, e.g. `card`
+   * - each other by its parameter's name, from the method's record (`P.ScopeMethod.params`), e.g. `pile`
+   * - else the slot's own group or rule name
+   */
+  static slotNames(sequence: P.Sequence, method: P.ScopeMethod | undefined): string[] {
+    const params = method?.params ?? []
+    let param = 0
+    return sequence.rules
+      .filter((rule): rule is P.Subrule => rule instanceof P.Subrule)
+      .map((slot) => {
+        if (slot.matchGroup === "thisArg" && method?.of) return instanceCase(method.of)
+        return params[param++]?.name ?? slot.matchGroup ?? slot.rule
+      })
   }
 
   /** What every statement in the project of `match` declares, in file order. */
@@ -1940,7 +2048,7 @@ export class SpellLanguageService {
   }
 
   /** Kinds of NAME a completion can offer, by the `highlightAs` of the rule that matches them -- see `firstKinds()`. */
-  static NAME_KINDS: P.HighlightKind[] = ["type", "variable", "enumMember", "function"]
+  static NAME_KINDS: P.HighlightKind[] = ["type", "variable", "enumMember", "function", "property"]
 
   /**
    * Kinds of name `rule` can start with, e.g. `{type}` => `type`, `{expression}` => `variable`, `enumMember`...
@@ -1967,46 +2075,18 @@ export class SpellLanguageService {
     return kinds
   }
 
-  /** Argument names of a method declared as `name`, e.g. `move (a card) to (a pile)` => `card`, `pile`. */
-  static argNamesOf(name: string): string[] {
-    return [...name.matchAll(/\(([^)]*)\)/g)].map(([, arg]) =>
-      arg!
-        .replace(/^(a|an|the)\s+/i, "")
-        .replace(/\s+as\s+.*$/, "")
-        .trim()
-    )
-  }
-
   /**
-   * Record of property `name` on `type`, or on the nearest super-type declaring it.
-   * - `LOCAL_ONLY` at each step:  a type's `variables` fall back to its parent SCOPE's, not its super-type's.
+   * Record of property `name` on `type`, or on the nearest super-type declaring it -- see `P.TypeScope.getMember()`.
+   * - A property only:  `undefined` if the member is a method.
    */
   static propertyOf(type: P.TypeScope, name: string): P.ScopeVariable | undefined {
-    for (const ancestor of SpellLanguageService.typeChain(type)) {
-      const record = ancestor.variables.get(name, "LOCAL_ONLY")
-      if (record) return record
-    }
-    return undefined
+    const member = type.getMember(name)
+    return member instanceof P.ScopeVariable ? member : undefined
   }
 
   /** Properties declared on `type` itself -- NOT the enumerations `define_property_has` also files there. */
   static propertiesOf(type: P.TypeScope): P.ScopeVariable[] {
     return type.variables.get().filter((variable) => !("enumeration" in variable))
-  }
-
-  /** Is `type` the same as `ancestor`, or a sub-type of it? */
-  static isA(type: P.TypeScope, ancestor: P.TypeScope): boolean {
-    return SpellLanguageService.typeChain(type).includes(ancestor)
-  }
-
-  /** `type`, then its super-type, and so on up -- stopping at one we've seen, in case of a cycle. */
-  static typeChain(type: P.TypeScope): P.TypeScope[] {
-    const chain: P.TypeScope[] = []
-    for (let at: P.TypeScope | undefined = type; at && !chain.includes(at);) {
-      chain.push(at)
-      at = at.superType ? at.parentScope?.types?.get(at.superType) : undefined
-    }
-    return chain
   }
 
   /** Is `token` one an editor should colour:  a word, symbol, number, string or comment -- NOT whitespace? */
@@ -2066,9 +2146,21 @@ export class SpellLanguageService {
     return name.replace(/_/g, "-")
   }
 
-  /** `name` normalized for comparing:  lower case, dashes as underscores, e.g. `short-suit` => `short_suit`. */
+  /**
+   * `name` normalized for comparing:  lower case, dashes and spaces as underscores,
+   * e.g. `short-suit` or `short suit` => `short_suit`.
+   */
   static propertyKey(name: string): string {
-    return name.toLowerCase().replace(/-/g, "_")
+    return name.toLowerCase().replace(/[-\s]+/g, "_")
+  }
+
+  /**
+   * Member `name` as it's written in spell, e.g. `short rank` for `short_rank`.
+   * - Its record's `asWritten`, if it has one, else its name with spaces.
+   * - Hover AND the Type Explorer show this, so a member reads the same in both.
+   */
+  static memberWords(name: string, record?: P.ScopeVariable): string {
+    return record?.asWritten ?? (record?.name ?? name).replace(/_/g, " ")
   }
 }
 
@@ -2078,6 +2170,23 @@ type CodeLensData = {
   uri: string
   /** Where the declared name starts. */
   position: Position
+}
+
+/**
+ * Generated rules to their records -- see `SpellLanguageService.generatedRules()`.
+ * - A call rule's expression twin (`SP.SpellStatement.operandInExpressions`) finds its statement rule's record:
+ *   the twin is what a call INSIDE an expression matched, e.g. `double x` in `if double x is 4`.
+ */
+class GeneratedRules extends Map<P.Rule, P.ScopeRule> {
+  /** Record of `rule`, or of the statement rule it's the twin of. */
+  get(rule: P.Rule): P.ScopeRule | undefined {
+    return super.get(SP.SpellStatement.statementRuleOf(rule))
+  }
+
+  /** Is `rule`, or the statement rule it's the twin of, generated? */
+  has(rule: P.Rule): boolean {
+    return super.has(SP.SpellStatement.statementRuleOf(rule))
+  }
 }
 
 /** How one character of a comment draws:  the markdown around it -- see `commentSpans()`. */

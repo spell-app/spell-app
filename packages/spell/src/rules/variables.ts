@@ -28,8 +28,8 @@ export const variables = new SpellParser({ module: "variables" })
  * - Looks the word up in `scope.variables` WHILE PARSING, as `match.data.scopeVar` -- if found, you can override
  *   what's output with `variable.output`.  NOT when building the AST:  scope may have changed by then,
  *   e.g. `it` redefined by a later `get`.
- * - TODO: type based on scope variable type?
- * - TODO: higher precedence if variable is known?
+ * - Its `datatype` is the scope variable's -- see `getDatatype()`.
+ * - TODO: higher priority if variable is known?
  */
 export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> extends P.Pattern<
   never,
@@ -67,6 +67,12 @@ export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> 
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (match) match.data.scopeVar = scope.variables?.get(match.value) ?? NONE
     return match
+  }
+
+  /** What the variable it named holds, if known -- see `P.ScopeVariable.datatype`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const { scopeVar } = match.data
+    return scopeVar === NONE ? undefined : scopeVar?.datatype
   }
 
   getAST(match: P.MatchFor<this>): P.ASTVariableExpression {
@@ -178,6 +184,11 @@ export class variable extends P.Sequence<"identifier", VariableMatchData> {
     // Remember scope variable for the identifier, if there is one.
     match.data.scopeVar = (match.groups.identifier.data as IdentifierMatchData).scopeVar ?? NONE
     return match
+  }
+  /** What the variable it named holds, if known -- see `P.ScopeVariable.datatype`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const { scopeVar } = match.data
+    return scopeVar === NONE ? undefined : scopeVar?.datatype
   }
   getAST(match: P.MatchFor<this>): P.ASTVariableExpression {
     // `the` adds nothing -- output is whatever the identifier outputs.

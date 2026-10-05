@@ -2,7 +2,7 @@
 
 a deck is a list of cards
 
-to set up (a deck)
+to set up a deck
 	if  the is-set-up of it return
 	for each rank in card ranks
 		for each suit in card suits
@@ -10,10 +10,10 @@ to set up (a deck)
 			add it to the deck
 	set the is-set-up of the deck to yes
 
-to display (a deck)
+to display a deck
 	set card-names to a new list
 	for each card in the deck
-		add the short-name of the card to card-names
+		add the short name of the card to card-names
 	echo "deck: " + card-names
 
 to test deck creation
@@ -25,10 +25,9 @@ to test deck creation
 	set the queens to the cards in the deck where the rank of the card is "queen" 
 	expect the number of cards in the queens to be 4
 	expect the name of the bottom card of the deck to be "king-of-spades"
-	expect the short-name of the top card of the deck to be "A♣️"
+	expect the short name of the top card of the deck to be "A♣️"
 
 	echo "the deck before shuffling:"
 	display the deck
-	get the first card of the deck
-	expect it is the ace of clubs to be yes
+	expect the first card of the deck is the ace of clubs to be yes
 test deck creation
