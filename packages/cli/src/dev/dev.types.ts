@@ -267,11 +267,12 @@ export type SharedStatus = {
 /**
  * What `migrateWorktree()` does with one shared file of a worktree.
  * - `action`:  `skip` (the worktree didn't change it, or matches), `take` (the worktree's copy goes into the shared
- *   repo), `delete` (the worktree deleted it), `union` (a log changed on both sides:  merged, `text`), `conflict`
+ *   repo), `delete` (the worktree deleted it), `union` (a log changed on both sides:  merged, `text`), `rebuild` (a
+ *   built file changed on both sides:  the shared copy stays, its tool runs again), `conflict`
  */
 export type FoldReport = {
   file: string
-  action: "skip" | "take" | "delete" | "union" | "conflict"
+  action: "skip" | "take" | "delete" | "union" | "rebuild" | "conflict"
   text?: string
 }
 

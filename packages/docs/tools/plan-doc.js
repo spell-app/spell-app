@@ -3118,7 +3118,8 @@ export function sharedDocLog(file, checkout) {
   const name = basename(file).replace(/(\.plan)?\.html$/, "")
   const since = /\bid="plan-started"[^>]*>\s*(\d{4}-\d\d-\d\d)/.exec(html)?.[1]
   const phases = PlanDoc.parse(html).phases
-  const raw = gitIn(checkout, "log", "--format=%H%x09%s", ...(since ? [`--since=${since}`] : []))
+  // a bare date means that day at the CURRENT time to git:  midnight, so the start day's commits count
+  const raw = gitIn(checkout, "log", "--format=%H%x09%s", ...(since ? [`--since=${since} 00:00`] : []))
   return parseLog(raw).filter(({ subject }) => {
     if (subject.startsWith(`${name} `)) return true
     const parsed = parseCommitSubject(subject)
