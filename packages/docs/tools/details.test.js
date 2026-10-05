@@ -1,5 +1,5 @@
 /**
- * Tests of `yarn details`' functions (`scripts/details.js`), in a scratch `packages/docs`:  the real template, a
+ * Tests of `spell dev details`' functions (`scripts/details.js`), in a scratch `packages/docs`:  the real template, a
  * scratch `details/` and an epic.
  */
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs"

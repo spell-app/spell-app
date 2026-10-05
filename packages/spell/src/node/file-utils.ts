@@ -325,8 +325,8 @@ export function loadFiles(paths: string[], format: EncodingFormat, optional?: "O
  * Write `fileData` to disk at server `path` according to file `format`.
  * - Creates any intervening folders as necessary.
  * - Resolves with `true` on success.
- * - Under `SRV.FileLock`:  writers that cooperate (the app's saves, the page server's page edits, `yarn plan-doc`,
- *   `yarn goals`) take turns on the same file.
+ * - Under `SRV.FileLock`:  writers that cooperate (the app's saves, the page server's page edits, `spell dev plan-doc`,
+ *   `spell dev goals`) take turns on the same file.
  * - SIDE EFFECT: overwrites any existing file at `path` with no merge/conflict check:  the last save wins.
  */
 export async function saveFile(path: string, fileData: any, format: EncodingFormat = FORMAT.TEXT): Promise<boolean> {

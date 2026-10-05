@@ -8,7 +8,7 @@ In your own words, without jargon, narrate each step in the order it actually ha
 
 When a question needs a picture to decide, or more than the AskUserQuestion modal holds (4 options per question, 4
 questions), use `/details` (`.claude/skills/details/`):  a page in VS Code's right side bar that Owen answers on.
-Naming any docs page in a reply:  `yarn docs:link <page> --hash <id> --show`, and paste its side bar link +
+Naming any docs page in a reply:  `spell dev docs link <page> --hash <id> --show`, and paste its side bar link +
 `(_browser_)` link.
 
 When a summary closes out the session's work (merged, worktree gone, `/isolate done`, a `/bedtime` night reviewed ...), end it with a line of its own, `*You can close this tab*`, if nothing is left for THIS session:  no uncommitted or unmerged work, no background task or agent still running, no question waiting on Owen.  Open items may remain only if they're recorded elsewhere (plan doc, `agents/CODE-DEBT.md` ...) and need no context from this session.  Otherwise leave the line out, and say what's keeping the tab open.

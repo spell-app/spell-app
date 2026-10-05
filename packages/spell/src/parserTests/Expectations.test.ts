@@ -118,14 +118,18 @@ describe("expectedAfter()", () => {
       expect(describeAll(expected("set y to").own)).toEqual(["{value:expression}"])
     })
 
-    test("`a deck is a` => a type", () => {
-      expect(describeAll(expected("a deck is a").own)).toEqual(["{superType:type}"])
+    test("`a deck is a` => a type, or `exclusive`, or `list of`", () => {
+      expect(describeAll(expected("a deck is a").own)).toEqual([
+        "{superType:type}",
+        "(exclusive:exclusive)?",
+        "list of"
+      ])
     })
 
     test("`if c` => `then` or `:`, and operators only as continuations", () => {
       const { own, continues } = expected("if c")
       expect(describeAll(own)).toEqual(["(then|:)?"])
-      expect(describeAll(continues)).toContain("+{rhsChain:expression_suffix}+")
+      expect(describeAll(continues)).toContain("+{rhsChain:expression_suffix}*")
     })
 
     test("`move c` => `to`, where it sits in the method's call rule", () => {

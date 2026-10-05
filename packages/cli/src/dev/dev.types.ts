@@ -290,6 +290,19 @@ export type MigrateReport = {
 }
 
 ////////////////
+// ## Pass-through tools
+////////////////
+
+/**
+ * How `spell dev` runs one repo tool, the way its yarn script did -- see `runTool()`.
+ * - `tool`:  the script, relative to a checkout's root
+ * - `tsx`:  the `tsconfig.json` it runs under `tsx` with, relative to a checkout's root;  none:  plain `node`
+ * - `cwd`:  the folder it runs in, relative to a checkout's root;  none:  the caller's
+ *   - `yarn workspace @spell-app/docs` ran the docs tools in `packages/docs`, and they print paths relative to it
+ */
+export type ToolSpec = { tool: string; tsx?: string; cwd?: string }
+
+////////////////
 // ## Agent rules
 ////////////////
 

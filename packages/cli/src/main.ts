@@ -3,6 +3,8 @@
  * - `consoleGuard` comes FIRST, and everything else only after it, via dynamic `import()`:
  *   modules log as they load, e.g. `environment.ts`.
  * - Each command is `CLI.<name>Command(session, args, options)`, resolving to the exit code.
+ * - `spell dev ...` (and the deprecated `spell plan-doc` / `spell goals`) start in the lean `devMain.ts`
+ *   instead, which loads no spell;  its commands that need spell come back here.  Their tree:  `devProgram.ts`.
  */
 import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it
@@ -10,9 +12,9 @@ import "$/spell/node/packageVersion.node"
 // types only:  erased, so it loads nothing ahead of `consoleGuard`
 import type { CliSession, GlobalOptions } from "$/cli"
 
-const { Command } = await import("commander")
 const { default: chalk } = await import("chalk")
 const { CLI } = await import("$/cli")
+const { devProgram, rawArgs, runLean, spellProgram } = await import("$/cli/devProgram")
 
 // output piped into e.g. `head`, which closed it:  nothing more to say
 process.stdout.on("error", (error: NodeJS.ErrnoException) => error.code === "EPIPE" && process.exit(0))
@@ -31,12 +33,7 @@ Targets:
 const TARGET_ARG = "a spell file, project folder, or @root/project -- default the project here, else asks"
 const TARGETS_ARG = "spell files, project folders, or @roots/projects -- default the project here, else asks"
 
-const program = new Command("spell")
-  .description("Compile, check and explore spell projects.")
-  .version(globalThis.__PACKAGE_VERSION__)
-  .option("--all", "a whole root, e.g. @library, means ALL its projects")
-  .option("--verbose", "show spell's own logging, on stderr")
-  .addHelpText("after", TARGET_HELP)
+const program = spellProgram().version(globalThis.__PACKAGE_VERSION__).addHelpText("after", TARGET_HELP)
 
 program
   .command("compile")
@@ -217,126 +214,28 @@ program
 
 program
   .command("goals")
-  .description("plans in goals/:  talk, add thoughts, update, open -- `spell goals help` lists its commands")
+  .description("deprecated:  spell dev goals")
   .argument("[args...]", "a goals command and its arguments, e.g. update spell/motivation")
   .allowUnknownOption()
   .helpOption(false)
-  // everything after `goals`, raw:  commander would take `--all` as the global option
-  .action(() => run(CLI.goalsCommand, process.argv.slice(process.argv.indexOf("goals") + 1), {}))
+  .action(() => runLean(CLI.goalsCommand, rawArgs("goals")))
 
 program
   .command("plan-doc")
-  .description(
-    "edit a plan doc (packages/docs/content/epics/):  `yarn plan-doc` -- `spell plan-doc` lists its commands"
-  )
+  .description("deprecated:  spell dev plan-doc")
   .argument("[args...]", "a plan-doc command and its arguments, e.g. summary seo")
   .allowUnknownOption()
   .helpOption(false)
-  // everything after `plan-doc`, raw:  its `--goal` / `--estimate` ... are the tool's, not ours
-  .action(() => run(CLI.planDocCommand, process.argv.slice(process.argv.indexOf("plan-doc") + 1), {}))
+  .action(() => runLean(CLI.planDocCommand, rawArgs("plan-doc")))
 
-/**
- * `spell dev <noun> <verb>`:  the repo's OWN tools (worktrees, docs, servers ...), as opposed to the spell language.
- * - The plan for them, and every command the repo has:  `packages/docs/content/dev/commands/commands.html`
- * - Each finds the nearest checkout from the current folder (`CLI.findCheckout()`), so it works in a worktree
- * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
- */
-const dev = program
-  .command("dev")
-  .description("the repo's own tools -- worktrees, docs, servers ...:  packages/docs/content/dev/commands")
-
-dev
-  .command("commands")
-  .description("every yarn script, spell command and skill, against the commands page -- check exits 1 on a gap")
-  .argument("[verb]", "list (default):  each command, ✓ if the page names it;  check:  only the gaps")
-  .option("--json", "print every command, and the gaps, as JSON")
-  .action((verb: string | undefined, _options, command) =>
-    run(CLI.commandsCommand, verb ? [verb] : [], command.optsWithGlobals())
-  )
-
-dev
-  .command("session")
-  .description("Claude Code sessions:  list, find, open in VS Code, title this one, digest another's transcript")
-  .argument(
-    "[verb]",
-    "list (default) [words...] | find <name> | open <id|title> | title [title] | window [pid] | transcript <id>"
-  )
-  .argument("[args...]", "the verb's arguments")
-  .option("--limit <n>", "list:  at most this many (default 15)")
-  .option("--json", "list, find, transcript:  print the data as JSON")
-  .action((verb: string | undefined, args: string[], _options, command) =>
-    run(CLI.sessionCommand, verb ? [verb, ...args] : [], command.optsWithGlobals())
-  )
-
-dev
-  .command("worktree")
-  .description(
-    "git worktrees:  list the live sessions and where they work, or where a worktree / plan / session stands"
-  )
-  .argument("[verb]", "list (default) | status <name>")
-  .argument("[name]", "status:  a worktree, branch, plan doc or session name")
-  .option("--json", "list:  print the data as JSON")
-  .action((verb: string | undefined, name: string | undefined, _options, command) =>
-    run(
-      CLI.worktreeCommand,
-      [verb, name].filter((it) => it !== undefined),
-      command.optsWithGlobals()
-    )
-  )
-
-dev
-  .command("park")
-  .description("parked work:  list the PARKED notes, what /wait-for could wait on, or wait for a name to finish")
-  .argument("<verb>", "list | candidates | wait <name>")
-  .argument("[name]", "wait:  a worktree, branch, plan doc or session name")
-  .option("--every <seconds>", "wait:  poll this often (default 60)")
-  .option("--max <seconds>", "wait:  give up after this long, exiting 2 (default 7140)")
-  .action((verb: string, name: string | undefined, _options, command) =>
-    run(
-      CLI.parkCommand,
-      [verb, name].filter((it) => it !== undefined),
-      command.optsWithGlobals()
-    )
-  )
-
-dev
-  .command("stock")
-  .description("take stock:  worktrees, branches, sessions, parked work, plans -- in process, hung or parked, dead")
-  .option("--json", "print the report as JSON, with each action's shell lines")
-  .action((_options, command) => run(CLI.stockCommand, [], command.optsWithGlobals()))
-
-dev
-  .command("shared")
-  .description("shared content:  docs pages, goal sets and logs in one repo beside the checkout, linked into every one")
-  .argument(
-    "[verb]",
-    "status (default) | init [--import] | link [--all] | commit [--session <id>] | migrate <worktree> [--dry-run]"
-  )
-  .argument("[name]", "migrate:  the worktree")
-  .option("--json", "status, migrate:  print the data as JSON")
-  .option("--import", "init:  copy this checkout's folders into the new shared repo")
-  .option("--session <id>", "commit:  the Claude Code session, for the commit's trailer")
-  .option("--quiet", "commit:  print nothing")
-  .option("--dry-run", "migrate:  say what it would do, change nothing")
-  .action((verb: string | undefined, name: string | undefined, _options, command) =>
-    run(
-      CLI.sharedCommand,
-      [verb, name].filter((it) => it !== undefined),
-      command.optsWithGlobals()
-    )
-  )
-
-dev
-  .command("agents")
-  .description("the agents' rules:  check every WWOD citation and repo path in WWOD, AGENTS.md, CLAUDE.md and skills")
-  .argument("[verb]", "check (default)")
-  .argument("[files...]", "check:  more files to check, beyond the default set")
-  .option("--json", "check:  print the report as JSON")
-  .action((verb: string | undefined, files: string[], _options, command) =>
-    run(CLI.agentsCommand, [verb ?? "check", ...files], command.optsWithGlobals())
-  )
+// `spell dev ...`:  the repo's own tools.  `bin/spell.mjs` runs them through the lean `devMain.ts`;  here for
+// `spell --help` / `spell help dev`, and a command line it didn't route there, e.g. `spell --verbose dev ...`
+devProgram(program, (name, args, options) => run(CLI[name] as BarrelCommandFn, args, options))
 
 await program.parseAsync()
+
+/** A `$/cli` command, as `run()` takes it:  `devProgram()` names the ones it needs. */
+type BarrelCommandFn = (session: CliSession, args: string[], options: GlobalOptions) => Promise<number>
 
 /**
  * Run `command` for `args`, then exit with the code it returns.

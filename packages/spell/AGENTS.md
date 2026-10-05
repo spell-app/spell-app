@@ -57,11 +57,14 @@ house style every package shares.  Only what's local is below;  a section named 
 
 - A rule is a CLASS (behaviour AND what the rule is) plus its `syntax` + `tests`, passed when registering it:
   `parser.addRule(RuleClass, { syntax, tests })`.
-  - Everything else -- `alias`, `precedence`, `declares`, `highlightAs`, `datatype`, `tokenType`, `pattern` ... --
+  - Everything else -- `alias`, `priority`, `declares`, `highlightAs`, `datatype`, `tokenType`, `pattern` ... --
     goes ON THE CLASS as `@proto static` (from `$/util`), e.g. `@proto static alias = "expression"`.
     Why:  the class is the rule, reusable by other languages' parsers with their own `syntax`.
     As WWOD §12 › "`@proto static` defaults" (declared props only;  inherited), plus:  `syntax`, `tests` and
     `ruleName` are NOT inherited -- share syntax with a constant, e.g. `VARIABLE_SYNTAX`.
+  - `priority` (from the `Priority` table, `rules.types.ts`) only breaks a tie between rules matching the SAME
+    words;  an operator's `precedence` (from the `Precedence` table) is how tightly it binds.
+    New expression or operator:  `PARSING.md`, "Adding an expression rule".
   - Class name IS the rule name.  Use plain `static ruleName = "if"` only for reserved words (`class _if`)
     or when class name isn't rule case (`class Block` => `"block"`).
     So the prod build keeps class names:  `../parser/AGENTS.md`, `keepNames`.
@@ -80,18 +83,22 @@ house style every package shares.  Only what's local is below;  a section named 
     e.g. `DynamicMethodRule.specialize({ output: "play_fizzbuzz", alias })` -- and the definition is still
     just `{ syntax }`.
     - NEVER a closure class:  its behaviour reads ONLY its statics, so a project's declarations can rebuild it
-      in another project.  Give its base class `@proto static importableAs = "<id>"`, e.g. `"enumeration"`.
+      in another project.  Give its base class `@proto static importableAs = "<id>"`, e.g. `"quoted_property"`.
     - What it's `specialize()`d with is written out as is -- so an importable class overrides `specialize()`
       to take a MINIMAL set, named in `declare static readonly SpecializeWith`, and works out the rest
       for `super.specialize(statics, declared)`.  See `P.SpecializeWith`.
     - Its `static declarationProps(declared, syntax)` says what goes in the declaration -- tune output there.
   - A class or rule name is NOT a stable identifier (WWOD §3 › "Names aren't identifiers"):  here, the explicit
-    property is e.g. `@proto static importableAs = "enumeration"`.
+    property is e.g. `@proto static importableAs = "quoted_property"`.
   - A word with negated forms is a `Negatable` rule (`expressions.ts`):  `{operator:is}` matches `is` / `is not` /
     `isn't` / `isnt`, and `Negatable.isNegated(operator)` says which -- plain `is` matches just the word.
     `is`, `can`, `will`, `has` so far;  a translation registers its own, e.g.
     `addRule(Negatable.specialize({ ruleName: "es" }), { syntax: "(es|(negated:no es))" })` --
     forms in its `negated` group are the negated ones.
+- A rule which is a statement AND an expression, ending in a whole `{x:expression}` (a method call, `wait for`):
+  `@proto static operandInExpressions = true` makes that last slot an `operand` when used INSIDE an expression,
+  so `if double x is 4` => `double(x) == 4`, while the statement `notify x + y` keeps `notify(x + y)`.
+  - `SpellParser.addRule()` registers the statement and an expression twin:  see "Expressions" in `PARSING.md`.
 - A statement with a BODY -- an inline statement, or an indented block under it -- says so with a body
   keyword at the END of its `syntax`, e.g. `if {condition:expression} (then|:)? {statement_body}?`:
   - `{statement_body}` ~== `({inline_statement}|{nested_statements})`
@@ -109,7 +116,7 @@ house style every package shares.  Only what's local is below;  a section named 
 - Rule module layout, top to bottom:
   - header docstring, imports
   - `export const <module> = new SpellParser({ module: "<module>" })` -- at the TOP, classes can't be hoisted to it
-  - then for EACH rule, in tie-break order (when two rules tie on precedence and length, the EARLIER wins):
+  - then for EACH rule, in tie-break order (when two rules tie on `priority` and length, the EARLIER wins):
     - a group header naming the rule and showing what it matches, exactly this shape -- `e.g.` indented 4
       so it lines up under the rule name, and the example taken from the rule's own `tests` so it stays true:
       ```
@@ -147,12 +154,33 @@ house style every package shares.  Only what's local is below;  a section named 
   NEVER override `getGroupsForMatch()` to add derived values.
 - In `match.data`, use `NONE` (from `$/util`) for "looked, not found" rather than `null`;  name scope lookups
   `scopeVar` / `scopeConstant` / `scopeType`.
-- ONLY `mutateScope()` changes scope.  `getAST()` MUST be pure:  NEVER change scope, NEVER look it up -- ASTs are
-  built lazily, when scope may have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
+- ONLY `mutateScope()` changes scope -- and `mutateScopeFromBody()`, for what a statement knows
+  only once its BODY has parsed, e.g. what a method returns.
+  - `mutateScopeFromBody()` returns what it recorded, so an edit changing it re-parses what follows.
+  - `getAST()` MUST be pure:  NEVER change scope, NEVER look it up -- ASTs are built lazily,
+    when scope may have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
+- What a statement's `mutateScope()` changes, for incremental parsing:  `@proto static changesScope`,
+  or override `getScopeChanges(match)` when only SOME matches change what later lines see.
+  - It reads only `match.data`, e.g. `assignment_statement` is `"global"` only when it auto-declared a property.
+  - See "Incremental parsing" in `PARSING.md`.
+- A slot NAMING a member -- a property's declaration, a read of one -- is `{property:member_words}`:
+  several words, blacklisted ones too, up to a structural word.
+  - A READ resolves them through its type in `parse()`, else rejects;  a single undeclared word is the loose
+    `{property}`.  See "Members" in `PARSING.md`.
+- A built-in type's members (`the length of the name`) are DATA in `SP.BUILT_IN_TYPE_TABLE`
+  (`src/builtinTypes.ts`), NOT rules.
+  - Add one there, with the real `spellCore` method or javascript property its `readAs` names,
+    then `yarn scopes --builtins` in `../lsp`.  See "Built-in types" in `PARSING.md`.
+- A `parse()` which understood a statement but mustn't take it -- e.g. a property declared on a built-in type --
+  returns `SpellStatement.refuse(match, "why")`, NOT `undefined`:  the line's error then says why.
 - A rule built WHILE PARSING goes through `scope.addRule(RuleClass, definition, match)` -- never `parser.addRule()`
   directly -- so the scope records the class + definition pair and can hand on the rules it created.
-- A `mutateScope()` that adds a scope record -- a variable, constant, type, rule or `MethodScope` -- passes
+- A `mutateScope()` that adds a scope record -- a variable, constant, type, rule or `ScopeMethod` -- passes
   `declaredBy: match` (the third argument for `scope.addRule()`), so editors can find where it was declared.
+- What a rule's match IS -- `match.datatype`, in spell's words (`text`, `Card`, `list of cards`, see `P.Datatype`):
+  `@proto static datatype`, or override `getDatatype(match)`, which reads ONLY `match.data` and child matches.
+  - A scope lookup it needs (a member, a list's item type) happens in `parse()`, into `match.data`.
+  - Type names a user WRITES go through `SP.typeName()`.  See "Datatypes" in `PARSING.md`.
 - Rules are IMMUTABLE (frozen on registration) and shared by every parse.
   NEVER store per-parse state on a rule, NEVER add ad hoc fields to a `Match` -- use `match.data`.
 - Exception to "one exported class per file":  a rule module holds many snake_case rule classes.

@@ -56,9 +56,9 @@ Then, per package:
 
 ```sh
 cd packages/app && yarn start    # the web app and its server
-yarn vscode                            # (at the root) build and install the VS Code extension
 cd packages/ui    && yarn dev          # @spell-app/ui's demo pages, hot-reloading
 cd packages/cli   && yarn cli:install  # put `spell` on your PATH
+spell dev vscode                       # build and install the VS Code extension (needs `spell`, above)
 ```
 
 From the root, `yarn ts` and `yarn review` run in every package.  `review` also FIXES lint and formatting, so it
