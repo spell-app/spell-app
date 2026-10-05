@@ -11,8 +11,8 @@ house style every package shares.  Only what's local is below;  a section named 
 - The generic rule-based parser, `$/parser` (`P`):  tokenizer, rules and `Parser`, `Match`, scopes, ASTs,
   incremental parsing.  It knows NO language;  the spell language on it is `../spell` (`$/spell`).
 - `PARSING.md` -- the map of the parse pipeline -- is still in `../spell`:  `../spell/PARSING.md`.  Read it BEFORE
-  digging into parser internals, and MUST keep it up to date in the same change whenever the parsing mechanism
-  changes -- generic `Parser`, scopes, or the `Block` / `BlockLine` machinery here.
+  digging into parser internals;  a change to the parsing mechanism HERE updates it too (`../spell/AGENTS.md`, "How
+  parsing works").
 - Rulex (the rule-syntax language) is `$/parser/rulex`:  an OPT-IN side-effect import that registers itself on
   `Parser.rulexParser`.  The barrel NEVER pulls it in.
 - `$/parser/test` (`src/test/`) holds the helpers language packages use to test their rules, e.g.
@@ -23,12 +23,13 @@ house style every package shares.  Only what's local is below;  a section named 
   `tsx` / esbuild / Vite's oxc, none of which compile Solid's JSX.
 - "Parser rules" (how to write a rule class + its `syntax` + `tests`) is in `../spell/AGENTS.md`:  the rules
   there are spell's, on this package's `Rule` -- see also the top docstring in `src/rules/Rule.ts`.
-- Prod build MUST keep `output.keepNames` (`../app/vite.config.ts`), because a rule's class name IS its rule
-  name.  Pinned by `../app/src/build.test.ts`.
+- `keepNames`:  every prod build MUST keep `output.keepNames` (`../app/vite.config.ts`,
+  `../app/vite.editor.config.ts`), because a rule's class name IS its rule name.  Pinned by
+  `../app/src/build.test.ts`.
 
 ## Imports
 
-- As WWOD §4, with `P` ~== `$/parser` as our one namespace:  `import { P } from "$/parser"`.
+- As WWOD §4 (examples there are ours).  `import { P } from "$/parser"`.
 - `barrel.test.ts` is the smoke test for circular imports through the barrel -- run it after moving files.
 
 ## Decorators

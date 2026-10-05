@@ -29,7 +29,7 @@ house style every package shares.  Only what's local is below;  a section named 
 - It's a LEAF:  node built-ins only (json5 / esbuild come in as hooks), and it imports NO other package, so
   anything may import it -- `ui`'s tools and site, `spell/node`, `cli`, `app`, `docs`, `goals`, the VS Code
   extension.
-- NOT in the barrel, opt-in by path:
+- NOT in the barrel, opt-in by path (WWOD §8 › "Barrels"):
   - `$/server/page/...` -- the page server (one per checkout), its CLI (`yarn server`), page edits, running epics
     (`RunningEpics`:  the main checkout's server shows every worktree's plan doc);  may use deps (`parse5`).  It serves
     the repo at `/`, and Spell UI's docs, `packages/ui/site/`, as static pages at `/ui/` (`UI_SITE`, `page.types.ts`;
@@ -50,7 +50,7 @@ house style every package shares.  Only what's local is below;  a section named 
 
 ## Imports
 
-- As WWOD §4, with `SRV` ~== `$/server` as our one namespace.
+- As WWOD §4.
 - Tests use `$/server/test/serve` (`serveHandler`, `ask`):  real HTTP through `node:http`, never `fetch`, which
   resolves `..` before sending.
 

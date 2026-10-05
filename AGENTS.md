@@ -5,7 +5,7 @@ when working with code in this repository.
 
 **ALWAYS, before any code:  READ `agents/wwod/WWOD.md` -- WWOD, "What Would Owen Do?", the house style
 (process, style, naming, imports, errors, comments, functions, types, classes, decorators, CSS, tests ...).**  Its
-table names the spoke to read for what you're touching.  This file holds only what's about THIS repo.
+table names the spoke to read for what you're touching.
 
 **If working with Solid (2.0) -- components, JSX, effects / signals / stores, `core` rendering, `$/util`
 reactivity, `@spell-app/ui` elements, or any React-to-Solid step:  READ `packages/docs/content/solid/solid-2.md`
@@ -25,7 +25,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   EXTENDS it ("As the root's, plus:", "As WWOD §4, plus:").
   - Codex reads every `AGENTS.md` from the root down to its working folder;  Claude Code loads the root `CLAUDE.md`
     plus the package's.  So a rule lives in exactly ONE place.
-- Packages (`$/name` is the import alias, `$` meaning `packages/`;  `X` the self-namespace -- WWOD §4):
+- Packages (`$/name` is the import alias, `$` meaning `packages/`;  `X` the self-namespace -- WWOD §8):
   - `packages/util/` (`@spell-app/util`, `$/util`) -- helpers `ui` and spell share:  small generic ones (`@proto` ...) and
     spell's own in `src/spell/` (lodash, `Observable`, `Task` ...).  See its `AGENTS.md`.
   - `packages/parser/` (`@spell-app/parser`, `$/parser`, `P`) -- the generic rule-based parser.  Rulex is an opt-in
@@ -72,8 +72,9 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - The direction is by convention, not enforced:  every alias works from every package.
 - ONE alias table, `tsconfig.base.json` at the repo root, read its header comment.  Every package's `tsconfig.json`
   extends it, so `$/parser` means the same file wherever it's compiled from.
-- Global ambient types (`Prettify`, `Class`, `__PACKAGE_VERSION__` ...) are in the root `types/` folder, which every
-  spell-family `tsconfig.json` includes.  `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
+- Global ambient types (`Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`, the `React*`
+  aliases) are in the root `types/` folder, which every spell-family `tsconfig.json` includes:  used bare, no import
+  (WWOD §9 › "Ambient globals used bare").  `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
 - No `~/` or `#name` alias exists any more.  `$` means `packages/`, so `ui` is `$/ui` like the rest;  that can't
   collide with an npm package name (`@spell-app/...`, `solid-js`) the way a bare `name/...` could.
 
@@ -196,7 +197,6 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 
 - `spell`'s editor app, runners and web components are Solid 2 (`2.0.0-rc.13`, every package, one copy at the root)
   on `@spell-app/ui`;  compiled spell still draws with React, for now (`agents/CODE-DEBT.md`, "app").
-  Solid 2 is NEITHER React NOR Solid 1.
 - The rules:  `packages/docs/content/solid/solid-2.md` (see the top of this file).  NOT `@`-imported on purpose:
   it loads only when the task needs it.  Claude also has the `solid-2` skill (`.claude/skills/solid-2/`), which
   triggers on Solid work.
@@ -213,9 +213,16 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - Bump them together:  `vite-plus` and every `catalog:` entry to what `vp toolchain` lists.  NEVER pin one tool
     on its own.
 - Commands, run in a package or the root:  `yarn vp lint`, `yarn vp fmt [--check]`, `yarn vp test`, `yarn vp check`.
+- `yarn review` (each package's, or the root's over all of them) ~== `yarn ts` + `yarn lint:fix` + `yarn format` +
+  `yarn test`:  the finishing pass (WWOD §1).
   `yarn oxfmt` / `yarn oxlint` no longer work in a package (not its own deps);  `yarn vitest` still does.
-- Tests import from `vite-plus/test` (`/browser`, `/browser-playwright`), configs from `vite-plus`:  lint rule
-  `vite-plus/prefer-vite-plus-imports`.
+- Configs import from `vite-plus` (lint rule `vite-plus/prefer-vite-plus-imports`);  tests:  WWOD §20 › "Test APIs
+  come from Vite+".
+- `yarn tsc`, never `npx tsc`:  yarn picks the workspace's TypeScript 7.  Why:  a dependency's own TypeScript can
+  take `.bin/tsc` (`ui`'s `vite-plugin-dts` needs `@typescript/typescript6`;  hoisting makes the root's 7 today, by
+  luck of the hoister:  `agents/PAPERCUTS.md`, `## ui`).
+- NEVER hard-code `<package>/node_modules/<dep>`:  yarn hoists to the root.  Node code resolves the package instead
+  (`ui`:  `tools/NodePackage.ts`).
 - Lint / format settings:  the repo root's `vite.lint.ts`, spread by every `vite.config.ts` (`lint` / `fmt`
   blocks).  No `.oxlintrc.json` / `.oxfmtrc.json` any more.
   - The editor and `vp check` read the ROOT block only:  a rule for some packages goes in `rootLint()`'s
@@ -237,3 +244,6 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 - NOT for local cleanups (inline `REFACTOR:` marker), suspected bugs (`agents/SUSPECTED-BUGS.md`)
   or tooling papercuts (`agents/PAPERCUTS.md`).
 - See that file's header for the entry format.
+- `agents/PAPERCUTS.md`:  anything that slowed down development.  Lost time to one mid-session?  Append
+  date · symptom · fix · project.  Check it FIRST when tooling fails mysteriously.
+- `agents/SUSPECTED-BUGS.md`:  something that looks like a bug, but you're not sure:  add it under its package.

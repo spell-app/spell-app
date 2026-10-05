@@ -43,16 +43,15 @@ house style every package shares.  Only what's local is below;  a section named 
 
 ## Imports
 
-- As WWOD §4, with `CLI` ~== `$/cli` as our one namespace:  `import { CLI } from "$/cli"`.
-- Import order puts the other packages' barrels (`$/spell`, `$/lsp`) before our own.
-- `main.ts` and `consoleGuard.ts` are NOT in the barrel:  importing either has side effects.
+- As WWOD §4, plus:  `main.ts` and `consoleGuard.ts` are NOT in the barrel (WWOD §8 › "Barrels"):  importing
+  either has side effects.
 
 ## Tests
 
-- `yarn test`.  Every module's tests sit beside it, `<module>.test.ts(x)`.
+As WWOD §20, plus:
+
 - They read spell's frozen projects, `../spell/projects/test/` (`@test/<Project>`) -- see "Overview" in
   `../spell/AGENTS.md`.  NEVER write into one:  compile with `--stdout`, or make a temp project, as
   `cli.test.ts` does.
 - `cli.test.ts` runs the real `bin/spell.mjs`, as a separate process, with no terminal.
 - Screens render through `ink-testing-library`, at a fixed `size`.
-- `yarn review` ~== `yarn ts` + `yarn lint:fix` + `yarn format` + `yarn test`.

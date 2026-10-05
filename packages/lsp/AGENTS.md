@@ -15,14 +15,14 @@ house style every package shares.  Only what's local is below;  a section named 
 - The VS Code extension that runs it is `../vscode` (its own yarn project).  It runs THIS package's source.
 - `yarn start:lsp` runs the server over stdio.  `yarn scopes [--compile] <projectId...>` writes scope packs, e.g.
   `yarn scopes --compile @examples/Solitaire`.
-- `$/lsp` MUST stay BROWSER-SAFE:  the app's Monaco editor (`../app/src/ui/monaco/`) calls the SAME
-  `LSP.SpellLanguageService` in-process.  Node-only things (disk, `fs`, stdio) go in a file the barrel does NOT
-  export:  `SpellDiskWorkspace.ts`, `server.ts`, `stdioGuard.ts` (see the barrel's header).
+- `$/lsp` MUST stay BROWSER-SAFE (WWOD §8 › "Barrels"):  the app's Monaco editor (`../app/src/ui/monaco/`) calls
+  the SAME `LSP.SpellLanguageService` in-process.  Node-only files the barrel leaves out:  `SpellDiskWorkspace.ts`,
+  `server.ts`, `stdioGuard.ts` (see the barrel's header).
 - Depends on `$/spell` (and below).  NEVER import `$/app` or `$/cli`.
 
 ## Imports
 
-- As WWOD §4, with `LSP` ~== `$/lsp` as our one namespace.
+- As WWOD §4.
 - `barrel.test.ts` is the smoke test for circular imports through the barrel.
 
 ## Decorators

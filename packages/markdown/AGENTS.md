@@ -21,10 +21,6 @@ house style every package shares.  Only what's local is below;  a section named 
   <spec.txt>`) and `spec.test.ts`, which renders each with the PLAIN-HTML tags and pins the pass count per section
   in a snapshot:  a regression fails it, a gain updates it (`vitest -u`, after reading the diff).
 
-## Imports
-
-- As WWOD §4, with `MD` ~== `$/markdown` as our one namespace:  `import { MD } from "$/markdown"`.
-
 ## Decorators
 
 As WWOD §12, plus:

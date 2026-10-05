@@ -25,9 +25,9 @@ house style every package shares.  Only what's local is below;  a section named 
   - when in doubt, leave it in the package
 - Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (a real browser, chromium, for the
   generic files;  node for `src/spell/`).
-- Packages import `$/util` (the barrel) ONLY, never `$/util/<file>` -- with ONE exception:  `ui`'s `src/util/index.ts`
-  imports the generic files one by one (`$/util/class` ...), so spell's utilities never reach `ui`'s bundles or published
-  declarations.  `ui` keeps its own `util` barrel (`$/ui/util`) for package-specific helpers.
+- Barrel only, as WWOD §4 › "Package aliases, never `../`" says, with ONE exception here:  `ui`'s
+  `src/util/index.ts` imports the generic files one by one (`$/util/class` ...).  Why:  so spell's utilities never
+  reach `ui`'s bundles or published declarations.  `ui` keeps its own `util` barrel (`$/ui/util`) for package-specific helpers.
 
 ## Spell's utilities (`src/spell/`)
 
