@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { Fixture } from "$/ui/test/fixture"
 import { expectAccessible } from "$/ui/test/a11y"

@@ -50,7 +50,7 @@ page asks about every item instead (Owen, 2026-10-03):
   each `summary` what it does and `details` its commands;  then "Leave it"
 - skip this session's own item, as below
 - `yarn details new <slug> --from <spec.json>` (the spec in the scratchpad;  its shape:  `DetailsSpec` in
-  `packages/docs/scripts/details.js`), then `yarn details show <slug> --wait` with Bash `run_in_background: true`,
+  `packages/docs/tools/details.js`), then `yarn details show <slug> --wait` with Bash `run_in_background: true`,
   and END THE TURN with the page's link pair (`yarn docs:link <page>`).  Owen's Send wakes the session with the
   answers as text (`.claude/skills/details/SKILL.md`;  write it as "Writing for Owen" there says)
 - woken:  each answer is that item's pick ("Other" text and notes:  follow them;  unclear:  ask in chat), then

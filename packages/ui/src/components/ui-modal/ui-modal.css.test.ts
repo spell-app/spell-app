@@ -1,5 +1,5 @@
-import { describe, expect, it, onTestFinished } from "vitest"
-import { page } from "vitest/browser"
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
+import { page } from "vite-plus/test/browser"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 

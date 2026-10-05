@@ -26,7 +26,7 @@
       rules: [
         { name: "create_list_type", syntax: "create a type (named|called) {type} as (a|an) (exclusive:exclusive)? list of {instanceType:type}" },
         { name: "create_list_type", syntax: "(a|an) {type} is (a|an) (exclusive:exclusive)? list of {instanceType:type}" },
-        { name: "new_list", syntax: "a new (list|List) (of {instanceType:type}?)" }
+        { name: "new_list", syntax: "a new (list|List) of {instanceType:type}?" }
       ]
     },
     {
@@ -164,14 +164,14 @@
       path: "type:List/method:reverse (a list)",
       description: "Turn it back to front, in place, e.g. `reverse the cards of the deck`.",
       rules: [
-        { name: "list_reverse", syntax: "reverse ((the? {arg:plural_identifier}) (in|of))? {list:expression}" }
+        { name: "list_reverse", syntax: "reverse (the? {arg:plural_identifier} (in|of))? {list:expression}" }
       ]
     },
     {
       path: "type:List/method:shuffle (a list)",
       description: "Put it in random order, in place, e.g. `shuffle the deck` or `randomize the deck`.",
       rules: [
-        { name: "list_shuffle", syntax: "(randomize|shuffle) ((the? {arg:plural_identifier}) (in|of))? {list:expression}" }
+        { name: "list_shuffle", syntax: "(randomize|shuffle) (the? {arg:plural_identifier} (in|of))? {list:expression}" }
       ]
     },
     {

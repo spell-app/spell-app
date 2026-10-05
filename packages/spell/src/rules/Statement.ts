@@ -232,10 +232,7 @@ export class SpellStatement<
   /** Echo our syntax back out as rulex, INCLUDING the body keyword we took out of `rules`. */
   toRulexSyntax() {
     const { matchGroup, optional } = this.getRulexFlags()
-    const rules = [...this.rules, this.bodySpec?.syntaxRule]
-      .filter((rule): rule is P.Rule => !!rule)
-      .map((rule) => rule.toRulexSyntax())
-      .join(" ")
+    const rules = P.joinRulex([...this.rules, this.bodySpec?.syntaxRule].filter((rule): rule is P.Rule => !!rule))
     if (optional || matchGroup) return `(${matchGroup}${rules})${optional}`
     return `${rules}${optional}`
   }

@@ -1,6 +1,7 @@
-import { NativeFallback, proto, UIT } from "$/ui/core"
+import { Converters, NativeFallback, PartContext, proto, UIT } from "$/ui/core"
 
 import { sectionVocabulary } from "./ui-section.vocabulary.en"
+import { sectionsVocabulary } from "./ui-sections.vocabulary.en"
 import {
   ACTIONS,
   BADGE,
@@ -31,6 +32,7 @@ import {
  *   `ui-close`, then flips `hidden="until-found"` on the content and the host's `collapsed`;  find-in-page unfolds
  *   a match (`beforematch`), announcing `ui-open`.
  * - Sticking still works for a top-level section (CSS, at its `offset`);  nested titles don't stack.
+ * - Without its own `collapsible`, folds when its nearest `<ui-sections>` is `collapsing` (read once, as the rest).
  * - Read once:  later attribute or child changes (`collapsed` set by the page, a new badge) don't re-render it.
  ****************/
 export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
@@ -82,7 +84,9 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
 
   /** `<header class="title">`:  the heading around the toggle, then the badge and actions boxes when used. */
   private title(content: HTMLElement): HTMLElement {
-    const collapsible = this.flag("collapsible")
+    // the host's own attribute wins (`"false"` included), else its group's default
+    const collapsible =
+      this.attr("collapsible") === null ? SectionFallback.inCollapsing(this.host) : this.flag("collapsible")
     const inner: Node[] = []
     if (collapsible) {
       inner.push(this.create("span", { class: FOLD_ICON_CLASS, part: "fold-icon", "aria-hidden": UIT.TRUE }, "▾"))
@@ -170,6 +174,24 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
   /** The vocabulary's English text for `key`. */
   private text(key: (typeof sectionVocabulary)["texts"][number]["key"]): string {
     return this.vocabulary.texts.find((text) => text.key === key)!.text
+  }
+
+  ////////////////
+  // ## Group
+  ////////////////
+
+  /**
+   * Is `host`'s nearest `<ui-sections>` group (around it, or around an enclosing section) `collapsing`?
+   * - The climb every section's `PartContext` makes (defined owners of `section` parts, by tag, translated tags
+   *   included), read once:  a group answers, an enclosing section passes the question up.
+   * - The group's `collapsing` is read by its English name, as every fallback reads attributes.
+   */
+  private static inCollapsing(host: Element): boolean {
+    const match = PartContext.ownerOf(host, sectionVocabulary.noun, PartContext.noBarrier)
+    if (!match) return false
+    if (match.ownerNoun !== sectionsVocabulary.noun) return SectionFallback.inCollapsing(match.owner)
+    const [collapsing] = sectionsVocabulary.attributes
+    return Converters.boolean(match.owner.getAttribute(collapsing.name), collapsing.name)
   }
 
   ////////////////

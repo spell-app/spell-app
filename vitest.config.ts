@@ -1,6 +1,6 @@
 import { existsSync, readdirSync } from "node:fs"
 import { resolve } from "node:path"
-import { defineConfig, type TestProjectConfiguration } from "vitest/config"
+import { defineConfig, type TestProjectConfiguration } from "vite-plus"
 
 import { appProjects } from "./packages/app/vitest.config.ts"
 import { uiProjects } from "./packages/ui/vitest.config.ts"

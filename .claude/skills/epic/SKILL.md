@@ -1,6 +1,6 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `packages/docs/epics/<name>/<name>.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  walk a plan doc's open items with Owen, one at a time ("review the seo epic", "go through unified-server's caveats").
+description: Run a planning session against a live plan doc, `packages/docs/content/epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").
 argument-hint: <name> [what to plan] | review [<name>]
 ---
 
@@ -9,17 +9,18 @@ argument-hint: <name> [what to plan] | review [<name>]
 An EPIC is a planning session and the work it plans;  its live record is the PLAN DOC.  (Was `/plan-doc` until
 2026-10-02;  `yarn plan-doc` keeps its name, since it edits the plan doc.)
 
-Plan, then build, in worktree `<name>`, keeping `packages/docs/epics/<name>/<name>.html` (the PLAN DOC) current
+Plan, then build, in worktree `<name>`, keeping `packages/docs/content/epics/<name>/<name>.plan.html` (the PLAN DOC) current
 the whole time.  The plan doc is the user's view of the work:  they read it in VS Code's doc preview (the right side bar's "Spell Docs" view) while you work.
 
-- Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/epics/plan-doc.md`.  Read it first.
+- Rules for the doc (sections, ids, markers, prose):  `packages/docs/content/templates/epics/plan-doc.md`.  Read it first.
 - Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
   doc review):  `yarn plan-doc open <name>` reloads it in the side bar's doc preview.  `yarn plan-doc phase` does it for you.
-- Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
-  OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
-  order or reference matters.
+- Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):  a plain lead sentence, then
+  bullets (never a list run together in a sentence), full words, a concrete example for anything tricky, ids
+  explained, and a **Net effect** list closing every question, issue, judgement call and decision.  NOT caveman
+  (Owen, 2026-10-04).  Replies:  short, the same plain words.
 - Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  paste what
   `yarn docs:link <ABSOLUTE path> --hash <id> [--text "..."]`, run in the checkout the doc is in:  it prints
   the side bar link, then `(_browser_)` (`.claude/skills/details/SKILL.md`, "Links to pages").
@@ -47,7 +48,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   it `<name>.<time>.md` first).  No text, but that file exists:  it IS the kickoff prompt (the hook saved it);  say
   so in one line.  Delete the file only once the plan doc holds it (`plan-doc new --prompt-file`).
 - Look for collisions (from the repo root), every time:
-  - `packages/docs/epics/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
+  - `packages/docs/content/epics/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
   - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2
   - any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the
     user types it in "Other").  Never overwrite an existing plan doc.
@@ -61,7 +62,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 When the session already has work under way ("make this a plan doc"), carry it over -- don't start again:
 - Plan mode and edits already made on `main`:  `.claude/skills/isolate/SKILL.md`, "Start", step 0.
 - Step 3:  start from the plan drafted so far (harness plan file, conversation), reshaped into the plan doc's
-  shape;  explore only to fill gaps.  Decisions and questions already settled become `decision` items.
+  shape;  explore only to fill gaps.  Decisions and questions already settled become `decision` items (questions
+  born answered:  `Q7`).
 
 ## 2. Session:  stub doc, then move
 
@@ -115,13 +117,17 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 
 ## 4. Fill the doc (right after ExitPlanMode is approved)
 
-- `yarn plan-doc add-phase <name> "Short Name" --goal "..." --files "..." --verify "..." --estimate "1-2h"` per
-  phase, in order:  the Overview's total (`p.plan-estimate`) follows by itself
+- Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04):  in `~/.claude/plans/`,
+  `mv <file>.md epic-<name>--<file>.md`, then `ln -s epic-<name>--<file>.md <file>.md` (the harness still reads
+  the old name).
+- `yarn plan-doc add-phase <name> "Short Name" --goal "<ul><li>...</li></ul>" --files "..." --verify "..." --estimate
+  "1-2h"` per phase, in order:  the goal one bullet per outcome, in Owen's terms;  the estimate becomes the title's
+  badge, and the Overview's total (`p.plan-estimate`) follows by itself
 - `yarn plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
 - Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
 - Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
   `#overview`:
-  `<ui-section id="o1" header="1.1 ..." sticky collapsible dividing>`, `#o2` ... (a title with markup:  a
+  `<ui-section id="o1" header="1.1 ..." sticky collapsible dividing collapsed>`, `#o2` ... (a title with markup:  a
   `<span slot="header">` first inside instead of `header`;  sub-sub-items:  `<h4 id>`).  Code in folded
   `ui-accordion.spell-code`, digressions in collapsed `ui-accordion.spell-aside`, links to items and phases
   (`<a href="#d2">D2</a>`).  NEVER change an existing `id`.
@@ -132,11 +138,15 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 1. `yarn plan-doc phase <name> <N> active`, and check the session's name (`.claude/skills/isolate/SKILL.md`,
    "Session name").
 2. Do the work.  Record as you go, not at the end:
-   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`;  a
-     choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement` (ids `J1` ...;  see `/bedtime`)
+   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision` (a
+     question born answered);  a choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement`
+     (ids `J1` ...;  see `/bedtime`)
+   - items added while the phase is active carry it:  the phase's "To review" line (written by the script on every
+     edit) lists the ones Owen hasn't reviewed.  Never hand-write a "Judgement calls:" line
    - something only Owen can check (a live window, a click, a look):  `add ... test "<step>" --details "<p>what
      should happen</p>"`, into "To test";  `close` it once he says it passed
-   - fixed or obsolete:  `close <name> <id>` (it stays, struck through)
+   - fixed or done:  `close <name> <id>` (it stays, closed, NOT struck);  made moot by another decision:
+     `cancel <name> <id> "why"` (struck through:  the one struck status, J16 of `review-review`)
    - an item talked through with Owen (he answered, accepted, or said leave it):  `review <name> <id> "outcome"`,
      so the next `/epic review` doesn't bring it up again ("7. Review")
    - changed a prose block:  put
@@ -144,8 +154,12 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
      just before it (the script marks items itself)
 3. Subagents:  paste the cheat sheet below into their prompts, with "record caveats, issues and decisions in the
    plan doc as you find them".
-4. `yarn plan-doc phase <name> <N> done` (drops that phase's UPDATE markers, reloads the tab), then
-   `yarn plan-doc summary <name>`.
+4. `yarn plan-doc phase <name> <N> done --done "<ul><li>...</li></ul>"` (drops that phase's UPDATE markers, writes
+   its Done field, brings the doc forward), then `yarn plan-doc summary <name>`.  Done:  what was BUILT, ordered by
+   what Owen asks about first:  where to see it, what changed in how he works, what's rough or not yet tried by hand.
+   - commit messages, so the doc can list them (its phase's and items' "Commits"):  a phase `P<n>:  <Name> --
+     <summary>` (`P4 + P5:` for two;  `WIP P3:` for a parked part), an item fix `Fix I3:  ...`
+   - after the phase's commit:  `yarn plan-doc commits <name> --backfill` (its change goes in with the next commit)
 5. Reply:  a short bulleted list (done, issues, caveats, next), the "complete.  Next is" line (see the top), THEN
    AskUserQuestion so the user picks without copying anything.  Options, most useful first:
    - "Start P<N+1> · <Name> (Recommended)"
@@ -153,7 +167,8 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
    - a caveat or todo worth acting on now
    - "Stop here"
    Questions the user must answer also go in the doc (`add ... question`);  once answered,
-   `decide <name> Q3 "what was decided"` (never `close`:  `decide` records the answer beside the question).
+   `decide <name> Q3 "what was decided"` (never `close`:  `decide` writes the answer INTO the question, D13 of
+   `review-review`).
 6. Explain every question and every issue the user must weigh in on WITH EXAMPLES, in the doc (rules:
    `plan-doc.md`, "Explaining a question or issue"), so the user can decide from the doc alone:  define each coined
    word in plain language ("stacking", "nudge"), show the real code / markup it's about, compare many values in a
@@ -173,7 +188,7 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
     doc's own card:  `yarn plan-doc` doesn't touch the index in a worktree (until now the main server added its
     card to the index's Epics section)
 - The plan doc stays in `epics/` as the record:  every phase done.
-- Changelog:  add the epic's entry to `packages/docs/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
+- Changelog:  add the epic's entry to `packages/docs/content/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
   the plan doc and the durable doc;  under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
 - Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  No move back:  the session and its
   plan doc stay in the window they're in.
@@ -181,181 +196,94 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 
 ## 7. Review:  `/epic review [<name>]`
 
-Walk a plan doc's open items with Owen:  pick a section, pick items, one item at a time.  FAST by default (the item
-as clean bullets, one modal);  deeper only when he asks.  Plan:  `epics/epic-review/epic-review.html`.
+Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items (each item's ⋯ menu:
+Approve, Add to todo, Add Details, Revisit;  Choose on option cards) and sends them with the page header's paper
+plane.  This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at
+once, Add Details and "revisit now" by background agents, "revisit soon" talked over in chat.  No modal walk through
+items any more (epic `review-review`, 2026-10-04;  plan:  `epics/review-review/review-review.plan.html`, 1.1-1.2).
 
 - Runs from ANY window, `main` or a worktree:  the prompt hook lets `/epic review` through, never renames the session.
   No worktree, no plan mode.
 - Every `yarn plan-doc` command edits the epic's LIVE doc wherever it is (its worktree, else `main`).
-- Details pages:  `.claude/skills/details/SKILL.md` ("Writing for Owen", "Links to pages").  Read it the first time
-  in a session.
+- The page's controls need the PAGE SERVER of the checkout the doc lives in (`yarn server ensure` there):  from
+  `file://`, or a server without the review routes, the page shows no menus.
+- Owen comes to a review COLD:  never a bare id in chat, always what it is in words ("the highlight.js swap (T2)").
 
 Commands, in the order a review uses them:
 ```
-yarn plan-doc list --json                                every epic:  status, checkout, not reviewed / items
-yarn plan-doc items <name> --json                        where reviews stand (status), the to-do list, sections
-yarn plan-doc items <name> --section issues --spec <f>   the item picker, a details page spec (scratch file)
-yarn details new review-<name>-<section> --title "..." --from <f>     the picker page (scratch:  no --epic)
-yarn details show review-<name>-<section> --wait         Bash run_in_background:  its exit is Owen's answer
-yarn plan-doc review <name> <id> "outcome"               gone through;  the outcome goes in the log
-yarn plan-doc defer <name> <id>                          put off;  still not reviewed
-yarn plan-doc queue <name> <id> "work"  /  unqueue       decided to do, not started  /  started or dropped
-yarn plan-doc decide | close | add | log <name> ...      as in "5. Each phase"
+yarn plan-doc list --json                           every epic:  status, checkout, not reviewed / items
+yarn plan-doc items <name> --json                   where reviews stand;  sections, items, states
+yarn docs:link <ABS doc> --hash <id> --review --show   show the doc in the Review tab, at <id>;  prints its links
+yarn plan-doc inbox <name> listen  /  unlisten      this session is (no longer) reviewing:  the page says so
+yarn plan-doc inbox <name> wait                     Bash run_in_background:  exits with work (or 2:  timeout)
+yarn plan-doc inbox <name> apply [ids]              approve / pick / todo marks into the doc;  prints what's left
+yarn plan-doc inbox <name> working <id> on|off      the page's spinner on an item
+yarn plan-doc details <name> <id> --file f [--append]   an item's details replaced (Add Details) / a reply appended
+yarn plan-doc inbox <name> done <id>  /  clear <ids>    an item's request finished  /  marks dropped after a talk
+yarn plan-doc inbox <name> [--json]                 what's waiting, sent or not
 ```
-
-Words:
-- OUTSTANDING:  open (or deferred), not reviewed.  REVIEWED:  marked reviewed, struck, decided, or linked from a
-  decision.  QUEUED:  work a review decided on, not started yet.  DEFERRED:  skipped for now;  still outstanding.
-- Sections:  Questions (open questions in "Questions & Decisions"), Judgement calls, Caveats, Todos, Issues,
-  To test.
-- These words are the SKILL's.  Owen never sees "queue", "outstanding", "Start modal", "kickoff prompt" or "mock" in
-  a modal.  Say "waiting to be done", "not reviewed yet", "pick a section", "a new window".
-
-Every modal:
-- header:  `Epic Review: <name>` (`Epic Review: commands`);  before an epic is picked, `Epic Review`.  Never a step
-  name ("Queue", "Start").  The tool says headers are 12 characters at most, but takes longer ones.
-- Owen comes to a review COLD:  he doesn't remember earlier reviews, or what an id means.  NEVER a bare id, in chat
-  or a modal:  always what it is in words ("the highlight.js swap (T2)").  In a modal, the words alone.
-- question:  one plain sentence, WITHOUT the epic's name (the header has it);  the context (lists, ids) goes in the
-  chat text just before it.
-- each option:  a short verb label;  its description says what happens NEXT, as Owen sees it ("Opens a new window
-  to work on T2;  this review stops"), never which step of this skill runs.
 
 ### 7.1 Pick a doc (no `<name>`)
 
 - `yarn plan-doc list --json`:  `{ name, title, status, checkout, notReviewed, total }` each, in progress first.
-- FIRST, as reply text BEFORE the modal (never skip it:  Owen reads the list, then picks), every epic, in two
-  groups, most not-reviewed first in each:
-  ```
-  **In progress** (phases left)          not reviewed / items
-  - commands        (worktree commands)   5 / 9
-  - epic-review     (worktree)            3 / 12
-
-  **Done**
-  - unified-server                        27 / 41
-  - seo                                   15 / 38
-  - ui-import                             12 / 30
-  - cli-additions                          2 / 17
-  - docs-workspace                         0 / 11
-  ```
-- THEN the modal, header `Epic Review`, nothing else in the question:  "Which epic do you want to review?"
-  - epics with anything not reviewed, in the list's order;  label `<name> (in progress)` / `<name> (done)`,
-    description `5 of 9 items not reviewed`
-  - 4 or fewer left:  all of them.  More:  the next 2, then "More" (description:  the next names, `ui-import,
-    cli-additions`);  "More" opens the same modal on the rest, 2 at a time + "More" until 4 or fewer are left
-  - any epic, even one with nothing to review:  Owen can type its name in Other
-- NEVER put mechanics in a modal (mock, canned data, "type in Other"):  say them in the chat text, once.
+- As reply text, every epic in two groups (in progress / done), most not-reviewed first:  `- commands (worktree
+  commands)  5 / 9`.  Then ONE modal, header `Epic Review`, "Which epic do you want to review?":  the epics with
+  anything not reviewed, label `<name> (in progress)` / `<name> (done)`, description `5 of 9 items not reviewed`;  4
+  or fewer:  all;  more:  the next 2 then "More" (the next names) until 4 or fewer;  any other:  typed in Other.
+- (The Review tab's own start page, "What would you like to review?", will replace this:  todo T1 of
+  `review-review`.)
 
 ### 7.2 Start
 
-- A `/bedtime` night to go through (`yarn plan-doc summary <name> --json`, `overnight`;  the plan doc's
-  "Overnight" section on top):
-  - `"done"`:  FIRST, in chat, the night from that section:  its summary line, each phase's line, the problems.
-    Then the Start modal puts "Judgement calls" first, recommended, whatever the counts.  This replaces `/wakeup`.
-  - `"active"`:  the run is still going, in another session:  say so in one line;  review anyway, and never remove
-    the section.
-  - Running in the bedtime session itself:  bedtime mode ends here (`.claude/skills/bedtime/SKILL.md`, step 4).
-- `yarn plan-doc items <name> --json`:  `status` (`last` review date, `reviewedThen`, `deferred`, `queued[]` with
-  each `work`), and every section's `notReviewed` / `total`.  Read the plan doc's summary too, for what the epic is.
-- First, in chat, where things stand, for someone who remembers nothing:
-  - reviewed before:  when, how much, what came of it.  "You last reviewed commands on Oct 2:  4 of 13 items gone
-    through, 1 decision, 1 deferred."  Never reviewed:  "commands hasn't been reviewed yet:  13 items."
-  - work an earlier review decided on, not done yet, each in words, its id after:
-    ```
-    That review also decided to do this, and it isn't done yet:
-    - Swap the CDN highlight.js for <ui-code> on docs pages (T2).  Why:  ui-code already ships the languages.
-    ```
-- Work waiting:  then the modal "Start the work now, or review first?":
-  - "Resume review (Recommended)" ("Start review" when never reviewed):  "The highlight.js swap waits on the to-do
-    list.  Next you pick what to review."  -> the Start modal
-  - "Start work":  "Opens a new window to swap highlight.js for ui-code.  This review stops until you run
-    `/epic review commands` again."  Does, by where the epic is:
-    - merged (`checkout` `main`):  a new worktree `<name>-fixes`, its own window, the waiting work (each item's
-      `work`, its id and title) as its kickoff prompt (`/isolate` "Start", steps 3-6);  `unqueue` each item;  ends
-      the turn
-    - running in its worktree:  the work belongs to that epic's own session.  Say so in one line, with its window
-      (`<pkg> ⎇ <name>`) and the prompt to paste there ("do the waiting work:  T2 ...");  the items stay queued
-      until that session starts them
-  - several waiting:  "the 3 waiting changes" in the descriptions, each listed in the chat text above
-  - Why review first:  Owen came to review;  the work waits safely in the doc.
-- Start modal:
-  - first, in chat, every section with its counts, one line each:  `Issues · 3 of 5 not reviewed`,
-    `Caveats · all 3 reviewed`;  sections with no items left out
-  - question "What do you want to review?"
-  - sections by most not reviewed, ties in page order:  label `Issues · 3/5`, description `3 not reviewed yet`.
-    NEVER list item ids in a description.
-  - "Finish Review" LAST, just above Other ("Wrap up:  a summary of what was decided")
-  - 3 sections or fewer with items:  those, then Finish.  More:  the top 2, then "More…" with description
-    `Todos 1/11 · To test 2/14` (the rest, `not reviewed/all`), then Finish;  "More…" opens the same modal with the
-    rest (up to 3 sections, then Finish)
+1. `yarn plan-doc items <name> --json`;  the doc's summary for what the epic is.
+2. In chat, three lines at most, for someone who remembers nothing:  what the epic is, what's waiting on him (e.g.
+   "4 judgement calls not reviewed, 2 open questions"), and when he last reviewed it.
+3. The FIRST thing worth his time:  the first item, in page order, whose state is `attention` (red:  an open
+   question, an unreviewed judgement call or issue);  none:  the first `open` (blue) one;  none:  the top.
+   `yarn docs:link <ABS doc> --hash <that id> --review --show`:  the doc opens in the Review tab, at it.
+4. `yarn plan-doc inbox <name> listen`, then `yarn plan-doc inbox <name> wait` with Bash `run_in_background: true`.
+5. END THE TURN, short:  "Mark items in the Review tab:  each item's ⋯ menu;  Add Details and revisit now start at
+   once;  the paper plane sends the rest.  I'm listening."  Then the doc's link pair.
 
-### 7.3 Section review:  the picker page
+### 7.3 Woken:  the `wait` command finished
 
-Owen picks the items on a details page, a checkbox per open item, the not-reviewed ones ticked (decision D15).
-1. The spec, then the page (scratch:  it's thrown away once answered):
-   ```
-   yarn plan-doc items <name> --section issues --spec <scratchpad>/pick-<name>-issues.json
-   yarn details new review-<name>-issues --title "Choose issues to review" --from <that file>
-   ```
-2. `yarn details show review-<name>-issues --wait`, Bash `run_in_background: true`, then END THE TURN with one line
-   and the page's links (`yarn docs:link <page> --show`):  "Pick the issues in the side bar:  <link>".
-3. The waiter's output is the answer:  `Which issues?:  I7 · ...;  I8 · ...`, maybe `Other:  ...` and `Notes:  ...`.
-   - the ids, in page order:  go through them (7.4)
-   - `More details wanted on:  T4, T9` (the card's (?) button):  for those, skip the short version, start with the
-     full explanation (7.4 step 3's "Explain further"), then the second modal
-   - none ticked:  back to the Start modal
-   - Other / Notes:  do what they say first (an item to add, an order to follow)
-   - Owen answers in chat instead:  stop the waiter (`TaskStop`), use his answer
+Read what it printed.  Then, in this order:
+1. Exit 2 (timeout, nothing happened):  arm `wait` again, end the turn with one line ("still listening").
+2. NOW requests (Add Details, revisit now) -- `wait` already marked them `working` (the page spins):  per item, a
+   BACKGROUND `Agent` (`run_in_background: true`), each prompt:
+   - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net
+     effect)
+   - Add Details:  read the item, the code and docs it names, then write its FULL details again, nothing lost,
+     `yarn plan-doc details <name> <id> --file <html>`
+   - revisit now:  answer Owen's note (quote it), in the reply block markup (`plan-doc.md`, "Reply"):  what he asked,
+     the answer with evidence (real code, the command and its output), option cards when he must choose (he picks
+     on the page), a Net effect;  `yarn plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
+     · ..., asks:  ..."):  answer about THAT option;  never decide the question (he confirms with a plain pick)
+   - last:  `yarn plan-doc inbox <name> done <id>`
+   Up to 5 agents at once (root rules);  more:  the rest after.
+3. SENT marks:  `yarn plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each).
+   Then each "to talk over" (revisit soon), one at a time, in chat:  the item in words, his note quoted, your
+   answer (short;  evidence when it matters).  A choice he must make:  write it into the item as a reply with option
+   cards (`details --append`) so he picks ON THE PAGE;  a quick yes / no:  a modal.  Done:  `inbox clear <id>` and
+   `review <name> <id> "<outcome>"`.
+   - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  answer the note
+     about B, and once he agrees, `yarn plan-doc decide <name> <id> "<card title>" --option B` yourself
+   - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
+     `inbox apply`, `done`, `clear` and `working`;  a long talk without them shows "nobody is reviewing" until `wait`
+     runs again
+4. Arm `wait` again (always, unless he said stop), then reply:  what landed (bullets, items in words, ids after),
+   what's being worked on in the background, what needs him;  the doc's link pair last.
+- A background agent's own completion notice wakes the session too:  nothing to do but check `inbox` shows the item
+  done;  don't re-arm a second `wait` while one runs (`inbox` would print both;  check the background tasks).
 
-### 7.4 Item review
+### 7.4 Finish
 
-Per picked item, in order:
-1. In chat, short:  `**I4 · title**`, then its details as 2-5 clean bullets (Claude's words, nothing lost), then its
-   state if not outstanding ("reviewed 10-01:  accepted").
-2. Modal (multiSelect:  Explore + Explain further together is a deep dive), "<the item in words>:  what now?":
-   - "Accept:  <recommendation>":  ONLY when the item already has one (`recommendation` in `items --json`);  first
-   - "Explore":  find other options now
-   - "Explain further":  the full explanation now, on a details page (below)
-   - "Defer":  dated, still not reviewed;  next item
-   - question text ends:  "type `exit` in Other to stop this section"
-3. Explore:  in chat, short.  Explain further:  a DETAILS PAGE (decision D16;  the details skill), then:
-   - the choice fits a modal (4 options or fewer):  a picture page, then the second modal
-   - it doesn't (more options, or answers to type):  an answer page;  Owen answers there
-   - where:  `yarn details new review-<id> --epic <name>` when this checkout holds the epic's live doc (`items
-     --json`'s `file` is under this checkout), so it's committed with the doc;  else scratch (no `--epic`)
-   - the decision it leads to links the page (`<a href="details/review-i4.html">`)
-   - second modal:  up to 2 options, recommended first, then "Defer", then "Exit"
-4. Record the answer AT ONCE, then the next item:
-   - question -> `decide`;  judgement call -> accepted (`close`) / turned into a question;  issue -> `close` / to
-     todo / `queue`;  caveat -> accepted (just `review`) / to issue;  todo -> kept / `close` / `queue` / to phase;
-     test -> passed (`close`) / failed (an issue)
-   - every answer also `review <name> <id> "<outcome in words>"`;  Defer:  `defer <name> <id>`
-   - work to do (fix it, build it):  `queue <name> <id> "<the work>"`, never done mid-review
-5. `exit` / "Exit":  drop the rest of the picked items, back to the Start modal.  After the last item:  7.5.
-- Picked combinations that clash (Accept + Defer):  Accept wins;  say so in one line.
-- A details page replaces the plan doc in the side bar:  `yarn plan-doc open <name>` once the item is done.
-
-### 7.5 Section done
-
-- Summary line:  "Issues:  2 reviewed, 1 deferred, 1 to do".
-- Work waiting:  list it in chat (as 7.2), then the modal "Do this now or keep planning?":
-  - "Resume review (Recommended)":  "It waits on the to-do list.  Next you pick what to review."  -> Start modal
-  - "Start work":  as 7.2's "Start work", same description
-- Else:  the Start modal.
-
-### 7.6 Finish Review
-
-- An Overnight section (`"done"`) with every judgement call from the night reviewed:  modal "Remove the overnight
-  report from the plan doc?":  "Remove it (Recommended)" ("Its calls, problems and todos stay as items and log
-  lines") -> `yarn plan-doc overnight <name> remove`;  "Keep it".  Calls not reviewed yet:  keep it, and say so.
-- A log line in the doc:  `yarn plan-doc log <name> "Review:  7 items, 3 decisions, 2 deferred, 1 to do"`.
-- Reply:  what was decided, deferred, put on the to-do list (in words, ids after, linked:  `yarn docs:link`), and
-  the to-do list, which stays for next time.
-- Committing the doc's changes:
-  - it's in THIS checkout:  stage, then ask
-  - it's in another checkout (`main` from a worktree, or another epic's worktree):  a worktree session can't commit
-    there.  Say which checkout holds uncommitted review marks, so Owen (or that epic's session) commits them.
-- End with:  `/epic review <name>` picks up where this stopped.
+When Owen says he's done ("stop reviewing", "that's it"), or the session must stop:
+- stop the waiter (`TaskStop`), `yarn plan-doc inbox <name> unlisten`
+- `yarn plan-doc log <name> "Review:  <n> approved, <n> answered, <n> to todos, <n> details added"`
+- reply:  what was decided and done (in words, ids after), what's still waiting on him;  the link pair
+- committing the doc's changes:  in THIS checkout:  stage, then ask;  in another (`main` from a worktree, another
+  epic's worktree):  say which checkout holds them, for Owen or that epic's session to commit
 
 ## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)
 
@@ -365,12 +293,16 @@ add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..] [--estimate
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)
-decide <name> <Q id> "decision" [--details html]   answer a question:  prints the decision's id (D7)
-close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
+decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
+commit <name> <sha> --phase N | --item <id> "..."   list a commit under a phase or an item
+commits <name> --backfill                           every phase / item commit in the doc's git history, once
+close <name> <id>  /  reopen <name> <id>            close (done) / open again, never delete
+cancel <name> <id> ["why"]                          made moot by another decision:  struck;  reopen undoes it
 log <name> "text"                                   timestamped line in the doc's log
 overnight <name> start|phase|problem|done|remove    a /bedtime run's report, on top of the doc (`/bedtime`)
 prompt <name> "text" | --file f                     set the prompt quoted in the Overview
-migrate <name>                                      an older doc (any layout) into the current one
+migrate <name>                                      an older doc (any layout) into the current one;  its D
+                                                    items merge into its questions
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
 open <name>                                         show in VS Code's doc preview (right side bar)

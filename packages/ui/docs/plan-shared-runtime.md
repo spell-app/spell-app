@@ -128,7 +128,7 @@
   - Wave 3
     - Agent D (Opus):  Solid shared-runtime packaging (reusing everything in `spike/shared/`), port onto the fork, Solid native fallback, Solid report rewritten to the template;  then regenerate BOTH reports' tables
   - Orchestrator:  comparison doc, checks, staging
-- Nothing outside `spike/` changes except the new `src/components/*/ui-<name>.fallback.ts` files, the `docs/icons.md` section, and `PAPERCUTS.md` / `SUSPECTED-BUGS.md` entries
+- Nothing outside `spike/` changes except the new `src/components/*/ui-<name>.fallback.ts` files, the `docs/icons.md` section, and `agents/PAPERCUTS.md` / `agents/SUSPECTED-BUGS.md` entries
 - Git:  stage after each agent's checks pass, then ask Owen before committing
 
 ## Verification

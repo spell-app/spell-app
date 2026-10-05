@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 
 import { spellCore, Thing, List, App } from "$/core"
 import { P } from "$/parser"

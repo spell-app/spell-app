@@ -43,6 +43,16 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `Subrule` looks its rule up BY NAME through `scope.getRuleOrDie()` at call time, so rules added mid-parse
   are visible to later lines.
 - `Literal` / `Literals` / `Pattern` / `TokenType` compare single tokens with `===` / regex -- cheap.
+- Spacing (`rule.spacing`, `P.Spacing`):  what may sit between the previous token and a rule's first --
+  `none` (touching), `one` (one space), `some` (spaces / tabs), unset = anything.
+  - read from the previous token's trailing `whitespace`, so only with a policy that drops inline whitespace
+    onto tokens (`LEADING_ONLY`, spell's)
+  - checked by the HOLDER, which can see the previous token:  `Sequence` before each part (a miss = no match;
+    optional => skipped), `Literals` per literal (`LiteralMatcher.spacing`), `Repeat` between copies
+    (`itemSpacing`) and before its delimiter
+  - rulex sets it from how the syntax is spaced:  parts written touching must touch (`isn't`, `\[{x}\]`),
+    spaced ones may space;  `{space}` / `{spaces}` set the next part's;  a symbol touching its flag repeats as
+    a run (`#+`).  See `packages/docs/content/rulex/rulex.html`.
 - Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-10-04, after P3 of precedence-and-types
   halved it):  Card.spell (121 lines) ~12ms, Solitaire.spell (259 lines) ~32ms, whole Solitaire project ~55ms;
   ~60ms after P5 (typed calls, return types), ~59ms after P6 (members), 57.4ms after P8 (exclusive lists:  no change).

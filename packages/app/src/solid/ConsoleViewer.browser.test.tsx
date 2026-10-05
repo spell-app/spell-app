@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, test, vi } from "vitest"
+import { afterEach, beforeAll, describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import { render, type JSX } from "@solidjs/web"
 

@@ -6,15 +6,16 @@ import type { Handler } from "$/server"
 
 /**
  * Live reload over server-sent events (SSE):  watches folders, and tells every open page which file changed.
- * - `events` is the `/_server/events` handler:  each page keeps one open (`EventSource`);  `liveClient()` reloads
- *   the page when the change is the page itself or any CSS / JS
+ * - `events` is the `/_server/events` handler:  each page keeps one open (`EventSource`);  `liveClient()` offers
+ *   the page its own file's new version (the docs runtime patches itself in place, else it reloads), swaps a
+ *   stylesheet it uses, and reloads for a script in the folder of one it loads
  * - a write is often two (write, then a formatter), so each path waits `debounce` ms (250) for quiet
  * - a comment line every `heartbeat` ms (30s) keeps proxies and sleeping laptops from dropping the stream
  * - never reports dot files, `node_modules`, lock files or editor temp files
  * - From the goals server's `/api/events`.
  */
 export class LiveReload {
-  /** folder that paths are reported relative to, as URL paths (`/packages/docs/x.html`) */
+  /** folder that paths are reported relative to, as URL paths (`/packages/docs/content/x.html`) */
   readonly root: string
 
   /** ms a path must be quiet before it's reported */

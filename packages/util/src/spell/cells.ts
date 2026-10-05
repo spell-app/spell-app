@@ -1,7 +1,7 @@
 /**
  * Spell cells:  the small SYNCHRONOUS reactive core under spell state -- `Observable`, `Thing`, the editor.
  * - Why not Solid signals:  Solid 2 stages writes (a read right after a write sees the OLD value until a flush), and
- *   spell is imperative -- `set x to 1` then `print x` must print 1.  Measured:  `packages/docs/solid/solid-2.html` §2.
+ *   spell is imperative -- `set x to 1` then `print x` must print 1.  Measured:  `packages/docs/content/solid/solid-2.html` §2.
  * - The truth is each object's record (a `Map`, see `extend.ts`), read and written synchronously.  Cells only say WHO
  *   read WHAT, and tell them when it changes.
  * - Push-pull with an equality cutoff:  a write marks direct readers CELL_DIRTY and everything further down CELL_CHECK;  a

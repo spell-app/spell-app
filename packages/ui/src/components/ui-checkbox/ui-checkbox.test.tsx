@@ -1,5 +1,5 @@
-import { describe, expect, it, onTestFinished, vi } from "vitest"
-import { userEvent } from "vitest/browser"
+import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
+import { userEvent } from "vite-plus/test/browser"
 import { OBSERVE } from "solid-js"
 import { attribution } from "solid-js/attribution"
 

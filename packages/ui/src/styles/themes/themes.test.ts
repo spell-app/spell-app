@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished, vi } from "vitest"
+import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
 import { ThemeSheets } from "$/ui/styles"
@@ -312,7 +312,7 @@ describe("flat", () => {
 
 describe("fixed-width", () => {
   it("narrower modals on a computer screen;  a small modal is 0.6 of it", async () => {
-    const { page } = await import("vitest/browser")
+    const { page } = await import("vite-plus/test/browser")
     const [width, height] = [window.innerWidth, window.innerHeight]
     onTestFinished(() => page.viewport(width, height))
     await page.viewport(1000, 800)

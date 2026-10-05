@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 
 import { P } from "$/parser"
 import { SP } from "$/spell"
@@ -250,7 +250,7 @@ describe("incremental parsing ~== full parse", () => {
 
 /**
  * `summarize()`'s result, or what it threw -- so "both crash the same way" counts as the same.
- * - NOTE: some edits DO crash a full compile, e.g. a quoted alias of an unknown property -- see `SUSPECTED-BUGS.md`.
+ * - NOTE: some edits DO crash a full compile, e.g. a quoted alias of an unknown property -- see `agents/SUSPECTED-BUGS.md`.
  */
 function outcome(summarizeIt: () => SpellProjectSummary): SpellProjectSummary | string {
   try {

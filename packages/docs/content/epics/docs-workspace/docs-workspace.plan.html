@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epic: Docs workspace + /plan-doc</title>
+    <meta name="description" content="Plan doc:  Docs workspace + /plan-doc." />
+    <link rel="stylesheet" href="../../../tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../../tools/_assets/plan-doc.css" />
+  </head>
+  <body data-recent-since="2026-10-04T12:34:30-04:00" class="spell-doc-page plan-doc" data-plan="docs-workspace">
+    <spell-site-header root="../../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Epic: Docs workspace + /plan-doc</h1>
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch"
+            >Plan doc for <code>/plan-doc docs-workspace</code>, branch <code>docs-workspace</code></ui-item
+          >
+          <ui-item icon="folder">
+            Worktree: <a href="../../../../../" target="src-"><code>/Users/owen/www/spell-app/spell-app</code></a>
+          </ui-item>
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-09-30</time>, updated
+            <time id="plan-updated">2026-10-04</time></ui-item
+          >
+          <ui-item icon="book"
+            ><b>Durable doc:</b>
+            <a href="../../spell-docs/spell-docs.html" target="src-packages-docs-spell-docs-spell-docs-html"
+              >How Spell Docs Work</a
+            ></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            Move every doc into a <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> workspace
+            of hand-authored <code>.html</code> pages on @spell-app/ui, with templates and a docs index. Then add
+            <code>/plan-doc &lt;name&gt;</code>: each planning session keeps a live plan doc like this one, built and
+            kept current by <code>yarn plan-doc</code>.
+          </p>
+          <p>What exists after this plan. Becomes durable docs in <a href="#p6">P6</a>.</p>
+          <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
+            <ul>
+              <li>
+                <a href="../../" target="src-packages-docs"><code>packages/docs/</code></a>
+                (<code>@spell-app/docs</code>): docs for every package (<a href="#d1">D1</a>)
+              </li>
+              <li>
+                <code>&lt;topic&gt;/&lt;topic&gt;.html</code> + <code>&lt;topic&gt;/experiments/</code>: one folder per
+                doc
+              </li>
+              <li>
+                <a href="../../templates/" target="src-packages-docs-templates"><code>templates/</code></a
+                >: durable, cheat sheet, <code>plans/plan.html</code> + <code>plans/plan-doc.md</code>
+              </li>
+              <li><code>plans/&lt;name&gt;/&lt;name&gt;.html</code>: one per <code>/plan-doc</code> session</li>
+              <li>
+                <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                >: lists written by <code>yarn docs:index</code>
+              </li>
+              <li>
+                <a href="../../../tools/_assets/" target="src-packages-docs-assets"><code>_assets/</code></a
+                >: one classic bundle (Solid + @spell-app/ui + runtime), page and plan CSS
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o2" header="1.2 How a page works" sticky collapsible dividing>
+            <ul>
+              <li>Opens from <code>file://</code>: no server, so ONE classic script, no ES modules.</li>
+              <li>
+                Icons bundled at build time, <code>UI.icons.register()</code>ed; packs dropped, since they can't load
+                from disk.
+              </li>
+              <li>Runtime builds the contents sidebar from the headings at load (<a href="#d3">D3</a>).</li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>a page's skeleton · 12 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-html">&lt;link rel="stylesheet" href="../_assets/spell-doc.css" /&gt;
+...
+&lt;div class="spell-doc"&gt;
+  &lt;main class="spell-doc-main"&gt;
+    &lt;h1&gt;Title&lt;/h1&gt;
+    &lt;section class="s2"&gt;
+      &lt;ui-sticky class="spell-h2"&gt;&lt;h2 id="1-summary"&gt;1. Summary&lt;/h2&gt;&lt;/ui-sticky&gt;
+      ...
+    &lt;/section&gt;
+  &lt;/main&gt;
+&lt;/div&gt;
+&lt;script src="../_assets/spell-ui.js"&gt;&lt;/script&gt;</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+          <ui-section id="o3" header="1.3 A /plan-doc session" sticky collapsible dividing>
+            <ol>
+              <li>Name check: reuse an existing doc or folder, or pick another name.</li>
+              <li>Worktree <code>&lt;name&gt;</code>, then <code>yarn plan-doc new</code> + <code>open</code>.</li>
+              <li>Plan mode; after approval, fill this doc from the plan (<a href="#d4">D4</a>).</li>
+              <li>Per phase: <code>phase N active</code>, work, record items as found, <code>phase N done</code>.</li>
+              <li>End of phase: bullets + AskUserQuestion built from <code>yarn plan-doc summary</code>.</li>
+              <li>Last phase, Doc Review: turn the plan doc into durable docs.</li>
+            </ol>
+            <ui-accordion class="spell-aside" styled>
+              <ui-title>Aside: why a script, not hand edits?</ui-title>
+              <ui-content>
+                <p>
+                  Ids, icons, UPDATE markers and the "updated" stamp must agree across the phase list, the phase
+                  sections and the items. Agents editing by hand drift; the script also locks the file so parallel
+                  agents take turns.
+                </p>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+        </ui-section>
+        <ui-section
+          data-tip="One section per phase: goal, decisions, files, how to verify."
+          id="phases"
+          header="2. Phases"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Docs Workspace"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye">
+                <b>Goal:</b> docs, tooling, experiments move into
+                <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
+                >, kebab-case </ui-item
+              ><ui-item icon="folder">
+                <b>Files:</b> <code>packages/docs/**</code>, root
+                <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                >, <a href="../../../../../README.md" target="src-readme-md"><code>README.md</code></a> </ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>doc-links.py --check</code> clean; experiments run</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="done"
+            header="P2 · Runtime + Index"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> icons via <code>UI.icons.register()</code>; sidebar built at load; docs index</ui-item
+              ><ui-item icon="folder">
+                <b>Files:</b>
+                <a href="../../../tools/bundle-spell-ui.js" target="src-packages-docs-scripts-bundle-spell-ui-js"
+                  ><code>scripts/bundle-spell-ui.js</code></a
+                >,
+                <a
+                  href="../../../tools/_assets/spell-doc-runtime.js"
+                  target="src-packages-docs-assets-spell-doc-runtime-js"
+                  ><code>_assets/spell-doc-runtime.js</code></a
+                >,
+                <a href="../../../tools/index.js" target="src-packages-docs-scripts-index-js"
+                  ><code>scripts/index.js</code></a
+                > </ui-item
+              ><ui-item icon="flask"><b>Verify:</b> <code>yarn docs:update</code> green</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · Doc Templates"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> durable, cheat sheet and plan templates</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="1775779ee36349e06255c6922d759518d94f9784">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/1775779ee36349e06255c6922d759518d94f9784"
+                      target="github"
+                      >1775779</a
+                    >
+                    every doc page on &lt;ui-section&gt;; ui-section leaves a click on a link in its title alone
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder"><b>Files:</b> <code>templates/**</code></ui-item
+              ><ui-item icon="flask">
+                <b>Verify:</b> templates pass
+                <a href="../../../tools/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                  ><code>check-spell.js</code></a
+                >, listed in index
+              </ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p4"
+            data-phase="4"
+            data-status="done"
+            header="P4 · Plan Script"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> <code>yarn plan-doc</code> edits plan docs safely</ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="79a33179669e93372c007e93e6ec8f0d69a57d15">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/79a33179669e93372c007e93e6ec8f0d69a57d15"
+                      target="github"
+                      >79a3317</a
+                    >
+                    docs, plans, goals and Spell UI (/ui/, astro dev proxied) on the page server;
+                    &lt;spell-site-header&gt; on every page; edit mode; DocPreview on SRV
+                  </li>
+                </ul></ui-item
+              ><ui-item icon="folder">
+                <b>Files:</b>
+                <a href="../../../tools/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                  ><code>scripts/plan-doc.js</code></a
+                >,
+                <a href="../../../tools/plan-doc.test.js" target="src-packages-docs-scripts-plan-doc-test-js"
+                  ><code>scripts/plan-doc.test.js</code></a
+                > </ui-item
+              ><ui-item icon="flask"><b>Verify:</b> vitest; this doc built with it</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p5"
+            data-phase="5"
+            data-status="done"
+            header="P5 · Skill Write"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> <code>/plan-doc &lt;name&gt;</code> skill</ui-item
+              ><ui-item icon="folder">
+                <b>Files:</b>
+                <a href="../../../../../.claude/skills/epic/SKILL.md" target="src-claude-skills-epic-skill-md"
+                  ><code>.claude/skills/epic/SKILL.md</code></a
+                >
+                (was <code>plan-doc/</code>) </ui-item
+              ><ui-item icon="flask"><b>Verify:</b> skill loads, steps match script</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> dry run; turn this plan doc into durable docs</ui-item
+              ><ui-item icon="folder">
+                <b>Files:</b>
+                <a href="../../spell-docs/" target="src-packages-docs-spell-docs"><code>spell-docs/</code></a
+                >, this doc </ui-item
+              ><ui-item icon="flask"><b>Verify:</b> dry run end to end</ui-item></ui-list
+            >
+          </ui-section>
+        </ui-section>
+        <ui-section
+          data-tip="Open questions first: waiting on you, each also asked in Claude Code. Then the answered ones, each with its answer: settled, don't re-argue without new facts."
+          id="decisions"
+          header="3. Questions"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
+
+          <ui-list relaxed divided data-kind="decision" class="plan-items"
+            ><ui-item data-state="old" data-answered id="q1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a>
+                  <span class="plan-title">packages/docs workspace holds docs, tooling, experiments</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d1">
+                    <div class="plan-answer-title">
+                      <b>D1</b> · packages/docs workspace holds docs, tooling, experiments
+                    </div>
+                    <p>
+                      Own deps (playwright, esbuild, oxfmt, linkedom); top of the dependency chain, like
+                      <code>cli</code>. Experiments import any package through the <code>#</code> aliases.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a>
+                  <span class="plan-title"
+                    >All docs hand-authored ui-* HTML; the .html -&gt; .spell.html converter retired</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d2">
+                    <div class="plan-answer-title">
+                      <b>D2</b> · All docs hand-authored ui-* HTML; the .html -&gt; .spell.html converter retired
+                    </div>
+                    <p>
+                      User deleted the 3 <code>.html</code> sources. <code>to-spell.mjs</code>, <code>doc.css</code>,
+                      <code>doc.js</code> gone.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title"
+                    >Contents sidebar built at load from headings, never hand-written</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d3">
+                    <div class="plan-answer-title">
+                      <b>D3</b> · Contents sidebar built at load from headings, never hand-written
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title"
+                    >/plan-doc uses real plan mode; plan doc filled after ExitPlanMode</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d4">
+                    <div class="plan-answer-title">
+                      <b>D4</b> · /plan-doc uses real plan mode; plan doc filled after ExitPlanMode
+                    </div>
+                    <p>
+                      Plan mode only allows editing the harness plan file, so the doc can't be written during planning.
+                    </p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q5">Q5</a>
+                  <span class="plan-title">Chrome; AppleScript reuses one tab per doc</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d5">
+                    <div class="plan-answer-title"><b>D5</b> · Chrome; AppleScript reuses one tab per doc</div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q6">Q6</a>
+                  <span class="plan-title"
+                    >UPDATE marker: ui-message for prose, ui-label for items, class plan-update + data-phase</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d6">
+                    <div class="plan-answer-title">
+                      <b>D6</b> · UPDATE marker: ui-message for prose, ui-label for items, class plan-update +
+                      data-phase
+                    </div>
+                    <p>No <code>&lt;ui-alert&gt;</code> in @spell-app/ui. <code>phase N done</code> strips them.</p>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q7">Q7</a>
+                  <span class="plan-title">Scripts .js, not .mjs; experiments keep their names</span></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d7">
+                    <div class="plan-answer-title"><b>D7</b> · Scripts .js, not .mjs; experiments keep their names</div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q8">Q8</a>
+                  <span class="plan-title"
+                    >Style caveman lite; lists bulleted, or numbered when order matters</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d8">
+                    <div class="plan-answer-title">
+                      <b>D8</b> · Style caveman lite; lists bulleted, or numbered when order matters
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q9">Q9</a>
+                  <span class="plan-title"
+                    >'Transgressions' read as digressions: collapsed ui-accordion.spell-aside</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d9">
+                    <div class="plan-answer-title">
+                      <b>D9</b> · 'Transgressions' read as digressions: collapsed ui-accordion.spell-aside
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q10">Q10</a>
+                  <span class="plan-title"
+                    >Reload the plan doc's tab at every stage change; 'phase' does it itself</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d10">
+                    <div class="plan-answer-title">
+                      <b>D10</b> · Reload the plan doc's tab at every stage change; 'phase' does it itself
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" data-answered id="q11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q11">Q11</a>
+                  <span class="plan-title"
+                    >Pages are plain .html; the docs root is index.html, so the browser opens it for the folder</span
+                  ></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block" id="d11">
+                    <div class="plan-answer-title">
+                      <b>D11</b> · Pages are plain .html; the docs root is index.html, so the browser opens it for the
+                      folder
+                    </div>
+                  </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          data-tip="Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open until you review it; struck = accepted. Disagree: say so, and it becomes a question."
+          id="judgements"
+          header="4. Judgement calls"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed></ui-list>
+        </ui-section>
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list relaxed divided data-kind="caveat" class="plan-items"
+            ><ui-item data-state="open" id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title">Renaming the session from a skill</span></ui-title
+                ><ui-content
+                  ><p>
+                    When this plan was written, a skill had no way to rename the Claude Code session or its VS Code tab.
+                    The <code>/plan-doc</code> skill had to ask you to type <code>/rename</code> yourself.
+                  </p>
+                  <ul>
+                    <li>Claude can't run <code>/rename</code>: it's a command only you can type.</li>
+                    <li>So a new planning session kept its first prompt as its title until you renamed it.</li>
+                    <li>
+                      Looks done or obsolete: the <code>/title</code> skill now queues a title with
+                      <code>spell dev session title &lt;title&gt;</code>, and a <code>UserPromptSubmit</code> hook
+                      applies it on your next message; the <code>prompt-gate.mjs</code> hook also renames the session on
+                      <code>/isolate &lt;name&gt;</code> and <code>/epic &lt;name&gt;</code> (checked 2026-10-04).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>you no longer need to type <code>/rename</code> after starting an epic</li>
+                    <li>the new title shows only on your next message, not at once</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">Unpushed work missing from a new plan worktree</span></ui-title
+                ><ui-content
+                  ><p>
+                    Claude Code's own <code>EnterWorktree</code> made the new worktree's branch from
+                    <code>origin/main</code>, not your local <code>main</code>. Anything you'd committed but not pushed
+                    was missing from the plan's worktree, and you'd notice when a fix you'd just made wasn't there.
+                  </p>
+                  <ul>
+                    <li>
+                      Looks done or obsolete: the <code>WorktreeCreate</code> hook,
+                      <code>.claude/hooks/worktree.mjs</code>, now makes every worktree from local
+                      <code>main</code> ("unpushed work included, not <code>origin/main</code>", its header says)
+                      (checked 2026-10-04).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a new epic's worktree starts from what's on your local <code>main</code>, pushed or not</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">Checks lost when pages stopped being converted</span></ui-title
+                ><ui-content
+                  ><p>
+                    The docs used to be generated by a converter, which checked its own output. Now the pages are
+                    hand-written <code>.html</code>, so that self-check is gone, and a broken page is caught only by the
+                    separate checkers.
+                  </p>
+                  <ul>
+                    <li>
+                      Three checkers cover most of what the converter checked:
+                      <ul>
+                        <li>
+                          <code>doc-links.py --check</code>: every local link resolves (now
+                          <a href="../../../tools/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                            ><code>doc-links.js</code></a
+                          >)
+                        </li>
+                        <li>
+                          <a href="../../../tools/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                            ><code>check-spell.js</code></a
+                          >: the page renders in a browser, with no console errors
+                        </li>
+                        <li><code>plan-doc check</code>: a plan doc's structure and links</li>
+                      </ul>
+                    </li>
+                    <li>Not checked: exactly which checks the old converter ran, so what "most" leaves out.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>nothing changes: an accepted limit</li>
+                    <li>run the three checkers after editing a page by hand</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title">Each plan-doc command takes about a second</span></ui-title
+                ><ui-content
+                  ><p>
+                    Every <code>yarn plan-doc</code> command takes about one second, so a session that adds ten items
+                    one at a time waits about ten seconds.
+                  </p>
+                  <ul>
+                    <li>
+                      Where the time goes:
+                      <ul>
+                        <li>starting <code>yarn</code> and node</li>
+                        <li>running <code>oxfmt</code> on the doc after each edit</li>
+                      </ul>
+                    </li>
+                    <li>
+                      Example, measured 2026-10-04: <code>yarn plan-doc check docs-workspace --here --no-browser</code>
+                      took 1.05s wall-clock, and it doesn't even edit.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>nothing changes: an accepted cost</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c5">C5</a>
+                  <span class="plan-title">Two spaces after a period don't survive in pages</span></ui-title
+                ><ui-content
+                  ><p>
+                    The house style puts two spaces after a period. In the text of an HTML page, <code>oxfmt</code>
+                    squeezes them to one, so a page's source never keeps them.
+                  </p>
+                  <ul>
+                    <li>
+                      Example, run 2026-10-04:
+                      <code>&lt;p&gt;One.&nbsp;&nbsp;Two&nbsp;&nbsp;three.&lt;/p&gt;</code> comes out of
+                      <code>oxfmt</code> as <code>&lt;p&gt;One. Two three.&lt;/p&gt;</code>.
+                    </li>
+                    <li>A browser shows one space either way, so only the source is affected.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>nothing changes: page text uses single spaces</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="c6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title">Running epics missing from the main docs index</span></ui-title
+                ><ui-content
+                  ><p>
+                    A plan doc lives in its epic's worktree until the branch merges. So the docs index on the main
+                    checkout didn't list a running epic until after the merge.
+                  </p>
+                  <ul>
+                    <li>
+                      Looks done or obsolete: the main checkout's page server now serves every worktree under
+                      <code>/worktrees/&lt;w&gt;/</code>, and the docs index lists running epics first in its Epics
+                      section (<a href="../../server.html#running-epics-flow" target="src-packages-docs-server-html"
+                        >Page Server, "Running epics"</a
+                      >) (checked 2026-10-04).
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a running epic shows in the main docs index while its worktree is still open</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+        <ui-section
+          data-tip="For later: not caveats, not issues."
+          id="todos"
+          header="6. Todos"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="list check"></ui-icon>
+
+          <ui-list relaxed divided data-kind="todo" class="plan-items"
+            ><ui-item data-state="open" id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title">Tests for the docs index script</span></ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../tools/index.js" target="src-packages-docs-scripts-index-js"
+                      ><code>scripts/index.js</code></a
+                    >
+                    writes the lists in the docs index (<code>yarn docs:index</code>), and has no tests yet.
+                  </p>
+                  <ul>
+                    <li>
+                      Idempotence: running it twice in a row should leave <code>index.html</code> unchanged the second
+                      time.
+                    </li>
+                    <li>
+                      Grouping: each page should land in the right section of the index (its <code>GROUPS</code>).
+                    </li>
+                    <li>
+                      Still no <code>index.test.js</code> in <code>packages/docs/tools/</code> (checked 2026-10-04).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="open" id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title">A docs server with live reload</span></ui-title
+                ><ui-content
+                  ><p>
+                    When this plan was written, a page shown in Chrome was refreshed by an AppleScript reload after each
+                    edit. The idea: consider a docs dev server that reloads the page by itself instead.
+                  </p>
+                  <ul>
+                    <li>
+                      Looks done or obsolete: the page server (<code>yarn server</code>) now pushes changes to open
+                      pages (<code>LiveReload</code> + <code>liveClient.ts</code> in <code>packages/server</code>), and
+                      a plan doc updates in place. AppleScript is still used, but only to open or reuse the Chrome tab
+                      (<code>pages.js</code>) (checked 2026-10-04).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list relaxed divided data-kind="issue" class="plan-items"
+            ><ui-item data-state="attention" id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title">An expand arrow on titles with nothing to open</span></ui-title
+                ><ui-content
+                  ><p>
+                    Every <code>ui-accordion</code> title gets an expand arrow, even when its panel is empty. You'd
+                    notice it in a contents sidebar: a section with no sub-sections offers to open into nothing.
+                  </p>
+                  <ul>
+                    <li>Cosmetic: nothing breaks.</li>
+                    <li>
+                      Recorded as finding 17 in
+                      <a
+                        href="../../spell-docs/spell-ui-findings.md"
+                        target="src-packages-docs-spell-docs-spell-ui-findings-md"
+                        ><code>spell-ui-findings.md</code></a
+                      >, with the repro:
+                      <code
+                        >&lt;ui-accordion&gt;&lt;ui-title&gt;Leaf&lt;/ui-title&gt;&lt;ui-content&gt;&lt;/ui-content&gt;&lt;/ui-accordion&gt;</code
+                      >
+                    </li>
+                    <li>No workaround yet; the old static sidebars had the same arrow.</li>
+                    <li>
+                      Suggested fix there: hide the arrow and skip toggling when the content is empty, or a
+                      <code>leaf</code> attribute on <code>ui-title</code>.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>once fixed in <code>@spell-app/ui</code>: a title with an empty panel shows no arrow</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-state="old" id="i2" data-status="done"
+              ><a class="plan-id" href="#i2">I2</a>
+              <span class="plan-title"
+                >Dry run: a top-level durable page broke (template assumes one folder deep)</span
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+        <ui-section
+          data-tip="What to check by hand before merging: each a step, and what should happen. Struck through once it passes."
+          id="tests"
+          header="8. To test"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="flask"></ui-icon>
+
+          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section
+          data-tip="Plan changes, oldest first, local time."
+          id="log"
+          header="9. Log"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+
+          <ul class="plan-log">
+            <li><time>2026-09-30</time> plan doc created</li>
+            <li><time>2026-09-30</time> P1 added: Docs Workspace</li>
+            <li><time>2026-09-30</time> P2 added: Runtime + Index</li>
+            <li><time>2026-09-30</time> P3 added: Doc Templates</li>
+            <li><time>2026-09-30</time> P4 added: Plan Script</li>
+            <li><time>2026-09-30</time> P5 added: Skill Write</li>
+            <li><time>2026-09-30</time> P6 added: Doc Review</li>
+            <li><time>2026-09-30</time> P1 done</li>
+            <li><time>2026-09-30</time> P2 done</li>
+            <li><time>2026-09-30</time> P3 done</li>
+            <li><time>2026-09-30</time> P4 active</li>
+            <li><time>2026-09-30</time> P4 done</li>
+            <li><time>2026-09-30</time> P5 active</li>
+            <li>
+              <time>2026-09-30</time> P4: plan-doc.js + 10 vitest tests; this doc built with it; Chrome tab reuse
+              verified
+            </li>
+            <li><time>2026-09-30</time> P5 done</li>
+            <li><time>2026-09-30</time> P5: .claude/skills/plan-doc/SKILL.md written</li>
+            <li>
+              <time datetime="2026-09-30T23:32-04:00">2026-09-30 23:32</time> log: local timestamps, no longer folded
+            </li>
+            <li>
+              <time datetime="2026-09-30T23:38-04:00">2026-09-30 23:38</time> I2 closed: Dry run: a top-level durable
+              page broke (template assumes one folder deep)
+            </li>
+            <li>
+              <time datetime="2026-09-30T23:38-04:00">2026-09-30 23:38</time> dry run in worktree demo-plan: new, open,
+              fill, phase cycle, summary, check, index badge, reuse check all ok; I2 found and fixed with yarn docs:new
+            </li>
+            <li><time datetime="2026-09-30T23:39-04:00">2026-09-30 23:39</time> P6 done</li>
+          </ul>
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

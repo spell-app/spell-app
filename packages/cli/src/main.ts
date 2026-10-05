@@ -226,7 +226,9 @@ program
 
 program
   .command("plan-doc")
-  .description("edit a plan doc (packages/docs/epics/):  `yarn plan-doc` -- `spell plan-doc` lists its commands")
+  .description(
+    "edit a plan doc (packages/docs/content/epics/):  `yarn plan-doc` -- `spell plan-doc` lists its commands"
+  )
   .argument("[args...]", "a plan-doc command and its arguments, e.g. summary seo")
   .allowUnknownOption()
   .helpOption(false)
@@ -235,13 +237,13 @@ program
 
 /**
  * `spell dev <noun> <verb>`:  the repo's OWN tools (worktrees, docs, servers ...), as opposed to the spell language.
- * - The plan for them, and every command the repo has:  `packages/docs/dev/commands/commands.html`
+ * - The plan for them, and every command the repo has:  `packages/docs/content/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`CLI.findCheckout()`), so it works in a worktree
  * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
  */
 const dev = program
   .command("dev")
-  .description("the repo's own tools -- worktrees, docs, servers ...:  packages/docs/dev/commands")
+  .description("the repo's own tools -- worktrees, docs, servers ...:  packages/docs/content/dev/commands")
 
 dev
   .command("commands")
@@ -302,6 +304,27 @@ dev
   .description("take stock:  worktrees, branches, sessions, parked work, plans -- in process, hung or parked, dead")
   .option("--json", "print the report as JSON, with each action's shell lines")
   .action((_options, command) => run(CLI.stockCommand, [], command.optsWithGlobals()))
+
+dev
+  .command("shared")
+  .description("shared content:  docs pages, goal sets and logs in one repo beside the checkout, linked into every one")
+  .argument(
+    "[verb]",
+    "status (default) | init [--import] | link [--all] | commit [--session <id>] | migrate <worktree> [--dry-run]"
+  )
+  .argument("[name]", "migrate:  the worktree")
+  .option("--json", "status, migrate:  print the data as JSON")
+  .option("--import", "init:  copy this checkout's folders into the new shared repo")
+  .option("--session <id>", "commit:  the Claude Code session, for the commit's trailer")
+  .option("--quiet", "commit:  print nothing")
+  .option("--dry-run", "migrate:  say what it would do, change nothing")
+  .action((verb: string | undefined, name: string | undefined, _options, command) =>
+    run(
+      CLI.sharedCommand,
+      [verb, name].filter((it) => it !== undefined),
+      command.optsWithGlobals()
+    )
+  )
 
 await program.parseAsync()
 

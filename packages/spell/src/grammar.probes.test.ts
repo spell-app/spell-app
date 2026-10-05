@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 
 import { P } from "$/parser"
 import { loadFixtureProject, parseSpellProject } from "$/spell/test"
@@ -10,10 +10,11 @@ import { loadFixtureProject, parseSpellProject } from "$/spell/test"
  * - Changes to these snapshots are EXPECTED in phases P3-P6:  READ each one before blessing it
  *   (`yarn vitest run src/grammar.probes.test.ts -u`), and say in the phase's notes why it moved.
  *   A change in any other phase is a regression until shown otherwise.
- * - The design, and the problems the probe titles refer to:  `packages/docs/precedence/precedence.html`
+ * - The design, and the problems the probe titles refer to:  `packages/docs/content/precedence/precedence.html`
  *   ("2. The problems").
  *   - NOTE:  a title's `P1a` ... `P8e` is that page's PROBLEM number (P1 = greedy operands ...),
- *     NOT an epic phase.  Titles match the page's experiment, `packages/docs/precedence/experiments/grammar-today.mts`.
+ *     NOT an epic phase.  Titles match the page's experiment,
+ *     `packages/docs/content/precedence/experiments/grammar-today.mts`.
  * - Each probe parses scratch file `/Probe.spell` in memory with `parseSpellProject()`, exactly as a project
  *   compile does, after the frozen Solitaire fixture's `Card` / `Deck` / `Pile` (`projects/test/Solitaire/`),
  *   which predate jokers -- so no joker phrasing here.

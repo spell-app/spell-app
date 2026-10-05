@@ -1,5 +1,5 @@
 import postcss from "postcss"
-import { beforeAll, describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { StaticRender, StaticSelectors, StaticStylesheet } from "$/ui/server"
 import { UICard } from "$/ui/components/ui-card/UICard"

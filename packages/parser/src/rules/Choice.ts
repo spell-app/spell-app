@@ -137,7 +137,7 @@ export class Choice<
    * - Then we take the one with the longest matched string.
    * - If more than one rule with same length, takes the EARLIEST one -- so in a `(a|b)` choice, `a` wins a tie,
    *   and in a `Group` of same-named rules the FIRST-registered wins.  Pinned by `Rule.test.ts`.
-   * - NOTE: both loops below were commented as preferring LATER rules;  they never did -- see SUSPECTED-BUGS.md.
+   * - NOTE: both loops below were commented as preferring LATER rules;  they never did -- see agents/SUSPECTED-BUGS.md.
    */
   getBestMatch(matches: P.Match[]) {
     if (matches.length === 1) return matches[0]
@@ -167,11 +167,25 @@ export class Choice<
     return longest
   }
 
-  /** Return rulex string for this rule:  `(rule1|rule2|...)`, with flags applied. */
+  /**
+   * Return rulex string for this rule:  `(rule1|rule2|...)`, with flags applied.
+   * - A plain choice of words among the choices prints flat, as written:  `(=|is|of)`, not `(=|(is|of))`.
+   */
   toRulexSyntax() {
     const { matchGroup, optional } = this.getRulexFlags()
-    const rules = this.rules.map((rule) => rule.toRulexSyntax()).join("|")
+    const rules = this.rules.map((rule) => Choice.choiceSyntax(rule)).join("|")
     return `(${matchGroup}${rules})${optional}`
+  }
+
+  /** `rule` as one of our choices:  a plain word choice (`Keyword(["is", "of"])`) without its parens. */
+  private static choiceSyntax(rule: P.Rule) {
+    const flat =
+      rule instanceof P.Literal &&
+      Array.isArray(rule.literal) &&
+      !rule.matchGroup &&
+      !rule.optional &&
+      !rule.caseInsensitive
+    return flat ? (rule.literal as string[]).join("|") : rule.toRulexSyntax()
   }
 }
 
