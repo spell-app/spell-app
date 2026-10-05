@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-emoji-D3VaX_M8.js";export{e as EmojiData,t as UIEmoji};

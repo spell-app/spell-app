@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Theme Creator</title>
+    <meta
+      name="description"
+      content="Make a Spell UI theme:  pick colour sets, fonts and shapes, see them on real elements in light and dark, copy the sheet."
+    />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <style>
+      /* page layout only:  every colour, font, radius and shadow comes from the theme's tokens */
+      body {
+        margin: 0;
+        background: var(--ui-background);
+        color: var(--spell-text-body);
+        font: var(--spell-type-body);
+      }
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 36px 40px 56px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .eyebrow {
+        font: var(--spell-type-eyebrow);
+        letter-spacing: var(--spell-tracking-eyebrow);
+        text-transform: uppercase;
+        color: var(--spell-text-accent);
+      }
+      h1 {
+        margin: 8px 0 0;
+        font: 700 40px/1.05 var(--spell-font-serif);
+        letter-spacing: -0.02em;
+        color: var(--spell-text-strong);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 380px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+      }
+      .layout > .right {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+      }
+
+      /* ## The colour pickers:  20 chips a row, 3px apart */
+      .layout ui-brand-panel ui-brand-panel {
+        --ui-brand-panel-gap: 16px;
+      }
+      .chips {
+        --ui-brand-color-set-gap: 3px;
+        --ui-brand-color-radius: 3px;
+      }
+
+      /* a block the field's control row stretches, so a segmented menu fills it:  `<ui-menu>`'s host is
+         `display: contents`, so the field's `flex: 1` on the slotted host reaches no box (issue) */
+      .seg {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      /* ## Right column:  an eyebrow title over a hairline */
+      .tool {
+        border-top: 1px solid var(--spell-border-subtle);
+        padding-top: 8px;
+      }
+      .tool .file {
+        font: var(--spell-type-code);
+        font-size: 12px;
+        color: var(--spell-text-muted);
+        white-space: nowrap;
+      }
+      .previews {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+      }
+
+      /* ## A preview:  the habit tracker, every colour, font and radius from the theme being made */
+      .tc-app {
+        font-size: var(--ui-font-size);
+        font-family: var(--ui-font-family);
+        border-radius: 16px;
+        padding: 1.25em;
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+        box-shadow: 0 0 0 1px var(--ui-border-color);
+        /* the card's gap does the spacing */
+        --ui-card-margin-block: 0;
+        --ui-progress-margin: 0;
+      }
+      .tc-app[hidden] {
+        display: none;
+      }
+      .tc-app-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75em;
+      }
+      .tc-app-scheme {
+        font: 500 0.7em/1 var(--ui-font-family-mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ui-text-muted);
+      }
+      .tc-app-title {
+        margin-top: 0.2em;
+        font: 700 1.6em/1.1 var(--ui-font-family-heading);
+        color: var(--ui-text-dark);
+      }
+      .tc-app-badge {
+        width: 2.4em;
+        height: 2.4em;
+        border-radius: var(--ui-radius);
+        background: var(--ui-primary-background);
+        color: var(--ui-primary-text);
+        display: grid;
+        place-items: center;
+      }
+      .tc-habits {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7em;
+        margin-top: 0.7em;
+      }
+      .tc-habits ui-checkbox[selected] > span {
+        color: var(--ui-text-muted);
+        text-decoration: line-through;
+      }
+      .tc-add {
+        display: flex;
+        gap: 0.5em;
+        margin-top: 0.9em;
+      }
+      .tc-add > ui-input {
+        flex: 1;
+      }
+      .tc-row {
+        display: flex;
+        gap: 0.5em;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .tc-add > ui-button {
+        flex: none;
+      }
+      .tc-app > ui-message {
+        margin: 0;
+      }
+      .tc-app > ui-message ui-icon {
+        color: var(--ui-accent-text);
+      }
+      /* the badges:  tinted, as the original's (a coloured `<ui-label>` is a solid fill) */
+      .tc-live {
+        --ui-label-background: var(--ui-primary-background);
+        --ui-label-color: var(--ui-primary-text);
+      }
+      .tc-tint {
+        --ui-label-background: var(--ui-accent-background);
+        --ui-label-color: var(--ui-accent-text);
+      }
+    </style>
+  </head>
+  <body>
+    <spell-site-header root="../../.."></spell-site-header>
+    <main>
+      <header>
+        <div class="eyebrow">Tools</div>
+        <h1>Make a theme.</h1>
+      </header>
+
+      <div class="layout">
+        <!-- ## The inspector -->
+        <ui-brand-panel header="Theme" color="accent" collapsible>
+          <ui-input
+            id="name"
+            size="small"
+            value="Spell"
+            placeholder="Name, e.g. Spell"
+            aria-label="Theme name"
+            title="Used for the file name, e.g. themes/spell.css"
+          ></ui-input>
+
+          <ui-brand-panel header="Color" collapsible>
+            <ui-brand-field
+              label="Primary"
+              data-key="primary"
+              info="The main action colour:  buttons, checkmarks, progress."
+            >
+              <ui-brand-color-set class="chips" columns="20" selectable aria-label="Primary"></ui-brand-color-set>
+            </ui-brand-field>
+            <ui-brand-field
+              label="Secondary"
+              data-key="secondary"
+              info="For second-choice buttons and quieter highlights."
+            >
+              <ui-brand-color-set class="chips" columns="20" selectable aria-label="Secondary"></ui-brand-color-set>
+            </ui-brand-field>
+            <ui-brand-field label="Accent" data-key="accent" info="A warm touch for tips, streaks and badges.">
+              <ui-brand-color-set class="chips" columns="20" selectable aria-label="Accent"></ui-brand-color-set>
+            </ui-brand-field>
+            <ui-brand-field label="Neutral" data-key="neutral" info="Tints the backgrounds, borders and text.">
+              <ui-brand-color-set class="chips" columns="20" selectable aria-label="Neutral"></ui-brand-color-set>
+            </ui-brand-field>
+            <ui-brand-field
+              label="Dark mode surfaces"
+              info="Which colour the dark backgrounds are made from.  Primary feels richer, Neutral calmer."
+            >
+              <div class="seg">
+                <ui-menu data-key="darkFrom" appearance="segmented" alignment="fluid" equal link size="small">
+                  <ui-item value="primary" selected>Primary</ui-item>
+                  <ui-item value="neutral">Neutral</ui-item>
+                </ui-menu>
+              </div>
+            </ui-brand-field>
+          </ui-brand-panel>
+
+          <ui-brand-panel header="Type" collapsible>
+            <ui-brand-field label="Headings" info="The font for titles and headings.  Palatino is Spell's signature.">
+              <ui-select data-key="head" value="palatino" fluid size="small">
+                <ui-item value="palatino">Palatino (Spell)</ui-item>
+                <ui-item value="system">System UI</ui-item>
+                <ui-item value="georgia">Georgia</ui-item>
+              </ui-select>
+            </ui-brand-field>
+            <ui-brand-field label="Body" info="The font for everything else:  labels, buttons, paragraphs.">
+              <ui-select data-key="body" value="system" fluid size="small">
+                <ui-item value="system">System UI (recommended)</ui-item>
+                <ui-item value="optima">Optima · Candara</ui-item>
+                <ui-item value="verdana">Verdana · DejaVu Sans</ui-item>
+              </ui-select>
+            </ui-brand-field>
+            <ui-brand-field
+              id="size-field"
+              label="Text size"
+              value="16px"
+              info="The size of everyday text.  Everything else, headings and buttons included, grows and shrinks with it."
+            >
+              <ui-button id="size-reset" slot="actions" size="mini" circular basic icon="rotate left" hidden
+                >Reset</ui-button
+              >
+              <ui-slider id="size" min="13" max="19" step="1" value="16" ticked></ui-slider>
+            </ui-brand-field>
+          </ui-brand-panel>
+
+          <ui-brand-panel header="Shape" collapsible>
+            <ui-brand-field label="Corners" info="How rounded buttons, cards and fields are.">
+              <div class="seg">
+                <ui-menu data-key="radius" appearance="segmented" alignment="fluid" equal link size="small">
+                  <ui-item value="s">Sharp</ui-item>
+                  <ui-item value="m">Soft</ui-item>
+                  <ui-item value="l" selected>Round</ui-item>
+                  <ui-item value="pill">Pill</ui-item>
+                </ui-menu>
+              </div>
+            </ui-brand-field>
+            <ui-brand-field label="Depth" info="How much cards lift off the page.  Glow adds a soft halo in dark mode.">
+              <div class="seg">
+                <ui-menu data-key="shadow" appearance="segmented" alignment="fluid" equal link size="small">
+                  <ui-item value="flat">Flat</ui-item>
+                  <ui-item value="soft" selected>Soft</ui-item>
+                  <ui-item value="glow">Glow</ui-item>
+                </ui-menu>
+              </div>
+            </ui-brand-field>
+          </ui-brand-panel>
+        </ui-brand-panel>
+
+        <div class="right">
+          <!-- ## The preview:  real elements in the theme being made -->
+          <ui-section class="tool" collapsible basic>
+            <span slot="header" class="eyebrow">Preview</span>
+            <ui-menu
+              slot="actions"
+              data-key="view"
+              appearance="segmented"
+              equal
+              link
+              size="mini"
+              aria-label="Preview mode"
+            >
+              <ui-item value="both" selected>Both</ui-item>
+              <ui-item value="light">Light</ui-item>
+              <ui-item value="dark">Dark</ui-item>
+            </ui-menu>
+            <div class="previews">
+              <div class="tc-app ui-light" data-tp="light">
+                <div class="tc-app-head">
+                  <div>
+                    <div class="tc-app-scheme">Light</div>
+                    <div class="tc-app-title">Habit Tracker</div>
+                  </div>
+                  <span class="tc-app-badge"><ui-icon name="seedling"></ui-icon></span>
+                </div>
+                <ui-card fluid>
+                  <ui-content>
+                    <ui-header>Today</ui-header>
+                    <div class="tc-habits">
+                      <ui-checkbox selected><span>Drink water</span></ui-checkbox>
+                      <ui-checkbox><span>Read</span></ui-checkbox>
+                      <ui-checkbox><span>Move body</span></ui-checkbox>
+                    </div>
+                    <div class="tc-add">
+                      <ui-input placeholder="New habit…" aria-label="New habit"></ui-input>
+                      <ui-button primary icon="plus">Add</ui-button>
+                    </div>
+                  </ui-content>
+                </ui-card>
+                <div class="tc-row">
+                  <ui-button secondary size="small">Secondary</ui-button>
+                  <ui-button basic size="small">Basic</ui-button>
+                  <ui-label size="small" class="tc-live">Live</ui-label>
+                  <ui-label size="small" class="tc-tint">Accent</ui-label>
+                </div>
+                <ui-message color="accent"
+                  ><ui-icon name="bolt"></ui-icon> <b>7-day streak.</b> Keep it going — one habit left
+                  today.</ui-message
+                >
+                <ui-progress value="66" size="tiny" aria-label="Today's habits"></ui-progress>
+              </div>
+              <div class="tc-app ui-dark" data-tp="dark">
+                <div class="tc-app-head">
+                  <div>
+                    <div class="tc-app-scheme">Dark</div>
+                    <div class="tc-app-title">Habit Tracker</div>
+                  </div>
+                  <span class="tc-app-badge"><ui-icon name="seedling"></ui-icon></span>
+                </div>
+                <ui-card fluid>
+                  <ui-content>
+                    <ui-header>Today</ui-header>
+                    <div class="tc-habits">
+                      <ui-checkbox selected><span>Drink water</span></ui-checkbox>
+                      <ui-checkbox><span>Read</span></ui-checkbox>
+                      <ui-checkbox><span>Move body</span></ui-checkbox>
+                    </div>
+                    <div class="tc-add">
+                      <ui-input placeholder="New habit…" aria-label="New habit"></ui-input>
+                      <ui-button primary icon="plus">Add</ui-button>
+                    </div>
+                  </ui-content>
+                </ui-card>
+                <div class="tc-row">
+                  <ui-button secondary size="small">Secondary</ui-button>
+                  <ui-button basic size="small">Basic</ui-button>
+                  <ui-label size="small" class="tc-live">Live</ui-label>
+                  <ui-label size="small" class="tc-tint">Accent</ui-label>
+                </div>
+                <ui-message color="accent"
+                  ><ui-icon name="bolt"></ui-icon> <b>7-day streak.</b> Keep it going — one habit left
+                  today.</ui-message
+                >
+                <ui-progress value="66" size="tiny" aria-label="Today's habits"></ui-progress>
+              </div>
+            </div>
+          </ui-section>
+
+          <!-- ## The sheet -->
+          <ui-section class="tool" collapsible basic>
+            <span slot="header" class="eyebrow">CSS</span>
+            <span slot="actions" class="file" id="file">themes/spell.css</span>
+            <ui-button
+              id="copy"
+              slot="actions"
+              size="mini"
+              circular
+              basic
+              icon="copy outline"
+              aria-label="Copy CSS"
+              title="Copy CSS"
+            ></ui-button>
+            <ui-code id="css" language="css"></ui-code>
+          </ui-section>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="../_assets/ui/brand-ui.js"></script>
+    <script type="module">
+      /*
+       * Theme Creator:  the choices in the inspector -> a theme sheet (`themes/<name>.css`), shown in the CSS
+       * section and applied to the preview's real elements.
+       * - The preview gets the SAME declarations as the sheet's `:root`, scoped to `.tc-app` (an injected `<style>`),
+       *   plus the tokens the page's theme computes at `:root` from them (a custom property's `var()` resolves where
+       *   it's DECLARED, so `--ui-violet` would keep the page's violet):  see `rederive()`.
+       * - Light and dark:  every value is a `light-dark()` pair;  each card forces its scheme (`ui-light` / `ui-dark`).
+       */
+
+      ////////////////
+      // ## Choices
+      ////////////////
+
+      /** brand colour set -> the Spell UI hue it themes (Claude Design's mapping) */
+      const LIB = {
+        red: "red",
+        orange: "orange",
+        amber: "yellow",
+        yellow: "yellow",
+        lime: "olive",
+        green: "green",
+        emerald: "green",
+        teal: "teal",
+        cyan: "teal",
+        sky: "blue",
+        blue: "blue",
+        indigo: "violet",
+        violet: "violet",
+        purple: "purple",
+        fuchsia: "pink",
+        pink: "pink",
+        rose: "red",
+        brand: "grey",
+        accent: "brown",
+        grey: "grey"
+      }
+      /** heading fonts:  installed everywhere, nothing downloads */
+      const HEAD = {
+        palatino: "'Palatino', 'Palatino Linotype', 'Book Antiqua', 'P052', serif",
+        system: "system-ui, 'Segoe UI', 'Noto Sans', sans-serif",
+        georgia: "Georgia, 'DejaVu Serif', serif"
+      }
+      /** body fonts */
+      const BODY = {
+        system: "system-ui, -apple-system, 'Segoe UI', 'Noto Sans', Cantarell, Ubuntu, sans-serif",
+        optima: "Optima, Candara, 'Noto Sans', sans-serif",
+        verdana: "Verdana, 'DejaVu Sans', sans-serif"
+      }
+      /** corners */
+      const RAD = { s: "0.25em", m: "0.5em", l: "0.75em", pill: "9999px" }
+      /** depth:  [light layers, dark layers], each `[geometry, colour]` */
+      const SHADOWS = {
+        flat: [[], [["0 0 0 1px", "rgb(200 206 231 / 0.16)"]]],
+        soft: [
+          [
+            ["0 1px 2px", "rgb(43 47 63 / 0.06)"],
+            ["0 8px 24px -10px", "rgb(43 47 63 / 0.2)"]
+          ],
+          [
+            ["0 1px 2px", "rgb(0 0 0 / 0.4)"],
+            ["0 0 0 1px", "rgb(200 206 231 / 0.14)"]
+          ]
+        ],
+        glow: [
+          [
+            ["0 1px 2px", "rgb(43 47 63 / 0.06)"],
+            ["0 10px 30px -10px", "rgb(43 47 63 / 0.24)"]
+          ],
+          [
+            ["0 0 0 1px", "rgb(184 180 255 / 0.12)"],
+            ["0 0 26px -6px", "rgb(150 138 255 / 0.4)"]
+          ]
+        ]
+      }
+      const INK = "#1A1C27"
+      const WHITE = "#FFFFFF"
+
+      /** what's chosen now */
+      const state = {
+        name: "Spell",
+        primary: "violet",
+        secondary: "brand",
+        accent: "accent",
+        neutral: "brand",
+        darkFrom: "primary",
+        head: "palatino",
+        body: "system",
+        size: 16,
+        radius: "l",
+        shadow: "soft",
+        view: "both"
+      }
+
+      ////////////////
+      // ## Wiring
+      ////////////////
+
+      await Promise.all(
+        ["ui-brand-field", "ui-brand-color-set", "ui-brand-color", "ui-menu", "ui-slider", "ui-code"].map((tag) =>
+          customElements.whenDefined(tag)
+        )
+      )
+      const sets = await (await fetch("lib/palette.json")).json()
+      const setNamed = (name) => sets.find((set) => set.name === name)
+      const $ = (selector) => document.querySelector(selector)
+      const themeStyle = document.head.appendChild(document.createElement("style"))
+
+      // the four colour pickers:  each set's step-600 chip
+      for (const field of document.querySelectorAll("ui-brand-field[data-key]")) {
+        const key = field.dataset.key
+        const chips = field.querySelector("ui-brand-color-set")
+        for (const set of sets) {
+          const chip = document.createElement("ui-brand-color")
+          chip.setAttribute("name", set.name)
+          chip.setAttribute("value", set.scale[600])
+          chip.title = set.label
+          chips.append(chip)
+        }
+        chips.setAttribute("value", state[key])
+        chips.addEventListener("ui-change", (event) => update({ [key]: event.detail.value }))
+      }
+
+      // the segmented controls:  the menu doesn't move `selected` itself
+      for (const menu of document.querySelectorAll("ui-menu[data-key]")) {
+        menu.addEventListener("ui-select", (event) => {
+          for (const item of menu.querySelectorAll("ui-item"))
+            item.toggleAttribute("selected", item.getAttribute("value") === event.detail.value)
+          update({ [menu.dataset.key]: event.detail.value })
+        })
+      }
+
+      for (const select of document.querySelectorAll("ui-select[data-key]"))
+        select.addEventListener("ui-change", (event) => update({ [select.dataset.key]: event.detail.value }))
+
+      $("#name").addEventListener("ui-input", (event) => update({ name: event.detail.value }))
+      $("#size").addEventListener("ui-input", (event) => update({ size: Number(event.detail.value) }))
+      $("#size-reset").addEventListener("click", () => {
+        $("#size").setAttribute("value", "16")
+        update({ size: 16 })
+      })
+      $("#copy").addEventListener("click", copyCss)
+
+      update({})
+
+      ////////////////
+      // ## Rendering
+      ////////////////
+
+      /** Merges `changes` into `state`, then redraws everything that reads it. */
+      function update(changes) {
+        Object.assign(state, changes)
+        const groups = declarations()
+        const css = sheet(groups)
+
+        for (const field of document.querySelectorAll("ui-brand-field[data-key]"))
+          field.setAttribute("value", setNamed(state[field.dataset.key])?.label ?? state[field.dataset.key])
+        $("#size-field").setAttribute("value", `${state.size}px`)
+        $("#size-reset").hidden = state.size === 16
+        $("#file").textContent = `themes/${fileName()}.css`
+        $("#css").content = css
+
+        const flat = groups.flatMap((group) => group.decls.map(([name, value]) => `${name}: ${value};`))
+        themeStyle.textContent = `.tc-app {\n${[...flat, ...rederive()].join("\n")}\n}`
+        for (const card of document.querySelectorAll(".tc-app"))
+          card.hidden = state.view !== "both" && state.view !== card.dataset.tp
+      }
+
+      /**
+       * The sheet's `:root` declarations, in commented groups.
+       * - Every colour a `light-dark()` pair, from the chosen sets' steps.
+       * - NOTE:  Claude Design's light and dark value tables, kept;  only the token names and the layout changed.
+       */
+      function declarations() {
+        const { primary: pr, secondary: se, accent: ac, neutral: ne } = state
+        const dk = state.darkFrom === "primary" ? pr : ne
+        const [P, S] = [LIB[pr], LIB[se]]
+        const groups = []
+        groups.push({
+          comment: "Type",
+          decls: [
+            ["--ui-font-size", `${state.size}px`],
+            ["--ui-font-family", BODY[state.body]],
+            ["--ui-font-family-heading", HEAD[state.head]]
+          ]
+        })
+        groups.push({
+          comment: "Shape:  cards a little rounder than controls, never more than 1.5em",
+          decls: [
+            ["--ui-radius", RAD[state.radius]],
+            ["--ui-button-radius", "var(--ui-radius)"],
+            ["--ui-input-radius", "var(--ui-radius)"],
+            ["--ui-select-radius", "var(--ui-radius)"],
+            ["--ui-message-radius", "var(--ui-radius)"],
+            ["--ui-card-radius", "min(calc(var(--ui-radius) * 1.4), 1.5em)"]
+          ]
+        })
+        const bases = [
+          [`--ui-${P}-on-light`, step(pr, 600)],
+          [`--ui-${P}-on-dark`, step(pr, 300)],
+          [`--ui-${P}-on`, pair(on(step(pr, 600)), on(step(pr, 300)))]
+        ]
+        if (S !== P)
+          bases.push(
+            [`--ui-${S}-on-light`, step(se, 600)],
+            [`--ui-${S}-on-dark`, step(se, 300)],
+            [`--ui-${S}-on`, pair(on(step(se, 600)), on(step(se, 300)))]
+          )
+        groups.push({ comment: `Hue bases (${pr} → ${P}, ${se} → ${S})`, decls: bases })
+        groups.push({
+          comment: `Primary (${pr}):  hover and press step the ladder, as the brand's buttons do`,
+          decls: [
+            ["--ui-primary", `var(--ui-${P})`],
+            ["--ui-primary-inverted", `var(--ui-${P}-inverted)`],
+            ["--ui-primary-on", `var(--ui-${P}-on)`],
+            ["--ui-primary-hover", pair(step(pr, 700), step(pr, 200))],
+            ["--ui-primary-focus", pair(step(pr, 700), step(pr, 200))],
+            ["--ui-primary-active", pair(step(pr, 700), step(pr, 200))],
+            ["--ui-primary-down", pair(step(pr, 800), step(pr, 400))],
+            ["--ui-primary-text", pair(step(pr, 700), step(pr, 200))],
+            ["--ui-primary-header", pair(step(pr, 800), step(pr, 200))],
+            ["--ui-primary-border", step(pr, 400)],
+            ["--ui-primary-background", pair(step(pr, 100), step(pr, 850))],
+            ["--ui-link", pair(step(pr, 600), step(pr, 300))],
+            ["--ui-focus-color", pair(step(pr, 500), step(pr, 300))]
+          ]
+        })
+        groups.push({
+          comment: S === P ? `Secondary (${se}):  shares ${P} with primary, so set directly` : `Secondary (${se})`,
+          decls:
+            S === P
+              ? [
+                  ["--ui-secondary", pair(step(se, 600), step(se, 300))],
+                  ["--ui-secondary-inverted", step(se, 300)],
+                  ["--ui-secondary-on", pair(on(step(se, 600)), on(step(se, 300)))]
+                ]
+              : [
+                  ["--ui-secondary", `var(--ui-${S})`],
+                  ["--ui-secondary-inverted", `var(--ui-${S}-inverted)`],
+                  ["--ui-secondary-on", `var(--ui-${S}-on)`]
+                ]
+        })
+        groups.push({
+          comment: `Accent (${ac}):  tips, streaks, badges;  the Spell theme's own \`accent\` hue (\`color="accent"\`)`,
+          decls: [
+            ["--ui-accent-on-light", step(ac, 600)],
+            ["--ui-accent-on-dark", step(ac, 400)],
+            ["--ui-accent-on", pair(on(step(ac, 600)), on(step(ac, 400)))],
+            ["--ui-accent-background", pair(step(ac, 100), step(ac, 900))],
+            ["--ui-accent-text", pair(step(ac, 800), step(ac, 200))],
+            ["--ui-accent-header", pair(step(ac, 900), step(ac, 100))],
+            ["--ui-accent-border", pair(step(ac, 300), step(ac, 800))]
+          ]
+        })
+        groups.push({
+          comment: `Neutrals (${ne};  dark surfaces from ${dk})`,
+          decls: [
+            ["--ui-background", pair(step(ne, 25), step(dk, 950))],
+            ["--ui-surface", pair(WHITE, step(dk, 925))],
+            ["--ui-surface-muted", pair(step(ne, 50), step(dk, 900))],
+            ["--ui-surface-strong", pair(step(ne, 100), step(dk, 850))],
+            ["--ui-highlight", pair(step(pr, 100), step(pr, 800))],
+            ["--ui-text-color", pair(step(ne, 900), step(ne, 100))],
+            ["--ui-text-muted", pair(step(ne, 700), step(ne, 300))],
+            ["--ui-text-dark", pair(step(pr, 900), step(pr, 25))],
+            ["--ui-border-color", pair(step(ne, 150), "rgb(200 206 231 / 0.2)")]
+          ]
+        })
+        groups.push({
+          comment: "Depth:  both schemes' layers in one list, the other scheme's transparent",
+          decls: [
+            ["--ui-shadow-raised", shadowList(SHADOWS[state.shadow])],
+            ["--ui-card-shadow", "var(--ui-shadow-raised)"]
+          ]
+        })
+        return groups
+      }
+
+      /**
+       * The tokens the page's theme computes at `:root` from ones the sheet sets:  the preview redeclares them on
+       * `.tc-app`, so they pick up its values.  A real sheet on `:root` needs none of this.
+       */
+      function rederive() {
+        const [P, S] = [LIB[state.primary], LIB[state.secondary]]
+        const hues = S === P ? [P] : [P, S]
+        return [
+          ...hues.flatMap((hue) => [
+            `--ui-${hue}: light-dark(var(--ui-${hue}-on-light), var(--ui-${hue}-on-dark));`,
+            `--ui-${hue}-inverted: var(--ui-${hue}-on-dark);`
+          ]),
+          "--ui-accent: light-dark(var(--ui-accent-on-light), var(--ui-accent-on-dark));",
+          "--ui-accent-inverted: var(--ui-accent-on-dark);",
+          "--ui-primary-inverted-on: var(--ui-ink-on-light);",
+          "--ui-secondary-text: light-dark(oklch(from var(--ui-secondary) min(l, 0.5) c h), oklch(from var(--ui-secondary) max(l, 0.78) c h));",
+          "--ui-secondary-background: light-dark(oklch(from var(--ui-secondary) 0.96 calc(c * 0.25) h), oklch(from var(--ui-secondary) 0.28 calc(c * 0.35) h));",
+          "--ui-border: var(--ui-border-width) solid var(--ui-border-color);",
+          "--ui-checkbox-checked-background: var(--ui-primary);",
+          "--ui-checkbox-checked-border-color: var(--ui-primary);",
+          "--ui-checkbox-checked-mark-color: var(--ui-primary-on);",
+          "--ui-progress-bar-background: var(--ui-primary);",
+          "--ui-progress-text-color: var(--ui-primary-on);",
+          "--ui-slider-fill-color: var(--ui-primary);",
+          "--ui-button-color: var(--ui-text-dark);",
+          "--ui-button-color-hover: var(--ui-text-dark);"
+        ]
+      }
+
+      /** The sheet's text:  `groups` on `:root`, in `@layer ui.theme`. */
+      function sheet(groups) {
+        const body = groups
+          .map(
+            (group) =>
+              `    /* ${group.comment} */\n` + group.decls.map(([name, value]) => `    ${name}: ${value};`).join("\n")
+          )
+          .join("\n\n")
+        return (
+          `/* themes/${fileName()}.css — generated by Spell Theme Creator.\n` +
+          `   Load after the foundation;  tokens inherit into every shadow root. */\n` +
+          `@layer ui.theme {\n  :root {\n${body}\n  }\n}\n`
+        )
+      }
+
+      ////////////////
+      // ## Helpers
+      ////////////////
+
+      /** `name`'s file name:  lower case, runs of anything else a dash. */
+      function fileName() {
+        return (state.name || "theme").toLowerCase().replace(/[^a-z0-9-]+/g, "-")
+      }
+
+      /** A set's step, as hex;  grey until the palette loads. */
+      function step(set, n) {
+        return setNamed(set)?.scale[n] ?? "#CCCCCC"
+      }
+
+      /** `light-dark(a, b)`, or `a` alone when they're the same. */
+      function pair(light, dark) {
+        return light === dark ? light : `light-dark(${light}, ${dark})`
+      }
+
+      /** Text on `hex`:  white where it reads (4.5:1), else ink. */
+      function on(hex) {
+        return contrast(WHITE, hex) >= 4.5 ? WHITE : INK
+      }
+
+      /** WCAG contrast ratio of two hex colours. */
+      function contrast(a, b) {
+        const [la, lb] = [luminance(a), luminance(b)]
+        return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05)
+      }
+
+      /** WCAG relative luminance of a hex colour. */
+      function luminance(hex) {
+        const [r, g, b] = [1, 3, 5].map((i) => {
+          const c = parseInt(hex.slice(i, i + 2), 16) / 255
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+        })
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+      }
+
+      /** One shadow list for both schemes:  each layer's colour a `light-dark()` pair, `transparent` where absent. */
+      function shadowList([light, dark]) {
+        const layers = new Map(light.map(([geometry, colour]) => [geometry, [colour, "transparent"]]))
+        for (const [geometry, colour] of dark) {
+          const layer = layers.get(geometry)
+          if (layer) layer[1] = colour
+          else layers.set(geometry, ["transparent", colour])
+        }
+        return [...layers].map(([geometry, [l, d]]) => `${geometry} ${pair(l, d)}`).join(",\n      ")
+      }
+
+      /** Copies the sheet;  a check for a moment. */
+      async function copyCss() {
+        const button = $("#copy")
+        try {
+          await navigator.clipboard.writeText($("#css").content)
+        } catch {}
+        button.setAttribute("icon", "check")
+        button.title = "Copied"
+        setTimeout(() => {
+          button.setAttribute("icon", "copy outline")
+          button.title = "Copy CSS"
+        }, 1200)
+      }
+    </script>
+  </body>
+</html>

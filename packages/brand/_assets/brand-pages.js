@@ -34,25 +34,25 @@
     {
       name: "Color Palette",
       kind: "tool",
-      built: false,
+      built: true,
       about: "20 colour sets × 17 steps of chips;  click one to copy it."
     },
     {
       name: "Color Set Chooser",
       kind: "tool",
-      built: false,
+      built: true,
       about: "An inspector panel that makes a colour ladder from one base colour, with preview and CSS."
     },
     {
       name: "Theme Creator",
       kind: "tool",
-      built: false,
+      built: true,
       about: "Picks colour sets, type and shape;  writes a Spell UI theme sheet."
     },
     {
       name: "Brand Palette",
       kind: "tool",
-      built: false,
+      built: true,
       about: "Four candidate purples side by side, with contrast labels and specimens."
     },
     {

@@ -1,0 +1,1 @@
+import{t as e}from"./ui-loader-DIwAN4U0.js";export{e as UILoader};

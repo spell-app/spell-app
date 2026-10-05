@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-label-CsaXM_i9.js";export{e as UILabel,t as UILabels};

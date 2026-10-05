@@ -1,0 +1,1 @@
+import{t as e}from"./ui-message-C_6DDcrU.js";export{e as UIMessage};
