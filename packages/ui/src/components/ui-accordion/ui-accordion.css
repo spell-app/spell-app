@@ -8,7 +8,10 @@
  *         <summary class="[active] title" part="title">
  *           <span class="dropdown icon" part="icon" aria-hidden="true"></span><slot></slot>
  *         </summary>
- *         <div class="[active] content" part="content"><slot></slot></div>
+ *         <div class="[active] content" part="content">
+ *           <p class="source error" part="error" role="alert">Couldn't load …</p>   (first panel, failed `source`)
+ *           <slot></slot>
+ *         </div>
  *       </details>
  *       ...
  *     </div>
@@ -193,6 +196,12 @@
   /* Slotted content fills the box. */
   .content > ::slotted(*) {
     display: block;
+  }
+
+  /* A `source` body that failed:  one line in the panel's content, above the placeholder. */
+  .source.error {
+    margin: 0 0 1em;
+    color: var(--ui-negative-text);
   }
 }
 

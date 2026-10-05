@@ -472,6 +472,39 @@
               </ui-code>
             </ui-section>
 
+            <ui-section id="usage-content-from-a-file" header="Content from a file" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `source` names an HTML file whose `<body>` becomes the content, fetched the FIRST time the section unfolds
+                  -- by a click, by the page removing `collapsed` (a `#id` link), or at once when it starts unfolded. A long page
+                  can ship as titles alone and load each body when it's read. The body goes in the section's LIGHT DOM, so the
+                  page's CSS styles it; whatever was there (except slotted title pieces) is a placeholder it replaces. `select`
+                  takes only the first match of a CSS selector. Same origin only, fetched and cached as
+                  [`<ui-include>`](ui-include.html) fetches: scripts in the file don't run, relative URLs are rewritten.
+
+                  While the body is on its way the content stays closed, so the section unfolds once, onto the real content; a
+                  slow file (over 300 ms) shows the placeholder under the `loading` look instead. `ui-load` fires once the body
+                  is in (`:state(loaded)`); a failure fires the cancelable `ui-error` and shows an error line (`:state(error)`),
+                  and unfolding again tries again. `load()` fetches it now, folded or not; `reload()` fetches it again past the
+                  cache and replaces it.
+                </script>
+              </ui-markdown>
+              <ui-docs-example description="Unfold Chapter 2:  its content comes from `examples/chapter.html`.">
+                <ui-section header="Chapter 1" level="4" collapsible><p>Written in the page.</p></ui-section>
+                <ui-section header="Chapter 2" level="4" source="../examples/chapter.html" collapsible collapsed>
+                  <p>Loading chapter 2…</p>
+                </ui-section>
+              </ui-docs-example>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const section = document.querySelector("ui-section[source]")
+                  section.addEventListener("ui-load", (event) => console.log("loaded", event.detail.source))
+                  await section.load() // fetch and insert now, still folded
+                  await section.reload() // the file changed:  fetch it again and replace the content
+                </script>
+              </ui-code>
+            </ui-section>
+
             <ui-section id="usage-sticky-titles" header="Sticky titles" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">

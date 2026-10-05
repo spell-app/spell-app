@@ -11,11 +11,14 @@
  *   `<div class="content">` are the boxes, so the slotted parts stay plain (`ui-parts.css` has no box for them).
  * - `open` lists the open panels by INDEX, like Fomantic's `open(index)`:  a pair has no element of its own to carry
  *   the state.  An open panel is `open`, as a `<details>` is.
+ * - `source` (`UIT.SOURCE_BODY_*`):  the FIRST panel's content comes from a file the first time it opens
+ *   (`SourceBody`);  meant for an accordion of one title + content pair (a plan doc's item).
  * - A `<ui-accordion>` inside another one is NESTED (`ownsParts:  accordion`):  it drops `ui` and takes its parent's
  *   look, as Fomantic's `.ui.accordion .accordion` does.
  */
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
+import * as UIT from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-accordion>`
@@ -75,7 +78,8 @@ export const accordionVocabulary = {
         'Indexes of the open panels (0-based), space-separated:  `open="0"`, `open="0 2"`.  Controlled:  set it to ' +
         "open / close panels;  `ui-open` / `ui-close` can veto the user's changes.  When `exclusive`, only the " +
         "first index counts."
-    }
+    },
+    ...UIT.SOURCE_BODY_ATTRIBUTES
   ],
   events: [
     {
@@ -93,7 +97,8 @@ export const accordionVocabulary = {
       description:
         "A panel is about to close -- its title was activated, or another panel is opening in an `exclusive` " +
         "accordion;  `preventDefault()` keeps it open (and then the other one closed)."
-    }
+    },
+    ...UIT.SOURCE_BODY_EVENTS
   ],
   slots: [
     {
@@ -108,13 +113,16 @@ export const accordionVocabulary = {
     { name: "panel", description: "One panel's `<details>`." },
     { name: "title", description: 'A panel\'s `<summary class="title">`:  the control that opens and closes it.' },
     { name: "icon", description: "The dropdown arrow in a title, turned down while the panel is open." },
-    { name: "content", description: "A panel's content box." }
+    { name: "content", description: "A panel's content box." },
+    ...UIT.SOURCE_BODY_PARTS
   ],
   states: [
     { name: "open", description: "At least one panel is open." },
     { name: "animated", description: "Panels open and close with a height transition (`interpolate-size`)." },
-    { name: "in-accordion", description: "Nested in another accordion:  it takes that one's look." }
+    { name: "in-accordion", description: "Nested in another accordion:  it takes that one's look." },
+    { name: "loading", description: "With `source`:  fetching the file." },
+    ...UIT.SOURCE_BODY_STATES
   ],
-  texts: [],
+  texts: [...UIT.SOURCE_FAILURE_TEXTS],
   ownsParts: ["accordion"]
 } as const satisfies ComponentVocabulary

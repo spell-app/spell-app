@@ -620,6 +620,28 @@
               </ui-code>
             </ui-section>
 
+            <ui-section id="usage-content-from-a-file" header="Content from a file" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `source` names an HTML file whose `<body>` becomes the FIRST panel's content, fetched the first time that panel
+                  opens (at once when it starts open). It's meant for an accordion of one title, like an item in a long list
+                  whose details load only when read. The body goes into the panel's content child, a `<ui-content>` the
+                  accordion adds after the title when there's none; that child's children are a placeholder it replaces.
+                  `select` takes only the first match of a CSS selector. Fetched as [`<ui-section source>`](ui-section.html)
+                  fetches: same origin, cached, scripts inert, relative URLs rewritten.
+
+                  The panel stays closed while the body is on its way (at most 300 ms), so it opens onto the real content.
+                  `ui-load` fires once it's in (`:state(loaded)`); a failure fires the cancelable `ui-error` and shows an error
+                  line in the panel (`:state(error)`). `load()` fetches it now, `reload()` again past the cache.
+                </script>
+              </ui-markdown>
+              <ui-docs-example description="Open the question:  its answer comes from `examples/answer.html`.">
+                <ui-accordion styled source="../examples/answer.html">
+                  <ui-title>What is a dog?</ui-title>
+                </ui-accordion>
+              </ui-docs-example>
+            </ui-section>
+
             <ui-section id="usage-without-javascript" header="Without JavaScript" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">

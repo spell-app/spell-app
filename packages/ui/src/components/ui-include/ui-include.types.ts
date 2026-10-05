@@ -8,29 +8,17 @@ import type { includeVocabulary } from "./ui-include.vocabulary.en"
 /** Vocabulary type, for brevity. */
 export type Vocabulary = typeof includeVocabulary
 
-/**
- * Attributes holding a URL, rewritten against `source` so included links, images and nested includes point where
- * they did there.
+/*
+ * NOTE: `URL_ATTRIBUTES`, `URL_SELECTOR`, `ORIGINAL_PREFIX` and `MAX_DEPTH` moved to the element core
+ * (`$/ui/core`, `elements.types.ts`):  `SourceMarkup` uses them for `<ui-section source>` /
+ * `<ui-accordion source>` too.
  */
-export const URL_ATTRIBUTES = ["href", "src", "action", "poster", "source"] as const
-
-/** Elements carrying one of `URL_ATTRIBUTES`. */
-export const URL_SELECTOR = URL_ATTRIBUTES.map((name) => `[${name}]`).join(",")
-
-/**
- * Prefix of the attribute keeping a rewritten URL's ORIGINAL value (`data-ui-include-href`), so `content` (what a
- * save writes) gives the file back as it was written.
- */
-export const ORIGINAL_PREFIX = "data-ui-include-"
 
 /** The default `load` mode:  no class word. */
 export const EAGER = "eager"
 
 /** Class word after the noun while `source` loads. */
 export const LOADING_CLASS = "loading"
-
-/** Includes nested deeper than this refuse to load:  a cycle through different URLs, or a runaway. */
-export const MAX_DEPTH = 8
 
 /** The `<body ...>` opening tag and the closing tag of a page, for splicing a saved body back into its file. */
 export const BODY_OPEN = /<body\b[^>]*>/i
