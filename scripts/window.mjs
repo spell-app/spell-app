@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * `yarn window <command>`:  the VS Code windows Owen works in, one per package.
+ * `spell dev window <command>`:  the VS Code windows Owen works in, one per package.
  *
  * ## Window files
  * - `workspaces/<pkg>.code-workspace`:  open a package's window from it (`code workspaces/ui.code-workspace`).
@@ -46,7 +46,7 @@
  *     `.claude/hooks/prompt-gate.mjs`, sets it on `/isolate <name>`), else Claude's own.  No single match (two
  *     sessions with one title):  it stays open, idle;  close it by hand.
  *   - Log:  `<registry>/handoffs/<session id>.log`.
- * - Docs shown while the move is pending (`show`, `yarn plan-doc open`) wait for it, then show in the window the
+ * - Docs shown while the move is pending (`show`, `spell dev plan-doc open`) wait for it, then show in the window the
  *   session moved to:  the window it's leaving is about to close its tab.
  * - Its file:  `workspaces/ongoing/<name>.code-workspace` in the main checkout, beside the package windows' files;
  *   git ignores `workspaces/ongoing/`.
@@ -507,7 +507,7 @@ export class Window {
     return reply
   }
 
-  /** `yarn window <argv>`:  run one command;  resolves to the exit code. */
+  /** `spell dev window <argv>`:  run one command;  resolves to the exit code. */
   static async main(argv) {
     const { positional, flags } = parseArgs(argv)
     const [command, target] = positional
@@ -530,7 +530,7 @@ export class Window {
     const window = Window.current()
     if (!window) {
       console.error("no window:  the spell extension's bridge isn't running in this session's VS Code window")
-      console.error("  (install it with `yarn vscode`, then reload the window)")
+      console.error("  (install it with `spell dev vscode`, then reload the window)")
       return 1
     }
     if (command === "which") {
@@ -613,7 +613,7 @@ export class Window {
 const COMMANDS = ["init", "which", "add", "remove", "show", "open", "close", "handoff", "resume", "stay-check"]
 
 /** Usage, printed for a bad command. */
-const USAGE = `usage:  yarn window <command>
+const USAGE = `usage:  spell dev window <command>
   init                         write each package's missing workspaces/<pkg>.code-workspace
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window

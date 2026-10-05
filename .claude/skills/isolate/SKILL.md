@@ -18,7 +18,7 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
    - in plan mode:  it's read-only apart from the plan file, so `EnterWorktree` can't run, and ExitPlanMode would
      ask to APPROVE a half-made plan.  Ask the user to leave plan mode (shift+tab);  the plan file survives.
    - in another worktree:  the session's folder is under `.claude/worktrees/<other>`, or its window is a worktree's
-     (`node scripts/window.mjs which`:  `workspace` under `workspaces/ongoing/`).  `<other>` isn't `<name>`:  stop,
+     (`spell dev window which`:  `workspace` under `workspaces/ongoing/`).  `<other>` isn't `<name>`:  stop,
      saying so in one line ("`/isolate done` first, or start from a package window").
    - rename:  `spell dev session title <name>`.  It lands on the next prompt, or
      when the session opens in its new window.
@@ -36,7 +36,7 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
    Then rename (step 0's `spell dev session title`), since the hook only renames a name it was given.
 2. Collisions (from the repo root):  a worktree at `.claude/worktrees/<name>` (`git worktree list`), a branch `<name>`
    or `worktree-<name>`.  Any hit:  AskUserQuestion, options "Reuse `<name>`" and "Different name" (typed in "Other").
-2b. Where:  `node scripts/window.mjs stay-check` (`--epic` from `/epic`) prints `recommend stay|window` and why.
+2b. Where:  `spell dev window stay-check` (`--epic` from `/epic`) prints `recommend stay|window` and why.
    AskUserQuestion "Where should `<name>` run?", its reasons in the question, the recommended option first with
    "(Recommended)":
    - "New window `<pkg> ⎇ <name>`":  tinted, Explorer and Source Control on the worktree;  this window keeps its
@@ -49,20 +49,20 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
 4. Open it in its own window (root `AGENTS.md` "Worktrees"), from the worktree's root:
-   - `node scripts/window.mjs open <name>`:  a NEW window from `workspaces/ongoing/<name>.code-workspace` (main
+   - `spell dev window open <name>`:  a NEW window from `workspaces/ongoing/<name>.code-workspace` (main
      checkout, git-ignored), the package window's theme with a tinted title bar.  Folders:  the MAIN root (so every
      session is listed), then the worktree's `packages/<pkg>` and root.
      `<pkg>`:  this session's window's.
    - "which package?" (this isn't a package window):  AskUserQuestion "Which package's window?", up to 4 packages
      the work touches, most likely first and "(Recommended)";  then `open <name> --pkg <pkg>`.
-   - `node scripts/window.mjs`, NOT `yarn window`:  a fresh worktree has no `node_modules/` yet, and `yarn` runs no
-     script before `yarn install`
+   - `spell dev window` works before the worktree's `yarn install`:  the `spell` link runs the MAIN checkout's
+     CLI, which has its packages (`yarn window` didn't:  yarn runs no script before `yarn install`)
    - fails otherwise:  say so in one line, skip step 5, and do "Continue" now, in this window.  NEVER
      `code --add` / `-r`:  they restart the Claude panel or target the focused window.
-5. Move the session there:  `node scripts/window.mjs handoff <name> --prompt continue`.  When this turn ends, the
+5. Move the session there:  `spell dev window handoff <name> --prompt continue`.  When this turn ends, the
    new window opens the session in an editor tab (never the sidebar), `continue` typed into its input, and this
    window closes its tab.  The move itself is the `Stop` hook's (`.claude/hooks/handoff.mjs`).
-   - a doc shown from here on (`yarn plan-doc open`) waits for the move, then shows beside the session in the
+   - a doc shown from here on (`spell dev plan-doc open`) waits for the move, then shows beside the session in the
      new window
    - fails:  say so in one line, and do "Continue" now, in this window
 6. END THE TURN now, so the move happens at once:  nothing else this turn (no `yarn install`, no exploring, no
@@ -154,7 +154,7 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
 4. NO move back:  the session stays in the window it's in (the worktree's, or the one it stayed in).  Why:  Owen
    (2026-10-03) "we don't need to go back into the originating window.  That's just confusing things".
    - The worktree's window stays open for Owen to read the summary;  he closes it.  Its file
-     (`workspaces/ongoing/<name>.code-workspace`) goes with `node scripts/window.mjs close <name>` later, or
+     (`workspaces/ongoing/<name>.code-workspace`) goes with `spell dev window close <name>` later, or
      `/worktrees` lists it.
    - NEVER `handoff <name> --back` from here.
 5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.

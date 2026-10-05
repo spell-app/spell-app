@@ -30,7 +30,7 @@ export const ROOT = resolve(PACKAGE, "../..")
 /**
  * Folders that hold no pages.
  * - `examples`:  fragments a page includes (`ui-import/examples/part.html`), not pages:  no sections, no contents
- * - `details`:  details pages (`yarn details`), questions for one session:  not in the index, not checked with the
+ * - `details`:  details pages (`spell dev details`), questions for one session:  not in the index, not checked with the
  *   docs (scratch `details/`, and an epic's `epics/<name>/details/`);  NOT the `details` epic's own folder,
  *   `epics/details/` (`findPages()`)
  */
@@ -98,7 +98,7 @@ export function tidy(files) {
 const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
 
 /**
- * This checkout's page server (`yarn server`), started in the background if it isn't running:  `{ base, port }`,
+ * This checkout's page server (`spell dev server`), started in the background if it isn't running:  `{ base, port }`,
  * or `undefined` if it can't start (the caller falls back to `file://`).
  * - runs `packages/server/src/page/cli.ts ensure` under `tsx`, with that package's `tsconfig.json` for its aliases;
  *   ~1s when it has to start, ~0.3s when it runs
@@ -148,9 +148,9 @@ export function serverUrl(base, file) {
 }
 
 /**
- * Show `file` rendered in VS Code's doc preview:  `yarn plan-doc open <name>`, `yarn plan-doc phase`, `/spell-docs`.
+ * Show `file` rendered in VS Code's doc preview:  `spell dev plan-doc open <name>`, `spell dev plan-doc phase`, `/spell-docs`.
  * - starts this checkout's page server first (`ensurePageServer()`), so the page live-reloads;  the spell extension
- *   (`yarn vscode`) finds it by its pid file and shows the page in a tab of the right side bar (or Simple Browser,
+ *   (`spell dev vscode`) finds it by its pid file and shows the page in a tab of the right side bar (or Simple Browser,
  *   `spell.docPreview.location`).  The page already in that tab isn't reloaded:  it updates itself.
  * - first asks THIS session's window, through the extension's window bridge (the repo root's
  *   `scripts/window.mjs`);  a `vscode://` URI goes to whichever window is focused
@@ -158,7 +158,7 @@ export function serverUrl(base, file) {
  *   `hash` and `view` are dropped
  * - `hash`:  an id on the page to land on, e.g. a goal `g1`
  * - `view`:  which side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review":  `/epic review`,
- *   `yarn docs:open <page> --review`);  each keeps its own page
+ *   `spell dev docs open <page> --review`);  each keeps its own page
  * - the session is moving to a worktree's window (`/isolate`, `/epic`:  a pending handoff):  shown THERE once it
  *   has moved, not in the window it's leaving
  * - no bridge (extension not reloaded, or not run from a VS Code window), or it failed:  the `vscode://` URI
@@ -187,7 +187,7 @@ export async function openInVSCode(file, { hash, view = "docs" } = {}) {
 }
 
 /**
- * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `yarn docs:open <page>`;  `openInVSCode()`'s fallback.
+ * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `spell dev docs open <page>`;  `openInVSCode()`'s fallback.
  * - from this checkout's page server (live reload), started if need be;  `file://` if it can't start
  * - The tab is keyed by the page's path inside `packages/docs` (`epics/<name>/<name>.html`), not its full URL, so
  *   the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded.

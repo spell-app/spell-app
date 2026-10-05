@@ -40,7 +40,7 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
 
 ## 2. Make the page
 
-1. `yarn details new <slug> --title "<Title>"` -- prints the page's path.
+1. `spell dev details new <slug> --title "<Title>"` -- prints the page's path.
    - many questions of one shape (a list to pick from):  `--from <spec.json>` builds the whole page from data
      instead:  title, lede, "Where we are", context, questions and their options (`DetailsSpec` in
      `packages/docs/tools/details.js`).  `/worktrees` and `/bedtime` use it.
@@ -80,15 +80,15 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
 
 ## 3. Show it, and wait
 
-- Answer page:  `yarn details show <slug> --wait` with Bash `run_in_background: true`.  Then END THE TURN with the
-  page's link pair (`yarn docs:link <page>`, below):  "answer in the side bar:  <link>".  Don't also ask in chat or
+- Answer page:  `spell dev details show <slug> --wait` with Bash `run_in_background: true`.  Then END THE TURN with the
+  page's link pair (`spell dev docs link <page>`, below):  "answer in the side bar:  <link>".  Don't also ask in chat or
   the modal.
-- Picture page:  `yarn details show <slug>` (foreground), then AskUserQuestion.
+- Picture page:  `spell dev details show <slug>` (foreground), then AskUserQuestion.
 - Outside VS Code (a CLI session in a terminal):  `show` opens Chrome instead;  same flow.
 
 ## Links to pages
 
-Any page you name to Owen (a details page, a plan doc, any docs page):  `yarn docs:link <page> --hash <id> --show`,
+Any page you name to Owen (a details page, a plan doc, any docs page):  `spell dev docs link <page> --hash <id> --show`,
 and paste what it prints.
 - It shows the page in this session's side bar NOW (`--show`), and prints two links:  the title opens it in the
   side bar (again), `(_browser_)` in Chrome.  Both go through the page server (`packages/docs/tools/showRoutes.ts`):
@@ -107,24 +107,24 @@ and paste what it prints.
     Notes:  use spell/ui
   ```
 
-  Act on it.  Epic:  `yarn plan-doc decide <name> Q<n> "..."` or `add <name> decision`, linking the page
+  Act on it.  Epic:  `spell dev plan-doc decide <name> Q<n> "..."` or `add <name> decision`, linking the page
   (`<a href="details/<slug>.html">`).
 - Exit 2:  no answer in 8 hours.  One line saying so;  ask again only if it still matters.
 - Owen answered in chat instead:  stop the waiter (`TaskStop`), or it wakes you later with a stale answer.
-- Owen pressed "Change answer" and sent again:  `yarn details answer <slug>` prints the latest;  wait again
-  (`yarn details wait <slug>`, background) only if he says he's changing it.
+- Owen pressed "Change answer" and sent again:  `spell dev details answer <slug>` prints the latest;  wait again
+  (`spell dev details wait <slug>`, background) only if he says he's changing it.
 
 ## 5. When it fails
 
 - The page says "can't take answers yet":  the page server serving it is older than its route module
   (`packages/docs/tools/detailsRoutes.ts`):  route modules load when a page server starts.  Say so in one line;
-  ask in chat or the modal meanwhile.  Owen restarts it (`yarn server stop`, then `yarn server ensure`, in the
+  ask in chat or the modal meanwhile.  Owen restarts it (`spell dev server stop`, then `spell dev server ensure`, in the
   checkout whose server it is) when no other session needs it.
 - "The page server restarted since this page loaded":  Owen reloads the page, then sends again.
-- `show` couldn't reach VS Code:  `yarn vscode`, reload the window;  meanwhile the page's URL
-  (`yarn server url <ABSOLUTE path>`) works in any browser.
+- `show` couldn't reach VS Code:  `spell dev vscode`, reload the window;  meanwhile the page's URL
+  (`spell dev server url <ABSOLUTE path>`) works in any browser.
 
-## Commands (`yarn details ...`, from anywhere in the repo)
+## Commands (`spell dev details ...`, from anywhere in the repo)
 
 ```
 new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <spec.json>]

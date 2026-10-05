@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Goals</title>
+    <meta name="description" content="Every goal set in this project, one card each." />
+    <link rel="stylesheet" href="../packages/docs/tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../packages/docs/tools/_assets/plan-doc.css" />
+    <link rel="stylesheet" href="../packages/docs/tools/_assets/goals.css" />
+  </head>
+  <body class="spell-doc-page goals-contents goals-home" data-icon="bullseye" data-accent="violet">
+    <spell-site-header root=".."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          GOALS HOME:  the goal sets' cards and the hero's numbers are written by `yarn goals index`:  edit only outside
+          the `sets` / `stats` markers.  Rules:  `goals/AGENTS.md`.
+        -->
+        <header class="goals-hero">
+          <span class="goals-hero-icon" aria-hidden="true"><ui-icon name="bullseye"></ui-icon></span>
+          <p class="goals-eyebrow">Goals</p>
+          <h1>Where we're going</h1>
+          <p class="lede">
+            Each goal set is a plan for one project or idea: a page per topic, with goals, questions, decisions, and
+            notes agents can build from.
+          </p>
+          <!-- stats:start -->
+          <ui-statistics class="spell-stats goals-stats" size="mini">
+            <ui-statistic value="1" label="goal set"></ui-statistic>
+            <ui-statistic value="15" label="topics"></ui-statistic>
+            <ui-statistic value="0" label="new thoughts"></ui-statistic>
+          </ui-statistics>
+          <!-- stats:end -->
+        </header>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="sets"><ui-icon name="layer group"></ui-icon> 1. Goal sets</h2></ui-sticky
+          >
+          <!-- sets:start -->
+          <ui-cards class="goals-topics goals-sets" stackable>
+            <ui-card href="spell/index.html" target="_self" data-accent="violet" link>
+              <ui-content>
+                <div class="goals-card-top">
+                  <span class="goals-short">spell</span><ui-icon name="hat wizard"></ui-icon>
+                </div>
+                <ui-meta>Spell master plan</ui-meta>
+                <ui-description
+                  >Where spell is going, one topic at a time: goals, questions, decisions, and notes agents can build
+                  from.</ui-description
+                >
+              </ui-content>
+              <ui-extra
+                ><div class="goals-card-foot"><span>15 topics</span> · <span>74 open questions</span></div></ui-extra
+              >
+            </ui-card>
+          </ui-cards>
+          <!-- sets:end -->
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="how"><ui-icon name="comments"></ui-icon> 2. How it works</h2></ui-sticky
+          >
+          <ul>
+            <li>
+              <b>Talk:</b> <code>/goals spell/motivation</code> in Claude Code (or the speech button on a page) starts a
+              dialog; answers become decisions, goals and work.
+            </li>
+            <li>
+              <b>Jot:</b> the thought bubble beside any section or item saves a note for later;
+              <code>/goals-thought spell/motivation/G1</code> does it from the command line.
+            </li>
+            <li><b>Digest:</b> <code>/goals-update</code> works your thoughts into the pages.</li>
+            <li>
+              <b>Read:</b> <code>/goals-open</code> opens a page in your browser, <code>/goals-open-vs</code> beside
+              your code in VS Code. Pages update by themselves while the goals server runs.
+            </li>
+          </ul>
+        </section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Preferences:
+            <a href="goals.preferences.json5" target="src-goals-goals-preferences-json5"
+              ><code>goals/goals.preferences.json5</code></a
+            >.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../packages/docs/tools/_assets/spell-ui.js"></script>
+    <script src="../packages/docs/tools/_assets/goals-live.js"></script>
+  </body>
+</html>

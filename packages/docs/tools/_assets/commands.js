@@ -5,7 +5,7 @@
  *   `main`'s sections once, at start, so the families must be in the page before it runs.  This script fetches,
  *   draws, then adds `spell-ui.js` (same folder), whatever happened.
  * - The data:  `<page>.json` (`body[data-commands]` overrides), fetched, so the page needs the PAGE SERVER
- *   (`yarn docs:open <page>`);  from `file://` it shows a notice where the tables go.
+ *   (`spell dev docs open <page>`);  from `file://` it shows a notice where the tables go.
  * - JSON:  `{ families: [{ id, title, icon?, intro?, rows: [Row] }] }` (a family `id` shares the page's id space:  never
  *   reuse a hand-written section's);  `Row`:
  *   - `op` -- the operation, in words;  `id?` -- anchor, default `<family id>-<slug of op>`
@@ -64,7 +64,7 @@
       document.body.dataset.commands || location.pathname.replace(/[^/]*$/, (name) => name.replace(/\.html?$/, ".json"))
     if (location.protocol === "file:") {
       notice(
-        `This page draws its tables from ${file.split("/").pop()}:  open it through the page server, e.g. \`yarn docs:open ${pagePath()}\`.`
+        `This page draws its tables from ${file.split("/").pop()}:  open it through the page server, e.g. \`spell dev docs open ${pagePath()}\`.`
       )
       return undefined
     }

@@ -384,9 +384,11 @@ describe("PlanDoc questions and decisions", () => {
     expect(order(plan)).toEqual(["q2:open", "q1:decided", "q3:decided"])
     const question = plan.document.getElementById("q1")
     expect(question.querySelector(".plan-title").textContent).toBe("which browser?")
+    // in the order it happened (I9):  the question's text, then the answer
     expect(question.querySelector("ui-content").innerHTML).toBe(
-      '<div class="plan-answer-block"><div class="plan-answer-title"><b>Answer</b> · Chrome first</div>' +
-        "<p>most readers</p></div><p>the options</p>"
+      '<div class="plan-question"><p>the options</p></div>' +
+        '<div class="plan-answer-block"><div class="plan-answer-title"><b>Answer</b> · Chrome first</div>' +
+        "<p>most readers</p></div>"
     )
     expect(plan.document.querySelector(".plan-answer")).toBe(null)
     // no details yet:  it gets a panel, the line its title
@@ -395,15 +397,20 @@ describe("PlanDoc questions and decisions", () => {
     expect(panel.querySelector(":scope > ui-title > .plan-id").textContent).toBe("Q2")
     expect(panel.querySelector(":scope > ui-content > .plan-answer-block").textContent).toBe("Answer · not now")
     expect(order(plan)).toEqual(["q1:decided", "q2:decided", "q3:decided"])
-    // answering again replaces the answer
+    // answering again replaces the answer;  the old one is kept in the Original Discussion (I7)
     plan.decide("q2", "maybe later")
-    expect(plan.document.querySelectorAll("#q2 .plan-answer-block").length).toBe(1)
+    expect(plan.document.querySelectorAll("#q2 ui-content > .plan-answer-block").length).toBe(1)
+    expect(plan.document.querySelector("#q2 .plan-answer-block").textContent).toBe("Answer · maybe later")
+    expect(plan.document.querySelector("#q2 .plan-original .plan-answer-block").textContent).toBe("Answer · not now")
+    // the same answer again:  nothing more kept
+    plan.decide("q2", "maybe later")
+    expect(plan.document.querySelectorAll("#q2 .plan-original .plan-version").length).toBe(1)
     plan.addItem("caveat", "x")
     expect(() => plan.decide("c1", "nope")).toThrow(PlanDocError)
     expect(plan.check()).toEqual([])
   })
 
-  it("decide --option marks the chosen option card, and only it", () => {
+  it("decide --option marks the chosen option, and only it, in the Choices accordion", () => {
     const plan = freshPlan()
     const card = (letter) =>
       `<ui-column><ui-segment><ui-label attached="top">${letter} · way ${letter}</ui-label><p>x</p></ui-segment></ui-column>`
@@ -411,10 +418,13 @@ describe("PlanDoc questions and decisions", () => {
       details: `<ui-grid class="spell-pros-cons" columns="2">${card("A")}${card("B")}</ui-grid>`
     })
     plan.decide("q1", "way B", { option: "b" })
-    const chosen = () => Array.from(plan.document.querySelectorAll("#q1 ui-column[data-chosen]"), (c) => c.textContent)
-    expect(chosen()).toEqual(["B · way Bx"])
+    const chosen = () => Array.from(plan.document.querySelectorAll("#q1 ui-title[data-chosen]"), (c) => c.textContent)
+    const open = () => plan.document.querySelector("#q1 ui-accordion.plan-options").getAttribute("open")
+    expect(chosen()).toEqual(["B · way B"])
+    expect(open()).toBe("1")
     plan.decide("q1", "way A", { option: "A" })
-    expect(chosen()).toEqual(["A · way Ax"])
+    expect(chosen()).toEqual(["A · way A"])
+    expect(open()).toBe("0")
     expect(() => plan.decide("q1", "way C", { option: "C" })).toThrow(PlanDocError)
   })
 
@@ -999,8 +1009,9 @@ describe("PlanDoc migrate", () => {
     expect(question.querySelector(".plan-review").textContent).toBe("reviewed 10-02")
     expect(question.querySelector(".plan-answer")).toBeNull()
     expect(question.querySelector("ui-content").innerHTML).toBe(
-      '<div class="plan-answer-block" id="d2"><div class="plan-answer-title"><b>D2</b> · Inbox file</div>' +
-        "<p>why</p></div><p>the options</p>"
+      '<div class="plan-question"><p>the options</p></div>' +
+        '<div class="plan-answer-block" id="d2"><div class="plan-answer-title"><b>D2</b> · Inbox file</div>' +
+        "<p>why</p></div>"
     )
     // the old link lands inside Q1;  open questions stay on top;  `item()` finds Q1 by D2
     expect(plan.check()).toEqual([])
@@ -1059,9 +1070,10 @@ describe("PlanDoc migrate", () => {
     expect(plan.migrate()).toContain(
       "5 decisions merged into questions:  5 answering one, 0 stand-alone;  options chosen:  3, not inferred:  1"
     )
-    const chosen = (id) =>
-      plan.document.querySelector(`#${id} ui-column[data-chosen] ui-label`)?.textContent.slice(0, 1) ?? null
+    // laid out (I9):  the option cards are each question's Choices
+    const chosen = (id) => plan.document.querySelector(`#${id} ui-title[data-chosen]`)?.textContent.slice(0, 1) ?? null
     expect(["q1", "q2", "q3", "q4", "q5"].map(chosen)).toEqual(["B", "B", "A", null, "A"])
+    expect(plan.document.querySelectorAll("ui-grid.spell-pros-cons").length).toBe(0)
   })
 
   it("cancel:  struck through, closed;  reopen undoes it", () => {
@@ -1386,7 +1398,7 @@ describe("PlanDoc review inbox", () => {
     const q1 = plan.document.getElementById("q1")
     expect(q1.getAttribute("data-status")).toBe("decided")
     expect(q1.querySelector(".plan-answer-title").textContent).toBe("Answer · Unfold it")
-    expect(q1.querySelector("ui-column[data-chosen] ui-label").textContent).toMatch(/^B/)
+    expect(q1.querySelector("ui-accordion.plan-options > ui-title[data-chosen]").textContent).toMatch(/^B/)
     expect(q1.getAttribute("data-reviewed")).toBe("2026-10-01")
     expect(plan.applyMark({ id: "q2", action: "approve" })).toMatchObject({ applied: false, left: /needs talk/ })
     expect(status(plan, "q2")).toBe("open")
@@ -1438,19 +1450,393 @@ describe("PlanDoc review inbox", () => {
     expect(pickAsks("B", { letter: "B", title: "Unfold it" }, "why?")).toBe('picks B · Unfold it, asks:  "why?"')
   })
 
-  it("setDetails:  replace or append, between the answer card and the commits;  stamped", () => {
+  it("setDetails:  replace or append;  an answered question's text before its answer, replies after;  stamped", () => {
     const plan = inboxPlan()
     plan.decide("q1", "B")
     plan.addCommit({ item: "q1" }, "abc1234", "did it")
     plan.setDetails("q1", "<p>new</p>")
     const content = () =>
-      Array.from(plan.document.querySelector("#q1 ui-content").children, (el) => el.className || el.localName)
-    expect(content()).toEqual(["plan-answer-block", "p", "plan-commits"])
+      Array.from(plan.document.querySelector("#q1 > ui-accordion > ui-content").children, (el) => el.className)
+    // the Choices it replaced:  in the Original Discussion, before the commits (I7)
+    expect(content()).toEqual(["plan-question", "plan-answer-block", "spell-aside plan-original", "plan-commits"])
+    expect(plan.document.querySelector("#q1 .plan-question").innerHTML).toBe("<p>new</p>")
     plan.setDetails("q1", '<div class="plan-reply">re</div>', { append: true })
-    expect(content()).toEqual(["plan-answer-block", "p", "plan-reply", "plan-commits"])
+    expect(content()).toEqual([
+      "plan-question",
+      "plan-answer-block",
+      "plan-reply",
+      "spell-aside plan-original",
+      "plan-commits"
+    ])
     // an item without details gets a panel
     plan.setDetails("c1", "<p>more</p>")
     expect(plan.document.querySelector("#c1 > ui-accordion > ui-content").innerHTML).toBe("<p>more</p>")
     expect(plan.document.getElementById("c1").getAttribute("data-changed")).toMatch(/^2026-10-01T09:05/)
+  })
+})
+
+describe("PlanDoc original discussion (I7)", () => {
+  /** Option cards A and B, B recommended, as a question's details;  `id` on its first paragraph. */
+  const CARDS =
+    '<p id="why">why it matters</p>' +
+    '<ui-grid class="spell-pros-cons" columns="2" stackable>' +
+    '<ui-column><ui-segment><ui-label attached="top">A · Keep</ui-label><p>a</p></ui-segment></ui-column>' +
+    '<ui-column><ui-segment><ui-label attached="top">B · Drop (recommended)</ui-label><p>b</p></ui-segment></ui-column>' +
+    "</ui-grid>"
+
+  /** A doc with question Q1 (`CARDS` as its details) and caveat C1 (no details). */
+  function plan(now = NOW) {
+    const doc = PlanDoc.parse(freshPlan().toString(), now)
+    doc.addItem("question", "which?", { details: CARDS })
+    doc.addItem("caveat", "slow")
+    return doc
+  }
+
+  /** Item `id`'s Original Discussion's versions:  `{ asOf, heading, text }` each. */
+  function versions(doc, id) {
+    return Array.from(doc.document.querySelectorAll(`#${id} .plan-original > ui-content > .plan-version`), (v) => ({
+      asOf: v.getAttribute("data-as-of"),
+      heading: v.querySelector(":scope > h5")?.textContent ?? null,
+      text: Array.from(v.childNodes)
+        .filter((node) => node.localName !== "h5")
+        .map((node) => node.textContent)
+        .join("")
+    }))
+  }
+
+  it("first replace:  the replaced text becomes the Original Discussion, folded, after the new text", () => {
+    const doc = plan()
+    doc.setDetails("q1", "<p>rewritten</p>")
+    const content = doc.document.querySelector("#q1 > ui-accordion > ui-content")
+    expect(Array.from(content.children, (el) => el.localName)).toEqual(["p", "ui-accordion"])
+    const original = content.querySelector(":scope > ui-accordion.plan-original")
+    expect(original.className).toBe("spell-aside plan-original")
+    expect(original.hasAttribute("styled")).toBe(true)
+    expect(original.hasAttribute("open")).toBe(false)
+    expect(original.querySelector(":scope > ui-title").textContent).toBe("Original Discussion")
+    expect(versions(doc, "q1")).toEqual([
+      { asOf: null, heading: null, text: "why it mattersA · KeepaB · Drop (recommended)b" }
+    ])
+    expect(doc.check()).toEqual([])
+  })
+
+  it("second replace:  the first version kept untouched, the replaced one added under a dated heading", () => {
+    const doc = plan()
+    doc.setDetails("q1", "<p>second</p>")
+    doc.now = new Date(2026, 9, 4, 20, 49)
+    doc.setDetails("q1", "<p>third</p>")
+    expect(versions(doc, "q1")).toEqual([
+      { asOf: null, heading: "As first written", text: "why it mattersA · KeepaB · Drop (recommended)b" },
+      { asOf: "2026-10-04 20:49", heading: "As of 2026-10-04 20:49", text: "second" }
+    ])
+    expect(doc.document.querySelector("#q1 > ui-accordion > ui-content > p").textContent).toBe("third")
+    // replacing with the same text again:  the version it replaces ("third") is new, so kept;  then nothing new
+    doc.setDetails("q1", "<p>third</p>")
+    doc.setDetails("q1", "<p>third</p>")
+    expect(versions(doc, "q1").map((v) => v.text)).toEqual([
+      "why it mattersA · KeepaB · Drop (recommended)b",
+      "second",
+      "third"
+    ])
+    expect(doc.document.querySelectorAll("#q1 .plan-original").length).toBe(1)
+  })
+
+  it("append moves nothing;  an empty item gets no Original Discussion", () => {
+    const doc = plan()
+    doc.setDetails("q1", '<div class="plan-reply">re</div>', { append: true })
+    expect(doc.document.querySelector("#q1 .plan-original")).toBeNull()
+    expect(doc.document.querySelector("#q1 ui-content > p").textContent).toBe("why it matters")
+    doc.setDetails("c1", "<p>first details</p>")
+    expect(doc.document.querySelector("#c1 .plan-original")).toBeNull()
+    // a reply after a rewrite goes before the Original Discussion
+    doc.setDetails("q1", "<p>new</p>")
+    doc.setDetails("q1", '<div class="plan-reply">again</div>', { append: true })
+    const content = doc.document.querySelector("#q1 > ui-accordion > ui-content")
+    expect(Array.from(content.children, (el) => el.className || el.localName)).toEqual([
+      "p",
+      "plan-reply",
+      "spell-aside plan-original"
+    ])
+    // the first reply was part of what the rewrite replaced
+    expect(versions(doc, "q1")[0].text).toBe("why it mattersA · KeepaB · Drop (recommended)bre")
+  })
+
+  it("decide keeps the question's body, above its Choices and the answer", () => {
+    const doc = plan()
+    doc.decide("q1", "Drop it", { option: "B" })
+    const content = doc.document.querySelector("#q1 > ui-accordion > ui-content")
+    expect(Array.from(content.children, (el) => el.className || el.localName)).toEqual([
+      "plan-question",
+      "spell-aside plan-choices",
+      "plan-answer-block"
+    ])
+    expect(content.querySelector(":scope > .plan-question > p").textContent).toBe("why it matters")
+    expect(doc.document.querySelector("#q1 .plan-original")).toBeNull()
+  })
+
+  it("option cards inside the Original Discussion are never read nor chosen", () => {
+    const doc = plan()
+    doc.setDetails("q1", "<p>no cards now</p>")
+    const q1 = doc.item("q1")
+    expect(doc.optionCards(q1)).toEqual([])
+    expect(() => doc.chooseOption(q1, "B")).toThrow(PlanDocError)
+    expect(doc.applyMark({ id: "q1", action: "approve" })).toMatchObject({ applied: false, left: /needs talk/ })
+    const [item] = doc.reviewSections({ filter: "all" })[0].items
+    expect(item.details).toBe("no cards now")
+    expect(item.detailsHtml).toBe("<p>no cards now</p>")
+    expect(item.original).toBe("why it mattersA · KeepaB · Drop (recommended)b")
+    expect(item.recommendation).toBeNull()
+    // new cards beside the old ones:  only the new ones count
+    doc.setDetails("q1", CARDS.replace("A · Keep", "A · Hold"), { append: true })
+    expect(doc.optionCards(q1).map((card) => card.title)).toEqual(["Hold", "Drop"])
+  })
+
+  it("ids inside the Original Discussion are renamed;  links into it don't fail check()", () => {
+    const doc = plan()
+    doc.setDetails("q1", '<p id="why">the same id, in the new text</p>')
+    expect(doc.document.querySelectorAll("#why").length).toBe(1)
+    expect(doc.document.querySelector("#q1 .plan-original [data-original-id='why']").textContent).toBe("why it matters")
+    expect(doc.document.querySelector(".plan-original [id]")).toBeNull()
+    // a link in the original to an id now gone is history, not a problem
+    doc.setDetails("c1", '<p><a href="#gone">old link</a></p>')
+    doc.setDetails("c1", "<p>new</p>")
+    expect(doc.check()).toEqual([])
+  })
+
+  it("restoreOriginal:  as first written, then dated in order;  the same text twice is unchanged", () => {
+    const doc = plan()
+    expect(doc.restoreOriginal("c1", "<p>as first asked</p>")).toBe("added")
+    expect(doc.restoreOriginal("c1", "<p>later</p>", { asOf: "2026-10-03 10:00" })).toBe("added")
+    expect(doc.restoreOriginal("c1", "<p>between</p>", { asOf: "2026-10-02 09:00" })).toBe("added")
+    expect(doc.restoreOriginal("c1", "<p>later</p>", { asOf: "2026-10-04 11:00" })).toBe("unchanged")
+    expect(doc.restoreOriginal("c1", "  ")).toBe("empty")
+    expect(versions(doc, "c1").map((v) => [v.heading, v.text])).toEqual([
+      ["As first written", "as first asked"],
+      ["As of 2026-10-02 09:00", "between"],
+      ["As of 2026-10-03 10:00", "later"]
+    ])
+    // not stamped:  restoring history doesn't make an item recent
+    expect(doc.document.getElementById("c1").getAttribute("data-changed")).toBe(isoTime(NOW))
+    // commits and the item's own answer left out;  an Original Discussion inside kept version by version
+    doc.decide("q1", "Drop it")
+    doc.addCommit({ item: "q1" }, "abc1234", "did it")
+    const old = doc.document.querySelector("#q1 > ui-accordion > ui-content").innerHTML
+    doc.setDetails("q1", "<p>rewritten</p>")
+    const before = versions(doc, "q1")
+    expect(doc.restoreOriginal("q1", old)).toBe("unchanged")
+    expect(versions(doc, "q1")).toEqual(before)
+    expect(doc.document.querySelectorAll("#q1 .plan-commits").length).toBe(1)
+  })
+})
+
+describe("PlanDoc answered layout (I9)", () => {
+  /** A card for option `letter`, titled `title`, its body `body`;  `chosen`:  `data-chosen` on its column. */
+  function card(letter, title, body, chosen = false) {
+    return (
+      `<ui-column${chosen ? " data-chosen" : ""}><ui-segment><ui-label attached="top">${letter} · ${title}</ui-label>` +
+      `<p>${body}</p></ui-segment></ui-column>`
+    )
+  }
+
+  /** A question's details:  why, three option cards (B recommended), a Net effect. */
+  const QUESTION =
+    "<p>why it matters</p>" +
+    `<ui-grid class="spell-pros-cons" columns="3">${card("A", "Keep", "a")}${card("B", "Drop (recommended)", "b")}` +
+    `${card("C", "Move", "c")}</ui-grid>` +
+    "<p><b>Net effect</b></p><ul><li>it changes</li></ul>"
+
+  /** A doc with question Q1 (`QUESTION`). */
+  function plan() {
+    const doc = PlanDoc.parse(freshPlan().toString(), NOW)
+    doc.addItem("question", "which?", { details: QUESTION })
+    return doc
+  }
+
+  /** Item `id`'s details' parts, by class (or tag). */
+  function parts(doc, id) {
+    const content = doc.document.querySelector(`#${id} > ui-accordion > ui-content`)
+    return Array.from(content.children, (el) => el.className || el.localName)
+  }
+
+  /** Item `id`'s Choices panels:  `title` and `chosen` each;  and which one the accordion opens on. */
+  function choices(doc, id) {
+    const options = doc.document.querySelector(`#${id} ui-accordion.plan-choices ui-accordion.plan-options`)
+    return {
+      panels: Array.from(options.querySelectorAll(":scope > ui-title"), (title) =>
+        title.hasAttribute("data-chosen") ? `${title.textContent} *` : title.textContent
+      ),
+      open: options.getAttribute("open")
+    }
+  }
+
+  it("decide:  the question's text, then its options as a folded Choices accordion, then the answer card", () => {
+    const doc = plan()
+    doc.decide("q1", "Drop it", { option: "B" })
+    expect(parts(doc, "q1")).toEqual(["plan-question", "spell-aside plan-choices", "plan-answer-block"])
+    // the question's text whole, its Net effect too;  no option cards left
+    expect(doc.document.querySelector("#q1 .plan-question").innerHTML).toBe(
+      "<p>why it matters</p><p><b>Net effect</b></p><ul><li>it changes</li></ul>"
+    )
+    expect(doc.document.querySelector("#q1 ui-grid")).toBeNull()
+    // the aside:  folded, titled Choices;  a panel per card, the chosen one marked and open
+    const aside = doc.document.querySelector("#q1 ui-accordion.plan-choices")
+    expect(aside.hasAttribute("open")).toBe(false)
+    expect(aside.querySelector(":scope > ui-title").textContent).toBe("Choices")
+    expect(choices(doc, "q1")).toEqual({ panels: ["A · Keep", "B · Drop (recommended) *", "C · Move"], open: "1" })
+    const panel = aside.querySelectorAll("ui-accordion.plan-options > ui-content")[1]
+    expect(panel.innerHTML).toBe("<p>b</p>")
+    expect(doc.document.querySelector("#q1 .plan-answer-title").textContent).toBe("Answer · Drop it")
+    expect(doc.check()).toEqual([])
+  })
+
+  it("re-decide:  the new card replaces the old in place;  the old goes to the Original Discussion;  a D id stays", () => {
+    const doc = plan()
+    doc.decide("q1", "Drop it", { option: "B" })
+    doc.addCommit({ item: "q1" }, "abc1234", "did it")
+    doc.decide("q1", "Move it", { option: "C" })
+    expect(parts(doc, "q1")).toEqual([
+      "plan-question",
+      "spell-aside plan-choices",
+      "plan-answer-block",
+      "spell-aside plan-original",
+      "plan-commits"
+    ])
+    expect(choices(doc, "q1")).toEqual({ panels: ["A · Keep", "B · Drop (recommended)", "C · Move *"], open: "2" })
+    expect(doc.document.querySelector("#q1 .plan-original .plan-answer-title").textContent).toBe("Answer · Drop it")
+    // a migrated decision's id on the card:  the new card keeps it, and is titled by it (old #d4 links land)
+    doc.document.querySelector("#q1 > ui-accordion > ui-content > .plan-answer-block").setAttribute("id", "d4")
+    doc.decide("q1", "Keep it", { option: "A" })
+    const answer = doc.document.querySelector("#q1 > ui-accordion > ui-content > .plan-answer-block")
+    expect(answer.id).toBe("d4")
+    expect(answer.querySelector(".plan-answer-title").textContent).toBe("D4 · Keep it")
+    expect(doc.item("d4").id).toBe("q1")
+    expect(doc.document.querySelectorAll("#d4").length).toBe(1)
+    expect(doc.check()).toEqual([])
+  })
+
+  it("options in the Choices accordion:  optionCards, approve's recommendation, pick, a revisit's pick, items --json", () => {
+    const doc = plan()
+    doc.decide("q1", "Keep it", { option: "A" })
+    const q1 = doc.item("q1")
+    expect(doc.optionCards(q1)).toEqual([
+      { letter: "A", title: "Keep", recommended: false },
+      { letter: "B", title: "Drop", recommended: true },
+      { letter: "C", title: "Move", recommended: false }
+    ])
+    const [item] = doc.reviewSections({ filter: "all" })[0].items
+    expect(item.recommendation).toBe("B · Drop")
+    // Owen revisits it and picks C:  talked over, not applied
+    expect(doc.applyMark({ id: "q1", action: "revisit", when: "soon", note: "C?", pick: "C" }).left).toBe(
+      'to talk over:  picks C · Move, asks:  "C?"'
+    )
+    // a plain pick on the answered question answers it again with that option
+    expect(doc.applyMark({ id: "q1", action: "pick", pick: "C" }).did).toBe("picked C:  Move")
+    expect(choices(doc, "q1").panels).toEqual(["A · Keep", "B · Drop (recommended)", "C · Move *"])
+    expect(doc.document.querySelector("#q1 > ui-accordion > ui-content > .plan-answer-block").textContent).toBe(
+      "Answer · Move"
+    )
+    // a rewrite keeps the chosen letter when the new options have it;  the Choices it replaced are history
+    doc.setDetails("q1", QUESTION.replace("C · Move", "C · Shift"))
+    expect(choices(doc, "q1").panels).toEqual(["A · Keep", "B · Drop (recommended)", "C · Shift *"])
+    expect(doc.optionCards(q1).map((option) => option.title)).toEqual(["Keep", "Drop", "Shift"])
+    expect(() => doc.chooseOption(q1, "D")).toThrow(PlanDocError)
+  })
+
+  /** Strings in code-point order, for `sort()`. */
+  function byText(a, b) {
+    return a < b ? -1 : a > b ? 1 : 0
+  }
+
+  /** An old-layout answered question (the answer card FIRST), as docs had it before 2026-10-05. */
+  function oldLayout() {
+    const doc = plan()
+    const content = doc.document.querySelector("#q1 > ui-accordion > ui-content")
+    content.innerHTML =
+      '<div class="plan-answer-block" id="d4"><div class="plan-answer-title"><b>Answer</b> · B: drop it</div>' +
+      "<p>reasons</p></div>" +
+      QUESTION.replace(card("B", "Drop (recommended)", "b"), card("B", "Drop (recommended)", "b", true)) +
+      '<div class="plan-reply">a reply</div>' +
+      '<ui-accordion class="spell-aside plan-original" styled><ui-title>Original Discussion</ui-title>' +
+      '<ui-content><div class="plan-version"><p>first</p></div></ui-content></ui-accordion>' +
+      '<div class="plan-commits"><b>Commits:</b> x</div>'
+    doc.item("q1").setAttribute("data-status", "decided")
+    doc.item("q1").setAttribute("data-answered", "")
+    return doc
+  }
+
+  it("relayout:  an old doc's answered question in the new order, nothing lost;  a second run changes nothing", () => {
+    const doc = oldLayout()
+    // every text node's words:  the parts move, so `textContent` would glue words across them
+    const words = (id) => {
+      const found = []
+      for (const node of [doc.document.getElementById(id)]) walk(node)
+      return found.sort(byText)
+
+      /** `node`'s text nodes' words into `found`. */
+      function walk(node) {
+        if (node.nodeType === 3) found.push(...node.textContent.split(/\s+/).filter(Boolean))
+        for (const child of node.childNodes) walk(child)
+      }
+    }
+    const before = words("q1")
+    expect(doc.relayout()).toEqual({ changed: ["Q1"], skipped: [], notes: [], oldDecisions: 0 })
+    expect(parts(doc, "q1")).toEqual([
+      "plan-question",
+      "spell-aside plan-choices",
+      "plan-answer-block",
+      "plan-reply",
+      "spell-aside plan-original",
+      "plan-commits"
+    ])
+    expect(choices(doc, "q1")).toEqual({ panels: ["A · Keep", "B · Drop (recommended) *", "C · Move"], open: "1" })
+    // retitled by its decision id;  every word still there, plus the aside's title
+    expect(doc.document.querySelector("#d4 .plan-answer-title").textContent).toBe("D4 · B: drop it")
+    expect(words("q1")).toEqual([...before.filter((word) => word !== "Answer"), "Choices", "D4"].sort(byText))
+    // idempotent, also once serialized and parsed again
+    const html = doc.toString()
+    expect(doc.relayout().changed).toEqual([])
+    const again = PlanDoc.parse(html, NOW)
+    expect(again.relayout().changed).toEqual([])
+    expect(again.toString()).toBe(html)
+    expect(doc.check()).toEqual([])
+  })
+
+  it("relayout skips a question born answered, notes unlettered options and a grid that isn't options", () => {
+    const doc = plan()
+    doc.addItem("decision", "born answered")
+    doc.addItem("question", "pros?", {
+      details:
+        '<p>x</p><ui-grid class="spell-pros-cons" columns="2"><ui-column><ui-segment><ui-label attached="top">Pros</ui-label>' +
+        '<p>fast</p></ui-segment></ui-column><ui-column><ui-segment><ui-label attached="top">Cons</ui-label><p>big</p>' +
+        "</ui-segment></ui-column></ui-grid>"
+    })
+    doc.addItem("question", "where?", {
+      details:
+        '<ui-grid class="spell-pros-cons" columns="2"><ui-column><ui-segment><ui-label attached="top">Here (recommended)' +
+        '</ui-label><p>h</p></ui-segment></ui-column><ui-column><ui-segment><ui-label attached="top">There</ui-label>' +
+        "<p>t</p></ui-segment></ui-column></ui-grid>"
+    })
+    doc.decide("q3", "fast wins")
+    doc.decide("q4", "here")
+    expect(parts(doc, "q3")).toEqual(["plan-question", "plan-answer-block"])
+    expect(doc.document.querySelector("#q3 .plan-question ui-grid")).not.toBeNull()
+    expect(choices(doc, "q4")).toEqual({ panels: ["Here (recommended)", "There"], open: null })
+    expect(doc.optionCards(doc.item("q4"))).toEqual([])
+    // laid out already:  nothing changes, the notes say what each kept
+    const result = doc.relayout()
+    expect(result.changed).toEqual([])
+    expect(result.skipped).toEqual([{ id: "Q2", why: "born answered (no answer card:  its title is the answer)" }])
+    expect(result.notes).toEqual([{ id: "Q3", note: "kept 1 grid(s) that aren't options" }])
+  })
+
+  it("an open question keeps its option cards;  options in the Original Discussion are never read", () => {
+    const doc = plan()
+    expect(parts(doc, "q1")).toEqual(["p", "spell-pros-cons", "p", "ul"])
+    expect(doc.optionCards(doc.item("q1")).map((option) => option.letter)).toEqual(["A", "B", "C"])
+    doc.decide("q1", "Drop it", { option: "B" })
+    doc.setDetails("q1", "<p>no options now</p>")
+    expect(parts(doc, "q1")).toEqual(["plan-question", "plan-answer-block", "spell-aside plan-original"])
+    expect(doc.optionCards(doc.item("q1"))).toEqual([])
+    expect(doc.document.querySelectorAll("#q1 .plan-original ui-title[data-chosen]").length).toBe(1)
   })
 })

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Goal Set Template</title>
+    <meta
+      name="description"
+      content="Goal set template:  a set's contents page, copied by `spell dev goals new-set <set>`;  its topic cards are written by `spell dev goals index`."
+    />
+    <link rel="stylesheet" href="../../../../tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../../../tools/_assets/plan-doc.css" />
+    <link rel="stylesheet" href="../../../../tools/_assets/goals.css" />
+  </head>
+  <body class="spell-doc-page goals-contents" data-set="{{set}}" data-icon="{{icon}}" data-accent="{{accent}}">
+    <spell-site-header root="../../../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          GOAL SET:  made by `spell dev goals new-set <set>`, which fills the {{placeholders}};  rules in `goals/AGENTS.md`.
+          - The topic cards and the hero's numbers are written by `spell dev goals index`:  edit only outside the
+            `topics` / `stats` markers.
+        -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../index.html" target="_self">Goals</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>{{set}}</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <header class="goals-hero">
+          <span class="goals-hero-icon" aria-hidden="true"><ui-icon name="{{icon}}"></ui-icon></span>
+          <p class="goals-eyebrow">Goal set · {{set}}</p>
+          <h1>{{title}}</h1>
+          <p class="lede">{{description}}</p>
+          <!-- stats:start -->
+          <!-- stats:end -->
+        </header>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="topics"><ui-icon name="compass"></ui-icon> 1. Topics</h2></ui-sticky
+          >
+          <p>
+            Each topic has a short name to use in conversation: <i>"let's talk about <code>brand</code>"</i>, or
+            <i>"<code>brand/Q3</code>"</i> for question 3 on the brand page.
+          </p>
+          <div class="goals-legend">
+            <span><ui-label size="mini" color="grey">draft</ui-label> first pass</span>
+            <span><ui-label size="mini" color="orange">in dialog</ui-label> being talked through</span>
+            <span><ui-label size="mini" color="green">agreed</ui-label> ready for agents</span>
+            <span><ui-label size="mini" color="blue">building</ui-label> under way</span>
+            <span><ui-label size="mini" color="violet">shipped</ui-label> done for now</span>
+          </div>
+          <!-- topics:start -->
+          <!-- topics:end -->
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="arc"><ui-icon name="route"></ui-icon> 2. The plan</h2></ui-sticky
+          >
+          <ui-message state="info" size="small" header="A draft to argue with">
+            <p>The arc of the next few months, one card per stretch. Settled in the set's goals topic.</p>
+          </ui-message>
+          <ui-cards class="goals-months" stackable>
+            <ui-card data-accent="orange">
+              <ui-content>
+                <p class="goals-month">First</p>
+                <ui-header>A short theme</ui-header>
+                <ul>
+                  <li>What gets done</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card data-accent="blue">
+              <ui-content>
+                <p class="goals-month">Then</p>
+                <ui-header>A short theme</ui-header>
+                <ul>
+                  <li>What gets done</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card data-accent="green">
+              <ui-content>
+                <p class="goals-month">Finally</p>
+                <ui-header>A short theme</ui-header>
+                <ul>
+                  <li>What ships</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="how"><ui-icon name="comments"></ui-icon> 3. How we work</h2></ui-sticky
+          >
+          <ui-steps class="goals-loop" vertical ordered>
+            <ui-step
+              header="Pick a topic"
+              description='Or one item:  /goals {{set}}/brand, or just "let&apos;s do brand/Q3".'
+            ></ui-step>
+            <ui-step
+              header="Add thoughts any time"
+              description="The bubble beside a section or item saves a note for Claude, to digest later with /goals-update."
+            ></ui-step>
+            <ui-step
+              header="Talk it through"
+              description="Claude brings the open questions, one or two at a time, with a suggestion for each, and writes the answers down."
+            ></ui-step>
+            <ui-step
+              header="Hand it off"
+              description="Agreed work goes to agents, with the topic's .md as their brief."
+            ></ui-step>
+          </ui-steps>
+        </section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Goal set <code>{{set}}</code>. Rules for the goals folder:
+            <a href="../index.html" target="_self">all goal sets</a>.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../../../tools/_assets/spell-ui.js"></script>
+    <script src="../../../../tools/_assets/goals-live.js"></script>
+  </body>
+</html>

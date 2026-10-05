@@ -1,7 +1,7 @@
 /**
  * Details pages' answers, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo
  * root's `package.json` `"pageServer": { "routes": [...] }`.
- * - A DETAILS PAGE:  a page Claude writes to explain a question (`/details`, `yarn details`), shown in VS Code's
+ * - A DETAILS PAGE:  a page Claude writes to explain a question (`/details`, `spell dev details`), shown in VS Code's
  *   side bar;  Owen answers ON it, and `_assets/details.js` posts the answer here.
  * - `POST /api/details/answer` `{ page, answers, notes }` -- write `<slug>.answer.json` beside the page `<slug>.html`
  *   - `page`:  the page's URL path, as it was served:  `/packages/docs/content/details/x.html`, or a worktree's
@@ -10,7 +10,7 @@
  *   - sent again (Owen changed his answer):  replaces the file, `changes` counts up
  * - `GET /api/details/answer?page=<path>` -- the answer sent, or `{ answer: null }`:  the page shows it on load (a
  *   plain fetch of the missing `.answer.json` would log a 404 in every fresh page's console)
- * - `yarn details wait` polls for the file itself, and wakes the waiting Claude session when it lands.
+ * - `spell dev details wait` polls for the file itself, and wakes the waiting Claude session when it lands.
  * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  */
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
@@ -66,7 +66,7 @@ export function detailsPage(files: SRV.StaticHandler, page: unknown): string {
 
 /**
  * Write `answers` for details page `file` to `<slug>.answer.json` beside it;  return what was written.
- * - atomic (a temp file renamed over it):  `yarn details wait` never reads half a file
+ * - atomic (a temp file renamed over it):  `spell dev details wait` never reads half a file
  * - SIDE EFFECT:  writes the file
  */
 export function saveAnswer(file: string, page: string, answers: DetailsAnswers, notes: string): DetailsAnswer {

@@ -8,7 +8,8 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 ## Overview
 
-- This package is the `spell` command-line tool, and nothing else:  `bin/spell.mjs` runs `src/main.ts` through `tsx`.
+- This package is the `spell` command-line tool, and nothing else:  `bin/spell.mjs` runs `src/main.ts` through `tsx`
+  (`src/devMain.ts` for `spell dev ...`:  see below).
   `README.md` has instructions, caveats and TODO.
 - Spell itself is NOT here.  It's the spell-family packages beside this one -- `../lsp`, `../spell`, `../parser`,
   `../core`, `../util` -- as is `ui` (`../ui`, `@spell-app/ui`);  `package.json` depends on
@@ -37,15 +38,23 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 - Two kinds of command:  the spell LANGUAGE's, bare (`spell compile`), and the repo's own tools, `spell dev <noun>
   <verb>` (`spell dev commands`):  each finds the nearest checkout with `CLI.findCheckout()`.
   - A new or renamed command:  first `packages/docs/content/dev/commands/commands.md` (root `AGENTS.md`, "Commands"):
-    suggest where it belongs, then add it to the commands page's `commands.json` and run `yarn commands:check`.
-  - `spell dev commands` reads `main.ts`'s TEXT for `program.command(...)` / `dev.command(...)`:  keep those
-    receivers' names.
+    suggest where it belongs, then add it to the commands page's `commands.json` and run `spell dev commands check`.
+  - `spell dev commands` reads the TEXT of `main.ts` and `devProgram.ts` for `program.command(...)` /
+    `dev.command(...)`:  keep those receivers' names.
+  - `spell dev` starts LEAN:  `bin/spell.mjs` runs `src/devMain.ts`, which loads commander and `devProgram.ts` (the
+    `dev` tree), never the `$/cli` barrel, which loads spell (~0.5s).  A `dev` command that needs the barrel
+    (`session`, `stock` ...) hands over to `main.ts`.
+  - A pass-through (`plan-doc`, `goals`, `docs`, `details`, `server`, `window`, `vscode`) is `(args) =>
+    Promise<exitCode>`, importing what it needs DIRECTLY (`$/cli/dev/passThrough`, `$/cli/cli.types`,
+    `$/cli/findCheckout`):  importing `$/cli` there would load spell into every `spell dev` call.
+    `TOOLS` in `src/dev/passThrough.ts` says how each tool runs:  a child `node`, under `tsx` when it needs aliases.
 
 ## Imports
 
 - As the root's rules, with `CLI` ~== `$/cli` as our one namespace:  `import { CLI } from "$/cli"`.
 - Import order puts the other packages' barrels (`$/spell`, `$/lsp`) before our own.
-- `main.ts` and `consoleGuard.ts` are NOT in the barrel:  importing either has side effects.
+- `main.ts`, `devMain.ts` and `consoleGuard.ts` are NOT in the barrel:  importing any has side effects.  Nor is
+  `devProgram.ts`:  both entries build on it, and it must load without the barrel.
 
 ## Tests
 

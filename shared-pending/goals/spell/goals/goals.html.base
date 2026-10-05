@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Goals</title>
+    <meta
+      name="description"
+      content='What we&apos;re aiming for in three months, next year and someday — and what "shippable" means.'
+    />
+    <link rel="stylesheet" href="../../../packages/docs/tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../../packages/docs/tools/_assets/plan-doc.css" />
+    <link rel="stylesheet" href="../../../packages/docs/tools/_assets/goals.css" />
+  </head>
+  <body
+    class="spell-doc-page"
+    data-set="spell"
+    data-topic="goals"
+    data-short="goals"
+    data-n="2"
+    data-icon="bullseye"
+    data-accent="orange"
+    data-status="draft"
+  >
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          TOPIC PAGE:  made by `yarn goals new`;  rules in `goals/AGENTS.md`.
+          - Structured parts (items, status, history, updated) go through `yarn goals ...`;  hand-edit prose only.
+          - Section ids are fixed:  other topics link to them.
+        -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="_self">Goals</ui-breadcrumb-section>
+          <ui-breadcrumb-section href="../index.html" target="_self">spell</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>2 · goals</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <header class="goals-hero">
+          <span class="goals-hero-icon" aria-hidden="true"><ui-icon name="bullseye"></ui-icon></span>
+          <p class="goals-eyebrow"><span class="goals-num">2</span> Topic · goals</p>
+          <h1>Goals</h1>
+          <p class="lede">What we're aiming for in three months, next year and someday — and what "shippable" means.</p>
+          <ui-list class="spell-meta">
+            <ui-item icon="flag"
+              >Status: <ui-label class="goals-status" size="mini" color="grey">draft</ui-label> · first pass, not yet
+              talked through</ui-item
+            >
+            <ui-item icon="calendar">Updated: <time class="goals-updated">2026-10-01</time></ui-item>
+            <ui-item icon="robot"
+              >Notes for agents: <a href="goals.md" target="src-goals-goals-goals-md">goals.md</a></ui-item
+            >
+          </ui-list>
+        </header>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="summary"><ui-icon name="eye"></ui-icon> 1. Summary</h2></ui-sticky
+          >
+          <ul>
+            <li>
+              <strong>By December 31:</strong> spell is a shippable project: a website, docs, a downloadable app, and a
+              language that holds up for small real programs.
+            </li>
+            <li>
+              <strong>Today:</strong> everything runs from a git checkout. Nothing is packaged, hosted, or published to
+              npm.
+            </li>
+            <li>
+              <strong>A draft arc:</strong> October <em>solid ground</em>, November
+              <em>first spell in five minutes</em>, December <em>public preview</em> (see the
+              <a target="_self" href="../index.html#arc">contents page</a>).
+            </li>
+            <li><strong>The hard part:</strong> choosing what waits until 2027.</li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="today"><ui-icon name="calendar"></ui-icon> 2. Today</h2></ui-sticky
+          ><ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="150+" label="commits since Sept 15"></ui-statistic>
+            <ui-statistic value="2" label="branches waiting to merge"></ui-statistic>
+            <ui-statistic value="2" label="paused plans"></ui-statistic>
+            <ui-statistic value="0" label="things published"></ui-statistic>
+          </ui-statistics>
+
+          <ul>
+            <li>
+              <strong>A big September:</strong> TypeScript, the language server, the VS Code extension, Monaco, the
+              explorers, @spell-app/ui (53 component families), the monorepo, and this docs system.
+            </li>
+            <li>
+              <strong>Waiting to merge:</strong> <code>worktree-ui-component-creation</code> (ui release prep) and
+              <code>worktree-cli-additions</code> (ten new <code>spell</code> commands).
+            </li>
+            <li>
+              <strong>Paused:</strong>
+              <ul>
+                <li>
+                  the move from React to Solid (<code>/Users/owen/www/spell-app/outstanding/solid-migration.md</code>):
+                  needs a call on Solid rc.11 or rc.13
+                </li>
+                <li>
+                  precedence and types (<a
+                    href="../../../packages/docs/content/precedence/precedence.html"
+                    target="src-packages-docs-precedence-precedence-html"
+                    ><code>packages/docs/content/precedence/precedence.html</code></a
+                  >): designed, nothing built, 14 decisions waiting on you
+                </li>
+              </ul>
+            </li>
+            <li><strong>Unreviewed:</strong> much of the recent code says "not yet reviewed by a person".</li>
+            <li>
+              <strong>Nothing ships yet:</strong> no npm packages, no website, no installer, no docs for people writing
+              spells.
+            </li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="goals"><ui-icon name="bullseye"></ui-icon> 3. Goals</h2></ui-sticky
+          >
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="now"><ui-icon name="seedling"></ui-icon> Now → December 2026</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="now">
+              <li data-status="open" id="g1">
+                <a class="plan-id" href="#g1">G1</a> <span class="plan-title">Public preview by December 31</span>
+                <span class="goals-note">website, docs, a Mac app to download, three polished examples</span>
+              </li>
+              <li data-status="open" id="g2">
+                <a class="plan-id" href="#g2">G2</a> <span class="plan-title">First spell in five minutes</span>
+                <span class="goals-note">download to a running program you changed, no terminal</span
+                ><ui-accordion class="spell-aside" styled
+                  ><ui-title>details</ui-title
+                  ><ui-content
+                    ><p>The test of everything else: a new person, a fresh Mac, a stopwatch.</p>
+                  </ui-content></ui-accordion
+                >
+              </li>
+              <li data-status="open" id="g3">
+                <a class="plan-id" href="#g3">G3</a> <span class="plan-title">A language that holds up</span>
+                <span class="goals-note">precedence and types fixed; examples read naturally</span
+                ><ui-accordion class="spell-aside" styled
+                  ><ui-title>details</ui-title
+                  ><ui-content
+                    ><p>See <a target="_self" href="../syntax/syntax.html#goals">syntax</a>.</p>
+                  </ui-content></ui-accordion
+                >
+              </li>
+              <li data-status="open" id="g4">
+                <a class="plan-id" href="#g4">G4</a> <span class="plan-title">@spell-app/ui 0.1 on npm</span>
+                <span class="goals-note">the first thing we publish</span>
+              </li>
+              <li data-status="open" id="g5">
+                <a class="plan-id" href="#g5">G5</a> <span class="plan-title">Reviewed before it ships</span>
+                <span class="goals-note">nothing in the preview is marked "not yet reviewed by a person"</span>
+              </li>
+            </ol>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="next"><ui-icon name="tree"></ui-icon> 2027</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="next">
+              <li data-status="open" id="g6">
+                <a class="plan-id" href="#g6">G6</a> <span class="plan-title">Windows app</span>
+                <span class="goals-note">see native</span>
+              </li>
+              <li data-status="open" id="g7">
+                <a class="plan-id" href="#g7">G7</a> <span class="plan-title">Spell in Spanish</span>
+                <span class="goals-note">see translation</span>
+              </li>
+              <li data-status="open" id="g8">
+                <a class="plan-id" href="#g8">G8</a> <span class="plan-title">Drag-and-drop editing</span>
+                <span class="goals-note">see app</span>
+              </li>
+              <li data-status="open" id="g9">
+                <a class="plan-id" href="#g9">G9</a> <span class="plan-title">A first thingverse</span>
+                <span class="goals-note">people, money, dates, calendars</span>
+              </li>
+            </ol>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="someday"><ui-icon name="mountain sun"></ui-icon> Someday</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="someday">
+              <li data-status="open" id="g10">
+                <a class="plan-id" href="#g10">G10</a> <span class="plan-title">A community that shares</span>
+                <span class="goals-note">stacks, libraries, help</span>
+              </li>
+              <li data-status="open" id="g11">
+                <a class="plan-id" href="#g11">G11</a> <span class="plan-title">Beyond JavaScript</span>
+                <span class="goals-note">Python and others; see programmers</span>
+              </li>
+            </ol>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="ideas"><ui-icon name="lightbulb"></ui-icon> 4. Ideas</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="idea">
+            <li data-status="open" id="i1">
+              <a class="plan-id" href="#i1">I1</a> <span class="plan-title">One release a month</span>
+              <span class="goals-note">0.1 in October, 0.2 in November, 0.3 in December</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><ul>
+                    <li><strong>0.1</strong> (October): @spell-app/ui on npm; language fixes; merged branches</li>
+                    <li><strong>0.2</strong> (November): the Mac app, to friends</li>
+                    <li><strong>0.3</strong> (December): public preview</li>
+                  </ul>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i2">
+              <a class="plan-id" href="#i2">I2</a> <span class="plan-title">A "definition of shippable" checklist</span>
+              <span class="goals-note"
+                >install, first run, docs, examples, signed, website, a way to send feedback</span
+              >
+            </li>
+            <li data-status="open" id="i3">
+              <a class="plan-id" href="#i3">I3</a> <span class="plan-title">Eat our own cooking</span>
+              <span class="goals-note">the website and docs run on @spell-app/ui, with live spells inside</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="questions"><ui-icon name="circle question"></ui-icon> 5. Questions</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="question">
+            <li data-status="open" id="q1">
+              <a class="plan-id" href="#q1">Q1</a> <span class="plan-title">What does "shippable" mean to you?</span>
+              <span class="goals-note">public launch, or friends first?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <strong>Options:</strong> a quiet preview for friends; a public preview (website, "early" label); a
+                    1.0.
+                  </p>
+                  <p>
+                    <strong>Suggestion:</strong> a public preview with an honest "early" label. It's enough pressure to
+                    finish things, and it doesn't promise that spells written now keep working.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q2">
+              <a class="plan-id" href="#q2">Q2</a> <span class="plan-title">Who does December serve?</span>
+              <span class="goals-note">settled in audience</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>See <a target="_self" href="../audience/audience.html#q1">audience/Q1</a>.</p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q3">
+              <a class="plan-id" href="#q3">Q3</a> <span class="plan-title">Merge order for the work in flight</span>
+              <span class="goals-note">ui, cli, then Solid?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <strong>Suggestion:</strong> review and merge ui first (it's closest to done, and four WebKit
+                    failures wait on you), then cli, then decide on Solid.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q4">
+              <a class="plan-id" href="#q4">Q4</a>
+              <span class="plan-title">React to Solid: before or after the preview?</span>
+              <span class="goals-note">touches the app, the runtime and how spells draw</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <strong>Context:</strong> spells draw with React and <code>SUI.*</code> tags today. The Solid plan
+                    moves them to plain <code>&lt;ui-*&gt;</code> tags, so any UI tutorial written before it gets
+                    rewritten.
+                  </p>
+                  <p><strong>Options:</strong></p>
+                  <ul>
+                    <li><strong>before:</strong> ship on Solid and @spell-app/ui; the docs are written once</li>
+                    <li><strong>after:</strong> ship on React; migrate in 2027</li>
+                  </ul>
+                  <p>
+                    <strong>Suggestion:</strong> before, but only the parts a December spell touches (the runtime's
+                    drawing and the app shell), and only if October shows it can be done in about four weeks.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q5">
+              <a class="plan-id" href="#q5">Q5</a> <span class="plan-title">How much time, and how many agents?</span>
+              <span class="goals-note">hours a week; how many agents at once</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>The plan should fit the real capacity. AGENTS.md mentions a five-agent cap.</p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q6">
+              <a class="plan-id" href="#q6">Q6</a> <span class="plan-title">What waits until 2027?</span>
+              <span class="goals-note">Windows, AI, translation, drag-and-drop, Python...</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <strong>Suggestion:</strong> for December, leave out Windows, translation, drag-and-drop and Python.
+                    Keep a small AI experiment only if it helps the "first spell" story.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="risks"><ui-icon name="triangle exclamation"></ui-icon> 6. Risks</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="risk">
+            <li data-status="open" id="r1">
+              <a class="plan-id" href="#r1">R1</a> <span class="plan-title">Too many fronts</span>
+              <span class="goals-note">fifteen topics; one person plus agents</span>
+            </li>
+            <li data-status="open" id="r2">
+              <a class="plan-id" href="#r2">R2</a> <span class="plan-title">Unreviewed code ships</span>
+              <span class="goals-note">agents wrote most of September; review is the bottleneck</span>
+            </li>
+            <li data-status="open" id="r3">
+              <a class="plan-id" href="#r3">R3</a> <span class="plan-title">The Solid move is a cliff</span>
+              <span class="goals-note">rewriting the UI layer in the middle of the push</span>
+            </li>
+            <li data-status="open" id="r4">
+              <a class="plan-id" href="#r4">R4</a> <span class="plan-title">Language changes break docs</span>
+              <span class="goals-note">precedence and types change what valid spell looks like</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>Write the reference and tutorials after the language work lands, or generate them.</p>
+                </ui-content></ui-accordion
+              >
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="decisions"><ui-icon name="gavel"></ui-icon> 7. Decisions</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="decision"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="work"><ui-icon name="list check"></ui-icon> 8. Work</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="work">
+            <li data-status="open" id="w1">
+              <a class="plan-id" href="#w1">W1</a> <span class="plan-title">Write the shippable checklist</span>
+              <span class="goals-note">as a section on this page, once Q1 is answered</span>
+            </li>
+            <li data-status="open" id="w2">
+              <a class="plan-id" href="#w2">W2</a> <span class="plan-title">Review and merge the ui branch</span>
+              <span class="goals-note"><code>worktree-ui-component-creation</code>; see spell-ui</span>
+            </li>
+            <li data-status="open" id="w3">
+              <a class="plan-id" href="#w3">W3</a> <span class="plan-title">Review and merge the cli branch</span>
+              <span class="goals-note"><code>worktree-cli-additions</code>; see cli</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="history"><ui-icon name="clock rotate left"></ui-icon> 9. History</h2></ui-sticky
+          >
+          <ui-feed class="spell-history goals-history" size="small"
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  >Page made: a first pass from the code, the 2017 talk and old notes
+                  <ui-date>2026-10-01</ui-date></ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Part of the <a href="../index.html" target="_self">spell</a> goal set. Notes for agents:
+            <a href="goals.md" target="src-goals-goals-goals-md">goals.md</a>.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../../packages/docs/tools/_assets/spell-ui.js"></script>
+    <script src="../../../packages/docs/tools/_assets/goals-live.js"></script>
+  </body>
+</html>

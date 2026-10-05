@@ -2,7 +2,7 @@
 /**
  * Claude Code's `Stop` hook (`.claude/settings.json`):  move a session to another window once its turn ends:
  * a worktree's, or back from it.
- * - `/isolate` arms it with `node scripts/window.mjs handoff <name>` (`--back`:  no skill uses it now), which
+ * - `/isolate` arms it with `spell dev window handoff <name>` (`--back`:  no skill uses it now), which
  *   writes the move to `<registry>/handoffs/<session id>.json`.  See `scripts/window.mjs`, "A worktree's window".
  * - stdin `{ session_id, transcript_path, ... }`.  No pending move for this session (every other turn):  exits at once.
  * - Else renames the record (`<session id>.running.json`, so the next turn won't move it again) and starts

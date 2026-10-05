@@ -1,6 +1,7 @@
 /**
  * Barrel for `spell dev`'s repo tools -- Claude Code sessions, worktrees, parked work -- flattened into `$/cli`.
- * - Node built-ins only:  nothing here imports spell, so a lean `spell dev` entry stays possible.
+ * - Node built-ins only:  nothing here imports spell.  `passThrough.ts` imports no barrel at all, so the lean
+ *   `spell dev` entry (`devMain.ts`) loads it without spell.
  * - Ported from the skills' python scripts (epic `commands`, P7-P9):  `session.py`, `transcript.py`, `status.py`,
  *   `worktrees.py`, `whassup.py`.
  */
@@ -13,3 +14,4 @@ export * from "./parking"
 export * from "./stock"
 export * from "./shared"
 export * from "./sharedMigrate"
+export * from "./passThrough"

@@ -1,5 +1,5 @@
 /**
- * `yarn docs:index`:  rewrite the lists in `index.html` from every page's `<title>` and description.
+ * `spell dev docs index`:  rewrite the lists in `index.html` from every page's `<title>` and description.
  * Usage (from `packages/docs`):  node scripts/index.js
  * - Groups:
  *   - Guides:  every page outside `templates/` and `epics/`

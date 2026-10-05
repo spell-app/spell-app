@@ -2,11 +2,15 @@
  * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic` skill and its agents.
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
- *   `commits`, `log`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate`, `inbox`, `details`
- *   (`node scripts/plan-doc.js` with no command lists them).
+ *   `commits`, `log`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate`, `relayout`, `inbox`,
+ *   `details`, `original` (`node tools/plan-doc.js` with no command lists them).
  * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`inbox.js`):  printed,
  *   waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`), cleared;
  *   `details` writes an agent's details or reply into one item
+ * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion (`ORIGINAL`);
+ *   `original` puts text recovered from git there
+ * - the doc is THIS checkout's `packages/docs/content/epics/<name>/`:  a link to the one shared copy every checkout
+ *   edits (`findDoc()`)
  * - a doc is FOUND under either name (`pages.js` `planDocIn()`):  `<name>.plan.html` since 2026-10-04, else the old
  *   `<name>.html`, which worktrees cut before then still have
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
@@ -17,7 +21,7 @@
  *   as they are, so every helper here takes either markup ("Sections, either markup").
  */
 import { spawnSync } from "node:child_process"
-import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, relative, resolve, sep } from "node:path"
 import { setTimeout as sleep } from "node:timers/promises"
 import { pathToFileURL } from "node:url"
@@ -102,6 +106,48 @@ const OLD_DECISION = /^d\d+$/
  *   (`plan-doc.css`);  `cancel` sets it, `reopen` undoes it
  */
 const CLOSED = new Set(["done", "decided", "canceled"])
+
+/**
+ * An item's ORIGINAL DISCUSSION (I7 of `review-review`):  a folded aside at the end of its details, before its
+ * commits, holding every earlier version of its text, oldest first.  A rewrite never drops an item's text:  it moves
+ * here (`keepOriginal()`).
+ * - `<ui-accordion class="spell-aside plan-original" styled><ui-title>Original Discussion</ui-title><ui-content>`,
+ *   no `open`:  it starts folded, as every aside
+ * - one `div.plan-version` per version:  the first as first written (no heading, until a second one comes:  then
+ *   "As first written"), each later one under `<h5>As of 2026-10-04 20:49</h5>` (`data-as-of`):  when it was
+ *   replaced
+ * - ids inside are renamed `data-original-id` (`stripIds()`):  never a second `#q3`, never a link's target
+ * - readers skip it (`inOriginal()`):  option cards, a recommendation, links from decisions, `items` details,
+ *   `check()`'s links;  on the page, the Choose pills and the contents (`spell-doc-runtime.js`)
+ */
+const ORIGINAL = "ui-accordion.plan-original"
+
+/** The Original Discussion's title. */
+const ORIGINAL_TITLE = "Original Discussion"
+
+/**
+ * An ANSWERED question's details read in the order it happened (I9 of `review-review`, Owen 2026-10-04):  what was
+ * asked, the choices, what was picked (`layoutAnswer()`):
+ * - `div.plan-question`:  the question's text as asked, its Net effect too (the page labels it "Original
+ *   question");  none when the question had no text
+ * - `CHOICES`:  its option cards as ONE folded aside, "Choices", holding a `ui-accordion.plan-options`:  a panel per
+ *   option, its title the card's label (`A · Push main first (recommended)`), its content the card's body;  the
+ *   chosen one's title carries `data-chosen` (a check and a green tint on the page), and the accordion opens on it
+ * - the answer card (`.plan-answer-block`), titled `D4 · ...` when it carries a migrated decision's id, else
+ *   `Answer · ...`
+ * - then replies (`.plan-reply`), the Original Discussion (`ORIGINAL`) and the commits, as before
+ * - an OPEN question keeps its option cards (`ui-grid.spell-pros-cons`) and their Choose pills
+ */
+const QUESTION = "div.plan-question"
+
+/** An answered question's Choices aside (`QUESTION`). */
+const CHOICES = "ui-accordion.plan-choices"
+
+/** The accordion of options inside the Choices aside, a panel per option (`QUESTION`). */
+const OPTIONS = "ui-accordion.plan-options"
+
+/** The Choices aside's title. */
+const CHOICES_TITLE = "Choices"
 
 /** The marks an item carries besides its status:  `mergeDecisions()` moves a decision's onto its question. */
 const ITEM_MARKS = [
@@ -592,20 +638,34 @@ ${list}`
   /**
    * Answer question `questionId` with `answer` (text), INTO the question (D13);  returns its id (`q3`).
    * - `decided`, `data-answered`;  the title keeps the question
-   * - its details start with the answer, an ivory card:  `<div class="plan-answer-block"><div
-   *   class="plan-answer-title"><b>Answer</b> · ...</div>` + `details` (HTML) `</div>`;  a question without details
-   *   gets a panel (`detailsOf()`).  Answering again replaces the answer and its details
-   * - `option` (`A`):  that option card is the chosen one (`chooseOption()`)
+   * - the answer is an ivory card:  `<div class="plan-answer-block"><div class="plan-answer-title"><b>Answer</b> ·
+   *   ...</div>` + `details` (HTML) `</div>`;  a question without details gets a panel (`detailsOf()`)
+   * - its details read in the order it happened (`layoutAnswer()`):  the question's text, its option cards as a
+   *   folded "Choices" accordion, then the answer card
+   * - answering again replaces the answer card in place:  the old one moves into the question's Original Discussion
+   *   (`keepOriginal()`), never dropped;  a migrated decision's id (`d7`) stays on the new card, which is titled
+   *   `D7 · ...` (old `#d7` links still land)
+   * - `option` (`A`):  that option is the chosen one (`chooseOption()`)
    * - moves among the answered questions, in id order:  open ones stay on top
    */
   decide(questionId, answer, { details, option } = {}) {
     const question = this.item(questionId)
     if (!question.id.startsWith(KINDS.question.prefix)) throw new PlanDocError(`${questionId} isn't a question`)
     const content = this.detailsOf(question)
-    content.querySelector(":scope > .plan-answer-block")?.remove()
+    const old = content.querySelector(":scope > .plan-answer-block")
+    const id = old?.getAttribute("id")
     // an ivory card titled by the answer, its details inside (Owen, 2026-10-04)
-    const title = `<div class="plan-answer-title"><b>Answer</b> · ${text(answer)}</div>`
-    content.prepend(this.fragment(`<div class="plan-answer-block">${title}${details ?? ""}</div>`))
+    const title = `<div class="plan-answer-title"><b>${answerLabel(id)}</b> · ${text(answer)}</div>`
+    const card = this.fragment(`<div class="plan-answer-block">${title}${details ?? ""}</div>`).firstElementChild
+    if (old) {
+      old.replaceWith(card)
+      old.removeAttribute("id")
+      // the answer it replaces is kept, unless it said the same
+      if (bare(old.outerHTML) !== bare(card.outerHTML)) this.keepOriginal(question, [old])
+      if (id) card.setAttribute("id", id)
+    } else content.prepend(card)
+    question.setAttribute("data-answered", "")
+    this.layoutAnswer(question)
     if (option) this.chooseOption(question, option)
     question.setAttribute("data-status", "decided")
     question.setAttribute("data-answered", "")
@@ -616,18 +676,144 @@ ${list}`
   }
 
   /**
-   * Mark option `letter` (`A`, `B` ...) of question `item` as the one chosen:  `data-chosen` on its card's
-   * `ui-column` (in the question's `ui-grid.spell-pros-cons`), taken off the others.  The page opens that card
-   * and frames it green (`spell-doc-runtime.js` `wireOptions()`).
-   * - the card's label starts with the letter:  `A · Inbox file (recommended)` (older docs:  `A. Inbox file`)
-   * - throws when no card has that letter
+   * Mark option `letter` (`A`, `B` ...) of question `item` as the one chosen:  `data-chosen` on it, taken off the
+   * others (`optionsOf()`).
+   * - an answered question's option is a panel of its Choices accordion (`QUESTION`):  `data-chosen` on the panel's
+   *   `ui-title`, and the accordion opens on it (`open="2"`);  the page marks it with a check
+   * - an open question's (or an old doc's) is an option card:  `data-chosen` on its `ui-column` in the
+   *   `ui-grid.spell-pros-cons`
+   * - the label starts with the letter:  `A · Inbox file (recommended)` (older docs:  `A. Inbox file`)
+   * - throws when no option has that letter
+   * - never one in the item's Original Discussion (`ORIGINAL`):  that's history
    */
   chooseOption(item, letter) {
-    const columns = Array.from(item.querySelectorAll("ui-grid.spell-pros-cons > ui-column"))
+    const options = optionsOf(item)
     const want = String(letter).trim().toUpperCase()
-    const chosen = columns.find((column) => optionOf(column)?.letter === want)
+    const chosen = options.find((option) => option.letter === want)
     if (!chosen) throw new PlanDocError(`${item.id.toUpperCase()} has no option ${want}`)
-    for (const column of columns) column.toggleAttribute("data-chosen", column === chosen)
+    for (const option of options) option.holder.toggleAttribute("data-chosen", option === chosen)
+    const accordion = chosen.holder.closest(OPTIONS)
+    if (accordion) openOn(accordion)
+  }
+
+  /**
+   * Lay out answered question `item`'s details in the order it happened (`QUESTION`):  its text in a
+   * `div.plan-question`, its option cards as a folded Choices accordion, the answer card, then its replies, Original
+   * Discussion and commits.  Returns `{ changed, notes }`, or `{ skipped }` (why:  no answer card, so born
+   * answered).
+   * - idempotent:  a question laid out already is left as it is
+   * - an old layout (the answer card first, before 2026-10-05):  everything after the card is the question's text,
+   *   but its replies (`.plan-reply`), which stay after the answer
+   * - the new layout:  what's before the answer card is the question's text, what's after it stays after it
+   * - the option cards:  the ONE `ui-grid.spell-pros-cons` at the top of the question's text whose labels name
+   *   options (a letter, or "(recommended)");  each card becomes a panel (`choicesFrom()`), `data-chosen` kept.  A
+   *   grid that isn't options (pros / cons), or a second one, stays in the text, as a note says
+   * - nothing is dropped:  every node lands in one of the parts;  whitespace between them goes (oxfmt rewrites it)
+   * - a card with a migrated decision's id still titled "Answer" is retitled `D7` (`answerLabel()`)
+   */
+  layoutAnswer(item) {
+    const content = item.querySelector(":scope > ui-accordion.plan-item > ui-content")
+    const card = content?.querySelector(":scope > .plan-answer-block")
+    if (!card) return { skipped: "born answered (no answer card:  its title is the answer)" }
+    const before = bare(content.innerHTML)
+    const notes = []
+    const original = content.querySelector(`:scope > ${ORIGINAL}`)
+    const commits = content.querySelector(":scope > .plan-commits")
+    let choices = content.querySelector(`:scope > ${CHOICES}`)
+    let question = content.querySelector(`:scope > ${QUESTION}`)
+    const laidOut = Boolean(question || choices)
+    const body = []
+    const tail = []
+    let afterCard = false
+    for (const node of Array.from(content.childNodes)) {
+      if (node === card) afterCard = true
+      else if (node === question) body.push(...Array.from(question.childNodes))
+      else if ([original, commits, choices].includes(node)) continue
+      else if (node.nodeType === 3 && !node.textContent.trim()) node.remove()
+      else if (laidOut ? afterCard : node.nodeType === 1 && node.matches(".plan-reply")) tail.push(node)
+      else body.push(node)
+    }
+    if (!choices) {
+      const grids = body.filter((node) => node.nodeType === 1 && node.matches("ui-grid.spell-pros-cons"))
+      const options = grids.filter(isOptionGrid)
+      if (grids.length > options.length) notes.push(`kept ${grids.length - options.length} grid(s) that aren't options`)
+      if (options.length > 1) notes.push(`kept ${options.length} option grids in the question:  which is the choice?`)
+      else if (options.length === 1) {
+        const [grid] = options
+        body.splice(body.indexOf(grid), 1)
+        grid.remove()
+        choices = this.choicesFrom(grid)
+        const unlettered = optionsOf(choices).length < choices.querySelectorAll(`${OPTIONS} > ui-title`).length
+        if (unlettered) notes.push("options without letters:  can't be picked by letter")
+      }
+    }
+    if (body.some((node) => node.nodeType !== 3 || node.textContent.trim())) {
+      question ??= this.element("div", { class: "plan-question" })
+      question.replaceChildren(...body)
+      trimWhitespace(question)
+    } else {
+      question?.remove()
+      question = null
+      for (const node of body) node.remove()
+    }
+    const label = card.querySelector(":scope > .plan-answer-title > b:first-child")
+    if (label && card.id && label.textContent.trim() === "Answer") label.textContent = answerLabel(card.id)
+    for (const node of Array.from(content.childNodes))
+      if (node.nodeType === 3 && !node.textContent.trim()) node.remove()
+    content.append(...[question, choices, card, ...tail, original, commits].filter(Boolean))
+    return { changed: bare(content.innerHTML) !== before, notes }
+  }
+
+  /**
+   * Option card grid `grid` (a `ui-grid.spell-pros-cons`, out of the doc) as an answered question's Choices aside
+   * (`QUESTION`):  `<ui-accordion class="spell-aside plan-choices" styled>` titled "Choices", folded, holding
+   * `<ui-accordion class="plan-options" styled fluid exclusive="no">`, a `ui-title` + `ui-content` per card.
+   * - the title:  the card's top label's markup (`A · Push main first (recommended)`);  a card without one:
+   *   `Option 2`
+   * - the content:  the card's segment but its label, then anything else in its column
+   * - a chosen card (`data-chosen`):  its title carries it, and the accordion opens on it (`openOn()`)
+   * - `exclusive="no"`:  the reader may open several to compare;  `styled` / `fluid` are UI's own look, for a
+   *   page where the accordion isn't nested (in an item it takes its parent's:  `plan-doc.css` styles it)
+   */
+  choicesFrom(grid) {
+    const options = this.element("ui-accordion", { class: "plan-options", styled: "", fluid: "", exclusive: "no" })
+    for (const [index, column] of Array.from(grid.querySelectorAll(":scope > ui-column")).entries()) {
+      const segment = column.querySelector(":scope > ui-segment")
+      const label = (segment ?? column).querySelector(":scope > ui-label[attached]")
+      const title = this.element("ui-title", column.hasAttribute("data-chosen") ? { "data-chosen": "" } : {})
+      title.innerHTML = label ? label.innerHTML.trim() : `Option ${index + 1}`
+      const panel = this.element("ui-content")
+      for (const child of Array.from(column.childNodes))
+        if (child === segment) panel.append(...Array.from(segment.childNodes).filter((node) => node !== label))
+        else panel.append(child)
+      trimWhitespace(panel)
+      options.append(title, panel)
+    }
+    openOn(options)
+    const aside = this.element("ui-accordion", { class: "spell-aside plan-choices", styled: "" })
+    aside.innerHTML = `<ui-title>${CHOICES_TITLE}</ui-title><ui-content></ui-content>`
+    aside.querySelector(":scope > ui-content").append(options)
+    return aside
+  }
+
+  /**
+   * Lay out every answered question in the doc (`layoutAnswer()`):  `{ changed, skipped, notes, oldDecisions }`.
+   * - `changed`:  the ids laid out anew;  `skipped`:  `{ id, why }` for answered questions left as they are;
+   *   `notes`:  `{ id, note }` for what a converted one kept in its text
+   * - `oldDecisions`:  an old doc's `D` items, which `migrate` merges into their questions first
+   */
+  relayout() {
+    const result = { changed: [], skipped: [], notes: [], oldDecisions: 0 }
+    for (const item of this.document.querySelectorAll('.plan-items[data-kind="decision"] > [id]')) {
+      if (OLD_DECISION.test(item.id)) result.oldDecisions++
+      if (!/^q\d+$/.test(item.id) || !item.hasAttribute("data-answered")) continue
+      const id = item.id.toUpperCase()
+      const done = this.layoutAnswer(item)
+      if (done.skipped) result.skipped.push({ id, why: done.skipped })
+      else if (done.changed) result.changed.push(id)
+      for (const note of done.notes ?? []) result.notes.push({ id, note })
+    }
+    return result
   }
 
   /**
@@ -891,7 +1077,7 @@ ${list}`
   /**
    * Does a decision (other than the item itself) link to `#id`?
    * - a decision, either shape:  an answered question (`q3`, `decided` or since struck), or an old doc's `d7`
-   * - its own id link and an old struck question's `→ D7` don't count
+   * - its own id link, an old struck question's `→ D7`, and a link in its Original Discussion don't count
    */
   linkedFromDecision(id) {
     const list = this.document.querySelector('.plan-items[data-kind="decision"]')
@@ -900,7 +1086,7 @@ ${list}`
       (decision) =>
         decision.id !== id &&
         (OLD_DECISION.test(decision.id) || (/^q\d+$/.test(decision.id) && decision.hasAttribute("data-answered"))) &&
-        decision.querySelector(`a[href="#${id}"]:not(.plan-id, .plan-answer)`)
+        current(decision.querySelectorAll(`a[href="#${id}"]:not(.plan-id, .plan-answer)`)).length > 0
     )
   }
 
@@ -913,7 +1099,10 @@ ${list}`
    * - `queued`:  work waiting
    * - `all`
    * - each item:  `{ id, title, status, state, docState, reviewed, deferred, queued, work, details,
-   *   recommendation }`;  dates are `YYYY-MM-DD` or `null`;  `docState`:  its color on the page (`itemState()`)
+   *   detailsHtml, original, recommendation }`;  dates are `YYYY-MM-DD` or `null`;  `docState`:  its color on the
+   *   page (`itemState()`)
+   *   - `details` / `detailsHtml`:  its CURRENT text, its Original Discussion left out;  `original`:  that, as
+   *     text, or `null` when it has none
    * - Questions are the `Q` items, open and answered (the decisions since D13);  never an old doc's `D` items
    */
   reviewSections({ filter = "unreviewed" } = {}) {
@@ -930,7 +1119,9 @@ ${list}`
 
   /** `reviewSections()`'s view of one item (an element). */
   reviewItem(item) {
-    const details = item.querySelector(":scope > ui-accordion > ui-content")
+    const content = item.querySelector(":scope > ui-accordion > ui-content")
+    const details = content && withoutOriginal(content)
+    const original = content?.querySelector(`:scope > ${ORIGINAL} > ui-content`)
     return {
       id: item.id.toUpperCase(),
       title: titleOf(item),
@@ -944,6 +1135,7 @@ ${list}`
       details: details ? details.textContent.replace(/\s+/g, " ").trim() : "",
       // the details as written, for a page that shows them whole (`pickerSpec()`)
       detailsHtml: details ? details.innerHTML.trim() : "",
+      original: original ? original.textContent.replace(/\s+/g, " ").trim() : null,
       recommendation: recommendation(details)
     }
   }
@@ -1022,21 +1214,13 @@ ${list}`
   }
 
   /**
-   * Question `item`'s option cards (`ui-grid.spell-pros-cons > ui-column`):  `[{ letter, title, recommended }]`.
-   * - `title`:  the card's label after its letter, "(recommended)" left out:  `A · Inbox file (recommended)` ->
-   *   `Inbox file`
-   * - cards whose label has no letter are skipped
+   * Question `item`'s options (`optionsOf()`:  an open question's option cards, an answered one's Choices panels):
+   * `[{ letter, title, recommended }]`.
+   * - `title`:  the label after its letter, "(recommended)" left out:  `A · Inbox file (recommended)` -> `Inbox file`
+   * - labels without a letter are skipped, and the options in its Original Discussion (`ORIGINAL`)
    */
   optionCards(item) {
-    const cards = []
-    for (const column of item.querySelectorAll("ui-grid.spell-pros-cons > ui-column")) {
-      const label = column.querySelector(":scope > ui-segment > ui-label[attached], ui-label[attached]")
-      const match = label?.textContent.trim().match(/^([A-Z])\s*(?:[·.:)]\s*|\s+)(.*)$/s)
-      if (!match) continue
-      const title = match[2].replace(RECOMMENDED, "").replace(/\s+/g, " ").trim()
-      cards.push({ letter: match[1], title, recommended: RECOMMENDED.test(match[2]) })
-    }
-    return cards
+    return optionsOf(item).map(({ letter, title, recommended }) => ({ letter, title, recommended }))
   }
 
   /**
@@ -1123,24 +1307,118 @@ ${list}`
    * Replace item `id`'s details with `html`, or (`append`) add `html` after them;  returns its title.
    * - for Claude's background agents during `/epic review`:  fuller details (Add Details), or a reply to Owen's
    *   revisit note (a `div.plan-reply`, appended)
-   * - the answer card (`.plan-answer-block`) stays first and the commits (`.plan-commits`) last:  the new HTML goes
-   *   between them
+   * - the answer card (`.plan-answer-block`), the Original Discussion (`ORIGINAL`) and the commits (`.plan-commits`)
+   *   stay;  appended HTML goes before the Original Discussion and the commits (after the answer card, on an
+   *   answered question:  a reply comes after the answer)
+   * - replacing NEVER drops the text it replaces (Owen, 2026-10-04):  it moves into the item's Original Discussion
+   *   (`keepOriginal()`);  appending moves nothing
+   * - replacing an ANSWERED question's text:  the new HTML is the question's, before its answer card, laid out again
+   *   (`layoutAnswer()`:  its option cards become the Choices);  the option chosen before stays chosen when the new
+   *   options still have its letter
    * - an item without details gets a panel (`detailsOf()`);  stamped (`data-changed`) and flagged UPDATE
    */
   setDetails(id, html, { append = false } = {}) {
     const item = this.item(id)
     const content = this.detailsOf(item)
     const answer = content.querySelector(":scope > .plan-answer-block")
-    const commits = content.querySelector(":scope > .plan-commits")
-    if (!append) {
-      for (const node of Array.from(content.childNodes)) if (node !== answer && node !== commits) node.remove()
-    }
+    const kept = [
+      answer,
+      content.querySelector(":scope > .plan-commits"),
+      content.querySelector(`:scope > ${ORIGINAL}`)
+    ]
     const fragment = this.fragment(html)
-    if (commits) commits.before(fragment)
-    else content.append(fragment)
+    if (!append) {
+      const chosen = answer && optionsOf(item).find((option) => option.holder.hasAttribute("data-chosen"))?.letter
+      const replaced = Array.from(content.childNodes).filter((node) => !kept.includes(node))
+      for (const node of replaced) node.remove()
+      this.keepOriginal(item, replaced)
+      if (answer) {
+        answer.before(fragment)
+        this.layoutAnswer(item)
+        if (chosen && optionsOf(item).some((option) => option.letter === chosen)) this.chooseOption(item, chosen)
+      }
+    }
+    const next = content.querySelector(`:scope > ${ORIGINAL}, :scope > .plan-commits`)
+    if (append || !answer) {
+      if (next) next.before(fragment)
+      else content.append(fragment)
+    }
     this.stamp(item)
     this.markUpdate(item)
     return titleOf(item)
+  }
+
+  /**
+   * Keep `nodes` -- item `item`'s text being replaced, already out of the doc -- in its Original Discussion
+   * (`ORIGINAL`), made when it has none;  returns `"added"`, `"unchanged"` (a version saying the same is there) or
+   * `"empty"` (nothing but whitespace:  no section).
+   * - a new `div.plan-version`:  undated while it's the first (as first written);  else dated `asOf` (default now,
+   *   `YYYY-MM-DD HH:MM`) under an h5, in date order, and the undated first one gets "As first written"
+   * - ids inside renamed (`stripIds()`);  the section goes before the commits, else last
+   */
+  keepOriginal(item, nodes, { asOf } = {}) {
+    if (!nodes.some((node) => node.nodeType === 1 || node.textContent.trim())) return "empty"
+    const content = this.detailsOf(item)
+    let original = content.querySelector(`:scope > ${ORIGINAL}`)
+    const versions = Array.from(original?.querySelectorAll(":scope > ui-content > .plan-version") ?? [])
+    const when = asOf ?? clockTime(this.now)
+    const dated = versions.length > 0 || asOf !== undefined
+    const version = this.element("div", { class: "plan-version", ...(dated && { "data-as-of": when }) })
+    version.append(...nodes)
+    trimWhitespace(version)
+    stripIds(version)
+    if (versions.some((other) => bare(versionBody(other)) === bare(version.innerHTML))) return "unchanged"
+    if (dated) version.prepend(this.fragment(`<h5>As of ${text(when)}</h5>`))
+    if (!original) {
+      original = this.element("ui-accordion", { class: "spell-aside plan-original", styled: "" })
+      original.innerHTML = `<ui-title>${ORIGINAL_TITLE}</ui-title><ui-content></ui-content>`
+      const commits = content.querySelector(":scope > .plan-commits")
+      if (commits) commits.before(original)
+      else content.append(original)
+    }
+    // oldest first:  the undated first version never sorts after a date
+    const later = versions.find((other) => (other.getAttribute("data-as-of") ?? "") > when)
+    if (later) later.before(version)
+    else original.querySelector(":scope > ui-content").append(version)
+    const first = original.querySelector(":scope > ui-content > .plan-version")
+    if (first !== version && !first.hasAttribute("data-as-of") && !first.querySelector(":scope > h5"))
+      first.prepend(this.fragment("<h5>As first written</h5>"))
+    return "added"
+  }
+
+  /**
+   * Put `html` -- item `id`'s earlier text, e.g. recovered from git -- into its Original Discussion, as
+   * `keepOriginal()` keeps replaced text;  returns `"added"`, `"unchanged"` or `"empty"`.
+   * - `asOf`:  when that text was replaced, `YYYY-MM-DD HH:MM`;  none:  as first written while the item has no
+   *   Original Discussion, else now
+   * - left out of `html`:  commits (the item keeps its own), and an answer card that says what the item's says
+   * - an Original Discussion inside `html`:  each of its versions kept on its own, with its date
+   * - NOT stamped or flagged UPDATE:  restoring history doesn't make an item recent
+   */
+  restoreOriginal(id, html, { asOf } = {}) {
+    const item = this.item(id)
+    const fragment = this.fragment(html)
+    const answer = item.querySelector(":scope > ui-accordion > ui-content > .plan-answer-block")
+    let result = "empty"
+    for (const nested of Array.from(fragment.querySelectorAll(ORIGINAL))) {
+      nested.remove()
+      for (const version of nested.querySelectorAll(":scope > ui-content > .plan-version")) {
+        version.querySelector(":scope > h5")?.remove()
+        const when = version.getAttribute("data-as-of") ?? undefined
+        result = merge(result, this.keepOriginal(item, Array.from(version.childNodes), { asOf: when }))
+      }
+    }
+    for (const node of Array.from(fragment.children)) {
+      const sameAnswer =
+        node.matches(".plan-answer-block") && answer && bare(node.textContent) === bare(answer.textContent)
+      if (node.matches(".plan-commits") || sameAnswer) node.remove()
+    }
+    return merge(result, this.keepOriginal(item, Array.from(fragment.childNodes), { asOf }))
+
+    /** The stronger of two results:  added, else unchanged, else empty. */
+    function merge(a, b) {
+      return [a, b].includes("added") ? "added" : [a, b].includes("unchanged") ? "unchanged" : "empty"
+    }
   }
 
   ////////////////
@@ -1552,6 +1830,8 @@ ${list}`
    * - "Questions & Decisions" is "Questions" (D13), with its new icon and note;  "Judgement calls" gets the gavel
    * - an old doc's `D` items merge into its questions (`mergeDecisions()`):  each answer goes INTO the question it
    *   answers, a stand-alone one becomes a question born answered
+   * - answered questions read in the order they happened (`relayout()`):  the question, its options as a folded
+   *   Choices accordion, then the answer card
    * - a phase's hand-written "Judgement calls:" line STAYS (J14 of `review-review`, "keep 'em"):  the "To review"
    *   line goes after it
    */
@@ -1566,6 +1846,8 @@ ${list}`
     if (items) changes.push(`${items} items as ui-item, details titled by their line`)
     changes.push(...this.mergeQuestions())
     changes.push(...this.mergeDecisions())
+    const relaid = this.relayout().changed.length
+    if (relaid) changes.push(`${relaid} answered questions laid out:  question, Choices, answer`)
     if (this.addJudgements()) changes.push("#judgements (Judgement calls) added after Questions")
     const bodies = this.migratePhaseBodies()
     if (bodies) changes.push(`${bodies} phase bodies as ui-list`)
@@ -1727,7 +2009,8 @@ ${list}`
    * The answer card for old decision `decision`:  `<div class="plan-answer-block" id="d7">` titled `<b>D7</b> ·
    * <its title>`, then its details.
    * - `question`:  the question it answers;  the title drops the question's id (`(Q3)`, `Q3 ...`), and the details a
-   *   `p.meta` "Answers Q3:  ..." line, which only pointed back to it
+   *   `p.meta` "Answers Q3:  ..." line that only pointed back to it:  the question's title, which it keeps.  A line
+   *   saying more stays:  migrating never drops an item's text (I7 of `review-review`)
    * - `id` / `nodes`:  the decision's id and details when it has moved already (`answerAlone()`)
    */
   answerCard(decision, { question, id = decision.id, nodes } = {}) {
@@ -1745,7 +2028,10 @@ ${list}`
     trimWhitespace(card)
     if (question)
       for (const note of card.querySelectorAll(":scope > p.meta"))
-        if (/^Answers\b/.test(note.textContent.trim()) && note.querySelector(`a[href="#${question.id}"]`)) note.remove()
+        if (/^Answers\b/.test(note.textContent.trim()) && note.querySelector(`a[href="#${question.id}"]`)) {
+          const said = note.textContent.replace(/^\s*Answers\s+Q\d+\s*:?/, "")
+          if (bare(said) === bare(titleOf(question))) note.remove()
+        }
     return card
   }
 
@@ -1758,9 +2044,8 @@ ${list}`
    *   page-wide" chose ui-component-creation's Q13 A wrongly, 2026-10-04)
    */
   inferOption(question, card) {
-    const columns = Array.from(question.querySelectorAll("ui-grid.spell-pros-cons > ui-column"))
-    const options = columns.map(optionOf).filter(Boolean)
-    if (!options.length || columns.some((column) => column.hasAttribute("data-chosen"))) return null
+    const options = optionsOf(question)
+    if (!options.length || options.some((option) => option.holder.hasAttribute("data-chosen"))) return null
     const letters = new Set(options.map((option) => option.letter))
     const titleText = card.querySelector(":scope > .plan-answer-title")?.textContent.replace(/^\s*D\d+\s*·\s*/, "")
     const detailsText = Array.from(card.childNodes)
@@ -2044,7 +2329,8 @@ ${list}`
     const seen = new Map()
     for (const el of this.document.querySelectorAll("[id]")) seen.set(el.id, (seen.get(el.id) ?? 0) + 1)
     for (const [id, count] of seen) if (count > 1) problems.push(`id "${id}" used ${count} times`)
-    for (const a of this.document.querySelectorAll('a[href^="#"]')) {
+    // a link in an Original Discussion is history:  what it pointed at may be gone (`ORIGINAL`)
+    for (const a of current(this.document.querySelectorAll('a[href^="#"]'))) {
       const id = a.getAttribute("href").slice(1)
       if (id && !seen.has(id)) problems.push(`link to missing #${id} ("${a.textContent.trim()}")`)
     }
@@ -2127,9 +2413,12 @@ function recommendation(details) {
     .replace(/\s+/g, " ")
     .trim()
 
-  /** An option's own label beats a bold lead, which beats any other mention ("yes (recommended)" in a cell). */
+  /**
+   * An option's own label (a card's `ui-label`, a Choices panel's `ui-title`) beats a bold lead, which beats any
+   * other mention ("yes (recommended)" in a cell).
+   */
   function rank(el) {
-    if (el.localName === "ui-label") return 0
+    if (el.localName === "ui-label" || el.localName === "ui-title") return 0
     return ["b", "strong"].includes(el.localName) ? 1 : 2
   }
 }
@@ -2138,16 +2427,67 @@ function recommendation(details) {
 const RECOMMENDED = /\(recommended\)/i
 
 /**
- * An option card's (`ui-column` in a `ui-grid.spell-pros-cons`) letter and title words, from its top label:
- * `{ letter, words }`, or `null` when the label has no letter.
- * - labels:  `A · Inbox file (recommended)`;  older docs `A. Inbox file`, `A: Inbox file`
- * - `words`:  the title's words (`words()`), "(recommended)" left out
+ * Question `item`'s options, in page order, outside its Original Discussion (`ORIGINAL`):  `[{ holder, letter,
+ * title, recommended, words }]`, only those whose label starts with a letter.
+ * - an open question's option cards:  `holder` the `ui-column` of a `ui-grid.spell-pros-cons`, labelled by its top
+ *   `ui-label[attached]`
+ * - an answered question's Choices panels (`QUESTION`):  `holder` the panel's `ui-title`, its own label
+ * - `holder` carries `data-chosen`;  labels as `optionLabel()` reads them
+ * - `item` may be any element holding them (a Choices aside not yet in the doc, `layoutAnswer()`)
  */
-function optionOf(column) {
-  const label = column.querySelector(":scope > ui-segment > ui-label[attached], ui-label[attached]")
+function optionsOf(item) {
+  const holders = current(item.querySelectorAll(`ui-grid.spell-pros-cons > ui-column, ${OPTIONS} > ui-title`))
+  const options = []
+  for (const holder of holders) {
+    const label =
+      holder.localName === "ui-title"
+        ? holder
+        : holder.querySelector(":scope > ui-segment > ui-label[attached], ui-label[attached]")
+    const option = optionLabel(label)
+    if (option) options.push({ holder, ...option })
+  }
+  return options
+}
+
+/**
+ * An option's letter and title from its label (`optionsOf()`):  `{ letter, title, recommended, words }`, or `null`
+ * when the label has no letter.
+ * - labels:  `A · Inbox file (recommended)`;  older docs `A. Inbox file`, `A: Inbox file`
+ * - `title`:  after the letter, "(recommended)" left out;  `words`:  its words (`words()`)
+ */
+function optionLabel(label) {
   const match = label?.textContent.trim().match(/^([A-Z])\s*(?:[·.:)]\s*|\s+)(.*)$/s)
   if (!match) return null
-  return { letter: match[1], words: words(match[2].replace(RECOMMENDED, "")) }
+  const title = match[2].replace(RECOMMENDED, "").replace(/\s+/g, " ").trim()
+  return { letter: match[1], title, recommended: RECOMMENDED.test(match[2]), words: words(title) }
+}
+
+/**
+ * Is `grid` (a `ui-grid.spell-pros-cons`) a question's option cards, not pros and cons?  Some card's label names an
+ * option:  a letter first (`A · ...`), or "(recommended)" (the `markdown` epic's cards had no letters).
+ */
+function isOptionGrid(grid) {
+  return Array.from(grid.querySelectorAll(":scope > ui-column")).some((column) => {
+    const label = column.querySelector(":scope > ui-segment > ui-label[attached], :scope > ui-label[attached]")
+    return Boolean(optionLabel(label)) || RECOMMENDED.test(label?.textContent ?? "")
+  })
+}
+
+/**
+ * Open Choices accordion `options` (`OPTIONS`) on its chosen panel (`open="2"`, by index);  none chosen:  every
+ * panel folded (no `open`).
+ */
+function openOn(options) {
+  const index = Array.from(options.querySelectorAll(":scope > ui-title")).findIndex((title) =>
+    title.hasAttribute("data-chosen")
+  )
+  if (index < 0) options.removeAttribute("open")
+  else options.setAttribute("open", String(index))
+}
+
+/** An answer card's label:  a migrated decision's id (`d4` -> `D4`), else `Answer`. */
+function answerLabel(id) {
+  return id && OLD_DECISION.test(id) ? id.toUpperCase() : "Answer"
 }
 
 /** Words that say nothing about which option is meant:  `words()` drops them. */
@@ -2192,6 +2532,55 @@ function reviewLabelColor(words, state) {
 /** `html` with its whitespace runs as one space, trimmed:  to compare markup oxfmt may have rewrapped. */
 function squeeze(html) {
   return html.replace(/\s+/g, " ").trim()
+}
+
+/**
+ * `html` with NO whitespace:  to tell whether two versions of an item's text say the same, however oxfmt wrapped
+ * them (`</ui-content\n>`);  text differing only in spacing counts as the same.
+ */
+function bare(html) {
+  return html.replace(/\s+/g, "")
+}
+
+/** Is `node` inside an item's Original Discussion (`ORIGINAL`)?  Readers of an item's text skip it. */
+function inOriginal(node) {
+  return Boolean(node.closest?.(".plan-original"))
+}
+
+/** `elements` (a node list) outside every Original Discussion, as an array. */
+function current(elements) {
+  return Array.from(elements).filter((element) => !inOriginal(element))
+}
+
+/** A copy of item details `content` (its `ui-content`) without its Original Discussion:  its current text. */
+function withoutOriginal(content) {
+  const copy = content.cloneNode(true)
+  for (const original of copy.querySelectorAll(`:scope > ${ORIGINAL}`)) original.remove()
+  return copy
+}
+
+/** An Original Discussion version's text (`div.plan-version`), its heading left out, as HTML. */
+function versionBody(version) {
+  const copy = version.cloneNode(true)
+  copy.querySelector(":scope > h5")?.remove()
+  return copy.innerHTML
+}
+
+/**
+ * Every `id` in `element` (itself too) renamed `data-original-id`:  text moved into an Original Discussion must not
+ * make a second `#q3`, nor be what a link lands on.
+ */
+function stripIds(element) {
+  for (const node of [element, ...element.querySelectorAll("[id]")]) {
+    if (!node.hasAttribute("id")) continue
+    node.setAttribute("data-original-id", node.getAttribute("id"))
+    node.removeAttribute("id")
+  }
+}
+
+/** `date`, local, as `YYYY-MM-DD HH:MM`:  an Original Discussion version's "As of". */
+function clockTime(date) {
+  return `${isoDate(date)} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
 }
 
 ////////////////
@@ -2599,7 +2988,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
                                                    what a review walks:  sections, counts, items, the queue
   items <name> --section issues --spec <file>      the review's item picker, a details page spec:
                                                    \`yarn details new <slug> --from <file>\`
-  list [--json]                                    every epic, main and worktrees:  status, not reviewed / all
+  list [--json]                                    every epic:  status, where it runs, not reviewed / all
   backfill <name> | --all [--apply]                items Owen already went through, from past sessions;
                                                    a dry run unless --apply (review-backfill.js)
   summaries <file.html> ...                        \`summary --json\` of each doc, by path (worktrees' too):
@@ -2608,6 +2997,9 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   open <name>                                      show in VS Code's doc preview (right side bar)
   migrate <name>                                   bring an older doc (any layout) into the current one;
                                                    its decisions (D items) merge into its questions
+  relayout <name> | --all [--dry-run]              answered questions in the order they happened:  the
+                                                   question, its options as a folded "Choices" accordion,
+                                                   then the answer card;  prints what changed and skipped
   inbox <name> [--json]                            the marks Owen left on the page (<name>.inbox.json), by
                                                    action, sent or not;  requests for now, agents at work,
                                                    the session listening
@@ -2626,9 +3018,14 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
                                                    Owen changed meanwhile stays)
   inbox <name> clear <id>...                       drop marks (a revisit talked over)
   details <name> <id> --file <html> [--append]     replace an item's details with the file's HTML, or (--append)
-                                                   add it, e.g. a reply:  between the answer card and commits
-Every command but \`new\` edits the epic's LIVE doc:  its own worktree's, else main's, else any worktree's.
---here:  THIS checkout's copy instead, for a sweep over every doc on this branch (never an epic's own edits).`
+                                                   add it, e.g. a reply:  between the answer card and commits;
+                                                   replacing moves the old text into its Original Discussion
+  original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]
+                                                   put earlier text (from git) into an item's Original
+                                                   Discussion:  as first written, or dated --as-of (when it was
+                                                   replaced);  prints added / unchanged / empty
+Every checkout shares ONE copy of each doc (packages/docs/content links it):  any checkout edits the same file.
+--here is no longer needed:  accepted and ignored.`
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {
@@ -2646,12 +3043,13 @@ function main(argv) {
   const [command, name, ...rest] = positional
   if (command === "list") return printEpics(listEpics(), flags.json)
   if (command === "backfill") return backfill(name, flags)
+  if (command === "relayout") return relayout(name, flags)
   if (!command || !name) return usage()
   if (command === "summaries") return printSummaries(positional.slice(1))
-  // the epic's LIVE doc, wherever it is (its worktree, else main:  `findDoc()`);  `new` makes one HERE.  `--here`:
-  // THIS checkout's copy, for a sweep over every doc that merges with this branch (P4 of `review-review` migrated
-  // them all so);  never for an epic's own edits:  that would fork its record
-  const file = command === "new" ? docPath(name) : flags.here ? hereDoc(name) : findDoc(name)
+  // the shared doc, by THIS checkout's path (`findDoc()`);  `--here` meant that before every checkout shared one
+  // copy:  accepted and ignored, so old callers keep working (T3 of `review-review`)
+  if (flags.here) console.error("plan-doc:  --here is no longer needed:  every checkout edits the one shared doc")
+  const file = command === "new" ? docPath(name) : findDoc(name)
   switch (command) {
     case "new":
       return create(name, file, flags)
@@ -2759,6 +3157,20 @@ function main(argv) {
         plan.log(`${id.toUpperCase()} ${flags.append ? "reply added" : "details rewritten"}`)
       })
     }
+    case "original": {
+      const id = need(rest[0], "an item id")
+      const html = readFileSync(need(flags.file, "--file <html file>"), "utf8")
+      const asOf = flags.asOf
+      if (asOf !== undefined && !/^\d{4}-\d\d-\d\d(?: \d\d:\d\d)?$/.test(String(asOf)))
+        throw new PlanDocError(`--as-of must be "YYYY-MM-DD HH:MM" (or "YYYY-MM-DD"), not "${asOf}"`)
+      const result = edit(file, (plan) => {
+        const done = plan.restoreOriginal(id, html, { asOf })
+        if (done === "added")
+          plan.log(`${id.toUpperCase()} original discussion restored${asOf ? ` (as of ${asOf})` : ""}`)
+        return done
+      })
+      return console.log(`${id.toUpperCase()}:  ${result}`)
+    }
     default:
       return usage()
   }
@@ -2829,58 +3241,18 @@ function docPath(name) {
 }
 
 /**
- * The doc of epic `name` in whichever checkout holds the live one:  its own worktree (`.claude/worktrees/<name>`),
- * else the main checkout, else the first worktree that has it.
- * - why not this checkout first:  every worktree has a COPY of every merged epic, from when it branched;  editing
- *   that copy would fork the record
+ * The doc of epic `name`:  THIS checkout's `epics/<name>/`, either name (`planDocIn()`);  throws when there's none.
+ * - ONE path since epic `shared-content` (2026-10-04):  every checkout's `packages/docs/content` is a link to the
+ *   one shared copy, so the old search (the epic's worktree, else main, else any worktree) and `--here` always
+ *   reached this same file (T3 of `review-review`)
+ * - this checkout's path, not another's:  `tidy()` and the URLs stay inside it (a path through another worktree,
+ *   made relative here, starts `../../.claude/...`, which oxfmt refuses)
  */
 function findDoc(name) {
   docPath(name)
-  const found = epicFile(name)
-  if (!found) throw new PlanDocError(`no plan doc for "${name}" in the main checkout or any worktree`)
-  return found
-}
-
-/** Plan `name`'s doc in THIS checkout (`--here`), either name;  throws when it has none. */
-function hereDoc(name) {
-  docPath(name)
   const found = planDocIn(join(DOCS, "epics", name), name)
-  if (!found) throw new PlanDocError(`no plan doc for "${name}" in this checkout`)
+  if (!found) throw new PlanDocError(`no plan doc for "${name}" (${relative(ROOT, join(DOCS, "epics", name))}/)`)
   return found
-}
-
-/**
- * `findDoc()`'s file for `name`, or `undefined`.
- * - either name, in each checkout (`planDocIn()`):  `<name>.plan.html`, else an old `<name>.html` plan doc
- * - shared content:  when THIS checkout reaches the same file, its own path is returned, so `tidy()` and the URLs
- *   stay inside this checkout (another worktree's path, made relative here, starts `../../.claude/...`, which
- *   oxfmt refuses)
- */
-function epicFile(name) {
-  const found = checkouts(name)
-    .map((root) => planDocIn(join(epicsDirOf(root), name), name))
-    .find(Boolean)
-  const here = planDocIn(join(DOCS, "epics", name), name)
-  return found && here && realOrSelf(found) === realOrSelf(here) ? here : found
-}
-
-/**
- * Where checkout `root` keeps its plan docs:  `packages/docs/content/epics`, or (a worktree cut before
- * 2026-10-04, epic `shared-content` P2) `packages/docs/epics`.
- */
-function epicsDirOf(root) {
-  const epics = join(root, "packages/docs/content/epics")
-  const old = join(root, "packages/docs/epics")
-  return !existsSync(epics) && existsSync(old) ? old : epics
-}
-
-/** `path` with every link resolved, or `path` itself when it doesn't exist. */
-function realOrSelf(path) {
-  try {
-    return realpathSync(path)
-  } catch {
-    return path
-  }
 }
 
 /** The main checkout's root:  the parent of git's common dir (`.git`), the same from any worktree. */
@@ -2889,54 +3261,40 @@ function mainRoot() {
   return common ? dirname(common) : ROOT
 }
 
-/** Checkout roots, in `findDoc()`'s order:  `name`'s own worktree (if given), the main checkout, the others. */
-function checkouts(name) {
-  const main = mainRoot()
-  const trees = join(main, ".claude/worktrees")
-  const worktrees = existsSync(trees)
-    ? readdirSync(trees, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => join(trees, entry.name))
-    : []
-  const own = worktrees.filter((root) => basename(root) === name)
-  // shared content (`packages/docs/content` a link into `../spell-app-dev`):  every checkout has the SAME epics;
-  // keep the first checkout of each real folder, so an epic's own worktree (else main) answers for it
-  const seen = new Set()
-  return [...own, main, ...worktrees.filter((root) => basename(root) !== name)].filter((root) => {
-    const real = realOrSelf(epicsDirOf(root))
-    if (seen.has(real)) return false
-    seen.add(real)
-    return true
-  })
+/**
+ * Where epic `name` runs:  `.claude/worktrees/<name>` while that worktree exists, else `main`.
+ * - `list`'s `checkout`, which `/epics` reads;  the doc itself is the shared one either way (`findDoc()`)
+ */
+function epicCheckout(name, main = mainRoot()) {
+  const own = join(main, ".claude/worktrees", name)
+  return existsSync(own) ? relative(main, own) : "main"
 }
 
 /**
  * Every epic, once each:  `{ name, title, status, checkout, notReviewed, total, file }`, in progress first, then
  * most not reviewed.
  * - `status`:  `in progress` while any phase isn't done (or there are none yet), else `done`
- * - `checkout`:  `main`, or `.claude/worktrees/<w>`:  where its live doc is (`findDoc()`)
+ * - `checkout`:  `main`, or `.claude/worktrees/<name>`:  where it runs (`epicCheckout()`)
+ * - every epic is in THIS checkout's `epics/`:  the shared copy (`findDoc()`)
  */
 function listEpics() {
   const main = mainRoot()
-  const names = new Set()
-  for (const root of checkouts()) {
-    const epics = epicsDirOf(root)
-    if (!existsSync(epics)) continue
-    for (const entry of readdirSync(epics, { withFileTypes: true })) {
-      if (entry.isDirectory() && planDocIn(join(epics, entry.name), entry.name)) names.add(entry.name)
-    }
-  }
-  const epics = Array.from(names, (name) => {
-    const file = epicFile(name)
+  const dir = join(DOCS, "epics")
+  const names = existsSync(dir)
+    ? readdirSync(dir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory() && planDocIn(join(dir, entry.name), entry.name))
+        .map((entry) => entry.name)
+    : []
+  const epics = names.map((name) => {
+    const file = findDoc(name)
     const plan = read(file)
     const sections = plan.reviewSections()
     const phases = plan.phases
-    const root = checkoutOf(file)
     return {
       name,
       title: docTitle(plan.document) ?? name,
       status: phases.length && phases.every((phase) => phase.status === "done") ? "done" : "in progress",
-      checkout: root === main ? "main" : relative(main, root),
+      checkout: epicCheckout(name, main),
       notReviewed: sections.reduce((sum, section) => sum + section.notReviewed, 0),
       total: sections.reduce((sum, section) => sum + section.total, 0),
       file
@@ -3140,12 +3498,12 @@ export function sharedDocLog(file, checkout) {
 
 /**
  * Rewrite the docs index:  a plan's status badge follows its phases.
- * - NOT in a worktree:  every phase change there would rewrite the committed `index.html`, and two epics' worktrees
- *   then conflict on merge.  The main checkout's page server lists running epics live instead (`$/server/page`
- *   `RunningEpics`);  the epic's card comes with Doc Review's `yarn docs:index`.
+ * - shared content (`packages/docs/content` a link):  ONE `index.html` for every checkout, not tracked by
+ *   spell-app, so a worktree rewrites it too:  nothing to conflict on merge
+ * - a checkout WITHOUT the link (its own tracked `index.html`) in a worktree:  left alone, or two epics' worktrees
+ *   would conflict on merge
  */
 function reindex() {
-  // shared content:  one index for every checkout, so a worktree updates it too
   const shared = lstatSync(DOCS, { throwIfNoEntry: false })?.isSymbolicLink()
   if (!shared && /[\\/]\.claude[\\/]worktrees[\\/]/.test(DOCS)) return
   const run = spawnSync("node", [join(TOOLS, "index.js")], { cwd: DOCS, encoding: "utf8" })
@@ -3211,7 +3569,38 @@ function backfill(name, { all, apply }) {
   console.log(apply ? `marked ${total} reviewed` : `dry run:  ${total} to mark;  --apply marks them`)
 }
 
-/** `list`:  every epic, grouped in progress / done (or JSON). */
+/**
+ * `relayout <name> | --all [--dry-run]`:  lay out every answered question in the order it happened
+ * (`PlanDoc.relayout()`), and print, per doc, the questions changed and those skipped, and why.
+ * - `--dry-run`:  read only;  else each doc with changes is written (`edit()`) and logged
+ * - a doc with nothing to change isn't written
+ */
+function relayout(name, { all, dryRun }) {
+  if (!name && !all) throw new PlanDocError(`relayout needs a name, or --all\n${USAGE}`)
+  const epics = all ? listEpics() : [{ name, file: findDoc(name) }]
+  let total = 0
+  for (const epic of epics) {
+    const result = read(epic.file).relayout()
+    total += result.changed.length
+    console.log(`${epic.name}:  ${result.changed.length} to lay out, ${result.skipped.length} skipped`)
+    if (result.changed.length) console.log(`  changed:  ${result.changed.join(", ")}`)
+    for (const why of new Set(result.skipped.map((skip) => skip.why))) {
+      const ids = result.skipped.filter((skip) => skip.why === why).map((skip) => skip.id)
+      console.log(`  skipped, ${why}:  ${ids.join(", ")}`)
+    }
+    for (const { id, note } of result.notes) console.log(`  note:  ${id} ${note}`)
+    if (result.oldDecisions)
+      console.log(`  ${result.oldDecisions} old D items not merged:  \`plan-doc migrate ${epic.name}\` first`)
+    if (dryRun || !result.changed.length) continue
+    edit(epic.file, (plan) => {
+      const done = plan.relayout()
+      plan.log(`answered questions laid out (question, Choices, answer):  ${done.changed.join(", ")}`)
+    })
+  }
+  console.log(dryRun ? `dry run:  ${total} to lay out;  without --dry-run, they're written` : `laid out ${total}`)
+}
+
+/** `list`:  every epic, grouped in progress / done, its worktree when it has one (or JSON). */
 function printEpics(epics, json) {
   if (json) return console.log(JSON.stringify(epics, null, 2))
   const lines = []

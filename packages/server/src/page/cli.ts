@@ -1,5 +1,5 @@
 /**
- * `yarn server <command>`:  the page server of this checkout.
+ * `spell dev server <command>`:  the page server of this checkout.
  * - `serve [--port N]` -- run it in the foreground, until `Ctrl-C`
  * - `start` / `ensure` -- start it in the background if it isn't running;  prints JSON `{ base, port, pid, root,
  *   launched }`
@@ -47,7 +47,7 @@ async function main(args: string[]): Promise<void> {
     }
     case "url": {
       const file = rest.find((arg) => !arg.startsWith("--") && arg !== flag(rest, "--root"))
-      if (!file) throw new Error("usage:  yarn server url <file>")
+      if (!file) throw new Error("usage:  spell dev server url <file>")
       const absolute = resolve(process.env.INIT_CWD ?? process.cwd(), file)
       // a worktree's file:  the MAIN checkout's server, when it serves worktrees, so every link is on one port
       const main = await SRV.mainServerUrl(absolute)
@@ -57,7 +57,7 @@ async function main(args: string[]): Promise<void> {
       return console.log(`${base}/${path.split(sep).map(encodeURIComponent).join("/")}`)
     }
     default:
-      console.log(`usage:  yarn server serve|start|ensure|stop|status|url <file>  [--root <dir>] [--port <n>]`)
+      console.log(`usage:  spell dev server serve|start|ensure|stop|status|url <file>  [--root <dir>] [--port <n>]`)
   }
 }
 

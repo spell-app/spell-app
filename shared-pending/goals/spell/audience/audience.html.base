@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Who it's for</title>
+    <meta
+      name="description"
+      content="The people we imagine using spell, what they want to make, and how they'll find it."
+    />
+    <link rel="stylesheet" href="../../../packages/docs/tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../../packages/docs/tools/_assets/plan-doc.css" />
+    <link rel="stylesheet" href="../../../packages/docs/tools/_assets/goals.css" />
+  </head>
+  <body
+    class="spell-doc-page"
+    data-set="spell"
+    data-topic="audience"
+    data-short="audience"
+    data-n="3"
+    data-icon="users"
+    data-accent="yellow"
+    data-status="draft"
+  >
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          TOPIC PAGE:  made by `yarn goals new`;  rules in `goals/AGENTS.md`.
+          - Structured parts (items, status, history, updated) go through `yarn goals ...`;  hand-edit prose only.
+          - Section ids are fixed:  other topics link to them.
+        -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="_self">Goals</ui-breadcrumb-section>
+          <ui-breadcrumb-section href="../index.html" target="_self">spell</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>3 · audience</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <header class="goals-hero">
+          <span class="goals-hero-icon" aria-hidden="true"><ui-icon name="users"></ui-icon></span>
+          <p class="goals-eyebrow"><span class="goals-num">3</span> Topic · audience</p>
+          <h1>Who it's for</h1>
+          <p class="lede">The people we imagine using spell, what they want to make, and how they'll find it.</p>
+          <ui-list class="spell-meta">
+            <ui-item icon="flag"
+              >Status: <ui-label class="goals-status" size="mini" color="grey">draft</ui-label> · first pass, not yet
+              talked through</ui-item
+            >
+            <ui-item icon="calendar">Updated: <time class="goals-updated">2026-10-01</time></ui-item>
+            <ui-item icon="robot"
+              >Notes for agents: <a href="audience.md" target="src-goals-audience-audience-md">audience.md</a></ui-item
+            >
+          </ui-list>
+        </header>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="summary"><ui-icon name="eye"></ui-icon> 1. Summary</h2></ui-sticky
+          >
+          <ul>
+            <li>
+              <strong>The 2017 answer:</strong> laypeople: people who can read a program before they can write one. The
+              test reader in old notes: "a high-school educated person".
+            </li>
+            <li>
+              <strong>What they'd make</strong> (<code>WhatIsSpell.md</code>): client lists, home budgets, family
+              calendars, collections, invoices, dashboards, catalogs, games.
+            </li>
+            <li>
+              <strong>Not mentioned anywhere yet:</strong> kids and teachers. Programmers appear as the people who
+              extend spell.
+            </li>
+            <li><strong>For December:</strong> we need ONE person to design for. The rest can wait their turn.</li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="today"><ui-icon name="calendar"></ui-icon> 2. Today</h2></ui-sticky
+          >
+          <ul>
+            <li>
+              <strong>Examples:</strong> FizzBuzz, Calculator, Todos, Solitaire. Fun, but they say "toy", not "tool".
+            </li>
+            <li><strong>No path in:</strong> no onboarding, tutorial, or docs written for people writing spells.</li>
+            <li>
+              <strong>The app assumes a developer:</strong> a clone, <code>yarn start</code>, and parser debug panes on
+              screen.
+            </li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="goals"><ui-icon name="bullseye"></ui-icon> 3. Goals</h2></ui-sticky
+          >
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="now"><ui-icon name="seedling"></ui-icon> Now → December 2026</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="now">
+              <li data-status="open" id="g1">
+                <a class="plan-id" href="#g1">G1</a> <span class="plan-title">One person to design for</span>
+                <span class="goals-note">chosen, named and written up as a short story</span>
+              </li>
+              <li data-status="open" id="g2">
+                <a class="plan-id" href="#g2">G2</a> <span class="plan-title">Five real testers</span>
+                <span class="goals-note">people you know who'll try the December preview and tell the truth</span>
+              </li>
+              <li data-status="open" id="g3">
+                <a class="plan-id" href="#g3">G3</a> <span class="plan-title">Their first hour</span>
+                <span class="goals-note"
+                  >the app that person makes in their first hour: it becomes an example and a guide</span
+                >
+              </li>
+            </ol>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="next"><ui-icon name="tree"></ui-icon> 2027</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="next">
+              <li data-status="open" id="g4">
+                <a class="plan-id" href="#g4">G4</a> <span class="plan-title">The second and third people</span>
+                <span class="goals-note">who comes next, in order</span>
+              </li>
+              <li data-status="open" id="g5">
+                <a class="plan-id" href="#g5">G5</a> <span class="plan-title">A place to gather</span>
+                <span class="goals-note">a forum or chat where people help each other</span>
+              </li>
+            </ol>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="someday"><ui-icon name="mountain sun"></ui-icon> Someday</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="someday">
+              <li data-status="open" id="g6">
+                <a class="plan-id" href="#g6">G6</a> <span class="plan-title">Clubs and classrooms</span>
+                <span class="goals-note">if teachers turn out to be the people who need it</span>
+              </li>
+            </ol>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="ideas"><ui-icon name="lightbulb"></ui-icon> 4. Ideas</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="idea">
+            <li data-status="open" id="i1">
+              <a class="plan-id" href="#i1">I1</a> <span class="plan-title">The tinkerer</span>
+              <span class="goals-note"
+                >makes small tools for themselves: a collection, a budget, a game for the kids</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>HyperCard's heart. Wants it to feel like a craft, not a course.</p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i2">
+              <a class="plan-id" href="#i2">I2</a> <span class="plan-title">The small-business owner</span>
+              <span class="goals-note">customers, invoices, schedules</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Needs data, forms and printing: depends on
+                    <a target="_self" href="../thingverse/thingverse.html">thingverse</a>.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i3">
+              <a class="plan-id" href="#i3">I3</a> <span class="plan-title">The learner and their teacher</span>
+              <span class="goals-note">a first language you can read aloud</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>Needs a gentle path, great errors, and classroom-friendly devices (Chromebooks).</p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i4">
+              <a class="plan-id" href="#i4">I4</a>
+              <span class="plan-title">The programmer who wants readable code</span>
+              <span class="goals-note">writes libraries, embeds spell as their app's scripting language</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>See <a target="_self" href="../programmers/programmers.html">programmers</a>.</p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i5">
+              <a class="plan-id" href="#i5">I5</a> <span class="plan-title">The kid who outgrew Scratch</span>
+              <span class="goals-note">games, stories, things to show friends</span>
+            </li>
+            <li data-status="open" id="i6">
+              <a class="plan-id" href="#i6">I6</a> <span class="plan-title">The spreadsheet power user</span>
+              <span class="goals-note">analysts, scientists, office heroes who already "program" in formulas</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="questions"><ui-icon name="circle question"></ui-icon> 5. Questions</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="question">
+            <li data-status="open" id="q1">
+              <a class="plan-id" href="#q1">Q1</a> <span class="plan-title">Who is the first person?</span>
+              <span class="goals-note">one of I1-I6, or someone else</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <strong>Suggestion:</strong> the tinkerer (<a href="#i1">I1</a>). It's who HyperCard served best, it
+                    fits a Mac app, and their projects (collections, budgets, games) need the least infrastructure. The
+                    small-business owner is a strong second, but needs data and printing first.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q2">
+              <a class="plan-id" href="#q2">Q2</a> <span class="plan-title">Read first, or write first?</span>
+              <span class="goals-note">is the first experience using a stack, or writing one?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <strong>Suggestion:</strong> read first. Open a finished example, use it, then "show me how it
+                    works" and change one line. That's HyperCard's browse-to-script ladder, and it plays to spell's
+                    strength: being readable.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q3">
+              <a class="plan-id" href="#q3">Q3</a> <span class="plan-title">Where will they find spell?</span>
+              <span class="goals-note">word of mouth, Hacker News, YouTube, teachers...</span>
+            </li>
+            <li data-status="open" id="q4">
+              <a class="plan-id" href="#q4">Q4</a> <span class="plan-title">Do people share what they make?</span>
+              <span class="goals-note">in December, or later?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Sharing needs hosting or a link format; see
+                    <a target="_self" href="../web-components/web-components.html">web-components</a>.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q5">
+              <a class="plan-id" href="#q5">Q5</a> <span class="plan-title">What computer are they on?</span>
+              <span class="goals-note">Mac? Windows? iPad? a school Chromebook?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>Decides a lot in <a target="_self" href="../native/native.html">native</a>.</p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q6">
+              <a class="plan-id" href="#q6">Q6</a> <span class="plan-title">Who are your five testers?</span>
+              <span class="goals-note">kinds of people, or names</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="risks"><ui-icon name="triangle exclamation"></ui-icon> 6. Risks</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="risk">
+            <li data-status="open" id="r1">
+              <a class="plan-id" href="#r1">R1</a> <span class="plan-title">Designing for everyone</span>
+              <span class="goals-note">means designing for no one</span>
+            </li>
+            <li data-status="open" id="r2">
+              <a class="plan-id" href="#r2">R2</a> <span class="plan-title">Examples that say "toy"</span>
+              <span class="goals-note">Solitaire is delightful, but signals games, not tools</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="decisions"><ui-icon name="gavel"></ui-icon> 7. Decisions</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="decision"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="work"><ui-icon name="list check"></ui-icon> 8. Work</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="work"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="history"><ui-icon name="clock rotate left"></ui-icon> 9. History</h2></ui-sticky
+          >
+          <ui-feed class="spell-history goals-history" size="small"
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  >Page made: a first pass from the code, the 2017 talk and old notes
+                  <ui-date>2026-10-01</ui-date></ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Part of the <a href="../index.html" target="_self">spell</a> goal set. Notes for agents:
+            <a href="audience.md" target="src-goals-audience-audience-md">audience.md</a>.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../../packages/docs/tools/_assets/spell-ui.js"></script>
+    <script src="../../../packages/docs/tools/_assets/goals-live.js"></script>
+  </body>
+</html>
