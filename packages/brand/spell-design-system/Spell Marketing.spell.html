@@ -203,8 +203,8 @@
         --ui-segment-radius: 18px;
         --ui-segment-padding: 16px 18px;
       }
-      /* HACK:  a segment has no token to stack its content (display / gap;  plan-doc issue I43):  the `segment` part */
-      .demo .cards > ui-segment::part(segment) {
+      /* a segment's content, stacked:  a plain box inside it (the segment lays out nothing itself) */
+      .stack {
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -231,14 +231,14 @@
         --ui-segment-shadow: none;
       }
       /*
-       * the host is `display: contents`:  the segment box itself fades.
-       * - HACK:  a segment has no dimmed state but `disabled` (which also greys its text and drops clicks), nor a
-       *   token for its opacity (plan-doc issue I43):  the `segment` part
+       * the preview fades while the app builds:  a box around the segment does (its host is `display: contents`, so
+       * it can't).  A one-cell grid, so the segment still stretches to the row's height.
        */
-      .preview::part(segment) {
+      .fade {
+        display: grid;
         transition: opacity 0.4s;
       }
-      .preview.building::part(segment) {
+      .fade.building {
         opacity: 0.4;
       }
       .preview .card-title {
@@ -274,7 +274,7 @@
         border-radius: 50%;
         box-shadow: inset 0 0 0 1.5px var(--spell-border-strong);
       }
-      .preview > ui-button {
+      .preview .stack > ui-button {
         margin: 2px 0 0;
         --ui-font-family: var(--spell-font-serif);
         --ui-font-size: 13px;
@@ -380,12 +380,6 @@
       }
       .readable ui-segment {
         --ui-segment-background: var(--ui-surface);
-      }
-      /* HACK:  as .cards' segments, no token to stack the content (plan-doc issue I43) */
-      .readable ui-segment::part(segment) {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
       }
       .readable .spell {
         font: 400 16px/1.55 var(--spell-font-serif);
@@ -556,27 +550,33 @@
           </ui-brand-composer>
           <div class="cards">
             <ui-segment class="progress">
-              <div class="card-title">
-                <ui-icon name="wand magic sparkles"></ui-icon><span id="progress-title">Ready</span>
+              <div class="stack">
+                <div class="card-title">
+                  <ui-icon name="wand magic sparkles"></ui-icon><span id="progress-title">Ready</span>
+                </div>
+                <ui-brand-checklist id="steps" step="4" aria-label="Build progress">
+                  <ui-brand-check>Planning structure</ui-brand-check>
+                  <ui-brand-check>Creating screens</ui-brand-check>
+                  <ui-brand-check>Adding functionality</ui-brand-check>
+                  <ui-brand-check>Finalizing your app</ui-brand-check>
+                </ui-brand-checklist>
               </div>
-              <ui-brand-checklist id="steps" step="4" aria-label="Build progress">
-                <ui-brand-check>Planning structure</ui-brand-check>
-                <ui-brand-check>Creating screens</ui-brand-check>
-                <ui-brand-check>Adding functionality</ui-brand-check>
-                <ui-brand-check>Finalizing your app</ui-brand-check>
-              </ui-brand-checklist>
             </ui-segment>
-            <ui-segment class="preview" id="preview" aria-label="App preview">
-              <div class="card-title">
-                <ui-icon id="preview-icon" name="seedling"></ui-icon><span id="preview-name">Habit Tracker</span>
-              </div>
-              <ul id="preview-rows">
-                <li>Drink water</li>
-                <li>Read</li>
-                <li>Move body</li>
-              </ul>
-              <ui-button primary fluid id="preview-cta">+ Add habit</ui-button>
-            </ui-segment>
+            <div class="fade" id="preview">
+              <ui-segment class="preview" aria-label="App preview">
+                <div class="stack">
+                  <div class="card-title">
+                    <ui-icon id="preview-icon" name="seedling"></ui-icon><span id="preview-name">Habit Tracker</span>
+                  </div>
+                  <ul id="preview-rows">
+                    <li>Drink water</li>
+                    <li>Read</li>
+                    <li>Move body</li>
+                  </ul>
+                  <ui-button primary fluid id="preview-cta">+ Add habit</ui-button>
+                </div>
+              </ui-segment>
+            </div>
           </div>
         </div>
       </section>
@@ -625,21 +625,25 @@
           </div>
           <ui-segments horizontal equal-width>
             <ui-segment class="spell-pane">
-              <div class="eyebrow">Spell</div>
-              <p class="spell">
-                There is a list of habits. People can add a habit by typing its name. Tapping a habit marks it done. A
-                streak is the number of days in a row a habit was done.
-              </p>
+              <div class="stack">
+                <div class="eyebrow">Spell</div>
+                <p class="spell">
+                  There is a list of habits. People can add a habit by typing its name. Tapping a habit marks it done.
+                  A streak is the number of days in a row a habit was done.
+                </p>
+              </div>
             </ui-segment>
             <ui-segment class="compiled" inverted>
-              <div class="eyebrow">Compiled</div>
-              <pre>
+              <div class="stack">
+                <div class="eyebrow">Compiled</div>
+                <pre>
 habits = list({ name, done })
 add(name) → habits.push(…)
 toggle(h) → h.done = !h.done
 streak = days.takeWhile(
   d → d.every(done))</pre
-              >
+                >
+              </div>
             </ui-segment>
           </ui-segments>
         </div>
