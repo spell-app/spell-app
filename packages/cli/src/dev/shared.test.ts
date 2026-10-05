@@ -19,7 +19,7 @@ afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
 mkdirSync(MAIN)
 git(MAIN, "init", "-q", "-b", "main")
 put("package.json", JSON.stringify({ shared: { dir: "../spell-app-dev" } }))
-put(".gitignore", "/epics\n/guides\n/pages\n/templates\n/brand\n/goals\n/agents\n/.claude/worktrees\n")
+put(".gitignore", "/epics\n/guides\n/pages\n/templates\n/brand\n/ui\n/goals\n/agents\n/.claude/worktrees\n")
 git(MAIN, "add", "-A")
 commit(MAIN, "first")
 put("pages/index.html", "<h1>Docs</h1>\n")
@@ -27,6 +27,7 @@ put("epics/x/x.plan.html", "<h1>X</h1>\n")
 put("guides/a.html", "<h1>A</h1>\n")
 put("templates/t.html", "<h1>T</h1>\n")
 put("brand/pony.html", "<h1>Pony</h1>\n")
+put("ui/index.html", "<h1>Spell UI</h1>\n")
 put("goals/index.html", "<h1>Goals</h1>\n")
 put("agents/PAPERCUTS.md", "# Papercuts\n")
 git(MAIN, "worktree", "add", "-q", "-b", "wt", WT)
@@ -38,7 +39,7 @@ describe("sharedConfig()", () => {
     expect(config).toEqual({
       main: MAIN,
       dir: PEER,
-      links: ["epics", "guides", "pages", "templates", "brand", "goals", "agents"]
+      links: ["epics", "guides", "pages", "templates", "brand", "ui", "goals", "agents"]
     })
     expect(CLI.sharedConfig(WT)).toEqual(config)
   })
@@ -59,8 +60,8 @@ describe("before init", () => {
     const status = CLI.sharedStatus(config)
     expect(status).toMatchObject({ exists: false, isRepo: false })
     expect(status.checkouts.map(({ checkout, links }) => [checkout, links.map((link) => link.state)])).toEqual([
-      [".", Array(7).fill("real")],
-      [".claude/worktrees/wt", Array(7).fill("missing")]
+      [".", Array(8).fill("real")],
+      [".claude/worktrees/wt", Array(8).fill("missing")]
     ])
   })
 })
@@ -75,12 +76,12 @@ describe("init --import, then link", () => {
   })
 
   test("main:  identical real folders become links;  the worktree:  missing ones are made", () => {
-    expect(CLI.linkCheckout(MAIN, config).map((report) => report.action)).toEqual(Array(7).fill("replaced"))
-    expect(CLI.linkCheckout(WT, config).map((report) => report.action)).toEqual(Array(7).fill("linked"))
+    expect(CLI.linkCheckout(MAIN, config).map((report) => report.action)).toEqual(Array(8).fill("replaced"))
+    expect(CLI.linkCheckout(WT, config).map((report) => report.action)).toEqual(Array(8).fill("linked"))
     expect(lstatSync(join(WT, "goals")).isSymbolicLink()).toBe(true)
     expect(readFileSync(join(WT, "goals/index.html"), "utf8")).toBe("<h1>Goals</h1>\n")
     expect(CLI.sharedStatus(config).checkouts.flatMap(({ links }) => links.map((link) => link.state))).toEqual(
-      Array(14).fill("ok")
+      Array(16).fill("ok")
     )
     expect(git(MAIN, "status", "--porcelain")).toBe("")
   })

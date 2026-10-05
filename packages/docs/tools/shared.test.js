@@ -185,4 +185,32 @@ describe("reorgShared", () => {
     expect(readFileSync(join(dir, "epics/x/x.plan.html"), "utf8")).toBe('<a href="../../packages/ui/src/a.ts">a</a>\n')
     expect(existsSync(join(dir, "epics/x/x.plan.html.lock"))).toBe(false)
   })
+
+  it("points links into Spell UI's pages at the shared ui/ (claude-design P6), a plan doc's parts included", () => {
+    const dir = join(temp, "reorg-ui/dev")
+    const checkout = join(temp, "reorg-ui/checkout")
+    put("reorg-ui/checkout/packages/ui/site/_assets/site.js", "export {}\n")
+    put(
+      "reorg-ui/dev/guides/g.html",
+      '<a href="../packages/ui/site/components/ui-card.html" target="src-packages-ui-site-components-ui-card-html">c</a> ' +
+        '<a href="../packages/ui/site/_assets/site.js">js</a> <a href="../packages/ui/site/">site</a> ' +
+        '<a href="../packages/ui/site/_data/search.json">s</a>\n'
+    )
+    put("reorg-ui/dev/epics/y/y.plan.html", "<p>y</p>\n")
+    put(
+      "reorg-ui/dev/epics/y/parts/c1.htm",
+      '<a href="../../../packages/ui/site/README.md" target="src-packages-ui-site-readme-md">r</a>\n'
+    )
+    const report = reorgShared(dir, checkout)
+    expect(report.rewritten).toEqual(["epics/y/parts/c1.htm", "guides/g.html"])
+    expect(readFileSync(join(dir, "guides/g.html"), "utf8")).toBe(
+      '<a href="../ui/components/ui-card.html" target="src-ui-components-ui-card-html">c</a> ' +
+        '<a href="../packages/ui/site/_assets/site.js">js</a> <a href="../packages/ui/site/">site</a> ' +
+        '<a href="../ui/_data/search.json">s</a>\n'
+    )
+    expect(readFileSync(join(dir, "epics/y/parts/c1.htm"), "utf8")).toBe(
+      '<a href="../../../ui/README.md" target="src-ui-readme-md">r</a>\n'
+    )
+    expect(existsSync(join(dir, "epics/y/y.plan.html.lock"))).toBe(false)
+  })
 })

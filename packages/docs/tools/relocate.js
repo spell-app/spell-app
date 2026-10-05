@@ -258,7 +258,8 @@ export function headerRoot(text, file) {
  * 3. every `.html` / `.md` in the shared repo (links not followed):  links relocated (a moved file's from its old
  *    place;  anyone's into the moved ones), links that point nowhere re-read as written at the old place
  *    (`repairLinks()`), tab names (`retarget()`), the site header's `root`, path mentions;  `.json` mentions only
- *    (`rewritten`)
+ *    (`rewritten`).  Links into Spell UI's pages too, which left `packages/ui/site/` for `ui/` (`uiSitePath()`,
+ *    claude-design P6)
  * - `checkout`:  where repo paths outside the shared folders resolve (`exists`), e.g. `packages/ui/...`
  * - path MENTIONS in prose (`reorgMentions()`) only in files that moved just now, unless `allMentions` (the first run,
  *   2026-10-05):  a page in place may name an old path on purpose (history, the old-path links)
@@ -286,15 +287,37 @@ export function reorgShared(dir, checkout, { dryRun = false, allMentions = false
     if (!existsSync(full)) continue
     const mentions = allMentions || before !== file
     const fix = (text) => rewrite(text, before, file, { guides, exists, mentions })
-    const changed =
-      /\.plan\.html$/.test(file) && !dryRun ? withLocks([full], () => apply(full, fix)) : apply(full, fix, dryRun)
+    // a plan doc, or one of its parts (`parts/<id>.htm`, plan fragments):  under the doc's lock
+    const doc = planDocOf(file)
+    const changed = doc && !dryRun ? withLocks([join(dir, doc)], () => apply(full, fix)) : apply(full, fix, dryRun)
     if (changed) report.rewritten.push(file)
   }
   return report
 }
 
 /** Folders a repo path is looked up in the shared repo for (the rest:  in the checkout). */
-const SHARED_ROOTS = new Set([...REORG_ROOTS, "goals", "agents", "brand"])
+const SHARED_ROOTS = new Set([...REORG_ROOTS, "goals", "agents", "brand", "ui"])
+
+/**
+ * Where repo path `path` went when Spell UI's pages left `packages/ui/site/` for the shared `ui/` (claude-design P6,
+ * 2026-10-05), or `undefined`:  every entry but the built half, `_src/`, `_assets/` and `_data/`, which stayed
+ * (`_data/search.json` moved too:  it's built from the pages).
+ * - the folder itself stays:  it still holds the build
+ * - SAME split as `packages/server`'s `UI_SITE` and `packages/ui`'s `SITE_PAGES` / `SITE_BUILD`
+ */
+export function uiSitePath(path) {
+  const m = /^packages\/ui\/site\/([^/]+)(\/.*)?$/.exec(path.replace(/\/$/, ""))
+  if (!m) return undefined
+  const [, entry, rest = ""] = m
+  if (entry === "_data" && rest === "/search.json") return "ui/_data/search.json"
+  return UI_SITE_KEPT.has(entry) ? undefined : `ui/${entry}${rest}`
+}
+
+/** Entries of `packages/ui/site/` that stayed when the pages left:  the built half. */
+const UI_SITE_KEPT = new Set(["_src", "_assets", "_data"])
+
+/** Spell UI's pages' move, for `relocateLink()`:  every file maps its links to them into `ui/`. */
+export const UI_SITE_MOVE = { moved: uiSitePath, settled: () => false }
 
 /**
  * `text` of a file at `file` (repo-relative;  it was at `before`) with everything `reorgShared()` step 3 fixes.
@@ -303,13 +326,17 @@ const SHARED_ROOTS = new Set([...REORG_ROOTS, "goals", "agents", "brand"])
 function rewrite(text, before, file, { guides, exists, mentions }) {
   if (file.endsWith(".json")) return mentions ? reorgMentions(text, guides) : text
   let out = relocateLinks(text, before, file, REORG_MOVE)
+  // links into Spell UI's pages, which left `packages/ui/site/` for `ui/` (claude-design P6)
+  out = relocateLinks(out, file, file, UI_SITE_MOVE)
   if (mentions) out = reorgMentions(out, guides)
   if (file.endsWith(".html")) {
     // a file that moved just now was relocated whole;  one already in place may hold links older code wrote
     if (before === file && reorgOldPlace(file)) out = repairLinks(out, file, exists, reorgOldPlace, REORG_MOVE)
     if (reorgOldPlace(file)) out = headerRoot(out, file)
-    out = reorgOldPlace(file) ? retarget(out, file) : retarget(out, file, /^src-packages-docs-content-/)
+    out = reorgOldPlace(file) ? retarget(out, file) : retarget(out, file, /^src-packages-(docs-content|ui-site)-/)
   }
+  // a plan doc's part (`parts/<id>.htm`):  the tab names of the links the moves changed
+  if (file.endsWith(".htm")) out = retarget(out, file, /^src-packages-(docs-content|ui-site)-/)
   return out
 }
 
@@ -374,7 +401,7 @@ function ensureIgnores(dir) {
 }
 
 /**
- * Every `.html`, `.md` and `.json` file in shared repo `dir`, repo-relative, sorted.
+ * Every `.html`, `.htm` (a plan doc's parts), `.md` and `.json` file in shared repo `dir`, repo-relative, sorted.
  * - never follows a link (the old-path links would list every moved file twice), nor walks `.git` or `node_modules`
  */
 function textFiles(dir, prefix = "") {
@@ -383,9 +410,16 @@ function textFiles(dir, prefix = "") {
     const path = prefix ? `${prefix}/${entry.name}` : entry.name
     if (entry.isDirectory()) {
       if (entry.name !== ".git" && entry.name !== "node_modules") found.push(...textFiles(dir, path))
-    } else if (entry.isFile() && /\.(html|md|json)$/.test(entry.name)) found.push(path)
+    } else if (entry.isFile() && /\.(html?|md|json)$/.test(entry.name)) found.push(path)
   }
   return found.sort((a, b) => a.localeCompare(b))
+}
+
+/** The plan doc `file` (repo-relative) is, or is a part of (`epics/<n>/parts/<id>.htm`);  else `undefined`. */
+function planDocOf(file) {
+  if (/\.plan\.html$/.test(file)) return file
+  const part = /^((?:.*\/)?epics\/([^/]+))\/parts\/[^/]+\.htm$/.exec(file)
+  return part ? `${part[1]}/${part[2]}.plan.html` : undefined
 }
 
 /** Every plan doc in shared repo `dir`, old place or new:  `epics/<name>/<name>.plan.html`. */

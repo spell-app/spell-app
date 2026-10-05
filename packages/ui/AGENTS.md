@@ -110,22 +110,32 @@ house style every package shares.  Only what's local is below;  a section named 
     vendoring, import-map smoke pages (framework hosts), LOC, report tables, the HMR end-to-end test;
     `tools/demo/` is the `yarn dev` site;  `tools/visual/` the visual tests;  results go to `tools/results/`
     (git-ignored)
-  - `site/` -- the docs site, modelled on Fomantic's docs, served at `/ui/` by the page server (a static folder,
-    live-reloading;  `packages/server`'s `UI_SITE`):  plain `.html` pages on `<ui-*>` widgets, no build step to view
-    one (epic `spell-ui-pages`, which replaced the old Astro site).  `site/README.md` says how pages are made:
-    - `*.html`, `components/ui-<name>.html` -- the pages;  `images/` -- Fomantic's docs images
-    - `_assets/` -- GENERATED, committed:  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what every
-      page loads:  `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module" src="_assets/site.js">`,
-      `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink to `src/icons/icon-packs`.
-      NEVER edit
-    - `_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS (`site.css`);
-      config `vite.site.config.ts`
-    - `_data/` -- `components.json`, `icons.json` (the icon browser's search terms) and `search.json` (every page's
-      sections, for `<ui-docs-search>`, read from the page files), GENERATED, committed (`yarn site:data`;  shapes
-      `SiteDataFile` / `SiteIconsFile` / `SiteSearchFile` in `src/docs-components/docs-components.types.ts`;  rerun
-      after renaming or moving a section too), and `pages.json`, hand-kept per-family facts it reads (title, summary,
-      status, token-table overrides, `pages`:  the sub-tags with a page of their own)
-    - `_parts/` -- shared header / footer, pulled in with `<ui-include>`
+  - the docs site, modelled on Fomantic's docs, served at `/ui/` by the page server (static, live-reloading;
+    `packages/server`'s `UI_SITE`):  plain `.html` pages on `<ui-*>` widgets, no build step to view one (epic
+    `spell-ui-pages`, which replaced the old Astro site).  In TWO halves since 2026-10-05 (claude-design P6), one
+    constant each in `tools/tools.types.ts`:
+    - `SITE_PAGES`, the HAND-WRITTEN half:  `ui/` at the checkout's root, SHARED content (a link into
+      `../spell-app-dev/ui/`;  root `AGENTS.md` "Shared content"):  `*.html`, `components/ui-<name>.html`, `_parts/`
+      (the layout and footer every page shares), `examples/` (files the examples load), `images/` (Fomantic's docs
+      images), `_data/search.json` (built from these pages by `yarn site:data`), and `README.md`:  how pages are
+      made.  Edited from any checkout, never committed here
+    - the `site:*` scripts that WRITE pages (`site:new`, `site:index`, `site:kitchen`, `site:sections`) write the
+      shared `ui/` from THIS branch's data and template:  a page using an element only this branch has shows it
+      undefined in other checkouts until the branch merges
+    - `SITE_BUILD`, the BUILT half:  `site/`, tracked per branch (`site/README.md`:  its files);  the page server
+      lays its `_assets/` and `_data/` over the pages at `/ui/`, so every page's relative `_assets/...` /
+      `_data/...` links resolve unchanged:
+    - `site/_assets/` -- GENERATED, committed:  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what
+      every page loads:  `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module"
+      src="_assets/site.js">`, `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink
+      to `src/icons/icon-packs`.  NEVER edit
+    - `site/_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS
+      (`site.css`);  config `vite.site.config.ts`
+    - `site/_data/` -- `components.json` and `icons.json` (the icon browser's search terms), GENERATED, committed
+      (`yarn site:data`;  shapes `SiteDataFile` / `SiteIconsFile` in `src/docs-components/docs-components.types.ts`),
+      and `pages.json`, hand-kept per-family facts it reads (title, summary, status, token-table overrides, `pages`:
+      the sub-tags with a page of their own).  The search file (`SiteSearchFile`) is the shared
+      `ui/_data/search.json`:  rerun `yarn site:data` after renaming or moving a section
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
   - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`,
@@ -165,18 +175,19 @@ house style every package shares.  Only what's local is below;  a section named 
   - `yarn fork <script>`, `yarn fork:install`, `yarn fork:build` -- the fork's own scripts.  Its `dist/` is only
     needed by `yarn vendor` / `yarn measure`, which build it when stale (`tools/ForkBuild.ts`);  dev, tests,
     the site and the library build use its source
-  - `yarn site:build` ~== `yarn site:data` (`site/_data/components.json`, `icons.json`) + `yarn site:index` (the
-    component index's cards, `site/components/index.html`;  `--check`) + `yarn site:kitchen` (the kitchen sink's
-    examples, `site/kitchen-sink.html`, from every family's `examples/elements/types.html`;  `--check`) + `yarn
-    site:bundle` (`site/_assets/`, sizes printed):  rerun after changing a vocabulary, a family sheet, an example or any
-    source the site shows, and commit the output
+  - `yarn site:build` ~== `yarn site:data` (`site/_data/components.json`, `icons.json`;  the shared
+    `ui/_data/search.json`) + `yarn site:index` (the component index's cards, `ui/components/index.html`;  `--check`)
+    + `yarn site:kitchen` (the kitchen sink's examples, `ui/kitchen-sink.html`, from every family's
+    `examples/elements/types.html`;  `--check`) + `yarn site:bundle` (`site/_assets/`, sizes printed):  rerun after
+    changing a vocabulary, a family sheet, an example or any source the site shows, and commit the output in `site/`
+    (`ui/` commits itself)
   - `yarn site:dev` -- `scripts/site-dev.ts`:  `yarn site:bundle`, then the page server (started if needed) serves
     `/ui/` while a Vite WATCH build rebuilds `site/_assets/` on every `src/` / `site/_src/` edit, and live reload
     reloads the open pages.  Not watched:  `site:data` / `site:index` / `site:kitchen`.  A watch rebuild leaves stale
     hashed chunks:  `yarn site:build` before committing
   - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
-    (`templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a
-    tag (`<tag>.html` for a sub-tag its family's `pages` lists:  `ui-radio`), else `site/<page>.html`;  title /
+    (`templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `ui/components/<main tag>.html` for a
+    tag (`<tag>.html` for a sub-tag its family's `pages` lists:  `ui-radio`), else `ui/<page>.html`;  title /
     summary / status from `site/_data/pages.json`.  How to write one:  `epics/spell-ui-pages/PAGES.md`
   - `yarn site:sections [--check] [page...]` -- `scripts/site-sections.ts`:  nests every page's flat level 2 / 3
     headers and headed examples into `<ui-section>`s and writes (or fixes) their ids, `<tab>-<section>-<example>`;
@@ -186,9 +197,9 @@ house style every package shares.  Only what's local is below;  a section named 
     `site/_data/components.json`, the element examples and the Spell theme;  `yarn site:data` first after a
     vocabulary change.  `yarn site:data` also writes `site/_data/custom-elements.json` and `html-custom-data.json`
     (VS Code autocomplete for `<ui-*>`, `tools/ElementManifests.ts`);  `tools/DesignExport.test.ts` fails while stale
-  - `yarn site:check <page...> | --all` -- `tools/SiteCheck.ts`:  loads pages from the page server (Playwright),
-    fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an empty toc, phone-width overflow,
-    a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK at them
+  - `yarn site:check <page...> | --all` -- `tools/SiteCheck.ts`:  loads the `ui/` pages from the page server
+    (Playwright), fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an empty toc,
+    phone-width overflow, a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK at them
   - `yarn tsc`, not `npx tsc`, and no hard-coded `node_modules` paths:  SEE:  root `AGENTS.md` "Toolchain:  Vite+".
     Here, node code finds a dependency through `tools/NodePackage.ts`.
 

@@ -45,6 +45,7 @@ describe("the site header's tabs", () => {
     ["/ui/", "Spell UI"],
     ["/ui/components/ui-card.html", "Spell UI"],
     ["/packages/ui/site/index.html", "Spell UI"],
+    ["/worktrees/w/ui/components/ui-card.html", "Spell UI"],
     ["/templates/index.html", "Templates"],
     // the plan template is a template, not an epic;  the goals templates aren't goals
     ["/templates/epics/plan.html", "Templates"],

@@ -1,15 +1,17 @@
 import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { describe, expect, it } from "vite-plus/test"
 
 import { FamilyTokens } from "./FamilyTokens.ts"
 import { FoundationTokens } from "./FoundationTokens.ts"
 import { SiteDataBuilder } from "./SiteDataBuilder.ts"
 import { ThemeFamilies } from "./ThemeFamilies.ts"
+import { SITE_PAGES } from "./tools.types.ts"
 
 /**
- * The site's committed data (`site/_data/components.json`, `pages.json`, `icons.json`, `search.json`) is what
- * `yarn site:data` would write now:  run it after changing a vocabulary, a family sheet's tokens, `pages.json` or a
- * page's sections.
+ * The site's committed data (`site/_data/components.json`, `pages.json`, `icons.json`) and the shared
+ * `ui/_data/search.json` are what `yarn site:data` would write now:  run it after changing a vocabulary, a family
+ * sheet's tokens, `pages.json` or a page's sections (a page edit in ANY checkout:  the pages are shared).
  */
 describe("site data", () => {
   it("is current (else run `yarn site:data`)", async () => {
@@ -43,7 +45,7 @@ describe("site data", () => {
     expect(data.components.find((entry) => entry.tag === "ui-button")!.page).toBe(true)
     // every page the data names exists
     for (const entry of data.components.filter((tag) => tag.page))
-      expect(() => readFileSync(new URL(`../site/${entry.href}`, import.meta.url)), entry.href).not.toThrow()
+      expect(() => readFileSync(join(import.meta.dirname, "..", SITE_PAGES, entry.href!)), entry.href).not.toThrow()
   }, 60_000)
 
   it("resolves shared value sets, and reads a family's tokens with types", async () => {

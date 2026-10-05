@@ -9,7 +9,8 @@ description: Start the spell web servers of this checkout that aren't running --
    - starts the page server if it isn't running (`spell dev server ensure`);  the page server starts the editor once it
      listens (`packages/app/src/server/EditorServer.ts`)
    - waits for the editor (up to 90s:  vite may be building its dependency cache), then checks Spell UI's docs:
-     static pages the page server serves at `/ui/` (`packages/ui/site/`), by asking for their bundle,
+     static pages the page server serves at `/ui/` (the shared pages, `ui/`, with this branch's built
+     `packages/ui/site/_assets/` and `_data/` laid over them), by asking for their bundle,
      `/ui/_assets/site.js` (missing:  `yarn site:build` in `packages/ui`)
    - prints one row per server:  name, port, URL, what it serves, and `started` / `running` / why not;  exit code 1
      if any didn't come up

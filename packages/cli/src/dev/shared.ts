@@ -20,8 +20,10 @@ import { CLI, type LinkReport, type SharedConfig, type SharedStatus } from "$/cl
 /**
  * Shared content (epic `shared-content`):  docs pages, goal sets and the agents' logs live ONCE, in a content repo
  * beside the main checkout (`../spell-app-dev`), and every checkout links to them at its root:  `epics`, `guides`,
- * `pages`, `templates`, `brand`, `goals`, `agents` (`DEFAULT_LINKS`).  So every worktree sees every edit at once, and none of
- * it is merged.
+ * `pages`, `templates`, `brand`, `ui`, `goals`, `agents` (`DEFAULT_LINKS`).  So every worktree sees every edit at
+ * once, and none of it is merged.
+ * - `ui`:  Spell UI's hand-written docs pages (claude-design P6);  their bundle and data stay in each branch's
+ *   `packages/ui/site/`
  * - before 2026-10-05 (epic `claude-design` P4) the docs were ONE link, `packages/docs/content`:  the shared repo keeps
  *   old-path links there for checkouts on older code (`packages/docs/tools/relocate.js` `reorgShared()`)
  * - the manifest:  the root `package.json`'s `"shared"` (`sharedConfig()`)
@@ -31,7 +33,7 @@ import { CLI, type LinkReport, type SharedConfig, type SharedStatus } from "$/cl
  */
 
 /** The links when the manifest names none:  the docs' areas, then the goal sets and the logs. */
-const DEFAULT_LINKS = ["epics", "guides", "pages", "templates", "brand", "goals", "agents"]
+const DEFAULT_LINKS = ["epics", "guides", "pages", "templates", "brand", "ui", "goals", "agents"]
 
 /** Never compared or copied:  OS litter. */
 const LITTER = new Set([".DS_Store"])

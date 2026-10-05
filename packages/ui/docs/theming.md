@@ -621,8 +621,9 @@ owner), `parts` (the header's own tokens, and the part side of owner tokens).
    - an owner:  one owner look token set on the owner reaches a part
    - variations:  one that swaps (wins over the base token) or derives (follows it)
    - static markup (`ui-<family>.css.test.ts`):  one set on a wrapper of class-grammar markup
-9. Docs page (`site/components/ui-<family>.html`, Theming tab):  "set it on the element, any ancestor, or
-   `::part()`", as `ui-button.html`.  The `<ui-docs-tokens>` table reads the aliases on its own (`yarn site:data`).
+9. Docs page (`ui/components/ui-<family>.html`, the shared pages;  Theming tab):  "set it on the element, any
+   ancestor, or `::part()`", as `ui-button.html`.  The `<ui-docs-tokens>` table reads the aliases on its own
+   (`yarn site:data`).
 10. Look unchanged:  compare computed styles of every example before and after (the reference conversions did, for
     every property that paints);  run `yarn vitest run --project browser src/components/ui-<family> test/`.
 

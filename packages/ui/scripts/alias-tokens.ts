@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url"
 
 import { ComponentTokens } from "$/ui/styles/ComponentTokens"
 import { NodePackage } from "../tools/NodePackage.ts"
+import { SITE_PAGES } from "../tools/tools.types.ts"
 
 /**
  * `yarn tokens:alias <family> [--write]`:  the codemod of `docs/theming.md` "Converting a family".
@@ -61,7 +62,8 @@ class AliasTokensCommand {
     console.log("\nOther files naming a converted token (reads of the PUBLIC name, not through the alias):")
     const own = new Set(Object.keys(sheets))
     const pattern = new RegExp(`(?<!var\\(--_ui-[a-z0-9-]+, var\\()(${[...declared].join("|")})(?![a-z0-9-])`, "g")
-    for (const directory of ["src", "test", "site", "docs"]) {
+    // the site's pages:  the shared `ui/` at the checkout's root (`SITE_PAGES`)
+    for (const directory of ["src", "test", "site", SITE_PAGES, "docs"]) {
       for (const path of this.files(directory, /\.(css|ts|tsx|html|md)$/)) {
         if (own.has(path) || path.endsWith("docs/report.md") || GENERATED_SITE.test(path) || declared.size === 0)
           continue

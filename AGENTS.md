@@ -138,6 +138,8 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - `guides/` -- every other docs page (`guides/solid/solid-2.html`), with its `.md`, `.json`, `experiments/`
   - `templates/` -- one starting point per kind of page
   - `pages/` -- the docs home, `pages/index.html`, and the scratch details pages, `pages/details/`
+  - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), served at `/ui/` with each branch's built
+    `packages/ui/site/_assets/` and `_data/` laid over them (`packages/ui/AGENTS.md`, `site/`)
   - `goals/` -- the goal sets (their tooling:  `packages/docs/tools/goals/`, tracked)
   - `agents/` -- the three logs (`agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md`), and
     WWOD, the house style (`agents/wwod/`):  one copy of the rules for every branch

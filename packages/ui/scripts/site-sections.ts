@@ -31,12 +31,13 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { TocIndex } from "../src/docs-components/ui-docs-toc/TocIndex.ts"
+import { SITE_PAGES } from "../tools/tools.types.ts"
 
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
 
-/** The site's folder. */
-const SITE = path.join(UI, "site")
+/** The site's pages:  the shared `ui/` at the checkout's root (`SITE_PAGES`). */
+const SITE = path.join(UI, SITE_PAGES)
 
 /****************
  * ### `SiteSections`
@@ -653,7 +654,7 @@ class HtmlParser {
 // ## Command line
 ////////////////
 
-/** Every page of the site:  `site/*.html`, `site/components/*.html`. */
+/** Every page of the site:  `ui/*.html`, `ui/components/*.html`. */
 function sitePages(): string[] {
   const pages = (folder: string) =>
     readdirSync(folder)

@@ -1,13 +1,14 @@
 /**
- * `yarn site:kitchen [--check]`:  write the kitchen sink's examples, `site/kitchen-sink.html`, from every component
- * family's MAIN example file:  `src/components/ui-<family>/examples/elements/types.html`, else its first `.html`.
+ * `yarn site:kitchen [--check]`:  write the kitchen sink's examples, `ui/kitchen-sink.html` (the shared pages,
+ * `SITE_PAGES`), from every component family's MAIN example file:
+ * `src/components/ui-<family>/examples/elements/types.html`, else its first `.html`.
  * - Why generated:  the old Astro page read the same files at build time;  a static page would drift from them.
  *   The markup is the files' own (the families' tests render them), so it keeps their native bits (`<p>`, a
  *   `style=` box around a loader, `<div class="ui-stack">` around radios).
  * - Grouped as Fomantic's kitchen sink is:  Elements, Collections, Views, Modules (each family's Fomantic topic),
  *   then our own families;  A-Z by title inside a group.  Families without an element example (`item`:  `items`
  *   shows it) are left out.
- * - Example sources (`<ui-include source>` ...) point at the site's copies in `site/examples/` (`SITE_SOURCES`).
+ * - Example sources (`<ui-include source>` ...) point at the site's copies in `ui/examples/` (`SITE_SOURCES`).
  * - `MAIN_FILES` names the file where `types.html` isn't the main one (`ui-parts`:  `header.html`).  Sections holding
  *   `stub-*` stand-ins (the tests' `StubOwner`, not real elements) are left out;  at most `MAX_SECTIONS` (3) per
  *   family, so the page stays scannable (the family's page has the rest).
@@ -24,6 +25,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
 import type { SiteDataFile, SiteFamily, SiteTag } from "../src/docs-components/docs-components.types.ts"
+import { SITE_BUILD, SITE_PAGES } from "../tools/tools.types.ts"
 
 import { SiteSections } from "./site-sections.ts"
 
@@ -36,10 +38,10 @@ const UI = path.resolve(import.meta.dirname, "..")
  ****************/
 class KitchenSinkWriter {
   /** The page. */
-  readonly file = path.join(UI, "site/kitchen-sink.html")
+  readonly file = path.join(UI, SITE_PAGES, "kitchen-sink.html")
 
   /** The site's data:  titles, summaries, topics. */
-  readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, "site/_data/components.json"), "utf8"))
+  readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, SITE_BUILD, "_data/components.json"), "utf8"))
 
   /** Start marker (its own line);  its indent is the block's. */
   static readonly START = "<!-- kitchen:start -->"
@@ -63,7 +65,7 @@ class KitchenSinkWriter {
   static readonly MAIN_FILES: Readonly<Record<string, string>> = { "ui-parts": "header.html" }
 
   /**
-   * The site's copies of the example source files (`site/examples/`), by the source's file name, where the name
+   * The site's copies of the example source files (`ui/examples/`), by the source's file name, where the name
    * differs;  a `source="/src/components/.../examples/sources/<file>"` (a dev-server path) points at the copy.
    */
   static readonly SITE_SOURCES: Readonly<Record<string, string>> = { "notes.html": "release-notes.html" }

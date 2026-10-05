@@ -52,6 +52,13 @@ export const DETAILS = join(PAGES, "details")
  */
 export const BRAND = join(ROOT, "brand")
 
+/**
+ * `ui/`:  Spell UI's hand-written docs pages (claude-design P6), served at `/ui/` with the branch's built
+ * `packages/ui/site/_assets/` and `_data/` laid over them.
+ * - NOT in `AREAS`:  `packages/ui`'s `site:*` scripts make and check them (`yarn site:check`), not the docs' tools
+ */
+export const UI_PAGES = join(ROOT, "ui")
+
 /** `goals/`:  the goal sets, `goals/<set>/index.html` (their tooling:  `tools/goals/`). */
 export const GOALS = join(ROOT, "goals")
 

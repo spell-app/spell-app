@@ -62,17 +62,21 @@ export class LiveReload {
   /**
    * Watch `dir` (recursively) and report its changes.
    * - `ignore`:  more paths (relative to `dir`, `/`-separated) never to report, e.g. `/(^|\/)experiments\//`
+   * - `servedAt`:  the URL path the folder is served at, when that isn't its path from `root` (a folder laid over
+   *   another, `StaticHandler.overlays`):  its changes are reported there, e.g. `/ui/` for `packages/ui/site/`, so a
+   *   page loading `/ui/_assets/site.js` sees its script change
    * - a missing folder is skipped
    * - SIDE EFFECT:  an `fs.watch` per call, closed by `close()`
    */
-  watch(dir: string, { ignore }: { ignore?: RegExp } = {}): this {
+  watch(dir: string, { ignore, servedAt }: { ignore?: RegExp; servedAt?: string } = {}): this {
     const folder = resolve(dir)
+    const at = servedAt?.replace(/\/?$/, "/")
     try {
       const watcher = watch(folder, { recursive: true }, (_event, name) => {
         if (!name) return
         const inside = name.split(sep).join("/")
         if (IGNORED.test(inside) || ignore?.test(inside)) return
-        this.changed(join(folder, name))
+        this.changed(join(folder, name), at && `${at}${inside.split("/").map(encodeURIComponent).join("/")}`)
       })
       watcher.on("error", () => {})
       this.watchers.push(watcher)
@@ -85,10 +89,11 @@ export class LiveReload {
   /**
    * Report `file` (absolute) as changed, once it's been quiet for `debounce` ms.
    * - folders are skipped:  macOS reports a watched folder's own changes under its name (`docs` -> `docs/docs`)
+   * - `served`:  the URL path to report;  default `file`'s path from `root`
    */
-  changed(file: string): void {
+  changed(file: string, served?: string): void {
     if (statSync(file, { throwIfNoEntry: false })?.isDirectory()) return
-    const path = `/${relative(this.root, file).split(sep).map(encodeURIComponent).join("/")}`
+    const path = served ?? `/${relative(this.root, file).split(sep).map(encodeURIComponent).join("/")}`
     clearTimeout(this.timers.get(path))
     this.timers.set(
       path,

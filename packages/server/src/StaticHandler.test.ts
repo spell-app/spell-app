@@ -83,3 +83,26 @@ describe("StaticHandler", () => {
     expect((await ask(served.port, "POST", "/style.css")).status).toBe(404)
   })
 })
+
+describe("StaticHandler overlays", () => {
+  it("serves an overlay's file in place of the path asked;  falls through when it has none", () => {
+    const dir = mkdtempSync(join(tmpdir(), "srv-overlay-"))
+    mkdirSync(join(dir, "pages", "_data"), { recursive: true })
+    mkdirSync(join(dir, "build", "_data"), { recursive: true })
+    writeFileSync(join(dir, "pages", "_data", "both.json"), "pages")
+    writeFileSync(join(dir, "pages", "_data", "pages-only.json"), "pages")
+    writeFileSync(join(dir, "build", "_data", "both.json"), "build")
+    const files = new SRV.StaticHandler({ mounts: [{ prefix: "/", dir }] })
+    files.overlays.push((path) => (path.startsWith("/pages/_data/") ? path.replace("/pages/", "/build/") : undefined))
+    expect(fileOf("/pages/_data/both.json")).toBe(join(dir, "build", "_data", "both.json"))
+    expect(fileOf("/pages/_data/pages-only.json")).toBe(join(dir, "pages", "_data", "pages-only.json"))
+    expect(fileOf("/pages/_data/missing.json")).toMatchObject({ status: 404 })
+    rmSync(dir, { recursive: true, force: true })
+
+    /** the file `path` resolves to, else what it resolved to */
+    function fileOf(path: string) {
+      const resolved = files.resolve(path)
+      return resolved && "file" in resolved ? resolved.file : resolved
+    }
+  })
+})

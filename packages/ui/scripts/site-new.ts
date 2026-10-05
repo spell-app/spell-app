@@ -1,24 +1,27 @@
 /**
  * `yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]`:  write a Spell UI docs page from the
  * template, `templates/spell-ui-docs.html`.
- * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `site/components/<main tag>.html`, the
- *   component layout:  masthead with the family's theme picker, Examples / Usage / API / Theming tabs.  Title, summary
- *   and status come from `site/_data/pages.json` (`--title` / `--summary` override them).
- * - A sub-tag with a page of its OWN (pages.json `pages`, e.g. `ui-radio`) writes `site/components/<tag>.html`:  its
+ * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `ui/components/<main tag>.html` (the shared
+ *   pages, `SITE_PAGES`), the component layout:  masthead with the family's theme picker, Examples / Usage / API /
+ *   Theming tabs.  Title, summary and status come from `site/_data/pages.json` (`--title` / `--summary` override
+ *   them).
+ * - A sub-tag with a page of its OWN (pages.json `pages`, e.g. `ui-radio`) writes `ui/components/<tag>.html`:  its
  *   own title, summary and status, ONE tag's API tables (`<ui-docs-api tag>`), and the Theming tab only when one of
  *   the family's tokens names it (`--ui-checkbox-radio-size`;  `ui-meta` has none:  its owners style it).
- * - Anything else is a PAGE:  `site/<page>.html`, one content column, no tabs;  `--title` (default:  the name in
+ * - Anything else is a PAGE:  `ui/<page>.html`, one content column, no tabs;  `--title` (default:  the name in
  *   Title Case) and `--summary`.
  * - Fills the template's `{{...}}` placeholders, keeps the `site:component` OR `site:page` blocks (and drops the
  *   status label for a `done` family, the Fomantic link when Fomantic has no such page), and rewrites the
- *   template's `../../../ui/site/` paths for the page's depth.  The page is its `<head>` and `main` alone:  the
- *   chrome is `site/_parts/layout.html`.
+ *   template's `../ui/` paths for the page's depth.  The page is its `<head>` and `main` alone:  the chrome is
+ *   `ui/_parts/layout.html`.
  * - Refuses to overwrite an existing page without `--force`.  Prints the path and the page server URL hint.
  * - The Fomantic link:  `reference/Fomantic-UI-Docs/server/documents/<group>/<name>.html.eco` (git-ignored clone,
  *   plan doc P1), by the family name, or `FOMANTIC_PAGES` for the families whose page has another name.
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
+
+import { SITE_BUILD, SITE_PAGES } from "../tools/tools.types.ts"
 
 import { SiteSections } from "./site-sections.ts"
 
@@ -28,8 +31,8 @@ const UI = path.resolve(import.meta.dirname, "..")
 /** The template, in the shared content's `templates/` (linked at the checkout's root). */
 const TEMPLATE = path.resolve(UI, "../../templates/spell-ui-docs.html")
 
-/** The template's own path prefix to the site (it lives in `templates/`). */
-const TEMPLATE_SITE = "../packages/ui/site/"
+/** The template's own path prefix to the site's pages (it lives in `templates/`, beside `ui/`). */
+const TEMPLATE_SITE = "../ui/"
 
 /** Fomantic's docs pages, by group folder. */
 const FOMANTIC_DOCS = path.join(UI, "reference/Fomantic-UI-Docs/server/documents")
@@ -70,7 +73,7 @@ type Family = {
 
 /** What fills a template. */
 type PageFacts = {
-  /** `site/`-relative output path, e.g. `components/ui-button.html` */
+  /** `ui/`-relative output path, e.g. `components/ui-button.html` */
   file: string
   title: string
   summary: string
@@ -93,12 +96,12 @@ type PageFacts = {
  * Turns the template into one page:  facts from the site data, blocks kept or dropped, paths fixed for depth.
  ****************/
 class SitePageWriter {
-  /** `site/` */
-  readonly site = path.join(UI, "site")
+  /** the site's pages, `ui/` */
+  readonly site = path.join(UI, SITE_PAGES)
 
   /** Every family of `components.json`, by folder. */
   private readonly families: Record<string, Family> = JSON.parse(
-    readFileSync(path.join(this.site, "_data/components.json"), "utf8")
+    readFileSync(path.join(UI, SITE_BUILD, "_data/components.json"), "utf8")
   ).families
 
   /** The facts for `name` (a tag, a family folder or a page name), with `--title` / `--summary` applied. */
@@ -172,7 +175,6 @@ class SitePageWriter {
       tag: facts.tag,
       family: facts.family,
       fomantic: facts.fomantic,
-      source: `packages/ui/site/${facts.file}`,
       bugTitle: encodeURIComponent(`${facts.tag || facts.title}:  `)
     }
     return html.replace(/\{\{(\w+)\}\}/g, (match, key: string) =>

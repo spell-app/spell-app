@@ -9,8 +9,9 @@ import { PageEditor, RunningEpics, UI_SITE, type PageServerSettings, type RouteM
 /**
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
  * - docs, plan docs, goals, Spell UI docs and (once `app` is in) the editor, all live-reloading
- * - `/` -> the docs home (`pages/index.html`);  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`;  `/ui/` -> Spell UI's
- *   docs:  the static folder `packages/ui/site/` (`UI_SITE`), live-reloading like every page
+ * - `/` -> the docs home (`pages/index.html`);  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`
+ * - `/ui/` -> Spell UI's docs (`UI_SITE`), live-reloading like every page:  the shared pages (`ui/`), with the
+ *   branch's built `_assets/` and `_data/` (`packages/ui/site/`) laid over them;  the same at `/worktrees/<w>/ui/`
  * - `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. goals' buttons
  * - port:  `DEFAULT_PORT` (4747) if free, else any;  the real one goes in `<root>/.spell-server.json`, where
@@ -53,10 +54,8 @@ export class PageServer {
       root: this.root,
       token,
       live: true,
-      mounts: [
-        { prefix: "/", dir: this.root },
-        { prefix: UI_SITE.prefix, dir: join(this.root, UI_SITE.dir) }
-      ],
+      // `/ui/` too:  the root's `ui` link (`UI_SITE.pages`), with the build laid over it (`uiBuildPath()`, below)
+      mounts: [{ prefix: "/", dir: this.root }],
       configure: (served) => ({
         root: this.root,
         branch: this.info.branch,
@@ -67,6 +66,7 @@ export class PageServer {
         etag: SRV.StaticHandler.etagOf(statSync(served.file))
       })
     })
+    this.web.files.overlays.push(uiBuildPath)
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect(DOCS_HOME))
     // plan docs moved from `plans/` to `epics/` (2026-10-02), then into `content/`, then to the root `epics/`:  old
@@ -76,11 +76,12 @@ export class PageServer {
     )
     // docs pages moved into `packages/docs/content/`, plan docs renamed `epics/<n>/<n>.html` -> `<n>.plan.html`
     // (both 2026-10-04), then the content split into root folders (2026-10-05, claude-design P4):  old links and
-    // open tabs still land, here and in a worktree served from here (`/worktrees/<w>/`).  302
-    for (const prefix of ["/packages/docs/*", "/worktrees/*", "/epics/*"])
+    // open tabs still land, here and in a worktree served from here (`/worktrees/<w>/`).  302.  Likewise Spell UI's
+    // pages, from `packages/ui/site/` to the shared `ui/` (2026-10-05, claude-design P6)
+    for (const prefix of ["/packages/docs/*", "/packages/ui/site/*", "/worktrees/*", "/epics/*"])
       router.get(prefix, (request, reply, next) => {
         const url = request.originalUrl
-        const moved = movedDocsPage(url, this.root) ?? renamedPlanDoc(url, this.root)
+        const moved = movedDocsPage(url, this.root) ?? renamedPlanDoc(url, this.root) ?? movedUiPage(url, this.root)
         if (moved) reply.redirect(moved)
         else next()
       })
@@ -100,7 +101,9 @@ export class PageServer {
     const settings = this.settings()
     for (const dir of settings.watch ?? DEFAULT_WATCH)
       this.web.live!.watch(join(this.root, dir), { ignore: /(^|\/)(scripts|experiments)\// })
-    this.web.live!.watch(join(this.root, UI_SITE.dir), { ignore: UI_SITE.ignore })
+    this.web.live!.watch(join(this.root, UI_SITE.pages))
+    // the build's changes as the pages load them:  `/ui/_assets/site.js`, so a rebuilt bundle reloads them
+    this.web.live!.watch(join(this.root, UI_SITE.build), { ignore: UI_SITE.ignore, servedAt: UI_SITE.prefix })
     this.epics.watch(this.web.live!)
     if (routes) for (const path of settings.routes ?? []) await this.loadRoutes(path)
     const { port: actual } = await this.web.listen({ port })
@@ -273,6 +276,43 @@ export function renamedPlanDoc(url: string, root: string): string | undefined {
   const renamed = decoded.replace(/\.html$/, ".plan.html")
   if (existsSync(servedFile(decoded, root)) || !existsSync(servedFile(renamed, root))) return undefined
   return `${path.replace(/\.html$/, ".plan.html")}${query === undefined ? "" : `?${query}`}`
+}
+
+/**
+ * The URL path Spell UI's built half lays over URL path `path` (`UI_SITE.overlays`):  `/ui/_assets/<x>` ->
+ * `/packages/ui/site/_assets/<x>`, `/ui/_data/<x>` likewise, the same under `/worktrees/<w>/` (that worktree's
+ * build);  else `undefined`.
+ * - a `StaticHandler` overlay:  served only when the build has the file, else the shared pages' own
+ */
+export function uiBuildPath(path: string): string | undefined {
+  const match = /^((?:\/worktrees\/[^/]+)?)\/ui\/([^/]+)(\/.*)?$/.exec(path)
+  if (!match || !(UI_SITE.overlays as readonly string[]).includes(match[2]!)) return undefined
+  return `${match[1]}/${UI_SITE.build}/${match[2]}${match[3] ?? ""}`
+}
+
+/**
+ * The new URL of an old Spell UI page URL `url` (`/packages/ui/site/<x>`, or the same under `/worktrees/<w>/`):
+ * `/ui/<x>` (`/worktrees/<w>/ui/<x>`), query kept, when the old file is gone and the new one is there;  else
+ * `undefined` (2026-10-05, claude-design P6).
+ * - a checkout on older code still has its pages at the old place:  served there
+ * - the built half (`_assets/`, `_data/`, `_src/`) never moved:  still served at its own path too
+ */
+export function movedUiPage(url: string, root: string): string | undefined {
+  const [path = "", query] = url.split("?")
+  const match = /^((?:\/worktrees\/[^/]+)?)\/packages\/ui\/site(\/.*)?$/.exec(path)
+  if (!match) return undefined
+  const [, base = "", rest = "/"] = match
+  const before = decode(path)
+  const moved = `${base}${UI_SITE.prefix}${rest}`
+  const after = decode(moved)
+  if (!before || !after || existsSync(servedFile(fileOf(before), root))) return undefined
+  if (!existsSync(servedFile(fileOf(after), root))) return undefined
+  return `${moved}${query === undefined ? "" : `?${query}`}`
+}
+
+/** The file URL path `served` names:  a folder (`/x/`) its `index.html`;  anything else itself. */
+function fileOf(served: string): string {
+  return served.endsWith("/") ? `${served}index.html` : served
 }
 
 /** URL path `path` decoded;  `undefined` when malformed. */
