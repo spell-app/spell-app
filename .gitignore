@@ -25,3 +25,4 @@ PARKED-*.md
 /goals
 /agents
 # shared:end
+*.code-workspace
