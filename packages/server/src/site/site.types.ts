@@ -6,7 +6,8 @@
 /**
  * One PROPERTY of the site:  a part with its own home page, switched between in the site header.
  * - `path`:  home page, relative to the repo root (`pages/index.html`), or server-absolute (`/ui/`)
- * - `serverOnly`:  only exists when served by the page server (`/ui/` is `packages/ui/site/`, mounted there;  `/editor/` is the app)
+ * - `serverOnly`:  only exists when served by the page server (`/ui/`:  the shared pages with the branch's built
+ *   bundle laid over them, `UI_SITE`;  `/editor/` is the app)
  * - `ownTab`:  always opens in its own browser tab (`target`), never in place:  the app is a whole program, too big
  *   for VS Code's side bar, and a frame that left the page server can't step back (`liveClient.ts`)
  * - `match`:  whether a page path (`location.pathname`) belongs to this property;  the FIRST match wins
