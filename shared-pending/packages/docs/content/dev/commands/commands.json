@@ -191,7 +191,7 @@
           },
           "runs": "`git merge --ff-only <name>` (`/isolate`) or `git merge --no-edit <branch>` (`spell dev stock`)",
           "notes": "DRIFT:  `/isolate` fast-forwards only;  `spell dev stock` makes a merge commit, while its docstring says \"as `/isolate done` would\".",
-          "target": "(R3) `spell dev worktree merge <name>`:  ONE policy;  /isolate /worktrees /bedtime's Overnight section call it"
+          "target": "(R3) `spell dev worktree merge <name>`:  ONE policy;  /isolate /worktrees call it"
         },
         {
           "op": "Leave a worktree",
@@ -1030,7 +1030,7 @@
           },
           "runs": "prose:  `MORNING-<name>.md` `active` -> `done`, then asks to delete",
           "notes": "`spell dev stock` flags un-reviewed morning plans.",
-          "target": "stays:  /bedtime's Overnight section judgement;  (R5) `spell dev bedtime note done` flips state"
+          "target": "stays:  judgement (no morning report since 2026-10-05:  the night's calls show red in the plan doc);  bedtime mode off:  `spell dev plan-doc bedtime <name> done`"
         }
       ]
     },

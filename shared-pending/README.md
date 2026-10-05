@@ -74,3 +74,17 @@ window / vscode` until this branch merges:  `spell dev commands check` on `main`
 - On merge, AFTER the 3-way merge:  `spell dev plan-doc relayout --all` converts every shared plan doc (dry run
   2026-10-04:  70 answered questions in 13 of 20 docs;  `wwod` and `precedence-and-types` also need `migrate` for
   their old `D` items).  Not before:  `main`'s page runtime doesn't know the new layout.
+
+## D5:  `/bedtime`'s Overnight section goes (P7, agent "bedtime")
+
+- packages/docs/content/templates/epics/plan-doc.md -- layered ON TOP of the edits above (same `.base`):  the
+  Overnight row is gone from "Sections";  `<body data-bedtime="P3-P6">` under "Item state";  the `overnight` command
+  row became `bedtime <name> start|done` plus `overnight <name> remove` (kept for an older doc's section).
+- packages/docs/content/dev/commands/commands.json -- on top of R1 + R2's edit:  two `target` cells no longer name
+  "/bedtime's Overnight section".
+- packages/docs/content/dev/commands/commands.html -- on top of R1 + R2's edit:  the two "Overnight section" asides
+  say it ran 2026-10-03 to 2026-10-05.
+- `templates/epics/plan.html` has no Overnight section:  unchanged for D5.
+- Still carrying an Overnight section (live shared docs, left alone):  `epics/markdown/markdown.plan.html` and
+  `epics/precedence-and-types/precedence-and-types.plan.html`, both `data-bedtime="done"`.  Once read:
+  `spell dev plan-doc overnight <name> remove`.

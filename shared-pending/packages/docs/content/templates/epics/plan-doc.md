@@ -77,7 +77,6 @@ Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan
 
 | Section | id | What |
 |---|---|---|
-| Overnight · `<date>` | `#overnight` | TEMPORARY, unnumbered, above the Overview:  a `/bedtime` run's report (summary, a line per phase, problems), `data-bedtime="active"` while it runs, `"done"` after.  Only `spell dev plan-doc overnight` writes it;  `/epic review` removes it once the night's judgement calls are reviewed.  Nothing in it is only there:  calls, problems and todos are items, phases are log lines |
 | 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`, folded in a "Kickoff prompt" aside), the total estimate (`p.plan-estimate`, written by the script), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
 | 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  its estimate as the title's badge;  Goal (bullets), Done (bullets, once done), Files and Verify (hidden until the folder / flask toggle on the Phases title is pressed) |
 | 3. Questions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then the answered ones, in id order:  settled unless new facts arrive.  A decision IS an answered question (D13 of `review-review`, 2026-10-04):  `decide` writes the answer INTO the question;  `add ... decision` makes a question born answered.  Icon `file circle question` |
@@ -291,10 +290,11 @@ Item state (written by the script on every edit;  the page colors the id badge b
 
 - `data-changed`:  when a command last changed the item's status or review marks (`add`, `close`, `reopen`,
   `decide`, `review`, `defer`, `queue`, `unqueue`), ISO local time with offset;  `data-bedtime` too while a
-  `/bedtime` run is on, until `review` (or `queue`) clears it
+  `/bedtime` run is on (`<body data-bedtime>` below), until `review` (or `queue`) clears it
 - `data-phase="N"`:  the phase active when it was added (its "To review" line lists it)
 - `<body data-recent-since>`:  the commit time of `HEAD~2` in the doc's checkout (D2:  green = changed in this
   commit or the last);  none without git history
+- `<body data-bedtime="P3-P6">`:  a `/bedtime` run is on, and what it runs (`bedtime <name> start` / `done`)
 - `data-state`, from those:
 
   | State | Color | When |
@@ -480,7 +480,8 @@ checkout, a command edits the same doc.  `--here` (this checkout's copy) is no l
 | `prompt <name> "<text>"` / `prompt <name> --file <path>` | set (replace) the prompt quoted in the Overview;  `""` removes it |
 | `migrate <name>` | bring an older doc (before 2026-10-01, `section.s2` markup, `D` items, answer cards first) into this layout (prints what changed;  "already current" otherwise) |
 | `relayout <name> \| --all [--dry-run]` | answered questions in the order they happened (before 2026-10-05:  the answer card first):  the question, its Choices, the answer;  prints per doc the questions changed and those skipped, and why (born answered:  no answer card);  idempotent, drops nothing;  `--dry-run` writes nothing |
-| `overnight <name> start "P3-P6" [--branch b]` / `phase <N> "text"` / `problem "text"` / `done "summary"` / `remove` | a `/bedtime` run's Overnight section (`/bedtime`'s cheat sheet) |
+| `bedtime <name> start "P3-P6"` / `bedtime <name> done "summary"` | a `/bedtime` run:  bedtime mode on (`<body data-bedtime="P3-P6">`;  `summary --json`'s `bedtime`) / off;  both logged.  No report section:  the night's judgement calls and issues show red where they belong (D5 of `review-review`) |
+| `overnight <name> remove` | an older doc's Overnight report section (a `/bedtime` run's, before 2026-10-05):  remove it once read |
 | `review <name> <id> ["outcome"]` | mark an item reviewed today;  the outcome goes in the log |
 | `defer <name> <id>` | put an item off:  dated, still not reviewed |
 | `queue <name> <id> "work"` / `unqueue <name> <id>` | work a review decided on, waiting / started or dropped |
