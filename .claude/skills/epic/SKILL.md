@@ -20,6 +20,15 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 - Rules for the doc (sections, ids, markers, prose):  `templates/epics/plan-doc.md`.  Read it first.
 - Structured edits go through `spell dev plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
+  - A plan doc is SPLIT (P3 of `claude-design`;  new docs start so):  the skeleton `epics/<name>/<name>.plan.html` keeps
+    the summary, the kickoff prompt and every section, phase and item line;  each BODY is a part file,
+    `epics/<name>/parts/<id>.htm`, `<id>` its section's or item's:  `o3.htm` (Overview 1.3), `p2.htm` (phase 2's
+    Goal / Done / Files / Verify), `q7.htm` (Q7's details), `log.htm`.  Edit a body's prose in ITS part file, at its
+    real path (`/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.htm`).  Its relative links are
+    relative to `parts/` (one `../` more than the skeleton's).
+  - A new Overview sub-section:  write it whole into the skeleton, inside `#overview`;  the next `plan-doc` command
+    moves its body into `parts/<id>.htm`.  Nothing is dropped:  content beside a part is kept, after the part's.
+  - `plan-doc.md`, "Parts", has the rules;  `plan-doc split <name>` / `join <name>` switch a doc's shape.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
   doc review):  `spell dev plan-doc open <name>` reloads it in the side bar's doc preview.  `spell dev plan-doc phase` does it for you.
 - Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):  a plain lead sentence, then

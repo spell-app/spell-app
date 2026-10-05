@@ -2964,7 +2964,9 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics/<name>
                                                    a dry run unless --apply (review-backfill.js)
   summaries <file.html> ...                        \`summary --json\` of each doc, by path (worktrees' too):
                                                    JSON \`{ <file>: summary | { error } }\`;  for \`/epics\`
-  check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
+  check <name> [--no-browser] [--links]            ids, #id links, phases, parts (a split doc whole);  its
+                                                   links (doc-links), failing only with --links;  then
+                                                   check-spell.js
   open <name>                                      show in VS Code's doc preview (right side bar)
   migrate <name>                                   bring an older doc (any layout) into the current one;
                                                    its decisions (D items) merge into its questions
@@ -4134,15 +4136,19 @@ function rehome(html, file, pageDir) {
  * `check`:  structural problems, then the browser check;  exits 1 on any.
  * - a split doc is checked WHOLE (`read()` assembles it):  ids and `#id` links across skeleton and parts
  * - links:  `doc-links.js` `checkText()` on the whole doc, at the page's folder (a part's links are written relative
- *   to `parts/`, and rebased when assembled), so the parts' links are checked too
+ *   to `parts/`, and rebased when assembled), so the parts' links are checked too;  printed (`LINK:`), failing only
+ *   with `--links`
  * - a split doc's parts:  a missing one is a problem;  a host with content of its own besides its part (moved into
  *   the part on the next edit), or a part file nothing loads, is a note
  */
-function check(file, { noBrowser }) {
+function check(file, { noBrowser, links: strictLinks }) {
   const plan = read(file)
   const problems = plan.check()
-  const links = checkText(plan.toString(), dirname(file)).problems
-  problems.push(...links.map((problem) => `link:  ${problem}`))
+  const links = checkText(plan.toString(), dirname(file)).problems.map((problem) => `link:  ${problem}`)
+  // printed, but failing only with `--links`:  older docs hold broken links from the docs' moves (I... of
+  // `claude-design`), which `check` never looked at before
+  if (strictLinks) problems.push(...links)
+  else for (const link of links) console.log(`LINK:  ${link}`)
   problems.push(...plan.parts.missing.map((id) => `part ${PARTS_DIR}/${id}${PART_EXT} is missing`))
   for (const id of plan.parts.inline)
     console.log(`NOTE:  #${id} has content beside its part:  the next edit moves it into the part`)
