@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
 
-Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
-Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -22,9 +22,9 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   need the spell grammar (the generic ones are in `../parser`).
 - `src/node/` (`$/spell/node/...`) is NODE-ONLY:  `environment`, `packageVersion.node`, `disk-fetch`, `file-utils`,
   `project-utils`, `response-utils`, `server.types`.
-  - The barrel NEVER exports it.  Other packages may import these files by name, the one deep-import exception
-    (see `tsconfig.base.json`'s header);  the app's server does.
-  - Nothing reachable from `$/spell`'s barrel may import it:  the barrel runs in browsers.
+  - The barrel NEVER exports it.  Other packages may import these files by name, one of the deep-import exceptions
+    (WWOD §4 › "Package aliases, never `../`");  the app's server does.
+  - Nothing reachable from `$/spell`'s barrel may import it (WWOD §8 › "Barrels").
 - `src/highlight/` -- `SpellHighlighter` (`SP.SpellHighlighter.spans(text)`):  colours a snippet without a project, for
   `<ui-code language="spell">`.  `browser.ts` is the entry `@spell-app/ui`'s `yarn gen:spell` bundles:  after changing
   the grammar, run it there so `ui`'s committed bundle follows.
@@ -38,8 +38,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - Each fixture's compiled output is checked against `<Project>.snapshot.js` beside it (`src/test/fixtures.test.ts`).
     Add a fixture by copying a project in;  after a deliberate change, `yarn test:fixtures:bless` and read the diff.
 - `readme.md` is the project's front page.  Docs live in `packages/docs/` (see "Creating docs").
-- `src/index.ts` is the barrel:  it is also pulled into the app's server, so nothing reachable from it may rely on
-  browser-only globals at module-evaluation time.  It imports `$/core`'s TYPES only, never its code.
+- `src/index.ts` is the barrel, loaded in browsers AND the app's server (WWOD §8 › "Barrels").  It imports
+  `$/core`'s TYPES only, never its code.
 
 ## How parsing works
 
@@ -60,18 +60,16 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - Everything else -- `alias`, `priority`, `declares`, `highlightAs`, `datatype`, `tokenType`, `pattern` ... --
     goes ON THE CLASS as `@proto static` (from `$/util`), e.g. `@proto static alias = "expression"`.
     Why:  the class is the rule, reusable by other languages' parsers with their own `syntax`.
-  - `@proto` only accepts a prop the rule declares -- `@proto static alais` is a compile error.
+    As WWOD §12 › "`@proto static` defaults" (declared props only;  inherited), plus:  `syntax`, `tests` and
+    `ruleName` are NOT inherited -- share syntax with a constant, e.g. `VARIABLE_SYNTAX`.
   - `priority` (from the `Priority` table, `rules.types.ts`) only breaks a tie between rules matching the SAME
     words;  an operator's `precedence` (from the `Precedence` table) is how tightly it binds.
     New expression or operator:  `PARSING.md`, "Adding an expression rule".
   - Class name IS the rule name.  Use plain `static ruleName = "if"` only for reserved words (`class _if`)
     or when class name isn't rule case (`class Block` => `"block"`).
-    Prod build MUST keep `output.keepNames` (`../app/vite.config.ts`), pinned by `../app/src/build.test.ts`.
+    So the prod build keeps class names:  `../parser/AGENTS.md`, `keepNames`.
   - ONE `syntax` per registration.  A rule with several calls `addRule()` once per syntax, each with the
     `tests` for that syntax, e.g. `assignment_statement`.  Instances merge into a `P.Group` under the rule's name.
-  - `@proto static` values are INHERITED:  a subclass of a registered rule gets its parent's `alias` etc.
-    State its own value to differ.  `syntax`, `tests` and `ruleName` are NOT inherited --
-    share syntax with a constant, e.g. `VARIABLE_SYNTAX`.
   - Put a prop on a base class when EVERY subclass wants the same value, e.g. `SpellExpression`'s
     `alias = "expression"`, `MethodDefinition`'s `inlineInitialType = false`.  A subclass just states its own
     value for an exception.
@@ -90,9 +88,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       to take a MINIMAL set, named in `declare static readonly SpecializeWith`, and works out the rest
       for `super.specialize(statics, declared)`.  See `P.SpecializeWith`.
     - Its `static declarationProps(declared, syntax)` says what goes in the declaration -- tune output there.
-  - NEVER treat a class name or rule name as a stable identifier -- for saved data, lookups, or anything which
-    must survive a rename or a translation.  Names are for people, and change.  Add an explicit property
-    for it instead, e.g. `@proto static importableAs = "quoted_property"`.
+  - A class or rule name is NOT a stable identifier (WWOD §3 › "Names aren't identifiers"):  here, the explicit
+    property is e.g. `@proto static importableAs = "quoted_property"`.
   - A word with negated forms is a `Negatable` rule (`expressions.ts`):  `{operator:is}` matches `is` / `is not` /
     `isn't` / `isnt`, and `Negatable.isNegated(operator)` says which -- plain `is` matches just the word.
     `is`, `can`, `will`, `has` so far;  a translation registers its own, e.g.
@@ -197,19 +194,19 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 ## Decorators
 
-As the root's, plus:
+As WWOD §12, plus:
 
 - `vite.decorators.ts` (repo root) is used by `vitest.config.ts` here.
 
 ## Imports
 
-- As the root's, with our own `src/` as `$/spell` / `$/spell/*`, and `SP` ~== `$/spell` as our one namespace.
+- As WWOD §4, with our own `src/` as `$/spell` / `$/spell/*`.
 - Imports `$/parser` (`P`), `$/core` (types only) and `$/util`.  NEVER import `$/lsp`, `$/app` or `$/cli`.
 - A rule module imports the generic parser's rule classes from `$/parser`, and registers on `SpellParser` here.
 
 ## Types / Exports
 
-As the root's, plus our self-namespace:
+As WWOD §8, plus our self-namespace:
 
 - `SP` ~== `$/spell`
 

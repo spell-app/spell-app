@@ -116,16 +116,22 @@ test("request():  no window, or none listening, throws a clear error", async () 
   await assert.rejects(Window.request("show-doc", {}, window), /didn't answer on port 1/)
 })
 
-test("a worktree's window:  the main root first, then the worktree's package and root;  theme, tinted", () => {
+test("a worktree's window:  the main root first, then the worktree's root, then the shared content repo;  theme, tinted", () => {
   const workspace = Window.worktreeWorkspace("ui", "seo")
   assert.deepEqual(workspace.folders, [
     { path: "../..", name: "spell-app" },
-    { path: "../../.claude/worktrees/seo/packages/ui", name: "ui ⎇ seo" },
-    { path: "../../.claude/worktrees/seo", name: "spell-app ⎇ seo" }
+    { path: "../../.claude/worktrees/seo", name: "⎇ seo" },
+    // `[]` on a machine without `../spell-app-dev`
+    ...Window.sharedFolder(dirname(Window.worktreeFile("seo")))
   ])
+  assert.equal(workspace.spell.package, "ui")
   assert.equal(workspace.settings["workbench.colorTheme"], Window.theme("ui"))
   assert.deepEqual(workspace.settings["workbench.colorCustomizations"], tint("seo"))
   assert.match(Window.worktreeFile("seo"), /\/workspaces\/ongoing\/seo\.code-workspace$/)
+})
+
+test("a worktree's window never hides `packages`:  it would hide the worktree's too", () => {
+  assert.deepEqual(Window.worktreeWorkspace("ui", "seo").settings["files.exclude"], { ".claude/worktrees": true })
 })
 
 test("tint():  a dark hue per name, the same every time", () => {

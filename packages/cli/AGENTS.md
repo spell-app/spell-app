@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/cli`.
 
-**Root conventions apply:  READ the repo root's `AGENTS.md` FIRST** -- its Documentation, Functions,
-Types / Exports and Imports sections all apply here.  Only what DIFFERS is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -51,17 +51,16 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 ## Imports
 
-- As the root's rules, with `CLI` ~== `$/cli` as our one namespace:  `import { CLI } from "$/cli"`.
-- Import order puts the other packages' barrels (`$/spell`, `$/lsp`) before our own.
-- `main.ts`, `devMain.ts` and `consoleGuard.ts` are NOT in the barrel:  importing any has side effects.  Nor is
-  `devProgram.ts`:  both entries build on it, and it must load without the barrel.
+- As WWOD §4, with `CLI` ~== `$/cli` as our one namespace:  `import { CLI } from "$/cli"`.
+- `main.ts`, `devMain.ts` and `consoleGuard.ts` are NOT in the barrel (WWOD §8 › "Barrels"):  importing any has
+  side effects.  Nor is `devProgram.ts`:  both entries build on it, and it must load without the barrel.
 
 ## Tests
 
-- `yarn test`.  Every module's tests sit beside it, `<module>.test.ts(x)`.
+As WWOD §20, plus:
+
 - They read spell's frozen projects, `../spell/projects/test/` (`@test/<Project>`) -- see "Overview" in
   `../spell/AGENTS.md`.  NEVER write into one:  compile with `--stdout`, or make a temp project, as
   `cli.test.ts` does.
 - `cli.test.ts` runs the real `bin/spell.mjs`, as a separate process, with no terminal.
 - Screens render through `ink-testing-library`, at a fixed `size`.
-- `yarn review` ~== `yarn ts` + `yarn lint:fix` + `yarn format` + `yarn test`.

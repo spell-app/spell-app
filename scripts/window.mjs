@@ -51,7 +51,10 @@
  * - Its file:  `workspaces/ongoing/<name>.code-workspace` in the main checkout, beside the package windows' files;
  *   git ignores `workspaces/ongoing/`.
  * - Folders:  the MAIN repo root first, as in every window, so its Claude panel lists every session;  then the
- *   worktree's `packages/<pkg>` and the worktree's root (whose `packages/` is hidden, as the main root's is).
+ *   worktree's root, `⎇ <name>`.  No package folder:  Owen (2026-10-03).
+ *   - `packages/` shows in both:  a window's `files.exclude` applies to every folder, so hiding the main root's
+ *     would hide the worktree's too
+ *   - the package it's for (theme, `handoff --back`'s target) is kept in the file's own `spell.package`
  * - The package window's theme, title bar tinted in a colour of the worktree's own (from its name):  told apart at a
  *   glance from the package window, and from other worktrees.
  *
@@ -215,23 +218,25 @@ export class Window {
   }
 
   /**
-   * The window file of worktree `name`, focused on `pkg`.
+   * The window file of worktree `name`, opened from `pkg`'s window.
    * - folder paths are relative to `workspaces/ongoing/`
+   * - `spell.package`:  `pkg`, for `handoff --back`;  VS Code ignores a top-level key it doesn't know
+   * - NEVER hide `packages`, as a package window does:  it would hide the worktree's too (`PAPERCUTS.md`,
+   *   "claude-code")
    */
   static worktreeWorkspace(pkg, name) {
-    const worktree = `../../.claude/worktrees/${name}`
     return {
       folders: [
         { path: "../..", name: "spell-app" },
-        { path: `${worktree}/packages/${pkg}`, name: `${pkg} ⎇ ${name}` },
-        { path: worktree, name: `spell-app ⎇ ${name}` },
+        { path: `../../.claude/worktrees/${name}`, name: `⎇ ${name}` },
         ...Window.sharedFolder(join(MAIN_ROOT, "workspaces", "ongoing"))
       ],
       settings: {
         "workbench.colorTheme": Window.theme(pkg),
-        "files.exclude": { packages: true, ".claude/worktrees": true },
+        "files.exclude": { ".claude/worktrees": true },
         "workbench.colorCustomizations": tint(name)
-      }
+      },
+      spell: { package: pkg }
     }
   }
 
@@ -632,11 +637,15 @@ const USAGE = `usage:  spell dev window <command>
                                the move itself (the Stop hook runs it)
   stay-check [--epic] [--json] stay in this window when isolating, or move?  recommend stay|window, and why`
 
-/** The package worktree window file `file` focuses on:  its second folder, `<name>/packages/<pkg>`. */
+/**
+ * The package worktree window file `file` was opened from:  its `spell.package`.
+ * - an older file (before 2026-10-03) has none:  its second folder, `<name>/packages/<pkg>`
+ */
 function worktreePackage(file) {
-  const folder = JSON.parse(readFileSync(file, "utf8")).folders?.[1]?.path ?? ""
-  const pkg = folder.match(/packages[\\/]([^\\/]+)$/)?.[1]
-  if (!pkg) throw new Error(`${file}:  no package folder`)
+  const workspace = JSON.parse(readFileSync(file, "utf8"))
+  const folder = workspace.folders?.[1]?.path ?? ""
+  const pkg = workspace.spell?.package ?? folder.match(/packages[\\/]([^\\/]+)$/)?.[1]
+  if (!pkg) throw new Error(`${file}:  no package`)
   return pkg
 }
 

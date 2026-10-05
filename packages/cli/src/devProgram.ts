@@ -191,6 +191,16 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
       )
     )
 
+  dev
+    .command("agents")
+    .description("the agents' rules:  check every WWOD citation and repo path in WWOD, AGENTS.md, CLAUDE.md and skills")
+    .argument("[verb]", "check (default)")
+    .argument("[files...]", "check:  more files to check, beyond the default set")
+    .option("--json", "check:  print the report as JSON")
+    .action((verb: string | undefined, files: string[], _options, command) =>
+      runBarrel("agentsCommand", [verb ?? "check", ...files], command.optsWithGlobals())
+    )
+
   return dev
 }
 
@@ -228,6 +238,7 @@ export type BarrelCommand =
   | "parkCommand"
   | "stockCommand"
   | "sharedCommand"
+  | "agentsCommand"
 
 /** Runs `$/cli` command `name` for `args`, then exits with its code. */
 export type RunBarrel = (name: BarrelCommand, args: string[], options: GlobalOptions) => Promise<never>

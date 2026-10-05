@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/markdown`.
 
-**Root conventions apply:  READ the repo root's `AGENTS.md` FIRST** -- its Documentation, Functions,
-Types / Exports and Imports sections all apply here.  Only what DIFFERS is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -21,18 +21,14 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   <spec.txt>`) and `spec.test.ts`, which renders each with the PLAIN-HTML tags and pins the pass count per section
   in a snapshot:  a regression fails it, a gain updates it (`vitest -u`, after reading the diff).
 
-## Imports
-
-- As the root's, with `MD` ~== `$/markdown` as our one namespace:  `import { MD } from "$/markdown"`.
-
 ## Decorators
 
-As the root's, plus:
+As WWOD §12, plus:
 
 - `vitest.config.ts` uses `vite.decorators.ts` (repo root).
 
 ## Types / Exports
 
-As the root's, plus our self-namespace:
+As WWOD §8, plus our self-namespace:
 
 - `MD` ~== `$/markdown`
