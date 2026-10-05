@@ -72,5 +72,11 @@ export const DEPTH_PROPERTY = "--_ui-section-depth"
 /** `hidden` value that lets find-in-page reveal a folded section's content (`beforematch`). */
 export const UNTIL_FOUND = "until-found"
 
+/** Class word of the line saying a `source` body failed (`part="error"`, inside the content box). */
+export const SOURCE_ERROR = "source error"
+
+/** Class word after the noun while a `source` body is slow to arrive:  the `loading` look. */
+export const LOADING = "loading"
+
 /** Event find-in-page fires on hidden `until-found` content before revealing a match. */
 export const BEFORE_MATCH = "beforematch"
