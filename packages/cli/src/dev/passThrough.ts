@@ -13,6 +13,7 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * - `docs <verb>`:  `packages/docs/package.json`'s `docs:<verb>`, in `packages/docs` as `yarn workspace` ran them
  * - `server`:  `packages/server`'s `server` script;  `serve`:  root `yarn serve`, `spell dev server start --all`
  * - `window`:  root `yarn window`;  plain `node`, so it runs in a worktree before its `yarn install`
+ * - `design build`:  `packages/ui`'s `design:build`, under `tsx`, in the caller's folder (so `--out` is relative to it)
  * - `plan-doc`:  in the caller's folder, as `spell plan-doc` always ran it
  * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`)
  */
@@ -24,6 +25,7 @@ export const TOOLS = {
   "docs open": { tool: "packages/docs/tools/open.js", cwd: "packages/docs" },
   "docs link": { tool: "packages/docs/tools/link.ts", tsx: "packages/docs/tsconfig.json", cwd: "packages/docs" },
   details: { tool: "packages/docs/tools/details.js", cwd: "packages/docs" },
+  "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
   server: { tool: "packages/server/src/page/cli.ts", tsx: "packages/server/tsconfig.json" },
   serve: { tool: "scripts/serve.mjs" },
   window: { tool: "scripts/window.mjs" }
@@ -34,6 +36,9 @@ export type ToolName = keyof typeof TOOLS
 
 /** `docs`' verbs, in the order help lists them. */
 export const DOCS_VERBS = ["update", "index", "new", "open", "link"] as const
+
+/** `design`'s verbs (epic `claude-design`:  `push` / `pull` come in P9). */
+export const DESIGN_VERBS = ["build"] as const
 
 /**
  * Run tool `name` of the nearest checkout from the current folder (`findCheckout()`), with `args` verbatim and
