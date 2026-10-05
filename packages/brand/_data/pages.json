@@ -6,6 +6,11 @@
       "summary": "A brand blob tucks one soft lavender shape into a corner of its parent, never behind body text.",
       "status": "done"
     },
+    "ui-brand-checklist": {
+      "title": "Brand checklist",
+      "summary": "A brand checklist shows a build's progress step by step, or a list of things to tick off, each with a round mark.",
+      "status": "done"
+    },
     "ui-brand-color": {
       "title": "Brand color",
       "summary": "A brand color is a square colour chip:  a label inside, an AA mark, a selected ring, a details tip;  click to copy.",
@@ -26,6 +31,11 @@
       "summary": "A brand color set lays out colour chips in a row or a grid;  `selectable` makes it a radio group to pick one.",
       "status": "done"
     },
+    "ui-brand-composer": {
+      "title": "Brand composer",
+      "summary": "A brand composer is the box where you describe an app in plain words and cast it:  a serif text box, tool chips, a keyboard hint and a round Cast button.",
+      "status": "done"
+    },
     "ui-brand-field": {
       "title": "Brand field",
       "summary": "A brand field wraps one control with its label, a value readout, action buttons, an info tip, help and errors.",
@@ -44,6 +54,11 @@
     "ui-brand-panel": {
       "title": "Brand panel",
       "summary": "A brand panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.",
+      "status": "done"
+    },
+    "ui-brand-phone": {
+      "title": "Brand phone",
+      "summary": "A brand phone frames live app content as a phone:  a status bar on top, the app below.",
       "status": "done"
     }
   },
