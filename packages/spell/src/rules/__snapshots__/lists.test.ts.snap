@@ -3,6 +3,8 @@
 exports[`testing spell module lists > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
 {
   "bracketed_list": "list?",
+  "can_give_up": "operator|expression",
+  "can_take": "operator|expression",
   "copy_list": "expression|type?",
   "ends_with": "operator|expression",
   "list_add": "thing|method?|list",
@@ -14,6 +16,7 @@ exports[`testing spell module lists > rule group specs > match snapshot -- if th
   "list_iteration": "item|position?|list|body?",
   "list_length": "arg|list|body?",
   "list_membership_test": "operator|arg|body?",
+  "list_move": "thing|list",
   "list_position": "thing|list",
   "list_prepend": "thing|list",
   "list_range_iteration": "item|start|end|body?",
