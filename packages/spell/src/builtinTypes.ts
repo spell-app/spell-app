@@ -51,6 +51,19 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
     rules: ["create_type", "new_thing", "create_thing"],
     members: [
       {
+        words: "(a thing) belongs to one (list)",
+        kind: "method",
+        rules: ["belongs_to_one", "can_belong_to_many"],
+        docstring: md(
+          "In ONE list of a kind at a time, e.g. `a card belongs to one pile`:",
+          "- putting the card on one pile takes it off the other, tableaus and other piles included",
+          "- `the pile of the card` is the pile it's in, or nothing",
+          "- a list of another kind, e.g. a deck, doesn't count:  a card can be in the deck AND one pile",
+          "- say it after both types, e.g. after `a pile is a list of cards`",
+          "- `a card can belong to many piles`:  the opposite, which lists do anyway"
+        )
+      },
+      {
         words: "draw (a thing)",
         kind: "method",
         rules: ["draw_thing"],
@@ -102,6 +115,29 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         datatype: "number",
         readAs: "spellCore.itemCountOf({it})",
         docstring: md("How many items it has, e.g. `the size of the deck` -- its `length`.")
+      },
+      {
+        words: "(a list) can give up (a thing)",
+        kind: "method",
+        rules: ["can_give_up", "list_guard"],
+        docstring: md(
+          "Would it let go of a thing moving elsewhere, e.g. `if the stock can give up the card`?",
+          "- Yes, unless its type says otherwise:  `a stock-pile can give up a card if: the card is its last card`,",
+          "  or `a foundation can never let go of a card`.",
+          "- `release`, `remove` and `let go of` mean the same.",
+          "- Only `move` asks.  `remove` and `empty` never do."
+        )
+      },
+      {
+        words: "(a list) can take (a thing)",
+        kind: "method",
+        rules: ["can_take", "list_guard"],
+        docstring: md(
+          "Would it take a thing moving to it, e.g. `if the tableau can take the card`?",
+          "- Yes, unless its type says otherwise:  `a tableau can take a card if: ...`, answering yes or no.",
+          "- `add` means the same.",
+          "- Only `move` asks.  `add` never does."
+        )
       },
       {
         words: "(a list) has items where",
@@ -216,6 +252,18 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         docstring: md(
           "One new list with the items of each list in a list of lists, in order, e.g. `merge the piles`.",
           "- Same type as the first, unless you say `as a list`."
+        )
+      },
+      {
+        words: "move (a thing) to (a list)",
+        kind: "method",
+        rules: ["list_move"],
+        docstring: md(
+          "Move it, if both lists agree, e.g. `move the card to the tableau`:",
+          "- the list it belongs to must give it up -- see `a card belongs to one pile`",
+          "- and the new list must take it -- see `can take`",
+          "- `if move the card to the tableau ...`:  whether it moved.  Refused, nothing changes.",
+          "- `add` and `remove` never ask:  for dealing, or gathering every card back."
         )
       },
       {
