@@ -106,9 +106,18 @@ export class SiteHeader extends HTMLElement {
     return location.protocol.startsWith("http")
   }
 
-  /** the URL of `property`'s home, or `undefined` where it can't be reached (server-only, from `file://`) */
+  /**
+   * The URL of `property`'s home, or `undefined` where it can't be reached (server-only, from `file://`).
+   * - A worktree's page on the main checkout's server (`/worktrees/<w>/...`) keeps that prefix on repo paths, so a tab
+   *   stays in the worktree:  a property only the branch has (Brand, before it merges) is a 404 on `main`.  A server
+   *   route (`/ui/`, `/editor/`) is the server's own:  never prefixed.
+   */
   href(property: SiteProperty): string | undefined {
-    if (this.served) return property.path.startsWith("/") ? property.path : `/${property.path}`
+    if (this.served) {
+      if (property.path.startsWith("/")) return property.path
+      const worktree = /^\/worktrees\/[^/]+\//.exec(location.pathname)?.[0] ?? "/"
+      return `${worktree}${property.path}`
+    }
     if (property.serverOnly) return undefined
     return `${this.root}/${property.path}`
   }
