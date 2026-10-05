@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/util`.
 
-Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
-Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -51,16 +51,16 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 ## Decorators
 
-As the root's, plus:
+As WWOD §12, plus:
 
 - `vitest.config.ts` uses the `standardDecorators()` plugin, so `decorators.test.ts` runs lowered decorators.
 - Every other package that compiles this source (`ui`'s build, its docs site, `spell`) already runs that plugin.
 
 ## Types / Exports
 
-As the root's.  The barrel has no self-namespace:  helpers are imported by name.
+As WWOD §8.  The barrel has no self-namespace:  helpers are imported by name.
 
 ## Imports
 
-As the root's, with `$/util` as our alias (from `tsconfig.base.json`).  Files in THIS package import each other as
+As WWOD §4, with `$/util` as our alias (from `tsconfig.base.json`).  Files in THIS package import each other as
 direct peers (`./class`).

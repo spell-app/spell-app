@@ -2,6 +2,8 @@ All Claude Code rules come from cross-model `AGENTS.md` file.
 
 @AGENTS.md
 
+@agents/wwod/WWOD.md
+
 
 Maintain `agents/PAPERCUTS.md` in the repo root, a log of anything that slowed down development. When you lose time to one mid-session, append date · symptom · fix · project. Check this file first when tooling fails mysteriously.
 

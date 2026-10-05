@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/app`.
 
-**Root conventions apply:  READ the repo root's `AGENTS.md` FIRST** -- its Solid 2, Documentation, Functions,
-Types / Exports and Imports sections all apply here.  Only what DIFFERS is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -98,19 +98,19 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 ## Imports
 
-- As the root's, with our own `src/` as `$/app` / `$/app/*`, e.g. `import { UI } from "$/app/ui"`.
+- As WWOD §4, with our own `src/` as `$/app` / `$/app/*`, e.g. `import { UI } from "$/app/ui"`.
 - Nothing imports THIS package except `cli` (and the `<script>` entries in `index.html` / `demo/`).
 
 ## Decorators
 
-As the root's, plus:
+As WWOD §12, plus:
 
 - `vite.decorators.ts` (repo root) is used by every `vite*.config.ts` and `vitest.config.ts` here.
   The server is fine as `tsx` is esbuild already.
 
 ## Types / Exports
 
-As the root's, plus our self-namespaces:
+As WWOD §8, plus our self-namespaces:
 
 - `UI` ~== `$/app/ui`
 - `F` ~== `$/app/ui/forms`

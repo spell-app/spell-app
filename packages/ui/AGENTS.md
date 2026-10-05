@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/ui`.
 
-Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
-Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -289,7 +289,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 ## Decorators
 
-As the root's, plus:
+As WWOD §12, plus:
 
 - `vite.decorators.ts` (repo root) is used by `vite.config.ts` (`baseConfig()`, shared with `vitest.config.ts` and
   the site bundle's `vite.site.config.ts`).
@@ -298,7 +298,7 @@ As the root's, plus:
 
 ## Types / Exports
 
-As the root's, plus our self-namespaces:
+As WWOD §8, plus our self-namespaces:
 
 - `UI` ~== the runtime singleton from `$/ui/runtime`
 - `E` ~== `$/ui/elements`
@@ -310,13 +310,13 @@ As the root's, plus our self-namespaces:
 
 ## Imports
 
-As the root's, with `$/ui` / `$/ui/*` as our alias, plus:
+As WWOD §4, with `$/ui` / `$/ui/*` as our alias, plus:
 
 - Test helpers come from `$/ui/test/...` (`$/ui/test/fixture`, `$/ui/test/a11y`, `$/ui/test/ElementFixture`), the only other
   entry point (`$/ui/test/*` is longer than `$/ui/*`, so it wins).
 - Exceptions:  component files import shared code from `$/ui/core` / `$/ui/forms` ("Solid authoring");  `tools/` are
   node scripts:  relative imports with `.ts` extensions, no aliases.
-- The root's examples, in `ui`:
+- WWOD §4's examples, in `ui`:
   - `import { E } from "$/ui/elements"` => `E.UIElement`, `new E.ClassBuilder(...)`
   - tests may mix:  `import { E, UIElement } from "$/ui/elements"`
   - side-effect imports:  `import "$/ui/components/ui-button"`
