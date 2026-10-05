@@ -172,7 +172,7 @@
 
             <ui-section
               id="shared-content"
-              header="2026-10-04 · Shared content, P1-P3:  docs reorganised, tools link-aware"
+              header="2026-10-04 · Shared content, P1-P4 + migrate:  docs reorganised, the shared CLI"
               sticky
               collapsible
               dividing
@@ -185,8 +185,8 @@
                   ></ui-item
                 >
                 <ui-item icon="code branch"
-                  >Branch <code>shared-content</code>, P1-P3 merged 2026-10-04; P4-P8 (the shared repo itself) still in
-                  its worktree</ui-item
+                  >Branch <code>shared-content</code>, P1-P4 and the P6 tool merged 2026-10-04; the cutover (P5) and the
+                  rest still in its worktree</ui-item
                 >
               </ui-list>
               <ul>
@@ -227,6 +227,19 @@
                   folder; shared epics count once; a shared plan doc finds its commits by subject (<code
                     >&lt;epic&gt; I3:</code
                   >, or <code>P3:</code> with that phase's name).
+                </li>
+                <li>
+                  P4: <code>spell dev shared status | init [--import] | link [--all] | commit</code>; the manifest in
+                  the root
+                  <a href="../../../package.json" target="src-package-json"><code>package.json</code></a>
+                  (<code>"shared"</code>); a new worktree links itself, and a <code>Stop</code> hook commits the shared
+                  repo after every turn (both idle until the shared repo exists); windows show
+                  <code>spell-app-dev</code> as a folder.
+                </li>
+                <li>
+                  P6 (the tool, before the cutover): <code>spell dev shared migrate &lt;worktree&gt; [--dry-run]</code>
+                  moves a worktree onto the shared content without touching its other work; logs union-merged, any other
+                  two-sided change stops it.
                 </li>
               </ul>
             </ui-section>
