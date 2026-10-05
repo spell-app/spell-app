@@ -187,7 +187,7 @@ describe("SpellDeclarations.importScope()", () => {
     expect(renamed.types.get("Pile", "LOCAL_ONLY")?.itemType).toBe("Playingcard")
   })
 
-  test("an imported method's call rule checks its arguments' types, and is an operand inside an expression", () => {
+  test("an imported call rule checks its arguments' types -- a deck falls to the built-in `move` -- and is an operand", () => {
     const contents = [
       "set card to a new card",
       "set deck to a new deck",
@@ -202,9 +202,8 @@ describe("SpellDeclarations.importScope()", () => {
       export let deck = new Deck()
       export let pile = new Pile()
       card.move_to_$pile(pile)
-      /* PARSE ERROR: Don't understand "move card to deck" */
-      export let moved = card.move_to_$pile(pile)
-      5:0 Don't understand "move card to deck""
+      spellCore.move(card, deck)
+      export let moved = card.move_to_$pile(pile)"
     `)
   })
 
@@ -301,35 +300,39 @@ describe("SpellDeclarations.importScope()", () => {
 })
 
 /**
- * An exclusive list type's declaration says `exclusive`.
- * - Loading it gives its item type the member naming it again, e.g. `pile` on `Card`:  never written on its own.
- * - See `P.TypeScope.declareOwnerMember()`.
+ * `a card belongs to one pile` is saved as the member it gives cards:  `pile`, `exclusive`, a `Pile`.
+ * - Loading it gives `Card` that read-only member again -- see `P.TypeScope.declareOwnerMember()`.
+ * - The list types' own declarations say nothing about it:  `a pile is a list of cards` is plain.
  */
-describe("SpellDeclarations of an exclusive list", () => {
+describe("SpellDeclarations of `a card belongs to one pile`", () => {
   const library = [
     { path: "/Card.spell", contents: "a card is a thing" },
-    { path: "/Pile.spell", contents: "a pile is an exclusive list of cards\na tableau is a pile" }
+    { path: "/Pile.spell", contents: "a pile is a list of cards\na card belongs to one pile\na tableau is a pile" }
   ]
   const declarations = SP.SpellDeclarations.read(compiledProject(library))!
   const from = "@library/piles"
 
-  test("says `exclusive` on its type -- the member it gives cards goes without saying", () => {
+  test("says the member it gives cards -- its list types stay plain", () => {
+    expect(declarations.statements.find(({ property }) => property === "pile")).toEqual({
+      property: "pile",
+      of: "Card",
+      datatype: "Pile",
+      exclusive: true,
+      defined: "/Pile.spell:26-52"
+    })
     expect(declarations.statements.find(({ type }) => type === "Pile")).toEqual({
       type: "Pile",
       superType: "List",
       itemType: "Card",
-      exclusive: true,
-      defined: "/Pile.spell:0-36"
+      defined: "/Pile.spell:0-25"
     })
-    expect(declarations.statements.find(({ type }) => type === "Tableau")?.exclusive).toBeUndefined()
-    expect(declarations.statements.some(({ property }) => property === "pile")).toBe(false)
   })
 
-  test("loads it again:  `the pile of a card` is a `Pile`, read-only, declared on the pile's line", () => {
+  test("loads it again:  `the pile of a card` is a `Pile`, read-only, declared on its own line", () => {
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from, declarations }])
     const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("pile", "LOCAL_ONLY")
     expect(member).toMatchObject({ name: "pile", datatype: "Pile", exclusive: true })
-    expect(member?.declaredAt).toMatchObject({ path: `${from}/Pile.spell`, start: 0, end: 36 })
+    expect(member?.declaredAt).toMatchObject({ path: `${from}/Pile.spell`, start: 26, end: 52 })
     const contents = ["set card to a new card", "print the pile of the card", "set the pile of the card to 1"]
     const { files } = parseSpellProject([{ path: "/A.spell", contents: contents.join("\n") }], {
       parentScope: imports
@@ -337,17 +340,17 @@ describe("SpellDeclarations of an exclusive list", () => {
     expect([files[0]!.compiled, ...files[0]!.errors].join("\n")).toMatchInlineSnapshot(`
       "export let card = new Card()
       spellCore.console.log(card.pile)
-      /* PARSE ERROR: Can't set the pile of a Card:  it's the Pile holding it -- add it to a Pile instead */
-      3:0 Can't set the pile of a Card:  it's the Pile holding it -- add it to a Pile instead"
+      /* PARSE ERROR: Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead */
+      3:0 Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead"
     `)
   })
 
-  test("not when its item type isn't picked", () => {
+  test("picking `Card` brings `Pile`, the type its member holds", () => {
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [
-      { from, declarations, import: ["Pile"] }
+      { from, declarations, import: ["Card"] }
     ])
-    expect(imports.types.get("Pile", "LOCAL_ONLY")?.exclusive).toBe(true)
-    expect(imports.types.get("Card", "LOCAL_ONLY")).toBeUndefined()
+    expect(imports.types.get("Pile", "LOCAL_ONLY")).toBeDefined()
+    expect(imports.types.get("Tableau", "LOCAL_ONLY")).toBeUndefined()
   })
 })
 

@@ -58,6 +58,7 @@ exports[`ScopeExplorer > a type's members:  in document order, by file then line
   "method move (a card) to (a pile)",
   "property pile",
   "method play (a card)",
+  "method (a thing) belongs to one (list)",
   "method draw (a thing)",
 ]
 `;
@@ -65,10 +66,13 @@ exports[`ScopeExplorer > a type's members:  in document order, by file then line
 exports[`ScopeExplorer > root holds the built-in types, then the project:  its files, and what each declares 1`] = `
 "root Spell (built in)
   type Thing (base type)
+    method (a thing) belongs to one (list)
     method draw (a thing)
   type List (counts from 1)
     property length (number)
     property size (number)
+    method (a list) can give up (a thing)
+    method (a list) can take (a thing)
     method (a list) has items where
     method (a list) starts with (a thing)
     method a copy of (a list)
@@ -81,6 +85,7 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
     method items (start) to (end) of (a list)
     method items in (a list) where
     method merge (lists)
+    method move (a thing) to (a list)
     method number of (items) in (a list)
     method position of (a thing) in (a list)
     method remove (a thing) from (a list)
@@ -133,10 +138,13 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
 exports[`ScopeExplorer of a project importing another, compiled > the imported project shows, with its own files and types, ahead of ours 1`] = `
 "root Spell (built in)
   type Thing (base type)
+    method (a thing) belongs to one (list)
     method draw (a thing)
   type List (counts from 1)
     property length (number)
     property size (number)
+    method (a list) can give up (a thing)
+    method (a list) can take (a thing)
     method (a list) has items where
     method (a list) starts with (a thing)
     method a copy of (a list)
@@ -149,6 +157,7 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
     method items (start) to (end) of (a list)
     method items in (a list) where
     method merge (lists)
+    method move (a thing) to (a list)
     method number of (items) in (a list)
     method position of (a thing) in (a list)
     method remove (a thing) from (a list)
