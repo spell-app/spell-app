@@ -26,8 +26,8 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
      ...`):  it's the task to carry on with once isolated.  Delete it once done.
    Already mid-work ("isolate as <name>" in a running session):
    - edits already made in the main checkout:  the worktree is cut from COMMITTED `main`, so they won't follow
-     (shared content does:  `packages/docs/content`, `goals`, `agents` are links into `../spell-app-dev` in every
-     checkout, and `git status` never lists them).  List them (`git status --short`) and AskUserQuestion:  "Carry
+     (shared content does:  `epics`, `guides`, `pages`, `templates`, `goals`, `agents` are links into
+     `../spell-app-dev` in every checkout, and `git status` never lists them).  List them (`git status --short`) and AskUserQuestion:  "Carry
      them over", "Commit on `main` first" (stage, then ask) or "Leave them".  Carry over with a TAGGED stash (the stash stack is shared with every worktree):
      `git stash push -u -m "isolate:<name>"` here, its sha from `git stash list --format='%H %gs'`, then
      `git stash apply <sha>` in the worktree after step 3, and drop that entry.
@@ -124,7 +124,7 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    and "Leave unmerged", listing the commits in the question.  On "Merge now", get the BRANCH ready to fast-forward
    `main`, all from the worktree (branches are shared, so `main` is visible here):
    - NEVER `git -C <main checkout>` or `cd` there:  a worktree session refuses both.  `main` itself moves in step 7.
-   - first, the changelog:  add or move this branch's entry in `packages/docs/content/changelog.html` ("Changelog" in
+   - first, the changelog:  add or move this branch's entry in `guides/changelog.html` ("Changelog" in
      the root's `AGENTS.md`).  It's shared content:  write it straight in, nothing to commit on the branch for it
      (committed for you at the turn's end)
    - a worktree cut before 2026-10-04 (`spell dev shared status` shows its folders `tracked`, not `ok`):

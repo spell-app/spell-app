@@ -6,7 +6,7 @@
 /**
  * What a served page knows about its server:  `window.SPELL_SERVER`, injected before `</head>`.
  * - `token`:  this run's write token (see `Guard`)
- * - `file`:  URL path of the FILE served, e.g. `/packages/docs/content/index.html` for `/packages/docs/content/`
+ * - `file`:  URL path of the FILE served, e.g. `/guides/solid/index.html` for `/guides/solid/`
  * - `etag`:  the file's `ETag` when served, for `If-Match` on edits
  * - `root`:  absolute folder served;  `branch` / `worktree`:  of that checkout, when known
  * - `editPage`, `saveFile`, `readPage`, `takeScroll`:  added by `liveClient()`
@@ -45,7 +45,7 @@ export type PageChange = { path: string; html: string; etag?: string; reload: ()
 
 /**
  * One save of a whole file (`PUT /_server/page`), or of one element of a page (`fragment`:  its `id`, `PATCH`).
- * - `path`:  URL path of the file, e.g. `/packages/docs/content/notes.md`
+ * - `path`:  URL path of the file, e.g. `/guides/notes.md`
  * - `etag`:  the version it was edited from (the `ETag` it was fetched with);  REQUIRED by the server
  * - what `<ui-include>` / `<ui-code>` / `<ui-markdown>` save through (`UI.sources.saver`, set by the docs runtime)
  */

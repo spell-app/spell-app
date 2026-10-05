@@ -96,7 +96,7 @@ export class PageEditor {
   /** the file a request names in `?path=`:  one under the root that `allowed` matches, or an `HttpError` */
   private pageFile(request: SRV.Request, allowed: RegExp): { path: string; file: string } {
     const asked = one(request.query.path)
-    if (!asked) throw new SRV.HttpError(400, "?path= required, e.g. /packages/docs/content/index.html")
+    if (!asked) throw new SRV.HttpError(400, "?path= required, e.g. /pages/index.html")
     const path = asked.startsWith("/") ? asked : `/${asked}`
     const resolved = SRV.resolveInside(this.root, path, { index: false })
     if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)

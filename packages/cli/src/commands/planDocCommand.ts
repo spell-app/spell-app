@@ -3,7 +3,7 @@ import { runTool } from "$/cli/dev/passThrough"
 
 /**
  * `spell dev plan-doc <command> <name> ...`:  the tool that edits a plan doc
- * (`packages/docs/content/epics/<name>/<name>.plan.html`), as the `/epic` skill uses it.  `spell dev plan-doc` alone
+ * (`epics/<name>/<name>.plan.html`), as the `/epic` skill uses it.  `spell dev plan-doc` alone
  * lists its commands, e.g. `spell dev plan-doc summary seo`, `spell dev plan-doc phase seo 2 done`.
  * - Root `yarn plan-doc` aliases it;  `spell plan-doc` too, until skills stop calling it (deprecated).
  * - Which checkout:  the nearest one from the current folder up (a worktree's, when run in one), else this

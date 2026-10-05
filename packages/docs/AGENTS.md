@@ -6,37 +6,44 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 ## Layout
 
-Two folders (epic `shared-content`):
-- `content/` -- every page, plan doc and template;  the paths below are inside it, and so are page URLs
-  (`/packages/docs/content/solid/solid-2.html`).  A folder link into the shared content repo, `../spell-app-dev`
-  (the root's `AGENTS.md`, "Shared content"):  NOT tracked by spell-app.
+The pages live in SHARED root folders, the tooling here (epics `shared-content`, `claude-design` P4):
+- the pages, plan docs and templates:  root folders of every checkout, each a folder link into the shared content
+  repo, `../spell-app-dev` (the root's `AGENTS.md`, "Shared content"):  NOT tracked by spell-app.  Page paths below
+  are from the checkout's root, and so are page URLs (`/guides/solid/solid-2.html`).
   - One copy for every checkout:  an edit shows in every worktree at once, and never conflicts on merge.
   - Committed by itself after every Claude turn (the `Stop` hook):  never `git add` / commit a page by hand.
-  - NEVER run git inside `content/`:  it's the shared repo there.  Tools run git in the spell-app checkout.
+  - NEVER run git inside a shared folder:  it's the shared repo there.  Tools run git in the spell-app checkout.
+  - Before 2026-10-05 they were all `packages/docs/content/`:  old-path links stay there in the shared repo, for
+    checkouts on older code, and the page server redirects the old URLs (`tools/relocate.js` `reorgShared()`).
 - `tools/` -- the tooling:  the scripts (`tools/*.js`, see "Scripts"), `tools/_assets/` and the goals tooling
   (`tools/goals/`).  Tracked here, versioned per branch.  Run a script from `packages/docs`
-  (`node tools/check-spell.js content/x.html`) or through its `yarn` script.
+  (`node tools/check-spell.js guides/x.html`) or through its `yarn` script;  a page argument is from the root, or
+  from an area (`solid/solid-2.html` is a guide:  `tools/pages.js` `pageFile()`).
 
-In `content/`:
-- `index.html` -- the docs index.  The list between `<!-- index:start -->` / `<!-- index:end -->` is written by
-  `spell dev docs index`;  edit only outside the markers.
-- `changelog.html` -- what the repo shipped, newest first;  every `/isolate` and `/epic` adds to it (the root's
-  `AGENTS.md`, "Changelog").
-- `<topic>/<topic>.html` -- a doc, folder and file in lower-kebab-case, e.g. `solid/solid-2.html`.
-  - One-file docs with nothing beside them MAY sit at the top level:  `<name>.html`.
-  - `<topic>/experiments/` -- runnable scripts backing the doc's claims (see "Experiments").
-  - `<topic>/<topic>.md` -- a distilled version for agents, when agents need the doc's rules (see "Agent rules").
+The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, `TEMPLATES`;  `findPages()` walks them):
+- `pages/index.html` -- the docs home.  The list between `<!-- index:start -->` / `<!-- index:end -->` is written by
+  `spell dev docs index`;  edit only outside the markers.  (P5 of `claude-design` makes it a routing page.)
+- `guides/` -- every other page:
+  - `guides/changelog.html` -- what the repo shipped, newest first;  every `/isolate` and `/epic` adds to it (the
+    root's `AGENTS.md`, "Changelog").
+  - `guides/<topic>/<topic>.html` -- a doc, folder and file in lower-kebab-case, e.g. `guides/solid/solid-2.html`.
+    - One-file docs with nothing beside them MAY sit at the top level:  `guides/<name>.html`.
+    - `<topic>/experiments/` -- runnable scripts backing the doc's claims (see "Experiments").
+    - `<topic>/<topic>.md` -- a distilled version for agents, when agents need the doc's rules (see "Agent rules").
+  - `guides/spell-docs/` -- how the pages work (`spell-docs.md`) and the @spell-app/ui problems they hit
+    (`spell-ui-findings.md`).
 - `templates/` -- starting points, one per kind of doc (see "Templates").
 - `epics/<name>/<name>.plan.html` -- plan docs, one per `/epic` session (see "Plan docs").  `<name>.html` before
   2026-10-04:  the tools find either (`tools/pages.js` `planDocIn()`), a worktree cut before keeps the old name
   until it merges `main`, and the page server redirects the old URL;  `tools/plan-rename.js` did the rename.
-- `details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page (`/details`, see
-  "Details pages").  Scratch:  ignored by the shared repo's git, swept after 14 days.  An epic's go in
-  `epics/<name>/details/`, kept (auto-committed with the shared repo).
-
+- `pages/details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page
+  (`/details`, see "Details pages").  Scratch:  ignored by the shared repo's git, swept after 14 days.  An epic's go
+  in `epics/<name>/details/`, kept (auto-committed with the shared repo).
+- `brand/` (in the shared repo, not linked yet) -- the brand pages, from P11 of `claude-design`.
 
 In `tools/`:
-- `_assets/` -- shared page assets (pages reach them as `<up>../tools/_assets/`):
+- `_assets/` -- shared page assets (pages reach them as `<up>packages/docs/tools/_assets/`, `<up>` the way up to the
+  checkout's root):
   - `spell-doc.css` -- page layout, and what UI doesn't cover;  reaches into widgets via UI tokens and `::part()`
   - `spell-doc-runtime.js` -- page behaviour (contents sidebar, sticky headers, scroll-follow, code colors)
   - `spell-ui.entry.js` -> `spell-ui.js` -- the ONE classic script a page loads:  Solid + @spell-app/ui + the runtime,
@@ -51,13 +58,12 @@ In `tools/`:
   - `commands.js` -- command reference pages (`templates/commands.html`):  draws their tables from the page's JSON,
     then loads `spell-ui.js` itself (the page loads `commands.js` INSTEAD of the bundle)
 - `*.js`, `*.ts` -- the scripts (see "Scripts");  `goals/` -- the goals tooling (the repo root's `goals/AGENTS.md`).
-- `content/spell-docs/` -- how the pages work (`spell-docs.md`) and the @spell-app/ui problems they hit (`spell-ui-findings.md`).
 
 ## Writing a page
 
 - Start from a template:  `spell dev docs new durable|cheatsheet|commands <topic>/<topic>.html --title "Title"` copies
-  it (and `commands`' JSON, as `<topic>.json`), fixes the `_assets` paths for the page's depth, and lists it in the
-  index.
+  it into `guides/` (and `commands`' JSON, as `<topic>.json`), fixes the `_assets` paths for the page's depth, and
+  lists it in the index.
 - Every page (templates too) starts its `<body>` with the site header, `<spell-site-header root="../..">`:  `root` is
   the path from the page's folder to the REPO root.  The template tools (`docs new`, `plan-doc new`, `goals new`)
   set it;  everything that sticks or lands starts below it (`spell-doc-runtime.js` `siteHeaderHeight()`, and its
@@ -292,7 +298,7 @@ In this order, from `packages/docs`:
 - `spell dev docs update` (`tools/update.js`) -- rebuild the bundle from the LATEST UI, `docs index`, then
   `doc-links.js --check` and `check-spell.js` on every page.  `--skip-ui-build` reuses `../ui/dist`;  `--no-check` skips the browser.
 - `tools/bundle-spell-ui.js` -- builds UI (fork + `yarn build`), bundles `_assets/spell-ui.js`.
-- `spell dev docs index` (`tools/index.js`) -- rewrites the lists in `index.html`.
+- `spell dev docs index` (`tools/index.js`) -- rewrites the lists in the docs home, `pages/index.html`.
 - `spell dev docs new` (`tools/new-page.js`) -- a page from a template, at any depth.
 - `spell dev docs open [page] [--vs | --review]` (`tools/open.js`) -- show a page (default:  the index) in Chrome,
   reusing its tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" tab (`/spell-docs`);
@@ -304,7 +310,8 @@ In this order, from `packages/docs`:
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
   `tools/showRoutes.ts` (`GET /api/docs/show`).
-- `tools/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `atDepth()` (a template at a page's depth),
+- `tools/pages.js` -- shared by the scripts:  the areas (`EPICS`, `GUIDES`, `PAGES`, `TEMPLATES`, `HOME`), `findPages()`,
+  `pageFile()` (a page argument to its file), `atDepth()` (a template at a page's depth),
   `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
   through the spell extension's `DocPreview`;  `{ view: "review" }`:  the "Review" tab).
 - `tools/check-spell.js <page> [outDir]` -- Playwright, from `file://` (from the page server when the page says
@@ -324,7 +331,11 @@ In this order, from `packages/docs`:
   actions".
 - `tools/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its
   `convertSections()` is also `plan-doc.js` `migrate`'s last step.  Idempotent;  refuses goals pages.
-- `tools/doc-links.js` -- see "Links".  Text and regexes, not a DOM:  it edits only what it links.
+- `tools/doc-links.js` -- see "Links".  Text and regexes, not a DOM:  it edits only what it links.  Its page
+  arguments are from where it runs:  from `packages/docs`, `../../guides/x.html`.
+- `tools/relocate.js` -- the docs' two moves (into `packages/docs/content/`, 2026-10-04;  out into the root folders,
+  2026-10-05) and their repairs:  `spell dev shared repair` runs them, `spell dev shared commit` the reorg's
+  (`reorgShared()`:  pages older code wrote at old paths move on, old-style links are fixed).
 - A @spell-app/ui problem:  fix it in `packages/ui` when it's a real `ui` bug (the same change may touch both), else work
   around it here;  either way, add it to `spell-docs/spell-ui-findings.md`.
 

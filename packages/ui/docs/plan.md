@@ -257,7 +257,7 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
   - `visibility` (`ui-visibility` + `UI.observeVisibility()`), `state` (behaviour util), `api` (`UI.api`)
   - `section` (ours, not Fomantic's;  added 2026-10-02):  a titled `<section>` with a real heading (`level`),
     `collapsible` (cancelable, find-in-page unfolds), `sticky` titles that stack when nested
-  - source elements (ours, not Fomantic's;  added 2026-10-02, plan doc `packages/docs/content/epics/ui-import/`):  content from
+  - source elements (ours, not Fomantic's;  added 2026-10-02, plan doc `epics/ui-import/`):  content from
     inline text or a same-origin `source` (`UI.sources`), loading / error looks, a `save()` hook (`SourceElement`):
     - `include`:  another page of the site shown here (shadow root, or light DOM with `page-styles`), `select`,
       `load="visible|idle"` (islands)

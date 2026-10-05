@@ -16,7 +16,7 @@ import "$/app/solid/cellsBridge"
 
 /**
  * The cells -> Solid bridge, and the Solid facts spell cells are designed around -- the experiments of
- * `packages/docs/content/solid/experiments/` pinned in Solid's CLIENT build (the scripts stay, to re-measure on RC bumps):
+ * `guides/solid/experiments/` pinned in Solid's CLIENT build (the scripts stay, to re-measure on RC bumps):
  * - `read-after-write.mjs`, `entanglement.mjs`, `flush-cost-and-holds.mjs`:  Solid stages and holds writes
  * - `spell-cells.ts` (strategy A) and `decorators.ts` (strategy D):  cells read-after-write, the bridge, keys,
  *   the equality cutoff

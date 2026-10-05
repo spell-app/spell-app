@@ -11,10 +11,10 @@ import { loadFixtureProject, parseSpellProject } from "$/spell/test"
  *   (`yarn vitest run src/grammar.probes.test.ts -u`), and say in the phase's notes why it moved.
  *   A change in any other phase is a regression until shown otherwise.
  * - The design, and the problems the probe titles refer to:
- *   `packages/docs/content/precedence/precedence.html` ("2. The problems").
+ *   `guides/precedence/precedence.html` ("2. The problems").
  *   - NOTE:  a title's `P1a` ... `P8e` is that page's PROBLEM number (P1 = greedy operands ...),
  *     NOT an epic phase.
- *   - Titles match the page's experiment, `packages/docs/content/precedence/experiments/grammar-today.mts`.
+ *   - Titles match the page's experiment, `guides/precedence/experiments/grammar-today.mts`.
  * - Each probe parses scratch file `/Probe.spell` in memory with `parseSpellProject()`, exactly as a project
  *   compile does, after the frozen Solitaire fixture's `Card` / `Deck` / `Pile` (`projects/test/Solitaire/`).
  *   - Those predate jokers, so no joker phrasing here.

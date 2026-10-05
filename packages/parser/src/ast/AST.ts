@@ -2158,7 +2158,7 @@ export class ASTPropertyDefinition extends ASTClassMember {
  * - `check` and `initializer` go in its class's SCHEMA, declared once, NOT passed on every get / set:
  *   `static { this.declareProp('title', { type: 'text' }) }`, or `Todo.declareProp(...)` from outside the class.
  *   The same runtime shape as a hand-written class's `@prop({ type: 'text' }) accessor title` -- compiled spell runs
- *   from a `blob:` URL, untranspiled, so it can't use decorators.  See `packages/docs/content/solid/solid-2.md`.
+ *   from a `blob:` URL, untranspiled, so it can't use decorators.  See `guides/solid/solid-2.md`.
  */
 export type ASTReactivePropertyProps = Prettify<{
   type: string | ASTTypeExpression
