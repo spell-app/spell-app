@@ -138,6 +138,7 @@
         {"id":"spell-ui-s-own","title":"Spell UI's own"},
         {"id":"spell-ui-s-own-code","title":"Code","parent":57},
         {"id":"spell-ui-s-own-markdown","title":"Markdown","parent":57},
+        {"id":"spell-ui-s-own-panel","title":"Panel","parent":57},
         {"id":"spell-ui-s-own-root","title":"Root","parent":57},
         {"id":"spell-ui-s-own-section","title":"Section","parent":57}
       ]
@@ -1847,6 +1848,33 @@
         {"id":"framework-react","title":"React 19","parent":18},
         {"id":"framework-vue","title":"Vue 3.5","parent":18},
         {"id":"framework-solid","title":"Solid 2","parent":18},
+        {"id":"theming-tokens","title":"Tokens","tab":"theming"},
+        {"id":"theming-themes","title":"Themes","tab":"theming"}
+      ]
+    },
+    {
+      "path": "components/ui-panel.html",
+      "title": "Panel",
+      "summary": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.",
+      "tag": "ui-panel",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API","theming":"Theming"},
+      "sections": [
+        {"id":"examples-types","title":"Types","tab":"examples"},
+        {"id":"examples-types-panel","title":"Panel","parent":0},
+        {"id":"examples-types-sub-panels","title":"Sub-panels","parent":0},
+        {"id":"examples-types-collapsible","title":"Collapsible","parent":0},
+        {"id":"examples-content","title":"Content","tab":"examples"},
+        {"id":"examples-content-actions","title":"Actions","parent":4},
+        {"id":"examples-content-subhead","title":"Subhead","parent":4},
+        {"id":"examples-content-info-tip","title":"Info tip","parent":4},
+        {"id":"examples-content-fold-icon","title":"Fold icon","parent":4},
+        {"id":"examples-variations","title":"Variations","tab":"examples"},
+        {"id":"examples-variations-colors","title":"Colors","parent":9},
+        {"id":"examples-variations-tokens","title":"Tokens","parent":9},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-loading-a-band-from-a-file","title":"Loading a band from a file","tab":"usage"},
+        {"id":"usage-keyboard","title":"Keyboard","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"},
         {"id":"theming-tokens","title":"Tokens","tab":"theming"},
         {"id":"theming-themes","title":"Themes","tab":"theming"}
       ]

@@ -244,6 +244,11 @@
       "summary": "A nag is a persistent message that stays until dismissed, and can remember the dismissal.",
       "status": "done"
     },
+    "ui-panel": {
+      "title": "Panel",
+      "summary": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.",
+      "status": "done"
+    },
     "ui-parts": {
       "title": "Content parts",
       "summary": "Headers, content, descriptions, metas and the other generic parts that cards, items, modals and messages share.",

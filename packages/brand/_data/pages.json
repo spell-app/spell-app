@@ -51,11 +51,6 @@
       "summary": "The Spell logo:  the hat mark, or the mark with the wordmark (and tagline), outlined, in one colour.",
       "status": "done"
     },
-    "ui-brand-panel": {
-      "title": "Brand panel",
-      "summary": "A brand panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.",
-      "status": "done"
-    },
     "ui-brand-phone": {
       "title": "Brand phone",
       "summary": "A brand phone frames live app content as a phone:  a status bar on top, the app below.",

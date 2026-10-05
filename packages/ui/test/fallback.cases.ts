@@ -177,6 +177,11 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
   },
   { family: "ui-section", html: `<ui-section header="Details" collapsible>Body</ui-section>`, root: "[part~=section]" },
   {
+    family: "ui-panel",
+    html: `<ui-panel header="Theme" collapsible>Fields</ui-panel>`,
+    root: "section.panel[part~=section]"
+  },
+  {
     family: "ui-include",
     html: `<ui-include source="/test/fixtures/sources/part.html">Placeholder</ui-include>`,
     root: "[part~=content]"

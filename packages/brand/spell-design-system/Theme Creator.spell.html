@@ -55,8 +55,8 @@
         /* the original's field:  the control 4px under its 20px label row */
         --ui-brand-field-gap: 4px;
       }
-      .inspector ui-brand-panel {
-        --ui-brand-panel-gap: 16px;
+      .inspector ui-panel {
+        --ui-panel-gap: 16px;
       }
       /* the segmented tracks tinted to the ivory panel:  its band's fill, its border's hairline */
       .inspector ui-menu[appearance="segmented"] {
@@ -288,7 +288,7 @@
 
       <div class="layout">
         <!-- ## The inspector -->
-        <ui-brand-panel class="inspector" header="Theme" color="accent" collapsible>
+        <ui-panel class="inspector" header="Theme" color="accent" collapsible>
           <div slot="info" class="tip">
             <p>A <b>theme</b> is the look of an app made with Spell:  its colours, fonts and shapes.</p>
             <p>Give it a <b>name</b>, then adjust the sections below.</p>
@@ -304,7 +304,7 @@
             ></ui-input>
           </ui-brand-field>
 
-          <ui-brand-panel header="Color" collapsible>
+          <ui-panel header="Color" collapsible>
             <div slot="info" class="tip">
               <p>Pick a <b>colour set</b> for each job in the app.</p>
               <p>Spell chooses the right <b>shade</b> of each set for light and dark mode.</p>
@@ -336,9 +336,9 @@
                 <ui-item value="neutral">Neutral</ui-item>
               </ui-menu>
             </ui-brand-field>
-          </ui-brand-panel>
+          </ui-panel>
 
-          <ui-brand-panel header="Type" collapsible>
+          <ui-panel header="Type" collapsible>
             <div slot="info" class="tip">
               <p>The <b>fonts</b> and <b>text size</b> the app uses.</p>
               <p>All choices are already installed on people’s computers, so nothing downloads.</p>
@@ -369,9 +369,9 @@
               >
               <ui-slider id="size" min="13" max="19" step="1" value="16" ticked></ui-slider>
             </ui-brand-field>
-          </ui-brand-panel>
+          </ui-panel>
 
-          <ui-brand-panel header="Shape" collapsible>
+          <ui-panel header="Shape" collapsible>
             <div slot="info" class="tip">
               <p>How <b>rounded</b> things are, and how much they <b>lift</b> off the page.</p>
             </div>
@@ -394,8 +394,8 @@
                 <ui-item value="glow">Glow</ui-item>
               </ui-menu>
             </ui-brand-field>
-          </ui-brand-panel>
-        </ui-brand-panel>
+          </ui-panel>
+        </ui-panel>
 
         <div class="right">
           <!-- ## The preview:  real elements in the theme being made -->

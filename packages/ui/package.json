@@ -70,6 +70,7 @@
     "./dist/ui-embed.js",
     "./dist/ui-calendar.js",
     "./dist/ui-section.js",
+    "./dist/ui-panel.js",
     "./dist/ui-markdown.js",
     "./dist/ui-code.js",
     "./dist/ui-include.js",
@@ -314,6 +315,10 @@
     "./ui-section": {
       "types": "./dist/components/ui-section/index.d.ts",
       "import": "./dist/ui-section.js"
+    },
+    "./ui-panel": {
+      "types": "./dist/components/ui-panel/index.d.ts",
+      "import": "./dist/ui-panel.js"
     },
     "./ui-markdown": {
       "types": "./dist/components/ui-markdown/index.d.ts",

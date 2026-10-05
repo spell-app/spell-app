@@ -52,7 +52,7 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
 
   /**
    * Where the fold chevron sits without a `fold-icon` attribute:  the controller's `defaultFoldIcon` (a subclass's,
-   * `<ui-brand-panel>`'s `end`), else `start` (no controller:  its constructor threw).
+   * `<ui-panel>`'s `end`), else `start` (no controller:  its constructor threw).
    */
   private get defaultFoldIcon(): FoldIconPlace {
     return (this.host as { controller?: { defaultFoldIcon?: FoldIconPlace } }).controller?.defaultFoldIcon ?? "start"

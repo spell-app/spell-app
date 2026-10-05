@@ -64,7 +64,7 @@ import sectionCSS from "./ui-section.css?inline"
  *   light children.
  * - `fold-icon="end"`:  the chevron leaves the fold button for the far end of the title bar, after the actions.  It
  *   stays `aria-hidden` (the button is still the control);  a click on it folds as the button does.  A subclass
- *   moves the default with `defaultFoldIcon` (`<ui-brand-panel>`:  `end`).
+ *   moves the default with `defaultFoldIcon` (`<ui-panel>`:  `end`).
  * - `info` / `slot="info"`:  a CSS tooltip under the title bar (`role="tooltip"`), shown while the pointer is on the
  *   heading or the end chevron, or the fold button has keyboard focus.  It describes the fold button
  *   (`aria-describedby`), else the heading.
