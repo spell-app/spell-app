@@ -67,6 +67,17 @@
         font: var(--spell-type-h2);
         color: var(--spell-text-strong);
       }
+      /* a wave sits flush in its corner:  the poster's 640 x 424 shape at a quarter, no overhang */
+      .stage.wave {
+        --ui-brand-blob-width: 160px;
+        --ui-brand-blob-height: 106px;
+        --ui-brand-blob-x: 0px;
+        --ui-brand-blob-y: 0px;
+      }
+      /* its label clear of a left-hand wave */
+      .stage > p.end {
+        text-align: end;
+      }
       .stage.inverse {
         background: var(--spell-violet-900);
       }
@@ -141,7 +152,7 @@
 
               <ui-section id="examples-content-shape" header="Shape" collapsible dividing>
                 <ui-docs-example
-                  description="`shape`:  `organic` (the default, a soft egg) or `mound`, a hill rising from the edge, its flat side facing out:  top corners turn it upside down, left corners mirror it."
+                  description="`shape`:  `organic` (the default, a soft egg), `mound`, a hill rising from the edge, its flat side facing out (top corners turn it upside down, left corners mirror it), or `wave`, below."
                 >
                   <div class="brand-docs-row">
                     <div class="stage">
@@ -169,6 +180,28 @@
                     <div class="stage">
                       <ui-brand-blob shape="mound" corner="bottom-right"></ui-brand-blob>
                       <p>mound, bottom-right</p>
+                    </div>
+                  </div>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="`shape=&quot;wave&quot;`:  the Brand Montage poster's corner wash, an S-curved edge.  It sits FLUSH in its corner (no overhang unless `-x` / `-y` are set), mirrored per corner so its straight edges lie on the box's;  size it with `-width` / `-height` (the poster's:  640 × 424px)."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage wave">
+                      <ui-brand-blob shape="wave" corner="top-left"></ui-brand-blob>
+                      <p class="end">wave, top-left</p>
+                    </div>
+                    <div class="stage wave">
+                      <ui-brand-blob shape="wave" corner="top-right"></ui-brand-blob>
+                      <p>wave, top-right</p>
+                    </div>
+                    <div class="stage wave">
+                      <ui-brand-blob shape="wave" corner="bottom-left"></ui-brand-blob>
+                      <p class="end">wave, bottom-left</p>
+                    </div>
+                    <div class="stage wave">
+                      <ui-brand-blob shape="wave" corner="bottom-right"></ui-brand-blob>
+                      <p>wave, bottom-right</p>
                     </div>
                   </div>
                 </ui-docs-example>

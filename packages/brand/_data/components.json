@@ -186,10 +186,11 @@
           "kind": "enum",
           "values": [
             "organic",
-            "mound"
+            "mound",
+            "wave"
           ],
           "default": "organic",
-          "description": "`organic` (a soft egg) or `mound` (a hill rising from the edge, flat side out)."
+          "description": "`organic` (a soft egg), `mound` (a hill rising from the edge, flat side out) or `wave` (a corner wash with an S-curved edge, as the Brand Montage poster's;  flush in its corner, no overhang by default)."
         },
         {
           "name": "tone",
@@ -967,6 +968,16 @@
           "description": "Each chip's details tip, on hover and focus."
         },
         {
+          "name": "numbers",
+          "kind": "enum",
+          "values": [
+            "shown",
+            "none"
+          ],
+          "default": "shown",
+          "description": "Step numbers under the chips:  `shown`, or `none` (no numbers, nor their row:  a page numbering many ladders once, in a header row)."
+        },
+        {
           "name": "strip",
           "kind": "keyOnly",
           "description": "A small strip of 17 dots instead of chips (the Chooser's folded Variants header)."
@@ -1295,7 +1306,7 @@
         {
           "name": "info",
           "kind": "string",
-          "description": "Tip shown from an info icon at the end of the label row."
+          "description": "Tip shown from an info icon at the end of the label row;  `slot=\"info\"` is the rich version."
         },
         {
           "name": "help",
@@ -1345,11 +1356,15 @@
         },
         {
           "name": "actions",
-          "description": "Small buttons at the end of the label row (`Reset`, `Auto`)."
+          "description": "Small buttons at the end of the label row (`Reset`, `Auto`);  a taller one never grows the row."
         },
         {
           "name": "value",
           "description": "Rich value readout (instead of `value`)."
+        },
+        {
+          "name": "info",
+          "description": "Rich info tip (instead of `info`):  bold words, line breaks."
         },
         {
           "name": "help",
@@ -1628,6 +1643,11 @@
           "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
         },
         {
+          "name": "info",
+          "kind": "string",
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks)."
+        },
+        {
           "name": "collapsible",
           "kind": "boolean",
           "description": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there."
@@ -1636,6 +1656,15 @@
           "name": "collapsed",
           "kind": "boolean",
           "description": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match."
+        },
+        {
+          "name": "fold-icon",
+          "kind": "enum",
+          "values": [
+            "start",
+            "end"
+          ],
+          "description": "Where each band's fold chevron sits:  `end`, at the far end of the band after any actions (the panel's default), or `start`, before the title."
         },
         {
           "name": "sticky",
@@ -1805,6 +1834,10 @@
         {
           "name": "actions",
           "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
+        },
+        {
+          "name": "info",
+          "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
         }
       ],
       "events": [
@@ -1840,7 +1873,7 @@
         },
         {
           "name": "fold-icon",
-          "description": "With `collapsible`:  the chevron in the toggle."
+          "description": "With `collapsible`:  the chevron, in the toggle;  with `fold-icon=\"end\"`, at the end of the title bar."
         },
         {
           "name": "icon",
@@ -1857,6 +1890,10 @@
         {
           "name": "actions",
           "description": "The actions box, at the right of the title bar."
+        },
+        {
+          "name": "tip",
+          "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
         },
         {
           "name": "subhead",
@@ -2052,28 +2089,34 @@
       "tokens": [
         {
           "name": "--ui-brand-checklist-spacing",
-          "default": "var(--_ui-brand-checklist-spacing)",
+          "default": "12px",
+          "description": "space between lines",
           "type": "length"
         },
         {
           "name": "--ui-brand-checklist-font-family",
-          "default": "var(--_ui-brand-checklist-font-family, var(--spell-font-sans, var(--ui-font-family, system-ui, sans-serif)))",
+          "default": "var(--spell-font-sans, var(--ui-font-family, system-ui, sans-serif))",
           "type": "other"
         },
         {
           "name": "--ui-brand-checklist-font-size",
-          "default": "var(--_ui-brand-checklist-font-size, 14px)",
+          "default": "14px",
           "type": "length"
         },
         {
           "name": "--ui-brand-checklist-marker-size",
-          "default": "var(--_ui-brand-checklist-marker-size, 20px)",
+          "default": "20px",
           "type": "length"
         },
         {
           "name": "--ui-brand-checklist-gap",
-          "default": "var(--_ui-brand-checklist-gap, 12px)",
+          "default": "12px",
           "type": "length"
+        },
+        {
+          "name": "--ui-brand-checklist-align",
+          "default": "center",
+          "type": "other"
         },
         {
           "name": "--ui-brand-checklist-accent",

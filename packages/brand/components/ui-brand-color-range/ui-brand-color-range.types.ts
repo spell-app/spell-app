@@ -13,6 +13,9 @@ export type BrandColorRangeVocabulary = typeof brandColorRangeVocabulary
 /** Class words the element adds after the noun:  `range color brand`. */
 export const BRAND_COLOR = "color brand"
 
+/** `numbers` value that leaves the step numbers out. */
+export const NO_NUMBERS = "none"
+
 /** Token prefix without a `name`, as the Color Set Chooser's. */
 export const DEFAULT_PREFIX = "color"
 

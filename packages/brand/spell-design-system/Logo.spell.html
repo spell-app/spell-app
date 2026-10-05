@@ -7,7 +7,7 @@
   - The grounds a logo sits on (white, aubergine, ivory ...) are the brand's FIXED colours, as the original's:  they
     don't follow the page's scheme, only the cards around them do.  A light ground is `ui-light`, so a scheme-aware
     `tone` (`purple`, `ink`) reads as on a light page there, whatever the page's scheme.
-  - Downloads:  `<ui-button href>` and a click handler (the button has no `download`).
+  - Downloads:  `<ui-button href download>`, as the original's `<a download>`.
 -->
 <html lang="en">
   <head>
@@ -96,11 +96,12 @@
       ui-card {
         --ui-card-width: auto;
         --ui-card-margin-block: 0;
-        overflow: hidden;
       }
+      /* the card doesn't clip what's slotted in it (as Fomantic's):  the ground rounds its own top to the card's */
       .ground {
         display: grid;
         place-items: center;
+        border-radius: var(--ui-card-radius) var(--ui-card-radius) 0 0;
         border-bottom: 1px solid var(--spell-border-subtle);
       }
       .lockups .ground {
@@ -278,7 +279,12 @@
             </div>
             <div class="caption">
               <span><b>Primary</b><small>Default on light backgrounds.</small></span>
-              <ui-button size="tiny" circular icon="download" href="assets/logo/spell-lockup-tagline-aubergine.svg"
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                download
+                href="assets/logo/spell-lockup-tagline-aubergine.svg"
                 >SVG</ui-button
               >
             </div>
@@ -289,7 +295,12 @@
             </div>
             <div class="caption">
               <span><b>Primary, reversed</b><small>On aubergine and dark photos.</small></span>
-              <ui-button size="tiny" circular icon="download" href="assets/logo/spell-lockup-tagline-white.svg"
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                download
+                href="assets/logo/spell-lockup-tagline-white.svg"
                 >SVG</ui-button
               >
             </div>
@@ -300,7 +311,12 @@
             </div>
             <div class="caption">
               <span><b>Wordmark</b><small>Headers and small spaces.</small></span>
-              <ui-button size="tiny" circular icon="download" href="assets/logo/spell-lockup-aubergine.svg"
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                download
+                href="assets/logo/spell-lockup-aubergine.svg"
                 >SVG</ui-button
               >
             </div>
@@ -311,7 +327,14 @@
             </div>
             <div class="caption">
               <span><b>Wordmark, reversed</b><small>Dark headers and footers.</small></span>
-              <ui-button size="tiny" circular icon="download" href="assets/logo/spell-lockup-white.svg">SVG</ui-button>
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                download
+                href="assets/logo/spell-lockup-white.svg"
+                >SVG</ui-button
+              >
             </div>
           </ui-card>
         </div>
@@ -329,6 +352,7 @@
                 circular
                 icon="download"
                 aria-label="Download SVG"
+                download
                 href="assets/logo/logo-mark-aubergine.svg"
               ></ui-button>
             </div>
@@ -342,6 +366,7 @@
                 circular
                 icon="download"
                 aria-label="Download SVG"
+                download
                 href="assets/logo/logo-mark-white.svg"
               ></ui-button>
             </div>
@@ -355,6 +380,7 @@
                 circular
                 icon="download"
                 aria-label="Download SVG"
+                download
                 href="assets/logo/logo-mark-purple.svg"
               ></ui-button>
             </div>
@@ -368,6 +394,7 @@
                 circular
                 icon="download"
                 aria-label="Download SVG"
+                download
                 href="assets/logo/logo-mark-lilac.svg"
               ></ui-button>
             </div>
@@ -461,19 +488,5 @@
       </section>
     </main>
     <script type="module" src="../_assets/ui/brand-ui.js"></script>
-    <script type="module">
-      /*
-       * Behaviour only:  each "SVG" button downloads its file, as the original's `<a download>`.
-       * - `<ui-button href>` renders a link, but has no `download`:  a click here downloads instead of navigating
-       */
-      document.addEventListener("click", (event) => {
-        const button = event.target.closest?.(".caption ui-button[href]")
-        if (!button) return
-        event.preventDefault()
-        const href = button.getAttribute("href")
-        const link = Object.assign(document.createElement("a"), { href, download: href.split("/").pop() })
-        link.click()
-      })
-    </script>
   </body>
 </html>

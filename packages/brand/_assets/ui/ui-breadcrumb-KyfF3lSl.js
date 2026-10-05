@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-breadcrumb-DNv-uoNe.js";export{e as UIBreadcrumb,t as UIBreadcrumbSection};

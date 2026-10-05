@@ -133,6 +133,42 @@
   }
 
   /*
+   * `none` for a shadow token:  the card draws ONE `box-shadow` list (ring, coloured edge, drop shadow), where a
+   * `none` item makes the whole list invalid -- the ring would go too.  So `none` (set on the host or above:  the
+   * query reads the card's parent) becomes an empty shadow.
+   */
+  @container style(--ui-card-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-shadow: 0 0 #0000;
+    }
+  }
+  @container style(--ui-card-hover-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-hover-shadow: 0 0 #0000;
+    }
+  }
+  @container style(--ui-card-raised-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-raised-shadow: 0 0 #0000;
+    }
+  }
+  @container style(--ui-card-raised-hover-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-raised-hover-shadow: 0 0 #0000;
+    }
+  }
+  @container style(--ui-card-border-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-border-shadow: 0 0 #0000;
+    }
+  }
+
+  /*
    * Owner tokens, ALWAYS declared (never left to inherit):  a plain card nested in an inverted one resets
    * `--ui-inverted` to `0` and its layout to `vertical`.  Variations below override them in a later layer.
    * - `--_ui-card-leading`:  `1` while the element renders a shorthand image / content block BEFORE its slot, so
@@ -446,7 +482,7 @@
   a.ui.card:hover,
   .ui.link.cards > .card:hover,
   .ui.cards > a.card:hover {
-    --_card-border-shadow: 0 0 0 var(--ui-border-width) var(--_ui-card-border-color);
+    --_card-border-shadow: 0 0 0 var(--ui-border-width) var(--_ui-card-hover-border-color);
     --_card-shadow: var(--_ui-card-hover-shadow);
     --_card-accent: var(--ui-color-hover, transparent);
     z-index: 5;
@@ -464,6 +500,21 @@
     --_card-border-shadow: 0 0 #0000;
     --_card-shadow: 0 0 #0000;
     --_card-bg: oklch(from var(--ui-color-background, var(--_ui-card-background)) calc(l - 0.03) c h);
+  }
+
+  /*
+   * Dashed (ours, not Fomantic's):  a placeholder.  The ring is a box-shadow, which can't dash, so a dashed OUTLINE
+   * takes its place (outside the box, as the ring is) and the drop shadow goes, unless `raised`:  flat, a link card's
+   * hover included (it still rises).  Focus keeps its own outline.
+   */
+  .ui.dashed.card:not(.raised) {
+    --_card-shadow: 0 0 #0000;
+  }
+  .ui.dashed.card:is(*, :hover) {
+    --_card-border-shadow: 0 0 #0000;
+  }
+  .ui.dashed.card:not(:focus-visible) {
+    outline: var(--ui-border-width) dashed var(--_ui-card-border-color);
   }
 
   /* Inverted:  the dark scheme, for the card and everything in it. */

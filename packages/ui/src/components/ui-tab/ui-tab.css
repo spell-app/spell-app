@@ -19,7 +19,11 @@
  * | Token                      | What                                    | Changed by           |
  * | -------------------------- | --------------------------------------- | -------------------- |
  * | `--ui-tabs-pane-margin`    | the shown pane's margin (public)        | attached, vertical   |
+ * | `--ui-tabs-menu-margin`    | the tab list's block margin (public, `0`:  the pane margin spaces the set) | -- |
  * | `--_ui-tabs-pane-flex`     | the shown pane host's `flex` (switch)   | vertical             |
+ *
+ * - The tab list is a menu:  every `--ui-menu-*` token reaches it, from the tab set or above (its height
+ *   `--ui-menu-min-height`, its labels' `--ui-menu-font-family`, `--ui-menu-item-transform` / `-letter-spacing`).
  *
  * - Public tokens (`--ui-tabs-*`, the theming surface) are NEVER declared here:  the `.ui.tabs` root reads each
  *   through a private alias, `--_ui-tabs-pane-margin: var(--ui-tabs-pane-margin, 1em 0 0)`, which variations
@@ -70,14 +74,19 @@
   }
   .ui.tabs {
     --_ui-tabs-pane-margin: var(--ui-tabs-pane-margin, 1em 0 0);
+    --_ui-tabs-menu-margin: var(--ui-tabs-menu-margin, 0);
     --_ui-tabs-pane-flex: 0 1 auto;
     display: flex;
     flex-direction: column;
     max-width: 100%;
   }
-  /* The tab list keeps its own size in the flex layout. */
+  /*
+   * The tab list keeps its own size in the flex layout.  Its block margins are the set's, never a menu's `1em`:
+   * flex items don't collapse margins, so the menu's bottom `1em` and the pane's top `1em` made a `2em` gap.
+   */
   .ui.tabs > .ui.menu {
     flex: none;
+    margin-block: var(--_ui-tabs-menu-margin);
   }
   /* `compact`:  the menu keeps its own width in the column (a flex item would stretch). */
   .ui.tabs > .ui.compact.menu {

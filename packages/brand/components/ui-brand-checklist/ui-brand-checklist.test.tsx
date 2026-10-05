@@ -283,6 +283,42 @@ describe("<ui-brand-check> alone", () => {
     expect(families[0]).not.toBe(families[1])
   })
 
+  it("a serif list's checks draw the serif defaults (`check serif`):  15px, 19px marks, 10px apart", async () => {
+    const { host, checks } = await render(`<ui-brand-checklist font="serif">${STEPS}</ui-brand-checklist>`)
+    expect(line(checks[0]!).classList.contains("serif")).toBe(true)
+    expect(getComputedStyle(line(checks[0]!)).fontSize).toBe("15px")
+    expect(marker(checks[0]!).getBoundingClientRect().width).toBe(19)
+    expect(getComputedStyle(host.shadowRoot!.querySelector("[part~=list]")!).rowGap).toBe("10px")
+    host.setAttribute("font", "sans")
+    await ElementFixture.settle()
+    expect(line(checks[0]!).classList.contains("serif")).toBe(false)
+    expect(getComputedStyle(line(checks[0]!)).fontSize).toBe("14px")
+    expect(getComputedStyle(host.shadowRoot!.querySelector("[part~=list]")!).rowGap).toBe("12px")
+  })
+
+  it("`--ui-brand-checklist-spacing` beats both faces' spacing", async () => {
+    const { host } = await render(
+      `<ui-brand-checklist font="serif" style="--ui-brand-checklist-spacing: 3px">${STEPS}</ui-brand-checklist>`
+    )
+    expect(getComputedStyle(host.shadowRoot!.querySelector("[part~=list]")!).rowGap).toBe("3px")
+  })
+
+  it("centres the mark on the text;  `--ui-brand-checklist-align: start` on its FIRST line", async () => {
+    const TWO_LINES = `<ui-brand-check state="done"><b style="display: block">A Spell account</b>
+      <small style="display: block">Sign up in seconds.</small></ui-brand-check>`
+    const middle = (rect: DOMRect) => rect.top + rect.height / 2
+    const centred = await render(`<ui-brand-checklist>${TWO_LINES}</ui-brand-checklist>`)
+    const label = (check: Element) => check.shadowRoot!.querySelector("[part~=label]")!.getBoundingClientRect()
+    const check = centred.checks[0]!
+    expect(middle(marker(check).getBoundingClientRect())).toBeCloseTo(middle(label(check)), 0)
+    const top = await render(
+      `<ui-brand-checklist style="--ui-brand-checklist-align: start">${TWO_LINES}</ui-brand-checklist>`
+    )
+    const first = top.checks[0]!
+    const lineHeight = parseFloat(getComputedStyle(line(first)).fontSize) * 1.3
+    expect(middle(marker(first).getBoundingClientRect())).toBeCloseTo(label(first).top + lineHeight / 2, 0)
+  })
+
   it("the light-DOM text is the label, slotted", async () => {
     const { checks } = await render(`<ui-brand-checklist>${STEPS}</ui-brand-checklist>`)
     const slot = checks[0]!.shadowRoot!.querySelector<HTMLSlotElement>("[part~=label] slot")!

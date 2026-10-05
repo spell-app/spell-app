@@ -76,12 +76,11 @@
       ui-card {
         --ui-card-width: 520px;
         --ui-card-margin-block: 0;
-        overflow: hidden;
         scroll-margin-top: calc(var(--spell-site-header-height, 0px) + 16px);
       }
       /* Turn 1's "current":  a placeholder, dashed and flat */
-      ui-card.current::part(card) {
-        border: 1px dashed var(--spell-border-strong);
+      ui-card.current {
+        --ui-card-border-color: var(--spell-border-strong);
       }
       /* logo files, not photos:  none of the theme's hairline round every `<img>` */
       .ground > img,
@@ -92,6 +91,10 @@
         position: relative;
         display: grid;
         place-items: center;
+      }
+      /* the card doesn't clip what's slotted in it (as Fomantic's):  the top ground rounds itself to the card's */
+      .ground:first-child {
+        border-radius: var(--ui-card-radius) var(--ui-card-radius) 0 0;
       }
       .ground > img,
       .ground > ui-brand-logo {
@@ -215,7 +218,7 @@
           </p>
         </header>
         <div class="options">
-          <ui-card id="1-current" class="current" basic>
+          <ui-card id="1-current" class="current" dashed>
             <div class="ground large ui-light">
               <ui-brand-logo variant="tagline" tone="aubergine" label="Current" style="--ui-brand-logo-height: 96px">
               </ui-brand-logo>

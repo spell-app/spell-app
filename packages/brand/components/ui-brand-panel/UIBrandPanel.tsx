@@ -14,6 +14,8 @@ import panelCSS from "./ui-brand-panel.css?inline"
  *   `collapsed`, `ui-open` / `ui-close`, find-in-page), defined under its own tag with `<ui-section>`'s vocabulary
  *   (`define(tag)`).  Only the look differs:  `ui-brand-panel.css`, after the section's sheet.
  * - Classes:  `ui ... section brand panel`, plus `sub` when its enclosing section is a panel too.
+ * - The chevron sits at the far end of each band, after any actions:  the section's `fold-icon="end"` is the
+ *   panel's default (`defaultFoldIcon`);  `info` puts the section's tip under a band.
  * - Tokens (`--ui-brand-panel-*`, read through private aliases):  background, border colour, header and sub-head
  *   bands, radius, padding, gap, shadow.  Defaults come from the panel's hue (`color`, else `primary`), with
  *   plain `--ui-*` fallbacks under any other theme.
@@ -24,6 +26,8 @@ import panelCSS from "./ui-brand-panel.css?inline"
  ****************/
 export class UIBrandPanel extends UISection {
   @proto static styles = { ...UISection.styles, panel: panelCSS }
+  // the band's chevron at its far end, after any actions (`fold-icon="start"` moves it back)
+  @proto static defaultFoldIcon = "end" as const
 
   /** `brand panel`, and `sub` inside another panel. */
   protected extraClasses(): string | undefined {

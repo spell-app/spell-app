@@ -1,1 +1,0 @@
-import{t as e}from"./ui-text-BuoA18LI.js";export{e as UIText};

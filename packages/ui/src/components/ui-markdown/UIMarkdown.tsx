@@ -9,6 +9,8 @@ import { MarkdownRenderer } from "./MarkdownRenderer"
 import { UIMarkdownHost } from "./UIMarkdownHost"
 import {
   CODE_TAG,
+  HASHCHANGE,
+  LEADING_TITLE,
   MARKDOWN_TABS,
   TABLE_SHEET,
   TAB_KEYS,
@@ -37,7 +39,10 @@ import markdownCSS from "./ui-markdown.css?inline"
  *   - each fenced code block becomes a `<ui-code language="x" copy>` (one highlighter, one palette)
  *   - each task-list checkbox is named by its item's text (marked leaves it unlabelled)
  *   - relative `href` / `src` resolve against `source`, so a README's links and images work where it's shown
- *   - `#id` links scroll to the heading INSIDE the shadow root (the page's own fragment navigation can't see it)
+ *   - `#id` links scroll to the heading INSIDE the shadow root (the page's own fragment navigation can't see it);
+ *     so does `reveal(id)` from outside, and a `#id` in the address that names one of its headings:  after the
+ *     FIRST render (a page loaded with it), and on each `hashchange` (a link elsewhere on the page)
+ * - `skip-title`:  the text's leading `#` title isn't rendered (the text keeps it).
  * - A failed render (an engine that won't load) is a `render` error with its message.
  * - `editable`:  Write / Preview tabs (`role=tablist`, arrow keys), a `<textarea>` for the text and the article as the
  *   preview, drawn by spell's engine (`MarkdownRenderer.loadMD()`:  `ui-*` elements, `<ui-table>`'s sheet adopted
@@ -45,6 +50,8 @@ import markdownCSS from "./ui-markdown.css?inline"
  *   - each keystroke is `setContent()`:  `ui-change`, `:state(dirty)`, and `save()` writes it back to `source`
  *   - the preview renders while it's shown:  the WHOLE text each time (~2 ms for 32 kB), then only the top-level
  *     blocks whose markup changed are swapped (`patchBody()`), so unchanged `ui-*` elements keep their state
+ * - SIDE EFFECTS:  listens to `window`'s `hashchange` while connected;  a revealed heading is put in the address
+ *   (`history.replaceState`, no new entry).
  ****************/
 export class UIMarkdown extends SourceElement<Vocabulary> {
   @proto static vocabulary = markdownVocabulary
@@ -65,6 +72,9 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
   /** Renders started;  only the latest one's result is shown. */
   private ticket = 0
 
+  /** A render has finished:  the address's `#id` was looked for once, after the first. */
+  private renderedOnce = false
+
   /** `editable`:  the text box, and the tab buttons by tab. */
   private editor?: HTMLTextAreaElement
   private readonly tabButtons = new Map<MarkdownTab, HTMLButtonElement>()
@@ -84,7 +94,7 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
     if (!isServer) {
       createEffect(
         () => ({
-          text: this.contentText(),
+          text: this.attrs.skipTitle ? UIMarkdown.withoutTitle(this.contentText()) : this.contentText(),
           loaded: this.status.get() === "loaded",
           editable: this.editable(),
           shown: !this.editable() || this.tab.get() === "preview",
@@ -102,6 +112,15 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
         () => this.contentText(),
         (text) => {
           if (this.editor && this.editor.value !== text) this.editor.value = text
+        }
+      )
+      createEffect(
+        () => this.connected.get(),
+        (connected) => {
+          if (!connected) return
+          const listeners = new AbortController()
+          window.addEventListener(HASHCHANGE, () => this.revealHash(), { signal: listeners.signal })
+          return () => listeners.abort()
         }
       )
     }
@@ -199,6 +218,43 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
     return untrack(this.headings.get)
   }
 
+  /** Scroll to the rendered heading `id` and put `#id` in the address;  `false` when there's none. */
+  reveal(id: string): boolean {
+    if (!this.scrollTo(id)) return false
+    history.replaceState(history.state, "", `#${id}`)
+    return true
+  }
+
+  /**
+   * Scroll to the heading the address's `#id` names, if it's one of ours.
+   * - Not when the PAGE has that id:  the browser went there itself.
+   */
+  private revealHash() {
+    const id = UIMarkdown.hashId(location.hash)
+    if (id && !this.host.ownerDocument.getElementById(id)) this.scrollTo(id)
+  }
+
+  /** Scroll the element with `id` in the article into view;  `false` when there's none. */
+  private scrollTo(id: string): boolean {
+    const target = this.body?.querySelector(`[id="${CSS.escape(id)}"]`)
+    target?.scrollIntoView()
+    return !!target
+  }
+
+  /** `#some%20id` => `some id`;  `undefined` for no hash, or a malformed one. */
+  private static hashId(hash: string): string | undefined {
+    try {
+      return decodeURIComponent(hash.slice(1)) || undefined
+    } catch {
+      return undefined
+    }
+  }
+
+  /** `text` without its leading `#` title (`skip-title`). */
+  private static withoutTitle(text: string): string {
+    return text.replace(LEADING_TITLE, "")
+  }
+
   /** Render `text` into the article (`editable`:  with spell's engine, patched);  `ui-render` when done. */
   private async renderMarkdown(text: string, options: MarkdownOptions, editable: boolean) {
     const ticket = ++this.ticket
@@ -220,6 +276,10 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
       else this.body.replaceChildren(fragment)
       this.headings.set(headings)
       this.emitSource("ui-render", { headings })
+      if (!this.renderedOnce) {
+        this.renderedOnce = true
+        this.revealHash()
+      }
     } catch (error) {
       if (ticket === this.ticket) this.loadFailed(error, "render")
     }
@@ -340,12 +400,7 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
   /** A `#id` link:  scroll to that heading here, in the shadow root, and put it in the address. */
   private readonly onClick = (event: MouseEvent) => {
     const link = (event.target as Element).closest?.("a[href^='#']")
-    if (!link || !this.body) return
-    const id = decodeURIComponent(link.getAttribute("href")!.slice(1))
-    const target = this.body.querySelector(`[id="${CSS.escape(id)}"]`)
-    if (!target) return
-    event.preventDefault()
-    target.scrollIntoView()
-    history.replaceState(history.state, "", `#${id}`)
+    const id = link && UIMarkdown.hashId(link.getAttribute("href")!)
+    if (id && this.reveal(id)) event.preventDefault()
   }
 }

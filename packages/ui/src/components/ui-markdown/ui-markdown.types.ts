@@ -62,8 +62,19 @@ export const CODE_TAG = "ui-code"
 /** Attributes rewritten against `source`, so relative links and images point where they did beside the file. */
 export const URL_ATTRIBUTES = ["href", "src"] as const
 
+/** `window`'s event for a new `#id` in the address:  the element reveals a heading of its own it names. */
+export const HASHCHANGE = "hashchange"
+
+/**
+ * A leading `#` title (`skip-title`):  blank lines, then an ATX `# Title` (one `#`) or a setext title (a line
+ * underlined with `=`), with its line end.
+ */
+export const LEADING_TITLE = /^(?:[ \t]*\n)*[ ]{0,3}(?:#(?=[ \t\n]|$)[^\n]*|[^\s][^\n]*\n[ ]{0,3}=+[ \t]*)(?:\n|$)/
+
 /** What the host asks of its controller (`UIMarkdown`). */
 export type MarkdownController = {
   /** the headings of the last render */
   getHeadings(): MarkdownHeading[]
+  /** scroll to heading `id` and put it in the address;  `false` when there's no such heading */
+  reveal(id: string): boolean
 }

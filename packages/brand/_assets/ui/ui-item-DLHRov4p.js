@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-item-Dh-UjB0t.js";export{t as UIItem,e as itemVocabulary};

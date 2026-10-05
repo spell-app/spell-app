@@ -4,7 +4,10 @@
  * - Pages:  the names given (`"Spell App"`), else every page whose copy exists (`built: true` in
  *   `_assets/brand-pages.js`, the one list the index and Compare use too).
  * - Served by THIS checkout's page server (started if it isn't running):  four originals fetch local files.
- * - `--dark`:  the browser prefers dark;  the copies follow (`color-scheme`), the originals keep their own toggle.
+ * - `--dark`:  the browser prefers dark;  the copies follow (`color-scheme`), the originals keep their own toggle
+ *   (light), so its diff compares dark against light:  look at `side.png`, ignore the figure.  Both runs write the same
+ *   files:  the last one wins.
+ * - The copy's site header is hidden (and its height token zeroed):  the originals have none.
  * - `--full`:  the whole page, not only the first screen.
  * - Writes, per page, to `.compare/<page>/` (git-ignored):  `dc.png`, `spell.png`, `side.png` (the two side by side)
  *   and `diff.png` (changed pixels in magenta over a faded original);  then `.compare/report.md`, a table of every
@@ -125,12 +128,18 @@ async function serverBase(): Promise<string> {
  * Screenshot `url` into `file`;  returns the PNG.
  * - waits for the network to settle, then a moment more:  originals compile their templates with React after load,
  *   and copies wait for `UI.load()` and the theme sheet
- * - hides the originals' fixed "Design System" back link:  page furniture the copies don't have
+ * - hides site furniture one side has and the other doesn't:  the originals' fixed "Design System" back link, and the
+ *   copies' site header (its 44px pushed every copy down, which swamped the diff)
  */
 async function shoot(page: Page, url: string, file: string): Promise<Buffer> {
   await page.goto(url, { waitUntil: "networkidle" })
   await page.waitForTimeout(800)
-  await page.addStyleTag({ content: "[data-backlink] { display: none !important }" })
+  await page.addStyleTag({
+    content:
+      "[data-backlink], spell-site-header { display: none !important } " +
+      ":root { --spell-site-header-height: 0px !important }"
+  })
+  await page.waitForTimeout(100)
   return page.screenshot({ path: file, fullPage: options.full })
 }
 

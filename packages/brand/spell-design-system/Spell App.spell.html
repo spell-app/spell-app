@@ -62,44 +62,24 @@
         margin: 2px 10px 0;
         align-self: flex-start;
       }
-      /*
-       * The nav:  icon first, the chosen item tinted (light) or filled purple (dark).
-       * - HACK:  a `vertical` / `secondary` menu sets its item look as PRIVATE tokens, so the public `--ui-menu-*`
-       *   ones can't reach it (plan doc issue I21, as Brand Montage):  the documented `item` / `icon` parts instead.
-       */
+      /* The nav:  icon first, the chosen item tinted (light) or filled purple (dark):  the secondary menu's tokens. */
       #nav {
-        width: 100%;
         font: 500 14px/1 var(--spell-font-sans);
         --ui-font-size: 14px;
-      }
-      #nav::part(menu) {
-        margin: 0;
-      }
-      #nav ui-item {
-        display: block;
-      }
-      #nav ui-item::part(item) {
-        display: flex;
-        width: 100%;
-        align-items: center;
-        height: 38px;
-        box-sizing: border-box;
-        margin: 0 0 2px;
-        padding: 0 12px;
-        border-radius: 12px;
-        color: var(--spell-text-body);
-      }
-      #nav ui-item[selected]::part(item) {
-        background: light-dark(var(--spell-surface-selected), var(--spell-violet-600));
-        color: light-dark(var(--spell-text-accent), #fff);
-      }
-      #nav ui-item::part(icon) {
-        order: -1;
-        float: none;
-        width: 18px;
-        margin: 0 12px 0 0;
-        font-size: 18px;
-        opacity: 1;
+        --ui-menu-margin: 0;
+        --ui-menu-item-min-height: 38px;
+        --ui-menu-vertical-item-display: flex;
+        --ui-menu-vertical-icon-float: none;
+        --ui-menu-vertical-icon-margin: 0 12px 0 0;
+        --ui-menu-icon-size: 18px;
+        --ui-menu-icon-opacity: 1;
+        --ui-menu-secondary-item-padding: 0 12px;
+        --ui-menu-secondary-vertical-item-margin: 0 0 2px;
+        --ui-menu-secondary-item-radius: 12px;
+        --ui-menu-secondary-item-color: var(--spell-text-body);
+        --ui-menu-secondary-active-background: light-dark(var(--spell-surface-selected), var(--spell-violet-600));
+        --ui-menu-secondary-active-color: light-dark(var(--spell-text-accent), var(--spell-violet-25));
+        --ui-menu-secondary-inline-margin: 0;
       }
       .user {
         margin-top: auto;
@@ -168,20 +148,10 @@
         font: 400 15px/1.5 var(--spell-font-sans);
         color: var(--spell-text-muted);
       }
-      /*
-       * the Light / Dark pill:  a tinted track, the chosen one a white chip (aubergine when dark).  A segmented menu
-       * fills its track with `--ui-surface` and its chosen item with `--ui-color`, so those are set here (its own
-       * `--ui-menu-*` don't reach it:  plan doc issues I6 / I14);  still no inset thumb, and a hairline between.
-       */
+      /* the Light / Dark pill:  the brand's segmented track (the theme's), both words in strong ink as the original */
       #scheme {
         flex: none;
-        --ui-surface: var(--spell-surface-tint);
-        --ui-border-color-strong: var(--spell-border-subtle);
-        --ui-color: light-dark(var(--spell-violet-25), var(--spell-violet-900));
-        --ui-color-hover: light-dark(var(--spell-violet-25), var(--spell-violet-900));
-        --ui-color-on: var(--spell-text-strong);
-        --ui-menu-radius: 999px;
-        --ui-menu-item-color: var(--spell-text-strong);
+        --ui-menu-segmented-item-color: var(--spell-text-strong);
       }
       /* the composer's language chip:  a quiet tinted pill */
       #composer > ui-label {
@@ -292,7 +262,8 @@
         --ui-input-radius: 12px;
       }
       #add-habit ui-button {
-        font-family: var(--spell-font-serif);
+        --ui-button-font-family: var(--spell-font-serif);
+        --ui-button-font-size: 15px;
       }
       .streak {
         gap: 8px;
@@ -408,8 +379,8 @@
         --ui-button-background: light-dark(var(--spell-violet-900), var(--spell-accent));
         --ui-button-background-hover: light-dark(var(--spell-violet-900), var(--spell-accent));
         --ui-button-background-active: light-dark(var(--spell-violet-900), var(--spell-accent));
-        --ui-button-color: light-dark(#fff, var(--spell-text-on-accent));
-        --ui-button-color-active: light-dark(#fff, var(--spell-text-on-accent));
+        --ui-button-color: var(--spell-text-on-accent);
+        --ui-button-color-active: var(--spell-text-on-accent);
       }
       #templates {
         display: grid;
@@ -443,6 +414,7 @@
         margin-top: 6px;
         --ui-button-margin-inline: 0;
         --ui-button-font-weight: 500;
+        --ui-button-icon-spacing: 6px;
         --ui-button-background: var(--spell-accent-soft);
         --ui-button-background-hover: var(--spell-accent-soft-hover);
         --ui-button-background-down: var(--spell-accent-soft-hover);
@@ -504,17 +476,17 @@
         --ui-button-color-down: var(--spell-danger);
       }
 
-      /*
-       * ## The "Your app is ready." toast:  aubergine (pale lilac when dark), bottom centre.  On `body`:  `UI.toast()`
-       * puts its toasts in a container there, and keeps no class of ours on them.
-       */
-      body {
+      /* ## The "Your app is ready." toast:  aubergine (pale lilac when dark), bottom centre;  `UI.toast({ class: "ready" })` */
+      ui-toast.ready {
         --ui-toast-background: var(--spell-surface-inverse);
         --ui-toast-color: var(--spell-text-inverse);
         --ui-toast-radius: 16px;
         --ui-toast-shadow: var(--spell-shadow-lg);
         --ui-toast-width: auto;
         --ui-toast-padding: 12px 18px;
+        --ui-toast-font-size: 14px;
+        --ui-toast-icon-size: 18px;
+        --ui-toast-icon-padding: 30px;
       }
     </style>
   </head>
@@ -696,7 +668,6 @@
       composer.addEventListener("ui-cast", cast)
       habits.addEventListener("ui-change", () => queueMicrotask(drawStreak))
       $("add-habit").addEventListener("submit", addHabit)
-      $("add-habit").addEventListener("keydown", submitOnEnter, true)
       drawStreak()
       drawApps()
       drawCategories("All")
@@ -753,6 +724,7 @@
       function toast(message) {
         UI.toast({
           id: "spell-app-ready",
+          class: "ready",
           message,
           showIcon: "wand magic sparkles",
           position: "bottom center",
@@ -772,17 +744,6 @@
         habits.append(check)
         input.value = ""
         drawStreak()
-      }
-
-      /**
-       * Enter in the new-habit field submits the form.
-       * - HACK:  `<ui-input>` submits by `click()`ing the form's `<ui-button type="submit">` host, which a
-       *   `<ui-button>` only acts on from its inner button:  nothing happens (plan doc issue).  Until it does.
-       */
-      function submitOnEnter(event) {
-        if (event.key !== "Enter" || event.isComposing || event.target.localName !== "ui-input") return
-        event.preventDefault()
-        event.currentTarget.requestSubmit()
       }
 
       /** Streak:  4 + the habits done, in days and as 7 dots. */
@@ -837,7 +798,7 @@
         )
         $("templates").replaceChildren(
           ...TEMPLATES.filter((template) => chosen === "All" || template[2] === chosen).map(([name, icon, , spell]) => {
-            const use = h("ui-button", { size: "tiny", circular: "" }, ["Use template\u2002", h("ui-icon", { name: "arrow right" })])
+            const use = h("ui-button", { size: "tiny", circular: "", icon: "arrow right", "icon-position": "right" }, ["Use template"])
             use.addEventListener("click", () => {
               composer.value = spell
               show("build")

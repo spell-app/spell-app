@@ -35,6 +35,12 @@ export const PENDING: CheckState = "pending"
 /** Class word of a check the user ticks. */
 export const CHECKABLE = "checkable"
 
+/** A check's text face:  `sans` (14px, 20px marks) or `serif` (15px, 19px marks). */
+export type CheckFont = "sans" | "serif"
+
+/** Class word of a serif check (`ui-brand-check.css` switches its defaults on it). */
+export const SERIF: CheckFont = "serif"
+
 /** The `checked` attribute:  the alias of `selected`, read by the check (`BrandCheckHost` owns the property). */
 export const CHECKED = "checked"
 
@@ -78,6 +84,8 @@ export type ChecklistCheckState = {
   state: CheckState | undefined
   /** the list is `checkable` */
   checkable: boolean
+  /** the list's `font`, which a check without its own follows */
+  font: CheckFont | undefined
 }
 
 ////////////////

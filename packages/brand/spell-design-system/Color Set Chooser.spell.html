@@ -110,14 +110,10 @@
       .format > ui-button {
         margin-inline-end: -8px;
       }
-      /* numbers:  right-aligned against their unit (Spell UI's "UI rules") */
+      /* numbers (right-aligned against their unit by `inputmode`):  tight, as the original's */
       .format > ui-input.number {
         --ui-input-padding-inline: 4px;
         --ui-label-padding-inline: 6px;
-      }
-      .format > ui-input.number::part(control) {
-        text-align: end;
-        font-variant-numeric: tabular-nums;
       }
       .presets {
         --ui-brand-color-size: 28px;
@@ -157,19 +153,7 @@
         border-bottom: 1px solid var(--spell-border-subtle);
         padding-bottom: 8px;
       }
-      .results > ui-section::part(heading) {
-        flex: 1;
-        min-width: 0;
-      }
-      .results > ui-section::part(toggle) {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        width: 100%;
-      }
       .results > ui-section::part(fold-icon) {
-        order: 2;
-        margin-inline-start: auto;
         color: var(--spell-text-subtle);
       }
       .results > ui-section .eyebrow {
@@ -271,13 +255,14 @@
         gap: 8px;
       }
 
-      /* ## Tips:  the original's rich tips on the band headers and the Auto pill */
+      /* ## Tips:  the original's rich tips (the bands', the fields', the Auto pill's) */
 
       .tip {
         max-width: 260px;
         font: var(--spell-type-ui);
         font-size: 14px;
         font-weight: 400;
+        line-height: 1.35;
       }
       .tip p {
         margin: 0;
@@ -307,22 +292,32 @@
 
       <div class="chooser">
         <!-- ## Inspector -->
-        <ui-brand-panel color="accent" collapsible>
-          <span slot="header" id="head-color-set">Color Set</span>
-          <ui-input
-            id="name"
-            size="small"
-            value="brand"
-            placeholder="Name, e.g. brand"
-            aria-label="Color name"
-            title="The name used in code, e.g. brand-500"
-            spellcheck="false"
-            autocomplete="off"
-          ></ui-input>
-          <ui-brand-field
-            label="Base color"
-            info="The colour you’re starting from.  Click the square to pick one, or type it in:  RGB, a code like #8E96B5;  OKLCH, lightness, colourfulness and hue, if you know them."
-          >
+        <ui-brand-panel header="Color Set" color="accent" collapsible>
+          <div slot="info" class="tip">
+            <p>The colour this set is built from.</p>
+            <p>Give it a <b>name</b>, then pick a <b>base colour</b> to start from.</p>
+          </div>
+          <!-- a field with no label:  only for its compact control -->
+          <ui-brand-field>
+            <ui-input
+              id="name"
+              value="brand"
+              placeholder="Name, e.g. brand"
+              aria-label="Color name"
+              title="The name used in code, e.g. brand-500"
+              spellcheck="false"
+              autocomplete="off"
+            ></ui-input>
+          </ui-brand-field>
+          <ui-brand-field label="Base color">
+            <div slot="info" class="tip">
+              <p>The colour you’re starting from.</p>
+              <p>
+                <b>Click the square</b> to pick one, or type it in:<br />
+                <b>RGB</b>:  a code like #8E96B5.<br />
+                <b>OKLCH</b>:  lightness, colourfulness and hue, if you know them.
+              </p>
+            </div>
             <div class="base" role="group">
               <button type="button" class="swatch" id="swatch" title="Choose a colour" aria-label="Choose a colour">
                 <ui-brand-color id="swatch-chip" value="#8E96B5"></ui-brand-color>
@@ -425,29 +420,31 @@
             </div>
           </ui-brand-field>
 
-          <ui-brand-panel collapsible>
-            <span slot="header" id="head-tweak">Tweak</span>
-            <ui-brand-field
-              id="anchor-field"
-              label="Base color sits at"
-              value="400"
-              info="Your colour becomes one shade in a set of 17, from very light to very dark.  This picks which shade it is;  Auto usually gets it right."
-            >
+          <ui-brand-panel header="Tweak" collapsible>
+            <div slot="info" class="tip">
+              <p>Fine-tune how the <b>17 shades</b> are made.</p>
+              <p>The defaults work well for most colours, so you can usually skip this.</p>
+            </div>
+            <ui-brand-field id="anchor-field" label="Base color sits at" value="400">
+              <div slot="info" class="tip">
+                <p>Your colour becomes <b>one shade</b> in a set of 17, from very light to very dark.</p>
+                <p>This picks <b>which shade</b> it is.<br /><b>Auto</b> usually gets it right.</p>
+              </div>
               <ui-button id="auto" slot="actions" size="mini" circular basic icon="check">Auto</ui-button>
               <ui-slider
                 id="anchor"
                 min="0"
                 max="16"
                 value="7"
+                ticked
                 step-labels='["25","50","75","100","150","200","300","400","500","600","700","800","850","900","925","950","975"]'
               ></ui-slider>
             </ui-brand-field>
-            <ui-brand-field
-              id="vibrancy-field"
-              label="Vibrancy"
-              value="100%"
-              info="How bold the colours are.  Slide left for softer, greyer shades;  right for brighter, richer ones."
-            >
+            <ui-brand-field id="vibrancy-field" label="Vibrancy" value="100%">
+              <div slot="info" class="tip">
+                <p>How <b>bold</b> the colours are.</p>
+                <p>Slide <b>left</b> for softer, greyer shades.<br />Slide <b>right</b> for brighter, richer ones.</p>
+              </div>
               <ui-button
                 id="vibrancy-reset"
                 slot="actions"
@@ -459,14 +456,15 @@
                 hidden
                 >Reset</ui-button
               >
-              <ui-slider id="vibrancy" min="0" max="200" value="100"></ui-slider>
+              <ui-slider id="vibrancy" min="0" max="200" value="100" ticked tick-step="20"></ui-slider>
             </ui-brand-field>
-            <ui-brand-field
-              id="drift-field"
-              label="Hue drift toward dark"
-              value="0°"
-              info="Lets the darker shades lean toward a neighbouring colour, like blue drifting toward purple.  Leave it in the middle to keep every shade the same colour."
-            >
+            <ui-brand-field id="drift-field" label="Hue drift toward dark" value="0°">
+              <div slot="info" class="tip">
+                <p>
+                  Lets the <b>darker shades</b> lean toward a neighbouring colour, like blue drifting toward purple.
+                </p>
+                <p>Leave it in the <b>middle</b> to keep every shade the same colour.</p>
+              </div>
               <ui-button
                 id="drift-reset"
                 slot="actions"
@@ -478,12 +476,15 @@
                 hidden
                 >Reset</ui-button
               >
-              <ui-slider id="drift" min="-40" max="40" value="0"></ui-slider>
+              <ui-slider id="drift" min="-40" max="40" value="0" ticked tick-step="8"></ui-slider>
             </ui-brand-field>
           </ui-brand-panel>
 
-          <ui-brand-panel collapsible>
-            <span slot="header" id="head-presets">Presets</span>
+          <ui-brand-panel header="Presets" collapsible>
+            <div slot="info" class="tip">
+              <p>Ready-made <b>Spell brand</b> colours.</p>
+              <p>Click one to load it, then adjust it under <b>Tweak</b>.</p>
+            </div>
             <ui-brand-color-set id="presets" class="presets" selectable value="brand" aria-label="Presets">
               <ui-brand-color name="brand" value="#8E96B5" title="House of Owen"></ui-brand-color>
               <ui-brand-color name="accent" value="#F1E7D4" title="Polished Ivory"></ui-brand-color>
@@ -497,8 +498,15 @@
 
         <!-- ## Results -->
         <div class="results">
-          <ui-section id="variants" collapsible level="6">
+          <ui-section id="variants" collapsible fold-icon="end" level="6">
             <span slot="header" class="eyebrow" id="variants-title">“brand” variants</span>
+            <div slot="info" class="tip">
+              <p><b>AA</b> marks shades that are easy to read text on.</p>
+              <p>
+                Use them <b>behind words</b>:  buttons, badges, banners.<br />Shades without it are fine for
+                <b>backgrounds, borders and big headlines</b>.
+              </p>
+            </div>
             <ui-brand-color-range
               id="strip"
               slot="actions"
@@ -519,8 +527,15 @@
             </ui-segment>
           </ui-section>
 
-          <ui-section id="samples-section" collapsible collapsed level="6">
+          <ui-section id="samples-section" collapsible collapsed fold-icon="end" level="6">
             <span slot="header" class="eyebrow" id="samples-title">Samples</span>
+            <div slot="info" class="tip">
+              <p>A quick preview of this colour in a real app.</p>
+              <p>
+                <b>Light</b> uses the pale shades for the page and darker ones for text.<br /><b>Dark</b> flips that
+                around.
+              </p>
+            </div>
             <div class="samples">
               <ui-card class="sample" id="sample-light">
                 <div class="body">
@@ -549,7 +564,7 @@
             </div>
           </ui-section>
 
-          <ui-section id="css-section" collapsible level="6">
+          <ui-section id="css-section" collapsible fold-icon="end" level="6">
             <span slot="header" class="eyebrow">CSS</span>
             <ui-button
               id="css-copy-folded"
@@ -564,10 +579,10 @@
             <div class="css">
               <ui-code id="css" language="css"></ui-code>
               <div class="css-tools">
-                <ui-buttons id="css-format" size="mini" aria-label="Value format">
-                  <ui-button value="hex" active aria-pressed="true">RGB</ui-button>
-                  <ui-button value="oklch" aria-pressed="false">OKLCH</ui-button>
-                </ui-buttons>
+                <ui-menu id="css-format" appearance="segmented" link size="mini" aria-label="Value format">
+                  <ui-item value="hex" selected>RGB</ui-item>
+                  <ui-item value="oklch">OKLCH</ui-item>
+                </ui-menu>
                 <ui-button
                   id="css-copy"
                   size="mini"
@@ -581,42 +596,7 @@
         </div>
       </div>
 
-      <!-- ## Tips:  the original's rich tips on the band headers and the Auto pill -->
-      <ui-popup for="head-color-set" on="hover" position="bottom left" inverted basic>
-        <div class="tip">
-          <p>The colour this set is built from.</p>
-          <p>Give it a <b>name</b>, then pick a <b>base colour</b> to start from.</p>
-        </div>
-      </ui-popup>
-      <ui-popup for="head-tweak" on="hover" position="bottom left" inverted basic>
-        <div class="tip">
-          <p>Fine-tune how the <b>17 shades</b> are made.</p>
-          <p>The defaults work well for most colours, so you can usually skip this.</p>
-        </div>
-      </ui-popup>
-      <ui-popup for="head-presets" on="hover" position="bottom left" inverted basic>
-        <div class="tip">
-          <p>Ready-made <b>Spell brand</b> colours.</p>
-          <p>Click one to load it, then adjust it under <b>Tweak</b>.</p>
-        </div>
-      </ui-popup>
-      <ui-popup for="variants-title" on="hover" position="bottom left" inverted basic>
-        <div class="tip">
-          <p><b>AA</b> marks shades that are easy to read text on.</p>
-          <p>
-            Use them <b>behind words</b>: buttons, badges, banners.<br />Shades without it are fine for
-            <b>backgrounds, borders and big headlines</b>.
-          </p>
-        </div>
-      </ui-popup>
-      <ui-popup for="samples-title" on="hover" position="bottom left" inverted basic>
-        <div class="tip">
-          <p>A quick preview of this colour in a real app.</p>
-          <p>
-            <b>Light</b> uses the pale shades for the page and darker ones for text.<br /><b>Dark</b> flips that around.
-          </p>
-        </div>
-      </ui-popup>
+      <!-- ## The Auto pill's tip (the bands' and fields' are their own `slot="info"`) -->
       <ui-popup for="auto" on="hover" position="bottom right" inverted basic>
         <div class="tip" id="auto-tip"></div>
       </ui-popup>
@@ -809,15 +789,7 @@
             if (event.target === $(section)) $(summary).hidden = hidden
           })
       }
-      $("css-format").addEventListener("click", (event) => {
-        const button = event.target.closest("ui-button[value]")
-        if (!button) return
-        for (const each of $("css-format").querySelectorAll("ui-button")) {
-          each.toggleAttribute("active", each === button)
-          each.setAttribute("aria-pressed", String(each === button))
-        }
-        set({ format: button.getAttribute("value") })
-      })
+      $("css-format").addEventListener("ui-select", (event) => set({ format: event.detail.value }))
       copyButton($("css-copy"), () => range.css(state.format))
       copyButton($("css-copy-folded"), () => range.css(state.format))
 

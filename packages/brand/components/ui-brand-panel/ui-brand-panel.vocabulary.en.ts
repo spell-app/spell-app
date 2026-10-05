@@ -39,6 +39,11 @@ const COLOR_DESCRIPTION =
   "Hue of the whole panel:  the header band, the box, the border and the sub-head bands (sub-panels follow it).  " +
   "None:  `primary`.  `accent`:  Polished Ivory, the brand's warm accent (the Color Set Chooser's look)."
 
+/** `fold-icon`'s description, as the panel uses it:  its default is `end`. */
+const FOLD_ICON_DESCRIPTION =
+  "Where each band's fold chevron sits:  `end`, at the far end of the band after any actions (the panel's " +
+  "default), or `start`, before the title."
+
 /****************
  * ### `<ui-brand-panel>`
  * A property panel:  a tinted box with a full-width header band;  a panel inside it is a sub-head band.  Every band
@@ -46,9 +51,13 @@ const COLOR_DESCRIPTION =
  ****************/
 export const brandPanelVocabulary = {
   ...sectionVocabulary,
-  // `color`:  the hues, plus the brand's `accent` (added at runtime by `src/hues.ts`)
+  // `color`:  the hues, plus the brand's `accent` (added at runtime by `src/hues.ts`);  `fold-icon`:  `end` by default
   attributes: sectionVocabulary.attributes.map((spec) =>
-    spec.name === "color" ? { ...spec, values: [...PANEL_HUES], description: COLOR_DESCRIPTION } : spec
+    spec.name === "color"
+      ? { ...spec, values: [...PANEL_HUES], description: COLOR_DESCRIPTION }
+      : spec.name === "fold-icon"
+        ? { ...spec, description: FOLD_ICON_DESCRIPTION }
+        : spec
   ),
   tag: "ui-brand-panel",
   topics: ["layout", "containers"],

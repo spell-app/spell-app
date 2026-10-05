@@ -28,8 +28,8 @@ import checklistCSS from "./ui-brand-checklist.css?inline"
  * - Announces progress politely:  "<text> done" as `step` moves past a check, "All done" at the end.  Never on
  *   first render, nor when `step` goes back.
  * - `checkable` (the phone's habits):  every check is a checkbox;  their `ui-change`s bubble through the list.
- * - `font` (`sans` / `serif`) and the `--ui-brand-checklist-*` tokens reach the checks by inheritance:  the list sets
- *   private `--_ui-brand-checklist-*` values on its host, which the checks read (`ui-brand-check.css`).
+ * - `font` (`sans` / `serif`):  each check without its own asks it through `checkState()` and draws the face's
+ *   defaults (`check serif`);  the `--ui-brand-checklist-*` tokens set on the list reach the checks by inheritance.
  * - The host's `aria-label` names the list.
  ****************/
 export class UIBrandChecklist extends UIElement<BrandChecklistVocabulary> implements ChecklistOwner {
@@ -78,8 +78,9 @@ export class UIBrandChecklist extends UIElement<BrandChecklistVocabulary> implem
     if (index < 0) this.queueRefresh()
     const step = this.step()
     const checkable = !!this.attrs.checkable
-    if (step === undefined || index < 0 || checkable) return { state: undefined, checkable }
-    return { state: index < step ? DONE : index === step ? ACTIVE : PENDING, checkable }
+    const font = this.attrs.font
+    if (step === undefined || index < 0 || checkable) return { state: undefined, checkable, font }
+    return { state: index < step ? DONE : index === step ? ACTIVE : PENDING, checkable, font }
   }
 
   ////////////////

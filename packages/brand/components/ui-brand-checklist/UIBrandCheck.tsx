@@ -16,9 +16,11 @@ import {
   CHECKED,
   DONE,
   PENDING,
+  SERIF,
   STEP,
   type BrandCheckChangeDetail,
   type BrandCheckVocabulary,
+  type CheckFont,
   type CheckState,
   type ChecklistOwner
 } from "./ui-brand-checklist.types"
@@ -38,7 +40,10 @@ import checkCSS from "./ui-brand-check.css?inline"
  *   unless a handler re-set it.  `checked` is `selected`'s alias (`BrandCheckHost`;  the attribute ticks it).
  * - Owned (`PartContext`, `:state(in-checklist)`):  the `<ui-brand-checklist>` around it decides its state from its
  *   `step`, and makes it `checkable`;  the host is then a `listitem` (internals).  Alone, its own attributes decide.
- * - Text:  `font` (sans 14px / serif 15px), else the checklist's;  sizes from `--ui-brand-checklist-*` tokens.
+ * - Text:  `font` (sans 14px / serif 15px), else the checklist's (`checkState()`), as the class word `serif`;  sizes
+ *   from `--ui-brand-checklist-*` tokens.
+ * - The mark sits beside the text's middle;  `--ui-brand-checklist-align: start` puts it beside the FIRST line (a
+ *   title over a description line).
  * - Motion:  the pulse runs only with `prefers-reduced-motion: no-preference` (`ui-brand-check.css`).
  ****************/
 export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
@@ -74,6 +79,9 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
 
   /** The owner's say, or `undefined` alone. */
   readonly ownerState = createMemo(() => this.owner()?.checkState(this.host))
+
+  /** Text face:  its own `font`, else its list's, else `sans`. */
+  readonly font = createMemo((): CheckFont | undefined => this.attrs.font ?? this.ownerState()?.font)
 
   /** A checkbox the user ticks:  its own `checkable`, or its list's. */
   readonly isCheckable = createMemo(() => !!this.attrs.checkable || !!this.ownerState()?.checkable)
@@ -112,9 +120,11 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   // ## Element hooks
   ////////////////
 
-  /** The state word, and `checkable`:  `check done checkable`. */
+  /** The state word, `checkable` and `serif`:  `check done checkable serif`. */
   protected extraClasses(): string | undefined {
-    return [this.state(), this.isCheckable() ? CHECKABLE : ""].filter(Boolean).join(" ")
+    return [this.state(), this.isCheckable() ? CHECKABLE : "", this.font() === SERIF ? SERIF : ""]
+      .filter(Boolean)
+      .join(" ")
   }
 
   protected hostStates() {

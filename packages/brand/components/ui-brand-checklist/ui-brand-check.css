@@ -1,15 +1,18 @@
 /*
  * `<ui-brand-check>`:  one line of a checklist, `.check.<state>` (`done` / `active` / `pending`, `checkable`) >
  * `.marker` (the round mark, a check `<svg>` inside) + `.label` (the slot).
- * - Public tokens (`--ui-brand-checklist-*`) are never declared here:  read through private aliases.  Set them on the
- *   list (they inherit) or on one check:
+ * - Public tokens (`--ui-brand-checklist-*`) are never declared here:  read through private aliases on `.check`, each
+ *   with its SANS default (what the docs' Theming table shows).  Set them on the list (they inherit) or on one check:
  *   - `-font-family`, `-font-size`, `-marker-size`, `-gap` (mark to text):  defaults sans 14px / 20px / 12px,
  *     serif 15px / 19px / 10px
+ *   - `-align`:  `center` (the mark beside the text's middle) or `start` (beside the FIRST line's middle:  a title
+ *     over a description line)
  *   - `-accent` (done fill), `-accent-soft` (active fill), `-on-accent` (the check)
  *   - `-text` (done / active / unticked text), `-text-subtle` (pending, ticked), `-ring` (pending),
  *     `-ring-checkable` (unticked)
- * - `font`:  the list sets the serif defaults as private `--_ui-brand-checklist-*` values on its host, which reach its
- *   checks by inheritance;  a check's own `font` sets them on itself.
+ * - `font`:  `.check.serif` (its own `font`, else its list's) reads the size tokens again with the serif defaults.
+ * - `start`:  the mark is moved to the first line's middle by a style query on the alias;  a browser without style
+ *   queries puts it at the top edge.
  * - Colours from the `spell-brand` theme's roles (`--spell-*`), else Spell UI's (`--ui-*`), so the check works, plainer,
  *   without the theme, and follows dark mode.
  * - Motion:  the active mark pulses (`sp-pulse`'s 1.4s:  scale .8, fade to .55) only with
@@ -20,13 +23,26 @@
 
 @layer ui.components.brand-check.types {
   :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  .check {
+    /* text face */
     --_ui-brand-check-family: var(
       --ui-brand-checklist-font-family,
-      var(--_ui-brand-checklist-font-family, var(--spell-font-sans, var(--ui-font-family, system-ui, sans-serif)))
+      var(--spell-font-sans, var(--ui-font-family, system-ui, sans-serif))
     );
-    --_ui-brand-check-size: var(--ui-brand-checklist-font-size, var(--_ui-brand-checklist-font-size, 14px));
-    --_ui-brand-check-marker: var(--ui-brand-checklist-marker-size, var(--_ui-brand-checklist-marker-size, 20px));
-    --_ui-brand-check-gap: var(--ui-brand-checklist-gap, var(--_ui-brand-checklist-gap, 12px));
+    /* text size */
+    --_ui-brand-check-size: var(--ui-brand-checklist-font-size, 14px);
+    /* the round mark's size */
+    --_ui-brand-check-marker: var(--ui-brand-checklist-marker-size, 20px);
+    /* space between the mark and the text */
+    --_ui-brand-check-gap: var(--ui-brand-checklist-gap, 12px);
+    /* the mark beside the text's middle (`center`) or its first line's (`start`) */
+    --_ui-brand-check-align: var(--ui-brand-checklist-align, center);
     --_ui-brand-check-accent: var(--ui-brand-checklist-accent, var(--spell-accent, var(--ui-primary, #6550ca)));
     --_ui-brand-check-accent-soft: var(
       --ui-brand-checklist-accent-soft,
@@ -46,27 +62,21 @@
       --ui-brand-checklist-ring-checkable,
       var(--spell-border-strong, var(--ui-border-color-strong, #999))
     );
-    display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
-  :host([font="sans"]) {
-    --_ui-brand-checklist-font-family: var(--spell-font-sans, var(--ui-font-family, system-ui, sans-serif));
-    --_ui-brand-checklist-font-size: 14px;
-    --_ui-brand-checklist-marker-size: 20px;
-    --_ui-brand-checklist-gap: 12px;
-  }
-  :host([font="serif"]) {
-    --_ui-brand-checklist-font-family: var(--spell-font-serif, var(--ui-font-family-heading, Georgia, serif));
-    --_ui-brand-checklist-font-size: 15px;
-    --_ui-brand-checklist-marker-size: 19px;
-    --_ui-brand-checklist-gap: 10px;
+  /* serif (its own `font`, else its list's):  the same tokens, the serif defaults */
+  .check.serif {
+    --_ui-brand-check-family: var(
+      --ui-brand-checklist-font-family,
+      var(--spell-font-serif, var(--ui-font-family-heading, Georgia, serif))
+    );
+    --_ui-brand-check-size: var(--ui-brand-checklist-font-size, 15px);
+    --_ui-brand-check-marker: var(--ui-brand-checklist-marker-size, 19px);
+    --_ui-brand-check-gap: var(--ui-brand-checklist-gap, 10px);
   }
 
   .check {
     display: flex;
-    align-items: center;
+    align-items: var(--_ui-brand-check-align);
     gap: var(--_ui-brand-check-gap);
     box-sizing: border-box;
     margin: 0;
@@ -111,6 +121,13 @@
 
   .label {
     min-width: 0;
+  }
+
+  /* `start`:  the mark's middle on the first line's (`1lh`:  the check's line height), not on the line box's top */
+  @container style(--_ui-brand-check-align: start) {
+    .marker {
+      margin-block-start: calc((1lh - var(--_ui-brand-check-marker)) / 2);
+    }
   }
 }
 

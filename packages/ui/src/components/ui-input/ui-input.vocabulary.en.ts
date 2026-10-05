@@ -130,6 +130,14 @@ export const inputVocabulary = {
     { name: "accept", kind: "string", description: "`file`:  accepted file types." },
     { name: "autocomplete", kind: "string", description: "Autofill hint, forwarded to the native input." },
     {
+      name: "inputmode",
+      kind: "enum",
+      values: ["none", "text", "decimal", "numeric", "tel", "search", "email", "url"],
+      description:
+        "Virtual keyboard hint, forwarded to the native input.  `decimal` / `numeric` also give the number look " +
+        '(right-aligned, tabular figures), as `type="number"` does.'
+    },
+    {
       name: "rules",
       kind: "json",
       reflect: false,

@@ -90,6 +90,7 @@
         font-size: 16px;
       }
       .bar ui-button.soft {
+        --ui-button-icon-spacing: 6px;
         --ui-button-background: var(--spell-accent-soft);
         --ui-button-background-hover: var(--spell-accent-soft-hover);
         --ui-button-background-down: var(--spell-accent-soft-hover);
@@ -106,61 +107,40 @@
         min-height: calc(100vh - var(--spell-site-header-height, 0px) - 79px);
       }
 
-      /*
-       * The nav:  a group header, then its items, icon first, the chosen one tinted.
-       * - HACK:  a `vertical` / `secondary` menu sets its item look as PRIVATE tokens, so the public `--ui-menu-*`
-       *   ones can't reach it (plan-doc issue I21):  the documented `item` / `icon` parts instead, until it does.
-       */
+      /* The nav:  a group header, then its items, icon first, the chosen one tinted;  the secondary menu's tokens. */
       .cols > .nav {
         background: light-dark(var(--spell-brand-50), var(--spell-violet-975));
         border-right: 1px solid var(--spell-border-subtle);
-        /* 12px, plus the 5px a `secondary` menu hangs past each side */
-        padding: 20px 17px;
+        /* 12px, plus the 5px a `secondary` menu hangs past each side;  every group header's 16px gap sits above it */
+        padding: 4px 17px 20px;
       }
       .nav > ui-menu {
-        width: 100%;
         font: 500 14px/1 var(--spell-font-sans);
         --ui-font-size: 14px;
-      }
-      .nav ui-item::part(item) {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        height: 34px;
-        box-sizing: border-box;
-        margin: 0 0 2px;
-        padding: 0 12px;
-        border-radius: 10px;
-        color: var(--spell-text-body);
-      }
-      .nav ui-item[link]:hover::part(item) {
-        background: transparent;
-        color: var(--spell-text-strong);
-      }
-      .nav ui-item[selected]::part(item),
-      .nav ui-item[selected]:hover::part(item) {
-        background: var(--spell-surface-selected);
-        color: var(--spell-text-accent);
-      }
-      .nav ui-item::part(icon) {
-        order: -1;
-        float: none;
-        width: 16px;
-        margin: 0 11px 0 0;
-        font-size: 16px;
-        opacity: 1;
-      }
-      .nav ui-item[type="header"]::part(item) {
-        height: auto;
-        margin: 0;
-        padding: 0 12px 6px;
-        font: 500 11px/1 var(--spell-font-mono);
-        letter-spacing: var(--spell-tracking-eyebrow);
-        text-transform: uppercase;
-        color: var(--spell-text-muted);
-      }
-      .nav ui-item[type="header"]:not(:first-child)::part(item) {
-        margin-top: 16px;
+        --ui-menu-margin: 0;
+        --ui-menu-vertical-item-display: flex;
+        --ui-menu-vertical-icon-float: none;
+        --ui-menu-vertical-icon-margin: 0 11px 0 0;
+        --ui-menu-icon-size: 16px;
+        --ui-menu-icon-opacity: 1;
+        /* 34px tall:  the 16px icon and 9px above and below (a min height would stretch the headers too) */
+        --ui-menu-secondary-item-padding: 9px 12px;
+        --ui-menu-secondary-vertical-item-margin: 0 0 2px;
+        --ui-menu-secondary-item-radius: 10px;
+        --ui-menu-secondary-item-color: var(--spell-text-body);
+        --ui-menu-secondary-hover-background: transparent;
+        --ui-menu-hover-color: var(--spell-text-strong);
+        --ui-menu-secondary-active-background: var(--spell-surface-selected);
+        --ui-menu-secondary-active-color: var(--spell-text-accent);
+        --ui-menu-secondary-inline-margin: 0;
+        --ui-menu-header-margin: 16px 0 2px;
+        --ui-menu-header-padding: 0 12px 6px;
+        --ui-menu-header-font-family: var(--spell-font-mono);
+        --ui-menu-header-size: 11px;
+        --ui-menu-header-weight: 500;
+        --ui-menu-header-letter-spacing: var(--spell-tracking-eyebrow);
+        --ui-menu-header-transform: uppercase;
+        --ui-menu-header-color: var(--spell-text-muted);
       }
 
       /* ## The article */
@@ -223,11 +203,8 @@
         --ui-message-margin: 6px 0;
         --ui-message-icon-distance: 18px;
         --ui-message-icon-size: 35px;
+        --ui-message-icon-align: start;
         --ui-brand-logo-height: 35px;
-      }
-      /* HACK:  an icon message centres its icon, with no token to top-align it (plan-doc issue):  the `icon` part */
-      article > ui-message::part(icon) {
-        align-self: flex-start;
       }
       .tip {
         display: flex;
@@ -291,17 +268,31 @@
 
       /*
        * the example:  file tabs on a code-coloured strip, the chosen one and the pane on the card colour.
-       * - a plain (boxless) tab menu, which reads every public `--ui-menu-*` token;  the strip's padding and the
-       *   set's rounded border on the documented `menu` / `tabs` parts
+       * - `.example` is the set's rounded border and the strip (its colour, its 6px inset);  the pane hangs back out
+       *   over the inset (`--ui-tabs-pane-margin`), so it spans the set
+       * - a plain (boxless) tab menu, which reads every public `--ui-menu-*` token
        */
-      article > ui-tabs {
-        --ui-tabs-pane-margin: 0;
-        --ui-menu-background: var(--spell-surface-code);
+      .example {
+        overflow: hidden;
+        padding: 6px 6px 0;
+        border: 1px solid var(--spell-border-subtle);
+        border-radius: 14px;
+        background: var(--spell-surface-code);
+      }
+      .example > ui-tabs {
+        --ui-tabs-pane-margin: 0 -6px;
+        --ui-menu-background: transparent;
         --ui-menu-border: 0;
         --ui-menu-radius: 0;
+        --ui-menu-min-height: 0;
+        --ui-menu-gap: 2px;
         --ui-menu-divider-display: none;
         --ui-menu-divider-first-display: none;
         --ui-menu-divider-last-display: none;
+        --ui-menu-font-family: var(--spell-font-mono);
+        --ui-menu-item-font-size: 12px;
+        --ui-menu-item-transform: uppercase;
+        --ui-menu-item-letter-spacing: 0.08em;
         --ui-menu-item-padding: 9px 12px;
         --ui-menu-item-radius: 8px 8px 0 0;
         --ui-menu-item-color: var(--spell-text-muted);
@@ -321,25 +312,7 @@
         --ui-segment-shadow: none;
         --ui-segment-padding: 16px 18px;
       }
-      /* HACK:  a menu item sets its own font family, with no token for it (plan-doc issue):  the `tab` part */
-      article > ui-tabs::part(tab) {
-        font: 500 12px/1 var(--spell-font-mono);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-      article > ui-tabs::part(tabs) {
-        overflow: hidden;
-        border: 1px solid var(--spell-border-subtle);
-        border-radius: 14px;
-      }
-      /* HACK:  the tab menu keeps a menu's 1em margins and ~46px min-height, with no token (plan-doc issue) */
-      article > ui-tabs::part(menu) {
-        gap: 2px;
-        min-height: 0;
-        margin: 0;
-        padding: 6px 6px 0;
-      }
-      article > ui-tabs ui-code {
+      .example ui-code {
         --ui-code-background: transparent;
         --ui-code-border: 0;
         --ui-code-padding: 0;
@@ -364,13 +337,14 @@
         gap: 12px;
         margin-top: 24px;
       }
-      /* `fluid` cards share the row;  the hover border is the hover "shadow" (a link card keeps its border colour) */
+      /* `fluid` cards share the row;  flat, the border turning accent on hover */
       .pager > ui-card {
         --ui-card-margin-block: 0;
         --ui-card-radius: 14px;
-        --ui-card-shadow: 0 0 transparent;
+        --ui-card-shadow: none;
         --ui-card-border-color: var(--spell-border-default);
-        --ui-card-hover-shadow: 0 0 0 1px var(--spell-border-accent);
+        --ui-card-hover-border-color: var(--spell-border-accent);
+        --ui-card-hover-shadow: none;
         --ui-card-link-raise: 0;
       }
       .pager .page {
@@ -405,34 +379,22 @@
       }
       /* a bulleted list, the current entry (`selected`) in the accent with an accent dot */
       .toc > ui-list {
-        --ui-list-item-font-size: 13px;
-        --ui-list-item-line-height: 1.3;
+        --ui-list-margin: 0;
+        --ui-list-font-size: 13px;
+        --ui-list-item-line-height: 1.3em;
         --ui-list-item-padding-block: 0;
         --ui-list-item-first-padding-top: 0;
         --ui-list-item-last-padding-bottom: 0;
         --ui-list-item-margin: 0 0 10px;
         --ui-list-marker-color: var(--spell-border-strong);
+        --ui-list-marker-active-color: var(--spell-accent);
+        --ui-list-marker-margin: 0 0 0 -15px;
+        --ui-list-marker-size: 20px;
         font: 400 13px/1.3 var(--spell-font-sans);
         color: var(--spell-text-muted);
       }
-      .toc > ui-list::part(list) {
-        margin: 0 0 0 16px;
-      }
       .toc ui-item[selected] {
         color: var(--spell-text-accent);
-      }
-      /*
-       * HACK:  `bulleted` fixes the bullet's glyph and hang (ignoring `--ui-list-marker-content` / `-margin`), and its
-       * colour is the LIST's (a private alias on its root), so the bullet can't be the original's 6px dot, nor one
-       * item's differ (plan-doc issue):  the documented `item` part's marker
-       */
-      .toc ui-item::part(item)::before {
-        margin-left: -15px;
-        font-size: 20px;
-        line-height: calc(13px * 1.3);
-      }
-      .toc ui-item[selected]::part(item)::before {
-        color: var(--spell-accent);
       }
       .side > ui-segment {
         --ui-segment-margin: 0;
@@ -460,11 +422,7 @@
         --ui-brand-checklist-accent: var(--spell-violet-300);
         --ui-brand-checklist-on-accent: var(--spell-violet-900);
         --ui-brand-checklist-text: var(--spell-text-strong);
-      }
-      /* HACK:  a check centres its mark on the text, with no token to top-align it (plan-doc issue):  the `marker` part */
-      .needs ui-brand-check::part(marker) {
-        align-self: flex-start;
-        margin-top: 1px;
+        --ui-brand-checklist-align: start;
       }
       .needs b {
         display: block;
@@ -498,7 +456,7 @@
         <div class="tools">
           <ui-input icon="magnifying glass" icon-position="left" placeholder="Search documentation…" aria-label="Search documentation"></ui-input>
           <ui-button id="scheme" circular basic icon="moon outline" aria-label="Toggle theme"></ui-button>
-          <ui-button class="soft">Open app <ui-icon name="arrow right"></ui-icon></ui-button>
+          <ui-button class="soft" icon="arrow right" icon-position="right">Open app</ui-button>
         </div>
       </header>
 
@@ -551,10 +509,12 @@
 
           <hr />
           <h2>Example</h2>
-          <ui-tabs id="example" value="spell" aria-label="Example">
-            <ui-tab value="spell" label="Spell"><div class="spell" data-key="example"></div></ui-tab>
-            <ui-tab value="code" label="Compiled"><ui-code language="text" wrap id="code"></ui-code></ui-tab>
-          </ui-tabs>
+          <div class="example">
+            <ui-tabs id="example" value="spell" aria-label="Example">
+              <ui-tab value="spell" label="Spell"><div class="spell" data-key="example"></div></ui-tab>
+              <ui-tab value="code" label="Compiled"><ui-code language="text" wrap id="code"></ui-code></ui-tab>
+            </ui-tabs>
+          </div>
           <p class="note" data-key="note">This tells Spell exactly what to build — no technical terms required.</p>
 
           <div class="pager">

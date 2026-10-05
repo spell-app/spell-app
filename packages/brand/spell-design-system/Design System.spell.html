@@ -78,15 +78,18 @@
       }
       .cards > ui-card {
         --ui-card-margin-block: 0;
-        overflow: hidden;
       }
 
-      /* ## A card's thumbnail:  its page at a quarter scale (a 400% frame), the copy's site header cropped off */
+      /*
+       * ## A card's thumbnail:  its page at a quarter scale (a 400% frame), the copy's site header cropped off
+       * - the card doesn't clip what's slotted in it (as Fomantic's):  the thumbnail rounds its own top to the card's
+       */
       .thumb {
         position: relative;
         display: block;
         aspect-ratio: 16 / 10;
         overflow: hidden;
+        border-radius: var(--ui-card-radius) var(--ui-card-radius) 0 0;
         background: var(--ui-background);
         border-bottom: 1px solid var(--spell-border-subtle);
       }

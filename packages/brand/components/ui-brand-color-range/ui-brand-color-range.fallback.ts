@@ -3,7 +3,7 @@ import { STEPS } from "$/brand"
 
 import { brandColorRangeVocabulary } from "./ui-brand-color-range.vocabulary.en"
 import { ColorLadder } from "./ColorLadder"
-import { BRAND_COLOR, CLASSES } from "./ui-brand-color-range.types"
+import { BRAND_COLOR, CLASSES, NO_NUMBERS } from "./ui-brand-color-range.types"
 
 /****************
  * ### `BrandColorRangeFallback`
@@ -25,12 +25,14 @@ export class BrandColorRangeFallback extends NativeFallback<typeof brandColorRan
       name: this.attr("name") ?? undefined
     })
     if (!ladder) return []
+    const numbered = this.attr("numbers") !== NO_NUMBERS
     const steps = STEPS.map((step) => {
       const swatch = this.create("span", {
         role: "img",
         "aria-label": `${ladder.name(step)} ${ladder.scale[step]}`,
         style: `display: block; aspect-ratio: 1; border-radius: 8px; background-color: ${ladder.scale[step]}`
       })
+      if (!numbered) return this.create("li", { class: CLASSES.step, part: "step" }, swatch)
       const number = this.create("span", { class: CLASSES.number, part: "number", "aria-hidden": "true" }, String(step))
       return this.create("li", { class: CLASSES.step, part: "step" }, swatch, number)
     })

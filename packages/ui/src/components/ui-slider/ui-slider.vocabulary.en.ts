@@ -41,7 +41,13 @@ export const sliderVocabulary = {
     },
     { name: "reversed", kind: "keyOnly", description: "Runs from the right (or, `vertical`, from the bottom)." },
     { name: "smooth", kind: "keyOnly", description: "Thumbs follow the pointer smoothly;  values still snap." },
-    { name: "ticked", kind: "keyOnly", description: "With `labeled`:  a tick at every step." },
+    {
+      name: "ticked",
+      kind: "keyOnly",
+      description:
+        "A tick at every step (or `tick-step`):  through the track with `labeled`;  alone, a short tick under the " +
+        "track, no numbers (as a native range's tick marks)."
+    },
     { name: "vertical", kind: "keyOnly", description: "Upright, filling the host's height;  min at the top." },
     {
       name: "aligned",
@@ -52,6 +58,13 @@ export const sliderVocabulary = {
     { name: "min", kind: "number", default: 0, description: "Lowest value." },
     { name: "max", kind: "number", default: 20, description: "Highest value (Fomantic's default:  20)." },
     { name: "step", kind: "number", default: 1, description: "Values snap to multiples of it from `min`;  `0`:  any." },
+    {
+      name: "tick-step",
+      kind: "number",
+      description:
+        "Labels and ticks every this much from `min` (e.g. `20` on `0` ... `200`), instead of every `step`;  " +
+        "values still snap to `step`."
+    },
     {
       name: "value",
       kind: "number",

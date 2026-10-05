@@ -85,6 +85,14 @@ export const buttonVocabulary = {
         "`icon` class (square padding);  with `labeled` it becomes a `labeled icon` button."
     },
     {
+      name: "icon-position",
+      kind: "enum",
+      values: ["left", "right"],
+      description:
+        "Which side of the text the icon goes:  `left` (default) or `right` (Fomantic's `right` icon, e.g. " +
+        "`Next →`), spaced by `--ui-button-icon-spacing`.  A `labeled` icon block takes its side from `labeled`."
+    },
+    {
       name: "content",
       kind: "string",
       description: "Shorthand for the button's text, instead of the default slot;  slotted children win."
@@ -120,6 +128,13 @@ export const buttonVocabulary = {
     },
     { name: "href", kind: "string", description: "Renders a link (`<a>`) styled as a button." },
     { name: "target", kind: "string", description: "Link target, with `href`." },
+    {
+      name: "download",
+      kind: "string",
+      description:
+        "With `href`:  downloads the file instead of opening it, as the native `<a download>`;  a value names the " +
+        "saved file."
+    },
     { name: "name", kind: "string", description: "Form field name submitted with the button's `value`." },
     { name: "value", kind: "string", description: "Form value submitted when this button submits the form." }
   ],

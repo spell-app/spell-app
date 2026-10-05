@@ -4,7 +4,7 @@ import { isServer, type JSX } from "@solidjs/web"
 import { Cell, IconGlyph, proto, SlotContent, type AttributeName, UI, UIElement, UIT } from "$/ui/core"
 
 import { buttonVocabulary } from "./ui-button.vocabulary.en"
-import { DEFAULT_TYPE, FORM_ATTRIBUTES } from "./ui-button.types"
+import { DEFAULT_TYPE, FORM_ATTRIBUTES, ICON_END, RIGHT_ICON_CLASS, HostPress } from "./ui-button.types"
 import { ButtonFallback } from "./ui-button.fallback"
 import { Invoker } from "./Invoker"
 
@@ -24,6 +24,9 @@ import buttonCSS from "./ui-button.css?inline"
  *   `commandfor` names in the host's own tree (re-resolved when the attribute changes, and at click time, for a
  *   target that arrived late).  Browsers without invokers (`UI.browser.supports.invokers`) get `Invoker.run()`.
  * - Icons come from the page's icon packs (`IconGlyph`) asynchronously;  the `.icon` box is sized by CSS, so the SVG arriving shifts nothing.
+ *   `icon-position="right"` puts the box after the text, as Fomantic's `<i class="right ... icon">`.
+ * - `host.click()` (a click dispatched at the HOST, e.g. `<ui-input>`'s implicit submission) presses the inner
+ *   control, as `click()` on a native button does;  the page sees only the host's click (`onHostClick`).
  * - Static server render (`$/ui/server`):  the inner `<button>` IS the submitter -- the host's `type`, `name`,
  *   `value`, `form*` attributes -- so a no-JS form submits as the element would (`nativeType()`, `staticControl()`).
  ****************/
@@ -53,7 +56,11 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
     if (isServer) return
     const observer = new MutationObserver(() => this.ariaLabel.set(this.host.getAttribute(UIT.ARIA_LABEL)))
     observer.observe(this.host, { attributeFilter: [UIT.ARIA_LABEL] })
-    this.host.addReleaseCallback(() => observer.disconnect())
+    this.host.addEventListener("click", this.onHostClick)
+    this.host.addReleaseCallback(() => {
+      observer.disconnect()
+      this.host.removeEventListener("click", this.onHostClick)
+    })
   }
 
   ////////////////
@@ -165,6 +172,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
           part={this.part("button")}
           href={this.isDisabled() ? undefined : this.attrs.href}
           target={this.attrs.target}
+          download={this.attrs.download}
           role={this.isDisabled() ? "link" : undefined}
           aria-disabled={this.isDisabled() ? "true" : undefined}
           aria-busy={this.attrs.loading ? "true" : undefined}
@@ -208,25 +216,37 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
     return native
   }
 
-  /** Icon + text (the state text, else the slot), or the two `.content` boxes of an `animated` button. */
+  /**
+   * Icon + text (the state text, else the slot) -- text + icon for `icon-position="right"` -- or the two `.content`
+   * boxes of an `animated` button.
+   */
   private content(): JSX.Element {
     const text = (
       <Show when={this.stateText()} fallback={<slot>{this.attrs.content}</slot>}>
         {this.stateText()}
       </Show>
     )
+    const trailing = () => this.attrs.iconPosition === ICON_END
+    const plain = [
+      <Show when={this.hasIcon() && !trailing()}>{this.icon()}</Show>,
+      text,
+      <Show when={this.hasIcon() && trailing()}>{this.icon(RIGHT_ICON_CLASS)}</Show>
+    ]
     return (
-      <Show when={this.attrs.animated} fallback={[<Show when={this.hasIcon()}>{this.icon()}</Show>, text]}>
+      <Show when={this.attrs.animated} fallback={plain}>
         <span class="visible content">{text}</span>
         <span class="hidden content">{this.icon()}</span>
       </Show>
     )
   }
 
-  /** The icon box:  the `icon` slot, falling back to the `icon` attribute's SVG. */
-  private icon(): JSX.Element {
+  /**
+   * The icon box:  the `icon` slot, falling back to the `icon` attribute's SVG.
+   * - `classes`:  `right icon` for a trailing box, which `ui-button.css` spaces on its start side.
+   */
+  private icon(classes: string = UIT.ICON_CLASS): JSX.Element {
     return (
-      <span class={UIT.ICON_CLASS} part={this.part("icon")}>
+      <span class={classes} part={this.part("icon")}>
         <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
       </span>
     )
@@ -288,6 +308,23 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
     if (!form) return
     if (this.attrs.type === "submit") this.submit(form)
     else if (this.attrs.type === "reset") form.reset()
+  }
+
+  /**
+   * A click dispatched at the HOST itself (`host.click()`:  `<ui-input>`'s implicit submission, a modal's Enter):
+   * press the inner control too, so it submits, toggles, invokes or follows its link as a real click would.
+   * - The control's click stays INSIDE the shadow root (`HostPress.press()`), so the page sees ONE click:  the
+   *   host's own, whatever order its listeners were added in.  Clicks from inside (the control, a joined label)
+   *   start below the host and are left alone.
+   * - A disabled host never gets here:  `click()` on a disabled form-associated element does nothing.  A listener
+   *   that ran first and called `preventDefault()` vetoes the press.
+   * - No connected control (the render threw):  left to the native fallback's own listener.
+   */
+  private readonly onHostClick = (event: MouseEvent) => {
+    const control = this.control
+    if (event.composedPath()[0] !== this.host || !control?.isConnected) return
+    if (this.isDisabled() || event.defaultPrevented) return
+    HostPress.press(control)
   }
 
   /**

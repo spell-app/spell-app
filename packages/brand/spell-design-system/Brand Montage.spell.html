@@ -2,7 +2,7 @@
 <!--
   Brand Montage, on Spell UI:  the copy of `Brand Montage.dc.html`, a 1600 x 1600 poster of brand moments, scaled
   down to the window's width (never up), as the original.
-  - Corner blobs (`<ui-brand-blob>`), the tagline lockup (`<ui-brand-logo>`).
+  - Corner blobs (`<ui-brand-blob>`:  the top-left one the original's own `wave`), the tagline lockup (`<ui-brand-logo>`).
   - The Spell app twice, light and dark side by side:  each panel forces its scheme (`ui-light` / `ui-dark`), so the
     theme's tokens read right in it whatever the page's.
   - The brand palette (`<ui-brand-color>`), then three tiles:  the lockup on ivory, the call to action on aubergine,
@@ -47,11 +47,10 @@
         transform-origin: 0 0;
         scale: var(--scale);
       }
+      /* the original's top-left wash, exactly:  its 640 x 424 path, flush in the corner */
       .poster > ui-brand-blob[corner="top-left"] {
-        --ui-brand-blob-width: 1000px;
-        --ui-brand-blob-height: 820px;
-        --ui-brand-blob-x: 420px;
-        --ui-brand-blob-y: 400px;
+        --ui-brand-blob-width: 640px;
+        --ui-brand-blob-height: 424px;
       }
       .poster > ui-brand-blob[corner="top-right"] {
         --ui-brand-blob-width: 460px;
@@ -114,37 +113,26 @@
         margin: 0 8px;
         align-self: flex-start;
       }
-      /*
-       * the nav:  icon first, the chosen item tinted (light) or filled purple (dark).
-       * - HACK:  a `vertical` / `secondary` menu sets its item look as PRIVATE tokens, so the public `--ui-menu-*`
-       *   ones can't reach it (issue in the plan doc):  the documented `item` / `icon` parts instead, until it does.
-       */
+      /* the nav:  icon first, 40px pills, the chosen one tinted (light) or filled purple (dark) */
       .app > aside > ui-menu {
         width: 100%;
         font: 500 15px/1 var(--spell-font-sans);
         --ui-font-size: 15px;
-      }
-      .app > aside ui-item::part(item) {
-        display: flex;
-        align-items: center;
-        height: 40px;
-        box-sizing: border-box;
-        margin: 0 0 4px;
-        padding: 0 12px;
-        border-radius: 12px;
-        color: var(--spell-text-body);
-      }
-      .app > aside ui-item[selected]::part(item) {
-        background: light-dark(var(--spell-violet-100), var(--spell-violet-600));
-        color: light-dark(var(--spell-violet-600), var(--spell-violet-25));
-      }
-      .app > aside ui-item::part(icon) {
-        order: -1;
-        float: none;
-        width: 18px;
-        margin: 0 12px 0 0;
-        font-size: 16px;
-        opacity: 1;
+        --ui-menu-margin: 0;
+        --ui-menu-item-min-height: 40px;
+        --ui-menu-vertical-item-display: flex;
+        --ui-menu-vertical-icon-float: none;
+        /* the original's 16px glyph centred in an 18px box, then a 12px gap */
+        --ui-menu-vertical-icon-margin: 0 13px 0 1px;
+        --ui-menu-icon-size: 16px;
+        --ui-menu-icon-opacity: 1;
+        --ui-menu-secondary-item-padding: 0 12px;
+        --ui-menu-secondary-vertical-item-margin: 0 0 4px;
+        --ui-menu-secondary-item-radius: 12px;
+        --ui-menu-secondary-item-color: var(--spell-text-body);
+        --ui-menu-secondary-active-background: light-dark(var(--spell-surface-selected), var(--spell-violet-600));
+        --ui-menu-secondary-active-color: light-dark(var(--spell-text-accent), var(--spell-violet-25));
+        --ui-menu-secondary-inline-margin: 0;
       }
       .work {
         padding: 28px 24px;
@@ -401,7 +389,7 @@
     <spell-site-header root="../../.."></spell-site-header>
     <div class="frame" id="frame">
       <div class="poster">
-        <ui-brand-blob corner="top-left"></ui-brand-blob>
+        <ui-brand-blob shape="wave" corner="top-left"></ui-brand-blob>
         <ui-brand-blob corner="top-right"></ui-brand-blob>
         <ui-brand-blob corner="bottom-left"></ui-brand-blob>
         <ui-brand-blob corner="bottom-right"></ui-brand-blob>
@@ -413,7 +401,7 @@
             <aside>
               <ui-brand-logo variant="lockup"></ui-brand-logo>
               <ui-menu vertical secondary fluid aria-label="Spell">
-                <ui-item icon="magic" selected>Build</ui-item>
+                <ui-item icon="wand magic sparkles" selected>Build</ui-item>
                 <ui-item icon="calendar outline">Your Apps</ui-item>
                 <ui-item icon="th large">Templates</ui-item>
                 <ui-item icon="cog">Settings</ui-item>
@@ -433,7 +421,7 @@
                 </ui-card>
                 <ui-card fluid>
                   <div class="steps">
-                    <b><ui-icon name="magic"></ui-icon>Building your app…</b>
+                    <b><ui-icon name="wand magic sparkles"></ui-icon>Building your app…</b>
                     <ui-checkbox selected>Planning structure</ui-checkbox>
                     <ui-checkbox selected>Creating screens</ui-checkbox>
                     <ui-checkbox selected>Adding functionality</ui-checkbox>
@@ -470,7 +458,7 @@
             <aside>
               <ui-brand-logo variant="lockup"></ui-brand-logo>
               <ui-menu vertical secondary fluid aria-label="Spell">
-                <ui-item icon="magic" selected>Build</ui-item>
+                <ui-item icon="wand magic sparkles" selected>Build</ui-item>
                 <ui-item icon="calendar outline">Your Apps</ui-item>
                 <ui-item icon="th large">Templates</ui-item>
                 <ui-item icon="cog">Settings</ui-item>
@@ -490,7 +478,7 @@
                 </ui-card>
                 <ui-card fluid>
                   <div class="steps">
-                    <b><ui-icon name="magic"></ui-icon>Building your app…</b>
+                    <b><ui-icon name="wand magic sparkles"></ui-icon>Building your app…</b>
                     <ui-checkbox selected>Planning structure</ui-checkbox>
                     <ui-checkbox selected>Creating screens</ui-checkbox>
                     <ui-checkbox selected>Adding functionality</ui-checkbox>

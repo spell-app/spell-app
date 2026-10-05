@@ -24,7 +24,8 @@
       }
       section {
         padding: 48px;
-        background: var(--spell-surface-tint);
+        /* the original's violet wash (#F2F2FE), a step more violet than the brand's tint;  dark:  the tint */
+        background: light-dark(var(--spell-violet-75), var(--spell-surface-tint));
         display: flex;
         flex-direction: column;
         gap: 24px;
@@ -181,11 +182,9 @@
         padding: 12px;
         font-size: 12px;
       }
-      /*
-       * The nav item:  a bare one-item menu (no box), the item filling it.  NOT `secondary vertical`:  those set the
-       * active fill and the icon side on private tokens, which an inline `--ui-menu-active-*` can't reach (issue)
-       */
+      /* The nav item:  a bare one-item menu (no box, no margin), the item filling it */
       .specimens ui-menu {
+        --ui-menu-margin: 0;
         --ui-menu-background: transparent;
         --ui-menu-border: none;
         --ui-menu-item-flex: 1 1 auto;
@@ -398,19 +397,16 @@
       function pane({ nav, navText, accent, on, heading }, compact) {
         const size = compact ? "tiny" : "small"
         const buttonSize = compact ? "tiny" : undefined
-        // the menu alone in a box:  a menu with siblings takes a 1em margin, which no token reaches
         const items = [
-          h("div", {}, [
-            h(
-              "ui-menu",
-              {
-                size,
-                "aria-label": "Specimen",
-                style: vars({ "--ui-menu-active-background": nav, "--ui-menu-active-color": navText })
-              },
-              [h("ui-item", { selected: "", icon: "wand magic sparkles" }, "Build")]
-            )
-          ])
+          h(
+            "ui-menu",
+            {
+              size,
+              "aria-label": "Specimen",
+              style: vars({ "--ui-menu-active-background": nav, "--ui-menu-active-color": navText })
+            },
+            [h("ui-item", { selected: "", icon: "wand magic sparkles" }, "Build")]
+          )
         ]
         if (!compact)
           items.push(

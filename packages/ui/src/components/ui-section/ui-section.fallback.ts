@@ -7,6 +7,7 @@ import {
   BADGE,
   CONTENT,
   CONTENT_ID,
+  FOLD_END,
   FOLD_ICON_CLASS,
   HEADER,
   HEADING,
@@ -17,10 +18,14 @@ import {
   STATIC_TOGGLE_TAG,
   STICK_TOP_PROPERTY,
   SUBHEAD,
+  TIP,
+  TIP_ID,
   TITLE,
   TOGGLE,
+  TOOLTIP,
   TOP_LEVEL,
-  UNTIL_FOUND
+  UNTIL_FOUND,
+  type FoldIconPlace
 } from "./ui-section.types"
 
 /****************
@@ -45,6 +50,13 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
     "later changes to the host's attributes and slotted children (read once)"
   ]
 
+  /**
+   * Where the fold chevron sits without a `fold-icon` attribute:  the controller's `defaultFoldIcon` (a subclass's,
+   * `<ui-brand-panel>`'s `end`), else `start` (no controller:  its constructor threw).
+   */
+  private get defaultFoldIcon(): FoldIconPlace {
+    return (this.host as { controller?: { defaultFoldIcon?: FoldIconPlace } }).controller?.defaultFoldIcon ?? "start"
+  }
   /** The fold button, while `collapsible`. */
   private toggle: HTMLButtonElement | undefined
 
@@ -87,26 +99,35 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
     // the host's own attribute wins (`"false"` included), else its group's default
     const collapsible =
       this.attr("collapsible") === null ? SectionFallback.inCollapsing(this.host) : this.flag("collapsible")
+    const atEnd = (this.attr("fold-icon") ?? this.defaultFoldIcon) === FOLD_END
+    const foldIcon = collapsible
+      ? this.create("span", { class: FOLD_ICON_CLASS, part: "fold-icon", "aria-hidden": UIT.TRUE }, "▾")
+      : undefined
+    const info = this.attr("info")
+    const hasInfo = !!info || this.slotted("info")
     const inner: Node[] = []
-    if (collapsible) {
-      inner.push(this.create("span", { class: FOLD_ICON_CLASS, part: "fold-icon", "aria-hidden": UIT.TRUE }, "▾"))
-    }
+    if (foldIcon && !atEnd) inner.push(foldIcon)
     const icon = this.attr("icon")
     if (icon || this.slotted("icon"))
       inner.push(this.create("span", { class: "icon", part: "icon" }, this.named("icon")))
     inner.push(this.create("span", { class: HEADER, part: HEADER }, this.named("header", this.attr("header"))))
     const attributes = { class: TOGGLE, part: TOGGLE }
+    const described = hasInfo ? TIP_ID : null
     if (collapsible) {
       const disabled = this.flag("disabled")
       this.toggle = this.create(
         "button",
-        { ...attributes, type: "button", "aria-controls": content.id, disabled },
+        { ...attributes, type: "button", "aria-controls": content.id, "aria-describedby": described, disabled },
         ...inner
       )
     }
     const toggle = this.toggle ?? this.create(STATIC_TOGGLE_TAG, attributes, ...inner)
     const level = SectionFallback.levelOf(this.host)
-    const heading = this.create(`${HEADING_TAG}${level}` as "h2", { class: HEADING, part: HEADING }, toggle)
+    const heading = this.create(
+      `${HEADING_TAG}${level}` as "h2",
+      { class: HEADING, part: HEADING, "aria-describedby": collapsible ? null : described },
+      toggle
+    )
     const offset = Number(this.attr("offset")) || 0
     const title = this.create(
       "header",
@@ -118,6 +139,13 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
       title.append(this.create("span", { class: BADGE, part: BADGE }, this.named("badge", badge)))
     if (this.slotted("actions"))
       title.append(this.create("span", { class: ACTIONS, part: ACTIONS }, this.named("actions")))
+    if (foldIcon && atEnd) {
+      title.append(foldIcon)
+      this.listen(foldIcon, "click", () => this.toggle?.click())
+    }
+    if (hasInfo) {
+      title.append(this.create("span", { id: TIP_ID, class: TIP, part: TIP, role: TOOLTIP }, this.named("info", info)))
+    }
     return title
   }
 
