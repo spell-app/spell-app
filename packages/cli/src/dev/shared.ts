@@ -194,6 +194,8 @@ const GITIGNORE = `# written by \`spell dev shared init\`
 .server.log
 # /details scratch pages and their answers:  never committed
 packages/docs/content/details/
+# /epic review inboxes:  a review's pending marks, never committed
+packages/docs/content/epics/*/*.inbox.json*
 `
 
 /** The shared repo's `README.md`. */

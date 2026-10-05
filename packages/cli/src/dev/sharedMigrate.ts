@@ -54,6 +54,7 @@ export function migrateWorktree(
 
   const before = otherChanges(worktree, config)
   for (const each of report.folds) apply(each, worktree, config)
+  if (report.folds.some((each) => each.action === "rebuild")) rebuildDocsIndex(config)
   git(config.dir, "add", "-A")
   if (git(config.dir, "status", "--porcelain")) {
     const message = `Migrate ${relative(config.main, worktree)} (branch ${branch} ${git(worktree, "rev-parse", "--short", "HEAD")})`
@@ -99,7 +100,23 @@ function fold(worktree: string, base: string, file: string, config: SharedConfig
   if (file.startsWith("agents/") && ours !== null) {
     return { file, action: "union", text: unionMerge(ours, baseText ?? "", theirs) }
   }
+  if (BUILT.has(file)) return { file, action: "rebuild" }
   return { file, action: "conflict" }
+}
+
+/**
+ * Shared files a tool writes:  changed on both sides, the shared copy stays and the tool runs again once the rest
+ * is folded in (`rebuildDocsIndex()`).
+ */
+const BUILT = new Set(["packages/docs/content/index.html"])
+
+/** `yarn docs:index`, from the main checkout:  the docs index lists every epic now in the shared repo. */
+function rebuildDocsIndex(config: SharedConfig): void {
+  const run = spawnSync(process.execPath, [join(config.main, "packages/docs/tools/index.js")], {
+    cwd: join(config.main, "packages/docs"),
+    encoding: "utf8"
+  })
+  if (run.status !== 0) throw new CLI.CliError(`docs:index failed:  ${(run.stderr ?? "").trim()}`)
 }
 
 /** Do `each` in the shared repo. */
