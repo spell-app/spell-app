@@ -47,7 +47,7 @@ Cite rules as `WWOD §N › "rule title"`, e.g. `WWOD §5 › "Sentinel errors a
     rather than a hopeful one.
   - Same before promoting a helper:  check the destination -- `$/util`, or the package's own util folder
     (WWOD §8 › "Promotion path") -- for a name collision.
-- **Record deviations and known issues;  NEVER fix them silently:**
+- **Record deviations and known issues;  NEVER fix them silently**, unless very minor:
   - Epic work:  in its plan doc, `packages/docs/epics/<name>/<name>.html`.
     - Each fidelity / refinement round names the deviations it closed, with literal values.
     - An evaluated-and-rejected approach gets a written census of what it would touch.
@@ -60,14 +60,7 @@ Cite rules as `WWOD §N › "rule title"`, e.g. `WWOD §5 › "Sentinel errors a
 - **Debug globals through `setDebugGlobal()`, never `console.log`, for object inspection:**
   - `setDebugGlobal({ project })` exposes state in the devtools console.
   - NEVER depend on a debug global in code:  it's for a human at the console, nothing else.
-  - `setDebugGlobal()` belongs in `$/util`, and is still to be built (`CODE-DEBT.md`).  Until then:  the hand-written
-    form, with a `TODO` naming the helper:
-
-    ```ts
-    // TODO: setDebugGlobal({ project })
-    Object.assign(globalThis, { project })
-    ```
-
+  - From `$/util`.
 - **Finishing pass for fast-drafted code:**  run `yarn review` in every package you touched (or at the root):
   `yarn ts`, `yarn lint:fix` (oxlint), `yarn format` (oxfmt), `yarn test`.
   - `packages/ui`:  `yarn test:visual` too, when anything visible changed.
@@ -92,8 +85,8 @@ Cite rules as `WWOD §N › "rule title"`, e.g. `WWOD §5 › "Sentinel errors a
 ## 2. General style
 
 - **DRY:  extract logic duplicated more than ~3 lines** into a shared utility.
-  - Before writing a new one, check `$/util` and the package's own util folder (`$/ui/util` ...),
-    e.g. lodash (in `$/util`) for dotted paths, `string.ts` for case conversion.
+  - Before writing a new one, check `$/util`, the package's own util folder (`$/ui/util` ...) and lodash
+    (re-exported by `$/util`), e.g. lodash for dotted paths, `string.ts` for case conversion.
   - After implementing a feature, check to see if blocks of code are duplicated
     and lift up into `<folder>.types.ts` (constants, small pure helpers -- WWOD §8) or a util file.
   - NEVER hard-code the same string more than once, make it a constant
@@ -141,20 +134,22 @@ Cite rules as `WWOD §N › "rule title"`, e.g. `WWOD §5 › "Sentinel errors a
   - Avoid duplicating large chains of business logic, especially in app code,
     components, or route handlers.
   - If two functions do generally the same thing, consider consolidating
-    into one function with arguments.
+    into one function with arguments, or dependency injection.
 - **Best-effort work:**
   - `catch (ignored) { console.error(...) }`
   - Methods documented `- NEVER throws`
-  - Deliberately un-awaited calls say so:  `void editor.compileApp()`, plus a comment when the why isn't obvious.
+  - Deliberately un-awaited calls say so, and ALWAYS end in a `.catch(...)`:
+    `void editor.compileApp().catch((error) => editor.showError(error))`, plus a comment when the why isn't
+    obvious.
 - **No unnecessary case normalization** (`.toLowerCase()`) for values with a defined format (env var names).
 - **Formatting is oxfmt's**, configured once in `.oxfmtrc.json` at the repo root:
   - 120-char width, 2-space indent, no semicolons, double quotes, no trailing commas
   - never hand-format against it;  `yarn format` settles it
+  - Respect a `// oxfmt-ignore` someone added by hand.
 - **TypeScript `private`, not `#private`:**
   - `private index = 0` -- private to TypeScript, a plain property at runtime.
   - Strict TypeScript.
-  - NOT:  `#` private fields -- a Proxy can't reach them (`Thing` subclasses, SEE:  `packages/docs/solid/solid-2.md`),
-    and tests can't peek.
+  - NOT:  `#` private fields -- a Proxy can't reach them, and tests can't peek.
 - **Decorators:**  STANDARD (TC39) only -- WWOD §12 › "Decorators".
 
 ## 3. Naming
@@ -184,12 +179,15 @@ Cite rules as `WWOD §N › "rule title"`, e.g. `WWOD §5 › "Sentinel errors a
     number, sitting beside locals meaning "a `Step`", reads as a bug on sight.
 - **Names must be HONEST about what the thing is**, and get fixed when they aren't:
   - `Target` → `Selector` when it holds a selector, not a target;  `TargetResolver` → `ElementResolver`.
-- **Magic strings become named constants declared above the function:**
+- **Magic strings become named constants declared above the function**, or BELOW the main method if in a class:
   - `const UTM_KEYS = [...]`, `const SEARCH_REFERRERS = /google|bing/i`.
   - Prefer a regex with the `i` flag over `.toLowerCase()` comparisons.
 - **Don't rename for no reason:**  a destructured variable with a clear name keeps it
   (`replayEnabled`, not `shouldEnableReplay`).
-- **Fluent setters** `return this  // for chaining`.
+- **Fluent setters and methods** `return this`, so calls chain:
+  - `UI.icons.reset()` returns the `IconPacks` (`packages/ui/src/runtime/IconPacks.ts`)
+  - `Loadable.stopInflightLoadOrSave()` returns the `Loadable` (`packages/util/src/spell/Loadable.ts`)
+  - type the return `this`, so a subclass chains as itself:  `reset(): this { ...;  return this }`
 - **Underscore-prefixed raw params**, normalized into a same-named local:
   - `locationFor(_path?: string | SP.SpellLocation) { const location = new SP.SpellLocation(_path) }`
 - **Qualified ids:**  `projectId` not `id` even where context disambiguates;  `projectName` not `name`;
@@ -203,6 +201,8 @@ Examples use `parser`'s alias and namespace (`$/parser`, `P`);  each package's `
   - ALWAYS import starting from a package alias, NEVER start import from `../`.  Every package's alias is `$/name`
     (`$/parser`, `$/core`, `$/ui` ...), `$` meaning `packages/`.  `ui` is no exception:  its test helpers are
     `$/ui/test/...`.  The one table is `tsconfig.base.json`.
+  - EXCEPTION:  when subclassing, import the extended class directly from its file, to avoid circular imports --
+    SEE:  WWOD §4 › "Circular imports".
     - INSIDE a package, `$/name` is its barrel and `$/name/deep/path` any file in its `src/`, e.g. `$/app/ui`.
     - From ANOTHER package, import the BARREL only (`$/parser`, never `$/parser/rules/Rule`), except the entry
       points named in `tsconfig.base.json`'s header:
@@ -234,14 +234,24 @@ Examples use `parser`'s alias and namespace (`$/parser`, `P`);  each package's `
 - **Types-only leaf import as `PT`:**
   - When, and ONLY when, a file can't load its package's barrel (circular import), it imports the types module
     as a type-only namespace named `<namespace>T`:  `import type * as PT from "./parser.types"`, then `PT.AnyMatch`.
-  - NEVER a bare `T`:  nobody can tell whose types it holds.
+  - NEVER a bare `T`:  it reads as a generic type parameter (`doSomething<T>()`).
 - **Circular imports:**
   - Circularity rules for files inside a barrel:
-    - `P.X` as a VALUE is fine inside function / method bodies -- resolved at call time.
+    - `P.X` as a VALUE is fine INSIDE function / method bodies -- resolved at call time.
     - NEVER use `P.X` at module-evaluation time:  `extends` clauses, static initializers,
       top-level `new`.  Circular reentry silently yields `undefined` / broken `instanceof`.
     - Import base classes directly from the defining file, with comment:
       `// Import directly to avoid circular import`
+
+      ```ts
+      // packages/parser/src/scope/TypeScope.ts
+      import { P } from "$/parser"
+      // Import directly to avoid circular import
+      import { BlockScope } from "./BlockScope"
+
+      export class TypeScope extends BlockScope {
+      ```
+
     - Use `import type { P }` when file only needs types, e.g. `*.types.ts`, `Tokens.ts`.
 - **Import order:**
   - Import order:
@@ -262,8 +272,8 @@ Examples use `parser`'s alias and namespace (`$/parser`, `P`);  each package's `
 
 - **Throw typed errors;  NEVER return error unions:**
   - NEVER return `{ ok: false, error }` unions.
-  - `TypeError` for bad caller input.
-  - General errors come from `$/util`:  `CustomError`, `UIError`, the `ResponseError` family.
+  - `TypeError` for bad caller input;  `SyntaxError` for a parse error.
+  - System errors are defined in `$/util/errors`:  `CustomError`, `UIError`, the `ResponseError` family.
   - A folder may declare its own small error classes when callers need to tell them apart -- in its
     `<folder>.types.ts` (WWOD §8), never one file per error class.
   - Error details ride in `cause`, typed (WWOD §5 › "Structured error causes").
@@ -294,15 +304,15 @@ Examples use `parser`'s alias and namespace (`$/parser`, `P`);  each package's `
 - **Server → client error identity:**
   - Server throws `SRV.HttpError(status, message)`;  the listener answers with that status and
     `{ error: message }` (or the error's `body`) -- SEE:  `packages/server/src/listener.ts`.
-  - Client:  `$fetch()` turns the status back into a `ResponseError` subclass -- `MissingResourceError` (404),
-    `AuthenticationError` (401 / 403), `OfflineError`, `AbortedRequestError` ...
-  - Only a genuinely-expected error becomes a value (`instanceof MissingResourceError → undefined`).
+  - Client:  `$fetch()` turns the status back into a `ResponseError` subclass -- `NotFoundError` (404),
+    `AuthenticationError` (401 / 403), `OfflineError`, `CanceledRequestError` ...
+  - Only a genuinely-expected error becomes a value (`instanceof NotFoundError → undefined`),
+    e.g. loading an "optional" resource returns `undefined` rather than throwing `NotFoundError`.
 - **Sentinel errors as control flow:**
-  - A cancel (`AbortedRequestError`, a dismissed `editor.prompt()`) aborts silently:  no error shown, nothing logged.
+  - A cancel (`CanceledError`, a dismissed `editor.prompt()`) aborts silently:  no error shown, nothing logged.
 - **Rethrow with context:**
   - catch => set `error.cause = { method, args }` => rethrow, or
-  - the `makeErrorWrapper(className)` decorator, which does it for every method of a class:  still to be built, in
-    `$/util` (`CODE-DEBT.md`).  Until then, the hand-written catch, with `// TODO: makeErrorWrapper()`.
+  - the `makeErrorWrapper(className)` decorator (`$/util`), which does it for every method of a class.
   - For a method with several failure points, `getDier(this, "activity", params)` (`$/util`) returns a scoped
     `die(message, error?)` that throws with that context.
 - **Caller-supplied callbacks run through `safelyCall()` / `safelyCallAll()`:**
@@ -314,14 +324,13 @@ Examples use `parser`'s alias and namespace (`$/parser`, `P`);  each package's `
   - NO hand-written `label` param on either:  a REAL throw carries a stack pointing at the exact
     file and line, which beats anything you'd type, so the wrapper logs a generic message and
     the call site keeps a short inline comment instead.
-  - Both still to be built, in `$/util` (`CODE-DEBT.md`).  Until then, a hand-written `try` / `catch` around
-    each call, with `// TODO: safelyCall()` (or `safelyCallAll()`).
+  - Both from `$/util`.
 - **User-facing failures go to `editor.showError(error)`**, not thrown exceptions that crash the UI:
   - missing files, API failures the user should know about
   - SEE:  `editor.createApp()` in WWOD §2 › "App controllers use models + API and show feedback to user".
 - **Guard-clause throws name the method, the problem, and the fix:**
   - `throw new TypeError("Scope.addRule():  this scope has no parser;  pass one to its constructor")`.
-- **Separate success and error state:**
+- **Separate success and error state in classes:**
   - `user` + `userError`, never one `state: Result | Error | undefined` field.
   - e.g. `editor.error` (`packages/app/src/editor.ts`) is its own field, beside the state it failed to change.
 
@@ -355,40 +364,20 @@ Examples use `parser`'s alias and namespace (`$/parser`, `P`);  each package's `
   - Marker vocabulary / invariants: NOTE, TODO, SIDE EFFECT, HACK, NEVER, MUST, DOCME, RENAME, DEPRECATED
   - plus:
     - `DEBUG:` `CONSIDER:` `TESTME`
-    - `HACK:` / `HACKY:` -- state the fragile assumption
+    - `HACK:` -- state the fragile assumption
     - `SEE:` -- cross-reference or URL
-    - `REFACTOR:` -- a local cleanup, proposing the new shape inline (structural debt goes in `CODE-DEBT.md`)
+    - `REFACTOR:` -- a local cleanup, proposing the new shape inline (structural debt goes in `CODE-DEBT.md` or the
+      plan doc)
 - **OK to ship WIP markers:**
   - `// TODO: selection!`, `// DOCME`, empty group headers for planned code.
-  - Terse TODOs, not fully-explained prose.
+  - Terse TODOs, not fully-explained prose:  just enough to pick it up later.
 - **Phrases and bullets:**
   - Wrap comments at English phrase boundaries, not mid-clause.  Avoid single or double widow words,
     wrap `e.g.` clauses if they don't fit on the original line, etc.,
     and drop filler articles (`the`, `a`) that don't earn their place
-
-  BAD:
-
-  ```
-  We really should do something about the
-  thing, as it might fail in the following cases (see
-  `someRoutine()`): first case with a long name, second
-  case, third case
-  ```
-
-  GOOD:
-
-  ```
-  We really should do something about the thing,
-  as it might fail in the following cases:
-  - first case with a long name
-  - second case
-  - third case
-  - SEE: `someRoutine()`
-  ```
-
 - **Lower inline density;  minimal meta-commentary about the code:**
   - Inline comments are short and operational:
-    `// Save files first:  the link still works if the index isn't updated`.
+    `// Save files first:  link still works if index isn't updated`.
   - Long meta-comments narrating the code or justifying correctness are out (WWOD §7);  one sentence is fine.
 - **Comments that explain a utility belong as a docstring on the function**, not floating above a call site.
 - **Group headers:**
@@ -404,7 +393,7 @@ Examples use `parser`'s alias and namespace (`$/parser`, `P`);  each package's `
 
   - Long methods too:  `//////` lines separate their functional groups.
 - **Component banner:**
-  - Separate components -- React / Solid components, custom element classes -- with a header like so.
+  - Separate components -- React / Solid / Svelte components, custom element classes -- with a header like so.
     A custom element goes by its tag, e.g. `` ### `<ui-component-name>` ``:
 
   ```
@@ -423,9 +412,6 @@ Examples use `parser`'s alias and namespace (`$/parser`, `P`);  each package's `
 - **Record the REJECTED refactor at the site**, so nobody re-proposes it blind:
   - Same for a deliberate non-obvious shape:  "STATIC and instance-free on purpose", "Free
     rather than a method", "Deliberately does not re-plan".
-- **Log / warn strings are prefixed with the emitting method:**
-  - `console.warn("editor.choose(): must pass 'message' and 'options', got:", props)`
-    (`packages/app/src/editor.ts`).
 - **Comments don't drift:**
   - When code is touched, make sure docstrings and other comments match.
   - Write or clarify docstrings and comments where you see marker `DOCME`.
@@ -463,7 +449,8 @@ Examples use `parser`'s alias and namespace (`$/parser`, `P`);  each package's `
   2+ packages use it (WWOD §2 › "Hoist anything generic out of the feature").
 - Long named-import lists from leaf modules (WWOD §4).
 - Long meta-comments narrating the code or justifying correctness;  one sentence is fine.
-- Positional param threading (`update(project, record, existing, svg, slug, baseVersion)`).
+- Positional param threading (`update(project, record, existing, svg, slug, baseVersion)`):  four or more params,
+  or any boolean param, take a `params` object instead.
 - One route module per HTTP verb;  helpers and retry loops defined inside route handlers (WWOD §10).
 - Inline modal config with logic inside app classes:  a dialog with logic is a Solid component (`<Chooser>`),
   a text-only one a `UI.modals` call (SEE:  `packages/app/src/solid/modals/dialogs.ts`).

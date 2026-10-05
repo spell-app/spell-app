@@ -1945,6 +1945,60 @@ const file = files.get(path) ?? die("no file")   // WWOD:  throws, file is never
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d21" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d21">D21</a>
+                  <span class="plan-title">Build setDebugGlobal() in this epic, not later</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, reviewing <code>WWOD.md</code> §1 ("build it now"). Changes <a href="#d14">D14</a> for this
+                    helper: WWOD.md now says "From <code>$/util</code>".
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d22" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d22">D22</a>
+                  <span class="plan-title"
+                    >The other helpers and error work are this epic's todos, not CODE-DEBT</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, reviewing <code>WWOD.md</code> §5: "make TODO text in these pages into TODO items in this
+                    epic". WWOD.md now writes them as built; the todos below track the work.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d23" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d23">D23</a>
+                  <span class="plan-title"
+                    >WWOD stays in packages/agents/wwod/ (D1), beside main's new root agents/ (ledgers)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-04, after main's docs reorganisation moved PAPERCUTS / SUSPECTED-BUGS / CODE-DEBT into
+                    a root <code>agents/</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d24" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d24">D24</a>
+                  <span class="plan-title"
+                    >The review's builds stay todos (T4-T29) for later, setDebugGlobal() too</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen: "add to the plan doc as TODO, we'll worry about them later". Supersedes
+                    <a href="#d21">D21</a> (build setDebugGlobal() in this epic).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2207,6 +2261,251 @@ const file = files.get(path) ?? die("no file")   // WWOD:  throws, file is never
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="t4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title">Build makeErrorWrapper(className) in $/util</span></ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §5 "Rethrow with context": sets <code>error.cause = { method, args }</code> and rethrows, for
+                    every method of a class.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t5">T5</a>
+                  <span class="plan-title">Build safelyCall() / safelyCallAll() in $/util</span></ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §5: a throwing predicate warns (no logger: <code>console.warn</code>); a throwing cleanup is
+                    silent without a logger. No <code>label</code> param.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t6">T6</a>
+                  <span class="plan-title"
+                    >System errors in $/util/errors: move CustomError, UIError, ResponseError family there</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §5 "Throw typed errors". Today:
+                    <a href="../../../util/src/spell/CustomError.ts" target="src-packages-util-src-spell-customerror-ts"
+                      ><code>packages/util/src/spell/CustomError.ts</code></a
+                    >,
+                    <a
+                      href="../../../util/src/spell/ResponseErrors.ts"
+                      target="src-packages-util-src-spell-responseerrors-ts"
+                      ><code>ResponseErrors.ts</code></a
+                    >. Also: base errors to build on, <code>prototype.name</code> per D7.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t7">T7</a>
+                  <span class="plan-title"
+                    >Rename MissingResourceError → NotFoundError, AbortedRequestError → CanceledRequestError; add
+                    CanceledError</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §5. <code>CanceledError</code>: the silent-abort sentinel (a dismissed prompt ...);
+                    <code>CanceledRequestError</code> the <code>$fetch</code> one (a subclass of it?). Grep every use
+                    first (WWOD §1).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t8">T8</a>
+                  <span class="plan-title"
+                    >An error example with error-specific props (typed cause + getters)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    WWOD §5 "Structured error causes": a real class in the shape the rule asks for, to point at instead
+                    of the illustrative <code>SourceError</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t9">T9</a>
+                  <span class="plan-title">Settle WWOD §10 "One route table, no logic in it"</span></ui-title
+                ><ui-content><p>Owen: non-definitive; marked TODO in the rule.</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="t10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t10">T10</a>
+                  <span class="plan-title">An ApiTransaction class for route handlers (WWOD §10)</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, on <code>respondWithJSON()</code>'s example. The original WWOD's <code>APITransaction</code>:
+                    per-op logging, error mapping, getters.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t11">T11</a>
+                  <span class="plan-title">Error response examples, one per error class (WWOD §10)</span></ui-title
+                ><ui-content
+                  ><p>
+                    With <a href="#t8">T8</a> (sketch the error classes): what each answers, status and body.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t12">T12</a>
+                  <span class="plan-title">A scheme for browser config (WWOD §11)</span></ui-title
+                ><ui-content
+                  ><p>
+                    Today: <code>window.SPELL_SERVER</code> from the server, or a build-time <code>define</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t13" data-status="open"
+              ><a class="plan-id" href="#t13">T13</a>
+              <span class="plan-title"
+                >Env parsing mechanism: getString / getNumber / getBoolean / getPath beside environment.server.ts (WWOD
+                §11)</span
+              ></ui-item
+            ><ui-item id="t14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t14">T14</a>
+                  <span class="plan-title"
+                    >Main server checks every package's server config at startup, throws if a configured service is
+                    incomplete</span
+                  ></ui-title
+                ><ui-content><p>WWOD §11 "Servers MUST throw at server startup".</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="t15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t15">T15</a>
+                  <span class="plan-title">Build debounce() in $/util, for xSoon members (WWOD §12)</span></ui-title
+                ><ui-content
+                  ><p>
+                    Today: hand-rolled timers, <code>EditorStore.compileAppSoon()</code> +
+                    <code>compileAppSoonTimer</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t16" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t16">T16</a>
+                  <span class="plan-title">Write up the instance.record pattern (WWOD §12)</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen's <code>Vehicle</code> sketch: a class over a plain record, typed and validating accessors.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t17" data-status="open"
+              ><a class="plan-id" href="#t17">T17</a>
+              <span class="plan-title">Settle WWOD §12 "Brand checks only where instanceof can't work"</span></ui-item
+            ><ui-item id="t18" data-status="open"
+              ><a class="plan-id" href="#t18">T18</a>
+              <span class="plan-title"
+                >A @readonly (or some such) decorator for derived() collaborators (WWOD §12)</span
+              ></ui-item
+            ><ui-item id="t19" data-status="open"
+              ><a class="plan-id" href="#t19">T19</a>
+              <span class="plan-title">A @state decorator? (WWOD §13)</span></ui-item
+            ><ui-item id="t20" data-status="open"
+              ><a class="plan-id" href="#t20">T20</a>
+              <span class="plan-title">getPref() to keep state across page loads (WWOD §13)</span></ui-item
+            ><ui-item id="t21" data-status="done"
+              ><a class="plan-id" href="#t21">T21</a>
+              <span class="plan-title">A logging framework, used consistently (WWOD §14, §19)</span></ui-item
+            ><ui-item id="t22" data-status="open"
+              ><a class="plan-id" href="#t22">T22</a>
+              <span class="plan-title"
+                >CSS in the component's own file (a postcss-tagged template?), if VS Code keeps IntelliSense (WWOD
+                §18)</span
+              ></ui-item
+            ><ui-item id="t23" data-status="open"
+              ><a class="plan-id" href="#t23">T23</a>
+              <span class="plan-title"
+                >A ClassValue type for `class` props, like Svelte's / cx (WWOD §17)</span
+              ></ui-item
+            ><ui-item id="t24" data-status="open"
+              ><a class="plan-id" href="#t24">T24</a>
+              <span class="plan-title"
+                >Review the ui-* event semantics we landed on: names, detail shapes, on() (WWOD §17)</span
+              ></ui-item
+            ><ui-item id="t25" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t25">T25</a>
+                  <span class="plan-title"
+                    >Check a hidden-but-kept Solid subtree isn't expensive (WWOD §17)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    <code>appPane</code> in
+                    <a
+                      href="../../../app/src/runner/SpellAppRunner.tsx"
+                      target="src-packages-app-src-runner-spellapprunner-tsx"
+                      ><code>SpellAppRunner.tsx</code></a
+                    >: always rendered, just hidden.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t26" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t26">T26</a>
+                  <span class="plan-title"
+                    >A shared listener mechanism: UI.on(component, event, caller, opts), UI.once() (WWOD §17)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    So a listener can't outlive its component; today: <code>addEventListener</code> +
+                    <code>onCleanup</code> by hand.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t27" data-status="open"
+              ><a class="plan-id" href="#t27">T27</a>
+              <span class="plan-title"
+                >Review the promise-based modals; make rarely shown modals cheap to draw (WWOD §17)</span
+              ></ui-item
+            ><ui-item id="t28" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t28">T28</a>
+                  <span class="plan-title"
+                    >Epic logger-everywhere: Logger in every package, SPELL_DEBUG + SPELL_&lt;PKG&gt;_DEBUG (WWOD
+                    §19)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen: we have <code>Logger</code> (<code>$/util</code>), only <code>Tokenizer</code> uses it.
+                    Replaces <a href="#t21">T21</a>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t29" data-status="open"
+              ><a class="plan-id" href="#t29">T29</a>
+              <span class="plan-title"
+                >How 'assert a parsed value whole' works with the instance.record pattern (WWOD §20, §12)</span
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2459,6 +2758,112 @@ const file = files.get(path) ?? die("no file")   // WWOD:  throws, file is never
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T01:50-04:00">2026-10-04 01:50</time></ui-date> Q17 answered: D20
                   SPELL_* everywhere: ui's env vars become SPELL_UI_*; unprefixed ones are debt</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T14:30-04:00">2026-10-04 14:30</time></ui-date> review: /comment
+                  skill added; draft reviewed file by file in plan mode's comment tab</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:00-04:00">2026-10-04 17:00</time></ui-date> review 1/10:
+                  WWOD.md approved after 2 rounds (32 comments)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:22-04:00">2026-10-04 17:22</time></ui-date> review 2/10:
+                  architecture.md approved after 2 rounds (7 comments); §12 gains "@proto static defaults"</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:16-04:00">2026-10-04 19:16</time></ui-date> review 3/10:
+                  types.md approved after 2 rounds (14 comments); §8 allows one constants.ts at a package
+                  root</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:37-04:00">2026-10-04 19:37</time></ui-date> review 4/10:
+                  server-env.md approved after 2 rounds (13 comments); server files end .server.ts</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:15-04:00">2026-10-04 20:15</time></ui-date> review 5/10:
+                  classes-state.md approved after 2 rounds (20 comments)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:31-04:00">2026-10-04 20:31</time></ui-date> review 6/10:
+                  solid.md approved as is</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:46-04:00">2026-10-04 20:46</time></ui-date> review 7/10:
+                  css.md approved after 2 rounds (5 comments): new "Modern CSS" section</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:46-04:00">2026-10-04 20:46</time></ui-date> review 6b:
+                  solid.md's 10 late comments applied: new "Spell app state is spell cells" rule</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:47-04:00">2026-10-04 20:47</time></ui-date> review 6b:
+                  solid.md approved</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T21:24-04:00">2026-10-04 21:24</time></ui-date> T21 closed: A
+                  logging framework, used consistently (WWOD §14, §19)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T21:24-04:00">2026-10-04 21:24</time></ui-date> review 8/10:
+                  logging.md approved after 2 rounds (3 comments)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T21:27-04:00">2026-10-04 21:27</time></ui-date> review 9/10:
+                  tests.md approved after 2 rounds (1 comment)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T21:29-04:00">2026-10-04 21:29</time></ui-date> review 10/10:
+                  _solid-2-additions.md approved as is; review done (10 files, 92 comments, todos T4-T29)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T21:32-04:00">2026-10-04 21:32</time></ui-date> D21 closed: Build
+                  setDebugGlobal() in this epic, not later</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

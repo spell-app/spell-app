@@ -66,6 +66,7 @@ SEE ALSO, per package (runners, helpers, fixtures stay there):
     every wrong field at once.
   - Spread a class instance to compare its own fields:  `expect({ ...value }).toEqual({ ... })`;
     `toMatchObject()` when the fields are getters.
+  - TODO:  how this works with the `instance.record` pattern (WWOD §12 › "The `instance.record` pattern").
 
   ```ts
   expect(new SpellLocation("@user:projects:PROJECT")).toMatchObject({
