@@ -2,8 +2,8 @@
  * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic` skill and its agents.
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
- *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate`, `relayout`, `inbox`,
- *   `details`, `original` (`node tools/plan-doc.js` with no command lists them).
+ *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate`, `relayout`, `split`,
+ *   `join`, `inbox`, `details`, `original` (`node tools/plan-doc.js` with no command lists them).
  * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`inbox.js`):  printed,
  *   waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`), cleared;
  *   `details` writes an agent's details or reply into one item
@@ -14,14 +14,17 @@
  * - a doc is FOUND under either name (`pages.js` `planDocIn()`):  `<name>.plan.html` since 2026-10-04, else the old
  *   `<name>.html`, which worktrees cut before then still have
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
- *   linkedom, changes it through `PlanDoc`, recolors every item (`updateStates()`), stamps "updated", writes it,
- *   then tidies it (link targets, oxfmt).
+ *   linkedom, changes it through `PlanDoc`, recolors every item (`updateStates()`), stamps "updated", tidies it in
+ *   memory (link targets, oxfmt) and writes each file once, atomically (`writeDoc()`).
+ * - a doc may be SPLIT (P3 of `claude-design`):  a skeleton plus part files, `parts/<id>.htm`, which the page loads
+ *   when opened (`plan-parts.js`).  `read()` assembles it into one document, `writeDoc()` splits it again:  every
+ *   command works on either shape, and a part file is written only when its body changed.
  * - `PlanDoc` is pure (a parsed document in, changes on it):  `plan-doc.test.js` drives it directly.
  * - Sections are `<ui-section>`s;  docs not yet migrated (`section.s2|s3`, cli-additions) are still read and edited
  *   as they are, so every helper here takes either markup ("Sections, either markup").
  */
 import { spawnSync } from "node:child_process"
-import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, relative, resolve, sep } from "node:path"
 import { setTimeout as sleep } from "node:timers/promises"
 import { pathToFileURL } from "node:url"
@@ -53,6 +56,7 @@ import {
   unsentMarks,
   updateInbox
 } from "./inbox.js"
+import { checkText, linkText } from "./doc-links.js"
 import {
   DETAILS,
   EPICS,
@@ -63,9 +67,19 @@ import {
   atDepth,
   openInVSCode,
   planDocIn,
-  serialize,
-  tidy
+  serialize
 } from "./pages.js"
+import {
+  PARTS_DIR,
+  PART_EXT,
+  assembleParts,
+  formatHTML,
+  partFile,
+  partHosts,
+  partReader,
+  splitParts,
+  writeChanged
+} from "./plan-parts.js"
 import { findEvidence, sessionsOf } from "./review-backfill.js"
 import { convertSections, createElement } from "./to-ui-section.js"
 
@@ -2954,6 +2968,11 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics/<name>
   open <name>                                      show in VS Code's doc preview (right side bar)
   migrate <name>                                   bring an older doc (any layout) into the current one;
                                                    its decisions (D items) merge into its questions
+  split <name> [--dry-run]  /  split --done        store a doc as a skeleton plus part files (parts/<id>.htm,
+                                                   loaded when opened);  --done:  every finished epic without
+                                                   a worktree.  New docs start split;  every command reads and
+                                                   writes either shape
+  join <name>                                      a split doc back into one file
   relayout <name> | --all [--dry-run]              answered questions in the order they happened:  the
                                                    question, its options as a folded "Choices" accordion,
                                                    then the answer card;  prints what changed and skipped
@@ -2995,12 +3014,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
 }
 
 /** Run one command;  may return a promise (`phase` and `open` show the doc in VS Code). */
-function main(argv) {
+async function main(argv) {
   const { positional, flags } = parseArgs(argv)
   const [command, name, ...rest] = positional
   if (command === "list") return printEpics(listEpics(), flags.json)
   if (command === "backfill") return backfill(name, flags)
   if (command === "relayout") return relayout(name, flags)
+  if (command === "split" && flags.done) return splitDone(flags)
   if (!command || !name) return usage()
   if (command === "summaries") return printSummaries(positional.slice(1))
   // the shared doc, by THIS checkout's path (`findDoc()`);  `--here` meant that before every checkout shared one
@@ -3011,7 +3031,7 @@ function main(argv) {
     case "new":
       return create(name, file, flags)
     case "add-phase": {
-      const n = edit(file, (plan) => {
+      const n = await edit(file, (plan) => {
         const added = plan.addPhase(need(rest[0], "a short name"), flags)
         plan.log(`P${added} added:  ${rest[0]}`)
         return added
@@ -3019,7 +3039,7 @@ function main(argv) {
       return console.log(`P${n}`)
     }
     case "phase":
-      edit(file, (plan) =>
+      await edit(file, (plan) =>
         plan.setPhase(Number(need(rest[0], "a phase number")), need(rest[1], "a status"), { done: flags.done })
       )
       reindex()
@@ -3034,12 +3054,12 @@ function main(argv) {
         plan.log(`P${n} estimate:  ${rest[1]}`)
       })
     case "add": {
-      const id = edit(file, (plan) => plan.addItem(need(rest[0], "a kind"), need(rest[1], "a title"), flags))
+      const id = await edit(file, (plan) => plan.addItem(need(rest[0], "a kind"), need(rest[1], "a title"), flags))
       return console.log(id.toUpperCase())
     }
     case "decide": {
       const question = need(rest[0], "a question id")
-      const id = edit(file, (plan) => {
+      const id = await edit(file, (plan) => {
         const decided = plan.decide(question, need(rest[1], "the answer"), flags)
         plan.log(`${decided.toUpperCase()} answered:  ${rest[1]}`)
         return decided
@@ -3097,9 +3117,13 @@ function main(argv) {
       return edit(file, (plan) => plan.setPrompt(prompt))
     }
     case "migrate": {
-      const changes = edit(file, (plan) => plan.migrate())
+      const changes = await edit(file, (plan) => plan.migrate())
       return console.log(changes.length ? changes.map((line) => `- ${line}`).join("\n") : "already current")
     }
+    case "split":
+      return splitDoc(file, flags)
+    case "join":
+      return joinDoc(file)
     case "summary":
       return printSummary(read(file).summary(), flags.json)
     case "check":
@@ -3122,7 +3146,7 @@ function main(argv) {
       const asOf = flags.asOf
       if (asOf !== undefined && !/^\d{4}-\d\d-\d\d(?: \d\d:\d\d)?$/.test(String(asOf)))
         throw new PlanDocError(`--as-of must be "YYYY-MM-DD HH:MM" (or "YYYY-MM-DD"), not "${asOf}"`)
-      const result = edit(file, (plan) => {
+      const result = await edit(file, (plan) => {
         const done = plan.restoreOriginal(id, html, { asOf })
         if (done === "added")
           plan.log(`${id.toUpperCase()} original discussion restored${asOf ? ` (as of ${asOf})` : ""}`)
@@ -3270,28 +3294,66 @@ function listEpics() {
   )
 }
 
-/** The plan doc at `file`, parsed;  `options` as `PlanDoc`'s constructor's. */
-function read(file, options) {
+/**
+ * The plan doc at `file`, parsed;  `options` as `PlanDoc`'s constructor's.
+ * - a SPLIT doc (a skeleton and its part files, `plan-parts.js`) comes back WHOLE:  every part read into its host
+ *   (`assembleParts()`), so every command reads and edits one document, either shape;  `plan.parts` says how it was
+ *   stored (`{ split, hosts, missing, inline }`)
+ */
+export function read(file, options) {
   if (!existsSync(file)) throw new PlanDocError(`no plan doc ${relative(ROOT, file)}:  \`yarn plan-doc new\` first`)
-  return PlanDoc.parse(readFileSync(file, "utf8"), undefined, options)
+  const plan = PlanDoc.parse(readFileSync(file, "utf8"), undefined, options)
+  plan.parts = assembleParts(plan.document, partReader(file))
+  for (const id of plan.parts.missing)
+    console.error(`plan-doc:  ${relative(ROOT, partFile(file, id))} is missing:  #${id} has no body`)
+  return plan
 }
 
 /**
  * Change the doc at `file` with `change(plan)`, under its lock (`SRV.FileLock`:  parallel agents, and the page
- * server's page edits, take turns);  returns what `change` returned.
+ * server's page edits, take turns);  resolves with what `change` returned.
  * - then the whole-doc pass (`updateStates()`), with `<body data-recent-since>` from the doc's checkout
- *   (`recentSince()`), stamps "updated", writes, tidies (link targets + oxfmt)
+ *   (`recentSince()`), stamps "updated", and writes it (`writeDoc()`)
+ * - `split`:  how to store it:  `true` a skeleton and parts, `false` one file;  default as it was
  */
-function edit(file, change) {
-  return SRV.FileLock.run(file, () => {
+export function edit(file, change, { split } = {}) {
+  return SRV.FileLock.runAsync(file, async () => {
     const plan = read(file, { recentSince: recentSince(file) })
     const result = change(plan)
     plan.updateStates()
     plan.touch()
-    writeFileSync(file, plan.toString())
-    if (!tidy([file])) throw new PlanDocError("tidy failed (see above)")
+    await writeDoc(file, plan, split ?? plan.parts.split)
     return result
   })
+}
+
+/**
+ * Write `plan` to `file`, tidied as a page must be (link targets, oxfmt), each file ONCE and atomically:  links and
+ * formatting happen in memory (`doc-links.js` `linkText()`, `plan-parts.js` `formatHTML()`), not as 3 writes a
+ * second apart (the page patched itself after each, P3 of `claude-design`).
+ * - `split`:  a skeleton plus part files (`splitParts()`):  parts first, then the skeleton, so a page that sees the
+ *   new skeleton finds its new parts;  only files whose text changed are written (`writeChanged()`), so an edit to
+ *   one item rewrites its part (if its details changed) and the skeleton, and the page re-fetches that part alone
+ * - one file:  as before, plus the parts folder of a doc that was split gone (`join`)
+ * - links are made against the whole doc, at the page's folder:  a part's URLs are rebased to `parts/` after
+ */
+export async function writeDoc(file, plan, split) {
+  const linked = linkText(plan.toString(), dirname(file)).text
+  if (!split) {
+    writeChanged([[file, await formatHTML(file, linked)]])
+    if (plan.parts?.split) rmSync(join(dirname(file), PARTS_DIR), { recursive: true, force: true })
+    return
+  }
+  const { document } = parseHTML(linked)
+  const parts = splitParts(document, { docName: basename(file) })
+  const outputs = await Promise.all(
+    [...parts].map(async ([id, html]) => {
+      const part = partFile(file, id)
+      return [part, await formatHTML(part, html)]
+    })
+  )
+  outputs.push([file, await formatHTML(file, serialize(document))])
+  writeChanged(outputs)
 }
 
 /**
@@ -3299,7 +3361,7 @@ function edit(file, change) {
  * - the page's title and h1:  `Epic: <title>` (`TITLE_PREFIX`;  the template's h1 has it)
  * - refuses to overwrite:  the skill asks the user whether to reuse an existing doc
  */
-function create(name, file, { title = titleCase(name), prompt, promptFile }) {
+async function create(name, file, { title = titleCase(name), prompt, promptFile }) {
   const found = planDocIn(dirname(file), name)
   if (found) throw new PlanDocError(`${relative(ROOT, found)} already exists`)
   const now = new Date()
@@ -3324,8 +3386,8 @@ function create(name, file, { title = titleCase(name), prompt, promptFile }) {
   // the prompt that started the plan, quoted at the top of the Overview;  none:  the empty quote goes
   plan.setPrompt(promptFile ? readFileSync(promptFile, "utf8") : (prompt ?? ""))
   mkdirSync(dirname(file), { recursive: true })
-  writeFileSync(file, plan.toString())
-  if (!tidy([file])) throw new PlanDocError("tidy failed (see above)")
+  // split from the start (J... of `claude-design`):  a doc being planned is the one edited most, so it gains most
+  await writeDoc(file, plan, true)
   reindex()
   console.log(relative(process.cwd(), file))
 }
@@ -3382,7 +3444,7 @@ function commitBase(file) {
  * `commit <name> <sha> --phase N | --item <id> "sentence"`:  list commit `sha` (resolved to its full sha in the
  * doc's checkout) under a phase or an item, replacing its entry there.
  */
-function commit(file, [sha, sentence], { phase, item }) {
+async function commit(file, [sha, sentence], { phase, item }) {
   need(sha, "a commit sha")
   need(sentence, "a sentence:  what the commit did")
   if ((phase === undefined) === (item === undefined)) throw new PlanDocError(`commit needs --phase N or --item <id>`)
@@ -3390,7 +3452,7 @@ function commit(file, [sha, sentence], { phase, item }) {
   if (!full) throw new PlanDocError(`no commit "${sha}" in ${checkoutOf(file)}`)
   const target = phase !== undefined ? { phase: Number(phase) } : { item: String(item) }
   const base = commitBase(file)
-  const done = edit(file, (plan) => plan.addCommit(target, full, sentence, { base }))
+  const done = await edit(file, (plan) => plan.addCommit(target, full, sentence, { base }))
   const where = target.phase !== undefined ? `P${target.phase}` : target.item.toUpperCase()
   console.log(`${where}:  ${full.slice(0, 7)} ${done}`)
 }
@@ -3402,7 +3464,7 @@ function commit(file, [sha, sentence], { phase, item }) {
  * - a SHARED doc (`epics` a link into the shared content repo):  spell-app has no history of it, so
  *   `sharedDocLog()`
  */
-function backfillCommits(file) {
+async function backfillCommits(file) {
   // the doc as HEAD has it:  a rename to `<name>.plan.html` not committed yet has no history of its own, so follow
   // the old name;  once committed, `--follow` goes through the rename
   const checkout = checkoutOf(file)
@@ -3415,7 +3477,7 @@ function backfillCommits(file) {
     ? parseLog(gitIn(checkout, "log", "--follow", "--format=%H%x09%s", "--", tracked))
     : sharedDocLog(file, checkout)
   const base = commitBase(file)
-  const added = edit(file, (plan) => plan.backfillCommits(log, { base }))
+  const added = await edit(file, (plan) => plan.backfillCommits(log, { base }))
   for (const entry of added) {
     const where = entry.phase !== undefined ? `P${entry.phase}` : entry.item.toUpperCase()
     console.log(`  ${where.padEnd(4)} ${entry.sha.slice(0, 7)}`)
@@ -3500,7 +3562,7 @@ function printSummary(summary, json) {
  * of it (`review-backfill.js`);  prints each with its first evidence, and with `--apply` marks them reviewed, dated
  * that day, logging the evidence.
  */
-function backfill(name, { all, apply }) {
+async function backfill(name, { all, apply }) {
   if (!name && !all) throw new PlanDocError(`backfill needs a name, or --all\n${USAGE}`)
   const epics = all ? listEpics() : [{ name, file: findDoc(name) }]
   const main = mainRoot()
@@ -3522,7 +3584,7 @@ function backfill(name, { all, apply }) {
     }
     total += found.length
     if (!apply || !found.length) continue
-    edit(epic.file, (doc) => {
+    await edit(epic.file, (doc) => {
       for (const id of found) {
         const [first] = evidence[id]
         doc.review(id, { date: first.date ?? doc.today })
@@ -3541,7 +3603,7 @@ function backfill(name, { all, apply }) {
  * - `--dry-run`:  read only;  else each doc with changes is written (`edit()`) and logged
  * - a doc with nothing to change isn't written
  */
-function relayout(name, { all, dryRun }) {
+async function relayout(name, { all, dryRun }) {
   if (!name && !all) throw new PlanDocError(`relayout needs a name, or --all\n${USAGE}`)
   const epics = all ? listEpics() : [{ name, file: findDoc(name) }]
   let total = 0
@@ -3558,12 +3620,65 @@ function relayout(name, { all, dryRun }) {
     if (result.oldDecisions)
       console.log(`  ${result.oldDecisions} old D items not merged:  \`plan-doc migrate ${epic.name}\` first`)
     if (dryRun || !result.changed.length) continue
-    edit(epic.file, (plan) => {
+    await edit(epic.file, (plan) => {
       const done = plan.relayout()
       plan.log(`answered questions laid out (question, Choices, answer):  ${done.changed.join(", ")}`)
     })
   }
   console.log(dryRun ? `dry run:  ${total} to lay out;  without --dry-run, they're written` : `laid out ${total}`)
+}
+
+/**
+ * `split <name> [--dry-run]`:  store the doc at `file` as a skeleton plus part files (`plan-parts.js`), logged;
+ * prints how many parts.  Already split:  says so, writes nothing.
+ * - refuses a doc not yet migrated (`section.s2` markup, a phase list):  `migrate` it first
+ * - `dryRun`:  what it would make, nothing written
+ */
+async function splitDoc(file, { dryRun } = {}) {
+  const name = relative(ROOT, file)
+  const plan = read(file)
+  if (plan.parts.split) return console.log(`${name}:  already split (${plan.parts.hosts.length} parts)`)
+  if (plan.document.querySelector("#phases-section, main section.s2, .plan-phases"))
+    throw new PlanDocError(`${name}:  not migrated yet:  \`plan-doc migrate\` first`)
+  const count = partHosts(plan.document).length
+  if (dryRun) return console.log(`${name}:  would split into a skeleton and up to ${count} parts`)
+  await edit(file, (doc) => doc.log(`split into a skeleton and parts (${PARTS_DIR}/):  bodies load when opened`), {
+    split: true
+  })
+  console.log(
+    `${name}:  split, ${read(file).parts.hosts.length} parts in ${relative(ROOT, join(dirname(file), PARTS_DIR))}/`
+  )
+}
+
+/**
+ * `join <name>`:  a split doc back into ONE file (its parts folder removed), logged:  the way back from `split`.
+ */
+async function joinDoc(file) {
+  const name = relative(ROOT, file)
+  if (!read(file).parts.split) return console.log(`${name}:  one file already`)
+  await edit(file, (doc) => doc.log("joined into one file:  every body back in the page"), { split: false })
+  console.log(`${name}:  one file`)
+}
+
+/**
+ * `split --done [--dry-run]`:  split every FINISHED epic's doc (Q12 of `claude-design`):  every phase done, and no
+ * worktree of its own (`list`'s `checkout` is `main`:  a worktree may still edit it with older code);  prints what
+ * it split and what it skipped, and why.
+ */
+async function splitDone({ dryRun }) {
+  for (const epic of listEpics()) {
+    if (epic.status !== "done") continue
+    if (epic.checkout !== "main") {
+      console.log(`${epic.name}:  skipped, still has a worktree (${epic.checkout})`)
+      continue
+    }
+    try {
+      await splitDoc(epic.file, { dryRun })
+    } catch (error) {
+      if (!(error instanceof PlanDocError)) throw error
+      console.log(`${epic.name}:  skipped, ${error.message}`)
+    }
+  }
 }
 
 /** `list`:  every epic, grouped in progress / done, its worktree when it has one (or JSON). */
@@ -3906,14 +4021,14 @@ export function pickAsks(pick, option, note) {
  *   from the doc are dropped too
  * - `ids` without a sent mark:  named, left alone (unsent marks wait for Owen's send)
  */
-function applyInbox(name, file, ids) {
+async function applyInbox(name, file, ids) {
   const path = inboxPath(file)
   const want = ids.length ? new Set(ids.map(toItemId)) : null
   const marks = sentMarks(readInbox(path)).filter((mark) => !want || want.has(mark.id))
   const dry = read(file)
   const planned = marks.map((mark) => ({ mark, ...dry.applyMark(mark) }))
   const results = planned.some((each) => each.applied)
-    ? edit(file, (plan) => marks.map((mark) => ({ mark, ...plan.applyMark(mark) })))
+    ? await edit(file, (plan) => marks.map((mark) => ({ mark, ...plan.applyMark(mark) })))
     : planned
   const cleared = results.filter((each) => each.applied || each.gone).map((each) => each.mark)
   updateInbox(path, (box) => {
@@ -4015,11 +4130,32 @@ function rehome(html, file, pageDir) {
   })
 }
 
-/** `check`:  structural problems, then the browser check;  exits 1 on any. */
+/**
+ * `check`:  structural problems, then the browser check;  exits 1 on any.
+ * - a split doc is checked WHOLE (`read()` assembles it):  ids and `#id` links across skeleton and parts
+ * - links:  `doc-links.js` `checkText()` on the whole doc, at the page's folder (a part's links are written relative
+ *   to `parts/`, and rebased when assembled), so the parts' links are checked too
+ * - a split doc's parts:  a missing one is a problem;  a host with content of its own besides its part (moved into
+ *   the part on the next edit), or a part file nothing loads, is a note
+ */
 function check(file, { noBrowser }) {
-  const problems = read(file).check()
+  const plan = read(file)
+  const problems = plan.check()
+  const links = checkText(plan.toString(), dirname(file)).problems
+  problems.push(...links.map((problem) => `link:  ${problem}`))
+  problems.push(...plan.parts.missing.map((id) => `part ${PARTS_DIR}/${id}${PART_EXT} is missing`))
+  for (const id of plan.parts.inline)
+    console.log(`NOTE:  #${id} has content beside its part:  the next edit moves it into the part`)
+  const dir = join(dirname(file), PARTS_DIR)
+  const orphans = existsSync(dir)
+    ? readdirSync(dir).filter((each) => each.endsWith(PART_EXT) && !plan.parts.hosts.includes(basename(each, PART_EXT)))
+    : []
+  for (const orphan of orphans) console.log(`NOTE:  ${PARTS_DIR}/${orphan}:  nothing loads it`)
   for (const problem of problems) console.error(`PROBLEM:  ${problem}`)
-  if (!problems.length) console.log(`${relative(ROOT, file)}:  structure ok`)
+  if (!problems.length)
+    console.log(
+      `${relative(ROOT, file)}:  structure ok${plan.parts.split ? ` (${plan.parts.hosts.length} parts)` : ""}`
+    )
   let browserOk = true
   if (!noBrowser) {
     const run = spawnSync("node", [join(TOOLS, "check-spell.js"), relative(PACKAGE, file)], {

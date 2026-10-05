@@ -7,6 +7,12 @@
  *   request waits);  "Choose" on an open question's option card, then a Revisit on it ("pick B, but ...":  both
  *   kept, the letter changes and drops without losing the note);  then "Send to Claude", and `spell dev plan-doc
  *   inbox <name> wait` must print the pick with its note
+ * - the items:  the first five judgement calls, topped up from the other lists;  the question:  the doc's first open
+ *   one with option cards A and B (`openQuestionWithCards()`).  None:  the "Choose" steps are skipped, and the
+ *   summary's `items.pick` says so
+ * - a SPLIT doc (P3 of `claude-design`:  item details load when opened):  the question is opened before its cards
+ *   are clicked (`openQuestion()`), and after the reload its button must show the pick's letter BEFORE its details
+ *   load;  the log line goes into the log's part file
  * - starts with a STALE `listening` in the inbox (a session killed without `unlisten`):  the page must say nobody
  *   is reviewing (the send button's tooltip, the revisit-now notice);  after `inbox listen`, it must not
  * - fails (exit 1) unless each shows on the page (button colors, the picked card, the send button's states) AND
@@ -27,7 +33,7 @@ import { join, relative } from "node:path"
 
 import { chromium } from "playwright"
 
-import { EPICS, ROOT, ensurePageServer, planDocIn, serverUrl, tidy } from "./pages.js"
+import { EPICS, ROOT, ensurePageServer, planDocIn, planLogFile, serverUrl, tidy } from "./pages.js"
 
 const name = process.argv[2] ?? "review-review"
 const out = process.argv[3] ?? mkdtempSync(join(tmpdir(), "check-review-"))
@@ -48,6 +54,8 @@ const NOBODY = /No Claude session/
 const problems = []
 const summary = { url, out }
 
+/** The open question whose cards the "Choose" steps pick:  `review-review`'s Q7, any doc's first;  or none. */
+const Q = openQuestionWithCards()
 const before = await inbox()
 if (!before) {
   console.error("check-review:  the page server has no review routes (GET /api/review/inbox):  restart it")
@@ -74,14 +82,19 @@ try {
   page.on("console", (message) => message.type() === "error" && errors.push(message.text()))
   await open(page)
 
-  // the items to mark:  the first five judgement calls (open or closed:  every item has a menu), and Q7's cards
-  const ids = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('.plan-items[data-kind="judgement"] > [data-status][id]'), (item) => item.id)
-  )
-  if (ids.length < 5) throw new Error(`only ${ids.length} judgement calls:  need 5`)
+  // the items to mark:  the first five judgement calls (open or closed:  every item has a menu), topped up from the
+  // other lists when there are fewer;  and an open question's cards (`Q`)
+  const ids = await page.evaluate((skip) => {
+    const items = Array.from(document.querySelectorAll(".plan-items > [data-status][id]")).filter(
+      (item) => item.id !== skip
+    )
+    const judgements = items.filter((item) => item.parentElement.dataset.kind === "judgement")
+    return [...judgements, ...items.filter((item) => !judgements.includes(item))].map((item) => item.id)
+  }, Q)
+  if (ids.length < 5) throw new Error(`only ${ids.length} items:  need 5`)
   const [approve, todo, soon, now, details] = ids
-  summary.items = { approve, todo, soon, now, details, pick: "q7" }
-  await page.evaluate(unfold, "judgements")
+  summary.items = { approve, todo, soon, now, details, pick: Q ?? "none:  no open question with option cards A and B" }
+  for (const id of [approve, todo, soon, now, details]) await page.evaluate(unfold, id)
   const count = await page.evaluate(() => ({
     items: document.querySelectorAll(".plan-items > [data-status][id]").length,
     buttons: document.querySelectorAll(".plan-items > [data-status][id] .plan-act-button").length,
@@ -151,55 +164,49 @@ try {
   await expectButton(page, details, "blue", "details")
   await page.unroute("**/api/review/now")
 
-  // Choose an option card in an open question (Q7:  A / B)
-  await page.evaluate(unfold, "decisions")
-  await page.evaluate(() => {
-    const accordion = document.querySelector("#q7 > ui-accordion")
-    if (accordion) accordion.open = "0"
-  })
-  await page.waitForTimeout(300)
-  await page.click('#q7 .plan-choose[data-letter="B"]')
-  await page.waitForTimeout(300)
-  const card = await page.evaluate(() => {
-    const pill = document.querySelector('#q7 .plan-choose[data-letter="B"]')
-    const column = pill?.closest("ui-column")
-    return { picked: column?.hasAttribute("data-picked"), folded: !column?.hasAttribute("data-open") }
-  })
-  if (!card.picked) problems.push("Q7's card B isn't framed as picked")
-  if (!card.folded) problems.push("a click on Choose also unfolded the card")
-  const picked = (await inbox()).marks.q7
-  if (picked?.action !== "pick" || picked.pick !== "B") problems.push(`inbox:  q7 is ${JSON.stringify(picked)}`)
+  // Choose an option card in an open question (`Q`:  A / B);  none in the doc:  skipped (the summary says so)
+  if (Q) {
+    await openQuestion(page, Q)
+    await page.click(`#${Q} .plan-choose[data-letter="B"]`)
+    await page.waitForTimeout(300)
+    const card = await page.evaluate((id) => {
+      const pill = document.querySelector(`#${id} .plan-choose[data-letter="B"]`)
+      const column = pill?.closest("ui-column")
+      return { picked: column?.hasAttribute("data-picked"), folded: !column?.hasAttribute("data-open") }
+    }, Q)
+    if (!card.picked) problems.push(`${Q}'s card B isn't framed as picked`)
+    if (!card.folded) problems.push("a click on Choose also unfolded the card")
+    const picked = (await inbox()).marks[Q]
+    if (picked?.action !== "pick" || picked.pick !== "B") problems.push(`inbox:  ${Q} is ${JSON.stringify(picked)}`)
 
-  // "pick B, but ..." (I3):  a Revisit on the picked question keeps the pick;  choosing again keeps the note
-  await pickInMenu(page, "q7", "Revisit")
-  await page.fill("#q7 .plan-revisit-note", PICK_NOTE)
-  await page.click("#q7 .plan-revisit-soon")
-  await page.waitForTimeout(300)
-  const both = (mark) => mark.when === "soon" && mark.note === PICK_NOTE
-  await expectButton(page, "q7", "orange", "revisit", (mark) => both(mark) && mark.pick === "B")
-  if ((await q7Shown(page)).letter !== "B")
-    problems.push(`pick + revisit:  q7 shows ${JSON.stringify(await q7Shown(page))}`)
-  await page.click('#q7 .plan-choose[data-letter="A"]')
-  await page.waitForTimeout(300)
-  await expectButton(page, "q7", "orange", "revisit", (mark) => both(mark) && mark.pick === "A")
-  const changed = await q7Shown(page)
-  if (changed.letter !== "A" || changed.picked !== "A")
-    problems.push(`choosing A:  q7 shows ${JSON.stringify(changed)}`)
-  // the chosen pill again:  just the pick goes, the note stays
-  await page.click('#q7 .plan-choose[data-letter="A"]')
-  await page.waitForTimeout(300)
-  await expectButton(page, "q7", "orange", "revisit", (mark) => both(mark) && !("pick" in mark))
-  const dropped = await q7Shown(page)
-  if (dropped.letter || dropped.picked) problems.push(`un-picking A:  q7 shows ${JSON.stringify(dropped)}`)
-  await page.click('#q7 .plan-choose[data-letter="B"]')
-  await page.waitForTimeout(300)
-  await expectButton(page, "q7", "orange", "revisit", (mark) => both(mark) && mark.pick === "B")
+    // "pick B, but ..." (I3):  a Revisit on the picked question keeps the pick;  choosing again keeps the note
+    await pickInMenu(page, Q, "Revisit")
+    await page.fill(`#${Q} .plan-revisit-note`, PICK_NOTE)
+    await page.click(`#${Q} .plan-revisit-soon`)
+    await page.waitForTimeout(300)
+    const both = (mark) => mark.when === "soon" && mark.note === PICK_NOTE
+    await expectButton(page, Q, "orange", "revisit", (mark) => both(mark) && mark.pick === "B")
+    if ((await pickShown(page, Q)).letter !== "B")
+      problems.push(`pick + revisit:  ${Q} shows ${JSON.stringify(await pickShown(page, Q))}`)
+    await page.click(`#${Q} .plan-choose[data-letter="A"]`)
+    await page.waitForTimeout(300)
+    await expectButton(page, Q, "orange", "revisit", (mark) => both(mark) && mark.pick === "A")
+    const changed = await pickShown(page, Q)
+    if (changed.letter !== "A" || changed.picked !== "A")
+      problems.push(`choosing A:  ${Q} shows ${JSON.stringify(changed)}`)
+    // the chosen pill again:  just the pick goes, the note stays
+    await page.click(`#${Q} .plan-choose[data-letter="A"]`)
+    await page.waitForTimeout(300)
+    await expectButton(page, Q, "orange", "revisit", (mark) => both(mark) && !("pick" in mark))
+    const dropped = await pickShown(page, Q)
+    if (dropped.letter || dropped.picked) problems.push(`un-picking A:  ${Q} shows ${JSON.stringify(dropped)}`)
+    await page.click(`#${Q} .plan-choose[data-letter="B"]`)
+    await page.waitForTimeout(300)
+    await expectButton(page, Q, "orange", "revisit", (mark) => both(mark) && mark.pick === "B")
+  }
 
   // what Owen sees before sending:  the marked items, the picked card
-  for (const [id, shot] of [
-    [approve, "review-marked.png"],
-    ["q7", "review-picked.png"]
-  ]) {
+  for (const [id, shot] of [[approve, "review-marked.png"], ...(Q ? [[Q, "review-picked.png"]] : [])]) {
     await page.locator(`#${id} .plan-act-button`).scrollIntoViewIfNeeded()
     await page.waitForTimeout(300)
     await page.screenshot({ path: join(out, shot) })
@@ -235,21 +242,32 @@ try {
   const work = planDoc("inbox", name, "wait", "--timeout", "5")
   const lines = work.split("\n")
   const talkAt = lines.findIndex((line) => /^\s+revisit, to talk over \(\d+\):$/.test(line))
-  const q7At = lines.findIndex((line, at) => at > talkAt && /^\s+- Q7\s/.test(line))
-  summary.wait = lines.slice(q7At, q7At + 2)
-  const combo = lines[q7At + 1]?.trim() ?? ""
-  if (talkAt < 0 || q7At < 0 || !combo.startsWith("picks B · ") || !combo.endsWith(`, asks:  "${PICK_NOTE}"`))
-    problems.push(`\`inbox wait\` didn't print Q7's pick with its note under "to talk over":\n${work}`)
+  if (!/^sent /m.test(work)) problems.push(`\`inbox wait\` didn't hand the send over:\n${work}`)
+  if (Q) {
+    const qAt = lines.findIndex((line, at) => at > talkAt && new RegExp(`^\\s+- ${Q.toUpperCase()}\\s`).test(line))
+    summary.wait = lines.slice(qAt, qAt + 2)
+    const combo = lines[qAt + 1]?.trim() ?? ""
+    if (talkAt < 0 || qAt < 0 || !combo.startsWith("picks B · ") || !combo.endsWith(`, asks:  "${PICK_NOTE}"`))
+      problems.push(
+        `\`inbox wait\` didn't print ${Q.toUpperCase()}'s pick with its note under "to talk over":\n${work}`
+      )
+  }
 
-  // reload:  everything still shows
+  // reload:  everything still shows.  The buttons on the item LINES first, details not loaded (a split doc loads
+  // an item's details only when it's opened):  the pick's letter on its button;  then its card, once opened
   await open(page)
-  const shown = await page.evaluate(marksShown)
+  const lines0 = await page.evaluate(marksShown, null)
+  if (Q && lines0[Q]?.letter !== "B")
+    problems.push(`after reload, details not open:  ${Q} is ${JSON.stringify(lines0[Q])}`)
+  if (Q) await openQuestion(page, Q)
+  const shown = await page.evaluate(marksShown, Q)
   summary.afterReload = shown
   const want = { [approve]: "green", [todo]: "violet", [soon]: "orange", [now]: "orange", [details]: "blue" }
   for (const [id, color] of Object.entries(want))
     if (shown[id]?.color !== color || !shown[id]?.sent)
       problems.push(`after reload:  ${id} is ${JSON.stringify(shown[id])}`)
-  if (shown.q7?.letter !== "B" || !shown.q7picked) problems.push(`after reload:  q7 is ${JSON.stringify(shown.q7)}`)
+  if (Q && (shown[Q]?.letter !== "B" || !shown.picked))
+    problems.push(`after reload:  ${Q} is ${JSON.stringify(shown[Q])}`)
 
   // an in-place update keeps the buttons and the marks
   await page.evaluate(() => (window.__checkReview = true))
@@ -262,7 +280,7 @@ try {
     problems.push("the new log line never showed up")
   }
   await page.waitForTimeout(800)
-  const updated = await page.evaluate(marksShown)
+  const updated = await page.evaluate(marksShown, Q)
   if (!(await page.evaluate(() => window.__checkReview === true))) problems.push("the update reloaded the page")
   if (JSON.stringify(updated) !== JSON.stringify(shown)) problems.push("the in-place update changed the marks shown")
   const after = await page.evaluate(
@@ -275,13 +293,15 @@ try {
   removeLogLine()
 
   // Clear on "pick B, but ...":  the pick and the note both go
-  await page.evaluate(unfold, "decisions")
-  await page.locator("#q7 .plan-act-button").scrollIntoViewIfNeeded()
-  await pickInMenu(page, "q7", "Clear")
-  const clearedQ7 = await q7Shown(page)
-  const leftQ7 = (await inbox()).marks.q7
-  if (leftQ7 || clearedQ7.letter || clearedQ7.picked || clearedQ7.color)
-    problems.push(`Clear on q7 left ${JSON.stringify({ inbox: leftQ7, page: clearedQ7 })}`)
+  if (Q) {
+    await page.evaluate(unfold, "decisions")
+    await page.locator(`#${Q} .plan-act-button`).scrollIntoViewIfNeeded()
+    await pickInMenu(page, Q, "Clear")
+    const cleared = await pickShown(page, Q)
+    const left = (await inbox()).marks[Q]
+    if (left || cleared.letter || cleared.picked || cleared.color)
+      problems.push(`Clear on ${Q} left ${JSON.stringify({ inbox: left, page: cleared })}`)
+  }
   if (errors.length) problems.push(`page errors:  ${errors.join(" | ")}`)
   await context.close()
 
@@ -345,16 +365,50 @@ async function expectButton(page, id, color, action, check = () => true) {
   if (mark?.action !== action || !check(mark)) problems.push(`inbox:  ${id} is ${JSON.stringify(mark)}`)
 }
 
-/** Q7's button and cards as shown:  `{ color, letter, picked }` (`picked`:  the framed card's letter). */
-async function q7Shown(page) {
-  return page.evaluate(() => {
-    const button = document.querySelector("#q7 .plan-act-button")
+/**
+ * The picked question `id`'s button and cards as shown:  `{ color, letter, picked }` (`picked`:  the framed card's
+ * letter).
+ */
+async function pickShown(page, id) {
+  return page.evaluate((item) => {
+    const button = document.querySelector(`#${item} .plan-act-button`)
     return {
       color: button?.dataset.color,
       letter: button?.querySelector(".plan-act-letter")?.textContent || undefined,
-      picked: document.querySelector("#q7 ui-column[data-picked] .plan-choose")?.dataset.letter
+      picked: document.querySelector(`#${item} ui-column[data-picked] .plan-choose`)?.dataset.letter
     }
-  })
+  }, id)
+}
+
+/**
+ * The first OPEN question of the doc with option cards A and B, for the "Choose" steps;  `null` when there's none
+ * (those steps are skipped, and the summary says so).  From `plan-doc items --json`, which reads a split doc whole:
+ * on the page its details (and so its cards) load only once it's opened.
+ */
+function openQuestionWithCards() {
+  try {
+    const { sections } = JSON.parse(planDoc("items", name, "--section", "questions", "--filter", "open", "--json"))
+    const question = sections[0]?.items.find(
+      (item) => /attached="top">\s*A\b/.test(item.detailsHtml ?? "") && /attached="top">\s*B\b/.test(item.detailsHtml)
+    )
+    return question?.id.toLowerCase() ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Open question `id`'s details on the page and wait for its "Choose" pills:  a split doc loads them only now
+ * (`<ui-accordion source>`), and the pills come once the page has re-wired around the body.
+ */
+async function openQuestion(page, id) {
+  await page.evaluate(unfold, "decisions")
+  await page.evaluate((item) => {
+    const accordion = document.querySelector(`#${item} > ui-accordion`)
+    if (accordion && !String(accordion.open ?? "")) accordion.open = "0"
+  }, id)
+  await page.waitForSelector(`#${id} .plan-choose[data-letter="B"]`, { timeout: 10_000 })
+  await page.waitForTimeout(200)
 }
 
 /**
@@ -383,17 +437,21 @@ async function inbox() {
   }
 }
 
-/** Take this run's line out of the doc's log (a `<ui-event>`), then reformat the doc. */
+/**
+ * Take this run's line out of the doc's log (a `<ui-event>`), then reformat that file:  the doc, or a split doc's
+ * log part (`planLogFile()`).
+ */
 function removeLogLine() {
-  const html = readFileSync(file, "utf8")
+  const log = planLogFile(file)
+  const html = readFileSync(log, "utf8")
   const at = html.indexOf(stamp)
   if (at < 0) return
   const start = html.lastIndexOf("<ui-event", at)
   const close = html.indexOf("</ui-event", at)
   const end = html.indexOf(">", close) + 1
   if (start < 0 || close < 0 || end <= 0) return console.error(`check-review:  remove "${stamp}" from the log by hand`)
-  writeFileSync(file, html.slice(0, start) + html.slice(end))
-  tidy([file])
+  writeFileSync(log, html.slice(0, start) + html.slice(end))
+  tidy([log])
 }
 
 ////////////////
@@ -417,8 +475,11 @@ function scrollNear(id) {
   scrollTo({ top: scrollY + item.getBoundingClientRect().top - 200, behavior: "instant" })
 }
 
-/** In the page:  each marked item's button (`color`, `sent`, `letter`), and whether Q7's card B is picked. */
-function marksShown() {
+/**
+ * In the page:  each marked item's button (`color`, `sent`, `letter`), and whether question `pick`'s card B is
+ * picked (its details must be open:  a split doc loads them only then).
+ */
+function marksShown(pick) {
   const shown = {}
   for (const button of document.querySelectorAll(".plan-items > [data-status][id] .plan-act-button[data-color]")) {
     const id = button.closest("[data-status][id]").id
@@ -428,7 +489,7 @@ function marksShown() {
       letter: button.querySelector(".plan-act-letter")?.textContent || undefined
     }
   }
-  shown.q7picked = !!document.querySelector('#q7 ui-column[data-picked] .plan-choose[data-letter="B"]')
+  if (pick) shown.picked = !!document.querySelector(`#${pick} ui-column[data-picked] .plan-choose[data-letter="B"]`)
   return shown
 }
 

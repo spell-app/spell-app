@@ -9,6 +9,9 @@
  *   position, the folds, the typed text and its focus are kept, and the new log line is in the page
  * - also:  the address follows the section scrolled to (`#id`, no reload), and a fresh load of that address lands
  *   on it
+ * - a SPLIT doc (P3 of `claude-design`):  1.1 and the log are parts, loaded when unfolded;  the log line lands in
+ *   the log's part file, so the update is a part re-fetched in place (`spell-doc-runtime.js` `wireSourceBodies()`),
+ *   the skeleton untouched
  * - SIDE EFFECT:  removes its log line from the doc afterwards (and reformats the doc with oxfmt)
  * - prints a JSON summary on stdout, problems on stderr
  */
@@ -18,7 +21,7 @@ import { join } from "node:path"
 
 import { chromium } from "playwright"
 
-import { EPICS, ROOT, ensurePageServer, planDocIn, serverUrl, tidy } from "./pages.js"
+import { EPICS, ROOT, ensurePageServer, planDocIn, planLogFile, serverUrl, tidy } from "./pages.js"
 
 const name = process.argv[2] ?? "review-review"
 // either name:  `<name>.plan.html`, else an old `<name>.html` (`planDocIn()`)
@@ -138,15 +141,19 @@ function stateAfter() {
   }
 }
 
-/** Take this run's line out of the doc's log (a `<ui-event>`), then reformat the doc. */
+/**
+ * Take this run's line out of the doc's log (a `<ui-event>`), then reformat that file:  the doc, or a split doc's
+ * log part (`planLogFile()`).
+ */
 function removeLogLine() {
-  const html = readFileSync(file, "utf8")
+  const log = planLogFile(file)
+  const html = readFileSync(log, "utf8")
   const at = html.indexOf(stamp)
   if (at < 0) return
   const start = html.lastIndexOf("<ui-event", at)
   const close = html.indexOf("</ui-event", at)
   const end = html.indexOf(">", close) + 1
   if (start < 0 || close < 0 || end <= 0) return console.error(`check-live:  remove "${stamp}" from the log by hand`)
-  writeFileSync(file, html.slice(0, start) + html.slice(end))
-  tidy([file])
+  writeFileSync(log, html.slice(0, start) + html.slice(end))
+  tidy([log])
 }

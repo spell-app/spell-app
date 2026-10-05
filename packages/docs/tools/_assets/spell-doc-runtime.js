@@ -252,30 +252,38 @@ const squashed = new WeakMap()
  *   `detail.changed`:  the elements added, replaced or re-attributed
  * - a full reload instead (`reload()`, which keeps the scroll) when the page can't be patched safely:
  *   - not `<ui-section>` markup (the goals pages), a CHEATSHEET's filter, or a script besides the bundle and
- *     highlight.js (it may have built from the markup):  never taken
- *   - stylesheets, scripts or anything outside `main` changed, more than half of `main` changed, the source as
- *     loaded couldn't be read, or the patch threw
- * - returns `{ ready(page) }`:  `start()` hands over what it wired;  a change waits for it
+ *     highlight.js (it may have built from the markup):  never taken.  An INERT script (a data block,
+ *     `<script type="text/plain">`:  a plan doc's "Plan hung?" prompt) never runs, so it doesn't count
+ *   - stylesheets, scripts or anything outside `main` changed (but `<body>`'s attributes:  patched too, e.g. a plan
+ *     doc's `data-recent-since`, which every edit may move;  not its `class`), more than half of `main` changed,
+ *     the source as loaded couldn't be read, or the patch threw
+ * - BODIES from files (`<ui-section source>`, `<ui-accordion source>`:  a split plan doc's parts) live their own
+ *   life (`wireSourceBodies()`):  the patch leaves what a host loaded alone (`planHost()`), a changed body file
+ *   re-fetches its open host in place, and each body that loads re-wires the page (`refresh()`)
+ * - returns `{ ready(page), refresh(changed) }`:  `start()` hands over what it wired;  a change waits for it.
+ *   `refresh()` re-wires after `changed` elements changed under the runtime (a body loaded), in turn with updates
  */
 function wireLiveUpdate(main) {
   const server = window.SPELL_SERVER
   let ready = () => {}
   const started = new Promise((resolve) => (ready = resolve))
-  if (!server?.readPage || !canPatch(main)) return { ready }
+  // one update at a time, in order:  patches, re-fetched bodies, re-wiring
+  let queue = Promise.resolve()
+  const live = { ready, refresh }
+  wireSourceBodies(main, live, enqueue)
+  if (!server?.readPage || !canPatch(main)) return live
   // the source as loaded:  null when it can't be trusted (the file changed before it was read)
   let base = server.readPage().then(
     ({ html, etag }) => (etag && etag === server.etag ? html : null),
     () => null
   )
-  // one update at a time, in order
-  let queue = Promise.resolve()
   addEventListener("spell-server:change", (event) => {
     const { html, reload } = event.detail ?? {}
     if (typeof html !== "string" || typeof reload !== "function") return
     event.preventDefault()
     queue = queue.then(() => update(html, reload)).catch(() => reload())
   })
-  return { ready }
+  return live
 
   /** Patch the page to `html`, then re-wire it;  reload when it can't be patched. */
   async function update(html, reload) {
@@ -285,20 +293,119 @@ function wireLiveUpdate(main) {
     base = Promise.resolve(html)
     await rewire(page, patched.changed)
   }
+
+  /** Re-wire the page once it's started, after `changed` (elements) changed:  queued behind the updates. */
+  function refresh(changed) {
+    enqueue(async () => rewire(await started, changed))
+  }
+
+  /** Run `job` (async) after every update queued before it;  a failure doesn't stop the queue. */
+  function enqueue(job) {
+    queue = queue.then(job).catch(() => undefined)
+  }
 }
 
 /**
  * Can this page be patched in place?  `<ui-section>` markup, no CHEATSHEET filter, and no script but the bundle,
- * highlight.js and what the page server injects.
+ * highlight.js, what the page server injects, and inert data blocks (`isInert()`).
  */
 function canPatch(main) {
   if (!main.querySelector(":scope > ui-section")) return false
   if (document.querySelector("[data-spell-filter], [data-spell-filter-badge]")) return false
   return Array.from(document.scripts).every((script) => {
     const src = script.getAttribute("src")
-    if (!src) return script.textContent.includes("SPELL_SERVER")
+    if (!src) return isInert(script) || script.textContent.includes("SPELL_SERVER")
     return /^\/_server\//.test(src) || /(^|\/)(spell-ui|highlight(\.min)?)\.js$/.test(src)
   })
+}
+
+/**
+ * Is `script` INERT:  a data block the browser never runs (`type="text/plain"`, JSON ...), not JavaScript or a
+ * module?  Plan docs' "Plan hung?" notice keeps its prompt in one.
+ */
+function isInert(script) {
+  const type = (script.getAttribute("type") ?? "").trim().toLowerCase()
+  return type !== "" && type !== "module" && !/^(text|application)\/(x-)?(java|ecma)script$/.test(type)
+}
+
+////////////////
+// ## Bodies from files
+////////////////
+
+/**
+ * Hosts whose body comes from a file (`<ui-section source>`, `<ui-accordion source>`:  a split plan doc's parts,
+ * `epics/<name>/parts/<id>.htm`, epic `claude-design` P3) in step with the files and the page:
+ * - a body loads (`ui-load`, the first open or a re-fetch):  the page is re-wired around it (`live.refresh()`):  the
+ *   outline (headings inside), contents, counts, item filters, code colors, review buttons, "Choose" pills
+ * - a body's FILE changed (the page server's `spell-server:file`, `liveClient.ts`):  a host that has loaded it
+ *   re-fetches it in place (`reload()`), the reading position kept (`readingAnchor()`);  one that hasn't drops the
+ *   cached copy, so its first open fetches the new one
+ * - `enqueue`:  the live update's queue (`wireLiveUpdate()`):  a re-fetch waits for a patch in flight
+ */
+function wireSourceBodies(main, live, enqueue) {
+  main.addEventListener("ui-load", (event) => {
+    const host = event.target
+    if (host instanceof Element && host.hasAttribute("source") && main.contains(host)) live.refresh([host])
+  })
+  addEventListener("spell-server:file", (event) => {
+    const path = event.detail?.path
+    if (typeof path !== "string") return
+    const changed = decodeURIComponent(path)
+    for (const host of main.querySelectorAll("[source]")) {
+      const url = sourceUrl(host)
+      if (!url || decodeURIComponent(url.pathname) !== changed) continue
+      if (hasLoaded(host)) enqueue(() => reloadBody(host))
+      else forgetSource(url.href)
+    }
+  })
+
+  /** Re-fetch `host`'s body, keeping the line being read where it is. */
+  async function reloadBody(host) {
+    const anchor = readingAnchor(main)
+    await host.reload?.()
+    keepAnchor(anchor)
+  }
+}
+
+/** Absolute URL of `host`'s `source`, when it's on this page's origin;  else null. */
+function sourceUrl(host) {
+  try {
+    const url = new URL(host.getAttribute("source"), document.baseURI)
+    return url.origin === location.origin ? url : null
+  } catch {
+    return null
+  }
+}
+
+/** Has `host` started on its body (loading, loaded, or failed:  then a re-fetch tries again)? */
+function hasLoaded(host) {
+  try {
+    return host.matches(":state(loaded), :state(loading), :state(error)")
+  } catch {
+    return false
+  }
+}
+
+/** Drop `url` from UI's cache of fetched files (`UI.sources`), so the next load fetches it. */
+function forgetSource(url) {
+  try {
+    void window.SpellUI?.UI?.load?.()?.then((ui) => ui.sources.forget(url))
+  } catch {
+    // no UI yet:  nothing cached either
+  }
+}
+
+/**
+ * The host whose unloaded body holds element `id`:  its `data-part-ids` (the ids inside, written by
+ * `plan-parts.js`), when the element isn't in the page yet;  else null.
+ */
+function hostHolding(main, id) {
+  if (!id || document.getElementById(id)) return null
+  return (
+    Array.from(main.querySelectorAll("[source][data-part-ids]")).find((host) =>
+      host.getAttribute("data-part-ids").split(/\s+/).includes(id)
+    ) ?? null
+  )
 }
 
 /** Parse a page's HTML into an inert document. */
@@ -323,6 +430,7 @@ function patchPage(main, before, after) {
   const now = mainIn(after)
   if (!was || !now || headKey(before) !== headKey(after) || shellKey(before) !== shellKey(after)) return null
   const plan = { ops: [], weight: 0, changed: [] }
+  planBodyAttributes(before.body, after.body, plan)
   if (planMorph(was, now, main, plan) !== main || plan.weight > now.outerHTML.length / 2) return null
   const anchor = readingAnchor(main)
   if (after.title !== before.title) document.title = after.title
@@ -331,7 +439,10 @@ function patchPage(main, before, after) {
   return plan
 }
 
-/** What a page loads:  its stylesheets and scripts (not what the page server injects), one line each. */
+/**
+ * What a page loads:  its stylesheets and scripts (not what the page server injects, nor inert data blocks:
+ * `isInert()`), one line each.
+ */
 function headKey(doc) {
   const parts = Array.from(
     doc.querySelectorAll('link[rel~="stylesheet"]'),
@@ -340,17 +451,36 @@ function headKey(doc) {
   for (const script of doc.querySelectorAll("script")) {
     const src = script.getAttribute("src")
     if (src?.startsWith("/_server/") || (!src && script.textContent.includes("SPELL_SERVER"))) continue
+    if (!src && isInert(script)) continue
     parts.push(src ? `js ${src}` : `inline ${squash(script.textContent)}`)
   }
   return parts.join("\n")
 }
 
-/** Everything in a page's `<body>` but `main`'s content and the scripts, whitespace squashed. */
+/**
+ * Everything in a page's `<body>` but `main`'s content, the scripts and `<body>`'s attributes (bar its `class`:
+ * the runtime adds classes of its own), whitespace squashed.  The attributes are patched (`planBodyAttributes()`).
+ */
 function shellKey(doc) {
   const body = doc.body.cloneNode(true)
   mainIn(body)?.replaceChildren()
   for (const script of body.querySelectorAll("script")) script.remove()
+  for (const name of body.getAttributeNames()) if (name !== "class") body.removeAttribute(name)
   return squash(body.outerHTML)
+}
+
+/**
+ * Plan setting the `<body>` attributes whose source changed from `before` to `after` (`data-recent-since`,
+ * `data-bedtime` ...) on the live `<body>`;  never `class` (`shellKey()` holds it).
+ */
+function planBodyAttributes(before, after, plan) {
+  for (const name of new Set([...before.getAttributeNames(), ...after.getAttributeNames()])) {
+    const value = after.getAttribute(name)
+    if (name === "class" || value === before.getAttribute(name)) continue
+    plan.ops.push(() =>
+      value === null ? document.body.removeAttribute(name) : document.body.setAttribute(name, value)
+    )
+  }
 }
 
 /**
@@ -366,6 +496,7 @@ function shellKey(doc) {
  */
 function planMorph(before, after, live, plan) {
   if (sameNode(before, after)) return live
+  if (isHost(before, after, live)) return planHost(before, after, live, plan)
   if (
     live.localName !== after.localName ||
     before.localName !== after.localName ||
@@ -410,6 +541,51 @@ function planMorph(before, after, live, plan) {
     if (first && !later.some((next) => !next.id && sameNode(first, next))) return first
     return undefined
   }
+}
+
+/**
+ * Is `live` a section whose body comes from a file (`source`), the same file before and after?  Its body is the
+ * file's (`wireSourceBodies()`), not the page source's:  `planHost()`.
+ * - not an accordion host (a plan item's panel):  a `MANAGERS` element, replaced whole as ever, its open panel
+ *   carried over, so it loads its body again
+ */
+function isHost(before, after, live) {
+  const source = after.getAttribute("source")
+  return (
+    source !== null &&
+    before.getAttribute("source") === source &&
+    live.getAttribute("source") === source &&
+    live.localName === after.localName &&
+    before.localName === after.localName &&
+    !live.matches(MANAGERS)
+  )
+}
+
+/**
+ * Plan patching host `live` (`isHost()`):  its attributes, and its SLOTTED children (icon, header), each patched in
+ * turn;  the body (every other child:  what the file put there, or the placeholder) is left alone.
+ * - slotted children that don't line up:  the whole host is replaced, and loads its body again when open
+ */
+function planHost(before, after, live, plan) {
+  const was = slottedOf(before)
+  const now = slottedOf(after)
+  const kids = slottedOf(live).filter((kid) => !kid.matches(ADDED))
+  const lined =
+    was.length === now.length &&
+    kids.length === was.length &&
+    was.every((kid, at) => kid.localName === now[at].localName && kids[at].localName === kid.localName)
+  if (!lined) return planReplace(after, live, plan)
+  planAttributes(before, after, live, plan)
+  was.forEach((kid, at) => {
+    const slot = planMorph(kid, now[at], kids[at], plan)
+    if (slot !== kids[at]) plan.ops.push(() => kids[at].replaceWith(slot))
+  })
+  return live
+}
+
+/** `element`'s children headed for a named slot (`slot="icon"` ...). */
+function slottedOf(element) {
+  return Array.from(element.children).filter((kid) => kid.hasAttribute("slot"))
 }
 
 /**
@@ -1561,7 +1737,7 @@ function wireAnchors(main, outline, sticky, follow, folds) {
   document.addEventListener("click", (event) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return
     const id = targetIdOf(event)
-    if (!id || !targetIn(id)) return
+    if (!id || !(targetIn(id) || hostHolding(main, id))) return
     event.preventDefault()
     go(id)
   })
@@ -1584,13 +1760,25 @@ function wireAnchors(main, outline, sticky, follow, folds) {
     const data = event.data
     if (event.source !== window.parent || data?.spell !== "go" || typeof data.hash !== "string") return
     const id = decodeHash(data.hash.replace(/^#/, ""))
-    if (targetIn(id)) go(id)
+    if (targetIn(id) || hostHolding(main, id)) go(id)
   }
 
-  /** Scroll to `id` and make its entry the current one;  once what it unfolded has drawn. */
+  /**
+   * Scroll to `id` and make its entry the current one;  once what it unfolded has drawn.
+   * - `id` inside a body not loaded yet (a split plan doc's part:  an Overview `h4`, an old `#d7` answer card):  its
+   *   host loads the body first (`hostHolding()`, `load()`), then the jump goes on (caveat C8 of `claude-design`)
+   */
   function jump(id, { unfoldTarget = true } = {}) {
     const target = targetIn(id)
-    if (!target) return
+    if (!target) {
+      const host = hostHolding(main, id)
+      if (host?.load)
+        void host.load().then(
+          () => targetIn(id) && jump(id, { unfoldTarget }),
+          () => undefined
+        )
+      return
+    }
     let landed = NaN
     // what a jump unfolds opens at once, without the fold animation, so the page gets there quickly (Owen,
     // 2026-10-04):  `spell-doc.css` zeroes `--ui-section-duration` under `data-spell-jumping`
@@ -2301,6 +2489,7 @@ const COMMITS_KEY_PREFIX = "spell-commits:"
  * - a small git icon on the line of each item whose details hold commits (`button.plan-git-hint`, in its title's
  *   right-hand extras):  a click opens the item and shows its commits, a second hides them again
  * - the choice:  `data-show-commits` on `main` (all), or on the item (`plan-doc.css` hides the rest)
+ * - a split plan doc's bodies not loaded yet:  a host's `data-commits` says its body lists commits (`plan-parts.js`)
  * - SIDE EFFECT:  adds the button and the icons (`data-spell-added`);  callable again (a page updated in place):
  *   replaces the ones it added
  */
@@ -2308,7 +2497,7 @@ function wireCommits(main) {
   if (!document.body.classList.contains("plan-doc")) return
   for (const old of main.querySelectorAll(".plan-git-toggle, .plan-git-hint")) old.remove()
   const head = main.querySelector(".spell-page-head")
-  if (!head || !main.querySelector(".plan-commits")) return
+  if (!head || !main.querySelector(".plan-commits, [source][data-commits]")) return
   const key = `${COMMITS_KEY_PREFIX}${location.pathname}`
   const group = document.createElement("span")
   group.className = "plan-git-toggle"
@@ -2323,7 +2512,11 @@ function wireCommits(main) {
   show(readSaved(key) === "1", false)
   for (const item of main.querySelectorAll(".plan-items > [data-status]")) {
     const title = item.querySelector(":scope > ui-accordion.plan-item > ui-title")
-    if (!title || !item.querySelector(":scope > ui-accordion > ui-content .plan-commits")) continue
+    if (
+      !title ||
+      !item.querySelector(":scope > ui-accordion > ui-content .plan-commits, :scope > ui-accordion[data-commits]")
+    )
+      continue
     const hint = document.createElement("button")
     hint.type = "button"
     hint.className = "plan-git-hint"
@@ -2402,7 +2595,7 @@ const PHASE_TOGGLES = [
 function wirePhaseToggles(main) {
   const phases = main.querySelector(":scope > ui-section#phases")
   phases?.querySelector(":scope > .plan-phase-toggles")?.remove()
-  if (!phases?.querySelector(".plan-phase-body")) return
+  if (!phases?.querySelector(".plan-phase-body, ui-section[data-phase][source]")) return
   const key = `${PHASE_FIELDS_KEY_PREFIX}${location.pathname}`
   const saved = readJSON(key)
   const group = document.createElement("span")

@@ -85,8 +85,10 @@ function reorgEntry(name) {
  * - `details`:  details pages (`spell dev details`), questions for one session:  not in the index, not checked with the
  *   docs (scratch `details/`, and an epic's `epics/<name>/details/`);  NOT the `details` epic's own folder,
  *   `epics/details/` (`findPages()`)
+ * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.htm`, `plan-parts.js`):  fragments its page loads.
+ *   Their `.htm` already keeps them out (only `.html` is a page);  the folder too, in case one is ever `.html`
  */
-const SKIP_DIRS = new Set(["node_modules", "experiments", "examples", "details"])
+const SKIP_DIRS = new Set(["node_modules", "experiments", "examples", "details", "parts"])
 
 /**
  * Epic `name`'s plan doc in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html` when that is a
@@ -121,6 +123,15 @@ export function findPages(dir = AREAS) {
     } else if (entry.name.endsWith(".html")) found.push(path)
   }
   return found
+}
+
+/**
+ * The file holding the plan doc at `file`'s log:  its part, `parts/log.htm`, when the doc is split (`plan-parts.js`),
+ * else the doc itself.  For the browser checks, which add a log line and take it out again by hand.
+ */
+export function planLogFile(file) {
+  const part = join(dirname(file), "parts", "log.htm")
+  return existsSync(part) && readFileSync(file, "utf8").includes('source="parts/log.htm"') ? part : file
 }
 
 /**
@@ -308,7 +319,14 @@ end tell`
  *   oxfmt.  Repeated until stable:  one pass fixes one attribute per tag, and `ui-table` has four.
  */
 export function serialize(document) {
-  let html = document.toString().replace(/^<!DOCTYPE html>/i, "<!doctype html>")
+  return serializeHTML(document.toString().replace(/^<!DOCTYPE html>/i, "<!doctype html>"))
+}
+
+/**
+ * Serialized `html` (a document's, or a fragment's `innerHTML`) with boolean attributes bare (`styled`, not
+ * `styled=""`), as `serialize()` writes a page;  a plan doc's part files too (`plan-parts.js`).
+ */
+export function serializeHTML(html) {
   for (let before; before !== html;) {
     before = html
     html = html.replace(/(<[a-z][\w-]*\b[^<>]*?) ([a-z][\w-]*)=""(?=[\s/>])/g, "$1 $2")
