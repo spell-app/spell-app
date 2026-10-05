@@ -51,42 +51,28 @@
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/property:tasks", line: 9,
+      detail: "list",
       section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/property:filter", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/enumeration:Filters", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/constant:all", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/constant:active", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/constant:completed", line: 10,
-      section: "Todo app example",
-      rules: [
-        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
-      ]
+      section: "Todo app example"
     },
     {
       path: "project:Todos/file:Todo.spell/type:Todos_App/method:draw (a todos-app)", line: [37, 62],
@@ -97,13 +83,14 @@
     },
     {
       path: "project:Todos/file:Todo.spell/variable:app", line: 12,
+      detail: "Todos_App",
       section: "Todo app example"
     },
     {
-      path: "project:Todos/file:Todo.spell/function:create a task (with title as text)", line: [15, 17],
+      path: "project:Todos/file:Todo.spell/function:create a new task (with title as text)", line: [15, 17],
       section: "Todo app example",
       rules: [
-        { name: "create_a_task", syntax: "create a task (with {props:object_literal_properties})?" }
+        { name: "create_a_new_task", syntax: "create a new task (with {props:object_literal_properties})?" }
       ]
     }
   ]

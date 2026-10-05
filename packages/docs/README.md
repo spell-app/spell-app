@@ -19,10 +19,10 @@ to read them.
 From the repo root, or from this folder:
 
 ```sh
-yarn docs:update      # rebuild the @spell-app/ui bundle from the latest UI, then check every page in a real browser
-yarn docs:index       # rewrite the lists in index.html after adding or renaming a page
-yarn docs:new durable <topic>/<topic>.html --title "Title"   # start a page from a template
-yarn docs:open        # show the index (or a given page) in Chrome
+spell dev docs update     # rebuild the @spell-app/ui bundle from the latest UI, then check every page in a real browser
+spell dev docs index      # rewrite the lists in index.html after adding or renaming a page
+spell dev docs new durable <topic>/<topic>.html --title "Title"  # start a page from a template
+spell dev docs open       # show the index (or a given page) in Chrome
 ```
 
 How to write a page:  [`AGENTS.md`](AGENTS.md).

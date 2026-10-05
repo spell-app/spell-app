@@ -11,7 +11,7 @@
  *   rerun `yarn site:build` for those.
  * - A watch rebuild doesn't clear `_assets/`, so a chunk whose hash changed leaves its old file behind:  run
  *   `yarn site:build` before committing.
- * - `Ctrl-C` stops the watch;  the page server keeps running (`yarn server stop` at the repo root).
+ * - `Ctrl-C` stops the watch;  the page server keeps running (`spell dev server stop`).
  */
 import { execFileSync } from "node:child_process"
 import path from "node:path"
@@ -20,8 +20,11 @@ import { build, type Rolldown } from "vite"
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
 
-/** Repo root (of this checkout):  where `yarn server ensure` runs. */
+/** Repo root (of this checkout):  where `spell dev server ensure` runs. */
 const REPO = path.resolve(UI, "../..")
+
+/** This checkout's own `spell` CLI:  run with `node`, never the `spell` on `PATH` (maybe another checkout's). */
+const SPELL = path.join(REPO, "packages/cli/bin/spell.mjs")
 
 execFileSync("yarn", ["site:bundle"], { cwd: UI, stdio: "inherit" })
 const base = ensurePageServer()
@@ -40,11 +43,11 @@ function report(event: Rolldown.RolldownWatcherEvent): void {
 
 /**
  * This checkout's page server origin, e.g. `http://127.0.0.1:54769`.
- * - SIDE EFFECT:  `yarn server ensure` starts it in the background if it isn't running
- * - it prints `{ base, port, ... }` as JSON, maybe after yarn's own lines:  parsed from the first `{`
+ * - SIDE EFFECT:  `spell dev server ensure` starts it in the background if it isn't running
+ * - it prints `{ base, port, ... }` as JSON, maybe after other lines:  parsed from the first `{`
  */
 function ensurePageServer(): string {
-  const text = execFileSync("yarn", ["server", "ensure"], {
+  const text = execFileSync(process.execPath, [SPELL, "dev", "server", "ensure"], {
     cwd: REPO,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "inherit"],

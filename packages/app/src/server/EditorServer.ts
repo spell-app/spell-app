@@ -9,7 +9,7 @@ import environment from "$/spell/node/environment"
 /**
  * The editor UI -- vite's dev server for `packages/app` (what `yarn start:dev` runs), with hot reload -- as a child
  * of the PAGE server:  it starts when the page server listens, and stops when it stops (`appRoutes.ts`).  So however
- * the page server starts -- `yarn server`, `spell serve`, an opener, VS Code -- the site header's "Editor" works.
+ * the page server starts -- `spell dev server`, `spell serve`, an opener, VS Code -- the site header's "Editor" works.
  * - Port:  `SPELL_EDITOR_PORT`, else `VITE_PORT`, else 3000, if free;  taken (another checkout's editor):  any free
  *   one.  The real URL goes in `<root>/.spell-server.editor.json` (`EDITOR_FILE`) once it answers, where `/editor`
  *   and `spell serve` find it.
@@ -18,7 +18,7 @@ import environment from "$/spell/node/environment"
  * - Its output goes to `<root>/.spell-server.editor.log`, through a pipe:  the record is written when vite itself
  *   says it's ready.
  * - Runs vite's own script with this `node`, NOT `yarn start:dev`:  a page server launched by a `yarn` script
- *   (`yarn server ensure`) inherits a PATH whose `yarn` is a temporary shim, gone once that script exits.
+ *   inherits a PATH whose `yarn` is a temporary shim, gone once that script exits.
  * - `SPELL_NO_EDITOR=1`:  don't start it.
  * - NOTE: if the page server dies without stopping (kill -9), vite keeps running:  `yarn stop` in `packages/app`.
  */

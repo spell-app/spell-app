@@ -16,11 +16,8 @@ afterAll(() => {
 write(ROOT, "package.json", { scripts: { "/////// SECTION": "", ts: "tsc", serve: "node serve.mjs" } })
 write(ROOT, "packages/parser/package.json", { scripts: { test: "vitest run" } })
 write(ROOT, "packages/ui/site/package.json", { scripts: { dev: "astro dev" } })
-write(
-  ROOT,
-  "packages/cli/src/main.ts",
-  'program\n  .command("compile")\nconst dev = program.command("dev")\ndev\n  .command("commands")\n'
-)
+write(ROOT, "packages/cli/src/main.ts", 'program\n  .command("compile")\nprogram\n  .command("plan-doc")\n')
+write(ROOT, "packages/cli/src/devProgram.ts", 'const dev = program\n  .command("dev")\ndev\n  .command("commands")\n')
 write(ROOT, ".claude/skills/isolate/SKILL.md", "---\nname: isolate\n---")
 write(ROOT, ".claude/skills/solid-2/SKILL.md", "---\nname: solid-2\n---")
 write(ROOT, "packages/docs/tools/goals/skills/goals/SKILL.md", "---\nname: goals\n---")
@@ -35,6 +32,7 @@ describe("commandSources()", () => {
       "spell compile",
       "spell dev",
       "spell dev commands",
+      "spell plan-doc",
       "/goals",
       "/isolate",
       "/session",

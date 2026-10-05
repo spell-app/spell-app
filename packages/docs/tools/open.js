@@ -1,5 +1,5 @@
 /**
- * `yarn docs:open [page] [--vs | --review]`:  show a page in Chrome, reusing its tab (`pages.js` `openInChrome()`).
+ * `spell dev docs open [page] [--vs | --review]`:  show a page in Chrome, reusing its tab (`pages.js` `openInChrome()`).
  * - `<page>` relative to `packages/docs` (or absolute), e.g. `index.html`;  default:  the docs index
  *   - `.html` and a folder's own page may be left off:  `solid/solid-2` ~== `solid/solid-2.html`,
  *     `server` ~== `server/server.html`

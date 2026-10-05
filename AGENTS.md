@@ -41,7 +41,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     and the `<spell-app>` / `<spell-editor>` web components.  `yarn start` / `build*` live here.
     See its `AGENTS.md`.
   - `packages/vscode/` -- the VS Code extension.  Its own yarn project (own `package.json` + `yarn.lock`), NOT a
-    workspace:  `yarn vscode` / `vscode:build` / `vscode:install` run from the REPO ROOT.
+    workspace:  `spell dev vscode` (or its two steps, `spell dev vscode build` / `install`) builds and installs it.
   - `packages/ui/` (`@spell-app/ui`, `$/ui`) -- Fomantic UI reborn as `ui-*` custom elements, on Solid 2.
     See `packages/ui/AGENTS.md`.
   - `packages/solid-element/` (`@spell-app/solid-element`) -- our fork of Solid's custom-element layer
@@ -57,7 +57,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     - See `packages/docs/AGENTS.md`.
   - `packages/server/` (`@spell-app/server`, `$/server`, `SRV`) -- serving pages locally:  static folders, an
     Express-shaped router, live reload, ports, openers, a file lock, and the ONE page server per checkout
-    (`yarn server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
+    (`spell dev server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:
   `docs` -> anything (its experiments import any package;  nothing imports `docs`),
   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, `app` / `lsp` -> `markdown` -> `parser`, and
@@ -80,26 +80,26 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 
 ## Worktrees
 
-- Owen works in one VS Code window per package, opened from `workspaces/<pkg>.code-workspace` (`yarn window
+- Owen works in one VS Code window per package, opened from `workspaces/<pkg>.code-workspace` (`spell dev window
   init` writes missing ones;  each has its own theme).  Folder 1 is the REPO ROOT, folder 2 the package.  Why:  the
   Claude panel lists only the sessions saved under a window's FIRST folder, so every window lists every session.
   - So sessions start at the repo root:  read the package's `AGENTS.md` before working in a package.
 - Enter a worktree with `/isolate <name>` (`/epic` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
-- New window, or stay?  `node scripts/window.mjs stay-check` recommends one, with reasons, and Owen picks in a
+- New window, or stay?  `spell dev window stay-check` recommends one, with reasons, and Owen picks in a
   modal (`.claude/skills/isolate/SKILL.md`, "Start", step 2b).  Staying is fine when the session is its window's
   only one.
   - A session that stays:  same tab, only its folder changes;  its changes show in Source Control, since every
     package window has `git.detectWorktrees` on (each worktree its own repo there).
-  - NEVER add a worktree's folders to a package window (`window.mjs add`):  VS Code writes them into
+  - NEVER add a worktree's folders to a package window (`spell dev window add`):  VS Code writes them into
     `workspaces/<pkg>.code-workspace`, and they stay there after the worktree is gone (three did, by 2026-10-03).
     Nobody sees them:  those files are `skip-worktree` in the main checkout, so Owen's theme changes never show
     as changes either.
   - A branch that changes those files merges onto `main` only once the flag is off:  back up the local files,
     `git update-index --no-skip-worktree`, `git checkout --` them, merge, write the local edits back on top, set the
     flag again (`agents/PAPERCUTS.md`, "claude-code").
-- A new window:  open it at once, from the worktree's root:  `node scripts/window.mjs open <name>`.
+- A new window:  open it at once, from the worktree's root:  `spell dev window open <name>`.
   On leaving (`/isolate done`), the session does NOT move back:  it stays in that window, which Owen closes
   (`... close <name>` closes it and deletes its file).  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
   moves to that window, in an editor tab (never the sidebar), `continue` typed into it, and its old tab closes
@@ -112,14 +112,15 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     bar tinted per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
     worktree's root (`⎇ <name>`);  no package folder, and `packages/` shows in both.
   - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
-  - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
-  - A doc shown while the move is pending (`yarn plan-doc open`, `window.mjs show`) waits, then shows beside the
-    session in the window it moved to.
+  - `spell dev window` works in a fresh worktree, before its `yarn install`:  the `spell` link runs the MAIN
+    checkout's CLI, which has its packages.  (`yarn window` couldn't:  yarn runs no script there before `yarn install`.)
+  - A doc shown while the move is pending (`spell dev plan-doc open`, `spell dev window show`) waits, then shows
+    beside the session in the window it moved to.
   - A running epic's plan doc is shared (see "Shared content"):  ONE file, the same in every checkout, so the MAIN
     checkout's page server shows it too, listed in the docs index's Epics section with the merged ones;
-    `yarn server url` gives that URL (`packages/docs/content/server.html`, "Running epics").
+    `spell dev server url` gives that URL (`packages/docs/content/server.html`, "Running epics").
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
-  included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `window.mjs open`.
+  included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `spell dev window open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
 - Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
   worktree, plus a `PARKED-<name>.md` note), `/unpark` to pick it back up, or `/wait-for <other>` to wait for
@@ -141,7 +142,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - Claude edits shared files at their REAL path:  `/Users/owen/www/spell-app/spell-app-dev/<path>` (e.g.
     `.../spell-app-dev/agents/PAPERCUTS.md`), from main or any worktree.  A worktree session's Edit / Write refuses a
     path through the links ("Edit the worktree copy of this file instead of the shared-checkout path":  there is no
-    worktree copy), before any hook could step in.  Reading and tools (`yarn plan-doc`, the page server) use the
+    worktree copy), before any hook could step in.  Reading and tools (`spell dev plan-doc`, the page server) use the
     links as usual.
   - The manifest:  the root `package.json`'s `"shared": { "dir", "links" }`, and `.gitignore`'s
     `# shared:start` ... `# shared:end` block.
@@ -150,10 +151,14 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   `Checkout:` trailers.  Nobody commits those files by hand.
   - NEVER `git add` / `git checkout --` / `git restore` the three paths in spell-app.
   - NEVER run git inside `packages/docs/content` (it's the shared repo there):  run it in the spell-app checkout.
-- `spell dev shared status | init | link | commit | migrate <worktree> [--dry-run]`.
+- `spell dev shared status | init | link | commit | migrate <worktree> | repair` (`--dry-run` on the last two).
   - A new worktree is linked by the `WorktreeCreate` hook.
   - A worktree cut before the cutover runs `spell dev shared migrate <name>` before it merges `main`;  first
     merging `0fc52e02` (main just before the cutover) if it predates the docs move.
+  - After merging a branch from before the docs move:  `spell dev shared repair` moves pages it left at
+    `packages/docs/<x>` into `content/`, and fixes links (and their tab names) written for the old layout.
+- Shared docs may link code another branch has and this one doesn't yet:  `doc-links.js --check` reports those as
+  missing in this checkout.
 - Package windows show `spell-app-dev` as a folder, with its own Source Control:  the auto commits.
 - Searching:  the links are git-ignored.
   - `grep -R` follows them (`grep -r` doesn't);  `rg` needs `-L --no-ignore-vcs`;  or search `../spell-app-dev`.
@@ -180,13 +185,13 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 
 - Three ways to make the repo do something:  the `spell` CLI, Claude skills, yarn scripts.  Their map, one row
   per operation:  `packages/docs/content/dev/commands/commands.html` (data:  `commands.json` beside it;  shown by
-  the page server:  `yarn docs:open dev/commands/commands.html`).
+  the page server:  `spell dev docs open dev/commands/commands.html`).
 - Target:  the CLI drives everything.  Repo tools are `spell dev <noun> <verb>`;  skills keep judgement and dialog
   and call it;  yarn keeps each package's own scripts and aliases the rest.
 - Owen asks for a new skill or `spell` command, or you add a yarn script to solve a problem:  READ
   `packages/docs/content/dev/commands/commands.md`, then SUGGEST, before building:  where it belongs, its name,
   what it replaces, which roadmap move it advances.
-- MUST keep the page true in the same change:  `commands.json`, then `yarn commands:check`.
+- MUST keep the page true in the same change:  `commands.json`, then `spell dev commands check`.
   - `commands.json` / `commands.md` are shared, but the check reads each branch's CLI:  a branch adding a command
     can make main's check fail until it merges (`agents/CODE-DEBT.md`, "docs").
 - Tools are TypeScript (or node JS in `packages/docs/tools`), never python:  one language.  Skills reach them as

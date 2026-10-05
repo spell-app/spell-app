@@ -26,6 +26,8 @@ export const _async = new SpellParser({ module: "async" })
  *   discarded -- NOT the `name:rule` named-group colon.  The `(await|wait for)` keyword itself
  *   stays required.
  * - Bare `await` (no expression) compiles to `await undefined`.
+ * - As a statement it waits for a whole expression;  inside an expression, an operand.
+ *   See `operandInExpressions`.
  * - `await` is a reserved word, so the class is named `_await` -- see `ruleName`.
  * - TODO: add test to make sure parents are made async properly, especially for `await` inside an
  *   if block, etc.
@@ -33,6 +35,8 @@ export const _async = new SpellParser({ module: "async" })
 class _await extends SpellStatement<"expression?"> {
   static ruleName = "await"
   @proto static alias = ["expression", "statement"]
+  /** `wait for x is 1` => `await (x == 1)`, but `if wait for x is 1` => `(await x) == 1` (plan doc D33). */
+  @proto static operandInExpressions = true
 
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
@@ -49,7 +53,9 @@ _async.addRule(_await, {
       tests: [
         ["await", "await undefined"],
         ["wait for 1", "await 1"],
-        ["set the result to wait for 1", "export let result = await 1"]
+        ["set the result to wait for 1", "export let result = await 1"],
+        ["wait for 2 is 1", "await (2 == 1)"],
+        ["if wait for 2 is 1 then print 1", "if (await 2 == 1) { spellCore.console.log(1) }"]
       ]
     },
     {

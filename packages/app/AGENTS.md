@@ -33,7 +33,7 @@ house style every package shares.  Only what's local is below;  a section named 
 - Scripts run HERE (`cd packages/app`):
   - The editor (vite, port 3000 if free, else any) is the PAGE SERVER's child:  `src/server/appRoutes.ts` (a route
     module;  see `packages/server`) starts it with `EditorServer` once the page server listens, and stops it with
-    the page server.  So `yarn server` (repo root) runs the API AND the editor;  its URL is in
+    the page server.  So `spell dev server` (repo root) runs the API AND the editor;  its URL is in
     `<root>/.spell-server.editor.json`, its output in `.spell-server.editor.log`;  `SPELL_NO_EDITOR=1` skips it.
   - `yarn start` -- restarts the page server, then `spell serve --headless` (waits for the editor, prints its URL).
     `yarn stop` stops vite (an orphan, or the page server's:  then restart the page server).
@@ -44,7 +44,7 @@ house style every package shares.  Only what's local is below;  a section named 
     (Solid + `@spell-app/solid-element`) and `spell-ui.js` (`$/ui`, lazy;  its chunks in `ui/`, icon packs beside
     it);  the element / editor / runner builds import them through `sharedSolid()` (`vite.shared.ts`), never
     bundling their own.  `spell-runtime.js` never loads them.  Pinned by `element.build.test.ts`.
-  - `yarn vscode` is NOT here:  it's the repo root's.  `yarn start:lsp` and `yarn scopes` are in `../lsp`.
+  - `spell dev vscode` is NOT here:  it's the repo root's.  `yarn start:lsp` and `yarn scopes` are in `../lsp`.
 - `src/ui/monaco/` is the app's Monaco plumbing (no UI), whose language features call the SAME
   `LSP.SpellLanguageService` in-process (so `$/lsp` stays browser-safe:  `../lsp/AGENTS.md`).  The editors on it
   are Solid, `src/solid/monaco/` (`MonacoEditor`, `FileEditor`), whose barrel re-exports the plumbing.

@@ -203,6 +203,27 @@ export class Match<
   }
 
   ////////////////////
+  // ## Datatype
+  ////////////////////
+
+  /**
+   * What we ARE, in spell's words, e.g. `text`, `list of cards`, `Card` -- `undefined` if unknown.
+   * - Memoized `rule.getDatatype()`, worked out the first time someone asks:  most matches are never asked.
+   * - Rules which need a scope lookup for it do that WHILE PARSING, into `data` -- see `P.Rule.getDatatype()`.
+   */
+  get datatype(): P.Datatype | undefined {
+    // NOTE: memoize "unknown" as `null`:  `?? undefined` here would ask `getDatatype()` again on every read
+    if (this._datatype === undefined) this._datatype = this.rule.getDatatype(this) ?? null
+    return this._datatype ?? undefined
+  }
+  /**
+   * Memo for `datatype`:
+   * - `undefined`:  not worked out yet
+   * - `null`:  worked out, and unknown
+   */
+  declare private _datatype: P.Datatype | null | undefined
+
+  ////////////////////
   // ## Match groups
   ////////////////////
 

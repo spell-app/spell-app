@@ -308,9 +308,20 @@ describe("SpellLanguageService", () => {
     const hover = (file: SP.SpellFile, position: Position) =>
       (service.hover(file, position)!.contents as { value: string }).value
     // `get a new foundation ...` then `add it to the foundations`, for the second foundation
-    expect(hover(solitaire, at(solitaire, 35, "it"))).toContain("variable **it** · as `it_2`")
+    expect(hover(solitaire, at(solitaire, 35, "it"))).toContain("variable **it**: Foundation · as `it_2`")
     // the signature of `to turn (a card) face up`
     expect(hover(card, at(card, 60, "turn"))).toContain("compiles to `turn_face_up()`")
+  })
+
+  test("hover says what a variable holds:  an argument, a loop's item, `it`", () => {
+    const hover = (file: SP.SpellFile, position: Position) =>
+      (service.hover(file, position)!.contents as { value: string }).value
+    // `a stock-pile "can pick up (a card)" if: the card is its bottom card`
+    expect(hover(solitaire, at(solitaire, 17, "card", 1))).toContain("variable **card**: Card · argument")
+    // `for each card in the deck` / `move it to the stock`:  the loop's item
+    expect(hover(solitaire, at(solitaire, 61, "it"))).toContain("variable **it**: Card")
+    // `to turn (a card) over:` / `if its direction is up: turn it face down`
+    expect(hover(card, at(card, 70, "it", 1))).toContain("variable **it**: Card")
   })
 
   /**
@@ -368,10 +379,11 @@ describe("SpellLanguageService", () => {
         await typed("set y t", (items) => expect(labels(items)).toContain("to"))
       })
 
-      test("`a thingy is a ` => types, and ONLY types", async () => {
+      test("`a thingy is a ` => types, and ONLY types -- or the words of a list type", async () => {
         await typed("a thingy is a ", (items) => {
           expect(labels(items)).toEqual(expect.arrayContaining(["card", "deck", "pile"]))
-          expect(items.every(({ kind }) => kind === CompletionItemKind.Class)).toBe(true)
+          const others = items.filter(({ kind }) => kind !== CompletionItemKind.Class)
+          expect(labels(others)).toEqual(["exclusive", "list"])
         })
       })
 
@@ -428,12 +440,151 @@ describe("SpellLanguageService", () => {
       test("not in a method call => nothing", async () => {
         await help("set y ", (result) => expect(result).toBeNull())
       })
+
+      test("a paren-free method:  its arguments are its `a <type>`s, as written", async () => {
+        await withParenFreeMethod(async () => {
+          await help("deal ", (result) =>
+            expect(result).toEqual({ label: "deal a card onto a pile", active: "a card" })
+          )
+          await help("deal the top card of stock onto ", (result) => expect(result?.active).toBe("a pile"))
+        })
+      })
+
+      test("...inside an expression too, where the call is an operand", async () => {
+        await withParenFreeMethod(async () => {
+          await help("set y to deal the top card of stock onto ", (result) =>
+            expect(result).toEqual({ label: "deal a card onto a pile", active: "a pile" })
+          )
+        })
+      })
+    })
+
+    describe("a paren-free method", () => {
+      test("comes as a snippet, its placeholders named for its parameters", async () => {
+        await withParenFreeMethod(() => {
+          // on the empty line after it:  a method is only visible after its definition
+          const after = solitaire.parseText.split("\n").length - 1
+          const item = service
+            .completion(solitaire, { line: after, character: 0 })
+            .find(({ label }) => label === "deal a card onto a pile")
+          expect(item).toMatchObject({ insertText: "deal ${1:card} onto ${2:pile}", insertTextFormat: 2 })
+        })
+      })
+
+      test("its arguments' types are parameters, the words between them its name", async () => {
+        await withParenFreeMethod(() => {
+          // the line before the final newline
+          const last = solitaire.parseText.split("\n").length - 1
+          expect(describeTokens(solitaire, [last]).slice(0, 7)).toEqual([
+            `${last}:0 "to" keyword`,
+            `${last}:3 "deal" function declaration`,
+            `${last}:8 "a" keyword`,
+            `${last}:10 "card" parameter declaration`,
+            `${last}:15 "onto" function declaration`,
+            `${last}:20 "a" keyword`,
+            `${last}:22 "pile" parameter declaration`
+          ])
+        })
+      })
     })
 
     test("mid-statement:  names, but no statement starts", () => {
       const labels = service.completion(solitaire, at(solitaire, 87, "the bottom")).map(({ label }) => label)
       expect(labels).toEqual(expect.arrayContaining(["game", "stock", "card"]))
       expect(labels).not.toContain("to")
+    })
+  })
+
+  describe("multi-word members", () => {
+    // a getter named by several words -- `short` is on the identifier blacklist -- and a card's test reading it
+    const added = [
+      "the short colour of a card is: its color",
+      "to test short colour",
+      "\tthe card is a new card",
+      "\tprint the short colour of the card"
+    ]
+    const text = `${cardText.trimEnd()}\n${added.join("\n")}\n`
+    const lineOf = (line: string) => text.split("\n").indexOf(line) + 1
+    const getterLine = lineOf(added[0]!)
+    const readLine = lineOf(added[3]!)
+
+    test("hover, on any of its words:  the property, as written", async () => {
+      await withCardText(text, () => {
+        expect(service.diagnostics(card)).toEqual([])
+        for (const word of ["short", "colour"]) {
+          const markdown = (service.hover(card, at(card, readLine, word))!.contents as { value: string }).value
+          expect(markdown).toContain("property **short colour** of Card")
+        }
+      })
+    })
+
+    test("go to definition:  its words in the getter", async () => {
+      await withCardText(text, () => {
+        expect(service.definition(card, at(card, readLine, "colour"))).toEqual([
+          {
+            uri: cardUri,
+            range: { start: { line: getterLine - 1, character: 4 }, end: { line: getterLine - 1, character: 16 } }
+          }
+        ])
+      })
+    })
+
+    test("its type's hover lists it as written", async () => {
+      await withCardText(text, () => {
+        const markdown = (service.hover(card, at(card, 2, "card"))!.contents as { value: string }).value
+        expect(markdown).toMatch(/properties: .*short colour/)
+      })
+    })
+
+    test("completion after `the ` offers properties, as written", async () => {
+      await typedAtEnd("print the ", (position) => {
+        const properties = service
+          .completion(solitaire, position)
+          .filter(({ kind }) => kind === CompletionItemKind.Property)
+          .map(({ label }) => label)
+        expect(properties).toEqual(expect.arrayContaining(["short-suit", "direction", "pile"]))
+      })
+    })
+  })
+
+  describe("built-in members (from `SP.BUILT_IN_TYPE_TABLE`)", () => {
+    // a text's `length`, a list's `length`, and a built-in rule which spells a list's member
+    const added = [
+      'set the title to "Solitaire"',
+      "print the length of the title",
+      "set the hand to a new list",
+      "shuffle the hand"
+    ]
+    const text = `${cardText.trimEnd()}\n${added.join("\n")}\n`
+    const lineOf = (line: string) => text.split("\n").indexOf(line) + 1
+
+    test("hover on a member:  which type's it is, what it is, and its docs", async () => {
+      await withCardText(text, () => {
+        expect(service.diagnostics(card)).toEqual([])
+        const markdown = (service.hover(card, at(card, lineOf(added[1]!), "length"))!.contents as { value: string })
+          .value
+        expect(markdown).toContain("property **length** of Text · a number")
+        expect(markdown).toContain("How many characters it has")
+      })
+    })
+
+    test("hover on a built-in rule:  the member it spells, with its docs", async () => {
+      await withCardText(text, () => {
+        const markdown = (service.hover(card, at(card, lineOf(added[3]!), "shuffle"))!.contents as { value: string })
+          .value
+        expect(markdown).toContain("built in:  **shuffle (a list)** of list")
+        expect(markdown).toContain("Put it in random order")
+      })
+    })
+
+    test("completion after `the ` offers them, with their docs -- each type's", async () => {
+      await typedAtEnd("print the ", (position) => {
+        const length = service.completion(solitaire, position).find(({ label }) => label === "length")!
+        expect(length.detail).toBe("property of List, Text")
+        const docs = (length.documentation as { value: string }).value
+        expect(docs).toMatch(/^\*\*List\*\*:  How many items/)
+        expect(docs).toContain("**Text**:  How many characters")
+      })
     })
   })
 
@@ -503,13 +654,13 @@ describe("SpellLanguageService", () => {
 
     test("a line that didn't parse => define a method it would call, its expressions as parameters", async () => {
       await fixes("juggle the deck 3 times", (titles) => {
-        expect(titles).toEqual(["Define `to juggle (a deck) (number) times`"])
+        expect(titles).toEqual(["Define `to juggle a deck (number) times`"])
       })
     })
 
     test("...which goes above the line's top-level statement, and makes the line parse", async () => {
       await fixes("juggle the deck 3 times", async (_titles, fixed) => {
-        expect(fixed).toMatch(/\nto juggle \(a deck\) \(number\) times:\n\t\/\/ TODO\n\njuggle the deck 3 times$/)
+        expect(fixed).toMatch(/\nto juggle a deck \(number\) times:\n\t\/\/ TODO\n\njuggle the deck 3 times$/)
         await workspace.update(solitaireUri, fixed!)
         expect(service.diagnostics(solitaire)).toEqual([])
       })
@@ -518,7 +669,7 @@ describe("SpellLanguageService", () => {
     test("a statement that parsed, with words left over => the statement AND its leftovers", async () => {
       // `shuffle the deck` is the built-in `shuffle {list}`, leaving `3 times`
       await fixes("shuffle the deck 3 times", async (titles, fixed) => {
-        expect(titles).toEqual(["Define `to shuffle (a deck) (number) times`"])
+        expect(titles).toEqual(["Define `to shuffle a deck (number) times`"])
         await workspace.update(solitaireUri, fixed!)
         expect(service.diagnostics(solitaire)).toEqual([])
       })
@@ -526,7 +677,7 @@ describe("SpellLanguageService", () => {
 
     test("...an inline body's statement too, NOT the line's", async () => {
       await fixes("if stock: shuffle the deck 3 times", async (titles, fixed) => {
-        expect(titles).toEqual(["Define `to shuffle (a deck) (number) times`"])
+        expect(titles).toEqual(["Define `to shuffle a deck (number) times`"])
         await workspace.update(solitaireUri, fixed!)
         expect(service.diagnostics(solitaire)).toEqual([])
       })
@@ -605,6 +756,50 @@ describe("SpellLanguageService", () => {
     expect(card.contents).toBe(cardText)
     expect(service.diagnostics(card)).toEqual([])
   })
+
+  describe("exclusive lists", () => {
+    // the fixture's piles made exclusive, the way the live examples are:  `the pile of a card` comes from that line
+    const pileUri = pathToFileURL(resolve(dir, "Solitaire/Pile.spell")).href
+    const pileText = readFileSync(resolve(dir, "Solitaire/Pile.spell"), "utf8")
+    const exclusive = pileText
+      .replace("a pile is a list of cards", "a pile is an exclusive list of cards")
+      .replace(/\n\tif the pile of the card is defined: .*\n\tset the pile of the card to the pile/, "")
+    const readLine = solitaireLineOf("\t\tset start-pile to the pile of the card")
+
+    test("hover on `the pile of the card`:  the pile holding it, from the exclusive list's line", async () => {
+      await withText(pileUri, pileText, exclusive, () => {
+        for (const file of card.project.spellFiles) expect(service.diagnostics(file), file.path).toEqual([])
+        const markdown = (service.hover(solitaire, at(solitaire, readLine, "pile", 1))!.contents as { value: string })
+          .value
+        expect(markdown).toContain("property **pile** of Card · a Pile · the Pile holding it, read-only")
+        expect(markdown).toMatch(/declared in \[Pile\.spell:2\]/)
+      })
+    })
+
+    test("go to definition:  the exclusive list's line", async () => {
+      await withText(pileUri, pileText, exclusive, () => {
+        const [location] = service.definition(solitaire, at(solitaire, readLine, "pile", 1))
+        expect(location?.uri).toBe(pileUri)
+        expect(location?.range.start.line).toBe(1)
+      })
+    })
+
+    /** 1-based line of `line` in Solitaire.spell. */
+    function solitaireLineOf(line: string): number {
+      return readFileSync(resolve(dir, "Solitaire/Solitaire.spell"), "utf8").split("\n").indexOf(line) + 1
+    }
+  })
+
+  /** Run `check` with `to deal a card onto a pile` added to the end of Solitaire.spell, then ALWAYS take it out. */
+  async function withParenFreeMethod(check: () => void | Promise<void>) {
+    const original = solitaire.contents!
+    try {
+      await workspace.update(solitaireUri, `${original.trimEnd()}\nto deal a card onto a pile: print 1\n`)
+      await check()
+    } finally {
+      await workspace.update(solitaireUri, original)
+    }
+  }
 
   /** Run `check` with Card.spell's open text set to `text`, then ALWAYS put the original back. */
   function withCardText(text: string, check: (changed: SP.SpellFile[]) => void) {

@@ -20,11 +20,21 @@ export type SiteProperty = {
 }
 
 /**
- * Every property, in header order (Owen, 2026-10-03:  Goals before Spell UI;  no Epics tab:  plan docs are docs,
- * and the docs index lists them).
+ * Every property, in header order (Owen, 2026-10-03:  Goals before Spell UI;  2026-10-04:  the Epics tab is back,
+ * after a day without:  the docs index's Epics section, lit on plan docs).
+ * - Docs leaves plan docs to Epics:  the first match wins
  */
 export const PROPERTIES: SiteProperty[] = [
-  { name: "Docs", path: "packages/docs/content/index.html", match: (path) => /\/packages\/docs\//.test(path) },
+  {
+    name: "Docs",
+    path: "packages/docs/content/index.html",
+    match: (path) => /\/packages\/docs\//.test(path) && !/\/packages\/docs\/content\/epics\//.test(path)
+  },
+  {
+    name: "Epics",
+    path: "packages/docs/content/index.html#epics",
+    match: (path) => /\/packages\/docs\/content\/epics\//.test(path)
+  },
   { name: "Goals", path: "goals/index.html", match: (path) => /\/goals\//.test(path) },
   {
     name: "Spell UI",

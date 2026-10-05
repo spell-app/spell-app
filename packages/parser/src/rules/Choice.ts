@@ -1,8 +1,9 @@
+import { itemsWithHighest } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { Rule } from "./Rule"
 
-/** Turn on debugging of choice / precedence semantics. */
+/** Turn on debugging of choice / priority semantics. */
 const DEBUG_CHOICES = false
 
 /**
@@ -116,7 +117,7 @@ export class Choice<
       } else {
         console.debug(`${CHOICE} matched:`)
         matches.forEach((nextMatch, index) => {
-          console.debug(`   #${index}: (len: ${nextMatch.length}, prec: ${nextMatch.rule.precedence}): `, match)
+          console.debug(`   #${index}: (len: ${nextMatch.length}, priority: ${nextMatch.rule.priority}): `, match)
         })
       }
     }
@@ -133,7 +134,7 @@ export class Choice<
 
   /**
    * Return the "best" match given more than one matches at the head of the tokens.
-   * - First we find the match(es) with the highest precedence.
+   * - First we find the match(es) with the highest `priority`.
    * - Then we take the one with the longest matched string.
    * - If more than one rule with same length, takes the EARLIEST one -- so in a `(a|b)` choice, `a` wins a tie,
    *   and in a `Group` of same-named rules the FIRST-registered wins.  Pinned by `Rule.test.ts`.
@@ -142,24 +143,14 @@ export class Choice<
   getBestMatch(matches: P.Match[]) {
     if (matches.length === 1) return matches[0]
 
-    // Filter to rules with highest precedence.
-    // NOTE: forwards, so `highPriority` keeps `matches` order (earliest first)
-    let match
-    let highPriority: P.Match[] = []
-    for (let max = -Infinity, i = 0; (match = matches[i++]);) {
-      const { precedence } = match.rule
-      if (precedence > max) {
-        max = precedence
-        highPriority = [match]
-      } else if (precedence === max) {
-        highPriority.push(match)
-      }
-    }
+    // rules with the highest priority, in `matches` order (earliest first)
+    const highPriority = itemsWithHighest(matches, (it) => it.rule.priority)
 
     if (highPriority.length === 1) return highPriority[0]
 
     // Longest wins;  scanning backwards with `>=` means an equally-long EARLIER match replaces a later one,
     // so ties end up on the earliest.
+    let match
     let longest
     for (let i = highPriority.length; (match = highPriority[--i]);) {
       if (!longest || match.length >= longest.length) longest = match

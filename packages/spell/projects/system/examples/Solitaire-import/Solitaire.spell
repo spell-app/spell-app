@@ -14,21 +14,21 @@ set tableaus to a new list of piles
 
 // set up stock pile: unplayed cards
 a stock-pile is a pile
-a stock-pile "can pick up (a card)" if: the card is its bottom card 
+a stock-pile "can pick up a card" if: the card is its bottom card 
 set the stock to a new stock-pile with name = "stock", droppable = no
 add the stock to all-piles
 
 // set up discards: where played cards go when turning over stock
 a discard-pile is a pile
-a discard-pile "can pick up (a card)" if: the card is its bottom card 
+a discard-pile "can pick up a card" if: the card is its bottom card 
 set discards to a new discard-pile with name = "discards", droppable = no
 add discards to all-piles
 
 // set up foundation piles: where we build up from ace => king
 a foundation is a pile
-a foundation "can pick up (a card)": never
-a foundation "can play (a card)" if: 
-	return (its name is the suit of the card) and (its value + 1 is the value of the card)
+a foundation "can pick up a card": never
+a foundation "can play a card" if: 
+	return its name is the suit of the card and its value + 1 is the value of the card
 get a new foundation with name = clubs, symbol = "♣️", droppable = yes
 add it to the foundations
 get a new foundation with name = diamonds, symbol = "♦️", droppable = yes
@@ -42,8 +42,8 @@ for each pile in the foundations
 
 // set up tableau piles: vertical piles where we arrange from king to ace
 a tableau is a pile
-a tableau "can pick up (a card)" if: the card is face up
-a tableau "can play (a card)" if: 
+a tableau "can pick up a card" if: the card is face up
+a tableau "can play a card" if: 
 	if the tableau is empty
 		return the card is a king
 	return its color is not the color of the card and its value is the value of the card + 1
@@ -91,7 +91,7 @@ animation play from the stock pile
 
 animation deal the cards
 	// pull all cards into stock with a nice animation
-	set cards to (merge all-piles into a new pile)
+	set cards to merge all-piles into a new pile
 	reverse the cards
 	for each card in the cards
 		set start-pile to the pile of the card
@@ -102,13 +102,13 @@ animation deal the cards
 	
 	// deal cards into tableaus
 	for row from 1 to 7
-		turn (the bottom card of the stock) face up
+		turn the bottom card of the stock face up
 		for column from row to 7
 			wait for: move the bottom card of the stock to item column of the tableaus
 
 	wait for: play from the stock pile
 
-to play (a card)
+to play a card
 	set start-pile to the pile of the card
 	if start-pile cannot pick up the card return no
 	
@@ -120,7 +120,7 @@ to play (a card)
 	set end-pile to the first pile in droppable-piles
 	if there is not an end-pile return no
 
-	set cards-to-move to (cards in start-pile starting with the card)
+	set cards-to-move to cards in start-pile starting with the card
 	set the name of cards-to-move to the name of the start-pile
 	print "moving (" + the state of cards-to-move + ") to (" + the state of end-pile + ")"
 		
@@ -152,7 +152,7 @@ to auto-play
 	for each pile in the tableaus
 		if the pile is empty return
 		set test-card to the last card in the pile
-		set foundation to the first pile in (piles in foundations where the name of the pile is the suit of test-card)
+		set foundation to the first pile in piles in foundations where the name of the pile is the suit of test-card
 		if the foundation can play test-card
 			set anything-changed to yes
 			await play test-card
@@ -163,7 +163,7 @@ to auto-play
 		set face-up-cards to the cards in the pile where the card is face up
 		if face-up-cards is empty return
 		set test-card to the first card in face-up-cards
-		if (test-card is a king) and (test-card is the first card of the pile) return
+		if test-card is a king and test-card is the first card of the pile return
 		if await play test-card
 			set anything-changed to yes
 			pause for 500 msec
@@ -190,8 +190,8 @@ to cheat
 
 // note: tableaus just draw as a (vertical) list of cards
 
-to draw (a foundation):
-	set color to "red" if (its name is diamonds or its name is hearts) otherwise "black"
+to draw a foundation:
+	set color to "red" if its name is diamonds or its name is hearts otherwise "black"
 	return <div className="Pile Foundation stacked">
 		<div className={"Placeholder ui button basic compact fluid " + color + " " + its name}>
 			<div className={"suit " + its name}>{its symbol}</div>
@@ -199,23 +199,23 @@ to draw (a foundation):
 		{draw its bottom card}
 	</div>
 
-to draw (a tableau):
+to draw a tableau:
 	return <div className="Pile Tableau staggered">
 		{draw cards in it}
 	</div>
 
-to draw (a stock-pile):
+to draw a stock-pile:
 	return <div className="Pile Stock stacked">
 		<div className="Placeholder ui button basic compact fluid" onClick={play from the stock pile}/>
 		{draw its bottom card}
 	</div>
 
-to draw (a discard-pile):
+to draw a discard-pile:
 	return <div className="Pile Discards stacked">
 		{draw its bottom card}
 	</div>
 
-to draw (a game)
+to draw a game
  	return <div className="ui container">
 		<div className="board">
 			<table className="ui table fixed">

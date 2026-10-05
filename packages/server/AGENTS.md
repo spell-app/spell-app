@@ -30,7 +30,7 @@ house style every package shares.  Only what's local is below;  a section named 
   anything may import it -- `ui`'s tools and site, `spell/node`, `cli`, `app`, `docs`, `goals`, the VS Code
   extension.
 - NOT in the barrel, opt-in by path (WWOD §8 › "Barrels"):
-  - `$/server/page/...` -- the page server (one per checkout), its CLI (`yarn server`), page edits, running epics
+  - `$/server/page/...` -- the page server (one per checkout), its CLI (`spell dev server`), page edits, running epics
     (`RunningEpics`:  the main checkout's server shows every worktree's plan doc);  may use deps (`parse5`).  It serves
     the repo at `/`, and Spell UI's docs, `packages/ui/site/`, as static pages at `/ui/` (`UI_SITE`, `page.types.ts`;
     no dev server:  they load the committed bundle `yarn site:build` writes)

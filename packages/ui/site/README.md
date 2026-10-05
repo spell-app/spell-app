@@ -13,12 +13,12 @@ gap in the library, recorded in the plan doc of epic `spell-ui-pages` (`packages
 From the repo root:
 
 ```sh
-yarn serve                                   # starts the page server (and the editor);  prints its URL
-yarn server url "$PWD/packages/ui/site/index.html"   # the URL of one page (starts the server if needed)
+spell dev server start --all                             # starts the page server (and the editor);  prints its URL
+spell dev server url "$PWD/packages/ui/site/index.html"  # the URL of one page (starts the server if needed)
 ```
 
 Pages are `<base>/ui/`, `<base>/ui/components/ui-button.html` ...  The page server reloads an open page when it, its
-parts, its data or the bundle changes.  `yarn server stop` stops it.
+parts, its data or the bundle changes.  `spell dev server stop` stops it.
 
 ## Layout
 
