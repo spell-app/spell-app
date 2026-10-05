@@ -6,14 +6,18 @@ import type { SiteFoundationGroup } from "../src/docs-components/docs-components
 import type { DesignSkip, DesignTokenRow, DesignTokensFile, DesignTypeStyle, ThemedValue } from "./tools.types.ts"
 
 /**
- * The design system's `tokens.json` (claude.ai's Design System format, LIST shape), from the Spell theme as it
- * ships:  every `:root` custom property of the foundation sheets, then `themes/classic.css`, then `themes/spell.css`
- * (the order `ThemeSheets.apply("spell")` stacks them), each resolved for a light and a dark theme.
+ * The design system's `tokens.json` (claude.ai's Design System format, LIST shape), from the `spell-brand` theme as
+ * it ships:  every `:root` custom property of the foundation sheets, then `themes/classic.css`, then
+ * `themes/spell-brand.css` (the order `ThemeSheets.apply("spell-brand")` stacks them), each resolved for a light and a
+ * dark theme.
+ * - Why `spell-brand`, not `spell`:  it's the brand (epic `claude-design`, P11):  the docs wear it, the design bundle
+ *   applies it, and the `<ui-brand-*>` cards read its brand roles (`--spell-surface-warm` ...).
  * - Colours:  `light-dark()` picks the theme;  a value that's just `var(--x)` of another exported colour becomes the
  *   alias `{x}`;  hex / `rgb()` / `oklch()` of numbers stay as written;  anything computed (relative `oklch(from ...)`,
  *   `color-mix()`) is worked out (`DesignColor`) and written as hex
  * - Names:  the property without `--ui-` / `--spell-` (`--ui-primary` => `primary`, `--spell-violet-500` =>
- *   `violet-500`).  Why:  the system compiles `tokens.css` as UNLAYERED `:root` rules, which would beat our
+ *   `violet-500`);  a brand role named like a `--ui-*` token (`--spell-accent` beside `--ui-accent`) gets `brand-`
+ *   (`brand-accent`), so names stay unique.  Why no prefix:  the system compiles `tokens.css` as UNLAYERED `:root` rules, which would beat our
  *   `@layer`ed tokens of the same name and freeze them at one theme's value (`light-dark()` gone);  different names
  *   leave the live elements alone.  Each row's `usage` names the property it mirrors.
  * - What can't be resolved (`currentColor`, an unknown function) is left out and listed in `skipped`, for the
@@ -28,6 +32,8 @@ export class DesignTokens {
   readonly values = new Map<string, string>()
   /** what couldn't be exported, and why */
   readonly skipped: DesignSkip[] = []
+  /** export names that aren't `exportName()`'s:  a `--spell-*` brand role whose plain name a `--ui-*` token has */
+  private readonly renamed = new Map<string, string>()
 
   constructor(stylesFolder: string, foundation: readonly SiteFoundationGroup[]) {
     this.stylesFolder = stylesFolder
@@ -35,6 +41,10 @@ export class DesignTokens {
     for (const sheet of SHEETS) {
       for (const { name, value } of DesignTokens.rootDeclarations(readFileSync(join(stylesFolder, sheet), "utf8")))
         this.values.set(name, value.replace(/\s+/g, " ").trim())
+    }
+    for (const name of this.values.keys()) {
+      const plain = DesignTokens.exportName(name)
+      if (name.startsWith("--spell-") && this.values.has(`--ui-${plain}`)) this.renamed.set(name, `brand-${plain}`)
     }
   }
 
@@ -80,7 +90,7 @@ export class DesignTokens {
         continue
       }
       rows.push({
-        name: DesignTokens.exportName(name),
+        name: this.exported(name),
         value: DesignTokens.themed(values as string[]),
         usage: this.usage(name)
       })
@@ -119,7 +129,7 @@ export class DesignTokens {
     if (raw === undefined) return undefined
     const picked = DesignTokens.pickTheme(raw, theme)
     const alias = /^var\(\s*(--[\w-]+)\s*\)$/.exec(picked)?.[1]
-    if (alias && exported.has(alias) && alias !== name) return `{${DesignTokens.exportName(alias)}}`
+    if (alias && exported.has(alias) && alias !== name) return `{${this.exported(alias)}}`
     if (DesignColor.isPlain(picked)) return picked.startsWith("#") ? picked.toLowerCase() : picked
     const color = this.resolve(picked, theme)
     return color && DesignColor.toHex(color)
@@ -288,7 +298,7 @@ export class DesignTokens {
       const amount = parseFloat(match[1]!)
       const px = match[2] === "em" ? `${Math.round(amount * base * 100) / 100}px` : match[2] ? value! : `${amount}px`
       const usage = match[2] === "em" ? `\`${name}\` (${value} at the ${base}px base)` : `\`${name}\``
-      tokens.push({ name: DesignTokens.exportName(name), value: px, usage: this.usage(name, usage) })
+      tokens.push({ name: this.exported(name), value: px, usage: this.usage(name, usage) })
     }
     return { note, tokens }
   }
@@ -304,7 +314,7 @@ export class DesignTokens {
         continue
       }
       tokens.push({
-        name: DesignTokens.exportName(name),
+        name: this.exported(name),
         value: DesignTokens.themed(values as string[]),
         usage: this.usage(name)
       })
@@ -341,7 +351,7 @@ export class DesignTokens {
         this.skip(name, "other", `not a plain value:  \`${this.values.get(name)}\``)
         continue
       }
-      tokens.push({ name: DesignTokens.exportName(name), value, usage: this.usage(name) })
+      tokens.push({ name: this.exported(name), value, usage: this.usage(name) })
     }
     return { note, tokens }
   }
@@ -388,12 +398,17 @@ export class DesignTokens {
       const token = group.tokens.find((entry) => entry.name === name)
       if (token?.description) return `${lead}:  ${token.description}`
     }
-    if (name.startsWith("--spell-")) return `${lead}:  a Spell palette step (\`themes/spell.css\`).`
+    if (name.startsWith("--spell-")) return `${lead}:  a Spell palette step or brand role (\`themes/spell-brand.css\`).`
     return lead
   }
 
+  /** The exported token name of custom property `name`:  `exportName()`'s, unless a clash renamed it. */
+  private exported(name: string): string {
+    return this.renamed.get(name) ?? DesignTokens.exportName(name)
+  }
+
   /**
-   * The exported token name of custom property `name`:  without `--`, and without `ui-` / `spell-`.
+   * The plain exported token name of custom property `name`:  without `--`, and without `ui-` / `spell-`.
    * - NOTE: why not the property's own name:  the class header.
    */
   static exportName(name: string): string {
@@ -490,5 +505,5 @@ export type Theme = (typeof THEMES)[number]
 /** The two themes, light FIRST (the format reads a plain string, and anything missing, from the first). */
 const THEMES = ["light", "dark"] as const
 
-/** The sheets `ThemeSheets.apply("spell")` stacks, in cascade order (later wins), relative to `src/styles/`. */
-const SHEETS = ["tokens.css", "sizes.css", "colors.css", "themes/classic.css", "themes/spell.css"] as const
+/** The sheets `ThemeSheets.apply("spell-brand")` stacks, in cascade order (later wins), relative to `src/styles/`. */
+const SHEETS = ["tokens.css", "sizes.css", "colors.css", "themes/classic.css", "themes/spell-brand.css"] as const

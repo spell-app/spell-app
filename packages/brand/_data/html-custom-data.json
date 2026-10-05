@@ -1,0 +1,876 @@
+{
+  "version": 1.1,
+  "tags": [
+    {
+      "name": "ui-brand-blob",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand blob tucks one soft lavender shape into a corner of its parent, never behind body text.\n\nAlso known as:  blob, corner blob, decoration, background shape, motif."
+      },
+      "attributes": [
+        {
+          "name": "corner",
+          "description": {
+            "kind": "markdown",
+            "value": "Which corner of the parent:  `top-left`, `top-right`, `bottom-left`, `bottom-right`.\n\nTakes:  `top-left` · `top-right` · `bottom-left` · `bottom-right`\nDefault:  `bottom-right`"
+          },
+          "values": [
+            {
+              "name": "top-left"
+            },
+            {
+              "name": "top-right"
+            },
+            {
+              "name": "bottom-left"
+            },
+            {
+              "name": "bottom-right"
+            }
+          ]
+        },
+        {
+          "name": "shape",
+          "description": {
+            "kind": "markdown",
+            "value": "`organic` (a soft egg), `mound` (a hill rising from the edge, flat side out) or `wave` (a corner wash with an S-curved edge, as the Brand Montage poster's;  flush in its corner, no overhang by default).\n\nTakes:  `organic` · `mound` · `wave`\nDefault:  `organic`"
+          },
+          "values": [
+            {
+              "name": "organic"
+            },
+            {
+              "name": "mound"
+            },
+            {
+              "name": "wave"
+            }
+          ]
+        },
+        {
+          "name": "tone",
+          "description": {
+            "kind": "markdown",
+            "value": "Colour:  `blob` (lavender), `blob-2` (paler, grey-blue), `lilac`, `violet` (between the two), `current` (`currentColor`).\n\nTakes:  `blob` · `blob-2` · `lilac` · `violet` · `current`\nDefault:  `blob`"
+          },
+          "values": [
+            {
+              "name": "blob"
+            },
+            {
+              "name": "blob-2"
+            },
+            {
+              "name": "lilac"
+            },
+            {
+              "name": "violet"
+            },
+            {
+              "name": "current"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-check",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand check is one line of a checklist:  a round mark, filled with a check once done, and its text.\n\nAlso known as:  check item, to-do, todo, task, habit, progress step, check mark.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
+      },
+      "attributes": [
+        {
+          "name": "state",
+          "description": {
+            "kind": "markdown",
+            "value": "Progress:  `done` (filled, a check), `active` (soft, pulsing) or `pending` (an empty ring, subtle text).  A checklist's `step` overrides it.\n\nTakes:  `done` · `active` · `pending`\nDefault:  `pending`"
+          },
+          "values": [
+            {
+              "name": "done"
+            },
+            {
+              "name": "active"
+            },
+            {
+              "name": "pending"
+            }
+          ]
+        },
+        {
+          "name": "selected",
+          "description": {
+            "kind": "markdown",
+            "value": "Ticked:  done.  What a `checkable` check toggles;  `ui-change` first.  Alias:  `checked` (attribute and property).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "checkable",
+          "description": {
+            "kind": "markdown",
+            "value": "A checkbox the user ticks (click, Space, Enter):  done once ticked, the text struck through.  Inherited from a `checkable` checklist.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "font",
+          "description": {
+            "kind": "markdown",
+            "value": "Text:  `sans` (14px) or `serif` (15px);  default the checklist's, else `sans`.\n\nTakes:  `sans` · `serif`"
+          },
+          "values": [
+            {
+              "name": "sans"
+            },
+            {
+              "name": "serif"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-checklist",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand checklist shows a build's progress step by step, or a list of things to tick off, each with a round mark.\n\nAlso known as:  checklist, to-do list, todo list, task list, progress list, habit list, stepper.\n\n**Slots:**  default"
+      },
+      "attributes": [
+        {
+          "name": "step",
+          "description": {
+            "kind": "markdown",
+            "value": "Progress:  checks before index `step` (from 0) are done, the one at `step` is active, the rest pending;  `step` at or past the last check marks them all done.  Unset:  each check's own `state`.\n\nTakes:  number"
+          }
+        },
+        {
+          "name": "checkable",
+          "description": {
+            "kind": "markdown",
+            "value": "Every check is a checkbox the user ticks (click, Space, Enter);  `step` is ignored.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "font",
+          "description": {
+            "kind": "markdown",
+            "value": "Text:  `sans` (14px, 20px marks, the build progress) or `serif` (15px, 19px marks, the phone's habits).\n\nTakes:  `sans` · `serif`\nDefault:  `sans`"
+          },
+          "values": [
+            {
+              "name": "sans"
+            },
+            {
+              "name": "serif"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-color",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand color is a square colour chip:  a label inside, an AA mark, a selected ring, a details tip;  click to copy.\n\nAlso known as:  swatch, color chip, colour chip, color swatch, color sample, color tile.\n\n**Events:**  `ui-copy`"
+      },
+      "attributes": [
+        {
+          "name": "value",
+          "description": {
+            "kind": "markdown",
+            "value": "The colour:  `#RRGGBB`, `#RGB`, `R G B` (0-255) or `oklch(67.7% 0.047 274)`.  Anything else draws no colour.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "name",
+          "description": {
+            "kind": "markdown",
+            "value": "Token or step name (`brand-500`):  names the chip, and what `copy=\"token\"` copies.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Text inside the chip, bottom-left:  `hex` (`8E96B5`), `oklch` (`68 0.05 274`), `name`, or `step` (`500`, the name's last number).  In white or ink, whichever reads better.\n\nTakes:  `none` · `hex` · `oklch` · `name` · `step`\nDefault:  `none`"
+          },
+          "values": [
+            {
+              "name": "none"
+            },
+            {
+              "name": "hex"
+            },
+            {
+              "name": "oklch"
+            },
+            {
+              "name": "name"
+            },
+            {
+              "name": "step"
+            }
+          ]
+        },
+        {
+          "name": "contrast",
+          "description": {
+            "kind": "markdown",
+            "value": "Marks the chip `AA` when white or ink text on it passes 4.5:1.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "copy",
+          "description": {
+            "kind": "markdown",
+            "value": "Click copies the colour:  `hex` (bare `copy` too), `oklch`, `token` (`var(--brand-500)`) or `css` (`--brand-500: #8E96B5;`).  The chip becomes a button, named \"Copy <name>\".\n\nTakes:  flag, or `hex` · `oklch` · `token` · `css`"
+          },
+          "values": [
+            {
+              "name": "hex"
+            },
+            {
+              "name": "oklch"
+            },
+            {
+              "name": "token"
+            },
+            {
+              "name": "css"
+            }
+          ]
+        },
+        {
+          "name": "selected",
+          "description": {
+            "kind": "markdown",
+            "value": "The chosen chip:  a double ring around it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "details",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip on hover and focus:  name, hex, OKLCH and contrast against white and ink.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "size",
+          "description": {
+            "kind": "markdown",
+            "value": "Chip size;  `medium` is the default (3em).\n\nTakes:  `mini` · `tiny` · `small` · `medium` · `large` · `big` · `huge` · `massive`"
+          },
+          "values": [
+            {
+              "name": "mini"
+            },
+            {
+              "name": "tiny"
+            },
+            {
+              "name": "small"
+            },
+            {
+              "name": "medium"
+            },
+            {
+              "name": "large"
+            },
+            {
+              "name": "big"
+            },
+            {
+              "name": "huge"
+            },
+            {
+              "name": "massive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-color-picker",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand color picker chooses a colour on an HSL square and a hue slider, or by typing HSL, hex or OKLCH;  each format copies.\n\nAlso known as:  color picker, colour picker, color chooser, hsl picker, swatch picker, eyedropper, color input.\n\n**Slots:**  default, `header`, `actions`\n\n**Events:**  `ui-input`, `ui-change`, `ui-copy`"
+      },
+      "attributes": [
+        {
+          "name": "value",
+          "description": {
+            "kind": "markdown",
+            "value": "The colour, `#RRGGBB` (upper-case;  anything the hex field accepts is read:  `#abc`, `142 150 181`, `hsl(250 54% 55%)`, `oklch(67.7% 0.047 274)`).  Reflects;  default `#8E96B5`.  The attribute's FIRST value is the form's reset value.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "name",
+          "description": {
+            "kind": "markdown",
+            "value": "Form field name:  the form gets `value`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Name of the picker for screen readers (its group);  default:  what names it, else `Colour`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Faded;  nothing in it can be used (copying neither).\n\nTakes:  flag (present / absent)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-color-range",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand color range is a 17-step ladder of shades made from one base colour, the base colour's step ringed.\n\nAlso known as:  color scale, colour scale, color ramp, shades, tints and shades, color ladder, palette row.\n\n**Events:**  `ui-change`"
+      },
+      "attributes": [
+        {
+          "name": "value",
+          "description": {
+            "kind": "markdown",
+            "value": "The base colour (`#8E96B5`, `R G B`, `oklch(...)`).  It lands EXACTLY on its step;  none:  no ladder.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "anchor",
+          "description": {
+            "kind": "markdown",
+            "value": "The step the base colour sits at;  `auto`:  the step nearest its lightness.\n\nTakes:  `auto` · `25` · `50` · `75` · `100` · `150` · `200` · `300` · `400` · `500` · `600` · `700` · `800` · `850` · `900` · `925` · `950` · `975`\nDefault:  `auto`"
+          },
+          "values": [
+            {
+              "name": "auto"
+            },
+            {
+              "name": "25"
+            },
+            {
+              "name": "50"
+            },
+            {
+              "name": "75"
+            },
+            {
+              "name": "100"
+            },
+            {
+              "name": "150"
+            },
+            {
+              "name": "200"
+            },
+            {
+              "name": "300"
+            },
+            {
+              "name": "400"
+            },
+            {
+              "name": "500"
+            },
+            {
+              "name": "600"
+            },
+            {
+              "name": "700"
+            },
+            {
+              "name": "800"
+            },
+            {
+              "name": "850"
+            },
+            {
+              "name": "900"
+            },
+            {
+              "name": "925"
+            },
+            {
+              "name": "950"
+            },
+            {
+              "name": "975"
+            }
+          ]
+        },
+        {
+          "name": "vibrancy",
+          "description": {
+            "kind": "markdown",
+            "value": "How colourful the steps are, in percent of the base colour's (the Chooser's Vibrancy):  0 is grey.\n\nTakes:  number\nDefault:  `100`"
+          }
+        },
+        {
+          "name": "hue-shift",
+          "description": {
+            "kind": "markdown",
+            "value": "Degrees the hue drifts toward the dark end:  the darker steps lean toward a neighbouring hue.\n\nTakes:  number\nDefault:  `0`"
+          }
+        },
+        {
+          "name": "name",
+          "description": {
+            "kind": "markdown",
+            "value": "Token prefix:  chips are named `<name>-25` ... `<name>-975`, and `css()` writes those tokens.  None:  `color`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Text inside every chip, as `<ui-brand-color label>`.\n\nTakes:  `none` · `hex` · `oklch` · `name` · `step`\nDefault:  `none`"
+          },
+          "values": [
+            {
+              "name": "none"
+            },
+            {
+              "name": "hex"
+            },
+            {
+              "name": "oklch"
+            },
+            {
+              "name": "name"
+            },
+            {
+              "name": "step"
+            }
+          ]
+        },
+        {
+          "name": "contrast",
+          "description": {
+            "kind": "markdown",
+            "value": "Marks `AA` on the steps text reads clearly on.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "copy",
+          "description": {
+            "kind": "markdown",
+            "value": "A click on a chip copies it, as `<ui-brand-color copy>`.\n\nTakes:  flag, or `hex` · `oklch` · `token` · `css`"
+          },
+          "values": [
+            {
+              "name": "hex"
+            },
+            {
+              "name": "oklch"
+            },
+            {
+              "name": "token"
+            },
+            {
+              "name": "css"
+            }
+          ]
+        },
+        {
+          "name": "details",
+          "description": {
+            "kind": "markdown",
+            "value": "Each chip's details tip, on hover and focus.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "numbers",
+          "description": {
+            "kind": "markdown",
+            "value": "Step numbers under the chips:  `shown`, or `none` (no numbers, nor their row:  a page numbering many ladders once, in a header row).\n\nTakes:  `shown` · `none`\nDefault:  `shown`"
+          },
+          "values": [
+            {
+              "name": "shown"
+            },
+            {
+              "name": "none"
+            }
+          ]
+        },
+        {
+          "name": "strip",
+          "description": {
+            "kind": "markdown",
+            "value": "A small strip of 17 dots instead of chips (the Chooser's folded Variants header).\n\nTakes:  flag (present / absent)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-color-set",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand color set lays out colour chips in a row or a grid;  `selectable` makes it a radio group to pick one.\n\nAlso known as:  swatches, swatch picker, color picker, palette, color presets, color choices.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
+      },
+      "attributes": [
+        {
+          "name": "value",
+          "description": {
+            "kind": "markdown",
+            "value": "The chosen chip:  its `name`, else its colour.  Setting it selects the matching chip;  choosing a chip sets it.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "columns",
+          "description": {
+            "kind": "markdown",
+            "value": "Chips per row:  a grid of equal cells, each chip filling its cell.  None:  one row, chips shrinking to fit.\n\nTakes:  number"
+          }
+        },
+        {
+          "name": "selectable",
+          "description": {
+            "kind": "markdown",
+            "value": "A radio group:  click, Enter or Space chooses a chip, the arrow keys move and choose, Home / End go to the ends.\n\nTakes:  flag (present / absent)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-composer",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand composer is the box where you describe an app in plain words and cast it:  a serif text box, tool chips, a keyboard hint and a round Cast button.\n\nAlso known as:  composer, prompt box, prompt input, chat input, message box, spell box, command box.\n\n**Slots:**  `eyebrow`, `tools`\n\n**Events:**  `ui-input`, `ui-change`, `ui-cast`"
+      },
+      "attributes": [
+        {
+          "name": "value",
+          "description": {
+            "kind": "markdown",
+            "value": "The text.  Attribute:  the starting (and reset) value;  property:  the live value, as `<ui-textarea>`'s.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "name",
+          "description": {
+            "kind": "markdown",
+            "value": "Form field name:  the form gets `value`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "placeholder",
+          "description": {
+            "kind": "markdown",
+            "value": "Hint shown while empty;  default `Describe what you want to build…`, `placeholder=\"\"` none.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "rows",
+          "description": {
+            "kind": "markdown",
+            "value": "Lines tall when empty;  the box grows as you write.\n\nTakes:  number\nDefault:  `3`"
+          }
+        },
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Name of the text box for screen readers;  default:  what names the host (`aria-label`, `<label for>`), else `eyebrow`, else `Your spell`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "eyebrow",
+          "description": {
+            "kind": "markdown",
+            "value": "Small mono caps line above the text box (`Try a spell`);  or `slot=\"eyebrow\"`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Keyboard hint beside the tools;  default `⌘↵ to cast` (`Ctrl+↵ to cast` off Apple devices), `hint=\"\"` none.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "size",
+          "description": {
+            "kind": "markdown",
+            "value": "`medium` (the app's Build box:  17px text, small shadow) or `large` (the marketing hero's:  19px text, larger shadow and radius).\n\nTakes:  `medium` · `large`\nDefault:  `medium`"
+          },
+          "values": [
+            {
+              "name": "medium"
+            },
+            {
+              "name": "large"
+            }
+          ]
+        },
+        {
+          "name": "casting",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  the Cast button spins and casting is paused (the text stays editable).  The page sets it while it builds, and clears it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Faded;  can't be typed in or cast, left out of the form.\n\nTakes:  flag (present / absent)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-field",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand field wraps one control with its label, a value readout, action buttons, an info tip, help and errors.\n\nAlso known as:  property, inspector row, form field, labelled control, fieldset row.\n\n**Slots:**  default, `label`, `actions`, `value`, `info`, `help`"
+      },
+      "attributes": [
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Label text;  `slot=\"label\"` is the rich version.  Names the control for screen readers.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "value",
+          "description": {
+            "kind": "markdown",
+            "value": "Readout at the end of the label row (`100%`, `+8°`);  or `slot=\"value\"`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "info",
+          "description": {
+            "kind": "markdown",
+            "value": "Tip shown from an info icon at the end of the label row;  `slot=\"info\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "help",
+          "description": {
+            "kind": "markdown",
+            "value": "Help text under the control;  or `slot=\"help\"`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "error",
+          "description": {
+            "kind": "markdown",
+            "value": "Error text under the control (and the `error` state);  `<ui-form>` sets its own through `showErrors()`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "state",
+          "description": {
+            "kind": "markdown",
+            "value": "Field state:  tints its label, help and error text.  An error shows `error` on top.\n\nTakes:  `error` · `info` · `success` · `warning`"
+          },
+          "values": [
+            {
+              "name": "error"
+            },
+            {
+              "name": "info"
+            },
+            {
+              "name": "success"
+            },
+            {
+              "name": "warning"
+            }
+          ]
+        },
+        {
+          "name": "inline",
+          "description": {
+            "kind": "markdown",
+            "value": "Label row beside the control, not above it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "required",
+          "description": {
+            "kind": "markdown",
+            "value": "Marks the label with an asterisk.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Dimmed and not usable (`inert`).\n\nTakes:  flag (present / absent)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-flourish",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand flourish draws generated page art (swoops, blobs, curls, sparkles) behind its parent's content.\n\nAlso known as:  flourish, decoration, swoosh, blob, background art, squiggle."
+      },
+      "attributes": [
+        {
+          "name": "variant",
+          "description": {
+            "kind": "markdown",
+            "value": "Which flourish:  `swoop`, `blobs`, `edge-curls`, `sparkle-trail`, `rising-wave`.\n\nTakes:  `swoop` · `blobs` · `edge-curls` · `sparkle-trail` · `rising-wave`\nDefault:  `swoop`"
+          },
+          "values": [
+            {
+              "name": "swoop"
+            },
+            {
+              "name": "blobs"
+            },
+            {
+              "name": "edge-curls"
+            },
+            {
+              "name": "sparkle-trail"
+            },
+            {
+              "name": "rising-wave"
+            }
+          ]
+        },
+        {
+          "name": "seed",
+          "description": {
+            "kind": "markdown",
+            "value": "Which one of the variant:  another seed, another shape.\n\nTakes:  number\nDefault:  `7`"
+          }
+        },
+        {
+          "name": "stroke",
+          "description": {
+            "kind": "markdown",
+            "value": "Line colour;  default the theme's flourish line (lilac).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "fill",
+          "description": {
+            "kind": "markdown",
+            "value": "Shape colour;  default the theme's blob (lavender).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "fill2",
+          "description": {
+            "kind": "markdown",
+            "value": "Second shape colour;  default the theme's second blob.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "weight",
+          "description": {
+            "kind": "markdown",
+            "value": "Line weight, px.\n\nTakes:  number\nDefault:  `1.6`"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-logo",
+      "description": {
+        "kind": "markdown",
+        "value": "The Spell logo:  the hat mark, or the mark with the wordmark (and tagline), outlined, in one colour.\n\nAlso known as:  logo, lockup, wordmark, brand mark, hat mark."
+      },
+      "attributes": [
+        {
+          "name": "variant",
+          "description": {
+            "kind": "markdown",
+            "value": "Which:  `mark` (the hat), `lockup` (hat + Spell), `tagline` (+ All magic, no fuss.), `app` (hat + Spell App).\n\nTakes:  `mark` · `lockup` · `tagline` · `app`\nDefault:  `mark`"
+          },
+          "values": [
+            {
+              "name": "mark"
+            },
+            {
+              "name": "lockup"
+            },
+            {
+              "name": "tagline"
+            },
+            {
+              "name": "app"
+            }
+          ]
+        },
+        {
+          "name": "tone",
+          "description": {
+            "kind": "markdown",
+            "value": "Colour:  `ink` (the theme's strongest text), `purple`, `lilac`, `aubergine`, `white`, `current` (`currentColor`).\n\nTakes:  `ink` · `purple` · `lilac` · `aubergine` · `white` · `current`\nDefault:  `ink`"
+          },
+          "values": [
+            {
+              "name": "ink"
+            },
+            {
+              "name": "purple"
+            },
+            {
+              "name": "lilac"
+            },
+            {
+              "name": "aubergine"
+            },
+            {
+              "name": "white"
+            },
+            {
+              "name": "current"
+            }
+          ]
+        },
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Accessible name;  default `Spell` (`Spell App`).  `\"\"`:  decorative, hidden from screen readers.\n\nTakes:  text"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ui-brand-phone",
+      "description": {
+        "kind": "markdown",
+        "value": "A brand phone frames live app content as a phone:  a status bar on top, the app below.\n\nAlso known as:  phone frame, device frame, phone mockup, device mockup, app preview, mobile preview.\n\n**Slots:**  default"
+      },
+      "attributes": [
+        {
+          "name": "time",
+          "description": {
+            "kind": "markdown",
+            "value": "The status bar's clock:  any text, default `9:41`.\n\nTakes:  text\nDefault:  `9:41`"
+          }
+        },
+        {
+          "name": "dimmed",
+          "description": {
+            "kind": "markdown",
+            "value": "Fades the phone (to 45%) while its app is being built, and marks it busy (`aria-busy`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Accessible name of the region around the app;  default `App preview`.  `\"\"`:  no region, just a frame.\n\nTakes:  text"
+          }
+        }
+      ]
+    }
+  ]
+}

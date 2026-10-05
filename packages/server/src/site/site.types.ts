@@ -35,12 +35,8 @@ export const SITE_HOME = "pages/index.html"
 export const PROPERTIES: SiteProperty[] = [
   { name: "Epics", path: "epics/index.html", match: (path) => docsArea(path) === "epics" },
   { name: "Guides", path: "guides/index.html", match: (path) => docsArea(path) === "guides" },
-  // Brand:  the design-system epic's Brand index (`packages/brand`), lit on the shared `brand/` pages too (claude-design P11)
-  {
-    name: "Brand",
-    path: "packages/brand/index.html",
-    match: (path) => docsArea(path) === "brand" || /\/packages\/brand\//.test(path)
-  },
+  // Brand:  the shared `brand/` pages, moved from `packages/brand` (claude-design P11);  its home is the Brand index
+  { name: "Brand", path: "brand/index.html", match: (path) => docsArea(path) === "brand" },
   {
     name: "Spell UI",
     path: "/ui/",

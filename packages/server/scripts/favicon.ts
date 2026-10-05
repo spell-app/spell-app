@@ -1,6 +1,6 @@
 /**
  * Regenerate Spell's favicon:  `yarn favicon` (in `packages/server`), after the hat mark (`LOGO_MARK`) changes.
- * - The icon:  the brand's app icon, `.sp-appicon--aubergine` (`packages/brand/spell-design-system`):  the white hat
+ * - The icon:  the brand's app icon, `.sp-appicon--aubergine` (`brand/spell-design-system`):  the white hat
  *   on an aubergine square, corners 22.5% of the width, the hat `HAT` of it, centred.
  * - Writes:
  *   - `src/site/favicon.ts` -- the SVG and PNGs as strings, what `WebServer` serves at `/_server/favicon.*` and the

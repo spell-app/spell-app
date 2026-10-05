@@ -3,7 +3,7 @@ import { join } from "node:path"
 
 import { ElementManifests } from "./ElementManifests.ts"
 import type { SiteAttribute, SiteDataFile, SiteFamily, SiteTag } from "../src/docs-components/docs-components.types.ts"
-import type { DesignExample, DesignFamily } from "./tools.types.ts"
+import type { DesignExample, DesignFamily, DesignSource } from "./tools.types.ts"
 
 /**
  * The component half of the design-system export (`DesignExport`):  for each family (one card per MAIN tag), its
@@ -11,18 +11,51 @@ import type { DesignExample, DesignFamily } from "./tools.types.ts"
  * - All from the site data (`components.json`:  every vocabulary) and the families' element examples
  *   (`src/components/<folder>/examples/elements/*.html`), so nothing about a tag is guessed.
  * - Card groups:  a small fixed set (`GROUPS`), picked from each main tag's topics, in its own topic order.
+ * - `sources`:  cards from outside Spell UI (the brand's `<ui-brand-*>`, `DesignBrand`):  their site data merged into
+ *   `data`, every family of one in that source's group (after `GROUPS`), its examples and styles from the source.
  */
 export class DesignComponents {
-  /** site data, as `yarn site:data` builds it */
+  /** site data, as `yarn site:data` builds it, with every source's merged in */
   readonly data: SiteDataFile
   /** `packages/ui`, absolute */
   readonly uiFolder: string
+  /** cards from outside Spell UI, e.g. the brand's */
+  readonly sources: readonly DesignSource[]
   /** every element example section, by family folder, read once (`examples()`) */
   private readonly sections = new Map<string, DesignExample[]>()
 
-  constructor(data: SiteDataFile, uiFolder: string) {
-    this.data = data
+  constructor(data: SiteDataFile, uiFolder: string, sources: readonly DesignSource[] = []) {
+    this.data = DesignComponents.merge(data, sources)
     this.uiFolder = uiFolder
+    this.sources = sources
+  }
+
+  /**
+   * Spell UI's site data with each source's added:  its tags after ours, its families and topics beside ours.
+   * - Throws on a tag or family folder both have:  a card would be lost.
+   */
+  static merge(data: SiteDataFile, sources: readonly DesignSource[]): SiteDataFile {
+    if (!sources.length) return data
+    const components = [...data.components]
+    const families = { ...data.families }
+    const topics = [...data.topics]
+    for (const source of sources) {
+      for (const tag of source.data.components) {
+        if (components.some((entry) => entry.tag === tag.tag)) throw new Error(`<${tag.tag}> is in two sources`)
+        components.push(tag)
+      }
+      for (const [folder, family] of Object.entries(source.data.families)) {
+        if (families[folder]) throw new Error(`family ${folder} is in two sources`)
+        families[folder] = family
+      }
+      for (const topic of source.data.topics) if (!topics.some((entry) => entry.id === topic.id)) topics.push(topic)
+    }
+    return { ...data, components, families, topics }
+  }
+
+  /** The source family `folder` comes from, or `undefined` for Spell UI's own. */
+  sourceOf(folder: string): DesignSource | undefined {
+    return this.sources.find((source) => folder in source.data.families)
   }
 
   /** One card per family:  its main tag, name, group, tags and where its preview came from;  in `GROUPS` order, A-Z. */
@@ -34,12 +67,13 @@ export class DesignComponents {
       return {
         comp: ElementManifests.pascal(main.tag),
         mainTag: main.tag,
-        group: DesignComponents.groupOf(main),
+        group: this.sourceOf(main.folder)?.group ?? DesignComponents.groupOf(main),
         tags: [...tags],
         example
       }
     })
-    const order = (family: DesignFamily) => GROUPS.findIndex((group) => group.name === family.group)
+    const groups = [...GROUPS.map((group) => group.name), ...this.sources.map((source) => source.group)]
+    const order = (family: DesignFamily) => groups.indexOf(family.group)
     return families.sort((a, b) => order(a) - order(b) || a.comp.localeCompare(b.comp))
   }
 
@@ -194,6 +228,7 @@ export class DesignComponents {
    * first example sections inside `<ui-root>`.
    * - The frame has already loaded `bundle.js`;  the one inline `<script>` only marks the page, as the spike's did.
    * - Height:  a guess per section;  the card grows to fit anyway.
+   * - A source's family:  its `style()` first, in a `<style>` (the classes its docs page's examples use).
    */
   preview(family: DesignFamily): string {
     const examples = this.previewExamples(this.tag(family.mainTag)).slice(0, PREVIEW_SECTIONS)
@@ -218,6 +253,7 @@ export class DesignComponents {
           )
           .join("\n")
       : `      <${family.mainTag}>${family.comp}</${family.mainTag}>`
+    const style = this.sourceOf(this.tag(family.mainTag).folder)?.style(this.tag(family.mainTag).folder).trim()
     const wrap = !examples.some((example) => example.markup.includes("<ui-root"))
     const open = wrap
       ? '    <ui-root>\n      <div style="display: grid; gap: 20px">'
@@ -228,6 +264,7 @@ export class DesignComponents {
       "<!doctype html>",
       "<html>",
       '  <body style="margin: 0; padding: 16px">',
+      ...(style ? ["    <style>", DesignComponents.indent(DesignComponents.dedent(style), 6), "    </style>"] : []),
       open,
       wrap ? DesignComponents.indent(body, 2) : body,
       close,
@@ -306,8 +343,11 @@ export class DesignComponents {
    * The example sections a family's preview and README show:  its own (`types.html` first), else the first section of
    * any family's examples that uses its main tag (`<ui-item>` has none of its own).
    * - Sections that load a file (`source=`) are left out:  a design system can't serve our files.
+   * - A source's family:  the source's examples only.
    */
   previewExamples(main: SiteTag): DesignExample[] {
+    const source = this.sourceOf(main.folder)
+    if (source) return source.examples(main.folder).filter((example) => !/\ssource="/.test(example.markup))
     const own = this.examples(main.folder)
     if (own.length) return own
     const pattern = new RegExp(`<${main.tag}[\\s>]`)

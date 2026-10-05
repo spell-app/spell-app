@@ -388,7 +388,7 @@ Dark mode by default follows the OS (`color-scheme: light dark` on `:root`, in `
 
 ### Our own theme:  `spell`
 
-`themes/spell.css` is the Spell brand (`packages/brand/spell-design-system/`) as a theme, and the DEFAULT look of
+`themes/spell.css` is the Spell brand (`brand/spell-design-system/`) as a theme, and the DEFAULT look of
 every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks another) and `packages/docs` pages
 (`spell-ui.entry.js`).
 

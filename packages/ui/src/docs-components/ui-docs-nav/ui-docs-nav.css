@@ -1,6 +1,6 @@
 /*
  * `<ui-docs-nav>`:  the docs sidebar as a docked PANEL, the Spell brand's look
- * (`packages/brand/spell-design-system/`):  the "Color Set Chooser" panel (an ivory card, a full-bleed header band,
+ * (`brand/spell-design-system/`):  the "Color Set Chooser" panel (an ivory card, a full-bleed header band,
  * folding sub-head bands) and the `.sp-nav` rows of `components/components.css`.
  * - Shadow markup contract:  `<div class="ui [size] nav" part="nav">` (the panel:  a column) holding
  *   - `<div class="masthead" part="header">`:  `<div class="slotted header">` around the `header` slot;
