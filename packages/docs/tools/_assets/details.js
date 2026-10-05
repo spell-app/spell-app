@@ -1,6 +1,6 @@
 /**
  * Details pages:  turns the questions Claude wrote into a form Owen answers ON the page, and sends the answer back
- * through the page server, which wakes the waiting session (`yarn details wait`).
+ * through the page server, which wakes the waiting session (`spell dev details wait`).
  * - A classic script, loaded BEFORE `spell-ui.js`:  it only builds markup, so every `ui-*` it makes is upgraded
  *   with the rest of the page, and the contents sidebar sees the Send section.
  * - Builds, from `ui-section.spell-question` > `.spell-option[data-option][data-title]`:

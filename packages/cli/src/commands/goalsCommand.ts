@@ -1,16 +1,18 @@
-import { spawnSync } from "child_process"
 import { existsSync } from "fs"
 import { dirname, join, resolve } from "path"
-import { pathToFileURL } from "url"
 
-import { CLI } from "$/cli"
+// Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
+import { CliError } from "$/cli/cli.types"
+import { TSX_LOADER, runChild } from "$/cli/dev/passThrough"
+import { REPO_ROOT } from "$/cli/findCheckout"
 
 /** The goals tool, relative to a checkout's root (in `goals/_tools/` until 2026-10-04). */
 const TOOL = join("packages", "docs", "tools", "goals", "goals.js")
 
 /**
- * `spell goals <command> ...`:  the goals tool of the nearest goals folder -- the same commands the /goals skills
- * use.  `spell goals help` lists them, e.g. `spell goals update spell/motivation`, `spell goals open`.
+ * `spell dev goals <command> ...`:  the goals tool of the nearest goals folder -- the same commands the /goals
+ * skills use.  `spell dev goals help` lists them, e.g. `spell dev goals update spell/motivation`, `... open`.
+ * - Root `yarn goals` aliases it;  `spell goals` too, until skills stop calling it (deprecated).
  * - Which goals folder:  `GOALS_DIR`, else the nearest `goals/goals.preferences.json5` from the current folder up,
  *   else this checkout's own `goals/`.  See `findGoals()`.
  * - Which tool:  the goals folder's checkout's own `packages/docs/tools/goals/goals.js` (a worktree's, run in one),
@@ -18,19 +20,16 @@ const TOOL = join("packages", "docs", "tools", "goals", "goals.js")
  *   - the tool gets the folder found here as `GOALS_DIR`:  the tools no longer sit inside it, so they can't tell
  * - Runs it in a child `node` under `tsx` (the tools use `$/server`, through `packages/docs/tsconfig.json`), with
  *   this terminal attached:  `talk` and `update` start Claude Code right here, `serve` runs until Ctrl-C.
- * - NOTE: not the parser's business:  nothing here loads a project.
+ * - Lean, like every pass-through:  `args` only, no `CliSession` (which loads spell).
  * - Returns the tool's exit code.
  */
-export async function goalsCommand(_session: CLI.CliSession, args: string[]): Promise<number> {
+export async function goalsCommand(args: string[]): Promise<number> {
   const goals = findGoals()
-  if (!goals) throw new CLI.CliError("No goals folder here:  no goals/goals.preferences.json5 above this folder")
-  const root = existsSync(join(dirname(goals), TOOL)) ? dirname(goals) : CLI.REPO_ROOT
-  const loader = pathToFileURL(join(CLI.REPO_ROOT, "node_modules", "tsx", "dist", "loader.mjs")).href
-  const run = spawnSync(process.execPath, ["--import", loader, join(root, TOOL), ...(args.length ? args : ["help"])], {
-    stdio: "inherit",
+  if (!goals) throw new CliError("No goals folder here:  no goals/goals.preferences.json5 above this folder")
+  const root = existsSync(join(dirname(goals), TOOL)) ? dirname(goals) : REPO_ROOT
+  return runChild(process.execPath, ["--import", TSX_LOADER, join(root, TOOL), ...(args.length ? args : ["help"])], {
     env: { ...process.env, GOALS_DIR: goals, TSX_TSCONFIG_PATH: join(root, "packages", "docs", "tsconfig.json") }
   })
-  return run.status ?? CLI.EXIT.ERRORS
 }
 
 /**
@@ -44,6 +43,6 @@ function findGoals(): string | undefined {
     if (existsSync(join(dir, "goals", "goals.preferences.json5"))) return join(dir, "goals")
     if (dirname(dir) === dir) break
   }
-  const own = join(CLI.REPO_ROOT, "goals")
+  const own = join(REPO_ROOT, "goals")
   return existsSync(join(own, "goals.preferences.json5")) ? own : undefined
 }

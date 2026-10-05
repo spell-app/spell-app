@@ -193,7 +193,7 @@ function addTarget(tag, href, docDir) {
 /**
  * The tab name for `dest`, an absolute path or URL:  re-clicks reuse that tab.
  * - URLs:  `ext-<slug>`
- * - a plan doc:  its `<name>`, since the page sets `window.name` to it and `yarn plan-doc open <name>` reuses it
+ * - a plan doc:  its `<name>`, since the page sets `window.name` to it and `spell dev plan-doc open <name>` reuses it
  * - anything else:  `src-<slug of the repo-relative path>`
  */
 export function targetFor(dest) {

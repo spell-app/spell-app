@@ -1,7 +1,7 @@
 /**
- * `yarn docs:new <template> <page> [--title "Title"] [--description "One sentence."]`:  start a page from a template.
+ * `spell dev docs new <template> <page> [--title "Title"] [--description "One sentence."]`:  start a page from a template.
  * - `<template>`:  `durable`, `cheatsheet` or `commands` (or a path under `templates/`);  plan docs come from
- *   `yarn plan-doc new`
+ *   `spell dev plan-doc new`
  * - SIDE EFFECT:  a template with a JSON beside it (`commands.json`) copies that too, as `<page>.json`
  * - `<page>`:  where it goes, relative to `packages/docs`, e.g. `parser/parser.html` or `glossary.html`
  * - Fixes the `_assets` and `index.html` paths, and the site header's `root`, for the page's depth (`atDepth()`).
@@ -20,9 +20,11 @@ import { DOCS, TOOLS, atDepth, serialize, tidy } from "./pages.js"
 const { positional, flags } = parseArgs(process.argv.slice(2))
 const [templateArg, page] = positional
 if (!templateArg || !page?.endsWith(".html")) {
-  fail(`usage:  yarn docs:new durable|cheatsheet|commands <topic>/<topic>.html [--title "Title"] [--description "..."]`)
+  fail(
+    `usage:  spell dev docs new durable|cheatsheet|commands <topic>/<topic>.html [--title "Title"] [--description "..."]`
+  )
 }
-if (/^templates\/epics\/|^plan$/.test(templateArg)) fail("plan docs:  `yarn plan-doc new <name>`")
+if (/^templates\/epics\/|^plan$/.test(templateArg)) fail("plan docs:  `spell dev plan-doc new <name>`")
 const template = templateArg.includes("/") ? templateArg : `templates/${templateArg}.html`
 if (!existsSync(join(DOCS, template))) fail(`no template ${template}`)
 const file = join(DOCS, page)

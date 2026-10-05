@@ -9,7 +9,7 @@
  *   - `epics/<n>/<n>.html` anywhere (absolute, `../epics/...`, with `#d3`, in prose), and the generic
  *     `epics/<name>/<name>.html` the rules and skills name
  *   - inside the epic's own folder:  `"<n>.html` (a page beside it);  in its `details/`:  `"../<n>.html`
- * - prints what it renamed and each file it rewrote;  then run `yarn docs:index`, and oxfmt the changed pages
+ * - prints what it renamed and each file it rewrote;  then run `spell dev docs index`, and oxfmt the changed pages
  */
 import { spawnSync } from "node:child_process"
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"

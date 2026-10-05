@@ -5,8 +5,8 @@ description: Start the spell web servers of this checkout that aren't running --
 
 # /spell-serve
 
-1. From the checkout this session is in (a worktree has its OWN servers):  `yarn serve` (`scripts/serve.mjs`).
-   - starts the page server if it isn't running (`yarn server ensure`);  the page server starts the editor once it
+1. From the checkout this session is in (a worktree has its OWN servers):  `spell dev server start --all` (`scripts/serve.mjs`).
+   - starts the page server if it isn't running (`spell dev server ensure`);  the page server starts the editor once it
      listens (`packages/app/src/server/EditorServer.ts`)
    - waits for the editor (up to 90s:  vite may be building its dependency cache), then checks Spell UI's docs:
      static pages the page server serves at `/ui/` (`packages/ui/site/`), by asking for their bundle,
@@ -16,6 +16,6 @@ description: Start the spell web servers of this checkout that aren't running --
 2. Reply with the rows as a small table:  server, port, URL (linked).  For a failed row, the last lines of the log it
    names (`.spell-server.editor.log`, `.spell-server.log`), and what to try:
    - the editor didn't answer, page server `running`:  it may be from before the editor was tied to it --
-     `yarn server stop`, then `yarn serve` again
+     `spell dev server stop`, then `spell dev server start --all` again
    - `yarn: command not found`, or nothing installed:  `yarn install` first
-3. Stopping them all:  `yarn server stop` (the editor is the page server's child).
+3. Stopping them all:  `spell dev server stop` (the editor is the page server's child).

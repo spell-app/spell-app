@@ -135,7 +135,7 @@ export class SiteHeader extends HTMLElement {
         : ""
       return href
         ? `<a class="tab" href="${escape(href)}"${current}${own}>${escape(property.name)}</a>`
-        : `<span class="tab off" title="only when served:  yarn server ensure">${escape(property.name)}</span>`
+        : `<span class="tab off" title="only when served:  spell dev server ensure">${escape(property.name)}</span>`
     }).join("")
     const title = document.title.trim()
     const crumbs = active

@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Docs</title>
+    <meta
+      name="description"
+      content="Documentation for people who write spells, people who build spell, and agents, and how the pieces fit together."
+    />
+    <link rel="stylesheet" href="../../../packages/docs/tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../../packages/docs/tools/_assets/plan-doc.css" />
+    <link rel="stylesheet" href="../../../packages/docs/tools/_assets/goals.css" />
+  </head>
+  <body
+    class="spell-doc-page"
+    data-set="spell"
+    data-topic="docs"
+    data-short="docs"
+    data-n="10"
+    data-icon="book open"
+    data-accent="brown"
+    data-status="draft"
+  >
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          TOPIC PAGE:  made by `spell dev goals new`;  rules in `goals/AGENTS.md`.
+          - Structured parts (items, status, history, updated) go through `spell dev goals ...`;  hand-edit prose only.
+          - Section ids are fixed:  other topics link to them.
+        -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="_self">Goals</ui-breadcrumb-section>
+          <ui-breadcrumb-section href="../index.html" target="_self">spell</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>10 · docs</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <header class="goals-hero">
+          <span class="goals-hero-icon" aria-hidden="true"><ui-icon name="book open"></ui-icon></span>
+          <p class="goals-eyebrow"><span class="goals-num">10</span> Topic · docs</p>
+          <h1>Docs</h1>
+          <p class="lede">
+            Documentation for people who write spells, people who build spell, and agents, and how the pieces fit
+            together.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="flag"
+              >Status: <ui-label class="goals-status" size="mini" color="grey">draft</ui-label> · first pass, not yet
+              talked through</ui-item
+            >
+            <ui-item icon="calendar">Updated: <time class="goals-updated">2026-10-01</time></ui-item>
+            <ui-item icon="robot"
+              >Notes for agents: <a href="docs.md" target="src-goals-docs-docs-md">docs.md</a></ui-item
+            >
+          </ui-list>
+        </header>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="summary"><ui-icon name="eye"></ui-icon> 1. Summary</h2></ui-sticky
+          >
+          <ul>
+            <li>
+              <strong>Today's docs are for developers and agents:</strong>
+              <a href="../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> files,
+              <code>PARSING.md</code>, and design pages in
+              <a href="../../../packages/docs/content/" target="src-packages-docs"><code>packages/docs</code></a
+              >. Nothing is written for people writing spells.
+            </li>
+            <li>
+              <strong>The docs system is strong:</strong> pages on @spell-app/ui that open from disk, templates, plan
+              docs, browser checks.
+            </li>
+            <li>
+              <strong>December needs:</strong> getting started, a tour, a phrase book, annotated examples, and how the
+              pieces fit together.
+            </li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="today"><ui-icon name="calendar"></ui-icon> 2. Today</h2></ui-sticky
+          >
+          <ul>
+            <li>
+              <strong>Developer docs:</strong>
+              <a href="../../../packages/docs/content/index.html" target="src-packages-docs-index-html"
+                ><code>packages/docs/content/index.html</code></a
+              >: precedence, Solid 2, how the docs work, plan docs.
+            </li>
+            <li>
+              <strong>@spell-app/ui docs:</strong> plain HTML pages on <code>ui-*</code> widgets in
+              <a href="../../../packages/ui/site/" target="src-packages-ui-site"><code>packages/ui/site</code></a> (66
+              pages, Fomantic's docs style), not deployed.
+            </li>
+            <li>
+              <strong>In the app:</strong> a <code>@system:guides</code> root is configured, with no folder behind it.
+            </li>
+            <li>
+              <strong>2020 vision</strong> (<code>site-structure.md</code>): guides are spell projects with inline
+              playgrounds; a "dictionary and phrase book" generated from rule descriptions and tests.
+            </li>
+            <li>
+              <strong>Elsewhere:</strong> a DeepWiki link in
+              <a href="../../../packages/spell/readme.md" target="src-packages-spell-readme-md"
+                ><code>packages/spell/readme.md</code></a
+              >.
+            </li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="goals"><ui-icon name="bullseye"></ui-icon> 3. Goals</h2></ui-sticky
+          >
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="now"><ui-icon name="seedling"></ui-icon> Now → December 2026</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="now">
+              <li data-status="open" id="g1">
+                <a class="plan-id" href="#g1">G1</a> <span class="plan-title">Getting started</span>
+                <span class="goals-note">from download to your first changed spell</span>
+              </li>
+              <li data-status="open" id="g2">
+                <a class="plan-id" href="#g2">G2</a> <span class="plan-title">A phrase book</span>
+                <span class="goals-note">everything spell understands, generated from the rules and their tests</span>
+              </li>
+              <li data-status="open" id="g3">
+                <a class="plan-id" href="#g3">G3</a> <span class="plan-title">A tour</span>
+                <span class="goals-note">short, interactive, with live spells on the page</span>
+              </li>
+              <li data-status="open" id="g4">
+                <a class="plan-id" href="#g4">G4</a> <span class="plan-title">How it fits together</span>
+                <span class="goals-note">language, app, ui, cli: one page for contributors</span>
+              </li>
+              <li data-status="open" id="g5">
+                <a class="plan-id" href="#g5">G5</a> <span class="plan-title">Annotated examples</span>
+                <span class="goals-note">the three December examples, explained line by line</span>
+              </li>
+            </ol>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="next"><ui-icon name="tree"></ui-icon> 2027</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="next">
+              <li data-status="open" id="g6">
+                <a class="plan-id" href="#g6">G6</a> <span class="plan-title">Guides inside the app</span>
+                <span class="goals-note">guides as spell projects; see app</span>
+              </li>
+              <li data-status="open" id="g7">
+                <a class="plan-id" href="#g7">G7</a> <span class="plan-title">Docs in Spanish</span>
+                <span class="goals-note">see translation</span>
+              </li>
+              <li data-status="open" id="g8">
+                <a class="plan-id" href="#g8">G8</a> <span class="plan-title">A cookbook</span>
+                <span class="goals-note">"how do I..." answers</span>
+              </li>
+            </ol>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="someday"><ui-icon name="mountain sun"></ui-icon> Someday</h3></ui-sticky
+            >
+            <ol class="plan-items" data-kind="goal" data-horizon="someday">
+              <li data-status="open" id="g9">
+                <a class="plan-id" href="#g9">G9</a> <span class="plan-title">Docs people can improve</span>
+                <span class="goals-note">edit a page, send it back</span>
+              </li>
+            </ol>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="ideas"><ui-icon name="lightbulb"></ui-icon> 4. Ideas</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="idea">
+            <li data-status="open" id="i1">
+              <a class="plan-id" href="#i1">I1</a> <span class="plan-title">Generate the phrase book</span>
+              <span class="goals-note">each rule has syntax and tests: publish them as a searchable cheat sheet</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The docs' cheat-sheet template (cards, text filter, badge filter) fits.
+                    <code>spell explain &lt;word&gt;</code> (cli branch) already prints a rule's syntax and an example.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i2">
+              <a class="plan-id" href="#i2">I2</a> <span class="plan-title">Live examples everywhere</span>
+              <span class="goals-note"
+                >every code block runs, through <code>&lt;spell-app&gt;</code> and
+                <code>&lt;spell-editor&gt;</code></span
+              >
+            </li>
+            <li data-status="open" id="i3">
+              <a class="plan-id" href="#i3">I3</a> <span class="plan-title">Three doors</span>
+              <span class="goals-note">people writing spells; people building spell; agents</span>
+            </li>
+            <li data-status="open" id="i4">
+              <a class="plan-id" href="#i4">I4</a> <span class="plan-title">One website</span>
+              <span class="goals-note">home, download, docs, ui docs, gallery: one place, one look</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="questions"><ui-icon name="circle question"></ui-icon> 5. Questions</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="question">
+            <li data-status="open" id="q1">
+              <a class="plan-id" href="#q1">Q1</a> <span class="plan-title">One site or several?</span>
+              <span class="goals-note">spell.app with /docs and /ui?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <strong>Suggestion:</strong> one site. See
+                    <a target="_self" href="../brand/brand.html">brand</a> for the look.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q2">
+              <a class="plan-id" href="#q2">Q2</a> <span class="plan-title">What builds the site?</span>
+              <span class="goals-note">hand-written pages like these, Astro like ui's, or spell itself</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <strong>Suggestion:</strong> Astro for the public site (ui's is already there, and it handles many
+                    pages, search and deploys), with @spell-app/ui and live spells inside.
+                  </p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q3">
+              <a class="plan-id" href="#q3">Q3</a> <span class="plan-title">Reference before or after precedence?</span>
+              <span class="goals-note">the language is about to change</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p><strong>Suggestion:</strong> generate it, so it follows the language as it changes.</p>
+                </ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q4">
+              <a class="plan-id" href="#q4">Q4</a> <span class="plan-title">Who writes the docs?</span>
+              <span class="goals-note">agents draft, you edit?</span>
+            </li>
+            <li data-status="open" id="q5">
+              <a class="plan-id" href="#q5">Q5</a> <span class="plan-title">What happens to the old notes?</span>
+              <span class="goals-note"
+                ><code>_thoughts</code> and
+                <a href="../../../packages/spell/thoughts/" target="src-packages-spell-thoughts"
+                  ><code>packages/spell/thoughts</code></a
+                >: archive, or mine and retire?</span
+              >
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="risks"><ui-icon name="triangle exclamation"></ui-icon> 6. Risks</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="risk">
+            <li data-status="open" id="r1">
+              <a class="plan-id" href="#r1">R1</a> <span class="plan-title">Docs drift as the syntax changes</span>
+              <span class="goals-note">a generated phrase book helps</span>
+            </li>
+            <li data-status="open" id="r2">
+              <a class="plan-id" href="#r2">R2</a> <span class="plan-title">Too many doc systems</span>
+              <span class="goals-note">AGENTS.md files, packages/docs, ui's Astro site, this master plan</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="decisions"><ui-icon name="gavel"></ui-icon> 7. Decisions</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="decision"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="work"><ui-icon name="list check"></ui-icon> 8. Work</h2></ui-sticky
+          >
+          <ol class="plan-items" data-kind="work">
+            <li data-status="open" id="w1">
+              <a class="plan-id" href="#w1">W1</a> <span class="plan-title">Phrase book spike</span>
+              <span class="goals-note">pull rule syntax and tests into JSON; render one cheat-sheet page</span>
+            </li>
+            <li data-status="open" id="w2">
+              <a class="plan-id" href="#w2">W2</a> <span class="plan-title">Getting started, first draft</span>
+              <span class="goals-note">after the app and native decisions</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"
+            ><h2 id="history"><ui-icon name="clock rotate left"></ui-icon> 9. History</h2></ui-sticky
+          >
+          <ui-feed class="spell-history goals-history" size="small"
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  >Page made: a first pass from the code, the 2017 talk and old notes
+                  <ui-date>2026-10-01</ui-date></ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Part of the <a href="../index.html" target="_self">spell</a> goal set. Notes for agents:
+            <a href="docs.md" target="src-goals-docs-docs-md">docs.md</a>.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../../packages/docs/tools/_assets/spell-ui.js"></script>
+    <script src="../../../packages/docs/tools/_assets/goals-live.js"></script>
+  </body>
+</html>

@@ -11,7 +11,7 @@ In your own words, without jargon, narrate each step in the order it actually ha
 
 When a question needs a picture to decide, or more than the AskUserQuestion modal holds (4 options per question, 4
 questions), use `/details` (`.claude/skills/details/`):  a page in VS Code's right side bar that Owen answers on.
-Naming any docs page in a reply:  `yarn docs:link <page> --hash <id> --show`, and paste its side bar link +
+Naming any docs page in a reply:  `spell dev docs link <page> --hash <id> --show`, and paste its side bar link +
 `(_browser_)` link.
 
 If you see something that appears to be a bug but you are not sure, add to `agents/SUSPECTED-BUGS.md` (shared), in the appropriate section under its package.

@@ -1,5 +1,5 @@
 /**
- * `yarn plan-doc backfill <name> | --all [--apply]`:  the one-off walk through an epic's past sessions, finding the
+ * `spell dev plan-doc backfill <name> | --all [--apply]`:  the one-off walk through an epic's past sessions, finding the
  * items Owen already went through before `/epic review` kept marks (`epics/epic-review`, P3).
  * - EVIDENCE:  in a session of the epic, Owen named the item's id in his own message, or answered a modal whose
  *   question or answer named it (Claude asked about it, he picked)

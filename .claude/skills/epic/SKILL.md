@@ -7,7 +7,7 @@ argument-hint: <name> [what to plan] | review [<name>]
 # /epic
 
 An EPIC is a planning session and the work it plans;  its live record is the PLAN DOC.  (Was `/plan-doc` until
-2026-10-02;  `yarn plan-doc` keeps its name, since it edits the plan doc.)
+2026-10-02;  its tool keeps that name, `spell dev plan-doc`, since it edits the plan doc.)
 
 Plan, then build, in worktree `<name>`, keeping `packages/docs/content/epics/<name>/<name>.plan.html` (the PLAN DOC) current
 the whole time.  The plan doc is the user's view of the work:  they read it in VS Code's doc preview (the right side bar's "Spell Docs" view) while you work.
@@ -18,21 +18,21 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   - Committed for you after every turn (the `Stop` hook `.claude/hooks/shared-commit.mjs`).  NEVER commit, stage,
     `git checkout --` or `git restore` it (or the changelog, the docs index, a details page) in spell-app.
 - Rules for the doc (sections, ids, markers, prose):  `packages/docs/content/templates/epics/plan-doc.md`.  Read it first.
-- Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
+- Structured edits go through `spell dev plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
-  doc review):  `yarn plan-doc open <name>` reloads it in the side bar's doc preview.  `yarn plan-doc phase` does it for you.
+  doc review):  `spell dev plan-doc open <name>` reloads it in the side bar's doc preview.  `spell dev plan-doc phase` does it for you.
 - Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):  a plain lead sentence, then
   bullets (never a list run together in a sentence), full words, a concrete example for anything tricky, ids
   explained, and a **Net effect** list closing every question, issue, judgement call and decision.  NOT caveman
   (Owen, 2026-10-04).  Replies:  short, the same plain words.
 - Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  paste what
-  `yarn docs:link <ABSOLUTE path> --hash <id> [--text "..."]`, run in the checkout the doc is in:  it prints
+  `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`, run in the checkout the doc is in:  it prints
   the side bar link, then `(_browser_)` (`.claude/skills/details/SKILL.md`, "Links to pages").
   `--hash`:  the id of what you mean (`p2`, `q3`, `t4`).  A worktree's doc goes on the MAIN server when that one
   has the route, else the worktree's own.
 - Phase complete:  the LAST line of that reply's text says where we are, each phase linked to its heading in the
-  plan doc (`yarn docs:link <plan doc> --hash p1 --text "P1 · Short Name"`):
+  plan doc (`spell dev docs link <plan doc> --hash p1 --text "P1 · Short Name"`):
   - "<P1 link pair> complete.  Next is <P2 link pair>."
   - after the last phase:  "All done:  <P<N> · Doc Review link pair> complete."
 
@@ -59,7 +59,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
     user types it in "Other").  Never overwrite an existing plan doc.
 - Name and nothing after it, nothing saved (and not mid-session):  the user sends the plan in the NEXT prompt, in
   the new window.  Do "2. Session" now anyway (a stub doc with no prompt, then the move);  its last line asks for
-  the plan.  That next message is the kickoff prompt:  `yarn plan-doc prompt <name> --file <file>` first, then
+  the plan.  That next message is the kickoff prompt:  `spell dev plan-doc prompt <name> --file <file>` first, then
   "3. Plan".
 
 ## Mid-session
@@ -77,18 +77,19 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
 0. Where:  isolate's "Start", step 2b, with `stay-check --epic`:  a new window, or stay in this one.
 1. Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", step 3 (and step 0 mid-session), with this
    `<name>` (a skill can't invoke another):  `EnterWorktree`.
-2. `yarn install` in the worktree (a few seconds:  `yarn plan-doc` needs it).
-3. The STUB doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md` (no file:
+2. `yarn install` in the worktree (a few seconds:  the work needs it;  `spell dev plan-doc` doesn't, it runs the MAIN
+   checkout's CLI).
+3. The STUB doc:  `spell dev plan-doc new <name> --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md` (no file:
    no `--prompt-file`).  Quoted at the top of the Overview, and in the "Plan hung?" notice above it (copy button,
    restart steps;  it goes once P1 starts).  Then delete the prompt file.
-   - Reusing a doc:  its prompt missing:  `yarn plan-doc prompt <name> --file <file>`;  an older doc (before
-     2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.  No phases yet:  a restart after
+   - Reusing a doc:  its prompt missing:  `spell dev plan-doc prompt <name> --file <file>`;  an older doc (before
+     2026-10-01, or `section.s2` markup):  `spell dev plan-doc migrate <name>` first.  No phases yet:  a restart after
      a hang.  Plan again from its prompt ("3. Plan");  explore only what the doc doesn't say.
 4. Isolate "Start", steps 4-5:  the worktree's own window, then `handoff <name> --prompt continue` (name alone, no
    plan yet:  no `--prompt`).
-5. `yarn plan-doc open <name>`, AFTER the handoff:  shown in VS Code's doc preview (the right side bar's "Spell
+5. `spell dev plan-doc open <name>`, AFTER the handoff:  shown in VS Code's doc preview (the right side bar's "Spell
    Docs" view) of the window the session moves to, once it has (one tab, reloaded on every later `open`).  Needs
-   the spell extension (`yarn vscode`).
+   the spell extension (`spell dev vscode`).
    - MUST print "... shows in ... once this session moves there".  Why:  only a PENDING move defers it;  before
      the handoff it shows in THIS window's side bar, the one being left.
 6. Isolate "Start", step 6:  END THE TURN.  Last line:  "moving to `<pkg> ⎇ <name>`:  press enter on `continue`
@@ -105,10 +106,10 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 2. Minimal plan doc, BEFORE presenting the plan:  only the Overview and the open questions, so the user can read
    them in the doc while the plan is up.  Nothing else yet (no phases, decisions, caveats ...).
    - Hand-write the Overview's sub-sections (shape:  "4. Fill the doc").
-   - `yarn plan-doc add <name> question "title" --details "..."` per open question, explained with examples
+   - `spell dev plan-doc add <name> question "title" --details "..."` per open question, explained with examples
      ("5. Each phase", item 6).  Agents:  up to 5, don't ask -- unless the user said "watch token
      budget", then one question is "How many agents can I use for this?".
-   - `yarn plan-doc check <name>`, then `yarn plan-doc open <name>`.
+   - `spell dev plan-doc check <name>`, then `spell dev plan-doc open <name>`.
    - Why here:  plan mode allows editing ONLY the harness plan file.
 3. `EnterPlanMode`.  Draft the plan in the harness plan file, in the plan doc's shape:
    1. Summary:  2 sentences
@@ -125,10 +126,10 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 - Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04):  in `~/.claude/plans/`,
   `mv <file>.md epic-<name>--<file>.md`, then `ln -s epic-<name>--<file>.md <file>.md` (the harness still reads
   the old name).
-- `yarn plan-doc add-phase <name> "Short Name" --goal "<ul><li>...</li></ul>" --files "..." --verify "..." --estimate
+- `spell dev plan-doc add-phase <name> "Short Name" --goal "<ul><li>...</li></ul>" --files "..." --verify "..." --estimate
   "1-2h"` per phase, in order:  the goal one bullet per outcome, in Owen's terms;  the estimate becomes the title's
   badge, and the Overview's total (`p.plan-estimate`) follows by itself
-- `yarn plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
+- `spell dev plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
 - Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
 - Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
   `#overview`:
@@ -136,11 +137,11 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
   `<span slot="header">` first inside instead of `header`;  sub-sub-items:  `<h4 id>`).  Code in folded
   `ui-accordion.spell-code`, digressions in collapsed `ui-accordion.spell-aside`, links to items and phases
   (`<a href="#d2">D2</a>`).  NEVER change an existing `id`.
-- `yarn plan-doc check <name>`, then `yarn plan-doc open <name>` (new stage:  reload)
+- `spell dev plan-doc check <name>`, then `spell dev plan-doc open <name>` (new stage:  reload)
 
 ## 5. Each phase
 
-1. `yarn plan-doc phase <name> <N> active`, and check the session's name (`.claude/skills/isolate/SKILL.md`,
+1. `spell dev plan-doc phase <name> <N> active`, and check the session's name (`.claude/skills/isolate/SKILL.md`,
    "Session name").
 2. Do the work.  Record as you go, not at the end:
    - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision` (a
@@ -159,13 +160,13 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
      just before it (the script marks items itself)
 3. Subagents:  paste the cheat sheet below into their prompts, with "record caveats, issues and decisions in the
    plan doc as you find them".
-4. `yarn plan-doc phase <name> <N> done --done "<ul><li>...</li></ul>"` (drops that phase's UPDATE markers, writes
-   its Done field, brings the doc forward), then `yarn plan-doc summary <name>`.  Done:  what was BUILT, ordered by
+4. `spell dev plan-doc phase <name> <N> done --done "<ul><li>...</li></ul>"` (drops that phase's UPDATE markers, writes
+   its Done field, brings the doc forward), then `spell dev plan-doc summary <name>`.  Done:  what was BUILT, ordered by
    what Owen asks about first:  where to see it, what changed in how he works, what's rough or not yet tried by hand.
    - commit messages, so the doc can list them (its phase's and items' "Commits"):  a phase `P<n>:  <Name> --
      <summary>` (`P4 + P5:` for two;  `WIP P3:` for a parked part), an item fix `<name> I3:  ...` (MUST carry the
      epic's name:  `commits --backfill` ignores a bare `Fix I3:`, since it can't tell which epic)
-   - after the phase's commit:  `yarn plan-doc commits <name> --backfill` (finds them by subject).  The plan doc
+   - after the phase's commit:  `spell dev plan-doc commits <name> --backfill` (finds them by subject).  The plan doc
      is never in that commit:  it's shared content, committed for you (see "Shared content" at the top)
 5. Reply:  a short bulleted list (done, issues, caveats, next), the "complete.  Next is" line (see the top), THEN
    AskUserQuestion so the user picks without copying anything.  Options, most useful first:
@@ -187,12 +188,12 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 - Prune:  close stale items;  make the summary and Overview true to what was BUILT.
 - "To test":  every hand check the work needs before merging is there, each a step and what should happen;  list
   the open ones in the reply, as bullets.
-- Turn it into durable docs:  `yarn docs:new durable <page> --title "..."` (fixes asset paths for the depth):
+- Turn it into durable docs:  `spell dev docs new durable <page> --title "..."` (fixes asset paths for the depth):
   - one page:  `packages/docs/content/<name>.html`;  several files (pages, experiments):
     `packages/docs/content/<name>/<name>.html` (shared content too:  committed for you, like the plan doc)
   - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
-  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index` (the index is shared too:
-    `yarn plan-doc` keeps the epic's own card current from any checkout)
+  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `spell dev docs index` (the index is shared too:
+    `spell dev plan-doc` keeps the epic's own card current from any checkout)
 - The plan doc stays in `epics/` as the record:  every phase done.
 - Changelog:  write the epic's entry straight into the shared `packages/docs/content/changelog.html` ("Changelog"
   in the root's `AGENTS.md`), linking the plan doc and the durable doc;  under "3. Merged into main" if "Finish"
@@ -212,28 +213,28 @@ items any more (epic `review-review`, 2026-10-04;  plan:  `epics/review-review/r
 
 - Runs from ANY window, `main` or a worktree:  the prompt hook lets `/epic review` through, never renames the session.
   No worktree, no plan mode.
-- Every `yarn plan-doc` command edits the epic's ONE shared doc, from any checkout.
-- The page's controls need a PAGE SERVER with the review routes (`yarn server ensure`):  from `file://`, or a
+- Every `spell dev plan-doc` command edits the epic's ONE shared doc, from any checkout.
+- The page's controls need a PAGE SERVER with the review routes (`spell dev server ensure`):  from `file://`, or a
   server without them, the page shows no menus.
 - Owen comes to a review COLD:  never a bare id in chat, always what it is in words ("the highlight.js swap (T2)").
 
 Commands, in the order a review uses them:
 ```
-yarn plan-doc list --json                           every epic:  status, checkout, not reviewed / items
-yarn plan-doc items <name> --json                   where reviews stand;  sections, items, states
-yarn docs:link <ABS doc> --hash <id> --review --show   show the doc in the Review tab, at <id>;  prints its links
-yarn plan-doc inbox <name> listen  /  unlisten      this session is (no longer) reviewing:  the page says so
-yarn plan-doc inbox <name> wait                     Bash run_in_background:  exits with work (or 2:  timeout)
-yarn plan-doc inbox <name> apply [ids]              approve / pick / todo marks into the doc;  prints what's left
-yarn plan-doc inbox <name> working <id> on|off      the page's spinner on an item
-yarn plan-doc details <name> <id> --file f [--append]   an item's details replaced (Add Details) / a reply appended
-yarn plan-doc inbox <name> done <id>  /  clear <ids>    an item's request finished  /  marks dropped after a talk
-yarn plan-doc inbox <name> [--json]                 what's waiting, sent or not
+spell dev plan-doc list --json                           every epic:  status, checkout, not reviewed / items
+spell dev plan-doc items <name> --json                   where reviews stand;  sections, items, states
+spell dev docs link <ABS doc> --hash <id> --review --show   show the doc in the Review tab, at <id>;  prints its links
+spell dev plan-doc inbox <name> listen  /  unlisten      this session is (no longer) reviewing:  the page says so
+spell dev plan-doc inbox <name> wait                     Bash run_in_background:  exits with work (or 2:  timeout)
+spell dev plan-doc inbox <name> apply [ids]              approve / pick / todo marks into the doc;  prints what's left
+spell dev plan-doc inbox <name> working <id> on|off      the page's spinner on an item
+spell dev plan-doc details <name> <id> --file f [--append]   an item's details replaced (Add Details) / a reply appended
+spell dev plan-doc inbox <name> done <id>  /  clear <ids>    an item's request finished  /  marks dropped after a talk
+spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or not
 ```
 
 ### 7.1 Pick a doc (no `<name>`)
 
-- `yarn plan-doc list --json`:  `{ name, title, status, checkout, notReviewed, total }` each, in progress first.
+- `spell dev plan-doc list --json`:  `{ name, title, status, checkout, notReviewed, total }` each, in progress first.
 - As reply text, every epic in two groups (in progress / done), most not-reviewed first:  `- commands (worktree
   commands)  5 / 9`.  Then ONE modal, header `Epic Review`, "Which epic do you want to review?":  the epics with
   anything not reviewed, label `<name> (in progress)` / `<name> (done)`, description `5 of 9 items not reviewed`;  4
@@ -243,13 +244,13 @@ yarn plan-doc inbox <name> [--json]                 what's waiting, sent or not
 
 ### 7.2 Start
 
-1. `yarn plan-doc items <name> --json`;  the doc's summary for what the epic is.
+1. `spell dev plan-doc items <name> --json`;  the doc's summary for what the epic is.
 2. In chat, three lines at most, for someone who remembers nothing:  what the epic is, what's waiting on him (e.g.
    "4 judgement calls not reviewed, 2 open questions"), and when he last reviewed it.
 3. The FIRST thing worth his time:  the first item, in page order, whose state is `attention` (red:  an open
    question, an unreviewed judgement call or issue);  none:  the first `open` (blue) one;  none:  the top.
-   `yarn docs:link <ABS doc> --hash <that id> --review --show`:  the doc opens in the Review tab, at it.
-4. `yarn plan-doc inbox <name> listen`, then `yarn plan-doc inbox <name> wait` with Bash `run_in_background: true`.
+   `spell dev docs link <ABS doc> --hash <that id> --review --show`:  the doc opens in the Review tab, at it.
+4. `spell dev plan-doc inbox <name> listen`, then `spell dev plan-doc inbox <name> wait` with Bash `run_in_background: true`.
 5. END THE TURN, short:  "Mark items in the Review tab:  each item's ⋯ menu;  Add Details and revisit now start at
    once;  the paper plane sends the rest.  I'm listening."  Then the doc's link pair.
 
@@ -262,20 +263,20 @@ Read what it printed.  Then, in this order:
    - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net
      effect)
    - Add Details:  read the item, the code and docs it names, then write its FULL details again, nothing lost,
-     `yarn plan-doc details <name> <id> --file <html>`
+     `spell dev plan-doc details <name> <id> --file <html>`
    - revisit now:  answer Owen's note (quote it), in the reply block markup (`plan-doc.md`, "Reply"):  what he asked,
      the answer with evidence (real code, the command and its output), option cards when he must choose (he picks
-     on the page), a Net effect;  `yarn plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
+     on the page), a Net effect;  `spell dev plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
      · ..., asks:  ..."):  answer about THAT option;  never decide the question (he confirms with a plain pick)
-   - last:  `yarn plan-doc inbox <name> done <id>`
+   - last:  `spell dev plan-doc inbox <name> done <id>`
    Up to 5 agents at once (root rules);  more:  the rest after.
-3. SENT marks:  `yarn plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each).
+3. SENT marks:  `spell dev plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each).
    Then each "to talk over" (revisit soon), one at a time, in chat:  the item in words, his note quoted, your
    answer (short;  evidence when it matters).  A choice he must make:  write it into the item as a reply with option
    cards (`details --append`) so he picks ON THE PAGE;  a quick yes / no:  a modal.  Done:  `inbox clear <id>` and
    `review <name> <id> "<outcome>"`.
    - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  answer the note
-     about B, and once he agrees, `yarn plan-doc decide <name> <id> "<card title>" --option B` yourself
+     about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself
    - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
      `inbox apply`, `done`, `clear` and `working`;  a long talk without them shows "nobody is reviewing" until `wait`
      runs again
@@ -287,12 +288,12 @@ Read what it printed.  Then, in this order:
 ### 7.4 Finish
 
 When Owen says he's done ("stop reviewing", "that's it"), or the session must stop:
-- stop the waiter (`TaskStop`), `yarn plan-doc inbox <name> unlisten`
-- `yarn plan-doc log <name> "Review:  <n> approved, <n> answered, <n> to todos, <n> details added"`
+- stop the waiter (`TaskStop`), `spell dev plan-doc inbox <name> unlisten`
+- `spell dev plan-doc log <name> "Review:  <n> approved, <n> answered, <n> to todos, <n> details added"`
 - reply:  what was decided and done (in words, ids after), what's still waiting on him;  the link pair
 - the doc's changes:  nothing to commit, from any checkout (shared content, committed for you at the turn's end)
 
-## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)
+## Cheat sheet (`spell dev plan-doc ...`, from anywhere in the repo)
 
 ```
 new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from the template, update the docs index

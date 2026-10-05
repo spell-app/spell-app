@@ -3,9 +3,9 @@
  * bar), beside the editor AND the Claude tab, instead of taking an editor column.  Two of them, each in its own
  * view container, so the side bar shows them as two tabs, each keeping its own page:
  * - "Spell Docs" (`spell.docView`, the spell hat):  where `DocPreview` shows pages by default
- *   (`spell.docPreview.location`:  `sidebar`):  `/spell-docs`, `yarn plan-doc open`, `/goals-open-vs`
+ *   (`spell.docPreview.location`:  `sidebar`):  `/spell-docs`, `spell dev plan-doc open`, `/goals-open-vs`
  * - "Review" (`spell.reviewView`, a circle-check):  the page being reviewed (`/epic review`,
- *   `yarn docs:open <page> --review`)
+ *   `spell dev docs open <page> --review`)
  * - Each is a webview holding ONE iframe of the page's loopback URL, as Simple Browser does.  The page's own live
  *   reload runs inside it.
  * - The webview's html is built ONCE, when VS Code resolves the view:  later shows NAVIGATE its iframe (a
@@ -44,14 +44,17 @@ const ALLOW = "clipboard-read; clipboard-write"
 const VIEWS: Record<DocViewName, { id: string; empty: string }> = {
   docs: {
     id: "spell.docView",
-    empty: "No docs page yet:  <code>yarn docs:open --vs</code>, or <code>/spell-docs</code>."
+    empty: "No docs page yet:  <code>spell dev docs open --vs</code>, or <code>/spell-docs</code>."
   },
   review: {
     id: "spell.reviewView",
     empty:
-      "Nothing to review yet:  <code>/epic review &lt;name&gt;</code>, or <code>yarn docs:open &lt;page&gt; --review</code>."
+      "Nothing to review yet:  <code>/epic review &lt;name&gt;</code>, or <code>spell dev docs open &lt;page&gt; --review</code>."
   }
 }
+
+/** A checkout's own `spell` CLI, run from its root:  `restartServer()` runs it in a shell. */
+const SPELL = "node packages/cli/bin/spell.mjs"
 
 /** Each view's title-bar commands, `<view id>.<name>`:  each listed in `package.json` for both views. */
 const COMMANDS = ["back", "forward", "reload", "restartServer", "openExternal"] as const
@@ -173,8 +176,9 @@ export class DocView implements vscode.WebviewViewProvider {
   /**
    * Restart the page server behind the page in view, then show the same page from it again.
    * - which checkout:  the server's own `/_server/ping` says (`root`)
-   * - runs `yarn server stop`, then `yarn server ensure`, in a LOGIN shell (`$SHELL -lc`):  a GUI VS Code's own `PATH`
-   *   may have no `node` / `yarn`
+   * - runs `spell dev server stop`, then `spell dev server ensure`, in a LOGIN shell (`$SHELL -lc`):  a GUI VS Code's
+   *   own `PATH` may have no `node`
+   * - that checkout's own CLI (`node packages/cli/bin/spell.mjs`), never the `spell` on `PATH`:  another checkout's
    * - its port may change (a worktree's server takes any free one):  the page comes back on the new `base`
    */
   async restartServer(): Promise<void> {
@@ -190,7 +194,7 @@ export class DocView implements vscode.WebviewViewProvider {
     }
     const output = await vscode.window.withProgress(
       { location: { viewId: this.id }, title: "Restarting the page server" },
-      () => run(process.env.SHELL || "/bin/zsh", ["-lc", "yarn server stop; yarn server ensure"], root)
+      () => run(process.env.SHELL || "/bin/zsh", ["-lc", `${SPELL} dev server stop; ${SPELL} dev server ensure`], root)
     )
     const base = output.match(/"base":\s*"([^"]+)"/)?.[1]
     if (!base) {

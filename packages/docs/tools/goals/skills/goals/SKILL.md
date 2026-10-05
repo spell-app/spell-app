@@ -70,7 +70,7 @@ After EVERY answer, before the next question:
 - Effects on another topic:  add or close items there too, and log it on both.
 - Then the `.md`:  decisions under "Decisions", work status (`proposed` → `ready`), the question gone from "Open
   questions".  Same ids and titles as the page.
-- The page reloads by itself while the page server runs (`yarn server`).
+- The page reloads by itself while the page server runs (`spell dev server`).
 
 ## 5. Close the session
 

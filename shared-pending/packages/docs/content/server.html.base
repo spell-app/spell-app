@@ -1,0 +1,1340 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page Server</title>
+    <meta
+      name="description"
+      content="One live-reloading server per checkout for docs, epics, goals, Spell UI and the editor:  the $/server library, its flows, route modules, safety, and why it's built this way."
+    />
+    <link rel="stylesheet" href="../tools/_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Page Server</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <h1>Page Server</h1>
+        <p class="lede">
+          How the repo serves its pages locally: the <code>$/server</code> library (<code>SRV</code>), the one page
+          server per checkout built on it, and everything that plugs into it.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="map"
+            ><b>Plan doc:</b>
+            <a href="epics/unified-server/unified-server.plan.html" target="unified-server"
+              >epic unified-server</a
+            ></ui-item
+          >
+          <ui-item icon="user"
+            >Written for: anyone opening, editing or serving a page, or adding routes to the page server</ui-item
+          >
+          <ui-item icon="flag">Status: <ui-label size="mini" color="green">built</ui-label> (P1-P7)</ui-item>
+          <ui-item icon="code branch"
+            >Checked on: branch <code>unified-server</code>, 2026-10-02, against the code (not just the plan:
+            <a href="epics/unified-server/unified-server.plan.html" target="unified-server">epics/unified-server</a
+            >)</ui-item
+          >
+        </ui-list>
+
+        <ui-section id="1-overview" header="1. Overview" sticky collapsible dividing>
+          <ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="1" label="server per checkout"></ui-statistic>
+            <ui-statistic value="5" label="properties"></ui-statistic>
+            <ui-statistic value="4747" label="preferred port"></ui-statistic>
+          </ui-statistics>
+
+          <ui-section id="what-it-is" header="What it is" sticky collapsible dividing>
+            <ul>
+              <li>
+                <a href="../../server/" target="src-packages-server"><code>packages/server</code></a>
+                (<code>@spell-app/server</code>, <code>$/server</code>, <code>SRV</code>): serving pages locally, for
+                every package.
+                <ul>
+                  <li>
+                    Before it, six servers each had their own mime table, path check, port choice and opener; now they
+                    share one library.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                The PAGE SERVER (<code>yarn server</code>): ONE per checkout -- the main one, and each worktree --
+                serving the whole repo on one port.
+                <ul>
+                  <li>live reload on every page; edit a section in place; the server-only properties</li>
+                  <li><code>/</code> redirects to the docs index</li>
+                  <li>
+                    port: 4747 if free (<code>SPELL_SERVER_PORT</code> overrides), else any free one; the real one is
+                    written to <code>&lt;root&gt;/.spell-server.json</code>, where the openers find it
+                  </li>
+                  <li>its output goes to <code>&lt;root&gt;/.spell-server.log</code></li>
+                </ul>
+              </li>
+              <li>
+                Every page carries <code>&lt;spell-site-header&gt;</code>: a fixed bar switching between the five
+                PROPERTIES, with the checkout's worktree / branch badge, an "open in VS Code" link, edit mode and a
+                light / dark toggle.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="the-five-properties" header="The five properties" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>property</th>
+                    <th>home</th>
+                    <th>from <code>file://</code></th>
+                    <th>served by</th>
+                  </tr>
+                  <tr>
+                    <td>Docs</td>
+                    <td>
+                      <a href="index.html" target="src-packages-docs-content-index-html"
+                        ><code>packages/docs/content/index.html</code></a
+                      >
+                    </td>
+                    <td class="yes positive">yes</td>
+                    <td>static files</td>
+                  </tr>
+                  <tr>
+                    <td>Spell UI</td>
+                    <td><code>/ui/</code></td>
+                    <td class="no negative">no</td>
+                    <td>
+                      static pages,
+                      <a href="../../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a> mounted
+                      at
+                      <code>/ui/</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Epics</td>
+                    <td><code>packages/docs/content/index.html#epics</code></td>
+                    <td class="yes positive">yes</td>
+                    <td>static files</td>
+                  </tr>
+                  <tr>
+                    <td>Goals</td>
+                    <td>
+                      <a href="../../../goals/index.html" target="src-goals-index-html"
+                        ><code>goals/index.html</code></a
+                      >
+                    </td>
+                    <td class="meh warning">no buttons</td>
+                    <td>static files + goals' route module</td>
+                  </tr>
+                  <tr>
+                    <td>Editor</td>
+                    <td><code>/editor/</code></td>
+                    <td class="no negative">no</td>
+                    <td>a redirect to the editor (vite), which the app's route module starts with the page server</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="running-it" header="Running it" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>command</th>
+                    <th>what it does</th>
+                  </tr>
+                  <tr>
+                    <td><code>yarn server serve [--port N]</code></td>
+                    <td>run it in the foreground, until <code>Ctrl-C</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn server ensure</code> (or <code>start</code>)</td>
+                    <td>start it in the background if it isn't running; print its info as JSON</td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn server stop</code> / <code>status</code></td>
+                    <td>stop it; JSON, or <code>not running</code> and exit 1</td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn server url &lt;file&gt;</code></td>
+                    <td><code>ensure</code>, then print the URL serving <code>file</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn serve</code></td>
+                    <td>
+                      every server of the checkout, started if need be: <code>ensure</code>, wait for the editor, check
+                      Spell UI's bundle answers (<code>/ui/_assets/site.js</code>); prints each one's port and URL (<a
+                        href="../../../scripts/serve.mjs"
+                        target="src-scripts-serve-mjs"
+                        ><code>scripts/serve.mjs</code></a
+                      >, <code>/spell-serve</code>)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>spell serve [target]</code></td>
+                    <td>
+                      everything: the page server, whose app route module runs the API and the editor (vite); waits for
+                      the editor and opens it. <code>yarn start</code> in
+                      <a href="../../app/" target="src-packages-app"><code>packages/app</code></a> is
+                      <code>spell serve --headless</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn goals open [target]</code></td>
+                    <td>a goals page in a new browser window (<code>open-vs</code>: VS Code)</td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn docs:open [page]</code></td>
+                    <td>a doc in Chrome, one reused tab per page, in the background</td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn plan-doc open &lt;name&gt;</code></td>
+                    <td>a plan doc in VS Code's Simple Browser, beside the editor</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                <code>--root &lt;dir&gt;</code>: the checkout; default the one holding the folder <code>yarn</code> ran
+                in (<code>INIT_CWD</code>).
+              </li>
+              <li>
+                Every opener starts the page server first; if it can't, the page opens from <code>file://</code>.
+                <ul>
+                  <li><code>SPELL_NO_SERVER=1</code>: never start it; <code>SPELL_NO_BROWSER=1</code>: open nothing</li>
+                </ul>
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>yarn server ensure, in a worktree (4747 taken by the main checkout) · 10 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-json">{
+  "pid": 54219,
+  "port": 55703,
+  "root": "/Users/owen/www/spell-app/spell-app/.claude/worktrees/unified-server",
+  "started": "2026-10-02T05:53:02.703Z",
+  "branch": "unified-server",
+  "worktree": "unified-server",
+  "base": "http://127.0.0.1:55703",
+  "launched": true
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="2-structure" header="2. Structure" sticky collapsible dividing>
+          <p>
+            One package, three entry points: the barrel (<code>$/server</code>, node built-ins only), and two opt-in
+            folders reached by path.
+          </p>
+
+          <ui-section id="the-library" header="The library" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>
+                      file (<a href="../../server/src/" target="src-packages-server-src"
+                        ><code>packages/server/src/</code></a
+                      >)
+                    </th>
+                    <th>what</th>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/server.types.ts" target="src-packages-server-src-server-types-ts"
+                        ><code>server.types.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <code>Handler</code>, <code>Mount</code>, <code>ServerInfo</code>, the html / file hooks,
+                      <code>HttpError</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/mime.ts" target="src-packages-server-src-mime-ts"
+                        ><code>mime.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      ONE content-type table, <code>typeFor()</code>; source-ish files (<code>.ts</code>,
+                      <code>.spell</code> ...) are <code>text/plain</code>, shown not downloaded
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/safePath.ts" target="src-packages-server-src-safepath-ts"
+                        ><code>safePath.ts</code></a
+                      >
+                    </td>
+                    <td><code>resolveInside()</code>: URL path -&gt; file under a root, never outside it</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/StaticHandler.ts" target="src-packages-server-src-statichandler-ts"
+                        ><code>StaticHandler.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      folders under URL prefixes (longest wins); <code>no-store</code> + an <code>ETag</code>; html and
+                      per-extension hooks
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/Request.ts" target="src-packages-server-src-request-ts"
+                        ><code>Request.ts</code></a
+                      >,
+                      <a href="../../server/src/Reply.ts" target="src-packages-server-src-reply-ts"
+                        ><code>Reply.ts</code></a
+                      >,
+                      <a href="../../server/src/Router.ts" target="src-packages-server-src-router-ts"
+                        ><code>Router.ts</code></a
+                      >
+                    </td>
+                    <td>the part of Express the app's <code>api.ts</code> uses, with Express's names and behaviour</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/bodies.ts" target="src-packages-server-src-bodies-ts"
+                        ><code>bodies.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <code>parseBodies()</code>: JSON (parser pluggable, e.g. JSON5), text, forms; size limit, 413
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/listener.ts" target="src-packages-server-src-listener-ts"
+                        ><code>listener.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <code>toListener()</code>: a <code>Handler</code> as node's listener, with 404 / error answers
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/ports.ts" target="src-packages-server-src-ports-ts"
+                        ><code>ports.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <code>isFree</code>, <code>freePort</code>, <code>listenPreferred</code>; loopback by default
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/open.ts" target="src-packages-server-src-open-ts"
+                        ><code>open.ts</code></a
+                      >
+                    </td>
+                    <td>default browser, new window, reused Chrome tab, VS Code's Simple Browser</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/FileLock.ts" target="src-packages-server-src-filelock-ts"
+                        ><code>FileLock.ts</code></a
+                      >
+                    </td>
+                    <td><code>&lt;file&gt;.lock</code>, so tools writing one file take turns</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a
+                        href="../../server/src/untilInterrupted.ts"
+                        target="src-packages-server-src-untilinterrupted-ts"
+                        ><code>untilInterrupted.ts</code></a
+                      >
+                    </td>
+                    <td>run until <code>Ctrl-C</code> / <code>SIGTERM</code>, dropping open connections</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/proxy.ts" target="src-packages-server-src-proxy-ts"
+                        ><code>proxy.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <code>proxyTo()</code> / <code>proxyUpgrade()</code>: pass requests and websockets to another
+                      local server
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/LiveReload.ts" target="src-packages-server-src-livereload-ts"
+                        ><code>LiveReload.ts</code></a
+                      >
+                    </td>
+                    <td>server-sent events over <code>fs.watch</code>: tells every page which file changed</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/liveClient.ts" target="src-packages-server-src-liveclient-ts"
+                        ><code>liveClient.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      the browser side, served as <code>/_server/live.js</code>: reloads, and
+                      <code>SPELL_SERVER.editPage()</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/Guard.ts" target="src-packages-server-src-guard-ts"
+                        ><code>Guard.ts</code></a
+                      >
+                    </td>
+                    <td><code>Host</code> check, per-run write token, same <code>Origin</code></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/PidFile.ts" target="src-packages-server-src-pidfile-ts"
+                        ><code>PidFile.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <a href="../../../.spell-server.json" target="src-spell-server-json"
+                        ><code>.spell-server.json</code></a
+                      >: <code>status()</code>, <code>ensure()</code> (start detached),
+                      <code>stop()</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/mainServer.ts" target="src-packages-server-src-mainserver-ts"
+                        ><code>mainServer.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <code>mainServerUrl(file)</code>: a worktree's file on the MAIN checkout's server
+                      (<code>/worktrees/&lt;w&gt;/...</code>), when it runs and serves worktrees;
+                      <code>worktreePath(file)</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../server/src/WebServer.ts" target="src-packages-server-src-webserver-ts"
+                        ><code>WebServer.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      all of the above on <code>node:http</code>: host check -&gt; live reload -&gt;
+                      <code>router</code> -&gt; static files -&gt; <code>fallback</code> -&gt; 404
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="page" header="page/" sticky collapsible dividing>
+            <p>
+              The page server itself, <code>$/server/page</code>: opt-in, since it brings <code>parse5</code> and loads
+              route modules.
+            </p>
+            <ul>
+              <li>
+                <a href="../../server/src/page/PageServer.ts" target="src-packages-server-src-page-pageserver-ts"
+                  ><code>PageServer.ts</code></a
+                >
+                -- THE server: a live <code>WebServer</code> on the checkout, plus <code>/_server/ping</code>, the
+                editor, <code>/ui/</code>
+                and the route modules.
+                <ul>
+                  <li>
+                    <code>PageServer.ensure(root)</code>: what <code>yarn server ensure</code>, goals and the openers
+                    call
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="../../server/src/page/PageEditor.ts" target="src-packages-server-src-page-pageeditor-ts"
+                  ><code>PageEditor.ts</code></a
+                >
+                -- <code>/_server/page</code>: read, replace or patch a page's source
+              </li>
+              <li>
+                <a href="../../server/src/page/RunningEpics.ts" target="src-packages-server-src-page-runningepics-ts"
+                  ><code>RunningEpics.ts</code></a
+                >
+                -- running epics' plan docs on the main checkout's server: <code>/worktrees/&lt;w&gt;/</code>,
+                <code>/_server/epics</code>, and their cards in the docs index's Epics section (<a
+                  href="#running-epics-flow"
+                  >Running epics</a
+                >)
+              </li>
+              <li>
+                <a href="../../server/src/page/cli.ts" target="src-packages-server-src-page-cli-ts"
+                  ><code>cli.ts</code></a
+                >
+                -- <code>yarn server</code>
+              </li>
+              <li>
+                <a href="../../server/src/page/page.types.ts" target="src-packages-server-src-page-page-types-ts"
+                  ><code>page.types.ts</code></a
+                >
+                -- <code>RouteModule</code>, <code>RouteContext</code>, <code>PageServerSettings</code>
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="site" header="site/" sticky collapsible dividing>
+            <p>
+              Browser code, <code>$/server/site</code>: bundled into the docs'
+              <a href="../tools/_assets/spell-ui.js" target="src-packages-docs-tools-assets-spell-ui-js"
+                ><code>spell-ui.js</code></a
+              >
+              and Spell UI's site bundle (<a
+                href="../../ui/site/_assets/site.js"
+                target="src-packages-ui-site-assets-site-js"
+                ><code>packages/ui/site/_assets/site.js</code></a
+              >).
+            </p>
+            <ul>
+              <li>
+                <a href="../../server/src/site/SiteHeader.ts" target="src-packages-server-src-site-siteheader-ts"
+                  ><code>SiteHeader.ts</code></a
+                >
+                -- <code>&lt;spell-site-header&gt;</code>: own shadow DOM and CSS, no UI elements, so it looks the same
+                on every property
+              </li>
+              <li>
+                <a href="../../server/src/site/SectionEditor.ts" target="src-packages-server-src-site-sectioneditor-ts"
+                  ><code>SectionEditor.ts</code></a
+                >
+                -- <code>&lt;spell-section-editor&gt;</code>: edit mode's hover, dialog and save
+              </li>
+              <li>
+                <a href="../../server/src/site/site.types.ts" target="src-packages-server-src-site-site-types-ts"
+                  ><code>site.types.ts</code></a
+                >
+                -- <code>PROPERTIES</code>, the header's list
+              </li>
+              <li>
+                <a href="../../server/src/site/index.ts" target="src-packages-server-src-site-index-ts"
+                  ><code>index.ts</code></a
+                >
+                -- <code>defineSite()</code>: defines the header, and mounts the editor on served pages
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="leaf-package" header="Leaf package" sticky collapsible dividing>
+            <ui-message state="info" header="Anything may import $/server;  it imports no other package">
+              <ul>
+                <li>
+                  The barrel is node built-ins only: json5 and esbuild come in as the caller's hooks
+                  (<code>parseJson</code>, <code>transforms</code>).
+                </li>
+                <li>
+                  Its users: <code>ui</code>'s tools and site, <code>spell/node</code>, <code>cli</code>,
+                  <code>app</code>, <code>docs</code>, goals, the VS Code extension.
+                </li>
+                <li>
+                  <code>page/</code> may use dependencies (<code>parse5</code>);
+                  <a href="../../ui/site/" target="src-packages-ui-site"><code>site/</code></a> is DOM code. Neither is
+                  in the barrel.
+                </li>
+              </ul>
+            </ui-message>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="3-flows" header="3. Flows" sticky collapsible dividing>
+          <p>Each flow, step by step, in the order it happens.</p>
+
+          <ui-section id="opening-a-page" header="Opening a page" sticky collapsible dividing>
+            <ol>
+              <li>
+                The opener (<code>yarn docs:open</code>, <code>yarn plan-doc open</code>, <code>yarn goals open</code>)
+                calls <code>PageServer.ensure()</code> -- the docs' scripts through <code>ensurePageServer()</code>.
+              </li>
+              <li>
+                It reads the pid file,
+                <a href="../../../.spell-server.json" target="src-spell-server-json"><code>.spell-server.json</code></a
+                >, and asks that server's <code>/_server/ping</code>: it counts only if it answers for THIS checkout.
+              </li>
+              <li>
+                None: it spawns <code>cli.ts serve</code> under <code>tsx</code>, detached, logging to
+                <a href="../../../.spell-server.log" target="src-spell-server-log"><code>.spell-server.log</code></a
+                >, and waits up to 15s.
+                <ul>
+                  <li>about 1s when it has to start, 0.3s when it already runs</li>
+                </ul>
+              </li>
+              <li>
+                The URL is <code>base</code> + the file's path from the checkout, shown in:
+                <ul>
+                  <li>a Chrome tab keyed by the page's path, so the same page from another checkout reuses it</li>
+                  <li>a new browser window (goals), or VS Code's Simple Browser</li>
+                </ul>
+              </li>
+              <li>
+                Every <code>.html</code> page it serves gets <code>window.SPELL_SERVER</code> (port, token, file,
+                <code>ETag</code>, branch), <code>/_server/live.js</code> and Spell's favicon links (unless its
+                <code>&lt;head&gt;</code> links its own icon) before <code>&lt;/head&gt;</code>.
+              </li>
+              <li>
+                Spell's favicon, on every <code>WebServer</code>, live or not: <code>/_server/favicon.svg</code>,
+                <code>/_server/favicon-32.png</code>, <code>/_server/apple-touch-icon.png</code>, and
+                <code>/favicon.ico</code> (the 32px PNG, after the static folders). Made by <code>yarn favicon</code> in
+                <a href="../../server/" target="src-packages-server"><code>packages/server</code></a> (<a
+                  href="../../server/scripts/favicon.ts"
+                  target="src-packages-server-scripts-favicon-ts"
+                  ><code>scripts/favicon.ts</code></a
+                >) into <code>src/site/favicon.ts</code>; pages opened from disk get it from the site header.
+              </li>
+            </ol>
+          </ui-section>
+
+          <ui-section id="live-reload" header="Live reload" sticky collapsible dividing>
+            <ol>
+              <li>
+                <code>fs.watch</code> on the named folders only -- <code>"pageServer".watch</code> (<a
+                  href="./"
+                  target="src-packages-docs-content"
+                  ><code>packages/docs</code></a
+                >), plus <a href="../../../goals/" target="src-goals"><code>goals/</code></a> from goals' route module
+                -- never <a href="../tools/" target="src-packages-docs-tools"><code>scripts/</code></a> or
+                <code>experiments/</code>. The whole root would flood it (<code>node_modules</code>,
+                <a href="../../../.git" target="src-git"><code>.git</code></a
+                >, worktrees).
+              </li>
+              <li>Each changed path waits 250ms for quiet: a write is often two (write, then a formatter).</li>
+              <li>
+                A <code>change</code> event with the URL path goes to every page holding <code>/_server/events</code>
+                open; a heartbeat every 30s keeps the streams alive.
+              </li>
+              <li>
+                The page reloads if the path is its own file, or any <code>.css</code> / <code>.js</code>; its scroll
+                position survives.
+              </li>
+            </ol>
+          </ui-section>
+
+          <ui-section id="editing-a-section" header="Editing a section" sticky collapsible dividing>
+            <ol>
+              <li>The header's pencil turns edit mode on, for this tab.</li>
+              <li>
+                Hovering outlines the editable thing under the pointer: an element with an <code>id</code> (sections,
+                paragraphs, list items, cards ...), or a <code>section</code> through its heading's <code>id</code>.
+              </li>
+              <li>
+                "edit" fetches its source fresh: <code>GET /_server/page?path=&amp;id=[&amp;parent=section]</code> -&gt;
+                <code>{ html, etag }</code>.
+              </li>
+              <li>Save sends <code>PATCH /_server/page?path=</code> with the token and <code>If-Match</code>.</li>
+              <li>
+                The server:
+                <ul>
+                  <li>
+                    checks the token and origin, and that the path is an <code>.html</code> file inside the checkout
+                  </li>
+                  <li>takes the file's <code>FileLock</code>; a changed <code>ETag</code> is a 409</li>
+                  <li>
+                    finds exactly ONE <code>#id</code> with <code>parse5</code> (none: 404, several: 409), and splices
+                    its byte range: every other byte stays as it was
+                  </li>
+                  <li>writes a temp file and renames it over the original</li>
+                </ul>
+              </li>
+              <li>Live reload shows the result. Nothing is committed: the change waits in the working tree.</li>
+            </ol>
+            <ul>
+              <li>
+                Also: <code>PUT</code> replaces the whole page; scripts in a page call
+                <code>SPELL_SERVER.editPage({ id, html })</code>.
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>The save, from SectionEditor.ts · 5 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">const answer = await fetch(`${config.edit ?? "/_server/page"}?path=${encodeURIComponent(config.file)}`, {
+  method: "PATCH",
+  headers: { "content-type": "application/json", "x-server-token": config.token, "if-match": editing.etag },
+  body: JSON.stringify({ id: editing.id, parent: editing.parent, html })
+})</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="goals-buttons" header="Goals buttons" sticky collapsible dividing>
+            <ol>
+              <li>
+                Goals pages get <code>window.GOALS_SERVER = { api: "/api/goals" }</code> from goals' html hook, so
+                <a href="../tools/_assets/goals-live.js" target="src-packages-docs-tools-assets-goals-live-js"
+                  ><code>goals-live.js</code></a
+                >
+                knows the buttons work.
+              </li>
+              <li>A button posts to <code>/api/goals/&lt;op&gt;</code> with <code>x-server-token</code>.</li>
+              <li>
+                <code>guard.writeCheck</code>, then the body (64kb at most), then the handler:
+                <ul>
+                  <li><code>thought</code> -- save a thought onto a page</li>
+                  <li>
+                    <code>run</code> -- start Claude Code on <code>/goals</code> or <code>/goals-update</code>, in a
+                    terminal
+                  </li>
+                  <li><code>claude/login</code> -- log in, in a terminal; <code>GET claude</code>: status, no token</li>
+                  <li><code>open-vscode</code> -- the page in VS Code's Simple Browser</li>
+                </ul>
+              </li>
+              <li>
+                Goals' own errors become the answers its pages expect: unknown target 404 + choices, launch failure 501
+                + command, bad input 400.
+              </li>
+            </ol>
+          </ui-section>
+
+          <ui-section id="spell-ui-static" header="Spell UI at /ui/" sticky collapsible dividing>
+            <ol>
+              <li>
+                <code>/ui/</code> is a second static mount:
+                <a href="../../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a
+                >, plain <code>.html</code> pages (<code>UI_SITE</code> in
+                <a href="../../server/src/page/page.types.ts" target="src-packages-server-src-page-page-types-ts"
+                  ><code>page.types.ts</code></a
+                >). <code>/ui</code> redirects to <code>/ui/</code>, so the pages' relative links resolve.
+              </li>
+              <li>
+                The pages load ONE committed bundle, <code>_assets/site.js</code> + <code>site.css</code>, built by
+                <code>yarn site:build</code> in <a href="../../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                >: no dev server, no build step to view a page.
+              </li>
+              <li>
+                Live like the docs: the folder is watched (not <code>_src/</code>, the bundle's entry); a page reloads
+                when it or any CSS / JS changes, so a rebuilt bundle reloads every page. <code>yarn site:dev</code> in
+                <a href="../../ui/" target="src-packages-ui"><code>packages/ui</code></a> rebuilds the bundle on every
+                source edit, so a library change shows up live. The section editor works on them too: their
+                <code>SPELL_SERVER.file</code> is <code>/packages/ui/site/...</code>.
+              </li>
+              <li>
+                Until 2026-10-02 this proxied <code>astro dev</code> (<code>AstroProxy</code>); the Astro site was
+                deleted on 2026-10-03 (epic <code>spell-ui-pages</code>, P7).
+              </li>
+            </ol>
+          </ui-section>
+
+          <ui-section id="vs-code-preview" header="VS Code preview" sticky collapsible dividing>
+            <ol>
+              <li>
+                A script asks for a page:
+                <ul>
+                  <li>
+                    <code>vscode://spell-app.spell-language/doc-preview?file=...</code>, or <code>?url=</code> (loopback
+                    URLs only)
+                  </li>
+                  <li>
+                    or the window bridge's <code>show-doc</code>, which reaches THIS session's window, not the focused
+                    one
+                  </li>
+                </ul>
+              </li>
+              <li>
+                A worktree's file: the MAIN checkout's page server first, when it runs and serves worktrees
+                (<code>SRV.mainServerUrl()</code>), so a running epic's plan doc shows on the one port every link uses.
+              </li>
+              <li>
+                Else <code>DocPreview</code> finds the file's checkout: the folder holding
+                <a href="../../../.git" target="src-git"><code>.git</code></a> above it. Pages are served from the root,
+                since docs link all over the repo.
+              </li>
+              <li>
+                Its pid file names a running page server: use it. Else an in-process <code>SRV.WebServer</code> with
+                live reload, one per root, watching
+                <a href="./" target="src-packages-docs-content"><code>packages/docs</code></a> and <code>goals</code> -- but no
+                route modules.
+              </li>
+              <li>
+                Simple Browser shows it beside the editor, in one tab; a <code>?t=</code> stamp makes every open a
+                reload.
+              </li>
+            </ol>
+            <ul>
+              <li>
+                The extension NEVER starts the page server: a GUI VS Code may have no <code>node</code> on its PATH. The
+                scripts that open docs start it first.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="running-epics-flow" header="Running epics" sticky collapsible dividing>
+            <p>
+              An epic's plan doc lives in its worktree until it merges, and each worktree has its own page server. The
+              main checkout's server shows them all anyway:
+            </p>
+            <ol>
+              <li>
+                <code>/worktrees/&lt;w&gt;/...</code> serves worktree <code>&lt;w&gt;</code>'s files (a
+                <code>StaticHandler</code> mount on <code>.claude/worktrees</code>; dot files still 403). A plan doc's
+                relative assets resolve inside its own worktree.
+              </li>
+              <li>
+                <code>/_server/epics</code> lists them, as JSON: each worktree's own epic (named like the worktree), and
+                any epic the main checkout lacks. Copies of epics merged before the worktree was cut are skipped.
+              </li>
+              <li>
+                The docs index's <code>&lt;!-- running-epics --&gt;</code> marker, first in its Epics card list (<code
+                  >yarn docs:index</code
+                >
+                puts it there), becomes the running epics' cards on each request: running and merged epics in one list,
+                each title after its state (planning, <code>3/6</code>, done, stalled), and a merged epic's card dropped
+                when it runs in a worktree too. None running, or opened from disk: nothing.
+              </li>
+              <li>
+                A worktree's plan doc changing reloads its page and the index (one recursive watch on
+                <code>.claude/worktrees</code>).
+              </li>
+              <li>
+                <code>yarn server url</code> and the VS Code preview hand out these URLs for a worktree's file
+                (<code>SRV.mainServerUrl()</code>), so every link is on port 4747.
+              </li>
+              <li>
+                <code>yarn plan-doc</code> doesn't rewrite the committed index inside a worktree: two worktrees doing so
+                conflicted on merge. The epic's card comes with Doc Review's <code>yarn docs:index</code>.
+              </li>
+            </ol>
+          </ui-section>
+
+          <ui-section id="spell-serve" header="spell serve" sticky collapsible dividing>
+            <p>
+              The editor is the PAGE SERVER's child, so <code>yarn server</code> alone runs it too: the app's route
+              module (<a href="../../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                ><code>appRoutes.ts</code></a
+              >) starts it with <code>EditorServer</code> once the page server listens (<code>onListening</code>), and
+              stops it with the page server (<code>onStop</code>).
+            </p>
+            <ol>
+              <li>
+                <code>--port</code>, if given, goes to a page server this STARTS as <code>SPELL_EDITOR_PORT</code>
+                (default 3000, else any free port); one already running keeps its editor where it is.
+              </li>
+              <li>
+                <code>PageServer.ensure()</code>: the page server, with every route module. Once it listens, the app's
+                module starts vite (its script, under this <code>node</code>, in
+                <a href="../../app/" target="src-packages-app"><code>packages/app</code></a
+                >) with <code>PORT</code> = the page server's port and <code>API_SERVER=127.0.0.1</code>, so its proxy
+                sends <code>/api</code> there; its output goes to
+                <a href="../../../.spell-server.editor.log" target="src-spell-server-editor-log"
+                  ><code>.spell-server.editor.log</code></a
+                >.
+              </li>
+              <li>
+                Once vite answers, the module records it in
+                <a href="../../../.spell-server.editor.json" target="src-spell-server-editor-json"
+                  ><code>.spell-server.editor.json</code></a
+                >: the page server's <code>/editor</code> redirects there.
+              </li>
+              <li>
+                <code>spell serve</code> waits (up to 90s) for that record to answer; opens the editor, unless
+                <code>--headless</code>.
+              </li>
+              <li>
+                <code>Ctrl-C</code>: stop the page server -- and with it the editor -- only if
+                <code>spell serve</code> started it.
+              </li>
+            </ol>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="4-route-modules" header="4. Route modules" sticky collapsible dividing>
+          <p>How a package adds routes to the page server without the server importing it.</p>
+
+          <ui-section id="the-contract" header="The contract" sticky collapsible dividing>
+            <ul>
+              <li>
+                A ROUTE MODULE is a file whose default export is a <code>RouteModule</code>:
+                <code>{ name, setup(context) }</code>.
+                <ul>
+                  <li><code>setup()</code> runs once, before the server listens</li>
+                  <li>loaded by dynamic import under <code>tsx</code>; a failure is logged, not fatal</li>
+                </ul>
+              </li>
+              <li>
+                <code>RouteContext</code>, what <code>setup()</code> gets:
+                <ul>
+                  <li><code>router</code> -- add routes; they run BEFORE static files</li>
+                  <li><code>guard</code> -- put <code>guard.writeCheck</code> on every route that changes something</li>
+                  <li><code>live</code> -- <code>live.watch(dir)</code> reloads pages when files under it change</li>
+                  <li>
+                    <code>web</code> -- the whole server, e.g. <code>web.files.html.push()</code> for an html hook
+                  </li>
+                  <li><code>root</code>, <code>info</code> -- the checkout; pid, port, branch</li>
+                  <li>
+                    <code>onListening(start)</code> -- run once the server listens (<code>info.port</code> is set), e.g.
+                    to start a child process that needs the page server's port: the app's editor
+                  </li>
+                  <li><code>onStop(stop)</code> -- run when the server stops, e.g. to end a child process</li>
+                </ul>
+              </li>
+              <li>
+                Listed in the repo root's
+                <a href="../package.json" target="src-packages-docs-package-json"><code>package.json</code></a
+                >, <code>"pageServer"</code>: <code>routes</code> (paths from the root) and <code>watch</code> (folders
+                to live-reload, default <a href="./" target="src-packages-docs-content"><code>packages/docs</code></a
+                >).
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>The root package.json's pageServer field · 11 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-json">{
+  "pageServer": {
+    "routes": [
+      "packages/docs/tools/goals/goalsRoutes.ts",
+      "packages/docs/tools/detailsRoutes.ts",
+      "packages/docs/tools/showRoutes.ts",
+      "packages/app/src/server/appRoutes.ts"
+    ],
+    "watch": ["packages/docs"]
+  }
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="goals-and-the-app" header="Goals and the app" sticky collapsible dividing>
+            <ul>
+              <li>
+                <a href="../tools/goals/goalsRoutes.ts" target="src-packages-docs-tools-goals-goalsroutes-ts"
+                  ><code>packages/docs/tools/goals/goalsRoutes.ts</code></a
+                >
+                -- <code>/api/goals/*</code>, the goals folder watched, and <code>window.GOALS_SERVER</code> on goals
+                pages. It was <code>server.js</code>, the goals server.
+              </li>
+              <li>
+                <a href="../tools/detailsRoutes.ts" target="src-packages-docs-tools-detailsroutes-ts"
+                  ><code>packages/docs/tools/detailsRoutes.ts</code></a
+                >
+                -- <code>/api/details/answer</code>: a details page's answer, written beside it (<a
+                  href="details.html"
+                  target="src-packages-docs-content-details-html"
+                  >Details Pages</a
+                >).
+              </li>
+              <li>
+                <a href="../tools/showRoutes.ts" target="src-packages-docs-tools-showroutes-ts"
+                  ><code>packages/docs/tools/showRoutes.ts</code></a
+                >
+                -- <code>/api/docs/show</code>: a link clicked in the Claude panel shows a page in VS Code's side bar,
+                or in Chrome (<code>yarn docs:link</code>).
+              </li>
+              <li>
+                ORDER matters: the app's <code>/api</code> router ends in a catch-all 404, so a module adding
+                <code>/api/...</code> routes MUST be listed before
+                <a href="../../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                  ><code>appRoutes.ts</code></a
+                >.
+              </li>
+              <li>
+                <a href="../../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                  ><code>packages/app/src/server/appRoutes.ts</code></a
+                >
+                -- the app on the page server:
+                <ul>
+                  <li><code>/api/...</code> -- the app's API router, <code>api.ts</code>, unchanged</li>
+                  <li><code>/hello</code> -- liveness</li>
+                  <li>
+                    <code>/editor</code> -- redirect to vite; not running: a 503 page saying to run
+                    <code>spell serve</code>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="../../app/src/server/index.ts" target="src-packages-app-src-server-index-ts"
+                  ><code>packages/app/src/server/index.ts</code></a
+                >
+                still runs the API alone (<code>yarn start:server</code>, port 3001), on
+                <code>SRV.WebServer</code> instead of Express.
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>A route module: goalsRoutes.ts, abridged · 30 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">import { SRV } from "$/server"
+import type { RouteModule } from "$/server/page"
+
+const goalsRoutes: RouteModule = {
+  name: "goals",
+  setup({ router, guard, live, web }) {
+    live.watch(GOALS, { ignore: /(^|\/)_(tools|skills)\// })
+    web.files.html.push((html, { file }) =&gt;
+      file.startsWith(`${GOALS}/`)
+        ? html.replace("&lt;/head&gt;", `&lt;script&gt;window.GOALS_SERVER = ${JSON.stringify({ api: API })}&lt;/script&gt;\n&lt;/head&gt;`)
+        : html
+    )
+
+    const api = new SRV.Router()
+    api.get("/claude", (_request, reply) =&gt; reply.set("Cache-Control", "no-store").json(claude(true)))
+    api.use(guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }))
+    api.post("/thought", (request, reply) =&gt; {
+      const body = request.body as { target?: string; text?: string }
+      const target = resolveTarget(body.target ?? "", preferences())
+      const id = addThought(target, String(body.text ?? "")) as string
+      reply.json({ ok: true, id: id.toUpperCase(), target: target.name })
+    })
+    // ... /run, /claude/login, /open-vscode
+    router.use(API, (request, reply, next) =&gt;
+      api.handle(request, reply, (error) =&gt; next(error === undefined ? undefined : goalsError(error)))
+    )
+  }
+}
+
+export default goalsRoutes</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="body-parsing-is-per-route" header="Body parsing is per route" sticky collapsible dividing>
+            <ul>
+              <li>
+                The page server parses no bodies itself; each route parses its own:
+                <ul>
+                  <li>page edits: 10mb</li>
+                  <li>goals: 64kb</li>
+                  <li>the app's <code>/api</code>: JSON5, 10mb</li>
+                </ul>
+              </li>
+              <li>Why: a proxy (<code>/ui</code>) must stream the raw body, and a body can be read only once.</li>
+              <li>
+                A second <code>parseBodies()</code> in a chain leaves an already-read body alone, instead of waiting for
+                a stream that has ended -- found when goals' buttons hung.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="5-safety" header="5. Safety" sticky collapsible dividing>
+          <p>A local server is reachable by every web page the browser opens; these keep it to its own pages.</p>
+
+          <ui-section id="who-can-reach-it" header="Who can reach it" sticky collapsible dividing>
+            <ul>
+              <li>
+                Loopback only: every server binds <code>127.0.0.1</code>, so nothing on the network reaches it.
+                <ul>
+                  <li>
+                    exception: the app's standalone API (<code>yarn start:server</code>) binds <code>0.0.0.0</code>
+                    with no host check, as Express did, for vite and LAN devices
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <code>Host</code> check, on every request and websocket: <code>127.0.0.1:&lt;port&gt;</code>,
+                <code>localhost:&lt;port&gt;</code> or <code>[::1]:&lt;port&gt;</code>, else 403. A site pointing its
+                own name at 127.0.0.1 (DNS rebinding) is refused.
+              </li>
+              <li>
+                Write token: random each run, given only to pages the server serves
+                (<code>window.SPELL_SERVER.token</code>), sent as <code>x-server-token</code>.
+                <ul>
+                  <li>a page from an older run must reload: "bad token: reload the page"</li>
+                  <li>an <code>Origin</code> header, when sent, must be the server's own</li>
+                </ul>
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="what-it-serves" header="What it serves" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>resolveInside()</code> is the ONE path check:
+                <ul>
+                  <li>each segment decoded on its own: an encoded <code>/</code> (<code>%2F</code>) is a 400</li>
+                  <li><code>..</code>, <code>.</code> and NUL bytes refused</li>
+                  <li>the result checked to be inside the root after resolving, as a last line</li>
+                </ul>
+              </li>
+              <li>
+                Dot files are 403 unless a mount says <code>dotFiles</code>:
+                <a href="../../../.git" target="src-git"><code>.git</code></a
+                >, <code>.env</code> and
+                <a href="../../../.spell-server.json" target="src-spell-server-json"><code>.spell-server.json</code></a>
+                stay private. Live reload never reports them.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="what-it-writes" header="What it writes" sticky collapsible dividing>
+            <ul>
+              <li>Page edits: <code>.html</code> files inside the checkout only, never committed.</li>
+              <li>
+                <code>If-Match</code> MUST be the <code>ETag</code> the page was served with (size + modified time):
+                missing 428, stale 409. This catches writers that don't lock: VS Code, an agent's edit tool.
+              </li>
+              <li>
+                <code>FileLock</code> (<code>&lt;file&gt;.lock</code>, created atomically) makes cooperating tools take
+                turns: page edits, <code>yarn plan-doc</code>, <code>yarn goals</code>, the app's saves.
+                <ul>
+                  <li>waits up to 20s; a lock older than 60s is a crashed holder's, and taken over</li>
+                </ul>
+              </li>
+              <li>
+                The app's <code>/api</code>: no token -- the editor calls it from vite's origin, through vite's proxy --
+                but a write whose <code>Origin</code> isn't this machine is 403. Express had no check at all.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="6-why" header="6. Why" sticky collapsible dividing>
+          <p>
+            The decisions behind it, condensed from the plan doc's
+            <a href="epics/unified-server/unified-server.plan.html#decisions" target="unified-server">Decisions</a> and
+            "Review:" <a href="epics/unified-server/unified-server.plan.html#todos" target="unified-server">todos</a>.
+          </p>
+
+          <ui-section id="why-shape" header="Shape" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>choice</th>
+                    <th>why</th>
+                  </tr>
+                  <tr>
+                    <td>a library AND one page server</td>
+                    <td>docs and epics gain live reload; one URL scheme for every property</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      a leaf package; <code>page/</code>,
+                      <a href="../../ui/site/" target="src-packages-ui-site"><code>site/</code></a> opt-in
+                    </td>
+                    <td>anything may import the barrel, which stays dependency-free</td>
+                  </tr>
+                  <tr>
+                    <td>TypeScript; goals runs under <code>tsx</code></td>
+                    <td>the repo's convention; goals becomes less portable (see Limits)</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      migrate goals, DocPreview, <code>cli</code> serve, <code>ui</code>'s StaticServer, the app's
+                      Express
+                    </td>
+                    <td>one mime table, path check and port choice; vite dev servers and Astro stay</td>
+                  </tr>
+                  <tr>
+                    <td>StaticServer kept as a thin wrapper</td>
+                    <td>
+                      SmokeRunner barely changes; side effect: a taken port (5199) now falls back to a free one instead
+                      of failing
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="why-pages" header="Pages and editing" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>choice</th>
+                    <th>why</th>
+                  </tr>
+                  <tr>
+                    <td>the site header in each page and template, not injected</td>
+                    <td>it shows on <code>file://</code> too; cost: one edit of every existing page</td>
+                  </tr>
+                  <tr>
+                    <td>edits write the original file, by byte range, never commit</td>
+                    <td>diffs show only the edit; review stays with whoever reviews the change</td>
+                  </tr>
+                  <tr>
+                    <td><code>FileLock</code> + <code>If-Match</code></td>
+                    <td>
+                      several writers touch the same pages; the lock serializes the polite ones, the ETag catches the
+                      rest
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>edits REQUIRE <code>If-Match</code> (428), no blind writes</td>
+                    <td>every caller has the ETag of the page it loaded</td>
+                  </tr>
+                  <tr>
+                    <td>the live client is a stringified function, not a <code>.js</code> asset</td>
+                    <td>
+                      VS Code's bundle (cjs) has no <code>import.meta.url</code> to find an asset by; needs a
+                      <code>__name</code> shim for <code>tsx</code>'s <code>keepNames</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>"Open in VS Code" is a plain <code>vscode://file</code> link</td>
+                    <td>works from <code>file://</code>; the window bridge would need a server endpoint</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="why-spell-ui" header="Spell UI" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>choice</th>
+                    <th>why</th>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>/ui/</code> serves
+                      <a href="../../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a> as
+                      static pages
+                    </td>
+                    <td>
+                      over proxying <code>astro dev</code> (until 2026-10-02): no second process, no build step to view;
+                      cost: <code>yarn site:build</code> after a library change (or <code>yarn site:dev</code> while
+                      working)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>two theme toggles on Spell UI pages</td>
+                    <td>the site's own toggle is part of what it documents</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="why-app" header="The app" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>choice</th>
+                    <th>why</th>
+                  </tr>
+                  <tr>
+                    <td>contract tests first, against Express, then unchanged against <code>SRV.Router</code></td>
+                    <td>proves the swap kept the API's behaviour</td>
+                  </tr>
+                  <tr>
+                    <td><code>:name*</code> holds the WHOLE rest of the path</td>
+                    <td>Express 4 put only the first segment there: nested project files 404'd or hit EISDIR</td>
+                  </tr>
+                  <tr>
+                    <td>other behaviour changed on purpose</td>
+                    <td>
+                      unknown <code>DELETE /api/...</code>: the API's own 404; <code>.spell</code> files
+                      <code>text/plain</code>; a bad JSON5 body: 400 <code>{ error }</code> JSON, not an HTML page
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>/editor</code> redirects to vite</td>
+                    <td>
+                      over a built editor under <code>/editor/</code>, which needs a vite base and router basename
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>yarn start</code> is <code>spell serve --headless</code></td>
+                    <td>one way to run everything; the API is on the page server, not 3001</td>
+                  </tr>
+                  <tr>
+                    <td><code>spell serve</code> stops only a page server it started</td>
+                    <td>one already running (docs open elsewhere) stays up</td>
+                  </tr>
+                  <tr>
+                    <td>the extension never starts the page server</td>
+                    <td>a GUI VS Code may have no <code>node</code> on its PATH</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="7-limits" header="7. Limits" sticky collapsible dividing>
+          <p>
+            Known costs and open caveats, from the plan doc's
+            <a href="epics/unified-server/unified-server.plan.html#caveats" target="unified-server">Caveats</a>.
+          </p>
+
+          <ui-section id="limits-goals" header="Goals" sticky collapsible dividing>
+            <ul>
+              <li>
+                Slower under <code>tsx</code>: <code>goals.sh help</code> 0.05s with node, 0.18s under tsx;
+                <code>yarn goals help</code> ~0.6s, mostly yarn.
+              </li>
+              <li>
+                Less portable: goals now needs this repo's
+                <a href="../../server/" target="src-packages-server"><code>packages/server</code></a
+                >, <code>tsx</code> and the root <code>"pageServer"</code> field.
+              </li>
+              <li>
+                Already-open goals pages need one reload: the token header moved from <code>x-goals-token</code> to
+                <code>x-server-token</code>.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="limits-preview" header="VS Code and the header" sticky collapsible dividing>
+            <ul>
+              <li>
+                A page opened through <code>?file=</code> with no page server running gets the extension's own server:
+                no goals buttons and no <code>/ui/</code> until <code>yarn server start</code>.
+              </li>
+              <li>"Open in VS Code" opens in the LAST FOCUSED VS Code window, not this session's.</li>
+              <li>The header's theme toggle and the Spell UI site's can disagree.</li>
+              <li>The editor has no site header, and the Editor tab leaves the page server's origin.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="limits-epics" header="Running epics" sticky collapsible dividing>
+            <ul>
+              <li>
+                No edit mode on a worktree's page through the main server: <code>PageEditor</code> refuses dot paths
+                too. The worktree's own server edits it.
+              </li>
+              <li>
+                A main server started before this code (an old checkout, not restarted) has no
+                <code>/worktrees/</code>: <code>mainServerUrl()</code> checks <code>/_server/epics</code> first, and
+                links fall back to the worktree's own server.
+              </li>
+              <li>
+                Phases are read by pattern (the server is a leaf: no HTML parser): a plan doc whose phase tags lose
+                <code>data-phase</code> / <code>data-status</code> shows as "planning".
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="limits-ui" header="Spell UI" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>/ui/</code> shows the COMMITTED bundle: a library change shows only after
+                <code>yarn site:build</code> in <a href="../../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                >.
+              </li>
+              <li>
+                <code>_assets/icon-packs</code> is a symlink into
+                <a href="../../ui/src/icons/" target="src-packages-ui-src-icons"><code>packages/ui/src/icons/</code></a
+                >: served fine, but a static deploy must copy through it.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Last checked 2026-10-02 against branch <code>unified-server</code> (P1-P7): re-read
+            <a href="../../server/src/" target="src-packages-server-src"><code>packages/server/src</code></a> to update.
+          </p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

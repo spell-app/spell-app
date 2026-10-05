@@ -38,8 +38,11 @@ export class SiteCheck {
   /** `packages/ui/site/`:  what the page server mounts at `/ui/`. */
   static readonly SITE = join(SiteCheck.PACKAGE, "site")
 
-  /** Repo root (of this worktree):  where `yarn server ensure` runs. */
+  /** Repo root (of this worktree):  where `spell dev server ensure` runs. */
   static readonly REPO = resolve(SiteCheck.PACKAGE, "..", "..")
+
+  /** This checkout's own `spell` CLI:  run with `node`, never the `spell` on `PATH` (maybe another checkout's). */
+  static readonly SPELL = join(SiteCheck.REPO, "packages", "cli", "bin", "spell.mjs")
 
   /** Default screenshot folder;  `tools/results` is git-ignored. */
   static readonly OUT = join(SiteCheck.PACKAGE, "tools", "results", "site-check")
@@ -178,7 +181,7 @@ export class SiteCheck {
 
   /**
    * Find the page server, then check every page in one browser.
-   * - SIDE EFFECT:  `yarn server ensure` starts the server if it isn't running;  writes screenshots to `out`
+   * - SIDE EFFECT:  `spell dev server ensure` starts the server if it isn't running;  writes screenshots to `out`
    */
   async run(): Promise<PageReport[]> {
     this.base = await this.ensureServer()
@@ -199,14 +202,14 @@ export class SiteCheck {
 
   /**
    * The page server's origin, once it serves the site bundle.
-   * - `yarn server ensure` prints `{ base, port, ... }` as JSON, maybe after yarn's own lines:  parsed from the first
+   * - `spell dev server ensure` prints `{ base, port, ... }` as JSON, maybe after other lines:  parsed from the first
    *   `{`
    * - SIDE EFFECT:  exits (2) when there's no server, or it doesn't serve `/ui/_assets/site.js`
    */
   async ensureServer(): Promise<string> {
     let base: string
     try {
-      const text = execFileSync("yarn", ["server", "ensure"], {
+      const text = execFileSync(process.execPath, [SiteCheck.SPELL, "dev", "server", "ensure"], {
         cwd: SiteCheck.REPO,
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
@@ -215,7 +218,7 @@ export class SiteCheck {
       base = (JSON.parse(text.slice(text.indexOf("{"))) as { base: string }).base.replace(/\/$/, "")
     } catch (error) {
       return SiteCheck.fail(
-        `can't start or find the page server (\`yarn server ensure\` in ${SiteCheck.REPO}):  ${error}`
+        `can't start or find the page server (\`spell dev server ensure\` in ${SiteCheck.REPO}):  ${error}`
       )
     }
     const probe = `${base}/ui/_assets/site.js`

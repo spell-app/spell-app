@@ -59,9 +59,15 @@ Every command takes one or more targets:
 | Command | What it does |
 |---|---|
 | `spell help [command]` | Lists the commands, or shows one's options:  `spell help compile` ~== `spell compile --help`. |
-| `spell serve [target]` | Runs everything -- the spell app's editor (vite, hot reload) and this checkout's page server (`yarn server`:  the app's `/api`, which saves files to disk, plus docs, epics, goals and Spell UI) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (the editor's;  default 3000), `--headless`. |
-| `spell plan-doc <command> <name> ...` | Edits a plan doc (`packages/docs/content/epics/<name>/<name>.plan.html`) as the `/epic` skill does:  `yarn plan-doc` from anywhere, in the nearest checkout (a worktree's, when run in one).  `spell plan-doc` alone lists its commands, e.g. `summary <name>`, `phase <name> 2 done`. |
-| `spell dev commands [list\|check]` | Every yarn script, `spell` command and skill, against the commands page (`packages/docs/content/dev/commands/commands.json`):  `list` marks each ✓ / ✗, `check` prints only the gaps and exits 1 on any.  `--json`.  The first of the repo-tool commands, `spell dev <noun> <verb>`:  the plan for the rest is that page's Roadmap.  Root `yarn commands:check`. |
+| `spell serve [target]` | Runs everything -- the spell app's editor (vite, hot reload) and this checkout's page server (`spell dev server`:  the app's `/api`, which saves files to disk, plus docs, epics, goals and Spell UI) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (the editor's;  default 3000), `--headless`. |
+| `spell dev commands [list\|check]` | Every yarn script, `spell` command and skill, against the commands page (`packages/docs/content/dev/commands/commands.json`):  `list` marks each ✓ / ✗, `check` prints only the gaps and exits 1 on any.  `--json`.  The first of the repo-tool commands, `spell dev <noun> <verb>`:  the plan for the rest is that page's Roadmap. |
+| `spell dev plan-doc <command> <name> ...` | Edits a plan doc (`packages/docs/content/epics/<name>/<name>.plan.html`) as the `/epic` skill does, from anywhere, in the nearest checkout (a worktree's, when run in one).  Alone, lists its commands, e.g. `summary <name>`, `phase <name> 2 done`.  Root `yarn plan-doc`;  `spell plan-doc` still works (deprecated). |
+| `spell dev goals <command> ...` | The goals tool (`packages/docs/tools/goals/`) of the nearest goals folder:  `help` lists its commands.  Root `yarn goals`;  `spell goals` still works (deprecated). |
+| `spell dev docs <verb> ...` | The docs tools:  `update`, `index`, `new`, `open`, `link` -- each as root `yarn docs:<verb>` ran it, in `packages/docs`, arguments passed as they are, e.g. `spell dev docs open solid/solid-2 --vs`. |
+| `spell dev details <command> ...` | The `/details` skill's tool, `packages/docs/tools/details.js`.  Root `yarn details`. |
+| `spell dev server <verb> ...` | This checkout's page server, its own verbs as they are:  `serve`, `start` / `ensure`, `stop`, `status`, `url <file>`.  `start --all`:  every web server of the checkout (page server, editor, Spell UI) and where each is, `scripts/serve.mjs`.  Root `yarn server`, `yarn serve`. |
+| `spell dev window <command> ...` | VS Code windows per package and worktree, `scripts/window.mjs`:  `open`, `close`, `handoff`, `show`, `which`, `stay-check` ...  Works in a worktree before its `yarn install`.  Root `yarn window`. |
+| `spell dev vscode [build\|install]` | The VS Code extension:  `build` its `.vsix` (`yarn install`, `build`, `package` in `packages/vscode`), `install` it into VS Code, no verb both.  Root `yarn vscode`, `vscode:build`, `vscode:install`. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword:  name, pack, other names.  `--pack <id>`, `--json`.  `--open` shows them as pictures in your browser (click one to copy its name), until `Ctrl-C`. |
 | `spell static <pages...>` | `@spell-app/ui` pages as plain HTML for crawlers and no-JS readers:  each `ui-*` element rendered to light DOM (no shadow DOM), the scripts that load the elements removed.  Writes `page.static.html` beside `page.html`, and ONE minified stylesheet per output folder, `ui.static.css`, which every page there links (the browser caches it).  `-o <file>` (one page) or `-o <folder>` (several), `--css <file>` (one stylesheet elsewhere), `--inline-css` (each page's own `<style>` instead), `--no-minify`.  A folder:  every `.html` in it. |
 | `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  `--force` recompiles the projects it imports, too.  A `.spell` file prints its javascript. |
@@ -195,6 +201,9 @@ Every command takes one or more targets:
 - **It runs the other packages' working copies:**  whatever is in `../spell`, `../parser`, `../lsp` ... right now.
   A half-finished change there breaks `spell`, and `yarn ts` here reports their type errors too.
 - **Startup takes about half a second:**  `tsx` compiles their source on each run, and caches it.
+  `spell dev ...` starts in about a fifth of that:  `bin/spell.mjs` runs `src/devMain.ts`, which loads no spell, then
+  the tool as a child `node` (`spell dev plan-doc summary` ~0.35s, `spell dev window which` ~0.17s).  Its commands
+  that need spell (`session`, `stock` ...) take the usual half second.
 - **Ink is pinned at 5,** from when this lived in the parser, whose app is on React 18:  6+ needs React 19.
   This repo has its own React, so it's free to move.
 - **`yarn` warns `YN0072 ... --preserve-symlinks`,** about the two links.  Ignore it:  node follows each link to
