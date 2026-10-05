@@ -1,8 +1,9 @@
 /**
- * `spell dev docs index`:  rewrite the lists in `index.html` from every page's `<title>` and description.
- * Usage (from `packages/docs`):  node scripts/index.js
- * - Groups:
- *   - Guides:  every page outside `templates/` and `epics/`
+ * `spell dev docs index`:  rewrite the lists in the docs home, `pages/index.html`, from every page's `<title>` and
+ * description.
+ * Usage (from `packages/docs`):  node tools/index.js
+ * - Groups (paths from the checkout's root;  links from `pages/`):
+ *   - Guides:  `guides/**`
  *   - Epics:  `epics/<name>/<name>.plan.html`, each card's title after its state (`epicState()`:  planning, [3/6],
  *     done, stalled), read from its phase sections (`#phases`) and "updated" date;  the page server adds the
  *     running epics' cards (`RUNNING`)
@@ -12,14 +13,14 @@
  *   changes nothing.
  */
 import { readFileSync, writeFileSync } from "node:fs"
-import { join, relative } from "node:path"
+import { dirname, relative } from "node:path"
 
 import { parseHTML } from "linkedom"
 
-import { DOCS, findPages, tidy } from "./pages.js"
+import { HOME, ROOT, findPages, tidy } from "./pages.js"
 
-/** The index page, relative to `DOCS`. */
-const INDEX = "index.html"
+/** The docs home, from the checkout's root. */
+const INDEX = relative(ROOT, HOME)
 const START = "<!-- index:start -->"
 const END = "<!-- index:end -->"
 
@@ -41,7 +42,7 @@ const GROUPS = [
     id: "guides",
     title: "Guides",
     icon: "book open",
-    has: (path) => !/^(templates|epics)\//.test(path),
+    has: (path) => path.startsWith("guides/"),
     none: "No guides yet."
   },
   {
@@ -61,11 +62,11 @@ const GROUPS = [
 ]
 
 const pages = findPages()
-  .map((path) => relative(DOCS, path))
+  .map((path) => relative(ROOT, path))
   .filter((path) => path !== INDEX)
   .map(describe)
 
-const index = join(DOCS, INDEX)
+const index = HOME
 const html = readFileSync(index, "utf8")
 const start = html.indexOf(START)
 const end = html.indexOf(END)
@@ -80,7 +81,7 @@ const sections = GROUPS.map((group) =>
   )
 )
 writeFileSync(index, `${html.slice(0, start)}${START}\n${sections.join("\n")}\n${END}${html.slice(end + END.length)}`)
-if (!tidy([INDEX])) process.exit(1)
+if (!tidy([HOME])) process.exit(1)
 console.log(`${INDEX}:  ${GROUPS.map((g) => `${pages.filter((p) => g.has(p.path)).length} ${g.id}`).join(", ")}`)
 
 /**
@@ -89,7 +90,7 @@ console.log(`${INDEX}:  ${GROUPS.map((g) => `${pages.filter((p) => g.has(p.path)
  * - a plan doc's title without its `Epic: ` (`plan-doc.js` `TITLE_PREFIX`):  its card is in Epics already
  */
 function describe(path) {
-  const { document } = parseHTML(readFileSync(join(DOCS, path), "utf8"))
+  const { document } = parseHTML(readFileSync(`${ROOT}/${path}`, "utf8"))
   const full = document.querySelector("title")?.textContent.trim() || path
   const title = path.startsWith("epics/") ? full.replace(/^Epic:\s*/, "") : full
   const description = document.querySelector('meta[name="description"]')?.getAttribute("content")?.trim() ?? ""
@@ -136,10 +137,15 @@ ${body}
 </ui-section>`
 }
 
+/** Page `path` (from the checkout's root) as a link from the home's folder:  `../guides/x.html`. */
+function href(path) {
+  return relative(dirname(INDEX), path)
+}
+
 /** A page's card:  linked title, description, path. */
 function card(page) {
   return `<ui-card><ui-content>
-<ui-header><a href="${attr(page.path)}">${text(page.title)}</a></ui-header>
+<ui-header><a href="${attr(href(page.path))}">${text(page.title)}</a></ui-header>
 ${page.description ? `<ui-description>${text(page.description)}</ui-description>` : ""}
 <ui-meta>${text(page.path)}</ui-meta>
 </ui-content></ui-card>`
@@ -157,7 +163,7 @@ function epicCard(page) {
   const state = epicState(page.phases, page.updated)
   const active = page.phases.find((phase) => phase.status === "active")
   return `<ui-card data-epic="${attr(page.path.split("/")[1])}" data-status="${state.done ? "done" : "open"}"><ui-content>
-<ui-header>${state.mark} <a href="${attr(page.path)}">${text(page.title)}</a></ui-header>
+<ui-header>${state.mark} <a href="${attr(href(page.path))}">${text(page.title)}</a></ui-header>
 ${page.description ? `<ui-description>${text(page.description)}</ui-description>` : ""}
 <ui-meta>${active ? `${text(active.label)} · ` : ""}${text(page.path)}</ui-meta>
 </ui-content></ui-card>`

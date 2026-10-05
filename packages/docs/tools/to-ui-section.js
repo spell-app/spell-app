@@ -1,6 +1,6 @@
 /**
- * Convert pages from the OLD section markup to `<ui-section>`:  `node scripts/to-ui-section.js <page>...` (paths
- * relative to `packages/docs`).  Prints a summary per page;  idempotent (a converted page has nothing left to do).
+ * Convert pages from the OLD section markup to `<ui-section>`:  `node tools/to-ui-section.js <page>...` (paths
+ * from the root, or an area:  `pages.js` `pageFile()`).  Prints a summary per page;  idempotent (a converted page has nothing left to do).
  * - old:  `<section class="s2|s3">` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>` (icons, title), then the
  *   content
  * - new:  `<ui-section id header sticky collapsible dividing>` (`spell-docs/ui-section-test.html` shows every piece)
@@ -14,7 +14,7 @@ import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
-import { DOCS, serialize, tidy } from "./pages.js"
+import { pageFile, serialize, tidy } from "./pages.js"
 
 /** The attributes every converted section gets:  a rule under every title, every section folds. */
 const SECTION_FLAGS = ["sticky", "collapsible", "dividing"]
@@ -194,7 +194,9 @@ function describe(page, report) {
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const pages = process.argv.slice(2)
   if (!pages.length) {
-    console.error("usage:  node tools/to-ui-section.js <page>...    (paths relative to packages/docs/content)")
+    console.error(
+      "usage:  node tools/to-ui-section.js <page>...    (from the root, or an area:  `pages.js` `pageFile()`)"
+    )
     process.exit(2)
   }
   const written = []
@@ -203,13 +205,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
       console.error(`${page}:  a goals page keeps the old markup:  skipped`)
       continue
     }
-    const file = join(DOCS, page)
+    const file = pageFile(page)
     const { document } = parseHTML(readFileSync(file, "utf8"))
     const report = convertSections(document)
     console.log(describe(page, report))
     if (!report.converted) continue
     writeFileSync(file, serialize(document))
-    written.push(page)
+    written.push(file)
   }
   if (written.length && !tidy(written)) process.exit(1)
 }

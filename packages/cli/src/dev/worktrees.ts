@@ -42,7 +42,7 @@ export function worktreesOf(root: string): { path: string; branch: string }[] {
 /**
  * Where session / worktree / plan `name` stands, for `/park`, `/unpark`, `/wait-for` (was `status.py <name>`).
  * - `name` resolves as `/wtf <name>` does:  worktree `.claude/worktrees/<name>`, branch `<name>`, plan doc
- *   `packages/docs/content/epics/<name>/`, and the sessions titled `<name>` or that worked in that worktree
+ *   `epics/<name>/`, and the sessions titled `<name>` or that worked in that worktree
  * - `ids`:  its session ids when already known:  finding them reads every transcript, so `park wait` finds them once
  * - git runs in the MAIN checkout:  branches are shared, so every worktree gets the same answer
  */
@@ -109,13 +109,14 @@ export function planFile(name: string, worktree: string, main = CLI.mainRoot()):
 }
 
 /**
- * The folder checkout `root` keeps its plan docs in:  `packages/docs/content/epics`, else (a worktree cut before
- * 2026-10-04, until it merges `main`) the old `packages/docs/epics` when only that is there.
+ * The folder checkout `root` keeps its plan docs in:  `epics` (since 2026-10-05, claude-design P4), else the first
+ * older place that's there (a worktree on older code, until it merges `main`):  `packages/docs/content/epics`, then
+ * `packages/docs/epics`.
  */
 export function epicsDir(root: string): string {
-  const epics = join(root, "packages", "docs", "content", "epics")
-  const old = join(root, "packages", "docs", "epics")
-  return !existsSync(epics) && existsSync(old) ? old : epics
+  const places = [["epics"], ["packages", "docs", "content", "epics"], ["packages", "docs", "epics"]]
+  const epics = join(root, "epics")
+  return places.map((parts) => join(root, ...parts)).find((dir) => existsSync(dir)) ?? epics
 }
 
 /**

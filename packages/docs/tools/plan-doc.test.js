@@ -3,7 +3,7 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vite-plus/test"
 
-import { DOCS, TOOLS } from "./pages.js"
+import { TEMPLATES, TOOLS } from "./pages.js"
 import {
   PlanDoc,
   PlanDocError,
@@ -22,7 +22,7 @@ const NOW = new Date(2026, 9, 1, 9, 5)
 
 /** A fresh plan doc from the real template, so the tests break when the template drifts from the script. */
 function freshPlan() {
-  return PlanDoc.parse(readFileSync(join(DOCS, "templates/epics/plan.html"), "utf8"), NOW)
+  return PlanDoc.parse(readFileSync(join(TEMPLATES, "epics/plan.html"), "utf8"), NOW)
 }
 
 /** A plan doc in the layout before 2026-10-01 (`#plan` with a phase list, `ol.plan-items`):  the old template. */
@@ -543,7 +543,7 @@ describe("PlanDoc states", () => {
   })
 
   it("writes <body data-recent-since> from recentSince:  a time sets it, null removes it, undefined leaves it", () => {
-    const html = readFileSync(join(DOCS, "templates/epics/plan.html"), "utf8")
+    const html = readFileSync(join(TEMPLATES, "epics/plan.html"), "utf8")
     const since = "2026-10-03T21:14:02-04:00"
     const plan = PlanDoc.parse(html, NOW, { recentSince: since })
     plan.updateStates()

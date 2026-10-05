@@ -46,7 +46,7 @@ import {
 /** The docs package:  where its tools run from (`tools/doc-links.js`, `tools/check-spell.js`). */
 const DOCS = join(ROOT, "packages/docs")
 /** The goals templates in the docs:  laid out as a goals folder is (home, set, topic). */
-const TEMPLATES = join(DOCS, "content/templates/goals")
+const TEMPLATES = join(ROOT, "templates/goals")
 /** The docs' shared page assets (`goals.css`, `goals-live.js`, `spell-ui.js` ...):  new pages link to them. */
 const ASSETS = join(DOCS, "tools/_assets")
 /** The goals home page. */
@@ -131,7 +131,7 @@ function fromTemplate(path, dest, fill) {
   const assets = relative(dirname(dest), ASSETS).split("\\").join("/")
   const root = relative(dirname(dest), ROOT).split("\\").join("/") || "."
   let html = readFileSync(join(TEMPLATES, path), "utf8")
-    .replace(/((?:href|src)=")(?:\.\.\/)*(?:tools\/)?_assets\//g, `$1${assets}/`)
+    .replace(/((?:href|src)=")(?:\.\.\/)*(?:packages\/docs\/)?(?:tools\/)?_assets\//g, `$1${assets}/`)
     .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${root}"`)
     .replace(/\{\{(\w+)\}\}/g, (whole, key) => (key in fill ? attr(fill[key]) : whole))
   if (fill.title) html = html.replace(/<title>[^<]*<\/title>/, `<title>${attr(fill.title)}</title>`)

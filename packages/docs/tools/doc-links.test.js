@@ -6,10 +6,10 @@ import { join } from "node:path"
 import { describe, expect, it } from "vite-plus/test"
 
 import { checkText, linkText, resolve, targetFor } from "./doc-links.js"
-import { DOCS, ROOT, TOOLS } from "./pages.js"
+import { EPICS, GUIDES, PACKAGE, ROOT, TOOLS } from "./pages.js"
 
-/** A page in `spell-docs/`, one folder down from `packages/docs`, as most pages are. */
-const PAGE_DIR = join(DOCS, "spell-docs")
+/** A page in `guides/spell-docs/`, two folders down from the root, as most pages are. */
+const PAGE_DIR = join(GUIDES, "spell-docs")
 
 /** `body` linked as a page in `PAGE_DIR`. */
 function link(body) {
@@ -21,9 +21,9 @@ function linked(body) {
   return /<body>([\s\S]*)<\/body>/.exec(link(body).text)?.[1]
 }
 
-/** Run `node tools/doc-links.js args` from `packages/docs/content`. */
+/** Run `node tools/doc-links.js args` from `packages/docs`. */
 function cli(...args) {
-  return spawnSync(process.execPath, [join(TOOLS, "doc-links.js"), ...args], { cwd: DOCS, encoding: "utf8" })
+  return spawnSync(process.execPath, [join(TOOLS, "doc-links.js"), ...args], { cwd: PACKAGE, encoding: "utf8" })
 }
 
 /** A page with `body`, written to a fresh temp folder:  its path. */
@@ -36,7 +36,7 @@ function tempPage(body) {
 describe("linkText:  adding links", () => {
   it("links a code span naming a real file, relative to the page, with its own target", () => {
     expect(linked("<p><code>packages/docs/tools/pages.js</code></p>")).toBe(
-      '<p><a href="../../tools/pages.js" target="src-packages-docs-tools-pages-js">' +
+      '<p><a href="../../packages/docs/tools/pages.js" target="src-packages-docs-tools-pages-js">' +
         "<code>packages/docs/tools/pages.js</code></a></p>"
     )
   })
@@ -60,10 +60,10 @@ describe("linkText:  adding links", () => {
 
   it("links a folder with a trailing slash", () => {
     expect(linked("<code>packages/docs/tools</code>")).toBe(
-      '<a href="../../tools/" target="src-packages-docs-tools"><code>packages/docs/tools</code></a>'
+      '<a href="../../packages/docs/tools/" target="src-packages-docs-tools"><code>packages/docs/tools</code></a>'
     )
-    expect(linked("<code>packages/docs/content/spell-docs</code>")).toBe(
-      '<a href="./" target="src-packages-docs-content-spell-docs"><code>packages/docs/content/spell-docs</code></a>'
+    expect(linked("<code>guides/spell-docs</code>")).toBe(
+      '<a href="./" target="src-guides-spell-docs"><code>guides/spell-docs</code></a>'
     )
   })
 
@@ -85,11 +85,10 @@ describe("targets", () => {
   it("names URLs ext-<slug>, plan docs by name, everything else src-<repo-relative slug>, at most 80 characters", () => {
     expect(targetFor("https://www.example.com/a/b?c=1")).toBe("ext-example-com-a-b-c-1")
     expect(targetFor("http://example.com/")).toBe("ext-example-com")
-    expect(targetFor(join(DOCS, "epics/commands/commands.html"))).toBe("commands")
-    expect(targetFor(join(DOCS, "epics/commands/commands.plan.html"))).toBe("commands")
-    expect(targetFor(join(DOCS, "epics/commands/notes.html"))).toBe(
-      "src-packages-docs-content-epics-commands-notes-html"
-    )
+    expect(targetFor(join(EPICS, "commands/commands.html"))).toBe("commands")
+    expect(targetFor(join(EPICS, "commands/commands.plan.html"))).toBe("commands")
+    expect(targetFor(join(ROOT, "packages/docs/content/epics/commands/commands.plan.html"))).toBe("commands")
+    expect(targetFor(join(EPICS, "commands/notes.html"))).toBe("src-epics-commands-notes-html")
     expect(targetFor(`https://example.com/${"x".repeat(100)}`)).toHaveLength(84)
   })
 
@@ -97,7 +96,7 @@ describe("targets", () => {
     expect(
       linked('<a href="../index.html#links">i</a> <a href="#top">t</a> <a href="https://x.dev" target="x">x</a>')
     ).toBe(
-      '<a href="../index.html#links" target="src-packages-docs-content-index-html">i</a> <a href="#top">t</a> ' +
+      '<a href="../index.html#links" target="src-guides-index-html">i</a> <a href="#top">t</a> ' +
         '<a href="https://x.dev" target="x">x</a>'
     )
   })
@@ -124,7 +123,7 @@ describe("idempotence", () => {
 describe("checkText", () => {
   it("passes linked pages, `_self` links and anything inside <pre>", () => {
     const page = link(
-      '<code>packages/docs/AGENTS.md</code> <a href="../index.html" target="_self">i</a> <pre><a href="nope.html">x</a></pre>'
+      '<code>packages/docs/AGENTS.md</code> <a href="../../pages/index.html" target="_self">i</a> <pre><a href="nope.html">x</a></pre>'
     ).text
     expect(checkText(page, PAGE_DIR)).toEqual({ destinations: 1, problems: [] })
   })

@@ -21,7 +21,7 @@ import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
-import { DOCS, ROOT, TOOLS } from "./pages.js"
+import { AREAS, HOME, ROOT, TOOLS } from "./pages.js"
 
 /** `packages/`. */
 const PACKAGES = join(ROOT, "packages")
@@ -35,13 +35,13 @@ const NODE_MODULES_DIRS = [join(UI, "node_modules"), join(ROOT, "node_modules")]
 /**
  * Where bare file names (`withSolid.ts`) are looked up:
  * - every package's `src/`
- * - the docs' pages and tools, and UI's `docs/`
+ * - the docs' pages (every area:  `guides/`, `epics/` ...) and tools, and UI's `docs/`
  */
 const INDEX_ROOTS = [
   ...readdirSync(PACKAGES)
     .map((name) => join(PACKAGES, name, "src"))
     .filter(isDir),
-  DOCS,
+  ...AREAS,
   TOOLS,
   join(UI, "docs")
 ]
@@ -71,10 +71,11 @@ const SPECIAL = new Map([
 ])
 
 /**
- * A plan doc, `packages/docs/content/epics/<name>/<name>.plan.html` (before 2026-10-04 `<name>.html`), relative to the repo
- * root:  `[1]` is its name.
+ * A plan doc, `epics/<name>/<name>.plan.html` (before 2026-10-04 `<name>.html`;  before 2026-10-05 under
+ * `packages/docs/content/` or `packages/docs/`), relative to the repo root:  `[1]` is its name.
+ * - same as `relocate.js` `PLAN_DOC`
  */
-const PLAN_DOC = /(?:^|\/)packages\/docs\/(?:content\/)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
+const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
 
 /** The one target several destinations may share:  a plan doc's commits, each opened in the same GitHub tab. */
 const SHARED_TAB = "github"
@@ -224,12 +225,13 @@ function escapeAttribute(text) {
 /**
  * A code span's text -> an existing absolute path or `https://` URL, else `undefined`.
  * - tries, in order:  `SPECIAL`, `solid-js/...` in `node_modules`, `solidjs.com` pages, then the path against the
- *   page's folder, its `experiments/`, the repo root, `packages/`, the docs and UI;  a bare file name last, when ONE
+ *   page's folder, its `experiments/`, the repo root, `packages/`, the docs home's folder (`pages/`) and UI;  a bare file
+ *   name last, when ONE
  *   file outside a `test/` folder has it
  * - `file.ts:75` drops its line number
  * - NOTE:  the alias form is `#name/...`, from before the `$/` aliases:  a `$/name/...` span never resolves
  */
-export function resolve(raw, docDir = DOCS) {
+export function resolve(raw, docDir = dirname(HOME)) {
   const text = decodeEntities(raw).trim()
   if (SPECIAL.has(text)) return SPECIAL.get(text)
   if (SOLID_FILE.test(text)) {
@@ -243,7 +245,7 @@ export function resolve(raw, docDir = DOCS) {
   const alias = ALIAS.exec(path)
   if (alias) path = join(PACKAGES, alias[1], "src", alias[2])
   // `resolvePath`, not `join`:  an absolute `path` stands on its own
-  const bases = path.startsWith("node_modules/") ? [ROOT, UI] : [ROOT, PACKAGES, DOCS, UI]
+  const bases = path.startsWith("node_modules/") ? [ROOT, UI] : [ROOT, PACKAGES, dirname(HOME), UI]
   const candidates = [docDir, join(docDir, "experiments"), ...bases].map((base) => resolvePath(base, path))
   const found = candidates.find((candidate) => existsSync(candidate))
   if (found) return found
@@ -385,8 +387,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     console.error(
       [
         "usage (from packages/docs):",
-        "  node tools/doc-links.js content/<folder>/<doc>.html ...      -- add links (idempotent)",
-        "  node tools/doc-links.js --check content/<folder>/<doc>.html -- verify, exit 1 on problems"
+        "  node tools/doc-links.js ../../guides/<folder>/<doc>.html ...      -- add links (idempotent)",
+        "  node tools/doc-links.js --check ../../guides/<folder>/<doc>.html -- verify, exit 1 on problems"
       ].join("\n")
     )
     process.exit(1)

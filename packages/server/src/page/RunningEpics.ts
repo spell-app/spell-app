@@ -6,16 +6,16 @@ import type { SRV } from "$/server"
 /****************
  * ### `RunningEpics`
  * The main checkout's page server showing every RUNNING epic's plan doc:  the ones still in their worktree
- * (`.claude/worktrees/<w>/packages/docs/content/epics/<name>/<name>.plan.html`, or an old `<name>.html`), not yet
- * merged into the main checkout.
- * - a worktree cut before 2026-10-04 keeps its plan docs in `packages/docs/epics/` (no `content/`):  found there too
- *   (`EPICS_DIRS`)
+ * (`.claude/worktrees/<w>/epics/<name>/<name>.plan.html`, or an old `<name>.html`), not yet merged into the main
+ * checkout.
+ * - a worktree on older code keeps its plan docs in `packages/docs/content/epics/` (before 2026-10-05) or
+ *   `packages/docs/epics/` (before 2026-10-04):  found there too (`EPICS_DIRS`)
  * - Why:  each worktree has its own page server (its own port), and the main one refuses `.claude/...` (a dot
  *   path), so the docs index couldn't show an epic until it merged.
  * - `/worktrees/<w>/...` serves worktree `<w>`'s files (`StaticHandler` mount, dot files still refused), so a plan
  *   doc's relative assets come from its own worktree.
  * - `/_server/epics`:  the list, as JSON (`RunningEpic[]`).
- * - The docs index (`packages/docs/content/index.html`):  its `<!-- running-epics -->` marker, first in the Epics card
+ * - The docs home (`pages/index.html`):  its `<!-- running-epics -->` marker, first in the Epics card
  *   list, becomes the running epics' cards, rendered on each request:  running and merged epics in ONE list, each
  *   card's title after its state (`stateMark()`).  None running:  nothing.  Opened from disk:  the marker stays a
  *   comment.
@@ -41,7 +41,7 @@ export class RunningEpics {
   constructor(root: string) {
     this.root = root
     this.worktrees = join(root, ".claude", "worktrees")
-    this.index = join(root, "packages", "docs", "content", "index.html")
+    this.index = join(root, "pages", "index.html")
   }
 
   /**
@@ -166,16 +166,18 @@ export const MARKER = "<!-- running-epics -->"
 
 /**
  * Where a checkout keeps its plan docs, relative to its root, newest layout first.
- * - `packages/docs/content/epics`:  since 2026-10-04 (epic `shared-content`, P2)
+ * - `epics`:  since 2026-10-05 (epic `claude-design`, P4)
+ * - `packages/docs/content/epics`:  since 2026-10-04 (epic `shared-content`, P2);  a link into the shared repo's
+ *   old-path links, so the same folder as `epics`
  * - `packages/docs/epics`:  a worktree cut before that, until it merges `main`
  */
-const EPICS_DIRS = ["packages/docs/content/epics", "packages/docs/epics"]
+const EPICS_DIRS = ["epics", "packages/docs/content/epics", "packages/docs/epics"]
 
 /**
- * A plan doc's path inside `.claude/worktrees`:  `<w>/packages/docs/content/epics/<name>/<name>.plan.html`, or (a
- * worktree cut before 2026-10-04) `<name>.html`, or either without `content/`.
+ * A plan doc's path inside `.claude/worktrees`:  `<w>/epics/<name>/<name>.plan.html`, or (a worktree on older code)
+ * the same under `packages/docs/content/` or `packages/docs/`, or with the old name `<name>.html`.
  */
-const EPIC_FILE = /^[^/]+\/packages\/docs\/(?:content\/)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
+const EPIC_FILE = /^[^/]+\/(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
 
 /**
  * Epic `name`'s plan doc in folder `dir`:  `<name>.plan.html`, else an old `<name>.html` that is a plan doc

@@ -7,7 +7,7 @@
  * - `GET /api/docs/show?path=<url path>[&window=<pid>][&hash=<id>][&view=review][&in=browser]` -- what
  *   `spell dev docs link` prints
  *   - `view=review`:  in the side bar's "Review" tab;  else its "Spell Docs" tab
- *   - `path`:  the page's URL path on this server (`/packages/docs/...`, `/worktrees/<w>/...`), mapped to its file
+ *   - `path`:  the page's URL path on this server (`/guides/...`, `/worktrees/<w>/...`), mapped to its file
  *     through the server's mounts;  only `.html`
  *   - `window`:  the VS Code window's pid (its registry entry, `scripts/window.mjs`);  gone (reloaded), or not given:
  *     the window holding the page's checkout, else any

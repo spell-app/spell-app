@@ -12,20 +12,19 @@
  *   none:  the browser link alone, and a note on stderr.
  * - `--review`:  the side bar link (and `--show`) uses the side bar's "Review" tab, not its "Spell Docs" tab.
  * - `--show`:  also show it in this session's side bar now (`Window.show()`), so Owen needn't click at all.
- * - `<page>`:  absolute, or relative to `packages/docs` or the repo root.
+ * - `<page>`:  absolute, from the checkout's root, or from an area (`pages.js` `pageFile()`:  `solid/solid-2.html` is a
+ *   guide).
  * - `--text`:  the link's text (`P2 · Page Template`);  default:  the page's `<title>`.
  */
 import { existsSync, readFileSync } from "node:fs"
-import { resolve } from "node:path"
 
 import { SRV } from "$/server"
 
 import { Window } from "../../../scripts/window.mjs"
-import { DOCS, ROOT, ensurePageServer, serverUrl } from "./pages.js"
+import { ensurePageServer, pageFile, serverUrl } from "./pages.js"
 
 const { positional, flags } = parseArgs(process.argv.slice(2))
-// `yarn workspace` sets `INIT_CWD` to `packages/docs`, not where `yarn` was run:  so try the docs, then the root
-const file = [DOCS, ROOT].map((base) => resolve(base, positional[0] ?? "")).find((each) => existsSync(each)) ?? ""
+const file = positional[0] ? pageFile(positional[0]) : ""
 if (!positional[0] || !file.endsWith(".html") || !existsSync(file)) {
   console.error('usage:  spell dev docs link <page.html> [--hash <id>] [--text "..."] [--review] [--show]')
   process.exit(1)
