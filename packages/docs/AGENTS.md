@@ -67,13 +67,15 @@ In `tools/`:
     `commands`, D4).
 - Sections are `<ui-section>` elements (`spell-docs/spell-docs.md` "Page skeleton";  every piece of the markup:
   `spell-docs/ui-section-test.html`):
-  - `<ui-section id="..." header="1. Summary" sticky collapsible dividing>`, EVERY one `sticky collapsible
-    dividing` (a rule under every title, every section folds), nested for sub-sections;  `collapsed` starts one
-    folded
+  - `<ui-section id="..." header="1. Summary" sticky collapsible dividing collapsed>`, EVERY one `sticky
+    collapsible dividing collapsed` (a rule under every title, every section folds), nested for sub-sections
+  - MUST start folded:  every section and sub-section `collapsed`, every code block and aside without `open`.
+    The reader opens what they want (Owen, 2026-10-03:  "default to closed, open on demand").  The runtime
+    remembers the reader's folds per page, and a link to an id unfolds what hides it.
   - its icon:  a `<ui-icon slot="icon" name="...">` first inside it;  a title with markup:  a
     `<span slot="header">` instead of `header`
-  - an optional sticky page header above them:  `<ui-sticky class="spell-h1"><header class="spell-page-head">`
-    around the h1 (plan docs have one)
+  - a sticky page header above them, on EVERY page:  `<ui-sticky class="spell-h1"><header
+    class="spell-page-head">` around the h1, so the title stays on screen (the templates have it)
   - the OLD markup -- `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>` -- is for the goals
     pages only;  the runtime still drives it.  `node tools/to-ui-section.js <page>` converts a page (`yarn plan-doc
     migrate <name>` a plan doc)
@@ -169,7 +171,7 @@ In `tools/`:
     name draws nothing
 - Code:
   - ALWAYS folded and colored:  `<ui-accordion class="spell-code" styled>` + `<ui-title>What it is · N lines</ui-title>`
-    + `<ui-content><pre><code class="language-ts">`.  30 lines or fewer start open (`open="0"`).
+    + `<ui-content><pre><code class="language-ts">`.  Never `open`, however short:  see "Sections" above.
   - TypeScript by default, formatted by oxfmt:  write the snippet to a `.ts` / `.tsx` file and run
     `yarn vp fmt <file>`
   - valid code only:  no bare JSX statements after other statements -- assign them to a `const`

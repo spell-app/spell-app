@@ -63,7 +63,10 @@ export class Sequence<
         return undefined
       }
       let match: P.Match | undefined
-      if (expecting) {
+      // spaced wrong for the syntax:  no match, without even trying
+      if (!P.spacingAllows(tokens[length - 1], rule.spacing)) {
+        match = undefined
+      } else if (expecting) {
         const from = expecting.records.length
         match = expecting.nested(() => rule.parse(scope, remainingTokens))
         if (expecting.records.length > from) within = i - 1
@@ -120,10 +123,13 @@ export class Sequence<
     return this.optional ? entries.map((entry) => ({ ...entry, optional: true })) : entries
   }
 
-  /** Echo this rule back out as rulex syntax, wrapping in parens only when `matchGroup` or `optional` need it. */
+  /**
+   * Echo this rule back out as rulex syntax, spaced as written (`P.joinRulex()`), wrapping in parens only when
+   * `matchGroup` or `optional` need it.
+   */
   toRulexSyntax() {
     const { matchGroup, optional } = this.getRulexFlags()
-    const rules = this.rules.map((rule) => rule.toRulexSyntax()).join(" ")
+    const rules = P.joinRulex(this.rules)
     if (optional || matchGroup) return `(${matchGroup}${rules})${optional}`
     return `${rules}${optional}`
   }

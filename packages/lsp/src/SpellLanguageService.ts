@@ -34,6 +34,7 @@ import {
 
 import { typeCase } from "$/util"
 import { P } from "$/parser"
+import { MD, type InlineNode } from "$/markdown"
 import { SP } from "$/spell"
 import type { LSP } from "$/lsp"
 
@@ -275,13 +276,26 @@ export class SpellLanguageService {
 
   /**
    * Semantic token legend, sent on `initialize`.  Modifier bits:  `declaration` = 1, `defaultLibrary` = 2,
-   * then `heading1` = 4 ... `heading4` = 32.
+   * then `heading1` = 4 ... `heading4` = 32, then `bold` = 64, `italic` = 128, `link` = 256, `strikethrough` = 512.
    * - `heading<N>` are ours, for a heading comment with N `#`s -- `##` => `heading2`, and 4 or more => `heading4`.
    *   A modifier is a flag, not a value, so one per level.  The VS Code extension declares them, and shows them bold.
+   * - `bold` ... `strikethrough` are ours too:  markdown inside a comment (`commentSpans()`), which the extension
+   *   styles to match.
    */
   static TOKEN_LEGEND: SemanticTokensLegend = {
     tokenTypes: SpellLanguageService.HIGHLIGHT_KINDS,
-    tokenModifiers: ["declaration", "defaultLibrary", "heading1", "heading2", "heading3", "heading4"]
+    tokenModifiers: [
+      "declaration",
+      "defaultLibrary",
+      "heading1",
+      "heading2",
+      "heading3",
+      "heading4",
+      "bold",
+      "italic",
+      "link",
+      "strikethrough"
+    ]
   }
 
   /** Deepest heading level with its own `heading<N>` modifier -- deeper ones share it.  See `TOKEN_LEGEND`. */
@@ -343,7 +357,9 @@ export class SpellLanguageService {
       if (span.end <= from || span.start >= to) continue
       const kind = SpellLanguageService.HIGHLIGHT_KINDS.indexOf(span.kind)
       const heading = span.heading ? 1 << (1 + Math.min(span.heading, SpellLanguageService.MAX_HEADING)) : 0
-      const modifiers = (span.declaration ? 1 : 0) | (span.defaultLibrary ? 2 : 0) | heading
+      const markdown =
+        (span.bold ? 64 : 0) | (span.italic ? 128 : 0) | (span.link ? 256 : 0) | (span.strikethrough ? 512 : 0)
+      const modifiers = (span.declaration ? 1 : 0) | (span.defaultLibrary ? 2 : 0) | heading | markdown
       for (const [start, end] of this.splitByLine(file, span.start, span.end)) {
         const { line, character } = this.positionAt(file, start)
         builder.push(line, character, end - start, kind, modifiers)
@@ -383,7 +399,7 @@ export class SpellLanguageService {
         const kind = match.rule.highlightAs && this.refineKind(match.rule.highlightAs, item, match, parent, generated)
         if (!kind || !SpellLanguageService.isColourable(item)) continue
         const declaredKind = declared.get(item.start)
-        spans.push({
+        const span: LSP.HighlightSpan = {
           start: item.start,
           end: item.end,
           kind,
@@ -391,11 +407,82 @@ export class SpellLanguageService {
           defaultLibrary: this.isBuiltIn(match),
           heading:
             item instanceof P.CommentToken && item.commentSymbol.startsWith("#") ? item.commentSymbol.length : undefined
-        })
+        }
+        if (item instanceof P.CommentToken) spans.push(...SpellLanguageService.commentSpans(item, span))
+        else spans.push(span)
       }
     })
     spans.sort((a, b) => a.start - b.start)
     return spans.filter((span, index) => index === 0 || span.start >= spans[index - 1]!.end)
+  }
+
+  /**
+   * A comment's highlight, split by the markdown in its text (`MD.InlineParser`):  `**bold**`, `*italic*`,
+   * `~~struck~~` and links keep the comment colour with a `bold` / `italic` / `strikethrough` / `link` modifier;
+   * a `` `code` `` span is coloured as a `string`.
+   * - Comments are spell's docstrings, which ARE markdown (`docMarkdown()`).
+   * - `span` is the whole comment's highlight:  every piece keeps its `heading` level.
+   * - Plain text (no `*` `_` `~` `` ` `` `[` `<` in it) stays one span.
+   */
+  static commentSpans(token: P.CommentToken, span: LSP.HighlightSpan): LSP.HighlightSpan[] {
+    const text = token.value
+    if (!/[*_~`[<]/.test(text)) return [span]
+    const textStart = token.start + token.commentSymbol.length + token.initialWhitespace.length
+    // one style per character of `text`, painted by the markdown nodes over it
+    const styles: CommentStyle[] = Array.from({ length: text.length }, () => ({}))
+    paint(MD.InlineParser.parse(text), {})
+
+    const pieces: LSP.HighlightSpan[] = []
+    if (textStart > span.start) pieces.push({ ...span, end: textStart })
+    for (let i = 0; i < text.length;) {
+      let end = i + 1
+      while (end < text.length && sameStyle(styles[end]!, styles[i]!)) end++
+      const { code, ...marks } = styles[i]!
+      pieces.push({ ...span, ...marks, kind: code ? "string" : span.kind, start: textStart + i, end: textStart + end })
+      i = end
+    }
+    if (span.end > textStart + text.length) pieces.push({ ...span, start: textStart + text.length })
+    // neighbours that draw the same are one span (e.g. the `//` and the plain text after it)
+    const merged: LSP.HighlightSpan[] = []
+    for (const piece of pieces) {
+      const last = merged.at(-1)
+      if (piece.end <= piece.start) continue
+      if (last && last.end === piece.start && sameSpan(last, piece)) last.end = piece.end
+      else merged.push(piece)
+    }
+    return merged
+
+    /** Give every character `node` covers the style of its ancestors plus its own. */
+    function paint(node: InlineNode, inherited: CommentStyle) {
+      for (const child of node.children()) {
+        const style: CommentStyle = { ...inherited }
+        if (child.kind === "strong") style.bold = true
+        else if (child.kind === "emph") style.italic = true
+        else if (child.kind === "del") style.strikethrough = true
+        else if (child.kind === "link" || child.kind === "image") style.link = true
+        else if (child.kind === "code") style.code = true
+        if (child.start !== undefined && child.end !== undefined && Object.keys(style).length) {
+          for (let i = child.start; i < child.end && i < styles.length; i++) styles[i] = { ...styles[i], ...style }
+        }
+        paint(child, style)
+      }
+    }
+
+    /** Do highlight spans `a` and `b` draw the same? */
+    function sameSpan(a: LSP.HighlightSpan, b: LSP.HighlightSpan) {
+      return a.kind === b.kind && sameStyle(a, b)
+    }
+
+    /** Do `a` and `b` draw the same? */
+    function sameStyle(a: CommentStyle, b: CommentStyle) {
+      return (
+        !!a.bold === !!b.bold &&
+        !!a.italic === !!b.italic &&
+        !!a.link === !!b.link &&
+        !!a.code === !!b.code &&
+        !!a.strikethrough === !!b.strikethrough
+      )
+    }
   }
 
   /** `kind` for `token`, which `match` holds directly, refined by what the parse found -- see `highlightSpans()`. */
@@ -1991,4 +2078,14 @@ type CodeLensData = {
   uri: string
   /** Where the declared name starts. */
   position: Position
+}
+
+/** How one character of a comment draws:  the markdown around it -- see `commentSpans()`. */
+type CommentStyle = {
+  bold?: boolean
+  italic?: boolean
+  link?: boolean
+  strikethrough?: boolean
+  /** In a code span:  coloured as a `string`. */
+  code?: boolean
 }

@@ -5,7 +5,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
-import { afterAll, beforeAll, beforeEach, expect, test } from "vitest"
+import { afterAll, beforeAll, beforeEach, expect, test } from "vite-plus/test"
 
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"

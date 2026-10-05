@@ -46,7 +46,7 @@ class print extends SpellStatement<"operator?|expressions"> {
   }
 }
 UI.addRule(print, {
-  syntax: "print (operator:info|warning|error|collapsed? group)? [expressions: {expression} ,]",
+  syntax: "print (operator:info|warning|error|collapsed? group)? [expressions:{expression} ,]",
   tests: [
     {
       compileAs: "statement",

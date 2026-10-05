@@ -37,7 +37,7 @@ class identifier_list extends P.Repeat {
   }
 }
 lists.addRule(identifier_list, {
-  syntax: "[({known_variable}|{constant}|{number})(,|or|and|nor)]",
+  syntax: "[({known_variable}|{constant}|{number}) (,|or|and|nor)]",
   tests: [
     {
       tests: [
@@ -71,7 +71,7 @@ class bracketed_list extends P.Sequence<"list?"> {
   }
 }
 lists.addRule(bracketed_list, {
-  syntax: "\\[ [list:{expression},]? \\]",
+  syntax: "\\[ [list:{expression} ,]? \\]",
   tests: [
     {
       title: "correctly matches literal lists",
@@ -1302,7 +1302,7 @@ class list_reverse extends SpellStatement<"arg?|list"> {
   }
 }
 lists.addRule(list_reverse, {
-  syntax: "reverse ((the? {arg:plural_identifier}) (in|of))? {list:expression}",
+  syntax: "reverse (the? {arg:plural_identifier} (in|of))? {list:expression}",
   tests: [
     {
       compileAs: "statement",
@@ -1336,7 +1336,7 @@ class list_shuffle extends SpellStatement<"arg?|list"> {
   }
 }
 lists.addRule(list_shuffle, {
-  syntax: "(randomize|shuffle) ((the? {arg:plural_identifier}) (in|of))? {list:expression}",
+  syntax: "(randomize|shuffle) (the? {arg:plural_identifier} (in|of))? {list:expression}",
   tests: [
     {
       compileAs: "statement",

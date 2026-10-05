@@ -127,7 +127,7 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 - Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
 - Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
   `#overview`:
-  `<ui-section id="o1" header="1.1 ..." sticky collapsible dividing>`, `#o2` ... (a title with markup:  a
+  `<ui-section id="o1" header="1.1 ..." sticky collapsible dividing collapsed>`, `#o2` ... (a title with markup:  a
   `<span slot="header">` first inside instead of `header`;  sub-sub-items:  `<h4 id>`).  Code in folded
   `ui-accordion.spell-code`, digressions in collapsed `ui-accordion.spell-aside`, links to items and phases
   (`<a href="#d2">D2</a>`).  NEVER change an existing `id`.
