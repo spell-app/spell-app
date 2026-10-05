@@ -1,5 +1,5 @@
 /**
- * `yarn goals <command> ...` (and `spell goals ...`):  the goals tool.  Edits the structured parts of goals pages,
+ * `spell dev goals <command> ...`:  the goals tool.  Edits the structured parts of goals pages,
  * and starts what goes with them:  the goals server, a browser window, VS Code's preview, Claude sessions.
  * - Rules, ids and markup:  `goals/AGENTS.md`.  Used by the /goals skills and the agents they hand work to.
  * - Pages are named by TARGET:  `[set/]topic[/anchor]`, e.g. `spell/motivation/G1` (`targets.js`).
@@ -155,7 +155,7 @@ function fromTemplate(path, dest, fill) {
 ////////////////
 
 /** Usage, printed with no command or a bad one. */
-const USAGE = `usage:  yarn goals <command> ...     (spell goals ... works too)
+const USAGE = `usage:  spell dev goals <command> ...
 A TARGET is [set/]topic[/anchor], e.g. spell/motivation/G1;  the set may be left out for the active set.
 
 Reading
@@ -349,7 +349,8 @@ function describe(target) {
 /** `sets`:  one line per set, the active one starred. */
 function printSets(prefs) {
   const sets = goalSets()
-  if (!sets.length) return console.log(`no goal sets yet:  yarn goals new-set <name> --title ... --description ...`)
+  if (!sets.length)
+    return console.log(`no goal sets yet:  spell dev goals new-set <name> --title ... --description ...`)
   for (const set of sets)
     console.log(
       `${set.name === prefs.activeSet ? "*" : " "} ${set.name.padEnd(16)} ${set.title}  (${topicsOf(set.name).length} topics)`
@@ -530,7 +531,7 @@ function check(text, prefs, { noBrowser }) {
   if (failed) process.exit(1)
 }
 
-/** `server start|stop|status`:  this checkout's page server (`yarn server`), which serves the goals pages. */
+/** `server start|stop|status`:  this checkout's page server (`spell dev server`), which serves the goals pages. */
 async function server(action, prefs) {
   if (action === "start") {
     const { base, launched } = await PageServer.ensure(ROOT, prefs.server.port)

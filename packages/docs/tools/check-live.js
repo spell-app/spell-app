@@ -1,9 +1,10 @@
 /**
  * Check that a live edit updates a doc IN PLACE, and that the address follows the reading position, in a real
  * browser (plan doc `review-review`, D10).
- * Usage:  node scripts/check-live.js [epic name]   (default `review-review`;  from `packages/docs`)
+ * Usage:  node tools/check-live.js [epic name]   (default `review-review`;  from `packages/docs`)
  * - serves the doc from this checkout's page server (`ensurePageServer()`), unfolds two sections, types into a
- *   textarea it adds, scrolls mid-page, then appends a log line (`yarn plan-doc log <name> "check-live ..."`)
+ *   textarea it adds, scrolls mid-page, then appends a log line (`spell dev plan-doc log <name> "check-live ..."`,
+ *   run as `node packages/cli/bin/spell.mjs` from this checkout:  no `yarn cli:install` link needed)
  * - fails (exit 1) unless, after the edit:  the page did NOT reload (a `window` marker survives), the scroll
  *   position, the folds, the typed text and its focus are kept, and the new log line is in the page
  * - also:  the address follows the section scrolled to (`#id`, no reload), and a fresh load of that address lands
@@ -17,7 +18,7 @@ import { join } from "node:path"
 
 import { chromium } from "playwright"
 
-import { DOCS, PACKAGE, ensurePageServer, planDocIn, serverUrl, tidy } from "./pages.js"
+import { DOCS, ROOT, ensurePageServer, planDocIn, serverUrl, tidy } from "./pages.js"
 
 const name = process.argv[2] ?? "review-review"
 // either name:  `<name>.plan.html`, else an old `<name>.html` (`planDocIn()`)
@@ -61,7 +62,10 @@ try {
   summary.before = before
   if (!before.hash) problems.push("the address didn't follow the scroll (no #hash mid-page)")
 
-  execFileSync("yarn", ["plan-doc", "log", name, stamp], { cwd: PACKAGE, stdio: "ignore" })
+  execFileSync("node", [join(ROOT, "packages/cli/bin/spell.mjs"), "dev", "plan-doc", "log", name, stamp], {
+    cwd: ROOT,
+    stdio: "ignore"
+  })
   try {
     await page.waitForFunction((text) => document.getElementById("log")?.textContent.includes(text), stamp, {
       timeout: 10_000

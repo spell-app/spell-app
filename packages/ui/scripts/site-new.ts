@@ -257,7 +257,7 @@ const kind = facts.own ? `own page of ${facts.tag}` : facts.tag ? `component ${f
 console.log(
   `wrote ${path.relative(process.cwd(), file)}  (${kind}${facts.own && !facts.theming ? ", no Theming tab" : ""})`
 )
-console.log(`  view:  yarn server url ${file}   (from the repo root);  check:  yarn site:check ${facts.file}`)
+console.log(`  view:  spell dev server url ${file}   (from the repo root);  check:  yarn site:check ${facts.file}`)
 
 /** The value after `flag` in the arguments. */
 function option(flag: string): string | undefined {

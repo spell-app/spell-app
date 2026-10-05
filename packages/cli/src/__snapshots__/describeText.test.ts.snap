@@ -4,8 +4,8 @@ exports[`describeOverview() > a file:  each thing it declares, a type's members 
 "Card.spell
   type Card  is a Thing
     definition of a Card with nice english aliases for working with it
-    Properties  rank, suit, color, value, direction, name, short_suit, short_rank, short_direction,
-                short_name, state
+    Properties  rank, suit, color, value, direction, name, short-suit, short-rank, short-direction,
+                short-name, state, pile
     Actions     is face up, is face down, is a face card, is a (suit), is a (rank),
                 is the (rank) of (suits), turn (a card) face up, turn (a card) face down,
                 turn (a card) over, draw (a card), move (a card) to (a pile), play (a card)
@@ -39,8 +39,8 @@ Card.spell:2
 
 definition of a Card with nice english aliases for working with it
 
-Properties  rank, suit, color, value, direction, name, short_suit, short_rank, short_direction,
-            short_name, state
+Properties  rank, suit, color, value, direction, name, short-suit, short-rank, short-direction,
+            short-name, state, pile
 Actions     is face up, is face down, is a face card, is a (suit), is a (rank),
             is the (rank) of (suits), turn (a card) face up, turn (a card) face down,
             turn (a card) over, draw (a card), move (a card) to (a pile), play (a card)

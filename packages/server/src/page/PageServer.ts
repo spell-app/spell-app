@@ -14,8 +14,8 @@ import { PageEditor, RunningEpics, UI_SITE, type PageServerSettings, type RouteM
  * - `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. goals' buttons
  * - port:  `DEFAULT_PORT` (4747) if free, else any;  the real one goes in `<root>/.spell-server.json`, where
- *   `yarn server ensure` and the openers find it
- * - Run it with `yarn server` (`page/cli.ts`), never by hand.
+ *   `spell dev server ensure` and the openers find it
+ * - Run it with `spell dev server` (`page/cli.ts`), never by hand.
  */
 export class PageServer {
   /** the checkout served */
@@ -126,7 +126,7 @@ export class PageServer {
    * URL, and whether it was `launched` just now.
    * - runs `page/cli.ts serve` under `tsx`, with this package's `tsconfig.json` for the aliases
    *   (`TSX_TSCONFIG_PATH`), whatever the caller's folder;  its output goes to `<root>/.spell-server.log`
-   * - what `yarn server ensure`, the goals tools and the openers call
+   * - what `spell dev server ensure`, the goals tools and the openers call
    */
   static ensure(root: string, port = DEFAULT_PORT) {
     return new SRV.PidFile(root).ensure({
@@ -162,7 +162,7 @@ export class PageServer {
   }
 }
 
-/** `page/cli.ts`:  `yarn server`. */
+/** `page/cli.ts`:  `spell dev server`. */
 const CLI = fileURLToPath(new URL("./cli.ts", import.meta.url))
 
 /** This package's `tsconfig.json`:  the alias table a background server needs. */

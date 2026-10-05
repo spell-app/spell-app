@@ -8,12 +8,12 @@ argument-hint: "[set/][topic][/item-or-section]"
 
 1. `G open-vs $ARGUMENTS`, where `G` is `scripts/goals.sh` in the `goals` skill's base directory
    (`../goals/scripts/goals.sh` from this skill's base directory, e.g. `.claude/skills/goals/scripts/goals.sh`).
-   - It starts the page server (`yarn server`) if need be, then asks THIS session's VS Code window (through the
+   - It starts the page server (`spell dev server`) if need be, then asks THIS session's VS Code window (through the
      spell extension's window bridge) to show the page, at its item, in the doc preview:  the "Spell Docs" view in the right side bar (or Simple Browser beside the
      editor, setting `spell.docPreview.location`).
    - Not running in VS Code (a CLI session in another terminal):  a new browser window, as `/goals-open`.
 2. "which goal set?" or "no topic":  AskUserQuestion with the printed `maybe:` choices, then run it again.
-3. Nothing shows up in VS Code:  the spell extension is missing or older than the page server's `url` support:  `yarn vscode` at the repo root.
-   In the spell repo:  `yarn vscode` (builds and installs it), then try again.  Meanwhile `/goals-open` works in
+3. Nothing shows up in VS Code:  the spell extension is missing or older than the page server's `url` support:  `spell dev vscode` at the repo root.
+   In the spell repo:  `spell dev vscode` (builds and installs it), then try again.  Meanwhile `/goals-open` works in
    the browser.
 4. Reply in one line.

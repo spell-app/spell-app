@@ -92,7 +92,7 @@ export class Calculator extends App {
   /*! SPELL: DECLARES {
     syntax: "append {callArgs:expression} to {thisArg:expression}", output: "append_$digit_to",
     rule: "method_call", of: "Calculator", alias: ["statement", "expression"], kind: "method",
-    name: "append (digit) to (a calculator)",
+    name: "append (digit) to (a calculator)", params: [{ name: "digit" }],
     defined: "/Calculator.spell:957-1457",
   } */
   append_$digit_to(digit) {
@@ -112,7 +112,7 @@ export class Calculator extends App {
     syntax: "set the operator of {thisArg:expression} to {callArgs:expression}",
     output: "set_the_operator_of_to_$op", rule: "method_call", of: "Calculator",
     alias: ["statement", "expression"], kind: "method",
-    name: "set the operator of (a calculator) to (op)",
+    name: "set the operator of (a calculator) to (op)", params: [{ name: "op" }],
     defined: "/Calculator.spell:1459-1701",
   } */
   set_the_operator_of_to_$op(op) {

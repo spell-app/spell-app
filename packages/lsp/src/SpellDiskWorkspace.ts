@@ -1,9 +1,7 @@
-import { readFileSync, statSync, writeFileSync } from "fs"
-import { basename, resolve } from "path"
+import { writeFileSync } from "fs"
+import { basename } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
-import { runInNewContext } from "vm"
 
-import environment from "$/spell/node/environment"
 import { SP } from "$/spell"
 import { installDiskFetch, locationForDiskPath } from "$/spell/node/disk-fetch"
 import { LSP } from "$/lsp"
@@ -27,8 +25,6 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
   #fileByUri = new Map<string, SP.SpellFile | null>()
   /** First full parse of each project we've seen:  resolves once it's done, successfully or not. */
   #firstParses = new Map<SP.SpellProject, Promise<void>>()
-  /** Built-ins' pack as last read, and when its file last changed then -- see `builtInsPack()`. */
-  #builtIns: { changed: number; pack: LSP.ScopePack | undefined } | undefined
 
   /** SIDE EFFECT:  `installDiskFetch()`. */
   constructor() {
@@ -140,31 +136,6 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
     return path
   }
 
-  /**
-   * Built-in types' pack, `core`'s `src/spellCore.scopes.js`, documented by hand -- for `LSP.ScopeExplorer`.
-   * - Read again only once the file changes, so an edit shows in the Type Explorer's next tree.
-   * - `undefined` if it's missing or won't run, which is logged -- the explorer then shows the types bare.
-   */
-  builtInsPack(): LSP.ScopePack | undefined {
-    const path = resolve(environment.spellCoreDir, `spellCore${SP.SCOPES_JS_SUFFIX}`)
-    let changed: number
-    try {
-      changed = statSync(path).mtimeMs
-    } catch {
-      return undefined
-    }
-    if (this.#builtIns?.changed !== changed) {
-      let pack: LSP.ScopePack | undefined
-      try {
-        pack = readScopePackScript(readFileSync(path, "utf8"))
-      } catch (error) {
-        console.error(`Can't read the built-in types' pack, ${path}:`, error)
-      }
-      this.#builtIns = { changed, pack }
-    }
-    return this.#builtIns.pack
-  }
-
   /** Parse `project` from scratch if we haven't yet.  Resolves once that's done, successfully or not. */
   private parseOnce(project: SP.SpellProject): Promise<void> {
     let firstParse = this.#firstParses.get(project)
@@ -196,17 +167,4 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
     }
     return file.project.updateText(file, file.contents ?? "")
   }
-}
-
-/**
- * Pack a `<Project>.scopes.js` script leaves, run as if a page loaded it -- in a context of its own, so it leaves
- * nothing on ours.
- * - NEVER for a script you don't trust:  it's javascript, and it runs.
- * - `undefined` if it leaves no pack;  throws if it throws.
- */
-function readScopePackScript(script: string): LSP.ScopePack | undefined {
-  const src = "scopes.js"
-  const page: Record<string, unknown> = { document: { currentScript: { src } } }
-  runInNewContext(script, page)
-  return (page[LSP.SCOPE_PACK_GLOBAL] as Record<string, LSP.ScopePack> | undefined)?.[src]
 }

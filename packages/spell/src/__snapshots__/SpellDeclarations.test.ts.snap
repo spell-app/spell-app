@@ -48,7 +48,6 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       ],
       "of": "Card",
       "property": "rank",
-      "rule": "enumeration",
     },
     {
       "classVariable": "Suits",
@@ -61,7 +60,6 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       ],
       "of": "Card",
       "property": "suit",
-      "rule": "enumeration",
     },
     {
       "constants": [
@@ -73,6 +71,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "property": "color",
     },
     {
+      "datatype": "number",
       "defined": "/Card.spell:440-501",
       "of": "Card",
       "property": "value",
@@ -86,7 +85,6 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       ],
       "of": "Card",
       "property": "direction",
-      "rule": "enumeration",
     },
     {
       "defined": "/Card.spell:616-658",
@@ -94,6 +92,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""is face up"",
       "of": "Card",
       "output": "is_face_up",
+      "returns": "choice",
       "rule": "method_postfix",
       "syntax": "{operator:is} face up",
     },
@@ -103,6 +102,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""is face down"",
       "of": "Card",
       "output": "is_face_down",
+      "returns": "choice",
       "rule": "method_postfix",
       "syntax": "{operator:is} face down",
     },
@@ -112,6 +112,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""is a face card"",
       "of": "Card",
       "output": "is_a_face_card",
+      "returns": "choice",
       "rule": "method_postfix",
       "syntax": "{operator:is} a face card",
     },
@@ -191,31 +192,41 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       },
     },
     {
+      "datatype": "text",
       "defined": "/Card.spell:1086-1137",
       "of": "Card",
       "property": "name",
     },
     {
+      "asWritten": "short-suit",
+      "datatype": "text",
       "defined": "/Card.spell:1139-1300",
       "of": "Card",
       "property": "short_suit",
     },
     {
+      "asWritten": "short-rank",
+      "datatype": "text",
       "defined": "/Card.spell:1302-1466",
       "of": "Card",
       "property": "short_rank",
     },
     {
+      "asWritten": "short-direction",
+      "datatype": "text",
       "defined": "/Card.spell:1468-1548",
       "of": "Card",
       "property": "short_direction",
     },
     {
+      "asWritten": "short-name",
+      "datatype": "text",
       "defined": "/Card.spell:1551-1611",
       "of": "Card",
       "property": "short_name",
     },
     {
+      "datatype": "text",
       "defined": "/Card.spell:1613-1690",
       "of": "Card",
       "property": "state",
@@ -282,6 +293,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": "move (a card) to (a pile)",
       "of": "Card",
       "output": "move_to_$pile",
+      "params": [
+        {
+          "datatype": "Pile",
+          "name": "pile",
+        },
+      ],
       "rule": "method_call",
       "syntax": "move {thisArg:expression} to {callArgs:expression}",
     },
@@ -309,6 +326,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "defined": "/Deck.spell:61-86",
+      "itemType": "Card",
       "superType": "List",
       "type": "Deck",
     },
@@ -322,6 +340,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": "set up (a deck)",
       "of": "Deck",
       "output": "set_up",
+      "returns": "nothing",
       "rule": "method_call",
       "syntax": "set up {thisArg:expression}",
     },
@@ -339,6 +358,14 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "syntax": "display {thisArg:expression}",
     },
     {
+      "asWritten": "is-set-up",
+      "autoDeclared": true,
+      "datatype": "choice",
+      "defined": "/Deck.spell:277-313",
+      "of": "Deck",
+      "property": "is_set_up",
+    },
+    {
       "alias": "statement",
       "defined": "/Deck.spell:468-1036",
       "kind": "function",
@@ -348,7 +375,15 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "syntax": "test deck creation",
     },
     {
+      "autoDeclared": true,
+      "datatype": "Pile",
+      "defined": "/Pile.spell:500-536",
+      "of": "Card",
+      "property": "pile",
+    },
+    {
       "defined": "/Pile.spell:25-50",
+      "itemType": "Card",
       "superType": "List",
       "type": "Pile",
     },
@@ -358,14 +393,22 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "property": "color",
     },
     {
+      "datatype": "number",
       "defined": "/Pile.spell:142-225",
       "of": "Pile",
       "property": "value",
     },
     {
+      "datatype": "text",
       "defined": "/Pile.spell:584-748",
       "of": "Pile",
       "property": "state",
+    },
+    {
+      "autoDeclared": true,
+      "defined": "/Solitaire.spell:3765-3824",
+      "of": "Pile",
+      "property": "name",
     },
     {
       "defined": "/Solitaire.spell:149-165",
@@ -379,6 +422,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "property": "score",
     },
     {
+      "datatype": "list",
       "defined": "/Solitaire.spell:2210-2329",
       "of": "Game",
       "property": "state",
@@ -407,8 +451,15 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can pick up (a card)"",
       "of": "Stock_Pile",
       "output": "can_pick_up_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
+      "returns": "choice",
       "rule": "method_infix",
-      "syntax": "{operator:can} pick up {expression:simple_expression}",
+      "syntax": "{operator:can} pick up {expression:operand}",
     },
     {
       "alias": [
@@ -434,8 +485,15 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can pick up (a card)"",
       "of": "Discard_Pile",
       "output": "can_pick_up_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
+      "returns": "choice",
       "rule": "method_infix",
-      "syntax": "{operator:can} pick up {expression:simple_expression}",
+      "syntax": "{operator:can} pick up {expression:operand}",
     },
     {
       "alias": [
@@ -461,8 +519,15 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can pick up (a card)"",
       "of": "Foundation",
       "output": "can_pick_up_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
+      "returns": "choice",
       "rule": "method_infix",
-      "syntax": "{operator:can} pick up {expression:simple_expression}",
+      "syntax": "{operator:can} pick up {expression:operand}",
     },
     {
       "defined": "/Solitaire.spell:992-1117",
@@ -470,8 +535,15 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can play (a card)"",
       "of": "Foundation",
       "output": "can_play_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
+      "returns": "choice",
       "rule": "method_infix",
-      "syntax": "{operator:can} play {expression:simple_expression}",
+      "syntax": "{operator:can} play {expression:operand}",
     },
     {
       "alias": [
@@ -497,8 +569,15 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can pick up (a card)"",
       "of": "Tableau",
       "output": "can_pick_up_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
+      "returns": "choice",
       "rule": "method_infix",
-      "syntax": "{operator:can} pick up {expression:simple_expression}",
+      "syntax": "{operator:can} pick up {expression:operand}",
     },
     {
       "defined": "/Solitaire.spell:1717-1894",
@@ -506,8 +585,15 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "name": ""can play (a card)"",
       "of": "Tableau",
       "output": "can_play_$card",
+      "params": [
+        {
+          "datatype": "Card",
+          "name": "card",
+        },
+      ],
+      "returns": "choice",
       "rule": "method_infix",
-      "syntax": "{operator:can} play {expression:simple_expression}",
+      "syntax": "{operator:can} play {expression:operand}",
     },
     {
       "alias": [
@@ -596,6 +682,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "defined": "/Solitaire.spell:5570-5946",
       "kind": "function",
       "output": "cheat",
+      "returns": "nothing",
       "rule": "method_call",
       "syntax": "cheat",
     },

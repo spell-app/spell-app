@@ -110,7 +110,7 @@ blockquote.plan-prompt > p {
  * phase (`section.s3` before 2026-10-02), its body a `ui-list.plan-phase-body` of `<ui-item icon>` (goal, files,
  * verify).
  * - docs made before 2026-10-01 had the phase list under `#plan`:  `ui-steps.plan-phases`, or
- *   `<ul class="plan-phases">` of `<li data-phase data-status>`;  `yarn plan-doc migrate` drops it
+ *   `<ul class="plan-phases">` of `<li data-phase data-status>`;  `spell dev plan-doc migrate` drops it
  */
 /*
  * The bar's text ("1 of 10") sits just past the fill's end, in ink, never inside it:  inside, a narrow fill
@@ -238,7 +238,7 @@ ui-list.plan-items {
 }
 /*
  * the ONE struck-through status:  `canceled`, an item another decision made moot (J16 of `review-review`,
- * `yarn plan-doc cancel`);  `done` items stay unstruck
+ * `spell dev plan-doc cancel`);  `done` items stay unstruck
  */
 .plan-items > [data-status="canceled"] .plan-title {
   text-decoration: line-through;
@@ -515,6 +515,139 @@ ui-accordion.plan-item::part(title),
 }
 .plan-items ui-grid.spell-pros-cons > ui-column[data-chosen] ui-label[attached] {
   --ui-label-background: var(--ui-green-background, #daffe0);
+}
+
+/*
+ * An ANSWERED question reads in the order it happened (I9 of `review-review`, `plan-doc.js` `QUESTION`):  its text
+ * (`div.plan-question`, labelled "Original question"), its options folded away in a "Choices" aside
+ * (`ui-accordion.plan-choices` > `ui-accordion.plan-options`, a panel per option), then the answer card.
+ * - one rhythm between the parts:  `--plan-part-gap`, no margins of their own on top
+ * - both accordions are NESTED in the item's panel, so UI drops their `styled` look (they take the item's):  the
+ *   boxes here are `::part()` rules, as `spell-aside` and `spell-code` do
+ * - the chosen option:  a green check and green title text (`ui-title[data-chosen]`), not a frame
+ */
+ui-accordion.plan-item > ui-content {
+  --plan-part-gap: 8px;
+}
+.plan-question {
+  margin: 0;
+}
+.plan-question::before {
+  content: "Original question";
+  display: block;
+  margin-bottom: 2px;
+  color: var(--spell-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.plan-question > :first-child {
+  margin-top: 0;
+}
+.plan-question > :last-child {
+  margin-bottom: 0;
+}
+/* the page's widget margins (`spell-doc.css`) are for prose:  inside an item, the parts sit `--plan-part-gap` apart */
+ui-accordion.plan-item > ui-content > :is(.plan-answer-block, ui-accordion.plan-choices, ui-accordion.plan-original) {
+  margin: var(--plan-part-gap) 0 0;
+}
+ui-accordion.plan-item > ui-content > :is(.plan-answer-block, ui-accordion.plan-choices):first-child {
+  margin-top: 2px;
+}
+ui-accordion.plan-choices {
+  display: block;
+}
+ui-accordion.plan-choices::part(accordion) {
+  margin: 0;
+}
+ui-accordion.plan-choices::part(title) {
+  font-style: normal;
+  font-weight: 600;
+}
+ui-accordion.plan-choices::part(content) {
+  padding: 0 6px 6px;
+}
+/* the options:  one box, a rule between panels (the first panel's rule hides under the box's own border) */
+ui-accordion.plan-options {
+  display: block;
+  margin: 2px 0 0;
+}
+ui-accordion.plan-options::part(accordion) {
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--spell-rule);
+  border-radius: 6px;
+  background: var(--spell-bg);
+}
+ui-accordion.plan-options::part(panel) {
+  margin-top: -1px;
+  border-top: 1px solid var(--spell-rule);
+}
+ui-accordion.plan-options::part(title) {
+  align-items: center;
+  padding: 5px 8px;
+  background: color-mix(in srgb, var(--spell-ink) 4%, transparent);
+  color: var(--spell-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+ui-accordion.plan-options::part(content) {
+  padding: 4px 10px 6px 22px;
+}
+/* a narrow side bar (VS Code's ~350px):  the panels' text under the title's text, not further in */
+@media (max-width: 480px) {
+  ui-accordion.plan-options::part(content) {
+    padding-left: 8px;
+  }
+  /* the item's content indent, inherited by the nested aside */
+  ui-accordion.plan-choices::part(content) {
+    margin-inline-start: 0;
+    padding-inline: 0;
+  }
+}
+/*
+ * A panel's title:  the host a row of the chosen check (`::before`) and its `::part(title)`, which is the row of
+ * the label's text and, while revisiting, the Choose pill at its right (wrapping under it when there's no room)
+ */
+ui-accordion.plan-options > ui-title {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+ui-accordion.plan-options > ui-title::part(title) {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-width: 0;
+}
+ui-accordion.plan-options > ui-content > :first-child {
+  margin-top: 0;
+}
+ui-accordion.plan-options > ui-content > :last-child {
+  margin-bottom: 0;
+}
+ui-accordion.plan-options > ui-content :is(ul, ol) {
+  padding-left: 18px;
+}
+/* the chosen option:  a check in front, its title in the green text color */
+ui-accordion.plan-options > ui-title[data-chosen] {
+  color: var(--ui-green-text, var(--ui-green, #21ba45));
+}
+ui-accordion.plan-options > ui-title[data-chosen]::before {
+  content: "";
+  flex: none;
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 8.5l4 4 8-9' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 /*
  * Commits (`.plan-commits`):  a phase body's `ui-item`, or a `div` ending an item's details;  a list of short
@@ -985,6 +1118,10 @@ button.plan-choose:focus-visible {
   outline-offset: -1px;
   border-radius: 6px;
 }
+/* an answered question revisited:  its Choices panels' titles take the pills (`pills()`);  the picked one orange */
+ui-accordion.plan-options > ui-title[data-picked] {
+  color: var(--ui-orange-text, var(--ui-orange, #f2711c));
+}
 
 /* the page header's "Send to Claude":  round, grey;  blue with unsent marks;  outlined blue once sent */
 button.plan-send {
@@ -1039,7 +1176,7 @@ button.plan-send:focus-visible {
 
 /*
  * Claude's reply to a revisit note (`div.plan-reply > div.plan-reply-title` + the answer), appended to an item's
- * details by `yarn plan-doc details --append` during `/epic review`:  a violet card, the brand's action color, apart
+ * details by `spell dev plan-doc details --append` during `/epic review`:  a violet card, the brand's action color, apart
  * from the ivory answer card
  */
 .plan-reply {

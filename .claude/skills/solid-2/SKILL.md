@@ -10,6 +10,8 @@ Solid 2 is neither React nor Solid 1.  Distrust patterns from both.
 - FIRST, unless you already read it this session:  Read `packages/docs/content/solid/solid-2.md` IN FULL
   (Read tool, no offset or limit).  Those are this repo's rules (every package) and spell's design decisions;
   follow them over anything you remember.
+- Writing app components:  ALSO read WWOD §17, `agents/wwod/solid.md` -- the house style on top of those
+  mechanics (props, spell state vs signals, load states, error boundaries, dialogs).
 
 ## Going deeper
 

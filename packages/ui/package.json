@@ -385,6 +385,8 @@
     "gen:spell": "tsc -p scripts && tsx scripts/gen-spell.ts",
     "gen:markdown": "tsc -p scripts && tsx scripts/gen-markdown.ts",
     "tokens:alias": "tsx scripts/alias-tokens.ts",
+    "/////// DESIGN SYSTEM (claude.ai)": "",
+    "design:build": "tsc -p scripts && tsx scripts/design-build.ts",
     "/////// MANIFEST": "",
     "manifest": "custom-elements-manifest analyze --globs 'src/**/*.ts' 'src/**/*.tsx' --exclude 'src/**/*.test.ts' --exclude 'src/**/*.test.tsx'"
   },
@@ -429,5 +431,6 @@
   "engines": {
     "node": ">=24.11"
   },
-  "packageManager": "yarn@4.18.0"
+  "packageManager": "yarn@4.18.0",
+  "customElements": "./site/_data/custom-elements.json"
 }

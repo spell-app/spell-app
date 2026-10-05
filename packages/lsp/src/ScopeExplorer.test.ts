@@ -65,13 +65,19 @@ describe("ScopeExplorer", () => {
     const stock = find(tree, "Stock_Pile")
     const inherited = stock.members.filter((member) => member.inheritedFrom)
     expect(inherited.length).toBeGreaterThan(0)
-    expect(new Set(inherited.map((member) => member.inheritedFrom))).toEqual(new Set(["Pile"]))
+    // a pile is a list:  so a list's built-in members too, e.g. its `length`
+    expect(new Set(inherited.map((member) => member.inheritedFrom))).toEqual(new Set(["Pile", "List"]))
   })
 
   test("paths are unique -- and say what each node is", () => {
     const nodes = [...all(tree)].filter((node) => node.kind !== "root")
     expect(new Set(nodes.map((node) => node.path)).size).toBe(nodes.length)
-    for (const node of nodes) expect(LSP.scopeSegment(node.path)).toEqual({ kind: node.kind, name: node.name })
+    for (const node of nodes) {
+      const { kind, name } = LSP.scopeSegment(node.path)
+      expect(kind).toBe(node.kind)
+      // a node may say its name as written, e.g. `short-suit` for `property:short_suit`
+      expect(LSP.SpellLanguageService.sameName(name, node.name), node.path).toBe(true)
+    }
   })
 
   test("a declaration's details:  its docstring, spell source and compiled javascript", () => {
@@ -84,7 +90,7 @@ describe("ScopeExplorer", () => {
   })
 
   test("`line`:  a statement with a body is on its first and last lines", () => {
-    const method = [...all(tree)].find((node) => node.kind === "method" && typeof details(node).line !== "number")!
+    const method = [...all(tree)].find((node) => node.kind === "method" && Array.isArray(details(node).line))!
     const [first, last] = details(method).line as [number, number]
     expect(last).toBeGreaterThan(first)
     expect(details(method).spell!.split("\n")).toHaveLength(last - first + 1)
@@ -106,7 +112,10 @@ describe("ScopeExplorer", () => {
   })
 
   test("a node lists the rules its statement made", () => {
-    expect({ Suits: details("Suits").rules, "draw (a card)": details("draw (a card)").rules }).toMatchSnapshot()
+    expect({
+      "is a (suit)": details("is a (suit)").rules,
+      "draw (a card)": details("draw (a card)").rules
+    }).toMatchSnapshot()
   })
 
   describe("`descriptionEdits()`", () => {
@@ -364,17 +373,15 @@ describe("ScopeExplorer scope packs", () => {
     ])
   })
 
-  test("`core`'s `src/spellCore.scopes.js` -- which may be hand-edited -- has every built-in type", () => {
+  test("`core`'s `src/spellCore.scopes.js` is what `yarn scopes --builtins` generates from the table -- run it", () => {
     const path = resolve(environment.spellCoreDir, "spellCore.scopes.js")
     const shipped = runPackScript(readFileSync(path, "utf8"), "spellCore.scopes.js")
-    expect(shipped.entries.map((entry) => entry.path)).toEqual(
-      expect.arrayContaining(builtIns.entries.map((entry) => entry.path))
-    )
+    expect(shipped).toEqual(builtIns)
   })
 })
 
-/** Built-in types' docs, from the hand-written `spellCore.scopes.js` -- what VS Code's Type Explorer shows. */
-describe("ScopeExplorer built-in types' pack", () => {
+/** Built-in types' docs, from `SP.BUILT_IN_TYPE_TABLE` -- what VS Code's Type Explorer shows. */
+describe("ScopeExplorer built-in types", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-built-ins-"))
   cpSync(fixturePath("Solitaire"), resolve(dir, "Solitaire"), { recursive: true })
   const cardPath = resolve(dir, "Solitaire/Card.spell")
@@ -388,8 +395,8 @@ describe("ScopeExplorer built-in types' pack", () => {
     project = workspace.fileFor(cardUri)!.project as SP.SpellProject
   })
 
-  test("each built-in type's entries and details come from the pack", () => {
-    const explorer = new LSP.ScopeExplorer(service, () => workspace.builtInsPack())
+  test("each built-in type's entries and details come from the table", () => {
+    const explorer = new LSP.ScopeExplorer(service)
     const tree = explorer.tree(project)
     const thing = find(tree, "Thing")
     expect(thing.members.map(({ kind, name }) => `${kind} ${name}`)).toContain("method draw (a thing)")
@@ -404,24 +411,21 @@ describe("ScopeExplorer built-in types' pack", () => {
     ])
     // a project's type inherits them too
     expect(find(tree, "Game").members).toContainEqual(expect.objectContaining({ name: "start (an app)" }))
+    // a property, with what it is, and the rules' syntax from the live grammar
+    const text = find(tree, "Text")
+    expect(text.members).toContainEqual(expect.objectContaining({ kind: "property", name: "length", detail: "number" }))
+    expect(explorer.details(project, "type:Text/property:length")!.description).toMatch(/^How many characters/)
+    expect(explorer.details(project, "type:List/method:number of (items) in (a list)")!.rules).toContainEqual({
+      name: "list_count",
+      syntax: "the? number of {list:operand}"
+    })
   })
 
   test("javascript's `Object` isn't listed:  spell knows it by name, but it isn't a spell class", () => {
-    const explorer = new LSP.ScopeExplorer(service, () => workspace.builtInsPack())
+    const explorer = new LSP.ScopeExplorer(service)
     expect(SP.SpellParser.rootScope.types.get().map((type) => type.name)).toContain("Object")
     expect(explorer.tree(project).children.map((child) => child.path)).not.toContain("type:Object")
     expect(explorer.exportBuiltIns().entries.map((entry) => entry.path)).not.toContain("type:Object")
-  })
-
-  test("a built-in type the pack doesn't know shows bare, as its scope has it", () => {
-    const pack = workspace.builtInsPack()!
-    const thingOnly = { ...pack, entries: pack.entries.filter((entry) => entry.path.startsWith("type:Thing")) }
-    const explorer = new LSP.ScopeExplorer(service, () => thingOnly)
-    const tree = explorer.tree(project)
-    const list = find(tree, "List")
-    expect(list.path).toBe("type:List")
-    expect(list.members).toEqual([])
-    expect(explorer.details(project, list.path)!.description).toBeUndefined()
   })
 })
 

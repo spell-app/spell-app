@@ -2,6 +2,8 @@
  * `yarn site:data`:  write the Spell UI site's data, `site/_data/components.json`, `icons.json` (the icon
  * browser's search terms) and `search.json` (every page's sections, for `<ui-docs-search>`), and keep
  * `site/_data/pages.json` complete (see `tools/SiteDataBuilder.ts`).
+ * - Also, from the same data, the editors' element descriptions (`tools/ElementManifests.ts`):
+ *   `custom-elements.json` (a Custom Elements Manifest) and `html-custom-data.json` (VS Code's `html.customData`).
  * - All COMMITTED:  the docs pages fetch them as they are, with no build step.  Rerun after changing a vocabulary, a
  *   family's sheet (its tokens), `pages.json` or a page's sections;  `tools/SiteDataBuilder.test.ts` fails while
  *   stale.
@@ -11,6 +13,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
+import { ElementManifests } from "../tools/ElementManifests.ts"
 import { SiteDataBuilder } from "../tools/SiteDataBuilder.ts"
 
 const check = process.argv.includes("--check")
@@ -20,7 +23,8 @@ const outputs: [file: string, text: string][] = [
   [builder.dataFile, SiteDataBuilder.stringify(data)],
   [builder.pagesFile, SiteDataBuilder.stringify(pages)],
   [builder.iconsFile, builder.iconsText()],
-  [builder.searchFile, builder.searchText()]
+  [builder.searchFile, builder.searchText()],
+  ...new ElementManifests(data, path.join(builder.dataFolder, "../..")).outputs(builder.dataFolder)
 ]
 
 const stale = outputs.filter(([file, text]) => !existsSync(file) || readFileSync(file, "utf8") !== text)
