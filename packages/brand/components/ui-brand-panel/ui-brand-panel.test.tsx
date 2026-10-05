@@ -157,4 +157,22 @@ describe("<ui-brand-panel>", () => {
     expect(part(inner, "content").getBoundingClientRect().height).toBe(0)
     expect(box.bottom - band.bottom).toBeCloseTo(1, 0) // the box's 1px border
   })
+
+  it("puts each sub-panel band 20px under what's above it, flush under a folded band;  padding in px (I46)", async () => {
+    const host = await ElementFixture.render(`<ui-brand-panel header="Theme" style="--ui-font-size: 16px">
+      <p style="margin: 0">name</p>
+      <ui-brand-panel header="Color" collapsible collapsed><p>chips</p></ui-brand-panel>
+      <ui-brand-panel header="Type" collapsible><p style="margin: 0">fonts</p></ui-brand-panel>
+      <ui-brand-panel header="Shape" collapsible><p>corners</p></ui-brand-panel>
+    </ui-brand-panel>`)
+    await ElementFixture.settle()
+    const [color, type, shape] = [...host.querySelectorAll("ui-brand-panel")]
+    const top = (panel: Element) => part(panel, "title").getBoundingClientRect().top
+    const bottom = (element: Element) => element.getBoundingClientRect().bottom
+    expect(top(color!) - bottom(host.querySelector("p")!)).toBeCloseTo(20, 0)
+    expect(top(type!) - part(color!, "title").getBoundingClientRect().bottom).toBeCloseTo(0, 0)
+    expect(top(shape!) - bottom(type!.querySelector("p")!)).toBeGreaterThanOrEqual(20)
+    // a sub-panel's padding is the page's 16px, not 1em of its 14px content
+    expect(getComputedStyle(part(type!, "content")).paddingLeft).toBe("16px")
+  })
 })

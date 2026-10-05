@@ -2527,12 +2527,19 @@
         },
         {
           "name": "--ui-brand-panel-padding",
-          "default": "1em",
+          "default": "var(--ui-font-size, 16px)",
+          "description": "the page's base size, never `1em`: a sub-panel's 14px content would shrink it (design-system I46)",
           "type": "length"
         },
         {
           "name": "--ui-brand-panel-gap",
-          "default": "0.5em",
+          "default": "8px",
+          "description": "px too: `0.5em` was 7px at the content's 14px, and a sub-panel (16px) would read it as 8px",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-panel-band-space",
+          "default": "20px",
           "type": "length"
         },
         {

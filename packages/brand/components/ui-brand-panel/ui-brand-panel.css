@@ -6,7 +6,8 @@
  *   HEADER BAND across the top (bold sans 17px, chevron at the far end:  the section's `fold-icon="end"`, the panel's
  *   default).  `info`:  the section's tip, under the band.
  * - `.sub` (a panel inside a panel):  no box;  its title is a full-width SUB-HEAD BAND (bold 12px capitals, a hairline
- *   above), its content the fields under it.
+ *   above), its content the fields under it.  Bands sit `--ui-brand-panel-band-space` (20px) under what's above them,
+ *   flush under a folded band.
  * - Layers:  `ui.components.brand-panel.*` are declared after the section's, so these rules win without
  *   `!important`.
  * - Public tokens (`--ui-brand-panel-*`) are never declared here:  read through private aliases, so a value set on
@@ -117,8 +118,11 @@
       )
     );
     --_ui-brand-panel-radius: var(--ui-brand-panel-radius, var(--ui-radius-l, 16px));
-    --_ui-brand-panel-padding: var(--ui-brand-panel-padding, 1em);
-    --_ui-brand-panel-gap: var(--ui-brand-panel-gap, 0.5em);
+    /* the page's base size, never `1em`:  a sub-panel's 14px content would shrink it (design-system I46) */
+    --_ui-brand-panel-padding: var(--ui-brand-panel-padding, var(--ui-font-size, 16px));
+    /* px too:  `0.5em` was 7px at the content's 14px, and a sub-panel (16px) would read it as 8px */
+    --_ui-brand-panel-gap: var(--ui-brand-panel-gap, 8px);
+    --_ui-brand-panel-band-space: var(--ui-brand-panel-band-space, 20px);
     --_ui-brand-panel-shadow: var(--ui-brand-panel-shadow, var(--spell-shadow-sm, var(--ui-shadow-raised)));
   }
 
@@ -223,6 +227,8 @@
 
   /* ## Content:  fields in a column, 8px apart */
   .ui.section.brand.panel > .content {
+    /* handed to the sub-panels inside, for their band spacing (states, below) */
+    --_brand-panel-outer-gap: var(--_ui-brand-panel-gap);
     display: flex;
     flex-direction: column;
     gap: var(--_ui-brand-panel-gap);
@@ -246,6 +252,15 @@
   :host(:state(collapsed)) > .ui.section.brand.panel:not(.sub) > .title {
     margin-block-end: 0;
     border-radius: calc(var(--_ui-brand-panel-radius) - 1px);
+  }
+
+  /* A sub-panel's band:  `--ui-brand-panel-band-space` (20px) under whatever is above it, the outer panel's gap
+     included;  flush under a folded band (that one pulls the next up by the same space).  On the inner root, as below. */
+  :host(:not(:first-child)) > .ui.section.brand.panel.sub {
+    margin-block-start: calc(var(--_ui-brand-panel-band-space) - var(--_brand-panel-outer-gap, 0px));
+  }
+  :host(:state(collapsed):not(:last-child)) > .ui.section.brand.panel.sub {
+    margin-block-end: calc(-1 * var(--_ui-brand-panel-band-space));
   }
 
   /* A folded LAST sub-panel:  its band closes the outer box, out through the outer padding, rounded to its corners.
