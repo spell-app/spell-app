@@ -16,6 +16,8 @@
  * - stdin `{ name, cwd, session_id, transcript_path, ... }`  (CLI 2.1.287:  no branch or base field, whatever the
  *   docs say).  Prints the worktree's absolute path on stdout, the ONLY thing on stdout;  progress goes to stderr.
  * - Reuses `.claude/worktrees/<name>` when it's already a worktree, and branch `<name>` when it exists.
+ * - Then links the shared content in (`spell dev shared link`, epic `shared-content`), when the shared repo exists:
+ *   a failure there is a warning, never a failed hook
  *
  * ## remove
  * - stdin `{ worktree_path, cwd, ... }`.  Runs on `ExitWorktree` `remove` (only with `discard_changes: true`), at
@@ -24,7 +26,7 @@
  *   (exit 1 with the reason;  Claude shows stderr).  Otherwise removes the worktree and deletes its branch.
  */
 import { execFileSync } from "node:child_process"
-import { existsSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 
 /** The branch new worktrees start from. */
@@ -69,7 +71,32 @@ class Worktree {
     const args = Worktree.hasBranch(root, name) ? [path, name] : ["-b", name, path, BASE]
     console.error(`worktree hook:  git worktree add ${args.join(" ")}`)
     Worktree.git(root, "worktree", "add", "--quiet", ...args)
+    Worktree.linkShared(root, path)
     return path
+  }
+
+  /**
+   * Link the shared content into worktree `path`:  the main checkout's `spell dev shared link`, run in the worktree.
+   * - only when the shared repo exists (`"shared": { "dir" }` in the root `package.json`, default
+   *   `../spell-app-dev`):  before the cutover there's nothing to link
+   * - its output goes to stderr (stdout is the worktree's path);  a failure is a warning
+   */
+  static linkShared(root, path) {
+    let dir = "../spell-app-dev"
+    try {
+      dir = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).shared?.dir ?? dir
+    } catch {
+      // no manifest:  the default
+    }
+    if (!existsSync(join(resolve(root, dir), ".git"))) return
+    try {
+      execFileSync(process.execPath, [join(root, "packages/cli/bin/spell.mjs"), "dev", "shared", "link"], {
+        cwd: path,
+        stdio: ["ignore", 2, 2]
+      })
+    } catch (error) {
+      console.error(`worktree hook:  shared content not linked (${error.message.split("\n")[0]});  run \`spell dev shared link\``)
+    }
   }
 
   /** `remove`:  remove the worktree and its branch, unless that would lose work;  returns what happened. */

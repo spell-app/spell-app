@@ -707,3 +707,357 @@ ui-list.plan-phase-body :is(ul, ol) {
   margin: 2px 0 4px;
   padding-left: 1.2em;
 }
+
+/*******************************
+     Review actions
+*******************************/
+
+/*
+ * Reviewing on the page (plan doc `review-review`, P5;  `spell-doc-runtime.js` `wireReview()`), only while the page
+ * server serves the doc (`body.plan-reviewing`):
+ * - every item's line ends in a round grey ellipsis (`span.plan-act`):  absolutely placed at the line's far right,
+ *   in room the line keeps free, so a long title never wraps under it, at any width
+ * - a mark colors it, filled while unsent, outlined once sent:  `data-color` (UI's tokens)
+ * - its menu (`div.plan-act-menu`) is a popover, fixed in the window:  it opens in place, nothing scrolls
+ */
+body.plan-reviewing {
+  --plan-act-size: 22px;
+}
+/* the room at the line's end:  the button, and the spinner beside it while busy */
+body.plan-reviewing ui-accordion.plan-item > ui-title::part(title),
+body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  padding-inline-end: calc(var(--plan-act-size) + 6px);
+}
+body.plan-reviewing ui-accordion.plan-item > ui-title:has(> .plan-act[data-busy])::part(title),
+body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion)):has(> .plan-act[data-busy])::part(item) {
+  padding-inline-end: calc(2 * var(--plan-act-size) + 10px);
+}
+/* what the button is placed in:  the title (accordion items), or the item's row */
+body.plan-reviewing ui-accordion.plan-item > ui-title,
+body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  position: relative;
+}
+.plan-act {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  block-size: 100%;
+}
+/* a bare item's row also holds its Revisit box:  the button sits on the first line, not mid-box */
+.plan-items > ui-item:not(:has(> ui-accordion)) > .plan-act {
+  inset-inline-end: 6px;
+  block-size: calc(1lh + 6px);
+}
+button.plan-act-button {
+  --_act: var(--ui-grey, #767676);
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--plan-act-size);
+  height: var(--plan-act-size);
+  padding: 0;
+  border: 1.5px solid transparent;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--spell-ink) 9%, transparent);
+  color: var(--spell-muted);
+  font: 700 0.72rem/1 var(--spell-mono);
+  cursor: pointer;
+}
+button.plan-act-button:hover {
+  background: color-mix(in srgb, var(--spell-ink) 16%, transparent);
+  color: var(--spell-ink);
+}
+button.plan-act-button:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+button.plan-act-button > * {
+  grid-area: 1 / 1;
+}
+.plan-act-letter:empty {
+  display: none;
+}
+/* marked:  filled in the action's color;  sent:  outlined in it */
+button.plan-act-button[data-color] {
+  border-color: var(--_act);
+  background: var(--_act);
+  color: var(--ui-surface, Canvas);
+}
+button.plan-act-button[data-color][data-sent] {
+  background: color-mix(in srgb, var(--_act) 12%, transparent);
+  color: var(--_act);
+}
+:is(button.plan-act-button, .plan-act-menu > button)[data-color="green"] {
+  --_act: var(--ui-green, #21ba45);
+}
+:is(button.plan-act-button, .plan-act-menu > button)[data-color="violet"] {
+  --_act: var(--ui-violet, #6435c9);
+}
+:is(button.plan-act-button, .plan-act-menu > button)[data-color="blue"] {
+  --_act: var(--ui-blue, #2185d0);
+}
+:is(button.plan-act-button, .plan-act-menu > button)[data-color="orange"] {
+  --_act: var(--ui-orange, #f2711c);
+}
+.plan-act-menu > button[data-color="grey"] {
+  --_act: var(--ui-grey, #767676);
+}
+/*
+ * Claude at work on the item (or the request on its way):  a turning ring;  queued with nobody listening:  still,
+ * dashed
+ */
+.plan-act-spin {
+  box-sizing: border-box;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid color-mix(in srgb, var(--ui-blue, #2185d0) 25%, transparent);
+  border-top-color: var(--ui-blue, #2185d0);
+  border-radius: 50%;
+  animation: plan-act-spin 0.8s linear infinite;
+}
+.plan-act-spin[hidden] {
+  display: none;
+}
+.plan-act-spin[data-waiting] {
+  border: 2px dashed var(--spell-muted);
+  animation: none;
+}
+@keyframes plan-act-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plan-act-spin {
+    animation-duration: 2.4s;
+  }
+}
+
+/* the menu:  rows of a round icon in the action's color and its name;  the item's current mark is bold */
+.plan-act-menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  min-width: 170px;
+  padding: 4px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 8px;
+  background: var(--spell-bg);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+  color: var(--spell-ink);
+  font: 0.9rem/1.3 var(--spell-sans);
+}
+.plan-act-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px 5px 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.plan-act-menu > button:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--_act) 14%, transparent);
+  outline: none;
+}
+.plan-act-menu > button[aria-checked="true"] {
+  font-weight: 700;
+}
+.plan-act-menu > button.plan-act-clear {
+  margin-top: 3px;
+  border-top: 1px solid var(--spell-rule);
+  border-radius: 0 0 6px 6px;
+  color: var(--spell-muted);
+}
+.plan-act-dot {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--_act);
+  color: var(--ui-surface, Canvas);
+  font-size: 0.7rem;
+}
+
+/* the Revisit box under an item's line:  the note, and a grey check over a blue send at its right */
+.plan-revisit {
+  display: flex;
+  flex-basis: 100%;
+  order: 10;
+  gap: 6px;
+  margin: 6px 0 4px 1.5em;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, var(--ui-orange, #f2711c) 45%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 6%, var(--spell-bg));
+}
+.plan-revisit-note {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 3.6em;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 6px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: 0.9rem/1.4 var(--spell-sans);
+  resize: vertical;
+}
+.plan-revisit-note:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 0;
+}
+.plan-revisit-buttons {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 6px;
+}
+.plan-revisit-buttons > button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+button.plan-revisit-soon {
+  background: color-mix(in srgb, var(--spell-ink) 12%, transparent);
+  color: var(--spell-ink);
+}
+button.plan-revisit-now {
+  background: var(--ui-blue, #2185d0);
+  color: var(--ui-blue-on, #fff);
+}
+.plan-revisit-buttons > button:hover {
+  filter: brightness(1.1);
+}
+.plan-revisit-buttons > button:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+
+/* an open item's option card label:  a "Choose" pill at its right;  the picked card framed orange until applied */
+.plan-items ui-grid.spell-pros-cons ui-label[attached]:has(> .plan-choose)::part(label) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+button.plan-choose {
+  flex: none;
+  margin-inline-start: auto;
+  padding: 0 8px;
+  border: 1px solid var(--ui-orange, #f2711c);
+  border-radius: 999px;
+  background: var(--spell-bg);
+  color: var(--ui-orange-text, var(--ui-orange, #f2711c));
+  font: 600 0.72rem/1.6 var(--spell-sans);
+  cursor: pointer;
+}
+button.plan-choose:hover {
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 12%, var(--spell-bg));
+}
+button.plan-choose[aria-pressed="true"] {
+  background: var(--ui-orange, #f2711c);
+  color: var(--ui-orange-on, #fff);
+}
+button.plan-choose:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+.plan-items ui-grid.spell-pros-cons > ui-column[data-picked] ui-segment {
+  outline: 2px solid var(--ui-orange, #f2711c);
+  outline-offset: -1px;
+  border-radius: 6px;
+}
+
+/* the page header's "Send to Claude":  round, grey;  blue with unsent marks;  outlined blue once sent */
+button.plan-send {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--plan-head-control);
+  height: var(--plan-head-control);
+  padding: 0;
+  border: 1px solid var(--spell-rule);
+  border-radius: 50%;
+  background: none;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+button.plan-send:hover {
+  color: var(--spell-accent);
+}
+button.plan-send[data-state="unsent"] {
+  border-color: var(--ui-blue, #2185d0);
+  background: var(--ui-blue, #2185d0);
+  color: var(--ui-blue-on, #fff);
+}
+button.plan-send[data-state="sent"] {
+  border: 2px solid var(--ui-blue, #2185d0);
+  color: var(--ui-blue, #2185d0);
+}
+button.plan-send:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline-offset: 1px;
+}
+
+/* what can't be said on an item (nobody listening, a failed save):  a line at the bottom of the window */
+.plan-review-notice {
+  position: fixed;
+  z-index: 1000;
+  inset-inline: 12px;
+  inset-block-end: 12px;
+  max-width: 520px;
+  margin-inline: auto;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--spell-ink);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
+  color: var(--spell-bg);
+  font: 0.85rem/1.4 var(--spell-sans);
+}
+.plan-review-notice[hidden] {
+  display: none;
+}
+
+/*
+ * Claude's reply to a revisit note (`div.plan-reply > div.plan-reply-title` + the answer), appended to an item's
+ * details by `yarn plan-doc details --append` during `/epic review`:  a violet card, the brand's action color, apart
+ * from the ivory answer card
+ */
+.plan-reply {
+  margin: 8px 0;
+  padding: 0 10px 6px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ui-violet, #6550ca) 30%, transparent);
+  border-radius: 6px;
+  background: var(--ui-violet-background, light-dark(#eaeaff, rgb(184 180 255 / 0.16)));
+}
+.plan-reply-title {
+  margin: 0 -10px 6px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--ui-violet, #6550ca) 14%, transparent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.plan-reply > :last-child {
+  margin-bottom: 0;
+}

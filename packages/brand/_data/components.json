@@ -1249,7 +1249,7 @@
         {
           "name": "collapsible",
           "kind": "boolean",
-          "description": "The title folds and unfolds the content:  a button with `aria-expanded`."
+          "description": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there."
         },
         {
           "name": "collapsed",
@@ -1502,6 +1502,10 @@
         {
           "name": "in-section",
           "description": "Nested in another section."
+        },
+        {
+          "name": "in-sections",
+          "description": "Directly in a `<ui-sections>` group (no section between)."
         },
         {
           "name": "inverted",

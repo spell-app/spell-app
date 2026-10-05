@@ -1,0 +1,196 @@
+<!--
+  Section groups:  `<ui-sections>`.
+  In shadow DOM `<ui-sections>` renders `<div class="ui ... sections">` around a `<slot>`;  `collapsing` sets the
+  inherited `--_ui-sections-stack` switch, which every section below reads, at any depth.  Here the sections are
+  light-DOM class grammar inside the group's `<div>`, as the sheet styles them in their shadow roots.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Collapsing</h4>
+    <div class="ui collapsing sections">
+      <section class="ui dividing section">
+        <header class="title">
+          <h2 class="heading">
+            <button type="button" class="toggle" aria-expanded="false" aria-controls="group-overview-content">
+              <span class="fold icon"
+                ><svg viewBox="0 0 448 512" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                  /></svg></span
+              ><span class="header">Overview</span>
+            </button>
+          </h2>
+        </header>
+        <div id="group-overview-content" class="content" hidden="until-found"><p>What the project is.</p></div>
+      </section>
+      <section class="ui dividing section">
+        <header class="title">
+          <h2 class="heading">
+            <button type="button" class="toggle" aria-expanded="false" aria-controls="group-install-content">
+              <span class="fold icon"
+                ><svg viewBox="0 0 448 512" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                  /></svg></span
+              ><span class="header">Install</span>
+            </button>
+          </h2>
+        </header>
+        <div id="group-install-content" class="content" hidden="until-found"><p>How to get it.</p></div>
+      </section>
+      <section class="ui dividing section">
+        <header class="title">
+          <h2 class="heading">
+            <button type="button" class="toggle" aria-expanded="true" aria-controls="group-configure-content">
+              <span class="fold icon"
+                ><svg viewBox="0 0 448 512" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                  /></svg></span
+              ><span class="header">Configure</span>
+            </button>
+          </h2>
+        </header>
+        <div id="group-configure-content" class="content">
+          <p>Open: flush under the title above, with the usual space below its content.</p>
+          <section class="ui section">
+            <header class="title">
+              <h3 class="heading">
+                <button type="button" class="toggle" aria-expanded="false" aria-controls="group-options-content">
+                  <span class="fold icon"
+                    ><svg viewBox="0 0 448 512" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                      /></svg></span
+                  ><span class="header">Options</span>
+                </button>
+              </h3>
+            </header>
+            <div id="group-options-content" class="content" hidden="until-found"><p>Every option.</p></div>
+          </section>
+          <section class="ui section">
+            <header class="title">
+              <h3 class="heading">
+                <button type="button" class="toggle" aria-expanded="false" aria-controls="group-defaults-content">
+                  <span class="fold icon"
+                    ><svg viewBox="0 0 448 512" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                      /></svg></span
+                  ><span class="header">Defaults</span>
+                </button>
+              </h3>
+            </header>
+            <div id="group-defaults-content" class="content" hidden="until-found"><p>What you get as is.</p></div>
+          </section>
+        </div>
+      </section>
+      <section class="ui dividing section">
+        <header class="title">
+          <h2 class="heading">
+            <button type="button" class="toggle" aria-expanded="false" aria-controls="group-deploy-content">
+              <span class="fold icon"
+                ><svg viewBox="0 0 448 512" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                  /></svg></span
+              ><span class="header">Deploy</span>
+            </button>
+          </h2>
+        </header>
+        <div id="group-deploy-content" class="content" hidden="until-found"><p>Ship it.</p></div>
+      </section>
+      <section class="ui dividing section">
+        <header class="title">
+          <h2 class="heading">
+            <span class="toggle"><span class="header">Changelog</span></span>
+          </h2>
+        </header>
+        <div class="content"><p>Opted out (<code>collapsible="false"</code>): never folds, keeps its space.</p></div>
+      </section>
+    </div>
+  </section>
+
+  <section>
+    <h4>Styled</h4>
+    <div class="ui collapsing sections">
+      <section class="ui styled section">
+        <header class="title">
+          <h4 class="heading">
+            <button type="button" class="toggle" aria-expanded="false" aria-controls="group-what-content">
+              <span class="fold icon"
+                ><svg viewBox="0 0 448 512" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                  /></svg></span
+              ><span class="header">What is a dog?</span>
+            </button>
+          </h4>
+        </header>
+        <div id="group-what-content" class="content" hidden="until-found"><p>A domesticated carnivore.</p></div>
+      </section>
+      <section class="ui styled section">
+        <header class="title">
+          <h4 class="heading">
+            <button type="button" class="toggle" aria-expanded="false" aria-controls="group-kinds-content">
+              <span class="fold icon"
+                ><svg viewBox="0 0 448 512" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                  /></svg></span
+              ><span class="header">What kinds of dogs are there?</span>
+            </button>
+          </h4>
+        </header>
+        <div id="group-kinds-content" class="content" hidden="until-found"><p>Many breeds.</p></div>
+      </section>
+      <section class="ui styled section">
+        <header class="title">
+          <h4 class="heading">
+            <button type="button" class="toggle" aria-expanded="false" aria-controls="group-acquire-content">
+              <span class="fold icon"
+                ><svg viewBox="0 0 448 512" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                  /></svg></span
+              ><span class="header">How do you acquire a dog?</span>
+            </button>
+          </h4>
+        </header>
+        <div id="group-acquire-content" class="content" hidden="until-found"><p>Adopt one.</p></div>
+      </section>
+    </div>
+  </section>
+
+  <section>
+    <h4>Plain group</h4>
+    <p>A paragraph before the group: the group keeps a section's space from it.</p>
+    <div class="ui sections">
+      <section class="ui dividing section">
+        <header class="title">
+          <h2 class="heading">
+            <span class="toggle"><span class="header">First</span></span>
+          </h2>
+        </header>
+        <div class="content"><p>A plain group changes nothing in its sections.</p></div>
+      </section>
+      <section class="ui dividing section">
+        <header class="title">
+          <h2 class="heading">
+            <span class="toggle"><span class="header">Second</span></span>
+          </h2>
+        </header>
+        <div class="content"><p>The usual space between them.</p></div>
+      </section>
+    </div>
+  </section>
+</div>

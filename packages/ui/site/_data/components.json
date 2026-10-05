@@ -7509,9 +7509,14 @@
           "description": "Levels to shift headings by, e.g. `1`:  `#` becomes `<h2>`, to sit under the page's own heading.  Property `headingLevelOffset`:  `headingOffset` is WebKit's native `headingoffset`."
         },
         {
-          "name": "trusted",
+          "name": "editable",
           "kind": "boolean",
-          "description": "Skip sanitizing, keeping raw HTML as written (`<ui-*>` elements, scripts' tags ...).  ONLY for text you wrote."
+          "description": "Write / Preview tabs:  a text box for the markdown, and its preview, drawn with `ui-*` elements by spell's markdown engine (`@spell-app/markdown`, its own lazy chunk).  Each edit is a `ui-change`;  `save()` writes it."
+        },
+        {
+          "name": "sanitized",
+          "kind": "boolean",
+          "description": "Sanitize the rendered markup with DOMPurify (its own lazy chunk, loaded only then):  no scripts, event handlers or `javascript:` links.  Set it for text you didn't write;  without it, raw HTML is kept as written."
         }
       ],
       "slots": [],
@@ -7561,6 +7566,18 @@
         {
           "name": "body",
           "description": "The `<article>` holding the rendered markdown."
+        },
+        {
+          "name": "tabs",
+          "description": "`editable`:  the Write / Preview tab list."
+        },
+        {
+          "name": "tab",
+          "description": "`editable`:  each tab button."
+        },
+        {
+          "name": "editor",
+          "description": "`editable`:  the `<textarea>` holding the markdown."
         }
       ],
       "states": [
@@ -7606,6 +7623,21 @@
           "key": "sourceRenderError",
           "text": "Couldn't show {source}.",
           "description": "The text arrived, but couldn't be shown."
+        },
+        {
+          "key": "write",
+          "text": "Write",
+          "description": "`editable`:  the editing tab."
+        },
+        {
+          "key": "preview",
+          "text": "Preview",
+          "description": "`editable`:  the preview tab."
+        },
+        {
+          "key": "editor",
+          "text": "Markdown",
+          "description": "`editable`:  accessible name of the text box."
         }
       ],
       "mainTag": "ui-markdown",
@@ -10632,7 +10664,7 @@
         {
           "name": "collapsible",
           "kind": "boolean",
-          "description": "The title folds and unfolds the content:  a button with `aria-expanded`."
+          "description": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there."
         },
         {
           "name": "collapsed",
@@ -10887,6 +10919,10 @@
           "description": "Nested in another section."
         },
         {
+          "name": "in-sections",
+          "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
           "name": "inverted",
           "description": "In the dark scheme."
         },
@@ -10920,6 +10956,58 @@
       "main": true,
       "page": true,
       "href": "components/ui-section.html"
+    },
+    {
+      "tag": "ui-sections",
+      "name": "Sections",
+      "folder": "ui-section",
+      "topics": [
+        "layout",
+        "containers"
+      ],
+      "aka": [
+        "accordion",
+        "section group",
+        "collapsible group",
+        "outline"
+      ],
+      "description": "A group of sections:  with `collapsing`, every section in it folds, and folded ones stack with no space between.",
+      "noun": "sections",
+      "attributes": [
+        {
+          "name": "collapsing",
+          "kind": "keyOnly",
+          "description": "Every section in the group, sub-sections included, folds by default (as if `collapsible`);  folded ones stack with no space between.  A section opts out with `collapsible=\"false\"`."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "`<ui-section>`s, and anything between them."
+        }
+      ],
+      "events": [],
+      "parts": [
+        {
+          "name": "group",
+          "description": "The group box."
+        }
+      ],
+      "states": [
+        {
+          "name": "in-section",
+          "description": "Inside a section."
+        },
+        {
+          "name": "in-sections",
+          "description": "Inside another `<ui-sections>`."
+        }
+      ],
+      "texts": [],
+      "mainTag": "ui-section",
+      "main": false,
+      "page": false,
+      "href": "components/ui-section.html#ui-sections"
     },
     {
       "tag": "ui-segment",
@@ -19793,6 +19881,16 @@
       ],
       "tokens": [
         {
+          "name": "--ui-markdown-editor-border",
+          "default": "var(--ui-border-color)",
+          "type": "other"
+        },
+        {
+          "name": "--ui-markdown-editor-background",
+          "default": "var(--ui-surface)",
+          "type": "color"
+        },
+        {
           "name": "--ui-markdown-color",
           "default": "var(--ui-text-color)",
           "type": "color"
@@ -19801,6 +19899,11 @@
           "name": "--ui-markdown-muted",
           "default": "var(--ui-text-muted)",
           "type": "color"
+        },
+        {
+          "name": "--ui-markdown-radius",
+          "default": "var(--ui-radius)",
+          "type": "length"
         },
         {
           "name": "--ui-markdown-line-height",
@@ -19846,11 +19949,6 @@
           "name": "--ui-markdown-code-background",
           "default": "var(--ui-surface-muted)",
           "type": "color"
-        },
-        {
-          "name": "--ui-markdown-radius",
-          "default": "var(--ui-radius)",
-          "type": "length"
         }
       ]
     },
@@ -21520,7 +21618,8 @@
       "status": "in-progress",
       "docs": false,
       "tags": [
-        "ui-section"
+        "ui-section",
+        "ui-sections"
       ],
       "tokens": [
         {

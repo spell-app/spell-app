@@ -58,7 +58,7 @@
           <ui-tab value="examples" label="Examples">
             <!--
               EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples, restyled;  they mirror the family's
-              `examples/elements/` files (types, content, states, variations).
+              `examples/elements/` files (types, groups, content, states, variations).
               - Each example's outer section says `level="4"`:  it sits under the example's `h3`, so a default `h2` would break
                 the page's outline.  Nested sections show the default (parent + 1).
               - The sticky example scrolls inside a `<ui-root height>` box (a named, focusable region), framed by a segment.
@@ -111,6 +111,52 @@
                       </ui-section>
                     </ui-root>
                   </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-groups" header="Groups" sticky collapsible dividing>
+              <ui-section id="examples-groups-collapsing" header="Collapsing" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`<ui-sections collapsing>`:  every section in it folds, sub-sections included, with no `collapsible` on each;  folded ones stack with no space between.  An open one sits flush under the title above and keeps its space below.  `collapsible="false"` opts a section out.'
+                >
+                  <ui-sections collapsing>
+                    <ui-section header="Overview" level="4" dividing collapsed><p>What the project is.</p></ui-section>
+                    <ui-section header="Install" level="4" dividing collapsed><p>How to get it.</p></ui-section>
+                    <ui-section header="Configure" level="4" dividing>
+                      <p>Open:  its sub-sections fold too.</p>
+                      <ui-section header="Options" collapsed><p>Every option.</p></ui-section>
+                      <ui-section header="Defaults" collapsed><p>What you get as is.</p></ui-section>
+                    </ui-section>
+                    <ui-section header="Deploy" level="4" dividing collapsed><p>Ship it.</p></ui-section>
+                    <ui-section header="Changelog" level="4" dividing collapsible="false">
+                      <p>Opted out:  never folds.</p>
+                    </ui-section>
+                  </ui-sections>
+                </ui-docs-example>
+                <ui-docs-example description="Styled sections in a collapsing group read as a styled accordion.">
+                  <ui-sections collapsing>
+                    <ui-section header="What is a dog?" level="4" styled collapsed
+                      ><p>A domesticated carnivore.</p></ui-section
+                    >
+                    <ui-section header="What kinds of dogs are there?" level="4" styled collapsed
+                      ><p>Many breeds.</p></ui-section
+                    >
+                    <ui-section header="How do you acquire a dog?" level="4" styled collapsed
+                      ><p>Adopt one.</p></ui-section
+                    >
+                  </ui-sections>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-groups-plain" header="Plain" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Without `collapsing`, `<ui-sections>` is just a block spaced as one section:  it changes nothing in its sections."
+                >
+                  <ui-sections>
+                    <ui-section header="First" level="4" dividing><p>As usual.</p></ui-section>
+                    <ui-section header="Second" level="4" dividing><p>The usual space between them.</p></ui-section>
+                  </ui-sections>
                 </ui-docs-example>
               </ui-section>
             </ui-section>
@@ -380,6 +426,7 @@
                   | a heading on its own, styled                                 | [header](ui-header.html)       |
                   | several panels where opening one may close the others        | [accordion](ui-accordion.html) |
                   | a titled block that can fold, stick, or both, in the outline | `<ui-section>`                 |
+                  | a run of titled blocks that all fold, packed tight           | `<ui-sections collapsing>`     |
                   | content that sticks, without a title of its own              | [sticky](ui-sticky.html)       |
 
                   An accordion's titles are buttons, not headings, and its panels are one group; each section folds on its own and

@@ -7,6 +7,9 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 
 import { SectionFallback } from "./ui-section.fallback"
 
+// defines `<ui-sections>`:  the fallback finds its group through the owner registry
+import "$/ui/components/ui-section"
+
 FallbackStub.define("x-fb-section", (host, root, internals) =>
   SectionFallback.render(host, root, new Error("boom"), internals)
 )
@@ -156,6 +159,20 @@ describe("SectionFallback", () => {
     expect(content.tabIndex).toBe(0)
     expect(root(host).getAttribute("aria-busy")).toBe("true")
     expect(root(host).querySelector("[role=status]")!.textContent).toBe("Loading…")
+  })
+
+  it('folds by default in `<ui-sections collapsing>`, sub-sections too, unless `collapsible="false"`', () => {
+    const group = Fixture.render(
+      `<ui-sections collapsing><x-fb-section id="a" header="A" collapsed><x-fb-section id="b" header="B">x` +
+        `</x-fb-section></x-fb-section><x-fb-section id="c" header="C" collapsible="false">y</x-fb-section></ui-sections>`
+    )
+    const toggle = (id: string) => part(group.querySelector(`#${id}`)!, "toggle")!.localName
+    expect(toggle("a")).toBe("button")
+    expect(part(group.querySelector("#a")!, "content")!.getAttribute("hidden")).toBe("until-found")
+    expect(toggle("b")).toBe("button")
+    expect(toggle("c")).toBe("span")
+    const plain = Fixture.render(`<ui-sections><x-fb-section header="P">z</x-fb-section></ui-sections>`)
+    expect(part(plain.querySelector("x-fb-section")!, "toggle")!.localName).toBe("span")
   })
 
   it("keeps a top-level sticky title at `offset`", () => {

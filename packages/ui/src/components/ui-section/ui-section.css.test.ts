@@ -6,6 +6,7 @@ import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
 import { sectionVocabulary } from "./ui-section.vocabulary.en"
+import { sectionsVocabulary } from "./ui-sections.vocabulary.en"
 
 import sectionCSS from "./ui-section.css?inline"
 import sectionRaw from "./ui-section.css?raw"
@@ -70,10 +71,12 @@ describe("ui-section.css source", () => {
     }
   })
 
-  it("covers every class word the vocabulary can emit", () => {
+  it("covers every class word the vocabularies can emit", () => {
     const css = sectionRaw + colorsCSS
-    for (const phrase of Sheets.classPhrases(sectionVocabulary))
-      expect(Sheets.covers(css, phrase), `${sectionVocabulary.tag}: ${phrase}`).toBe(true)
+    for (const vocabulary of [sectionVocabulary, sectionsVocabulary]) {
+      for (const phrase of Sheets.classPhrases(vocabulary))
+        expect(Sheets.covers(css, phrase), `${vocabulary.tag}: ${phrase}`).toBe(true)
+    }
   })
 })
 
@@ -273,6 +276,44 @@ describe("ui-section.css examples", () => {
     // `hidden="until-found"` keeps the box (its contents are skipped):  it draws at no height
     expect(collapsed.getBoundingClientRect().height).toBe(0)
     expect(collapsed.querySelector("p")!.checkVisibility()).toBe(false)
+  })
+})
+
+describe("ui-section.css groups", () => {
+  /** The page rectangle of the section titled `header` in `root`. */
+  function rect(root: Element, header: string) {
+    return titled(root, header).getBoundingClientRect()
+  }
+
+  it("stacks folded sections in a collapsing group with no space between, sub-sections too", () => {
+    const root = example("groups")
+    expect(rect(root, "Install").top - rect(root, "Overview").bottom).toBeCloseTo(0, 0)
+    expect(rect(root, "Defaults").top - rect(root, "Options").bottom).toBeCloseTo(0, 0)
+  })
+
+  it("puts an open section flush under the title above, with its usual space below", () => {
+    const root = example("groups")
+    expect(rect(root, "Configure").top - rect(root, "Install").bottom).toBeCloseTo(0, 0)
+    expect(rect(root, "Deploy").top - rect(root, "Configure").bottom).toBeCloseTo(24, 0)
+  })
+
+  it("keeps a section that can't fold spaced as usual", () => {
+    const root = example("groups")
+    expect(rect(root, "Changelog").top - rect(root, "Deploy").bottom).toBeCloseTo(24, 0)
+  })
+
+  it("overlaps stacked boxes by their border:  one line between two", () => {
+    const root = example("groups")
+    const what = rect(root, "What is a dog?")
+    expect(what.bottom - rect(root, "What kinds of dogs are there?").top).toBeCloseTo(1, 1)
+    expect(what.top).toBeCloseTo(titled(root, "What is a dog?").parentElement!.getBoundingClientRect().top, 1)
+  })
+
+  it("leaves a plain group's sections spaced as usual, and spaces the group as one section", () => {
+    const root = example("groups")
+    expect(rect(root, "Second").top - rect(root, "First").bottom).toBeCloseTo(24, 0)
+    const before = titled(root, "First").parentElement!.previousElementSibling!.getBoundingClientRect()
+    expect(rect(root, "First").top - before.bottom).toBeGreaterThanOrEqual(24)
   })
 })
 

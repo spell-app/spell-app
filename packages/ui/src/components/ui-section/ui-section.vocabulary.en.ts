@@ -56,7 +56,9 @@ export const sectionVocabulary = {
     {
       name: "collapsible",
       kind: "boolean",
-      description: "The title folds and unfolds the content:  a button with `aria-expanded`."
+      description:
+        "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside " +
+        '`<ui-sections collapsing>`, sub-sections included;  `collapsible="false"` opts out there.'
     },
     {
       name: "collapsed",
@@ -173,6 +175,7 @@ export const sectionVocabulary = {
     { name: "stuck", description: "With `sticky`:  the title bar is stuck to the top." },
     { name: "animated", description: "Folds with a height transition (`interpolate-size`)." },
     { name: "in-section", description: "Nested in another section." },
+    { name: "in-sections", description: "Directly in a `<ui-sections>` group (no section between)." },
     { name: "inverted", description: "In the dark scheme." },
     { name: "loading", description: "Busy." },
     { name: "disabled", description: "Dimmed and inert." }

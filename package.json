@@ -9,6 +9,7 @@
     "packages/cli",
     "packages/docs",
     "packages/lsp",
+    "packages/markdown",
     "packages/parser",
     "packages/solid-element",
     "packages/spell",
@@ -65,6 +66,7 @@
     "routes": [
       "packages/docs/tools/goals/goalsRoutes.ts",
       "packages/docs/tools/detailsRoutes.ts",
+      "packages/docs/tools/reviewRoutes.ts",
       "packages/docs/tools/showRoutes.ts",
       "packages/app/src/server/appRoutes.ts"
     ],
@@ -72,6 +74,14 @@
       "packages/docs/content",
       "packages/docs/tools/_assets",
       "packages/brand"
+    ]
+  },
+  "shared": {
+    "dir": "../spell-app-dev",
+    "links": [
+      "packages/docs/content",
+      "goals",
+      "agents"
     ]
   }
 }

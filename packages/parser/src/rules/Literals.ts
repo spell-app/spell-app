@@ -15,23 +15,9 @@ export abstract class Literals<
 > extends Rule<P.LiteralsProps, Groups, MatchData> {
   /** Literals to match in order -- normalized from constructor input into `{ literal, optional? }` matchers. */
   declare literals: P.LiteralMatcher[]
-  /**
-   * String to join matched literals with in `toRulexSyntax()` -- a space, unless a subclass says otherwise,
-   * e.g. `Symbols` uses `""`.
-   * - NEVER left unset:  `[...].join(undefined)` joins with `","`, e.g. `(Card|card),(Suits|suits)`.
-   */
-  declare literalSeparator: string
 
   /** Class-level `literals`, for rules defined as classes -- declare as `@proto static`. */
   static literals?: Array<string | string[] | P.LiteralMatcher>
-
-  static {
-    /** Join literals with a single space in-between, by default -- e.g. for `EnumerationRule`. */
-    Object.defineProperty(this.prototype, "literalSeparator", {
-      value: " ",
-      writable: true
-    })
-  }
 
   /** Bare string / array shorthand sets `literals` directly, otherwise pass a full `LiteralsProps` bag. */
   constructor(input: P.LiteralsProps | string | Array<string | string[] | P.LiteralMatcher>) {
@@ -67,7 +53,9 @@ export abstract class Literals<
    */
   matchAtStart(tokens: P.Token[], start = 0) {
     for (let i = 0, matcher; (matcher = this.literals[i]); i++) {
-      const matched = tokens[start]?.matchesLiteral(matcher.literal)
+      // a later literal's `spacing` is about the token we matched just before it
+      const spacedRight = start === 0 || P.spacingAllows(tokens[start - 1], matcher.spacing)
+      const matched = spacedRight && tokens[start]?.matchesLiteral(matcher.literal)
       if (matched) start++
       else if (!matcher.optional) return 0
     }
@@ -93,19 +81,27 @@ export abstract class Literals<
     return match.value
   }
 
-  /** Return rulex string for this rule, joining literals with `literalSeparator` and applying rule flags. */
+  /**
+   * Return rulex string for this rule, each literal spaced from the one before as its `spacing` says
+   * (`P.rulexSpacing()`:  `--` vs `- -`), with rule flags applied.
+   */
   toRulexSyntax() {
     const { matchGroup, optional } = this.getRulexFlags()
 
     const literalStrings = this.literals
-      .map(({ literal, optional }) => {
+      .map(({ literal, optional, spacing }, index) => {
+        const before = index ? P.rulexSpacing(spacing) : ""
+        // rulex's own specials (`\[`, `\*` ...) escaped, so the syntax reads back the same
+        literal = typeof literal === "string" ? P.escapeRulex(literal) : literal.map(P.escapeRulex)
         // Parens around alternatives, else `(else|otherwise) if` would read as `else|otherwise if`.
-        if (typeof literal !== "string" && literal.length > 1) return `(${literal.join("|")})${optional ? "?" : ""}`
+        if (typeof literal !== "string" && literal.length > 1) {
+          return `${before}(${literal.join("|")})${optional ? "?" : ""}`
+        }
         const matchString = typeof literal === "string" ? literal : literal.join("|")
-        if (optional) return `(${matchString})?`
-        return matchString
+        if (optional) return `${before}${matchString}?`
+        return `${before}${matchString}`
       })
-      .join(this.literalSeparator)
+      .join("")
 
     const wrapInParens = matchGroup || (optional && this.literals.length > 1)
     if (wrapInParens) return `(${matchGroup}${literalStrings})${optional}`

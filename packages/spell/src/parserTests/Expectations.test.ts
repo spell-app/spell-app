@@ -34,7 +34,8 @@ describe("expectedAfter()", () => {
     parser.addRule(animal, { alias: "pet" })
     parser.addRule(noisy_animal, { alias: "pet" })
     class nouns extends P.Sequence {
-      @proto static syntax = "[{noun},]"
+      // spaced before the comma:  the input below spaces it (`cat , dog ,`)
+      @proto static syntax = "[{noun} ,]"
     }
     parser.addRule(nouns)
     const expected = (text: string, ruleName: string) =>
@@ -124,7 +125,7 @@ describe("expectedAfter()", () => {
     test("`if c` => `then` or `:`, and operators only as continuations", () => {
       const { own, continues } = expected("if c")
       expect(describeAll(own)).toEqual(["(then|:)?"])
-      expect(describeAll(continues)).toContain("+(rhsChain:{expression_suffix})+")
+      expect(describeAll(continues)).toContain("+{rhsChain:expression_suffix}+")
     })
 
     test("`move c` => `to`, where it sits in the method's call rule", () => {

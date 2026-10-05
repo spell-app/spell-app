@@ -16,7 +16,7 @@
   //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` only:  the
   //   `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
-  //   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
+  //   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, `markdown` -> `parser`, and
   //   `ui` -> `solid-element` / `util`.  e.g. `ui` MUST NOT import `$/spell`.
   //   `server` is a LEAF (node built-ins only):  anything may import it.  Its opt-in entry points:  `$/server/page/...`
   //   (the page server) and `$/server/site/...` (the site header);  `$/server/test/...` are its test helpers.
@@ -27,6 +27,8 @@
       "$/util/*": ["./packages/util/src/*"],
       "$/parser": ["./packages/parser/src/index.ts"],
       "$/parser/*": ["./packages/parser/src/*"],
+      "$/markdown": ["./packages/markdown/src/index.ts"],
+      "$/markdown/*": ["./packages/markdown/src/*"],
       "$/core": ["./packages/core/src/index.ts"],
       "$/core/*": ["./packages/core/src/*"],
       "$/spell": ["./packages/spell/src/index.ts"],

@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, watch, type FSWatcher } from "node:fs"
+import { existsSync, readdirSync, readFileSync, realpathSync, watch, type FSWatcher } from "node:fs"
 import { basename, join, relative, sep } from "node:path"
 
 import type { SRV } from "$/server"
@@ -44,13 +44,20 @@ export class RunningEpics {
     this.index = join(root, "packages", "docs", "content", "index.html")
   }
 
-  /** every running epic, by worktree then name */
+  /**
+   * every running epic, by worktree then name
+   * - shared content (a worktree's epics folder IS the main checkout's, through a link into `../spell-app-dev`):  the
+   *   card links the main checkout's own URL, so edit mode and live reload work there
+   */
   list(): RunningEpic[] {
     const found: RunningEpic[] = []
+    const mainEpics = EPICS_DIRS.find((epics) => existsSync(join(this.root, epics)))
+    const mainReal = mainEpics && realOrSelf(join(this.root, mainEpics))
     for (const worktree of folders(this.worktrees)) {
       const checkout = join(this.worktrees, worktree)
       const dir = EPICS_DIRS.find((epics) => existsSync(join(checkout, epics)))
       if (!dir) continue
+      const shared = realOrSelf(join(checkout, dir)) === mainReal
       for (const name of folders(join(checkout, dir))) {
         const file = planFile(join(checkout, dir, name), name)
         if (!file) continue
@@ -58,7 +65,9 @@ export class RunningEpics {
         found.push({
           name,
           worktree,
-          url: `/worktrees/${worktree}/${dir}/${name}/${basename(file)}`,
+          url: shared
+            ? `/${mainEpics}/${name}/${basename(file)}`
+            : `/worktrees/${worktree}/${dir}/${name}/${basename(file)}`,
           ...read(file)
         })
       }
@@ -180,6 +189,15 @@ function planFile(dir: string, name: string): string | undefined {
   const old = join(dir, `${name}.html`)
   if (!existsSync(old)) return undefined
   return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(readFileSync(old, "utf8")) ? old : undefined
+}
+
+/** `path` with every link resolved, or `path` itself when it doesn't exist. */
+function realOrSelf(path: string): string {
+  try {
+    return realpathSync(path)
+  } catch {
+    return path
+  }
 }
 
 /** The sub-folders of `dir`, sorted;  none if it's missing. */

@@ -946,6 +946,9 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   on it):  another agent ran `yarn site:bundle` in the same worktree meanwhile, and the build empties `_assets/`
   before writing it again. · Rerun the page once the other build is done;  agents sharing a worktree:  say before
   rebuilding the bundle, and don't run `site:check --all` across someone's rebuild. · ui
+- 2026-10-04 · `yarn format` in `packages/ui` rewrote `src/styles/themes/spell.css`, a file the change never touched:
+  oxfmt joins its `@font-face` `src:` lists (one `local()` per line, as committed) onto two long lines. · `git checkout
+  --` the file after formatting;  better, format it once in its own commit so `yarn format` stops touching it. · ui
 
 ## app
 
@@ -1178,6 +1181,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   deleted (`site/src/layouts/Docs.astro`, `ui-root.mdx`, `RootDemo.astro`), broken on `main` too. · Unlinked the
   four (kept their `<code>` names, the history).  A page-deleting change wants `doc-links.py --check` on EVERY page,
   epics included. · ui-docs-rework
+- 2026-10-04 · `check-review.js` (and `check-live.js`) failed "the update reloaded the page" on a clean tree:  the
+  committed plan doc's `<body data-recent-since>` lagged `HEAD~2`'s commit time, so the check's first `yarn plan-doc
+  log` also rewrote `<body>`, outside `main`, and the live update reloaded instead of patching. · For the run, set
+  the working copy's `data-recent-since` to what `plan-doc` would write, then copied the doc back.  Any plan doc
+  committed before its last two commits trips it;  the checks could make one throwaway edit first. · review-review
 
 ## claude-code
 
@@ -1287,6 +1295,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   update a flagged file even when it's unchanged.  `git checkout -- <file>` alone doesn't help while flagged. ·
   Back them up, `git update-index --no-skip-worktree` (paths from the REPO ROOT), `git checkout -- workspaces`,
   merge, write the local edits back on top, `git update-index --skip-worktree` again. · claude-code
+- 2026-10-04 · Swapped a diff out to speed-test HEAD (`git diff > p.patch`, `git checkout --`), then `git apply
+  p.patch` printed nothing and changed nothing:  run from `packages/docs`, `git apply` SILENTLY skips every path
+  outside the current folder. · Apply from the repo root (`git -C <root> apply <patch>`), and check `git status`
+  after. · claude-code
 - 2026-10-04 · In a worktree-isolated session, a Bash call running `python3 - <<'EOF' ... EOF` (a multi-line edit
   script) was refused:  "too complex to verify that it stays inside the worktree".  Same for a long `grep -rn` with
   several `--include` flags.  Also zsh:  an unquoted `--include=*.ts` fails with "no matches found". · Write the
