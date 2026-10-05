@@ -5,18 +5,18 @@
  * - clicks through what Owen would:  an item's ellipsis menu -> Approve, Add to todo, Add Details;  Revisit with a
  *   note (the draft must survive a reload), saved "soon";  another revisited "now" (its spinner must show while the
  *   request waits);  "Choose" on an open question's option card, then a Revisit on it ("pick B, but ...":  both
- *   kept, the letter changes and drops without losing the note);  then "Send to Claude", and `yarn plan-doc inbox
- *   <name> wait` must print the pick with its note
+ *   kept, the letter changes and drops without losing the note);  then "Send to Claude", and `spell dev plan-doc
+ *   inbox <name> wait` must print the pick with its note
  * - starts with a STALE `listening` in the inbox (a session killed without `unlisten`):  the page must say nobody
  *   is reviewing (the send button's tooltip, the revisit-now notice);  after `inbox listen`, it must not
  * - fails (exit 1) unless each shows on the page (button colors, the picked card, the send button's states) AND
  *   lands in the inbox file (read back through `GET /api/review/inbox`);  after a reload every mark still shows;  an
- *   in-place update (a log line it adds with `yarn plan-doc log <name> ... --here`, then removes) keeps the
+ *   in-place update (a log line it adds with `spell dev plan-doc log <name> ...`, then removes) keeps the
  *   buttons and marks without reloading;  at 280px and 700px, light and dark, no item title runs under its button,
  *   and no review control runs past the window
  * - screenshots (outDir, default a temp folder):  `review-<width>-<scheme>.png`, a menu and a Revisit box open
  * - REFUSES to run while the inbox file exists (its marks, or a session listening, would be Owen's);  SIDE EFFECT:
- *   writes the inbox (by hand, then `yarn plan-doc inbox <name> listen` / `wait`, `--here`), deletes it afterwards,
+ *   writes the inbox (by hand, then `spell dev plan-doc inbox <name> listen` / `wait`), deletes it afterwards,
  *   and its log line from the doc (reformatting it with oxfmt)
  * - prints a JSON summary on stdout, problems on stderr
  */
@@ -27,7 +27,7 @@ import { join, relative } from "node:path"
 
 import { chromium } from "playwright"
 
-import { DOCS, ensurePageServer, planDocIn, serverUrl, tidy } from "./pages.js"
+import { DOCS, ROOT, ensurePageServer, planDocIn, serverUrl, tidy } from "./pages.js"
 
 const name = process.argv[2] ?? "review-review"
 const out = process.argv[3] ?? mkdtempSync(join(tmpdir(), "check-review-"))
@@ -253,7 +253,7 @@ try {
 
   // an in-place update keeps the buttons and the marks
   await page.evaluate(() => (window.__checkReview = true))
-  execFileSync("yarn", ["plan-doc", "log", name, stamp, "--here"], { cwd: DOCS, stdio: "ignore" })
+  planDoc("log", name, stamp)
   try {
     await page.waitForFunction((text) => document.getElementById("log")?.textContent.includes(text), stamp, {
       timeout: 10_000
@@ -358,12 +358,16 @@ async function q7Shown(page) {
 }
 
 /**
- * `yarn plan-doc <args> --here` (this checkout's doc), its output;  a non-zero exit (`wait`'s timeout:  2) still
- * answers what it printed.
+ * `spell dev plan-doc <args>`, its output;  a non-zero exit (`wait`'s timeout:  2) still answers what it printed.
+ * - THIS checkout's CLI (`node packages/cli/bin/spell.mjs`), so it runs this branch's `plan-doc.js`, with no
+ *   `yarn cli:install` link needed;  the doc is the shared one wherever it runs from
  */
 function planDoc(...args) {
   try {
-    return execFileSync("yarn", ["plan-doc", ...args, "--here"], { cwd: DOCS, encoding: "utf8" })
+    return execFileSync("node", [join(ROOT, "packages/cli/bin/spell.mjs"), "dev", "plan-doc", ...args], {
+      cwd: ROOT,
+      encoding: "utf8"
+    })
   } catch (error) {
     return `${error.stdout ?? ""}${error.stderr ?? ""}`
   }

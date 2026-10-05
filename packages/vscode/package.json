@@ -130,7 +130,7 @@
             "The \"Spell Docs\" tab, in the right (secondary) side bar.",
             "Simple Browser, in an editor column beside the editor."
           ],
-          "description": "Where docs pages open (`yarn plan-doc open`, `/spell-docs`, `/goals-open-vs`).  Pages for review always open in the side bar's \"Review\" tab."
+          "description": "Where docs pages open (`spell dev plan-doc open`, `/spell-docs`, `/goals-open-vs`).  Pages for review always open in the side bar's \"Review\" tab."
         }
       }
     },

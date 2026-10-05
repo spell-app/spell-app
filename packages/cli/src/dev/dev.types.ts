@@ -288,3 +288,29 @@ export type MigrateReport = {
   conflicts: string[]
   done: boolean
 }
+
+////////////////
+// ## Pass-through tools
+////////////////
+
+/**
+ * How `spell dev` runs one repo tool, the way its yarn script did -- see `runTool()`.
+ * - `tool`:  the script, relative to a checkout's root
+ * - `tsx`:  the `tsconfig.json` it runs under `tsx` with, relative to a checkout's root;  none:  plain `node`
+ * - `cwd`:  the folder it runs in, relative to a checkout's root;  none:  the caller's
+ *   - `yarn workspace @spell-app/docs` ran the docs tools in `packages/docs`, and they print paths relative to it
+ */
+export type ToolSpec = { tool: string; tsx?: string; cwd?: string }
+
+////////////////
+// ## Agent rules
+////////////////
+
+/**
+ * One broken citation or path (`checkAgentRules()`).
+ * - `file`:  relative to the checkout;  `cite`:  what it says (`§12 › "title"`, a backticked path)
+ */
+export type AgentRulesProblem = { file: string; line: number; cite: string; problem: string }
+
+/** `spell dev agents check`'s answer:  WWOD's size, how many files were read, and what's broken. */
+export type AgentRulesReport = { sections: number; rules: number; files: number; problems: AgentRulesProblem[] }

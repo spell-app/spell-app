@@ -1,27 +1,27 @@
-## Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes
+## Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes
 
 a deck is a list of cards
 
-// with-jokers:  yes to add the red and the black joker when it's set up, after the 52 cards
-a deck has a with-jokers as yes or no
+// with jokers:  yes to add the red and the black joker when it's set up, after the 52 cards
+a deck has with jokers as yes or no
 
-to set up (a deck)
+to set up a deck
 	if  the is-set-up of it return
 	for each rank in card ranks
 		for each suit in card suits
 			get a new card with rank = the rank, suit = the suit
 			add it to the deck
-	if the with-jokers of the deck
+	if the with jokers of the deck
 		get a new joker with color = red
 		add it to the deck
 		get a new joker with color = black
 		add it to the deck
 	set the is-set-up of the deck to yes
 
-to display (a deck)
+to display a deck
 	set card-names to a new list
 	for each card in the deck
-		add the short-name of the card to card-names
+		add the short name of the card to card-names
 	echo "deck: " + card-names
 
 to test deck creation
@@ -33,12 +33,11 @@ to test deck creation
 	set the queens to the cards in the deck where the rank of the card is "queen" 
 	expect the number of cards in the queens to be 4
 	expect the name of the bottom card of the deck to be "king-of-spades"
-	expect the short-name of the top card of the deck to be "A♣️"
+	expect the short name of the top card of the deck to be "A♣️"
 
 	echo "the deck before shuffling:"
 	display the deck
-	get the first card of the deck
-	expect it is the ace of clubs to be yes
+	expect the first card of the deck is the ace of clubs to be yes
 
 	shuffle the deck
 	shuffle the deck
@@ -48,12 +47,11 @@ to test deck creation
 test deck creation
 
 to test deck with jokers
-	the deck is a new deck whose with-jokers is yes
+	the deck is a new deck whose with jokers is yes
 	set up the deck
 	expect the number of cards in the deck to be 54
 	set the jokers to the cards in the deck where the card is a joker
 	expect the number of cards in the jokers to be 2
-	expect (the last card of the deck) is the black joker to be yes
-	get the first card of the deck
-	expect it is the ace of clubs to be yes
+	expect the last card of the deck is the black joker to be yes
+	expect the first card of the deck is the ace of clubs to be yes
 test deck with jokers

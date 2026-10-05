@@ -30,13 +30,14 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
     yet answered.
 - Where:  in the session's checkout (`git -C .claude/worktrees/<name>` for `<name>`):  `git branch --show-current`,
   `git status --short`, `git log --oneline main..HEAD` (a worktree) or the session's own commits (`main`).
-- Plan doc, if any:  the session's `/epic <name>`, else the worktree's name if `yarn plan-doc list` has it, else
+- Plan doc, if any:  the session's `/epic <name>`, else the worktree's name if `spell dev plan-doc list` has it, else
   one the session wrote to.  ONE shared doc, in `packages/docs/content/epics/<name>/` of every checkout (a link into
   `../spell-app-dev`).  A branch from before 2026-10-02 still has it under `plans/<name>/`.
-  - `yarn plan-doc summary <name> --json`:  phases with status, next phase, open questions / issues / caveats / todos
-  - its links:  `yarn docs:link <ABSOLUTE path> --hash <id>`:  the side bar link, then `(_browser_)`
-- `/bedtime` run:  the plan doc's "Overnight" section (`yarn plan-doc summary <name> --json`, `overnight`:
-  `active` running, `done` not gone through yet);  `/epic review <name>` goes through it.
+  - `spell dev plan-doc summary <name> --json`:  phases with status, next phase, open questions / issues / caveats / todos
+  - its links:  `spell dev docs link <ABSOLUTE path> --hash <id>`:  the side bar link, then `(_browser_)`
+- `/bedtime` run:  `spell dev plan-doc summary <name> --json`, `bedtime`:  the phases it's running (`P3-P6`) while
+  it goes, `null` once it's over.  What it decided shows red in the doc (judgement calls, issues);
+  `/epic review <name>` goes through them.
 - In flight:  `ListAgents` (agents this session started;  for `<name>`, whether its session is running),
   background shells, scheduled wakeups.
 

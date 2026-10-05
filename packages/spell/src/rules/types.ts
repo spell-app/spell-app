@@ -2,8 +2,9 @@
  * Rules for type names -- e.g. `thing`, `bank-account`, singular or plural, possibly unknown, resolved
  * against `scope.types` when known.
  */
-import { NONE, proto, typeCase, instanceCase, singularize, pluralize } from "$/util"
+import { NONE, proto, typeCase, singularize, pluralize } from "$/util"
 import { P } from "$/parser"
+import { SP } from "$/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
@@ -17,44 +18,6 @@ export const types = new SpellParser({ module: "types" })
 // ## `SpellType` base class
 //    e.g. "thing", resolved against `scope.types` when known
 ////////////////
-
-/**
- * Map raw matched type-name text to its canonical output name.
- * - Covers the built-in primitive types (`number`, `integer`, `text`, `character`, `boolean`) plus
- *   `object`/`list`, in both singular/plural and lower/upper case forms.
- * - `choice`/`choices` map to `boolean` -- spell treats a "choice" as a boolean under the hood.
- * - Anything not listed here falls through to `typeCase()` in `SpellType.mapValue()` instead.
- */
-const TYPE_VALUE_MAP: Record<string, string> = {
-  object: "Object",
-  Object: "Object",
-  list: "List",
-  List: "List",
-  number: "number",
-  numbers: "number",
-  Number: "number",
-  Numbers: "number",
-  integer: "integer",
-  integers: "integer",
-  Integer: "integer",
-  Integers: "integer",
-  // decimal: "number",
-  // Decimal: "number",
-  text: "text",
-  Text: "text",
-  character: "character",
-  characters: "character",
-  Character: "character",
-  Characters: "character",
-  boolean: "boolean",
-  booleans: "boolean",
-  Boolean: "boolean",
-  Booleans: "boolean",
-  choice: "boolean",
-  choices: "boolean",
-  Choice: "boolean",
-  Choices: "boolean"
-}
 
 /**
  * Base pattern rule for matching a single type-name identifier (alpha-numeric, dashes/underscores),
@@ -72,30 +35,27 @@ export class SpellType extends P.Pattern<never, TypeMatchData> {
       pattern: P.ALPHANUMERIC_WORD_WITH_DASHES,
       datatype: "type",
       blacklist: identifierBlacklist,
-      VALUE_MAP: TYPE_VALUE_MAP,
       ...props
     })
   }
 
-  /** Lookup table for `isSimpleType()` -- the built-in primitive type names, in canonical instance case. */
-  static SIMPLE_TYPES: Record<string, number> = {
-    number: 1,
-    integer: 1,
-    text: 1,
-    character: 1,
-    boolean: 1,
-    choice: 1
-  }
-  /** Is `typeName` one of the built-in primitive types (`number`, `text`, etc), as opposed to a user type? */
+  /**
+   * Is `typeName` one of the built-in VALUE types (`number`, `text`, `choice` ...), as opposed to a class?
+   * - So a method on one can't be an instance method -- see `P.isValueType()`.
+   */
   static isSimpleType(typeName: string): boolean {
-    const instanceName = instanceCase(typeName)
-    return !!SpellType.SIMPLE_TYPES[instanceName]
+    return P.isValueType(SP.typeName(typeName))
   }
 
-  /** Convert value to singular type case, e.g. `Thing` or `Bank_Account`. */
+  /**
+   * Name compiled code uses for the type written as `value`:
+   *   its datatype (`SP.typeName()`), but a class in Type_Case.
+   * - a value type in spell's words, e.g. `string` => `text`, `boolean` => `choice`, `numbers` => `number`
+   * - a class, singular, e.g. `Thing`, `List` for `array`, `Bank_Account`
+   */
   mapValue<T = string>(value: string): T {
-    if (value in this.VALUE_MAP) return this.VALUE_MAP[value]
-    return typeCase(value) as T
+    const datatype = SP.typeName(value)
+    return (P.isValueType(datatype) ? datatype : typeCase(datatype)) as T
   }
 
   /** Match, then look up `match.data.scopeType` from `scope.types` by canonical, singular type name. */
@@ -272,7 +232,7 @@ types.addRule(known_type, {
         { title: "plural, known, multi-word, lower case", input: "bank-accounts", output: "Bank_Account" },
         { title: "plural, known, multi-word, mixed case", input: "Bank-accounts", output: "Bank_Account" },
         { title: "plural, known, multi-word, upper case", input: "Bank-Accounts", output: "Bank_Account" },
-        { title: "unknown", input: "nothing", output: undefined },
+        { title: "unknown", input: "widget", output: undefined },
         { title: "unknown. multi-word", input: "other-thing", output: undefined }
       ]
     }

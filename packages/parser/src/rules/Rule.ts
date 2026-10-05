@@ -33,7 +33,7 @@ import { P } from "$/parser"
  *   "type|property|specifier?",                  // `Groups`:  see `P.GroupsFor`, copy from module's `__snapshots__`
  *   { bits?: PropertyBits }                        // `MatchData`:  what we stash in `match.data`
  * > {
- *   @proto static precedence = 10                // the class says what the rule IS...
+ *   @proto static priority = 10                  // the class says what the rule IS...
  *   @proto static declares = {...}
  *   getAST(match: P.MatchFor<this>) {...}        // ...and how it behaves
  * }
@@ -49,6 +49,9 @@ import { P } from "$/parser"
  * - Why only `syntax` + `tests` at registration:  the class can then be reused by another language's parser.
  * - `@proto static` values are inherited by subclasses;  `@proto` rejects a prop the rule doesn't declare.
  * - Class name IS the rule name;  plain `static ruleName = "if"` for reserved words (`class _if`).
+ * - `priority` picks between rules matching the SAME words -- see `Choice.getBestMatch()`:
+ *   a `Choice` takes the highest priority, then the longest match, then the earliest rule.
+ *   - NOT how tightly an operator binds:  that's spell's operator `precedence`, read only by its expression loop.
  * - Several syntaxes => register the class once per syntax, each with its own `tests`.  Instances merge into
  *   a `P.Group` under the rule's name.
  * - A `Sequence` tests its own words / symbols before parsing any subrule, e.g. `remove {thing} from {list}`
@@ -70,12 +73,13 @@ import { P } from "$/parser"
  *
  * ### 3. Rule added WHILE PARSING ~== a named class `specialize()`d with plain data, registered on the scope
  * ```ts
- * export class EnumerationRule extends P.Literals {  // behaviour reads ONLY statics...
- *   getAST(match: P.MatchFor<this>) { ... this.typeName ... }
+ * export class QuotedPropertyRule extends InfixOperatorSuffix {  // behaviour reads ONLY statics...
+ *   compileASTExpression(match, ...) { ... this.methodName ... }
  * }
  * match.scope.addRule(
- *   EnumerationRule.specialize({ ruleName: `${typeName}_${groupName}`, typeName, groupName, literals }),
- *   {}                                               // ...so another project can rebuild it from data
+ *   QuotedPropertyRule.specialize({ output: "is_a_$suit", values }),
+ *   { syntax },                                      // ...so another project can rebuild it from data
+ *   match
  * )
  * ```
  * - See `specialize()`, and `SP.SpellDeclarations` for how a project writes these out.
@@ -187,7 +191,7 @@ export abstract class Rule<
     Rule.IMPORTABLE_RULES.set(value, this as unknown as P.RuleClass)
   }
 
-  /** Rule class importable as `name`, e.g. `"enumeration"` => `EnumerationRule` -- see `importableAs`. */
+  /** Rule class importable as `name`, e.g. `"quoted_property"` => `QuotedPropertyRule` -- see `importableAs`. */
   static importableRule(name: string): P.RuleClass | undefined {
     return Rule.IMPORTABLE_RULES.get(name)
   }
@@ -332,7 +336,7 @@ export abstract class Rule<
   /** Rule classes by their `importableAs` name -- filled by `protoDefined()`, read by `importableRule()`. */
   static IMPORTABLE_RULES = new Map<string, P.RuleClass>()
 
-  /** Class `specialize()` made us from, e.g. `EnumerationRule`.  Plain `static`, NOT inherited. */
+  /** Class `specialize()` made us from, e.g. `QuotedPropertyRule`.  Plain `static`, NOT inherited. */
   static specializedFrom?: P.RuleClass
   /**
    * What `specialize()` was CALLED with -- plain data, so a project's declarations can rebuild us.  NOT inherited.
@@ -340,8 +344,8 @@ export abstract class Rule<
    */
   static specializedWith?: P.RuleStatics
   /**
-   * Name another project can rebuild our `specialize()`d rules by, e.g. `"enumeration"` -- see `importableRule()`.
-   * - Set on a base class rules are specialized FROM, e.g. `EnumerationRule`.  NEVER key on a class name
+   * Name another project can rebuild our `specialize()`d rules by, e.g. `"quoted_property"` -- see `importableRule()`.
+   * - Set on a base class rules are specialized FROM, e.g. `QuotedPropertyRule`.  NEVER key on a class name
    *   instead:  names are for people, and change freely.
    * - SIDE EFFECT: `@proto static importableAs = "..."` registers the class, via `protoDefined()`.
    */
@@ -349,8 +353,12 @@ export abstract class Rule<
 
   /** Name aliases -- inherited, so e.g. a `Statement` base class can set `"statement"` once. */
   static alias?: string | string[]
-  /** Precedence.  Default lives on prototype, so only rules with non-default precedence carry their own. */
-  @proto static precedence?: number = 0
+  /**
+   * Priority:  which of several rules matching the SAME words wins a `Choice` -- see `Choice.getBestMatch()`.
+   * - Default lives on prototype, so only rules with non-default priority carry their own.
+   * - NOT how tightly an operator binds:  that's a language's own business, e.g. spell's operator `precedence`.
+   */
+  @proto static priority?: number = 0
   /**
    * What committing our match changes in scope -- see `getScopeChanges()`.
    * - Leave `undefined` to work it out from whether we override `mutateScope()`.
@@ -360,8 +368,8 @@ export abstract class Rule<
   @proto static declares?: P.DeclaresSpec = undefined
   /** How editors colour our matches' own tokens -- see `P.HighlightKind`. */
   @proto static highlightAs?: P.HighlightKind = undefined
-  /** Datatype. */
-  static datatype?: string
+  /** What our matches ARE, in spell's words, e.g. `text` -- see `getDatatype()`. */
+  static datatype?: P.Datatype
   /** Description. */
   static description?: string
   /**
@@ -386,8 +394,8 @@ export abstract class Rule<
   declare module: string | undefined
   /** Description of this rule. */
   declare description: string | undefined
-  /** Datatype which rule result represents, e.g. `string`, `number`, custom type. */
-  declare datatype: string | undefined
+  /** What our matches ARE, in spell's words, e.g. `text` -- default for `getDatatype()`. */
+  declare datatype: P.Datatype | undefined
 
   /** Return array of `names` for this rule:  its `.name` + any `.alias`es. */
   get names() {
@@ -409,8 +417,8 @@ export abstract class Rule<
   // ## Matching behavior
   ////////////////
 
-  /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0, from prototype. */
-  declare precedence: number
+  /** Which of several matches of the same words wins a `Choice`, highest first.  Default = 0, from prototype. */
+  declare priority: number
   /** Name our match goes under in containing rule's `match.groups`, e.g. `thing` for `{thing:expression}`. */
   declare matchGroup: string | undefined
   /** Whether this rule is optional. */
@@ -421,8 +429,6 @@ export abstract class Rule<
    *   from how the syntax is spaced.
    */
   declare spacing: P.Spacing | undefined
-  /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
-  declare isLeftRecursive: boolean | undefined
   /** What committing our match changes in scope, if set explicitly -- see `getScopeChanges()`. */
   declare changesScope: P.ScopeChanges | undefined
   /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */
@@ -474,6 +480,20 @@ export abstract class Rule<
    * If you implement this, return an `ASTNode` object (or `undefined` if the match yields no output).
    */
   getAST?(match: P.MatchFor<this>): P.ASTNode | undefined
+
+  /**
+   * What `match` IS, in spell's words, e.g. `text`, `list of cards`, `Card` -- `undefined` if we can't tell.
+   * - Read it as `match.datatype`, which memoizes this.
+   * - Default:  our `datatype`, e.g. `@proto static datatype = "number"`.
+   * - Override for a datatype which depends on the match, e.g. a variable's, from its scope record.
+   * - Reads ONLY `match` and its `data`, like `getAST()`:  NEVER look up scope here.
+   * - A lookup it needs happens WHILE PARSING, into `match.data`,
+   *   e.g. the item type of the list a `the first card of ...` reads.
+   * - Unknown (`undefined`) is compatible with everything:  nothing stops parsing for want of a type.
+   */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return this.datatype
+  }
 
   ////////////////
   // ## Quick testing methods
@@ -555,8 +575,12 @@ export abstract class Rule<
    * a match could affect anything outside it.
    * - `changesScope` if set, e.g. `changesScope: "internal"` in a definition.
    * - Else `undefined` if we don't override `mutateScope()`, or `"global"` if we do -- assume the worst.
+   * - `match`, if given, is the committed match:  override to say per match,
+   *   e.g. spell's `set the X of Y to ...` is `"global"` only when it declared `X`,
+   *   else `"internal"`, so a plain `set x to 1` stays cheap to re-parse.
+   * - Read ONLY `match.data`, as `getAST()` does.
    */
-  getScopeChanges(): P.ScopeChanges | undefined {
+  getScopeChanges(_match?: P.MatchFor<this>): P.ScopeChanges | undefined {
     if (this.changesScope) return this.changesScope
     return this.mutateScope === Rule.prototype.mutateScope ? undefined : "global"
   }
@@ -638,12 +662,12 @@ export type RuleProps = {
   description?: string
   /** Name aliases -- indicates this rules works a part of collections such as `expression` or `statement`. */
   alias?: string | string[]
-  /** Datatype which rule result represents, e.g. `string`, `number`, custom type. */
-  datatype?: string
+  /** What our matches ARE, in spell's words, e.g. `text` -- see `Rule.getDatatype()`. */
+  datatype?: P.Datatype
   /** Rulex syntax string used to define this rule. */
   syntax?: string
-  /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0. */
-  precedence?: number
+  /** Which of several matches of the same words wins a `Choice`, highest first.  Default = 0. */
+  priority?: number
   /** Tests for this rule. */
   tests?: P.RuleTests
   /** Name our match goes under in containing rule's `match.groups`. */
@@ -654,8 +678,6 @@ export type RuleProps = {
   spacing?: P.Spacing
   /** Whether literal must be escaped when converting to rulex syntax -- see `Literal.isEscaped`. */
   isEscaped?: boolean
-  /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
-  isLeftRecursive?: boolean
   /** What committing our match changes in scope -- see `getScopeChanges()`. */
   changesScope?: P.ScopeChanges
   /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */

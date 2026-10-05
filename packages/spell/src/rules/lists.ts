@@ -7,10 +7,12 @@
 
 import { proto, singularize } from "$/util"
 import { P } from "$/parser"
+import { SP } from "$/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
+import { Priority } from "./rules.types"
 import { SpellStatement } from "./Statement"
-import { SpellExpression, InfixOperatorSuffix } from "./expressions"
+import { SpellExpression, InfixOperatorSuffix, PostfixOperatorSuffix, Precedence } from "./expressions"
 
 /**
  * Rule module for list rules -- literals, membership, indexing, in-place mutation, iteration.
@@ -29,7 +31,7 @@ export const lists = new SpellParser({ module: "lists" })
  *   else it'd swallow anything.
  */
 class identifier_list extends P.Repeat {
-  @proto static datatype = "array" // TODO: array of what?
+  @proto static datatype = "list"
 
   getAST(match: P.MatchFor<this>): P.ASTListExpression {
     const { items } = match
@@ -62,7 +64,14 @@ lists.addRule(identifier_list, {
  */
 class bracketed_list extends P.Sequence<"list?"> {
   @proto static alias = "expression"
-  @proto static datatype = "array" // TODO: array of what?
+  @proto static datatype = "list"
+
+  /** A `list of` what its items all are, e.g. `list of numbers` for `[1, 2]` -- else just a `list`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const types = new Set(match.groups.list?.items.map((item) => item.datatype))
+    const [itemType] = types
+    return types.size === 1 && itemType ? P.listOf(itemType) : this.datatype
+  }
 
   getAST(match: P.MatchFor<this>): P.ASTListExpression {
     const { list } = match.groups
@@ -106,6 +115,12 @@ lists.addRule(bracketed_list, {
  *   `a duplicate of list the piles as a list` => `spellCore.duplicateCollection(piles, List)`.
  */
 class copy_list extends SpellExpression<"expression|type?"> {
+  /** The type it's copied `as`, else what it copies. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const { expression, type } = match.groups
+    return type ? SP.typeName(`${type.value}`) : expression.datatype
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { expression, type } = match.groups
     const args = [P.matchAST(expression)]
@@ -117,7 +132,7 @@ class copy_list extends SpellExpression<"expression|type?"> {
   }
 }
 lists.addRule(copy_list, {
-  syntax: "a (copy|duplicate) of list? {expression} (as (a|an) {type:known_type})?",
+  syntax: "a (copy|duplicate) of list? {expression:operand} (as (a|an) {type:known_type})?",
   tests: [
     {
       compileAs: "expression",
@@ -143,6 +158,12 @@ lists.addRule(copy_list, {
  *   `merge the piles as a list` => `spellCore.mergeCollections(piles, List)`.
  */
 class merge_lists extends SpellExpression<"expression|type?"> {
+  /** The type it's merged `as`, else a `list`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    const { type } = match.groups
+    return type ? SP.typeName(`${type.value}`) : "list"
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { expression, type } = match.groups
     const args = [P.matchAST(expression)]
@@ -154,7 +175,7 @@ class merge_lists extends SpellExpression<"expression|type?"> {
   }
 }
 lists.addRule(merge_lists, {
-  syntax: "merge lists? {expression} ((as|into) (a|an) new? {type:known_type})?",
+  syntax: "merge lists? {expression:operand} ((as|into) (a|an) new? {type:known_type})?",
   tests: [
     {
       compileAs: "expression",
@@ -191,22 +212,36 @@ lists.addRule(merge_lists, {
 
 /**
  * Return length of a list, e.g. `number of items in my-list` => `spellCore.itemCountOf(my_list)`.
- * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
- * - `precedence: 3` -- preferred over lower-precedence expression rules when tokens are ambiguous.
+ * - `{arg}` (e.g. `items`) captured for readability only, unless there's a `where`.
+ * - With `where`, counts the items which pass, as `list_filter` does,
+ *   e.g. `the number of cards in the deck where its color is red`
+ *   => `spellCore.itemCountOf(spellCore.filter(deck, ...))`
+ *   - Its own syntax, as `cards in the deck where ...` can't be a `list_filter` here:
+ *     we've read `cards in` already.
+ * - `Priority.mostSpecific` -- preferred over lower-priority expression rules when tokens are ambiguous.
  */
-class list_length extends SpellExpression<"arg|list"> {
-  @proto static precedence = 3
+class list_length extends SpellExpression<"arg|list|body?"> {
+  @proto static priority = Priority.mostSpecific
+  @proto static datatype = "number"
 
+  /** Nested scope for a `where` body -- singularized `{arg}` variable, also aliased from `it`. */
+  getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
+    return getWhereScope(match, match.groups.arg, match.groups.list)
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
-    const { list } = match.groups
-    return new P.ASTCoreMethodInvocation(match, {
-      methodName: "itemCountOf",
-      args: [P.matchAST(list)]
-    })
+    const { arg, list } = match.groups
+    const body = this.getBody(match)
+    const items = body
+      ? new P.ASTCoreMethodInvocation(match, {
+          methodName: "filter",
+          args: [P.matchAST(list), getWhereMethod(match, arg, body)]
+        })
+      : P.matchAST(list)
+    return new P.ASTCoreMethodInvocation(match, { methodName: "itemCountOf", args: [items] })
   }
 }
 lists.addRule(list_length, {
-  syntax: "the? number of {arg:plural_identifier} (in|of) {list:expression}",
+  syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -222,6 +257,67 @@ lists.addRule(list_length, {
     }
   ]
 })
+lists.addRule(list_length, {
+  syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand} where {inline_expression}?",
+  tests: [
+    {
+      compileAs: "expression",
+      showAll: true,
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("my-list")
+      },
+      tests: [
+        [
+          "the number of items in my-list where its id > 1",
+          [`spellCore.itemCountOf(spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `}))`]
+        ]
+      ]
+    }
+  ]
+})
+
+////////////////
+// ## `list_count` rule
+//    e.g. "the number of card suits"
+////////////////
+
+/**
+ * Length of something KNOWN to be a list, without naming its items,
+ * e.g. `the number of card suits` => `spellCore.itemCountOf(Card.Suits)`.
+ * - Rejects the match unless its datatype says it's a list, or a list type, e.g. `Deck`:
+ *   else `the number of x` stays a property read, `x.number`.
+ * - `Priority.mostSpecific`, as `list_length`, which wins when it names the items:  it's longer.
+ */
+class list_count extends SpellExpression<"list"> {
+  @proto static priority = Priority.mostSpecific
+  @proto static datatype = "number"
+
+  /** Only a list -- see class docs. */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match || !scope.getType(match.groups.list.datatype)?.isA("list")) return undefined
+    return match
+  }
+  getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
+    return new P.ASTCoreMethodInvocation(match, { methodName: "itemCountOf", args: [P.matchAST(match.groups.list)] })
+  }
+}
+lists.addRule(list_count, {
+  syntax: "the? number of {list:operand}",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.compile(["a card is a thing", "a card has a suit as one of clubs, diamonds", "set x to 1"].join("\n"))
+      },
+      tests: [
+        ["the number of card suits", "spellCore.itemCountOf(Card.Suits)"],
+        ["the number of [1, 2]", "spellCore.itemCountOf([1, 2])"],
+        { title: "not a list:  a property read", input: "the number of x", output: "x.number" }
+      ]
+    }
+  ]
+})
 
 ////////////////
 // ## `list_position` rule
@@ -232,11 +328,12 @@ lists.addRule(list_length, {
  * Return position of an item in a list, e.g. `position of thing in my-list` => `spellCore.itemOf(my_list, thing)`.
  * - NOTE: position returned is **1-based**.
  * - Returns `undefined` if item is not found.
- * - `precedence: 3` -- preferred over lower-precedence expression rules when tokens are ambiguous.
+ * - `Priority.mostSpecific` -- preferred over lower-priority expression rules when tokens are ambiguous.
  * TODO: `positions`, `last position`, `after...`
  */
 class list_position extends SpellExpression<"thing|list"> {
-  @proto static precedence = 3
+  @proto static priority = Priority.mostSpecific
+  @proto static datatype = "number"
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
@@ -247,7 +344,7 @@ class list_position extends SpellExpression<"thing|list"> {
   }
 }
 lists.addRule(list_position, {
-  syntax: "the? position of {thing:expression} in {list:expression}",
+  syntax: "the? position of {thing:expression} in {list:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -272,10 +369,10 @@ lists.addRule(list_position, {
 
 /**
  * Does list start with some value, e.g. `my-list starts with thing` => `spellCore.startsWith(my_list, thing)`.
- * - `precedence: 11` -- high, so this infix suffix binds before lower-precedence operators.
+ * - `Precedence.comparison`, like the other comparisons.
  */
 class starts_with extends InfixOperatorSuffix<"operator|expression"> {
-  @proto static precedence = 11
+  @proto static precedence = Precedence.comparison
 
   /** Negate result for the `does not` / `doesnt` / `doesn't` spellings of `operator`. */
   shouldNegateOutput(operator: P.Match): boolean {
@@ -292,8 +389,7 @@ class starts_with extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 lists.addRule(starts_with, {
-  syntax:
-    "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:simple_expression}",
+  syntax: "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -319,6 +415,8 @@ lists.addRule(starts_with, {
 
 /** Does list end with some value, e.g. `my-list ends with thing` => `spellCore.endsWith(my_list, thing)`. */
 class ends_with extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = Precedence.comparison
+
   /** Negate result for the `does not` / `doesnt` / `doesn't` spellings of `operator`. */
   shouldNegateOutput(operator: P.Match): boolean {
     return operator.value.includes("not") || operator.value.includes("doesn")
@@ -334,7 +432,7 @@ class ends_with extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 lists.addRule(ends_with, {
-  syntax: "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:simple_expression}",
+  syntax: "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -416,6 +514,43 @@ lists.addRule(ordinal, {
 })
 
 ////////////////
+// ## `ListItemExpression` base class
+//    e.g. base for the rules which pick an item out of a list (`position_expression`, `random_item_expression`)
+////////////////
+
+/**
+ * Base for rules which pick ONE item out of a list, e.g. `the first card of the deck`:  what we are is an item of it.
+ * - Notes what the list holds WHILE PARSING, into `data.itemType`, e.g. `Card` for `the deck`.
+ * - Why then:  it's a scope lookup -- a `Deck`'s item type is on its `TypeScope` -- and `getDatatype()` mustn't look.
+ */
+class ListItemExpression<Groups extends string | P.AnyGroups = P.AnyGroups> extends SpellExpression<
+  Groups,
+  ListItemData
+> {
+  /** Group holding the list, e.g. `list` in `a random {arg} of {list}`. */
+  declare listGroup: string
+  @proto static listGroup = "list"
+
+  /** Note what the list holds, while we can look it up -- see class docs. */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens)
+    const list = match?.groups[this.listGroup] as P.Match | undefined
+    if (match && list) (match.data as ListItemData).itemType = scope.getItemType(list.datatype)
+    return match
+  }
+  /** An item of the list, e.g. `Card` for `the first card of the deck`. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.data.itemType
+  }
+}
+
+/** What a `ListItemExpression` stashes on its match. */
+type ListItemData = {
+  /** What the list holds, e.g. `Card`, looked up while parsing -- `undefined` if unknown. */
+  itemType?: P.Datatype
+}
+
+////////////////
 // ## `position_expression` rule
 //    e.g. "item 1 of my-list"
 ////////////////
@@ -427,7 +562,9 @@ lists.addRule(ordinal, {
  * - NOTE: positions are **1-based** while Javascript is **0-based**, e.g. `item 1 of the array` => `array[0]`.
  * - Compiles to `spellCore.getItemOf(list, position)`.
  */
-class position_expression extends SpellExpression<"arg|position|expression"> {
+class position_expression extends ListItemExpression<"arg|position|expression"> {
+  @proto static listGroup = "expression"
+
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { position, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -437,7 +574,7 @@ class position_expression extends SpellExpression<"arg|position|expression"> {
   }
 }
 lists.addRule(position_expression, {
-  syntax: "{arg:singular_identifier} {position:expression} of {expression}",
+  syntax: "{arg:singular_identifier} {position:expression} of {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -465,7 +602,9 @@ lists.addRule(position_expression, {
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Shares same `getItemOf` compile target as `position_expression`, with `{ordinal}` resolved to a number.
  */
-class ordinal_position_expression extends SpellExpression<"ordinal|arg|expression"> {
+class ordinal_position_expression extends ListItemExpression<"ordinal|arg|expression"> {
+  @proto static listGroup = "expression"
+
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { ordinal, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -475,7 +614,7 @@ class ordinal_position_expression extends SpellExpression<"ordinal|arg|expressio
   }
 }
 lists.addRule(ordinal_position_expression, {
-  syntax: "the {ordinal} {arg:singular_identifier} (in|of) {expression}",
+  syntax: "the {ordinal} {arg:singular_identifier} (in|of) {expression:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -503,7 +642,7 @@ lists.addRule(ordinal_position_expression, {
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Compiles to `spellCore.randomItemOf(list)`.
  */
-class random_item_expression extends SpellExpression<"arg|list"> {
+class random_item_expression extends ListItemExpression<"arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -513,7 +652,7 @@ class random_item_expression extends SpellExpression<"arg|list"> {
   }
 }
 lists.addRule(random_item_expression, {
-  syntax: "a random {arg:singular_identifier} (of|from|in) {list:expression}",
+  syntax: "a random {arg:singular_identifier} (of|from|in) {list:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -542,6 +681,10 @@ lists.addRule(random_item_expression, {
  * TODO: `two random items...`
  */
 class random_items_expression extends SpellExpression<"number|arg|list"> {
+  /** Some of the list's items:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { number, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -551,7 +694,7 @@ class random_items_expression extends SpellExpression<"number|arg|list"> {
   }
 }
 lists.addRule(random_items_expression, {
-  syntax: "{number} random {arg:plural_identifier} (of|from|in) {list:expression}",
+  syntax: "{number} random {arg:plural_identifier} (of|from|in) {list:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -581,6 +724,10 @@ lists.addRule(random_items_expression, {
  * - NOTE: `end` is inclusive!
  */
 class range_between_expression extends SpellExpression<"arg|start|end|list"> {
+  /** Some of the list's items:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list, start, end } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -590,7 +737,7 @@ class range_between_expression extends SpellExpression<"arg|start|end|list"> {
   }
 }
 lists.addRule(range_between_expression, {
-  syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
+  syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -621,6 +768,10 @@ lists.addRule(range_between_expression, {
  * - If item is not found, returns an empty list. (???)
  */
 class range_starting_with_expression extends SpellExpression<"arg|list|thing"> {
+  /** Some of the list's items:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
     const itemExpression = new P.ASTCoreMethodInvocation(match, {
@@ -634,7 +785,7 @@ class range_starting_with_expression extends SpellExpression<"arg|list|thing"> {
   }
 }
 lists.addRule(range_starting_with_expression, {
-  syntax: "{arg:plural_identifier} (in|of) {list:expression} starting with {thing:expression}",
+  syntax: "{arg:plural_identifier} (in|of) {list:expression} starting with {thing:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -669,6 +820,10 @@ lists.addRule(range_starting_with_expression, {
  * TODO: restrict ordinals to `first`, `last`, `final`, `top`, etc
  */
 class range_count_expression extends SpellExpression<"ordinal|number|arg|list"> {
+  /** Some of the list's items:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
+  }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list, ordinal, number } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -678,7 +833,7 @@ class range_count_expression extends SpellExpression<"ordinal|number|arg|list"> 
   }
 }
 lists.addRule(range_count_expression, {
-  syntax: "{ordinal} {number} {arg:plural_identifier} (of|in|from) {list:expression}",
+  syntax: "{ordinal} {number} {arg:plural_identifier} (of|in|from) {list:operand}",
   tests: [
     {
       compileAs: "expression",
@@ -705,15 +860,19 @@ lists.addRule(range_count_expression, {
  * - Trailing `where` expects an inline expression as filter body (`{inline_expression}?`),
  *   parsed in a nested `MethodScope` where singularized `{arg}` (e.g. `word`
  *   for `words`) and `it` both map to current item.
- * - `precedence: 2` -- preferred over lower-precedence expression rules when tokens are ambiguous.
+ * - `Priority.specific` -- preferred over lower-priority expression rules when tokens are ambiguous.
  * - Compiles to `spellCore.filter(list, (item) => { ... })`.
  */
 class list_filter extends SpellExpression<"arg|list|body?"> {
-  @proto static precedence = 2
+  @proto static priority = Priority.specific
 
   /** Nested scope for filter body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    return getWhereScope(match.scope, match.groups.arg)
+    return getWhereScope(match, match.groups.arg, match.groups.list)
+  }
+  /** The items which pass:  the list's type. */
+  getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
+    return match.groups.list.datatype
   }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { arg, list } = match.groups
@@ -763,37 +922,37 @@ lists.addRule(list_filter, {
 
 /**
  * Set membership test, e.g. `my-list has items where the item is 1`.
- * - `isLeftRecursive` -- `{list}` on left, so chains after another expression (e.g. `bar.foo has items where`).
+ * - A postfix suffix:  the list is the expression before it, e.g. `the foo of the bar has items where ...`.
  * - Trailing `where` expects an inline expression as predicate (`{inline_expression}?`) -- see `getWhereScope()`.
- * - `precedence: 2` -- preferred over lower-precedence expression rules when tokens are ambiguous.
+ *   NOTE: so it eats the rest of the line, and is always the last suffix.
  * - Compiles to `spellCore.any(list, (item) => { ... })`, negated (wrapped in `NotExpression`) unless
  *   `operator` is exactly `has`.
- * TODO: this is a postfix_operator expression
  */
-class list_membership_test extends SpellExpression<"list|operator|arg|body?"> {
-  @proto static precedence = 2
-  @proto static isLeftRecursive = true
+class list_membership_test extends PostfixOperatorSuffix<"operator|arg|body?"> {
+  @proto static precedence = Precedence.comparison
 
-  /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
+  /**
+   * Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`.
+   * - NOTE: its item type is unknown:  the list is the expression BEFORE us, which a suffix can't see.
+   */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    return getWhereScope(match.scope, match.groups.arg)
+    return getWhereScope(match, match.groups.arg, undefined)
   }
-  getAST(match: P.MatchFor<this>): P.ASTExpression {
-    const { list, operator, arg } = match.groups
-    const filter = getWhereMethod(match, arg, this.getBody(match))
-    const expression = new P.ASTCoreMethodInvocation(match, {
+  /** Negated unless `operator` is exactly `has`. */
+  shouldNegateOutput(operator: P.Match): boolean {
+    return operator.value !== "has"
+  }
+  compileASTExpression(match: P.MatchFor<this>, { lhs }: { lhs?: P.ASTExpression }): P.ASTCoreMethodInvocation {
+    const filter = getWhereMethod(match, match.groups.arg, this.getBody(match))
+    return new P.ASTCoreMethodInvocation(match, {
       methodName: "any",
-      args: [P.matchAST(list), filter],
-      datatype: "boolean"
+      args: [lhs!, filter],
+      datatype: "choice"
     })
-    // Wrap in NotExpression for some operators
-    if (operator.value === "has") return expression
-    return new P.ASTNotExpression(match, { expression })
   }
 }
 lists.addRule(list_membership_test, {
-  syntax:
-    "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_identifier} where {inline_expression}?",
+  syntax: "(operator:has|has no|doesnt have|does not have) {arg:plural_identifier} where {inline_expression}?",
   tests: [
     {
       compileAs: "expression",
@@ -1235,7 +1394,7 @@ class list_remove_where extends SpellStatement<"arg|list|body?"> {
 
   /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    return getWhereScope(match.scope, match.groups.arg)
+    return getWhereScope(match, match.groups.arg, match.groups.list)
   }
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
@@ -1275,6 +1434,129 @@ lists.addRule(list_remove_where, {
           "remove cards in deck where its suit is clubs",
           ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"]
         ]
+      ]
+    }
+  ]
+})
+
+////////////////////////////////////////
+// # Moving between lists -- their guards
+////////////////////////////////////////
+
+////////////////
+// ## `list_move` rule
+//    e.g. "move the card to the tableau"
+////////////////
+
+/**
+ * `move the card to the tableau` -- moves it, if the pile it belongs to lets it go and the tableau takes it:
+ * their guards, e.g. `a tableau can take a card if: ...` (plan doc Q25).
+ * - A statement, or a yes / no -- whether it moved:  `if move the card to the tableau ...`.
+ *   Refused:  nothing changes.
+ * - Its pile:  the one it's in, if `a card belongs to one pile`.  Else only the tableau is asked.
+ * - `add`, `remove` and `clear` never ask:  dealing, gathering cards back.
+ * - `Priority.overridable`:  a project's own `to move (a card) to (a pile)` runs instead.
+ * - Compiles to `spellCore.move(card, tableau)`.
+ */
+class list_move extends SpellStatement<"thing|list"> {
+  @proto static priority = Priority.overridable
+  @proto static alias = ["statement", "expression"]
+  @proto static datatype: P.Datatype = "choice"
+  /** `move x to the pile is yes` => `spellCore.move(x, pile) == true` -- see `operandInExpressions`. */
+  @proto static operandInExpressions = true
+
+  getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
+    const { thing, list } = match.groups
+    return new P.ASTCoreMethodInvocation(match, {
+      methodName: "move",
+      args: [P.matchAST(thing), P.matchAST(list)]
+    })
+  }
+}
+lists.addRule(list_move, {
+  syntax: "move {thing:expression} to {list:expression}",
+  tests: [
+    {
+      compileAs: "statement",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("card")
+        scope.variables?.add("tableau")
+      },
+      tests: [
+        ["move card to tableau", "spellCore.move(card, tableau)"],
+        ["if move card to tableau then print 1", "if (spellCore.move(card, tableau)) { spellCore.console.log(1) }"]
+      ]
+    }
+  ]
+})
+
+////////////////
+// ## `can_take` rule
+//    e.g. "tableau can take card"
+////////////////
+
+/**
+ * `{list} can take {thing}` -- would the list take it, moved there?  Its guard says:
+ * `a tableau can take a card if: ...`.  Yes, if it has none.
+ * - `add` ~== `take`;  `can't`, `cannot` for the opposite.
+ * - Compiles to `spellCore.canTake(tableau, card)`.
+ */
+class can_take extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = Precedence.comparison
+
+  compileASTExpression(match: P.Match, { lhs, rhs }: GuardOperands): P.ASTCoreMethodInvocation {
+    return new P.ASTCoreMethodInvocation(match, { methodName: "canTake", args: [lhs!, rhs!] })
+  }
+}
+lists.addRule(can_take, {
+  syntax: "{operator:can} (add|take) {expression:operand}",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("card")
+        scope.variables?.add("tableau")
+      },
+      tests: [
+        ["tableau can take card", "spellCore.canTake(tableau, card)"],
+        ["tableau can add card", "spellCore.canTake(tableau, card)"],
+        ["tableau cannot take card", "!spellCore.canTake(tableau, card)"]
+      ]
+    }
+  ]
+})
+
+////////////////
+// ## `can_give_up` rule
+//    e.g. "stock can give up card"
+////////////////
+
+/**
+ * `{list} can give up {thing}` -- would the list give it up, moved elsewhere?  Its guard says:
+ * `a stock-pile can give up a card if: ...`.  Yes, if it has none.
+ * - `release` ~== `remove` ~== `give up` ~== `let go of`;  `can't`, `cannot` for the opposite.
+ * - Compiles to `spellCore.canGiveUp(stock, card)`.
+ */
+class can_give_up extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = Precedence.comparison
+
+  compileASTExpression(match: P.Match, { lhs, rhs }: GuardOperands): P.ASTCoreMethodInvocation {
+    return new P.ASTCoreMethodInvocation(match, { methodName: "canGiveUp", args: [lhs!, rhs!] })
+  }
+}
+lists.addRule(can_give_up, {
+  syntax: "{operator:can} (release|remove|give up|let go of) {expression:operand}",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("card")
+        scope.variables?.add("stock")
+      },
+      tests: [
+        ["stock can give up card", "spellCore.canGiveUp(stock, card)"],
+        ["stock can let go of card", "spellCore.canGiveUp(stock, card)"],
+        ["stock can't release card", "!spellCore.canGiveUp(stock, card)"]
       ]
     }
   ]
@@ -1373,8 +1655,9 @@ class repeat_n_times extends SpellStatement<"number|body?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     return new P.MethodScope({
       parentScope: match.scope,
-      args: [new P.ScopeVariable("number")],
+      args: [new P.ScopeVariable({ name: "number", datatype: "number" })],
       mapItTo: "number",
+      itDatatype: "number",
       declaredBy: match
     })
   }
@@ -1454,15 +1737,21 @@ lists.addRule(repeat_n_times, {
 class list_iteration extends SpellStatement<"item|position?|list|body?"> {
   @proto static alias = ["statement", "expression"]
 
-  /** Nested scope for body -- `{item}` (and optional numeric `{position}`) vars, `it` aliased to `{item}`. */
+  /**
+   * Nested scope for body -- `{item}` (and optional numeric `{position}`) vars, `it` aliased to `{item}`.
+   * - `{item}` and `it` are what the list holds, e.g. `Card` for `for each card in the deck`.
+   * - Looked up now, while parsing:  a body parses in this scope.
+   */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    const { item, position } = match.groups
-    const args: P.ScopeVariable[] = [new P.ScopeVariable({ name: item.value, declaredBy: item })]
+    const { item, position, list } = match.groups
+    const datatype = match.scope.getItemType(list.datatype)
+    const args: P.ScopeVariable[] = [new P.ScopeVariable({ name: item.value, datatype, declaredBy: item })]
     if (position) args.push(new P.ScopeVariable({ name: position.value, datatype: "number", declaredBy: position }))
     return new P.MethodScope({
       parentScope: match.scope,
       args,
       mapItTo: item.value,
+      itDatatype: datatype,
       declaredBy: match
     })
   }
@@ -1639,21 +1928,28 @@ lists.addRule(list_range_iteration, {
 /** What `P.ASTMethodDefinition`'s `body` prop accepts. */
 type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 
+/** The two sides `can_take` / `can_give_up` compile, e.g. the tableau and the card. */
+type GuardOperands = { lhs?: P.ASTExpression; rhs?: P.ASTExpression }
+
 ////////////////
 // ## `where` clause helpers
 //    shared by `list_filter`, `list_membership_test` and `list_remove_where`
 ////////////////
 
 /**
- * Nested scope for a `where` clause's predicate:  singularized `arg` is the current item, also aliased from `it`,
- * e.g. `word` for `words in my-list where word starts with "a"`.
+ * Nested scope for `match`'s `where` clause's predicate:  singularized `arg` is the current item,
+ * also aliased from `it`, e.g. `word` for `words in my-list where word starts with "a"`.
+ * - Both are what `list` holds, if we can tell, e.g. `Card` for `the cards in the deck where ...`
+ * - Looked up now, while parsing:  the predicate parses in this scope.
  */
-function getWhereScope(parentScope: P.Scope, arg: P.Match): P.MethodScope {
+function getWhereScope(match: P.Match, arg: P.Match, list: P.Match | undefined): P.MethodScope {
   const name = singularize(arg.value)
+  const datatype = list && match.scope.getItemType(list.datatype)
   return new P.MethodScope({
-    parentScope,
-    args: [new P.ScopeVariable({ name, declaredBy: arg })],
+    parentScope: match.scope,
+    args: [new P.ScopeVariable({ name, datatype, declaredBy: arg })],
     mapItTo: name,
+    itDatatype: datatype,
     declaredBy: arg
   })
 }

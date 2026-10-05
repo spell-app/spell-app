@@ -81,8 +81,8 @@ function isYarnName(name: string): boolean {
  * Every command in checkout `root`, sorted by surface then name, each in the page's name form.
  * - yarn:  `<package> <script>` for the root's `package.json` (`root`), each `packages/*` one (its folder's name)
  *   and `packages/ui/site`'s (`ui-site`);  keys starting with `/` are section labels, not scripts
- * - CLI:  `spell <command>` / `spell dev <command>`, read from `packages/cli/src/main.ts`'s
- *   `program.command(...)` / `dev.command(...)` calls.  NOTE: the SOURCE, not this process's commander program:
+ * - CLI:  `spell <command>` / `spell dev <command>`, read from `CLI_SOURCES`' `program.command(...)` /
+ *   `dev.command(...)` calls.  NOTE: the SOURCE, not this process's commander program:
  *   the checkout checked may not be the one `spell` runs from.
  * - skills:  `/<name>` for each `SKILL.md` in `.claude/skills/*` and `packages/docs/tools/goals/skills/*`, plus
  *   `sources.userSkills` found in `~/.claude/skills`;  minus `sources.ignore`
@@ -99,9 +99,10 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
       if (!script.startsWith("/")) found.push({ surface: "yarn", name: `${name} ${script}` })
     }
   }
-  const main = join(root, "packages", "cli", "src", "main.ts")
-  if (existsSync(main)) {
-    for (const [, owner, name] of readFileSync(main, "utf8").matchAll(/\b(program|dev)\s*\.command\("([\w-]+)"/g)) {
+  for (const file of CLI_SOURCES) {
+    const path = join(root, "packages", "cli", "src", file)
+    if (!existsSync(path)) continue
+    for (const [, owner, name] of readFileSync(path, "utf8").matchAll(/\b(program|dev)\s*\.command\("([\w-]+)"/g)) {
       found.push({ surface: "cli", name: owner === "dev" ? `spell dev ${name}` : `spell ${name}` })
     }
   }
@@ -121,6 +122,12 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
   const order = { cli: 0, skill: 1, yarn: 2 }
   return [...unique.values()].sort((a, b) => order[a.surface] - order[b.surface] || a.name.localeCompare(b.name))
 }
+
+/**
+ * The files in `packages/cli/src/` whose `program.command(...)` / `dev.command(...)` calls are the CLI's commands.
+ * - `devProgram.ts`:  the `spell dev` tree, since 2026-10-04;  `main.ts` held it before
+ */
+const CLI_SOURCES = ["main.ts", "devProgram.ts"]
 
 /** Every command name the page's rows give, in any surface's `names`. */
 export function pageNames(data: CommandsData): Set<string> {

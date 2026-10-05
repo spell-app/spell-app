@@ -1,6 +1,10 @@
 /**
  * Barrel for the `spell` command-line tool's commands, one per file -- flattened into `$/cli`.
- * - Each is `(session, args, options) => Promise<exitCode>`, wired up in `main.ts`.
+ * - Each is `(session, args, options) => Promise<exitCode>`, wired up in `main.ts`, or `devProgram.ts` for
+ *   `spell dev`.
+ * - NOTE: the pass-throughs (`planDoc`, `goals`, `docs`, `details`, `server`, `window`, `vscode`) are
+ *   `(args) => Promise<exitCode>`, and import no barrel:  the lean `spell dev` entry, `devMain.ts`, loads them
+ *   without spell.
  */
 export * from "./compileCommand"
 export * from "./checkCommand"
@@ -25,4 +29,10 @@ export * from "./worktreeCommand"
 export * from "./parkCommand"
 export * from "./stockCommand"
 export * from "./sharedCommand"
+export * from "./docsCommand"
+export * from "./detailsCommand"
+export * from "./serverCommand"
+export * from "./windowCommand"
+export * from "./vscodeCommand"
 export * from "./staticCommand"
+export * from "./agentsCommand"

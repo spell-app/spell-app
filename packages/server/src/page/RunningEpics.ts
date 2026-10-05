@@ -113,7 +113,7 @@ export class RunningEpics {
 
   /**
    * `page` (the docs index) with the running epics' cards at its `<!-- running-epics -->` marker:  first in the
-   * Epics list (`yarn docs:index` puts the marker there);  none running, or no marker:  as is.
+   * Epics list (`spell dev docs index` puts the marker there);  none running, or no marker:  as is.
    * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one
    * - SAME card markup as `packages/docs/tools/index.js` `epicCard()`:  change both
    */

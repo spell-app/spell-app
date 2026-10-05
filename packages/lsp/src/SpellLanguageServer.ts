@@ -73,7 +73,7 @@ export class SpellLanguageServer {
     this.connection = connection
     this.workspace = workspace
     this.service = new LSP.SpellLanguageService(workspace)
-    this.scopes = new LSP.ScopeExplorer(this.service, () => workspace.builtInsPack())
+    this.scopes = new LSP.ScopeExplorer(this.service)
   }
 
   /** Answer the editor from now on. */

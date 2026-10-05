@@ -1,5 +1,5 @@
 /**
- * `yarn details <command>`:  details pages, questions Claude explains on a page and Owen answers ON it (`/details`,
+ * `spell dev details <command>`:  details pages, questions Claude explains on a page and Owen answers ON it (`/details`,
  * `.claude/skills/details/SKILL.md`).
  * - `new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]` -- a page from
  *   `templates/details.html`;  prints its path.  `--from`:  the whole page from a JSON list of questions
@@ -39,7 +39,7 @@ const SWEEP_DAYS = 14
 /** A slug:  lower-kebab-case. */
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-/** Run `yarn details <argv>`;  the exit code. */
+/** Run `spell dev details <argv>`;  the exit code. */
 async function main(argv) {
   const { positional, flags } = parseArgs(argv)
   const [command, target] = positional
@@ -81,13 +81,13 @@ async function main(argv) {
   }
 }
 
-/** `yarn details` with no or a wrong command. */
-const USAGE = `usage:  yarn details new <slug> [--title "..."] [--epic <name>] [--description "..."]
-        yarn details show <page> [--wait] [--timeout 8h]
-        yarn details wait <page> [--timeout 8h]
-        yarn details answer <page>
-        yarn details list
-        yarn details sweep [--days 14]`
+/** `spell dev details` with no or a wrong command. */
+const USAGE = `usage:  spell dev details new <slug> [--title "..."] [--epic <name>] [--description "..."]
+        spell dev details show <page> [--wait] [--timeout 8h]
+        spell dev details wait <page> [--timeout 8h]
+        spell dev details answer <page>
+        spell dev details list
+        spell dev details sweep [--days 14]`
 
 ////////////////
 // ## Pages
@@ -377,7 +377,7 @@ function parseArgs(argv) {
   return { positional, flags }
 }
 
-// run as a script (`yarn details`), not when a test imports it;  last, so every `const` above is set
+// run as a script (`spell dev details`), not when a test imports it;  last, so every `const` above is set
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   process.exitCode = await main(process.argv.slice(2))
 }

@@ -61,17 +61,125 @@ describe("spell help", () => {
   })
 })
 
-describe("spell plan-doc", () => {
+describe("spell dev plan-doc", () => {
   test("alone, lists the tool's commands", () => {
-    const { status, stderr } = spell(["plan-doc"])
+    const { status, stderr } = spell(["dev", "plan-doc"])
     expect(status).toBe(2)
-    expect(stderr).toContain("usage:  yarn plan-doc <command> <name>")
+    expect(stderr).toMatch(/usage: .*plan-doc <command> <name>/)
   })
 
   test("summarizes a plan doc", () => {
-    const { status, stdout } = spell(["plan-doc", "summary", "unified-server"])
+    const { status, stdout } = spell(["dev", "plan-doc", "summary", "unified-server"])
     expect(status).toBe(0)
     expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
+  })
+
+  test("spell plan-doc:  the deprecated alias, still working", () => {
+    const { status, stdout } = spell(["plan-doc", "summary", "unified-server"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Unified Server\n/)
+  })
+})
+
+describe("spell dev", () => {
+  test("--help lists its nouns, the pass-throughs too", () => {
+    const { status, stdout } = spell(["dev", "--help"])
+    expect(status).toBe(0)
+    for (const noun of ["plan-doc", "goals", "docs", "details", "server", "window", "vscode", "commands", "session"]) {
+      expect(stdout).toMatch(new RegExp(`^ {2}${noun} `, "m"))
+    }
+  })
+
+  test("spell --help still lists dev, and the aliases as deprecated", () => {
+    const { stdout } = spell(["--help"])
+    expect(stdout).toMatch(/^ {2}dev /m)
+    expect(stdout).toMatch(/^ {2}plan-doc \[args\.\.\.\] +deprecated: {2}spell dev plan-doc$/m)
+  })
+
+  test("a command that loads spell runs through main.ts, as before", () => {
+    const { status, stdout } = spell(["dev", "commands", "--json"], REPO_ROOT)
+    expect(status).toBe(0)
+    expect(JSON.parse(stdout).commands.length).toBeGreaterThan(10)
+  })
+
+  test("docs:  no verb, or an unknown one, lists the verbs", () => {
+    for (const args of [
+      ["dev", "docs"],
+      ["dev", "docs", "nope"]
+    ]) {
+      const { status, stderr } = spell(args)
+      expect(status).toBe(2)
+      expect(stderr).toContain("update, index, new, open, link")
+    }
+  })
+})
+
+describe("spell dev pass-throughs", () => {
+  /** A fake checkout, each tool a script reporting what it got:  `{ tool, args, cwd, tsconfig }`, exiting 3. */
+  const CHECKOUT = resolve(TEMP, "checkout")
+  /** A folder inside it, to run from:  the tools must still be found. */
+  const INSIDE = resolve(CHECKOUT, "packages", "app")
+  beforeAll(() => {
+    const report = `console.log(JSON.stringify({ tool: import.meta.url.split("/checkout/")[1], args: process.argv.slice(2), cwd: process.cwd(), tsconfig: process.env.TSX_TSCONFIG_PATH }))
+process.exit(3)
+`
+    for (const tool of [
+      "scripts/window.mjs",
+      "scripts/serve.mjs",
+      "packages/docs/tools/open.js",
+      "packages/docs/tools/link.ts",
+      "packages/docs/tools/details.js",
+      "packages/docs/tools/plan-doc.js",
+      "packages/server/src/page/cli.ts"
+    ]) {
+      mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
+      writeFileSync(resolve(CHECKOUT, tool), report)
+    }
+    writeFileSync(resolve(CHECKOUT, "packages/docs/tsconfig.json"), "{}")
+    writeFileSync(resolve(CHECKOUT, "packages/server/tsconfig.json"), "{}")
+    mkdirSync(INSIDE, { recursive: true })
+  })
+
+  /** Run `spell dev ...args` in `INSIDE`:  its exit code, and what the fake tool reported. */
+  function passThrough(args: string[]) {
+    const { status, stdout, stderr } = spell(["dev", ...args], INSIDE)
+    return { status, stderr, ...(stdout ? JSON.parse(stdout) : {}) }
+  }
+
+  test("window:  the nearest checkout's script, args verbatim, in this folder, its exit code", () => {
+    // a checkout with no node_modules, as a worktree before its `yarn install`
+    const run = passThrough(["window", "open", "x", "--all", "--json"])
+    expect(run).toMatchObject({ status: 3, tool: "scripts/window.mjs", args: ["open", "x", "--all", "--json"] })
+    expect(realpathSync(run.cwd)).toBe(INSIDE)
+    expect(run.tsconfig).toBeUndefined()
+  })
+
+  test("docs <verb>:  its tool, in packages/docs as yarn ran it;  link under tsx", () => {
+    const open = passThrough(["docs", "open", "solid/solid-2", "--vs"])
+    expect(open).toMatchObject({ status: 3, tool: "packages/docs/tools/open.js", args: ["solid/solid-2", "--vs"] })
+    expect(realpathSync(open.cwd)).toBe(resolve(CHECKOUT, "packages/docs"))
+    const link = passThrough(["docs", "link", "a.html", "--hash", "b"])
+    expect(link).toMatchObject({ status: 3, tool: "packages/docs/tools/link.ts", args: ["a.html", "--hash", "b"] })
+    expect(link.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
+  })
+
+  test("details, plan-doc", () => {
+    expect(passThrough(["details", "list"])).toMatchObject({ status: 3, tool: "packages/docs/tools/details.js" })
+    const planDoc = passThrough(["plan-doc", "add", "x", "issue", "--details", "<p>y</p>"])
+    expect(planDoc).toMatchObject({ status: 3, args: ["add", "x", "issue", "--details", "<p>y</p>"] })
+    expect(realpathSync(planDoc.cwd)).toBe(INSIDE)
+  })
+
+  test("server <verb>:  the page server's cli, under tsx;  start --all:  serve.mjs", () => {
+    const status = passThrough(["server", "status", "--root", "."])
+    expect(status).toMatchObject({
+      status: 3,
+      tool: "packages/server/src/page/cli.ts",
+      args: ["status", "--root", "."]
+    })
+    expect(status.tsconfig).toBe(resolve(CHECKOUT, "packages/server/tsconfig.json"))
+    expect(passThrough(["server", "start"])).toMatchObject({ tool: "packages/server/src/page/cli.ts", args: ["start"] })
+    expect(passThrough(["server", "start", "--all"])).toMatchObject({ status: 3, tool: "scripts/serve.mjs", args: [] })
   })
 })
 
@@ -484,7 +592,7 @@ describe("spell parse", () => {
     expect(status).toBe(0)
     expect(stdout).toBe(
       'statement › print  print "hi"\n  Keyword  print\n  expressions: Repeat  "hi"\n' +
-        '    expression › text  "hi"\n\nspellCore.console.log("hi")\n'
+        '    expression: operand › text  "hi"\n\nspellCore.console.log("hi")\n'
     )
   })
 
@@ -510,7 +618,7 @@ describe("spell repl", () => {
     })
     expect(status).toBe(0)
     expect(stdout).toContain("=> export let x = 3\n")
-    expect(stdout).toContain("lhs: simple_expression › known_variable  x\n")
+    expect(stdout).toContain("lhs: operand › known_variable  x\n")
     expect(stdout).toMatch(/=> spellCore\.console\.log\(x \+ 1\)\n$/)
   })
 })
