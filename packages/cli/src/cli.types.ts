@@ -403,10 +403,12 @@ export class CliError extends Error {
  * - `import`:  `init` copies this checkout's folders into the new shared repo
  * - `all`:  `link` links every checkout, not just this one
  * - `session`:  `commit`'s `Session:` trailer;  `quiet`:  `commit` prints nothing (the `Stop` hook)
+ * - `dryRun`:  `migrate` says what it would do, and changes nothing
  */
 export type SharedOptions = GlobalOptions & {
   json?: boolean
   import?: boolean
   session?: string
   quiet?: boolean
+  dryRun?: boolean
 }

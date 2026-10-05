@@ -2126,6 +2126,22 @@
           "target": "built (epic `shared-content`, P4)"
         },
         {
+          "op": "Migrate a worktree onto the shared content",
+          "cli": {
+            "mark": "same",
+            "names": ["spell dev shared"],
+            "note": "`migrate <worktree> [--dry-run]`:  its shared changes into the shared repo, its branch untracks the folders, links in;  stops on a conflict"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`packages/cli/src/dev/sharedMigrate.ts` (`migrateWorktree()`)",
+          "target": "built (epic `shared-content`, P6)"
+        },
+        {
           "op": "Rebuild docs' Spell UI bundle, re-index, check every page",
           "cli": {
             "mark": "could",

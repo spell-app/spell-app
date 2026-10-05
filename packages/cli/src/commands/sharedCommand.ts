@@ -1,3 +1,6 @@
+import { existsSync } from "fs"
+import { join } from "path"
+
 import { CLI } from "$/cli"
 
 /**
@@ -8,6 +11,9 @@ import { CLI } from "$/cli"
  * - `link [--all]`:  link this checkout's folders (`--all`:  every checkout);  a real folder is replaced only when it
  *   matches the shared one exactly
  * - `commit [--session <id>]`:  commit whatever changed in the shared repo (the `Stop` hook, every turn)
+ * - `migrate <worktree> [--dry-run]`:  move a worktree cut before the cutover onto the shared content
+ *   (`migrateWorktree()`):  its changes to the shared folders go into the shared repo, its branch stops tracking
+ *   them, its folders become links;  stops, writing nothing, on a conflict
  * - NOTE:  `SPELL_SHARED_DIR` points every verb at another shared repo (a scratch one, in tests)
  */
 export async function sharedCommand(
@@ -42,9 +48,33 @@ export async function sharedCommand(
       if (!options.quiet) session.out(sha ? `committed ${sha}` : "nothing to commit")
       return CLI.EXIT.OK
     }
+    case "migrate": {
+      const name = args[1]
+      if (!name) throw new CLI.CliError("migrate:  which worktree?")
+      const worktree = join(config.main, ".claude", "worktrees", name)
+      if (!existsSync(join(worktree, ".git"))) throw new CLI.CliError(`no worktree ${worktree}`)
+      const report = CLI.migrateWorktree(worktree, config, { dryRun: options.dryRun })
+      if (options.json)
+        session.out(JSON.stringify({ ...report, folds: report.folds.map(({ text, ...each }) => each) }, null, 2))
+      else for (const line of migrateLines(report, options.dryRun)) session.out(line)
+      return report.conflicts.length ? CLI.EXIT.ERRORS : CLI.EXIT.OK
+    }
     default:
-      throw new CLI.CliError(`unknown verb '${verb}':  status, init, link or commit`)
+      throw new CLI.CliError(`unknown verb '${verb}':  status, init, link, commit or migrate`)
   }
+}
+
+/** `migrate`'s lines:  each file that isn't skipped, then the verdict. */
+function migrateLines(report: CLI.MigrateReport, dryRun = false): string[] {
+  const changed = report.folds.filter((each) => each.action !== "skip")
+  const verdict = report.conflicts.length
+    ? `${report.conflicts.length} conflict(s):  nothing written;  resolve them in the shared repo or the worktree, then again`
+    : report.done
+      ? `migrated:  ${changed.length} file(s) into the shared repo, branch ${report.branch} untracks the shared folders`
+      : dryRun
+        ? `dry run:  ${changed.length} file(s) would go into the shared repo`
+        : "nothing done"
+  return [...changed.map((each) => `${each.action.padEnd(8)} ${each.file}`), verdict]
 }
 
 /** Link each of `checkouts`, printing a line per link that wasn't already right;  every report. */

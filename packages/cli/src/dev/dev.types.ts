@@ -263,3 +263,27 @@ export type SharedStatus = {
   last: string
   checkouts: { checkout: string; links: LinkReport[] }[]
 }
+
+/**
+ * What `migrateWorktree()` does with one shared file of a worktree.
+ * - `action`:  `skip` (the worktree didn't change it, or matches), `take` (the worktree's copy goes into the shared
+ *   repo), `delete` (the worktree deleted it), `union` (a log changed on both sides:  merged, `text`), `conflict`
+ */
+export type FoldReport = {
+  file: string
+  action: "skip" | "take" | "delete" | "union" | "conflict"
+  text?: string
+}
+
+/**
+ * `spell dev shared migrate`'s answer.
+ * - `folds`:  every shared file's fate;  `conflicts`:  the files that stopped it;  `done`:  it went through (not a
+ *   dry run, no conflicts)
+ */
+export type MigrateReport = {
+  worktree: string
+  branch: string
+  folds: FoldReport[]
+  conflicts: string[]
+  done: boolean
+}
