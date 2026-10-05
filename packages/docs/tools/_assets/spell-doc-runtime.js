@@ -2100,6 +2100,8 @@ function wireFilter(main, toc) {
   const contents = toc ? filterContents(toc) : undefined
   let typed = input ? readSaved(key) : ""
   let chosen = String(badge?.value ?? "")
+  /** Folded sections the filter unfolded, to fold back when it's cleared. */
+  const filterOpened = new Set()
   input?.addEventListener("ui-input", onType)
   input?.addEventListener("ui-change", onType)
   badge?.addEventListener("ui-change", (event) => {
@@ -2120,7 +2122,11 @@ function wireFilter(main, toc) {
     }
   }
 
-  /** Hide what doesn't match. */
+  /**
+   * Hide what doesn't match.
+   * - while a filter is set, a folded section holding a match unfolds (not saved:  sections start folded, so
+   *   matches would hide in them);  clearing the filter folds back the ones it opened
+   */
   function apply() {
     const words = typed.toLowerCase().split(/\s+/).filter(Boolean)
     const wanted = chosen.trim().toLowerCase()
@@ -2131,7 +2137,18 @@ function wireFilter(main, toc) {
       card.hidden = !words.every((word) => content.includes(word)) || (!!wanted && !badges.includes(wanted))
       if (!card.hidden) shown++
     }
-    for (const section of sections) section.hidden = !section.querySelector("ui-card:not([hidden])")
+    const filtering = words.length > 0 || !!wanted
+    for (const section of sections) {
+      section.hidden = !section.querySelector("ui-card:not([hidden])")
+      if (section.localName !== "ui-section") continue
+      if (filtering && !section.hidden && isCollapsed(section)) {
+        setCollapsed(section, false)
+        filterOpened.add(section)
+      } else if (!filtering && filterOpened.has(section)) {
+        setCollapsed(section, true)
+        filterOpened.delete(section)
+      }
+    }
     if (empty) empty.hidden = shown > 0
     contents?.()
   }

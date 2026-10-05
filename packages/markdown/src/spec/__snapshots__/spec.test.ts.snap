@@ -1,0 +1,39 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`GFM spec > passes per section 1`] = `
+{
+  "sections": {
+    "ATX headings": "18/18",
+    "Autolinks": "19/19",
+    "Autolinks (extension)": "11/11",
+    "Backslash escapes": "13/13",
+    "Blank lines": "1/1",
+    "Block quotes": "25/25",
+    "Code spans": "22/22",
+    "Disallowed Raw HTML (extension)": "1/1",
+    "Emphasis and strong emphasis": "131/131",
+    "Entity and numeric character references": "17/17",
+    "Fenced code blocks": "29/29",
+    "HTML blocks": "43/43",
+    "Hard line breaks": "15/15",
+    "Images": "22/22",
+    "Indented code blocks": "12/12",
+    "Inlines": "1/1",
+    "Link reference definitions": "28/28",
+    "Links": "87/87",
+    "List items": "48/48",
+    "Lists": "26/26",
+    "Paragraphs": "8/8",
+    "Precedence": "1/1",
+    "Raw HTML": "20/20",
+    "Setext headings": "27/27",
+    "Soft line breaks": "2/2",
+    "Strikethrough (extension)": "2/2",
+    "Tables (extension)": "8/8",
+    "Tabs": "11/11",
+    "Textual content": "3/3",
+    "Thematic breaks": "19/19",
+  },
+  "total": "670/670",
+}
+`;

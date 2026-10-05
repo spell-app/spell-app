@@ -80,6 +80,96 @@
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section id="markdown" header="2026-10-03 → 10-04 · Markdown on the parser" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc: <a href="epics/markdown/markdown.plan.html" target="markdown">epics/markdown</a></ui-item
+                >
+                <ui-item icon="lightbulb"
+                  >Docs:
+                  <a href="markdown/markdown.html" target="src-packages-docs-markdown-markdown-html"
+                    >Markdown on the parser</a
+                  >, <a href="rulex/rulex.html" target="src-packages-docs-rulex-rulex-html">Rulex</a></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>markdown</code>, one <code>/bedtime</code> run, merged 2026-10-04</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1 · Rulex deep dive: the durable doc
+                  <a href="rulex/rulex.html" target="src-packages-docs-rulex-rulex-html"
+                    ><code>rulex/rulex.html</code></a
+                  >; docs now start with every section and code block folded, under a sticky title.
+                </li>
+                <li>
+                  P2 · Rulex and tokenizer:
+                  <ul>
+                    <li>rulex reads syntax with its own plain tokenizer (words, digit-only numbers, symbols)</li>
+                    <li>
+                      it throws when it can't read the whole syntax; an unescaped <code>[ { (</code> only opens a group
+                    </li>
+                    <li>
+                      spacing as written: parts that touch must touch; <code>{space}</code> and <code>{spaces}</code>
+                    </li>
+                    <li>
+                      counts <code>{n}</code>, <code>{n,m}</code>, <code>{n,}</code>; <code>/i</code> case-insensitive
+                      keywords
+                    </li>
+                    <li>specials print back escaped; spell's syntaxes gained the spaces they meant</li>
+                    <li>
+                      new package
+                      <a href="../../markdown/" target="src-packages-markdown"><code>packages/markdown</code></a>
+                      (<code>$/markdown</code>, <code>MD</code>), its tokenizer and the GFM spec harness
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  P3 · Block structure: <code>BlockScanner</code> (commonmark.js 0.29 blocks + GFM tables) and 8 rulex
+                  line rules.
+                </li>
+                <li>
+                  P4 · Inline rules: <code>InlineParser</code> (delimiter and bracket stacks), reference definitions,
+                  GFM autolinks, strikethrough and tag filter; GFM spec 670/670.
+                </li>
+                <li>
+                  P5 · ui output: <code>MD.render()</code> with the <code>ui-*</code> mapping (headers, lists, tables,
+                  alert messages, task checkboxes); compared with marked on 172 repo files; line guards took it from 6×
+                  to 1.8× marked's time.
+                </li>
+                <li>
+                  P6 · Docstrings: the app's <code>&lt;Markdown&gt;</code> on <code>MD</code> (lazily loaded; marked
+                  gone from <code>app</code>); the LSP colours bold, italic, links and strikethrough in comments.
+                </li>
+                <li>
+                  P7 · ui bundle: <code>yarn gen:markdown</code> builds
+                  <a
+                    href="../../ui/src/components/ui-markdown/md.bundle.js"
+                    target="src-packages-ui-src-components-ui-markdown-md-bundle-js"
+                    ><code>md.bundle.js</code></a
+                  >; 88 kB gzipped vs marked's 25 kB, so plain <code>&lt;ui-markdown&gt;</code> keeps marked.
+                </li>
+                <li>
+                  P8 · Live preview: <code>&lt;ui-markdown editable&gt;</code>, Write / Preview tabs, the preview drawn
+                  with <code>ui-*</code> elements by <code>MD</code> in a lazy chunk, patched block by block.
+                </li>
+                <li>
+                  I6 · Sanitizing opt-in: <code>&lt;ui-markdown&gt;</code> keeps raw HTML unless <code>sanitized</code>,
+                  which loads DOMPurify in a lazy chunk of its own (<code>trusted</code> is gone); marked&apos;s chunk
+                  26.2 &rarr; 14.2 kB gzipped.
+                </li>
+                <li>
+                  I6 · Spell&apos;s markdown bundle 88.3 &rarr; 59.4 kB gzipped, cut at bundle time: the browser&apos;s
+                  entity decoder, <code>lodash-es</code>, no chalk; renders exactly what node does on all 670 spec
+                  examples.
+                </li>
+                <li>
+                  Left: <code>yarn vscode</code> from <code>main</code>; visual tests; T8 (AST and scope out of the
+                  bundle).
+                </li>
+              </ul>
+            </ui-section>
+
             <ui-section
               id="shared-content"
               header="2026-10-04 · Shared content, P1-P3:  docs reorganised, tools link-aware"
@@ -560,7 +650,7 @@
                 <ui-item icon="code branch"
                   >Branch <code>stay-put</code>; no plan doc (an <code>/isolate</code>)</ui-item
                 >
-                <ui-item icon="book"
+                <ui-item icon="lightbulb"
                   >Durable doc: the header of
                   <a href="../../../scripts/window.mjs" target="src-scripts-window-mjs"
                     ><code>scripts/window.mjs</code></a
@@ -620,7 +710,7 @@
                     >Spell UI Pages</a
                   ></ui-item
                 >
-                <ui-item icon="book"
+                <ui-item icon="lightbulb"
                   >Durable doc:
                   <a href="spell-ui-pages.html" target="src-packages-docs-spell-ui-pages-html"
                     >spell-ui-pages.html</a
@@ -688,7 +778,7 @@
                   >Branch <code>seo</code>; plan doc
                   <a href="epics/seo/seo.plan.html" target="seo">Static Pages for SEO</a></ui-item
                 >
-                <ui-item icon="book"
+                <ui-item icon="lightbulb"
                   >Durable doc: <a href="seo/seo.html" target="src-packages-docs-seo-seo-html">seo/seo.html</a></ui-item
                 >
               </ui-list>
@@ -755,7 +845,7 @@
                     >Isolate &amp; Epic Changes</a
                   >, written after the merge</ui-item
                 >
-                <ui-item icon="book"
+                <ui-item icon="lightbulb"
                   >Durable doc:
                   <a href="server.html#running-epics-flow" target="src-packages-docs-server-html"
                     >server.html, "Running epics"</a
@@ -1444,7 +1534,7 @@
           <ui-divider></ui-divider>
           <p class="meta">
             Last updated 2026-10-04 from <code>main</code> at <code>48627e28</code>, plus seo, spell-ui-pages, stay-put,
-            epic-review, commands and vite-plus.
+            epic-review, commands, vite-plus and markdown.
           </p>
         </footer>
       </main>

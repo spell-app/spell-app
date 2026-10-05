@@ -60,14 +60,14 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
       <main class="spell-doc-main">
         <h1>Short Title</h1>
         <p class="lede">One line.</p>
-        <ui-section id="summary" header="1. Summary" sticky collapsible dividing>
+        <ui-section id="summary" header="1. Summary" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           ...
           <ui-section id="a-part" header="1.1 A part" sticky collapsible dividing collapsed>
             ...  <!-- sub-sub-items stay plain:  <h4 id> -->
           </ui-section>
         </ui-section>
-        <ui-section id="api" sticky collapsible dividing>
+        <ui-section id="api" sticky collapsible dividing collapsed>
           <span slot="header">2. The <code>x</code> API</span>  <!-- a title with markup -->
           ...
         </ui-section>
@@ -81,9 +81,9 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
 
 - `../_assets/` is relative to the page's folder:  `_assets/` at the top level, `../../_assets/` two deep.
 - No contents sidebar and no `.spell-toc-open` button in the markup:  the runtime adds both (the button in the rail).
-- EVERY section is `sticky collapsible dividing`:  a rule under every title, every section folds.  `collapsed` starts
-  one folded.  An optional sticky page header goes above them:  `<ui-sticky class="spell-h1"><header
-  class="spell-page-head">` around the h1 (plan docs have one).
+- EVERY section is `sticky collapsible dividing collapsed`:  a rule under every title, every section folds, and every
+  one STARTS folded (code blocks too:  no `open`);  the reader opens what they want.  A sticky page header goes above
+  them on every page:  `<ui-sticky class="spell-h1"><header class="spell-page-head">` around the h1.
 - The goals pages keep the OLD markup, which the runtime still drives:  `section.s2|s3` >
   `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`, `data-fold="closed"` to start folded.
 - `spell-docs/ui-section-test.html` is the runtime's TEST page:  every piece of the `<ui-section>` markup (3 deep,

@@ -1584,6 +1584,7 @@ __metadata:
     "@solidjs/web": "npm:2.0.0-rc.13"
     "@spell-app/core": "workspace:*"
     "@spell-app/lsp": "workspace:*"
+    "@spell-app/markdown": "workspace:*"
     "@spell-app/parser": "workspace:*"
     "@spell-app/server": "workspace:*"
     "@spell-app/solid-element": "workspace:*"
@@ -1603,7 +1604,6 @@ __metadata:
     global: "npm:^4.3.2"
     json5: "npm:^2.1.1"
     lodash: "npm:^4.17.21"
-    marked: "npm:^14.0.0"
     monaco-editor: "npm:^0.57.0"
     playwright: "npm:1.63.0"
     react: "npm:^18.2.0"
@@ -1686,6 +1686,7 @@ __metadata:
   resolution: "@spell-app/lsp@workspace:packages/lsp"
   dependencies:
     "@spell-app/core": "workspace:*"
+    "@spell-app/markdown": "workspace:*"
     "@spell-app/parser": "workspace:*"
     "@spell-app/spell": "workspace:*"
     "@spell-app/util": "workspace:*"
@@ -1699,6 +1700,23 @@ __metadata:
     vite-plus: "catalog:"
     vscode-languageserver: "npm:^10.1.2"
     vscode-languageserver-textdocument: "npm:^1.0.15"
+  languageName: unknown
+  linkType: soft
+
+"@spell-app/markdown@workspace:*, @spell-app/markdown@workspace:packages/markdown":
+  version: 0.0.0-use.local
+  resolution: "@spell-app/markdown@workspace:packages/markdown"
+  dependencies:
+    "@spell-app/parser": "workspace:*"
+    "@spell-app/util": "workspace:*"
+    "@types/node": "npm:^22.20.4"
+    "@typescript/typescript6": "npm:^6.0.2"
+    entities: "npm:^6.0.1"
+    esbuild: "npm:^0.28.2"
+    tsx: "npm:4.20.3"
+    typescript: "npm:^7.0.2"
+    vite: "catalog:"
+    vite-plus: "catalog:"
   languageName: unknown
   linkType: soft
 
@@ -3523,7 +3541,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"entities@npm:^6.0.0":
+"entities@npm:^6.0.0, entities@npm:^6.0.1":
   version: 6.0.1
   resolution: "entities@npm:6.0.1"
   checksum: 10c0/ed836ddac5acb34341094eb495185d527bd70e8632b6c0d59548cbfa23defdbae70b96f9a405c82904efa421230b5b3fd2283752447d737beffd3f3e6ee74414
@@ -4653,15 +4671,6 @@ __metadata:
   bin:
     marked: bin/marked.js
   checksum: 10c0/57a47cb110f7b1a10f398b0a7236f9183aad2dcd5345ee73f2732b6387e585d04cef472bc655d2f84c542296be9728e179aebe3ed7f2f8666b8a0a9dae592876
-  languageName: node
-  linkType: hard
-
-"marked@npm:^14.0.0":
-  version: 14.1.4
-  resolution: "marked@npm:14.1.4"
-  bin:
-    marked: bin/marked.js
-  checksum: 10c0/7ccc4c9b58d430b68eb878133fc284235ef3022b1a465345d2464712bf7d47507203b54639826839b6cb8d8847cf46f2e382588b9e1fc1d98b657520e16bfa62
   languageName: node
   linkType: hard
 

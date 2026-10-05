@@ -90,6 +90,14 @@ export type HighlightSpan = {
   defaultLibrary?: boolean
   /** Heading level, if it's a heading comment:  the number of `#`s, e.g. `2` for `## Cards`. */
   heading?: number
+  /** Inside a comment, markdown `**bold**`. */
+  bold?: boolean
+  /** Inside a comment, markdown `*italic*`. */
+  italic?: boolean
+  /** Inside a comment, a markdown link (`[x](y)`, `<https://...>`). */
+  link?: boolean
+  /** Inside a comment, markdown `~~struck~~`. */
+  strikethrough?: boolean
 }
 
 // ## Custom requests

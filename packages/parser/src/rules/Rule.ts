@@ -415,6 +415,12 @@ export abstract class Rule<
   declare matchGroup: string | undefined
   /** Whether this rule is optional. */
   declare optional: boolean | undefined
+  /**
+   * What may sit between the previous token and our first -- see `P.Spacing`.  Unset:  anything.
+   * - Checked by the rule that holds us (`Sequence`, `Repeat`), which can see the previous token;  rulex sets it
+   *   from how the syntax is spaced.
+   */
+  declare spacing: P.Spacing | undefined
   /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
   declare isLeftRecursive: boolean | undefined
   /** What committing our match changes in scope, if set explicitly -- see `getScopeChanges()`. */
@@ -644,6 +650,8 @@ export type RuleProps = {
   matchGroup?: string
   /** Whether this rule is optional. */
   optional?: boolean
+  /** What may sit between the previous token and our first -- see `Rule.spacing`. */
+  spacing?: P.Spacing
   /** Whether literal must be escaped when converting to rulex syntax -- see `Literal.isEscaped`. */
   isEscaped?: boolean
   /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
