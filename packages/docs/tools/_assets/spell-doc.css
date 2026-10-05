@@ -20,23 +20,39 @@
   }
 }
 
+/*
+ * The page's own names for what it paints, each from the theme's tokens.  The docs run on `spell-brand` (epic
+ * `design-system`, P9), whose BRAND ROLES (`--spell-surface-warm`, `--spell-text-strong`, `--spell-type-lede` ...)
+ * give the brand's docs look;  every role has a `--ui-*` (or plain) fallback, so a page under another theme still
+ * reads.
+ * - NEVER name one of ours after a brand role:  this sheet is unlayered, so it would replace the theme's value for
+ *   everything that reads it (hence `--spell-doc-accent`, not `--spell-accent`)
+ */
 :root {
   --spell-mono: var(--ui-font-family-mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
   --spell-sans: var(--ui-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif);
+  --spell-serif: var(--ui-font-family-heading, Palatino, "Palatino Linotype", "Book Antiqua", P052, serif);
   --spell-bg: var(--ui-background, Canvas);
-  --spell-ink: var(--ui-text-color, CanvasText);
-  --spell-muted: var(--ui-text-muted, GrayText);
-  --spell-rule: var(--ui-border-color, light-dark(#e3e0d8, #34343b));
-  --spell-accent: var(--ui-link, LinkText);
-  --spell-accent-soft: var(--ui-primary-background, light-dark(#e8eff8, #1f2b3b));
+  --spell-ink: var(--spell-text-body, var(--ui-text-color, CanvasText));
+  --spell-muted: var(--spell-text-muted, var(--ui-text-muted, GrayText));
+  --spell-rule: var(--spell-border-subtle, var(--ui-border-color, light-dark(#e3e0d8, #34343b)));
+  --spell-doc-accent: var(--spell-text-accent, var(--ui-link, LinkText));
+  --spell-doc-accent-soft: var(--spell-surface-selected, var(--ui-primary-background, light-dark(#e8eff8, #1f2b3b)));
+  /* the brand's panels:  ivory for asides and answers, a lavender wash for side columns, the code well */
+  --spell-warm: var(--spell-surface-warm, var(--ui-accent-background, light-dark(#faf5ea, #2c2152)));
+  --spell-tint: var(--spell-surface-tint, var(--ui-surface-muted, light-dark(#f7f9ff, #ffffff12)));
+  --spell-code-bg: var(--spell-surface-code, var(--ui-code-background, light-dark(#f3f2ef, #26272d)));
+  --spell-card: var(--ui-surface, Canvas);
   /*
-   * a code well:  the theme's `--ui-code-background` (the Spell theme sets one:  grey-blue / deep aubergine);
-   * else our own, as `--ui-surface-muted` is too faint for inline code in light
+   * headings:  the brand's serif (Palatino), bold, in its strongest ink (aubergine;  near-white in dark), as the
+   * brand's Spell Docs page;  `spell` had them in the system face (Owen, 2026-10-04), the brand look brings the serif
+   * back (P9)
    */
-  --spell-code-bg: var(--ui-code-background, light-dark(#f3f2ef, #26272d));
-  /* headings in the SYSTEM face (Owen, 2026-10-04:  back from the theme's serif), in the theme's heading ink */
-  --spell-heading-font: var(--spell-sans);
-  --spell-heading-ink: var(--ui-text-dark, inherit);
+  --spell-heading-font: var(--spell-serif);
+  --spell-heading-ink: var(--spell-text-strong, var(--ui-text-dark, inherit));
+  /* the mono eyebrow:  small caps-height labels over titles and columns */
+  --spell-eyebrow-font: 500 11px/1.2 var(--spell-mono);
+  --spell-eyebrow-tracking: var(--spell-tracking-eyebrow, 0.14em);
   --spell-toc-width: 300px;
 }
 
@@ -55,8 +71,8 @@ body {
   background: var(--spell-bg);
   color: var(--spell-ink);
   font: 16px/1.6 var(--spell-sans);
-  /* UI's own headings (section titles, cards) in the system face too, as `--spell-heading-font` */
-  --ui-font-family-heading: var(--spell-sans);
+  /* UI's own headings (section titles, cards) in the page's heading face */
+  --ui-font-family-heading: var(--spell-heading-font);
 }
 
 /*******************************
@@ -103,16 +119,18 @@ ui-sticky.spell-h3 {
 .spell-doc-main section:has(> ui-sticky.spell-h3) {
   margin-top: 22px;
 }
+/* the brand's headings:  serif, bold for h1 / h2 and the section titles, tight tracking at display size */
 :is(h1, h2, h3) {
   color: var(--spell-heading-ink);
   font-family: var(--spell-heading-font);
   text-wrap: balance;
 }
 h1 {
-  font-size: 2rem;
-  line-height: 1.2;
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.1;
   margin: 0 0 8px;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--spell-tracking-display, -0.022em);
 }
 /*
  * The sticky page header:  `<ui-sticky class="spell-h1"><header class="spell-page-head">` around the h1 and, in
@@ -131,7 +149,7 @@ h1 {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-size: 1.6rem;
+  font-size: 2rem;
 }
 /* the stuck headings' background reaches a few px past the column, over the cards' outer 1px borders */
 :is(ui-sticky.spell-h2 > h2, ui-sticky.spell-h3 > h3, .spell-filter, .spell-page-head) {
@@ -139,16 +157,17 @@ h1 {
   padding-inline: 4px;
 }
 .spell-doc-main h2 {
-  font-size: 1.4rem;
-  line-height: 1.3;
+  font-size: 1.6rem;
+  line-height: 1.25;
+  letter-spacing: var(--spell-tracking-heading, -0.012em);
   margin: 0 0 10px;
   padding-block: 12px 8px;
   background: var(--spell-bg);
   border-bottom: 1px solid var(--spell-rule);
 }
 .spell-doc-main h3 {
-  font-size: 1.1rem;
-  line-height: 1.35;
+  font-size: 1.2rem;
+  line-height: 1.3;
   margin: 0 0 6px;
 }
 ui-sticky.spell-h3 > h3 {
@@ -226,13 +245,14 @@ ui-button.spell-fold {
  */
 .spell-doc-main ui-section {
   --ui-section-margin: 40px;
-  --ui-section-h2: 1.4;
-  --ui-section-h3: 1.1;
+  --ui-section-h2: 1.6;
+  --ui-section-h3: 1.2;
   --ui-section-h4: 1;
   --ui-section-h5: 0.95;
   --ui-section-h6: 0.9;
-  --ui-section-title-line-height: 1.3;
+  --ui-section-title-line-height: 1.25;
   --ui-section-title-gap: 0.4em;
+  --ui-section-title-color: var(--spell-heading-ink);
   --ui-section-title-padding: var(--spell-title-top) 4px 8px;
   /* the title's top padding:  the fold chevron sits on its first line (below) */
   --spell-title-top: 12px;
@@ -268,6 +288,11 @@ ui-button.spell-fold {
 /* the stuck title's background reaches a few px past the column, over the cards' outer 1px borders */
 .spell-doc-main ui-section::part(title) {
   margin-inline: -4px;
+  letter-spacing: var(--spell-tracking-heading, -0.012em);
+}
+/* a section's icon in the brand's accent (Spell Purple;  lilac in dark), as the brand's nav icons */
+.spell-doc-main ui-section > ui-icon[slot="icon"] {
+  color: var(--spell-doc-accent);
 }
 /*
  * The fold chevron at the title's FAR end, after the count and the actions, so the section icons line up at the
@@ -341,12 +366,32 @@ ui-button.spell-fold {
   max-width: 72ch;
 }
 .spell-doc-main a {
-  color: var(--spell-accent);
+  color: var(--spell-doc-accent);
 }
-.lede {
-  color: var(--spell-muted);
-  font-size: 1.05rem;
-  margin: 0 0 16px;
+/*
+ * The lede under the h1:  the brand's italic serif echo of the title, in the headings' ink (`--spell-type-lede`,
+ * a size down:  a docs lede runs a sentence or two, the brand's a few words)
+ */
+.lede,
+.spell-doc-main > header > h1 + p {
+  color: var(--spell-heading-ink);
+  font: italic 400 1.3rem/1.4 var(--spell-serif);
+  margin: 4px 0 18px;
+  text-wrap: pretty;
+}
+:is(.lede, .spell-doc-main > header > h1 + p) :is(code, em, i) {
+  font-style: normal;
+}
+:is(.lede, .spell-doc-main > header > h1 + p) code {
+  font-size: 0.78em;
+}
+/* a lede INSIDE a section (a plan doc's summary, a changelog entry's) runs a paragraph:  upright, in the body face */
+ui-section .lede {
+  font: 400 1.06rem/1.6 var(--spell-sans);
+  margin: 0 0 14px;
+}
+ui-section .lede code {
+  font-size: 0.88em;
 }
 :is(.lede, .meta) + :is(ul, ui-list) {
   color: var(--spell-muted);
@@ -357,15 +402,34 @@ ui-button.spell-fold {
   color: var(--spell-muted);
   font-size: 0.9rem;
 }
-/* the breadcrumb above the h1:  `ui-breadcrumb.spell-crumbs` */
+/*
+ * The breadcrumb above the h1 (`ui-breadcrumb.spell-crumbs`) is the page's EYEBROW, as the brand's docs put one
+ * over every title:  small mono capitals, tracked out, the links in the accent and the page itself muted
+ */
 .spell-crumbs {
   display: block;
-  margin: 0 0 12px;
+  margin: 0 0 10px;
+  --ui-font-size: 11px;
+  --ui-breadcrumb-link-color: var(--spell-doc-accent);
+  --ui-breadcrumb-active-color: var(--spell-muted);
+  --ui-breadcrumb-active-font-weight: 500;
+  --ui-breadcrumb-divider-color: var(--spell-muted);
+  --ui-breadcrumb-divider-spacing: 0.4em;
+  text-transform: uppercase;
+  letter-spacing: var(--spell-eyebrow-tracking);
+}
+.spell-crumbs::part(breadcrumb) {
+  font: var(--spell-eyebrow-font);
 }
 /* a page's meta lines (who it's for, status, how it was checked):  `ui-list.spell-meta` with an icon per item */
 ui-list.spell-meta {
   display: block;
   margin: 0 0 16px;
+  font-size: 0.94rem;
+  color: var(--spell-muted);
+}
+ui-list.spell-meta > ui-item::part(icon) {
+  color: var(--spell-doc-accent);
 }
 /* a coined term with a `<ui-popup>` after it:  dotted, so it reads as "hover me" */
 dfn.spell-term {
@@ -378,10 +442,12 @@ dfn.spell-term {
 .spell-doc-footer {
   margin-top: 56px;
 }
+/* code:  the brand's code well, its text in the strongest ink */
 code {
   font-family: var(--spell-mono);
   font-size: 0.88em;
   background: var(--spell-code-bg);
+  color: var(--spell-heading-ink);
   padding: 1px 5px;
   border-radius: 4px;
   overflow-wrap: break-word;
@@ -389,16 +455,18 @@ code {
 pre {
   font-family: var(--spell-mono);
   font-size: 0.84rem;
-  line-height: 1.5;
+  line-height: 1.6;
   background: var(--spell-code-bg);
-  padding: 12px 14px;
-  border-radius: 8px;
+  color: var(--spell-ink);
+  padding: 14px 16px;
+  border-radius: 12px;
   overflow: auto;
   max-width: 100%;
   margin: 12px 0;
 }
 pre code {
   background: none;
+  color: inherit;
   padding: 0;
   font-size: inherit;
   overflow-wrap: normal;
@@ -464,7 +532,7 @@ pre code {
   color: var(--ui-surface, Canvas);
 }
 .spell-doc-main button.spell-state-toggle:focus-visible {
-  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
   outline-offset: 1px;
 }
 .spell-doc-main :is(.plan-items, .spell-epics) > [data-spell-hidden] {
@@ -555,6 +623,17 @@ ui-tab > pre {
 .spell-doc-main ui-table :is(td, th) {
   vertical-align: top;
 }
+/* column heads as the brand's eyebrows:  small mono capitals, tracked, muted */
+.spell-doc-main ui-table :is(thead th, tr:not(:has(td)) > th) {
+  font: 500 0.72rem/1.4 var(--spell-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--spell-muted);
+}
+.spell-doc-main ui-table :is(thead th, tr:not(:has(td)) > th) :is(code, a) {
+  text-transform: none;
+  letter-spacing: 0;
+}
 .spell-doc-main ui-table :is(td, th).num {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -575,40 +654,49 @@ ui-tab > pre {
 
 /*
  * ## Code blocks:  `ui-accordion.spell-code styled`, one panel around a `<pre>`.
- * `styled` swaps the width (37.5em) and paddings, so plain properties through `::part()` win here.
+ * `styled` swaps the width (37.5em), box and paddings, so plain properties through `::part()` win here.
+ * - the brand's example panel:  a code-well frame with a hairline, its title a mono label, the code on a card
+ *   inside it
  */
 ui-accordion.spell-code::part(accordion) {
   width: 100%;
+  border-radius: 14px;
+  background: var(--spell-code-bg);
+  box-shadow: 0 0 0 1px var(--spell-rule);
 }
 ui-accordion.spell-code::part(title) {
-  padding: 6px 12px;
-  font: 500 0.82rem/1.4 var(--spell-mono);
+  padding: 7px 14px;
+  font: 500 0.8rem/1.4 var(--spell-mono);
   color: var(--spell-muted);
 }
 ui-accordion.spell-code::part(content) {
-  padding: 0 4px 4px;
+  padding: 0 5px 5px;
 }
 ui-accordion.spell-code pre {
   margin: 0;
   max-height: 70vh;
-  border-radius: 6px;
+  border-radius: 10px;
+  background: var(--spell-card);
 }
 
 /*
  * ## Asides:  `ui-accordion.spell-aside styled`, one collapsed panel for a digression the main text can skip.
- * Muted italic title, so it reads as optional.
+ * - the brand's IVORY panel (its tips and quotes):  warm, rounded, no border or shadow
+ * - an italic serif title in the headings' ink, so it reads as an aside, not a section
  */
 ui-accordion.spell-aside::part(accordion) {
   width: 100%;
+  border-radius: 16px;
+  background: var(--spell-warm);
+  box-shadow: none;
 }
 ui-accordion.spell-aside::part(title) {
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  font-style: italic;
-  color: var(--spell-muted);
+  padding: 9px 16px;
+  font: italic 400 1.02rem/1.4 var(--spell-serif);
+  color: var(--spell-heading-ink);
 }
 ui-accordion.spell-aside::part(content) {
-  padding: 0 12px 8px;
+  padding: 0 16px 12px;
 }
 
 /*******************************
@@ -619,8 +707,12 @@ ui-accordion.spell-aside::part(content) {
  * The aside stretches the grid row;  its `<ui-sticky>` sticks within it just below the site header (the runtime
  * sets its `offset`), and `.spell-toc-inner` scrolls on its own, a viewport tall minus the header.
  */
+/*
+ * The brand's side column:  the contents on a lavender-wash CARD (`--spell-surface-tint`, as the brand's docs set
+ * their aside panels), no rule beside it;  its head an eyebrow.  The narrow screens' drawer stays ivory (below).
+ */
 .spell-doc-toc {
-  border-left: 1px solid var(--spell-rule);
+  --spell-toc-fill: linear-gradient(var(--spell-tint), var(--spell-tint)) var(--spell-bg);
   font-size: 0.84rem;
   line-height: 1.4;
   /* UI sizes its widgets from this:  the contents' own small type, so `em`s agree inside and outside */
@@ -634,6 +726,19 @@ ui-accordion.spell-aside::part(content) {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0 12px 40px 14px;
+}
+@media (min-width: 1101px) {
+  .spell-toc-inner {
+    max-height: calc(100vh - var(--spell-site-header-height, 0px) - 32px);
+    max-height: calc(100dvh - var(--spell-site-header-height, 0px) - 32px);
+    margin-block: 16px;
+    padding: 0 12px 14px 14px;
+    border-radius: 16px;
+    background: var(--spell-toc-fill);
+  }
+  .spell-doc-toc .spell-toc-head {
+    padding-top: 12px;
+  }
 }
 /* the contents buttons:  round, icon only, each with a tooltip (`spell-doc-runtime.js` `tool()`) */
 .spell-toc-tools {
@@ -651,7 +756,13 @@ ui-accordion.spell-aside::part(content) {
   align-items: center;
   justify-content: space-between;
   padding: 20px 0 8px;
-  background: var(--spell-bg);
+  background: var(--spell-toc-fill);
+}
+.spell-toc-head > b {
+  font: var(--spell-eyebrow-font);
+  letter-spacing: var(--spell-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--spell-muted);
 }
 
 /*
@@ -691,17 +802,17 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 .spell-toc ui-title > a {
   display: inline-block;
   padding: 2px 4px;
-  border-radius: 4px;
+  border-radius: 6px;
   color: var(--spell-ink);
   line-height: 1.3;
   text-decoration: none;
 }
 .spell-toc ui-title > a:hover {
-  background: var(--spell-accent-soft);
+  background: var(--spell-doc-accent-soft);
 }
 .spell-toc ui-title > a.active {
-  background: var(--spell-accent-soft);
-  color: var(--spell-accent);
+  background: var(--spell-doc-accent-soft);
+  color: var(--spell-doc-accent);
 }
 /* h3 titles of nested accordions read as items */
 .spell-toc ui-accordion ui-title > a {
@@ -720,20 +831,22 @@ ui-accordion.spell-toc ui-accordion::part(title) {
   margin-inline-start: var(--spell-toc-arrow);
   /* a menu is at least one padded row tall (Fomantic's `min-height`):  a one-link list would leave a gap */
   min-height: 0;
+  /* its width less the indent, so a selected item's highlight stops inside the contents card */
+  width: auto;
 }
 .spell-toc ui-item::part(item) {
   margin: 0;
   padding: 2px 4px;
-  border-radius: 4px;
+  border-radius: 6px;
   color: var(--spell-ink);
   line-height: 1.3;
 }
 .spell-toc ui-item::part(item):hover {
-  background: var(--spell-accent-soft);
+  background: var(--spell-doc-accent-soft);
 }
 .spell-toc ui-item[selected]::part(item) {
-  background: var(--spell-accent-soft);
-  color: var(--spell-accent);
+  background: var(--spell-doc-accent-soft);
+  color: var(--spell-doc-accent);
   font-weight: 600;
 }
 
@@ -850,7 +963,7 @@ ui-accordion.spell-toc ui-accordion::part(title) {
   color: var(--spell-rail-ink);
 }
 .spell-rail-item:focus-visible {
-  outline: 2px solid var(--ui-focus-color, var(--spell-accent));
+  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
   outline-offset: -2px;
 }
 .spell-rail-item[selected],
@@ -973,14 +1086,20 @@ body.spell-toc-hidden .spell-doc-main {
   .spell-toc-head {
     background: var(--spell-rail-fill);
   }
-  /* the drawer is ivory, as the rail:  its entries in the rail's ink, hover and the current entry as the rail's */
-  .spell-doc-toc .spell-toc :is(ui-title > a, ui-item::part(item)) {
+  /*
+   * the drawer is ivory, as the rail:  its entries in the rail's ink, hover and the current entry as the rail's
+   * - NEVER `::part()` inside `:is()`:  a pseudo-element there voids the whole rule (it did, until P9)
+   */
+  .spell-doc-toc .spell-toc ui-title > a,
+  .spell-doc-toc .spell-toc ui-item::part(item) {
     color: var(--spell-rail-ink);
   }
-  .spell-doc-toc .spell-toc :is(ui-title > a:hover, ui-item::part(item):hover) {
+  .spell-doc-toc .spell-toc ui-title > a:hover,
+  .spell-doc-toc .spell-toc ui-item::part(item):hover {
     background: var(--spell-rail-hover);
   }
-  .spell-doc-toc .spell-toc :is(ui-title > a.active, ui-item[selected]::part(item)) {
+  .spell-doc-toc .spell-toc ui-title > a.active,
+  .spell-doc-toc .spell-toc ui-item[selected]::part(item) {
     background: var(--spell-rail-selected);
     color: var(--spell-rail-ink);
   }
@@ -1093,6 +1212,20 @@ body.spell-toc-hidden .spell-doc-main {
 }
 .spell-doc-main ui-cards > ui-card[data-spell-wide]::part(card) {
   grid-column: 1 / -1;
+}
+/* a card's title link reads as a title (the brand's serif, its ink), the accent and an underline on hover */
+.spell-doc-main ui-card ui-header > a {
+  color: var(--spell-heading-ink);
+  text-decoration: none;
+}
+.spell-doc-main ui-card ui-header > a:is(:hover, :focus-visible) {
+  color: var(--spell-doc-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* a grid card's meta line (a page's file, a version):  mono, small, as the brand's machine-made text */
+.spell-doc-main ui-cards.spell-grid > ui-card ui-meta {
+  font: 400 0.78rem/1.5 var(--spell-mono);
 }
 .spell-doc-main ui-card h3 {
   margin: 0 0 8px;
