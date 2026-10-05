@@ -27,12 +27,12 @@ import { join, relative } from "node:path"
 
 import { chromium } from "playwright"
 
-import { DOCS, ROOT, ensurePageServer, planDocIn, serverUrl, tidy } from "./pages.js"
+import { EPICS, ROOT, ensurePageServer, planDocIn, serverUrl, tidy } from "./pages.js"
 
 const name = process.argv[2] ?? "review-review"
 const out = process.argv[3] ?? mkdtempSync(join(tmpdir(), "check-review-"))
-const file = planDocIn(join(DOCS, "epics", name), name) ?? join(DOCS, "epics", name, `${name}.plan.html`)
-const inboxFile = join(DOCS, "epics", name, `${name}.inbox.json`)
+const file = planDocIn(join(EPICS, name), name) ?? join(EPICS, name, `${name}.plan.html`)
+const inboxFile = join(EPICS, name, `${name}.inbox.json`)
 const served = ensurePageServer()
 if (!served) {
   console.error("check-review:  no page server")
@@ -54,7 +54,7 @@ if (!before) {
   process.exit(2)
 }
 if (Object.keys(before.marks).length || before.now.length || existsSync(inboxFile)) {
-  console.error(`check-review:  the inbox already has marks (${relative(DOCS, inboxFile)}):  not touching them`)
+  console.error(`check-review:  the inbox already has marks (${relative(ROOT, inboxFile)}):  not touching them`)
   process.exit(2)
 }
 // a session that died without `unlisten`, five minutes ago:  the page must treat it as nobody (I4).  Written by hand

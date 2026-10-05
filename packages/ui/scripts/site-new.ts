@@ -1,6 +1,6 @@
 /**
  * `yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]`:  write a Spell UI docs page from the
- * template, `packages/docs/content/templates/spell-ui-docs.html`.
+ * template, `templates/spell-ui-docs.html`.
  * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `site/components/<main tag>.html`, the
  *   component layout:  masthead with the family's theme picker, Examples / Usage / API / Theming tabs.  Title, summary
  *   and status come from `site/_data/pages.json` (`--title` / `--summary` override them).
@@ -25,11 +25,11 @@ import { SiteSections } from "./site-sections.ts"
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
 
-/** The template, in the docs package. */
-const TEMPLATE = path.resolve(UI, "../docs/content/templates/spell-ui-docs.html")
+/** The template, in the shared content's `templates/` (linked at the checkout's root). */
+const TEMPLATE = path.resolve(UI, "../../templates/spell-ui-docs.html")
 
-/** The template's own path prefix to the site (it lives in `packages/docs/content/templates/`). */
-const TEMPLATE_SITE = "../../../ui/site/"
+/** The template's own path prefix to the site (it lives in `templates/`). */
+const TEMPLATE_SITE = "../packages/ui/site/"
 
 /** Fomantic's docs pages, by group folder. */
 const FOMANTIC_DOCS = path.join(UI, "reference/Fomantic-UI-Docs/server/documents")

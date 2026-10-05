@@ -42,7 +42,7 @@ export type FileTransform = (source: string, context: ServedFile) => { body: str
 
 /** The file a static request resolved to. */
 export type ServedFile = {
-  /** URL path asked for, decoded, e.g. `/packages/docs/content/index.html` */
+  /** URL path asked for, decoded, e.g. `/pages/index.html` */
   path: string
   /** absolute file on disk */
   file: string

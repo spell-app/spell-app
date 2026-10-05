@@ -526,7 +526,7 @@ export class BlockScanner {
   /**
    * Does the rest of the line (from the next non-space) WHOLLY match rulex line rule `ruleName`?
    * - Only asks the rule when `LINE_GUARDS` says the line could be one:  tokenizing and parsing every line for
-   *   every rule cost 6x marked's time (`packages/docs/content/markdown/experiments/profile.mts`).  The rule still decides.
+   *   every rule cost 6x marked's time (`guides/markdown/experiments/profile.mts`).  The rule still decides.
    * - The line's tokens are kept for the next rule asked about the same line.
    */
   isLine(ruleName: string) {

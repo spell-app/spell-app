@@ -19,11 +19,14 @@ afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
 mkdirSync(MAIN)
 git(MAIN, "init", "-q", "-b", "main")
 put("package.json", JSON.stringify({ shared: { dir: "../spell-app-dev" } }))
-put(".gitignore", "/packages/docs/content\n/goals\n/agents\n/.claude/worktrees\n")
+put(".gitignore", "/epics\n/guides\n/pages\n/templates\n/brand\n/goals\n/agents\n/.claude/worktrees\n")
 git(MAIN, "add", "-A")
 commit(MAIN, "first")
-put("packages/docs/content/index.html", "<h1>Docs</h1>\n")
-put("packages/docs/content/epics/x/x.plan.html", "<h1>X</h1>\n")
+put("pages/index.html", "<h1>Docs</h1>\n")
+put("epics/x/x.plan.html", "<h1>X</h1>\n")
+put("guides/a.html", "<h1>A</h1>\n")
+put("templates/t.html", "<h1>T</h1>\n")
+put("brand/pony.html", "<h1>Pony</h1>\n")
 put("goals/index.html", "<h1>Goals</h1>\n")
 put("agents/PAPERCUTS.md", "# Papercuts\n")
 git(MAIN, "worktree", "add", "-q", "-b", "wt", WT)
@@ -31,9 +34,23 @@ git(MAIN, "worktree", "add", "-q", "-b", "wt", WT)
 const config = CLI.sharedConfig(MAIN)
 
 describe("sharedConfig()", () => {
-  test("the shared repo beside the main checkout, from any checkout;  the three default links", () => {
-    expect(config).toEqual({ main: MAIN, dir: PEER, links: ["packages/docs/content", "goals", "agents"] })
+  test("the shared repo beside the main checkout, from any checkout;  the default links", () => {
+    expect(config).toEqual({
+      main: MAIN,
+      dir: PEER,
+      links: ["epics", "guides", "pages", "templates", "brand", "goals", "agents"]
+    })
     expect(CLI.sharedConfig(WT)).toEqual(config)
+  })
+
+  test("links are the checkout's OWN manifest's:  a branch from before the reorg keeps its old content link", () => {
+    const older = join(TEMP, "older")
+    mkdirSync(older)
+    writeFileSync(
+      join(older, "package.json"),
+      JSON.stringify({ shared: { links: ["packages/docs/content", "goals", "agents"] } })
+    )
+    expect(CLI.sharedConfig(older).links).toEqual(["packages/docs/content", "goals", "agents"])
   })
 })
 
@@ -42,8 +59,8 @@ describe("before init", () => {
     const status = CLI.sharedStatus(config)
     expect(status).toMatchObject({ exists: false, isRepo: false })
     expect(status.checkouts.map(({ checkout, links }) => [checkout, links.map((link) => link.state)])).toEqual([
-      [".", ["real", "real", "real"]],
-      [".claude/worktrees/wt", ["missing", "missing", "missing"]]
+      [".", Array(7).fill("real")],
+      [".claude/worktrees/wt", Array(7).fill("missing")]
     ])
   })
 })
@@ -51,19 +68,19 @@ describe("before init", () => {
 describe("init --import, then link", () => {
   test("copies main's folders into a new repo, one commit", () => {
     expect(CLI.initShared(config, { importFrom: MAIN })).toBe("imported")
-    expect(readFileSync(join(PEER, "packages/docs/content/epics/x/x.plan.html"), "utf8")).toBe("<h1>X</h1>\n")
+    expect(readFileSync(join(PEER, "epics/x/x.plan.html"), "utf8")).toBe("<h1>X</h1>\n")
     expect(git(PEER, "log", "--format=%s")).toMatch(/^Import from spell-app [0-9a-f]+$/)
-    expect(readFileSync(join(PEER, ".gitignore"), "utf8")).toContain("packages/docs/content/details/")
+    expect(readFileSync(join(PEER, ".gitignore"), "utf8")).toContain("pages/details/")
     expect(CLI.initShared(config, { importFrom: MAIN })).toBe("exists")
   })
 
   test("main:  identical real folders become links;  the worktree:  missing ones are made", () => {
-    expect(CLI.linkCheckout(MAIN, config).map((report) => report.action)).toEqual(["replaced", "replaced", "replaced"])
-    expect(CLI.linkCheckout(WT, config).map((report) => report.action)).toEqual(["linked", "linked", "linked"])
+    expect(CLI.linkCheckout(MAIN, config).map((report) => report.action)).toEqual(Array(7).fill("replaced"))
+    expect(CLI.linkCheckout(WT, config).map((report) => report.action)).toEqual(Array(7).fill("linked"))
     expect(lstatSync(join(WT, "goals")).isSymbolicLink()).toBe(true)
     expect(readFileSync(join(WT, "goals/index.html"), "utf8")).toBe("<h1>Goals</h1>\n")
     expect(CLI.sharedStatus(config).checkouts.flatMap(({ links }) => links.map((link) => link.state))).toEqual(
-      Array(6).fill("ok")
+      Array(14).fill("ok")
     )
     expect(git(MAIN, "status", "--porcelain")).toBe("")
   })
@@ -100,7 +117,7 @@ describe("removing a linked worktree", () => {
     git(MAIN, "worktree", "remove", gone)
     expect(existsSync(gone)).toBe(false)
     expect(readFileSync(join(PEER, "goals/index.html"), "utf8")).toBe("<h1>Goals</h1>\n")
-    expect(existsSync(join(PEER, "packages/docs/content/epics/x/x.plan.html"))).toBe(true)
+    expect(existsSync(join(PEER, "epics/x/x.plan.html"))).toBe(true)
   })
 })
 

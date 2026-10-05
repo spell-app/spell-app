@@ -16,7 +16,7 @@ import { mkdtempSync, readFileSync, statSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, relative } from "node:path"
 
-import { ASSETS, DOCS, TOOLS, findPages } from "./pages.js"
+import { ASSETS, ROOT, TOOLS, findPages } from "./pages.js"
 
 const args = process.argv.slice(2)
 const skipUiBuild = args.includes("--skip-ui-build")
@@ -33,7 +33,7 @@ step("bundle @spell-app/ui", "node", [join(TOOLS, "bundle-spell-ui.js"), ...(ski
 
 step("index", "node", [join(TOOLS, "index.js")])
 
-const pages = findPages().map((path) => relative(DOCS, path))
+const pages = findPages().map((path) => relative(ROOT, path))
 if (!pages.length) fail("find pages", "no .html pages")
 console.log(`\n== pages:  ${pages.join(", ")}`)
 
@@ -45,7 +45,7 @@ if (check) {
   for (const output of pages) {
     // a Spell UI site page (the `spell-ui-docs` template) loads the site bundle, not `spell-ui.js`:
     // `yarn site:check` (packages/ui) checks those
-    if (readFileSync(join(DOCS, output), "utf8").includes("ui/site/_assets/site.js")) continue
+    if (readFileSync(join(ROOT, output), "utf8").includes("ui/site/_assets/site.js")) continue
     const outDir = join(shots, output.replace(/\.html$/, "").replaceAll("/", "--"))
     const run = step(`check ${output}`, "node", [join(TOOLS, "check-spell.js"), output, outDir], {
       capture: true,
@@ -57,7 +57,7 @@ if (check) {
 
 console.log("\n== docs:update summary")
 const bundle = join(ASSETS, "spell-ui.js")
-if (exists(bundle)) console.log(`  ${relative(DOCS, bundle)}  ${kb(bundle)}`)
+if (exists(bundle)) console.log(`  ${relative(ROOT, bundle)}  ${kb(bundle)}`)
 for (const output of pages) {
   const result = results.find((r) => r.output === output)
   const verdict = !result
@@ -65,7 +65,7 @@ for (const output of pages) {
     : result.passed
       ? "checks passed"
       : `${result.problems?.length ?? "?"} problem(s)`
-  console.log(`  ${output}  ${kb(join(DOCS, output))}  ${verdict}`)
+  console.log(`  ${output}  ${kb(join(ROOT, output))}  ${verdict}`)
   for (const problem of result?.problems ?? []) console.log(`    - ${problem}`)
   if (result) console.log(`    screenshots:  ${result.screenshots}`)
 }
@@ -80,7 +80,7 @@ if (failed.length) fail("check", `${failed.map((result) => result.output).join("
 function step(name, command, commandArgs, { capture = false, mayFail = false } = {}) {
   console.log(`\n== ${name}:  ${command} ${commandArgs.join(" ")}`)
   const run = spawnSync(command, commandArgs, {
-    cwd: DOCS,
+    cwd: ROOT,
     encoding: "utf8",
     stdio: capture ? ["inherit", "pipe", "inherit"] : "inherit"
   })

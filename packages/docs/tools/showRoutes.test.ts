@@ -19,9 +19,9 @@ let port: number
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), "show-routes-"))
   mkdirSync(join(root, ".git"))
-  mkdirSync(join(root, "packages/docs/content"), { recursive: true })
-  writeFileSync(join(root, "packages/docs/content/page.html"), "<!doctype html><title>x</title>")
-  writeFileSync(join(root, "packages/docs/content/data.json"), "{}")
+  mkdirSync(join(root, "guides"), { recursive: true })
+  writeFileSync(join(root, "guides/page.html"), "<!doctype html><title>x</title>")
+  writeFileSync(join(root, "guides/data.json"), "{}")
   process.env.SPELL_WINDOWS_DIR = join(root, "no-windows")
   server = new PageServer({ root })
   await showRoutes.setup({
@@ -54,18 +54,18 @@ test("answers 400 with no path:  how `spell dev docs link` tells the route is th
 })
 
 test("only pages that exist, served here", async () => {
-  expect((await show("/packages/docs/content/missing.html")).status).toBe(404)
-  expect((await show("/packages/docs/content/data.json")).status).toBe(400)
+  expect((await show("/guides/missing.html")).status).toBe(404)
+  expect((await show("/guides/data.json")).status).toBe(400)
   expect((await show("/packages/docs/../../etc/passwd.html")).status).toBe(403)
 })
 
 test("refuses a request another site started", async () => {
-  expect((await show("/packages/docs/content/page.html", "cross-site")).status).toBe(403)
-  expect((await show("/packages/docs/content/page.html", "same-site")).status).toBe(403)
+  expect((await show("/guides/page.html", "cross-site")).status).toBe(403)
+  expect((await show("/guides/page.html", "same-site")).status).toBe(403)
 })
 
 test("no VS Code window:  404, saying so", async () => {
-  const answer = await show("/packages/docs/content/page.html")
+  const answer = await show("/guides/page.html")
   expect(answer.status).toBe(404)
   expect(answer.text).toMatch(/no VS Code window/)
 })

@@ -5,7 +5,7 @@
 
 /**
  * One PROPERTY of the site:  a part with its own home page, switched between in the site header.
- * - `path`:  home page, relative to the repo root (`packages/docs/content/index.html`), or server-absolute (`/ui/`)
+ * - `path`:  home page, relative to the repo root (`pages/index.html`), or server-absolute (`/ui/`)
  * - `serverOnly`:  only exists when served by the page server (`/ui/` is `packages/ui/site/`, mounted there;  `/editor/` is the app)
  * - `ownTab`:  always opens in its own browser tab (`target`), never in place:  the app is a whole program, too big
  *   for VS Code's side bar, and a frame that left the page server can't step back (`liveClient.ts`)
@@ -23,18 +23,16 @@ export type SiteProperty = {
  * Every property, in header order (Owen, 2026-10-03:  Goals before Spell UI;  2026-10-04:  the Epics tab is back,
  * after a day without:  the docs index's Epics section, lit on plan docs).
  * - Docs leaves plan docs to Epics:  the first match wins
+ * - paths since the reorg (claude-design P4, 2026-10-05):  `pages/`, `guides/`, `templates/`, `epics/` at the root;
+ *   the old `packages/docs/...` ones still match, for a page an older checkout serves.  P5 reorders the tabs
  */
 export const PROPERTIES: SiteProperty[] = [
   {
     name: "Docs",
-    path: "packages/docs/content/index.html",
-    match: (path) => /\/packages\/docs\//.test(path) && !/\/packages\/docs\/content\/epics\//.test(path)
+    path: "pages/index.html",
+    match: (path) => !isEpic(path) && /\/(?:pages|guides|templates)\/|\/packages\/docs\//.test(path)
   },
-  {
-    name: "Epics",
-    path: "packages/docs/content/index.html#epics",
-    match: (path) => /\/packages\/docs\/content\/epics\//.test(path)
-  },
+  { name: "Epics", path: "pages/index.html#epics", match: isEpic },
   { name: "Goals", path: "goals/index.html", match: (path) => /\/goals\//.test(path) },
   {
     name: "Spell UI",
@@ -44,6 +42,11 @@ export const PROPERTIES: SiteProperty[] = [
   },
   { name: "App", path: "/editor/", serverOnly: true, ownTab: true, match: (path) => /^\/editor(\/|$)/.test(path) }
 ]
+
+/** Whether page path `path` is an epic's:  its plan doc or details pages, under `epics/` (or the old `content/epics/`). */
+function isEpic(path: string): boolean {
+  return /\/epics\//.test(path) && !/\/packages\/(?!docs\/)/.test(path)
+}
 
 /**
  * `localStorage` key of the chosen color scheme:  `light`, `dark`, or absent for the OS's.

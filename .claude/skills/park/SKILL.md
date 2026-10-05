@@ -37,7 +37,7 @@ name to park this session under.
      sessions' edits too.  `git status --short`;  any file this session didn't touch:  AskUserQuestion,
      multiSelect, "Which of these are this session's?" (preselect none).  Then `git stash push -u -m
      "park:<name>" -- <paths>`, its sha from `git stash list --format='%H %gs'`, and `git stash apply <sha>` in
-     the worktree after step 3 (then drop that entry).  Shared content (`packages/docs/content`, `goals`,
+     the worktree after step 3 (then drop that entry).  Shared content (`epics`, `guides`, `pages`, `goals` ...,
      `agents`:  links into `../spell-app-dev`) needs no carrying:  every checkout already sees it.
    - steps 1-3 as written, then NOT steps 4-6 yet:  the commit and note (steps 3-4 below) come first, since
      isolate's step 6 ends the turn.  No `yarn install`:  parked work doesn't run.
@@ -75,7 +75,7 @@ name to park this session under.
    ```
 
    - The note must stand on its own:  a new session reading only it, plus the diff, can carry on.
-5. Plan doc (`packages/docs/content/epics/<name>/`, shared by every checkout):  `spell dev plan-doc log <name>
+5. Plan doc (`epics/<name>/`, shared by every checkout):  `spell dev plan-doc log <name>
    "Parked at <hash>:  <one line>;  next:  <step 1>"`.  No plan doc, or no `node_modules/`:  skip.
 6. One line:  "parked `<name>` at `<hash>`;  pick it up with `/unpark <name>`, or `/wait-for <other>` to resume
    when <other> is done".

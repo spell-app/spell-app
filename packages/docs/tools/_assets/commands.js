@@ -241,8 +241,8 @@
     return /^\s*(\d+(?:\.\d+)*)\.?\s/.exec(section?.getAttribute("header") ?? "")?.[1] ?? ""
   }
 
-  /** This page's path inside `packages/docs`, for the notice's command. */
+  /** This page's path from the checkout's root (`guides/...`), for the notice's command. */
   function pagePath() {
-    return decodeURIComponent(location.pathname).replace(/^.*\/packages\/docs\//, "")
+    return decodeURIComponent(location.pathname).replace(/^.*\/(?=(?:guides|epics|templates|pages)\/)/, "")
   }
 })()
