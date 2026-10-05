@@ -439,16 +439,16 @@ describe("grammar probes", () => {
   })
 
   ////////////////
-  // ## P8 (epic phase):  exclusive lists
-  //    Against `Card` / `Deck` and a `Pile.spell` of the probe's own -- see `probeExclusive()`.
+  // ## P8, P10 (epic phases):  membership and guards
+  //    Against `Card` / `Deck` and a `Pile.spell` of the probe's own -- see `probeMembership()`.
   ////////////////
 
-  test("X1  `a pile is an exclusive list of cards`:  the class, then `the pile of a card`", () => {
-    expect(probeExclusive(["a pile is an exclusive list of cards", "a tableau is a pile"], [])).toMatchInlineSnapshot(`
+  test("X1  `a card belongs to one pile`:  the pile type, then two patches -- the family's flag, the card's pile", () => {
+    expect(probeMembership([...PILES, "a tableau is a pile"], [])).toMatchInlineSnapshot(`
       "export class Pile extends List {
         static instanceType = Card
-        static exclusive = true
       }
+      Pile.exclusive = true
       Object.defineProperty(Card.prototype, 'pile', {
         get() {
           return Pile.ownerOf(this)
@@ -462,15 +462,16 @@ describe("grammar probes", () => {
 
   test("X2  `the pile of the card` is the pile holding it -- a `Pile`, read-only", () => {
     expect(
-      probeExclusive(
-        ["a pile is an exclusive list of cards"],
-        ["add the card to the pile", "print the pile of the card", "set the pile of the card to the pile"]
-      )
+      probeMembership(PILES, [
+        "add the card to the pile",
+        "print the pile of the card",
+        "set the pile of the card to the pile"
+      ])
     ).toMatchInlineSnapshot(`
       "export class Pile extends List {
         static instanceType = Card
-        static exclusive = true
       }
+      Pile.exclusive = true
       Object.defineProperty(Card.prototype, 'pile', {
         get() {
           return Pile.ownerOf(this)
@@ -480,22 +481,22 @@ describe("grammar probes", () => {
       ---
       spellCore.append(pile, card)
       spellCore.console.log(card.pile)
-      /* PARSE ERROR: Can't set the pile of a Card:  it's the Pile holding it -- add it to a Pile instead */
-      ERROR /Probe.spell 6:0 Can't set the pile of a Card:  it's the Pile holding it -- add it to a Pile instead"
+      /* PARSE ERROR: Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead */
+      ERROR /Probe.spell 6:0 Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead"
     `)
   })
 
   test("X3  a card in the deck AND a pile:  a deck is outside the family", () => {
     expect(
-      probeExclusive(
-        ["a pile is an exclusive list of cards", "a tableau is a pile"],
+      probeMembership(
+        [...PILES, "a tableau is a pile"],
         ["the tableau is a new tableau", "add the card to the deck", "add the card to the tableau"]
       )
     ).toMatchInlineSnapshot(`
       "export class Pile extends List {
         static instanceType = Card
-        static exclusive = true
       }
+      Pile.exclusive = true
       Object.defineProperty(Card.prototype, 'pile', {
         get() {
           return Pile.ownerOf(this)
@@ -510,25 +511,26 @@ describe("grammar probes", () => {
     `)
   })
 
-  test("X4  a `pile` property set before the exclusive line:  the exclusive one replaces it", () => {
+  test("X4  a `pile` property set before the membership line:  the membership's member replaces it", () => {
     expect(
-      probeExclusive(
-        ["to stash a card in a pile: set the pile of the card to the pile", "a pile is an exclusive list of cards"],
+      probeMembership(
+        ["a pile is a list of cards", "to stash a card in a pile: set the pile of the card to the pile", PILES[1]!],
         ["print the pile of the card"]
       )
     ).toMatchInlineSnapshot(`
-      "Object.defineProperty(Card.prototype, 'pile', {
+      "Card.declareProp('pile', { type: 'Pile' })
+      Object.defineProperty(Card.prototype, 'pile', {
         get() { return this.getProp('pile') },
         set(value) { this.setProp('pile', value) },
         configurable: true
       })
+      export class Pile extends List {
+        static instanceType = Card
+      }
       Card.prototype.stash_in_$pile = function (pile) {
         this.pile = pile
       }
-      export class Pile extends List {
-        static instanceType = Card
-        static exclusive = true
-      }
+      Pile.exclusive = true
       Object.defineProperty(Card.prototype, 'pile', {
         get() {
           return Pile.ownerOf(this)
@@ -537,6 +539,145 @@ describe("grammar probes", () => {
       })
       ---
       spellCore.console.log(card.pile)"
+    `)
+  })
+
+  test("X5  `a card can belong to many piles`:  what lists do anyway -- nothing compiled, no member", () => {
+    expect(
+      probeMembership(
+        ["a pile is a list of cards", "a card can belong to many piles"],
+        ["add the card to the pile", "print the pile of the card"]
+      )
+    ).toMatchInlineSnapshot(`
+      "export class Pile extends List {
+        static instanceType = Card
+      }
+
+      ---
+      spellCore.append(pile, card)
+      spellCore.console.log(card.pile)"
+    `)
+  })
+
+  test("X6  both types MUST be declared above:  a forward mention is refused, saying what to write", () => {
+    expect(probeMembership(["a card belongs to one pile", "a pile is a list of cards"], [])).toMatchInlineSnapshot(`
+      "/* PARSE ERROR: Can't say "a card belongs to one pile" yet:  declare "a pile is a list of cards" above it */
+      export class Pile extends List {
+        static instanceType = Card
+      }
+      ---
+      ERROR /Pile.spell 1:0 Can't say "a card belongs to one pile" yet:  declare "a pile is a list of cards" above it"
+    `)
+  })
+
+  test("X7  guards:  `can take` / `can add`, `can give up` (and its other words), `can never ...`", () => {
+    expect(
+      probeMembership(
+        [
+          ...PILES,
+          "a tableau is a pile",
+          "a tableau can take a card if: it is empty",
+          "a tableau can give up a card if: the card is its last card",
+          "a foundation is a pile",
+          "a foundation can add a card if:",
+          "\tif the foundation is empty return yes",
+          "\treturn no",
+          "a foundation can never let go of a card"
+        ],
+        []
+      )
+    ).toMatchInlineSnapshot(`
+      "export class Pile extends List {
+        static instanceType = Card
+      }
+      Pile.exclusive = true
+      Object.defineProperty(Card.prototype, 'pile', {
+        get() {
+          return Pile.ownerOf(this)
+        },
+        configurable: true
+      })
+      export class Tableau extends Pile {
+        canTake(card) {
+          return spellCore.isEmpty(this)
+        }
+
+        canGiveUp(card) {
+          return (card == spellCore.getItemOf(this, -1))
+        }
+      }
+      export class Foundation extends Pile {
+        canTake(card) {
+          if (spellCore.isEmpty(this)) { return true }
+          return false
+        }
+
+        canGiveUp(card) {
+          return false
+        }
+      }
+      ---"
+    `)
+  })
+
+  test("X8  `move` asks the guards:  a statement, or a yes / no;  asking without moving", () => {
+    expect(
+      probeMembership(PILES, [
+        "move the card to the pile",
+        "set moved to move the card to the pile",
+        "if move the card to the pile then print 1",
+        "if move the card to the pile is no then print 2",
+        "if the pile can take the card then print 3",
+        "if the pile cannot give up the card then print 4",
+        "if the pile can let go of the card then print 5"
+      ])
+    ).toMatchInlineSnapshot(`
+      "export class Pile extends List {
+        static instanceType = Card
+      }
+      Pile.exclusive = true
+      Object.defineProperty(Card.prototype, 'pile', {
+        get() {
+          return Pile.ownerOf(this)
+        },
+        configurable: true
+      })
+      ---
+      spellCore.move(card, pile)
+      export let moved = spellCore.move(card, pile)
+      if (spellCore.move(card, pile)) { spellCore.console.log(1) }
+      if (spellCore.move(card, pile) == false) { spellCore.console.log(2) }
+      if (spellCore.canTake(pile, card)) { spellCore.console.log(3) }
+      if (!spellCore.canGiveUp(pile, card)) { spellCore.console.log(4) }
+      if (spellCore.canGiveUp(pile, card)) { spellCore.console.log(5) }"
+    `)
+  })
+
+  test("X9  `add`, `remove` and `empty` never ask the guards:  dealing, gathering cards back", () => {
+    expect(
+      probeMembership(
+        [...PILES, "a pile can never give up a card"],
+        ["add the card to the pile", "remove the card from the pile", "empty the pile"]
+      )
+    ).toMatchInlineSnapshot(`
+      "export class Pile extends List {
+        static instanceType = Card
+
+        canGiveUp(card) {
+          return false
+        }
+      }
+      Pile.exclusive = true
+      Object.defineProperty(Card.prototype, 'pile', {
+        get() {
+          return Pile.ownerOf(this)
+        },
+        configurable: true
+      })
+      ---
+      spellCore.append(pile, card)
+      spellCore.remove(pile, card)
+      spellCore.clear(pile)"
     `)
   })
 })
@@ -633,9 +774,9 @@ describe("datatypes", () => {
     `)
   })
 
-  test("exclusive lists (P8):  the owner member", () => {
-    const { files } = parseExclusive(
-      ["a pile is an exclusive list of cards", "a tableau is a pile"],
+  test("membership (P8, P10):  the owner member", () => {
+    const { files } = parseMembership(
+      [...PILES, "a tableau is a pile"],
       ["the tableau is a new tableau", "set d1 to the pile of the card", "get the card", "set d2 to its pile"]
     )
     const { scope } = files.at(-1)!
@@ -827,31 +968,34 @@ function probe(...lines: string[]): string {
 
 /**
  * `lines` parsed after the frozen `Card` / `Deck`, then `pileLines` as the project's `/Pile.spell`,
- * then `EXCLUSIVE_SETUP`.
- * - `pileLines` replace the fixture's `Pile.spell`, whose piles aren't exclusive.
+ * then `MEMBERSHIP_SETUP`.
+ * - `pileLines` replace the fixture's `Pile.spell`, whose cards can belong to many piles.
  */
-function parseExclusive(pileLines: string[], lines: string[]) {
+function parseMembership(pileLines: string[], lines: string[]) {
   return parseSpellProject([
     ...CARDS.filter((file) => !file.path.endsWith("Pile.spell")),
     { path: "/Pile.spell", contents: pileLines.join("\n") },
-    { path: "/Probe.spell", contents: [...EXCLUSIVE_SETUP, ...lines].join("\n") }
+    { path: "/Probe.spell", contents: [...MEMBERSHIP_SETUP, ...lines].join("\n") }
   ])
 }
 
-/** Variables the exclusive-list probes refer to, as `SETUP`'s. */
-const EXCLUSIVE_SETUP = ["the card is a new card", "the deck is a new deck", "the pile is a new pile"]
+/** `a pile is a list of cards` + `a card belongs to one pile`:  most membership probes' `Pile.spell`. */
+const PILES = ["a pile is a list of cards", "a card belongs to one pile"]
+
+/** Variables the membership probes refer to, as `SETUP`'s. */
+const MEMBERSHIP_SETUP = ["the card is a new card", "the deck is a new deck", "the pile is a new pile"]
 
 /**
- * What the exclusive-list probes compiled to, as one string -- see `parseExclusive()`:
+ * What the membership probes compiled to, as one string -- see `parseMembership()`:
  * - `/Pile.spell` (`pileLines`) as compiled, then `---`
- * - what `lines` compiled to after `EXCLUSIVE_SETUP`
+ * - what `lines` compiled to after `MEMBERSHIP_SETUP`
  * - every parse error
  */
-function probeExclusive(pileLines: string[], lines: string[]): string {
-  const { files } = parseExclusive(pileLines, lines)
+function probeMembership(pileLines: string[], lines: string[]): string {
+  const { files } = parseMembership(pileLines, lines)
   const [pile, file] = files.slice(-2)
   const declarations = (code: string) => code.split("\n").filter((line) => !DECLARATION_LINE.test(line))
-  const output = declarations(file!.compiled).slice(EXCLUSIVE_SETUP.length)
+  const output = declarations(file!.compiled).slice(MEMBERSHIP_SETUP.length)
   const errors = files.flatMap((it) => it.errors.map((error) => `ERROR ${it.path} ${error}`))
   return [...declarations(pile!.compiled), "---", ...output, ...errors].join("\n")
 }

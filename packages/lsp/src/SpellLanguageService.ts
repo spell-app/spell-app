@@ -627,9 +627,8 @@ export class SpellLanguageService {
       const bits = [`property **${words}**${type ? ` of ${type.name}` : ""}`]
       if (record?.datatype) bits.push(`a ${record.datatype}`)
       if (record?.autoDeclared) bits.push("declared where it's first set")
-      // `the pile of a card`:  from `a pile is an exclusive list of cards`, which "declared in" links to
-      if (record?.exclusive)
-        bits.push(`the ${record.datatype} holding it, read-only:  ${record.datatype}s are exclusive`)
+      // `the pile of a card`:  from `a card belongs to one pile`, which "declared in" links to
+      if (record?.exclusive) bits.push(`the ${record.datatype} holding it, read-only:  it belongs to one at a time`)
       lines.push(bits.join(" · "))
     }
     const declared = this.declarationsOf(subject)

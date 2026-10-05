@@ -1440,6 +1440,129 @@ lists.addRule(list_remove_where, {
 })
 
 ////////////////////////////////////////
+// # Moving between lists -- their guards
+////////////////////////////////////////
+
+////////////////
+// ## `list_move` rule
+//    e.g. "move the card to the tableau"
+////////////////
+
+/**
+ * `move the card to the tableau` -- moves it, if the pile it belongs to lets it go and the tableau takes it:
+ * their guards, e.g. `a tableau can take a card if: ...` (plan doc Q25).
+ * - A statement, or a yes / no -- whether it moved:  `if move the card to the tableau ...`.
+ *   Refused:  nothing changes.
+ * - Its pile:  the one it's in, if `a card belongs to one pile`.  Else only the tableau is asked.
+ * - `add`, `remove` and `clear` never ask:  dealing, gathering cards back.
+ * - `Priority.overridable`:  a project's own `to move (a card) to (a pile)` runs instead.
+ * - Compiles to `spellCore.move(card, tableau)`.
+ */
+class list_move extends SpellStatement<"thing|list"> {
+  @proto static priority = Priority.overridable
+  @proto static alias = ["statement", "expression"]
+  @proto static datatype: P.Datatype = "choice"
+  /** `move x to the pile is yes` => `spellCore.move(x, pile) == true` -- see `operandInExpressions`. */
+  @proto static operandInExpressions = true
+
+  getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
+    const { thing, list } = match.groups
+    return new P.ASTCoreMethodInvocation(match, {
+      methodName: "move",
+      args: [P.matchAST(thing), P.matchAST(list)]
+    })
+  }
+}
+lists.addRule(list_move, {
+  syntax: "move {thing:expression} to {list:expression}",
+  tests: [
+    {
+      compileAs: "statement",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("card")
+        scope.variables?.add("tableau")
+      },
+      tests: [
+        ["move card to tableau", "spellCore.move(card, tableau)"],
+        ["if move card to tableau then print 1", "if (spellCore.move(card, tableau)) { spellCore.console.log(1) }"]
+      ]
+    }
+  ]
+})
+
+////////////////
+// ## `can_take` rule
+//    e.g. "tableau can take card"
+////////////////
+
+/**
+ * `{list} can take {thing}` -- would the list take it, moved there?  Its guard says:
+ * `a tableau can take a card if: ...`.  Yes, if it has none.
+ * - `add` ~== `take`;  `can't`, `cannot` for the opposite.
+ * - Compiles to `spellCore.canTake(tableau, card)`.
+ */
+class can_take extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = Precedence.comparison
+
+  compileASTExpression(match: P.Match, { lhs, rhs }: GuardOperands): P.ASTCoreMethodInvocation {
+    return new P.ASTCoreMethodInvocation(match, { methodName: "canTake", args: [lhs!, rhs!] })
+  }
+}
+lists.addRule(can_take, {
+  syntax: "{operator:can} (add|take) {expression:operand}",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("card")
+        scope.variables?.add("tableau")
+      },
+      tests: [
+        ["tableau can take card", "spellCore.canTake(tableau, card)"],
+        ["tableau can add card", "spellCore.canTake(tableau, card)"],
+        ["tableau cannot take card", "!spellCore.canTake(tableau, card)"]
+      ]
+    }
+  ]
+})
+
+////////////////
+// ## `can_give_up` rule
+//    e.g. "stock can give up card"
+////////////////
+
+/**
+ * `{list} can give up {thing}` -- would the list give it up, moved elsewhere?  Its guard says:
+ * `a stock-pile can give up a card if: ...`.  Yes, if it has none.
+ * - `release` ~== `remove` ~== `give up` ~== `let go of`;  `can't`, `cannot` for the opposite.
+ * - Compiles to `spellCore.canGiveUp(stock, card)`.
+ */
+class can_give_up extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = Precedence.comparison
+
+  compileASTExpression(match: P.Match, { lhs, rhs }: GuardOperands): P.ASTCoreMethodInvocation {
+    return new P.ASTCoreMethodInvocation(match, { methodName: "canGiveUp", args: [lhs!, rhs!] })
+  }
+}
+lists.addRule(can_give_up, {
+  syntax: "{operator:can} (release|remove|give up|let go of) {expression:operand}",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("card")
+        scope.variables?.add("stock")
+      },
+      tests: [
+        ["stock can give up card", "spellCore.canGiveUp(stock, card)"],
+        ["stock can let go of card", "spellCore.canGiveUp(stock, card)"],
+        ["stock can't release card", "!spellCore.canGiveUp(stock, card)"]
+      ]
+    }
+  ]
+})
+
+////////////////////////////////////////
 // # Random (in-place) list manipulation
 ////////////////////////////////////////
 
@@ -1804,6 +1927,9 @@ lists.addRule(list_range_iteration, {
 
 /** What `P.ASTMethodDefinition`'s `body` prop accepts. */
 type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
+
+/** The two sides `can_take` / `can_give_up` compile, e.g. the tableau and the card. */
+type GuardOperands = { lhs?: P.ASTExpression; rhs?: P.ASTExpression }
 
 ////////////////
 // ## `where` clause helpers

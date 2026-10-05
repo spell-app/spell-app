@@ -17,7 +17,7 @@ import type { PropCheck } from "$/core/spellCore.types"
  *   change made in place.
  * - Delegates JS collection duck-typing (`itemCount`, `getKeys`, `getItem`, ...) to `spellCore`'s
  *   generic collection methods -- see `CollectionLike` in `collection-core.ts`.
- * - EXCLUSIVE lists (`static exclusive = true`, from `a pile is an exclusive list of cards`):
+ * - EXCLUSIVE lists (`exclusive`, from `a card belongs to one pile`):
  *   an item is in at most ONE list of a FAMILY (plan doc D7, D8).
  *   - a family:  the exclusive class and its sub-classes, e.g. every `Pile`, `Tableau`, `Foundation`
  *   - adding an item takes it out of the list of its family holding it;  adding one we hold moves it
@@ -25,11 +25,16 @@ import type { PropCheck } from "$/core/spellCore.types"
  *   - `Pile.ownerOf(card)` is who holds it, tracked -- what `the pile of a card` compiles to
  *   - a collection helper's result, e.g. `filter()`'s, owns nothing:  see `asScratch()`
  *   - every change to `items` goes through `writeItems()`, which keeps the owners
+ * - GUARDS:  what a list takes and gives up when something MOVES, e.g. `a tableau can take a card if: ...`
+ *   (plan doc Q23 - Q25) -- see `canTake()`, `canGiveUp()`, `moveHere()`.
+ *   - Only a move asks.  `add`, `remove` and `clear` never do:  dealing, gathering cards back.
  */
 export class List extends Observable<Record<string, unknown>, { items: unknown[] }> {
   /**
    * `true` on an exclusive list class, e.g. `Pile`:  the ROOT of its family -- see class docs.
-   * - Compiled from `a pile is an exclusive list of cards` as `static exclusive = true`;  sub-classes inherit it.
+   * - Compiled from `a card belongs to one pile` as `Pile.exclusive = true`,
+   *   just after both classes:  sub-classes inherit it, even one declared before that line.
+   * - Set it before making a list of the family:  what a list held already has no owner.
    */
   static exclusive = false
 
@@ -278,6 +283,46 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   /** SIDE EFFECT:  `item` leaves us, wherever it is -- it's joining another list of our family. */
   private release(item: unknown): void {
     this.writeItems(this.items.filter((it) => it !== item))
+  }
+
+  ////////////////
+  // ## Guards
+  ////////////////
+
+  /**
+   * Will we take `item`, moved here?  Yes -- unless a sub-class says otherwise:
+   * `a tableau can take a card if: ...` compiles to `canTake(card) {...}` in `Tableau`.
+   * - Only a move asks (`moveHere()`):  `add` never does, e.g. dealing (plan doc Q25).
+   * - Compiled spell's `the tableau can take the card` -- see `spellCore.canTake()`.
+   */
+  canTake(_item: unknown): boolean {
+    return true
+  }
+
+  /**
+   * Will we give up `item`, moved to another list of our family?  Yes -- unless a sub-class says otherwise:
+   * `a foundation can never let go of a card` compiles to `canGiveUp(card) { return false }`.
+   * - Only a move asks (`moveHere()`):  `remove` and `clear` never do,
+   *   e.g. gathering every card back to deal again (plan doc Q25).
+   * - Compiled spell's `the pile can give up the card` -- see `spellCore.canGiveUp()`.
+   */
+  canGiveUp(_item: unknown): boolean {
+    return true
+  }
+
+  /**
+   * Move `item` here, if the list holding it lets it go and we take it -- `move the card to the tableau`.
+   * - Returns whether it moved.  Refused:  nothing changes.
+   * - The list holding it:  the one of our family, if we're exclusive.  Else none is asked:  just `canTake()`.
+   * - Then added, as `add`:  its owner changes ONCE -- see `writeItems()`.
+   * - See `spellCore.move()`.
+   */
+  moveHere(item: unknown): boolean {
+    const owner = this.family?.ownerOf(item, "UNTRACKED")
+    if (owner && !owner.canGiveUp(item)) return false
+    if (!this.canTake(item)) return false
+    this.add(item)
+    return true
   }
 
   /** Convert to string by joining with comma. */

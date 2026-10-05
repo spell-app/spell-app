@@ -118,12 +118,8 @@ describe("expectedAfter()", () => {
       expect(describeAll(expected("set y to").own)).toEqual(["{value:expression}"])
     })
 
-    test("`a deck is a` => a type, or `exclusive`, or `list of`", () => {
-      expect(describeAll(expected("a deck is a").own)).toEqual([
-        "{superType:type}",
-        "(exclusive:exclusive)?",
-        "list of"
-      ])
+    test("`a deck is a` => a type", () => {
+      expect(describeAll(expected("a deck is a").own)).toEqual(["{superType:type}"])
     })
 
     test("`if c` => `then` or `:`, and operators only as continuations", () => {

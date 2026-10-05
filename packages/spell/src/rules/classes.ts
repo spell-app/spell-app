@@ -99,7 +99,7 @@ classes.addRule(create_type, {
 
 ////////////////
 // ## `create_list_type` rule
-//    e.g. "a deck is a list of cards", "a pile is an exclusive list of cards"
+//    e.g. "a deck is a list of cards"
 ////////////////
 
 /**
@@ -110,49 +110,32 @@ classes.addRule(create_type, {
  *   with its `itemType`, e.g. `Card`, so `the first card of the deck` knows it's a card.
  * - Compiles to a class declaration extending `List` with a static `instanceType`,
  *   e.g. `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
- * - `exclusive` (`a pile is an exclusive list of cards`):  a card is in at most ONE list of its FAMILY at a time --
- *   piles and every sub-type of pile.  Adding it to one takes it out of the other (plan doc D7, D8).
- *   - SIDE EFFECT:  the item type gains a READ-ONLY member naming us, `the pile of a card`:
- *     the pile holding it, or nothing.  Declared by THIS line, see `P.TypeScope.declareOwnerMember()`.
- *   - Compiles `static exclusive = true` -- the runtime `List` keeps who owns each item --
- *     then that member, patched on:
- *     `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) } ... })`.
- *   - A built-in item type, e.g. `an exclusive list of things`, gets NO member:
- *     it would go on a type every project shares.
- *   - Its list is still exclusive at runtime -- for objects:  a number or text can't be owned.
+ * - A card in at most ONE pile at a time:  `a card belongs to one pile`, below.
  */
-class create_list_type extends SpellStatement<"type|exclusive?|instanceType"> {
+class create_list_type extends SpellStatement<"type|instanceType"> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
 
-  /** SIDE EFFECT:  declares our type -- and, if `exclusive`, its owner member on the item type.  See class docs. */
+  /** SIDE EFFECT:  declares our type -- see class docs. */
   mutateScope(match: P.MatchFor<this>) {
     const { type, instanceType } = match.groups
     const itemType = SP.typeName(`${instanceType.value}`)
-    const exclusive = match.groups.exclusive ? true : undefined
     // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
     // TODO: complain if existing type is set up differently!
     // An IMPORTED one is declared again anyway, so `SP.SpellDeclarations.checkImportClashes()` can report it.
     const existing = match.scope.types?.get(type.value)
-    let declared: P.TypeScope | undefined
     if (existing && !(existing.parentScope instanceof P.ImportScope)) {
       // a stub, or left by an earlier parse of this statement -- see `P.TypeScope.sameStatement()`
       if (existing.stub || P.TypeScope.sameStatement(existing.declaredBy, match)) {
-        existing.claim(match, "list", { itemType, exclusive })
-        declared = existing
+        existing.claim(match, "list", { itemType })
       }
-    } else {
-      const props = { name: type.value, superType: "list", itemType, exclusive, declaredBy: match }
-      declared = match.scope.types?.add(props)[0]
+      return
     }
-    // `the pile of a card` -- NOT on a built-in type, which every project shares
-    if (declared && exclusive && !P.isBuiltInType(itemType)) {
-      declared.declareOwnerMember(P.TypeScope.getOrStub(match.scope, itemType, match), { declaredBy: match })
-    }
+    match.scope.types?.add({ name: type.value, superType: "list", itemType, declaredBy: match })
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
-    const { type, instanceType, exclusive } = match.groups
+    const { type, instanceType } = match.groups
     const typeAST = P.matchAST<P.ASTTypeExpression>(type)
     const members: P.ASTClassMember[] = [
       new P.ASTStaticDefinition(match, {
@@ -161,41 +144,14 @@ class create_list_type extends SpellStatement<"type|exclusive?|instanceType"> {
         value: P.matchAST<P.ASTTypeExpression>(instanceType)
       })
     ]
-    if (exclusive) {
-      const value = new P.ASTBooleanLiteral(match, true)
-      members.push(new P.ASTStaticDefinition(match, { type: typeAST, name: "exclusive", value }))
-    }
     const superType = new P.ASTTypeExpression(match, { raw: "list", name: "List" })
-    const statements: P.ASTStatement[] = [new P.ASTClassDeclaration(match, { type: typeAST, superType, members })]
-    const itemType = SP.typeName(`${instanceType.value}`)
-    if (exclusive && !P.isBuiltInType(itemType)) statements.push(create_list_type.ownerMemberAST(match, typeAST))
-    return new P.ASTStatementGroup(match, { statements })
-  }
-
-  /**
-   * Our item type's member naming us, patched on,
-   * e.g. `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) }, ... })`.
-   * - Patched, NEVER hoisted into the item type's class:  it runs AFTER that class,
-   *   and after any accessor a property declaration gave it, so ours wins -- see `P.TypeScope.declareOwnerMember()`.
-   * - Named as `declareOwnerMember()` names it, e.g. `stock_pile` for `a stock-pile`.
-   */
-  static ownerMemberAST(match: P.MatchFor<create_list_type>, typeAST: P.ASTTypeExpression): P.ASTPatchedMember {
-    const owner = new P.ASTScopedMethodInvocation(match, {
-      thing: typeAST,
-      methodName: "ownerOf",
-      args: [new P.ASTThisLiteral(match)]
-    })
-    return new P.ASTPatchedMember(match, {
-      member: new P.ASTPropertyDefinition(match, {
-        type: P.matchAST<P.ASTTypeExpression>(match.groups.instanceType),
-        property: instanceCase(typeAST.name),
-        get: new P.ASTMethodDefinition(match, { body: new P.ASTReturnStatement(match, { value: owner }) })
-      })
+    return new P.ASTStatementGroup(match, {
+      statements: [new P.ASTClassDeclaration(match, { type: typeAST, superType, members })]
     })
   }
 }
 classes.addRule(create_list_type, {
-  syntax: "create a type (named|called) {type} as (a|an) (exclusive:exclusive)? list of {instanceType:type}",
+  syntax: "create a type (named|called) {type} as (a|an) list of {instanceType:type}",
   tests: [
     {
       compileAs: "statement",
@@ -203,21 +159,6 @@ classes.addRule(create_list_type, {
         [
           "create a type named hand as a list of cards",
           ["export class Hand extends List {", "  static instanceType = Card", "}"]
-        ],
-        [
-          "create a type called hand as an exclusive list of cards",
-          [
-            "export class Hand extends List {",
-            "  static instanceType = Card",
-            "  static exclusive = true",
-            "}",
-            "Object.defineProperty(Card.prototype, 'hand', {",
-            "  get() {",
-            "    return Hand.ownerOf(this)",
-            "  },",
-            "  configurable: true",
-            "})"
-          ]
         ]
       ]
     }
@@ -225,19 +166,135 @@ classes.addRule(create_list_type, {
 })
 // TODO: "{plural_type} are a list of ..."
 classes.addRule(create_list_type, {
-  syntax: "(a|an) {type} is (a|an) (exclusive:exclusive)? list of {instanceType:type}",
+  syntax: "(a|an) {type} is (a|an) list of {instanceType:type}",
   tests: [
     {
       compileAs: "statement",
+      tests: [["a deck is a list of cards", ["export class Deck extends List {", "  static instanceType = Card", "}"]]]
+    }
+  ]
+})
+
+////////////////
+// ## `belongs_to_one` rule
+//    e.g. "a card belongs to one pile"
+////////////////
+
+/**
+ * `a card belongs to one pile` -- a card is in at most ONE pile at a time (plan doc D7, D8, Q22):
+ * - "pile" means the pile FAMILY:  `Pile` and every sub-type of it, e.g. `a tableau is a pile`.
+ *   Adding a card to one takes it out of the other.
+ * - A list outside the family, e.g. `a deck is a list of cards`, stays outside:
+ *   a card can be in the deck AND one pile.
+ * - Both types MUST be declared ABOVE, e.g. `a pile is a list of cards`:
+ *   what we compile to needs both classes.  A type only mentioned so far (a stub) is refused, as is
+ *   a list type of spell's own, e.g. `one list`:  it'd make every list hold a card once.
+ * - SIDE EFFECT:  the item type gains a READ-ONLY member naming the list type, `the pile of a card`:
+ *   the pile holding it, or nothing.  Declared by THIS line -- see `P.TypeScope.declareOwnerMember()`.
+ *   - A built-in item type, e.g. `a thing belongs to one bag`, gets NO member:
+ *     it would go on a type every project shares.  Its lists still hold each OBJECT once.
+ * - Compiles to two patches, run where we are, after both classes:
+ *   - `Pile.exclusive = true`:  the runtime `List` keeps who holds each item
+ *   - the member, `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) } ... })`
+ *   - NEVER hoisted into the classes:  the member must win over any accessor an earlier statement gave it,
+ *     e.g. `set the pile of the card to ...` above us.
+ * - `a card can belong to many piles` is the opposite:  see `can_belong_to_many`.
+ */
+class belongs_to_one extends SpellStatement<"type|list"> {
+  @proto static priority = Priority.declaration
+  @proto static alias = "statement"
+  @proto static declares: P.DeclaresSpec = { kind: "property", name: "list", of: "type" }
+
+  /** Refused unless both types are declared above, and `list` is a list type of the project's -- see class docs. */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match) return undefined
+    const { type, list } = match.groups
+    const sentence = `"${match.inputText.trim()}"`
+    for (const [word, example] of [
+      [type, `a ${type.raw} is a thing`],
+      [list, `a ${list.raw} is a list of ${pluralize(`${type.raw}`)}`]
+    ] as const) {
+      const declared = belongs_to_one.typeOf(word)
+      if (!declared || declared.stub) {
+        return SpellStatement.refuse(match, `Can't say ${sentence} yet:  declare "${example}" above it`)
+      }
+    }
+    const listType = belongs_to_one.typeOf(list)!
+    if (SP.isBuiltInTypeScope(listType)) {
+      return SpellStatement.refuse(match, `Can't say ${sentence}:  every list would hold a ${type.raw} once`)
+    }
+    if (!listType.isA("list")) {
+      return SpellStatement.refuse(match, `Can't say ${sentence}:  a ${list.raw} isn't a list`)
+    }
+    return match
+  }
+
+  /** SIDE EFFECT:  the item type's member naming the list type -- not on a built-in type.  See class docs. */
+  mutateScope(match: P.MatchFor<this>) {
+    const { type, list } = match.groups
+    const itemType = getKnownType(type)
+    if (!SP.isBuiltInTypeScope(itemType)) getKnownType(list).declareOwnerMember(itemType, match)
+  }
+
+  getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
+    const { type, list } = match.groups
+    const listAST = P.matchAST<P.ASTTypeExpression>(list)
+    const exclusive = new P.ASTStaticDefinition(match, {
+      type: listAST,
+      name: "exclusive",
+      value: new P.ASTBooleanLiteral(match, true)
+    })
+    const statements: P.ASTStatement[] = [new P.ASTPatchedMember(match, { member: exclusive })]
+    if (!P.isBuiltInType(SP.typeName(`${type.value}`))) {
+      statements.push(belongs_to_one.ownerMemberAST(match, P.matchAST<P.ASTTypeExpression>(type), listAST))
+    }
+    return new P.ASTStatementGroup(match, { statements })
+  }
+
+  /** What type word `word` names, as `parse()` looked it up -- `undefined` if nothing does yet. */
+  private static typeOf(word: P.Match): P.TypeScope | undefined {
+    const { scopeType } = word.data as { scopeType?: unknown }
+    return scopeType instanceof P.TypeScope ? scopeType : undefined
+  }
+
+  /**
+   * The item type's member naming the list type, patched on,
+   * e.g. `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) }, ... })`.
+   * - Named as `declareOwnerMember()` names it, e.g. `stock_pile` for `a stock-pile`.
+   */
+  static ownerMemberAST(
+    match: P.MatchFor<belongs_to_one>,
+    itemAST: P.ASTTypeExpression,
+    listAST: P.ASTTypeExpression
+  ): P.ASTPatchedMember {
+    const owner = new P.ASTScopedMethodInvocation(match, {
+      thing: listAST,
+      methodName: "ownerOf",
+      args: [new P.ASTThisLiteral(match)]
+    })
+    return new P.ASTPatchedMember(match, {
+      member: new P.ASTPropertyDefinition(match, {
+        type: itemAST,
+        property: instanceCase(listAST.runtimeName),
+        get: new P.ASTMethodDefinition(match, { body: new P.ASTReturnStatement(match, { value: owner }) })
+      })
+    })
+  }
+}
+classes.addRule(belongs_to_one, {
+  syntax: "(a|an) {type} belongs to one {list:type}",
+  tests: [
+    {
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        scope.parse(["a card is a thing", "a pile is a list of cards", "a bag is a list of things"].join("\n"), "block")
+      },
       tests: [
-        ["a deck is a list of cards", ["export class Deck extends List {", "  static instanceType = Card", "}"]],
         [
-          "a pile is an exclusive list of cards",
+          "a card belongs to one pile",
           [
-            "export class Pile extends List {",
-            "  static instanceType = Card",
-            "  static exclusive = true",
-            "}",
+            "Pile.exclusive = true",
             "Object.defineProperty(Card.prototype, 'pile', {",
             "  get() {",
             "    return Pile.ownerOf(this)",
@@ -247,10 +304,183 @@ classes.addRule(create_list_type, {
           ]
         ],
         {
-          title: "an exclusive list of a built-in type:  no member, it'd go on a type every project shares",
-          input: "a bag is an exclusive list of things",
-          output: ["export class Bag extends List {", "  static instanceType = Thing", "  static exclusive = true", "}"]
+          title: "a built-in item type:  no member, it'd go on a type every project shares",
+          input: "a thing belongs to one bag",
+          output: "Bag.exclusive = true"
+        },
+        {
+          title: "both types MUST be declared above",
+          input: "a card belongs to one hand",
+          output: `/* PARSE ERROR: Can't say "a card belongs to one hand" yet:  declare "a hand is a list of cards" above it */`
+        },
+        {
+          title: "the list type MUST be a list of the project's",
+          input: ["a card belongs to one list", "a card belongs to one card"],
+          output: [
+            `/* PARSE ERROR: Can't say "a card belongs to one list":  every list would hold a card once */`,
+            `/* PARSE ERROR: Can't say "a card belongs to one card":  a card isn't a list */`
+          ]
         }
+      ]
+    }
+  ]
+})
+
+////////////////
+// ## `can_belong_to_many` rule
+//    e.g. "a card can belong to many piles"
+////////////////
+
+/**
+ * `a card can belong to many piles` -- the opposite of `a card belongs to one pile`:
+ * what a list does anyway, so it compiles to nothing.  It says so for a reader (plan doc Q22).
+ */
+class can_belong_to_many extends SpellStatement<"type|list"> {
+  @proto static priority = Priority.declaration
+  @proto static alias = "statement"
+
+  getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
+    return new P.ASTStatementGroup(match, { statements: [] })
+  }
+}
+classes.addRule(can_belong_to_many, {
+  syntax: "(a|an) {type:known_type} can belong to many {list:known_type}",
+  tests: [
+    {
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        scope.parse(["a card is a thing", "a pile is a list of cards"].join("\n"), "block")
+      },
+      tests: [["a card can belong to many piles", ""]]
+    }
+  ]
+})
+
+////////////////
+// ## `list_guard` rule
+//    e.g. "a pile can take a card if: it is empty"
+////////////////
+
+/**
+ * What a list type takes, or gives up, when something MOVES (plan doc Q23 - Q25):
+ * - `a tableau can (add|take) a card if: ...`
+ * - `a stock-pile can (release|remove|give up|let go of) a card if: ...`
+ * - `a foundation can never (release|remove|give up|let go of) a card` -- always no
+ * - Its body answers yes or no:  an inline expression, or an indented block which `return`s.
+ *   `the card` is the card moving;  `it`, `its` and `the tableau` are the list.
+ * - Compiles to a method of the list type's class, overriding `List`'s yes:  `canTake(card) {...}` or
+ *   `canGiveUp(card) {...}`.  A sub-type inherits it, unless it says its own.
+ * - Only a move asks, e.g. `move the card to the tableau` -- see `list_move`.
+ *   `add`, `remove` and `clear` never do:  dealing, gathering cards back.
+ */
+class list_guard extends SpellStatement<"type|verb|item|body?|never?"> {
+  @proto static priority = Priority.declaration
+  @proto static alias = "statement"
+
+  /** The method we define, e.g. `can take a card` of `tableau` -- for editors' symbol lists. */
+  getDeclaration(match: P.MatchFor<this>): P.Declaration {
+    const { type, never, verb, item } = match.groups
+    return {
+      kind: "method",
+      name: `can ${never ? "never " : ""}${verb.raw} a ${item.raw}`,
+      nameMatch: verb,
+      of: `${type.value}`,
+      detail: `${list_guard.methodName(match)}()`
+    }
+  }
+
+  /** Nested scope for the body:  the item as its own word, e.g. `the card`, and `it` / `its` as the list. */
+  getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
+    const listType = getKnownType(match.groups.type)
+    const itemType = SP.typeName(`${match.groups.item.value}`)
+    return new P.MethodScope({
+      parentScope: match.scope,
+      thisVar: listType.instanceName,
+      mapItTo: "this",
+      itDatatype: SP.typeName(listType.name),
+      args: [new P.ScopeVariable({ name: instanceCase(itemType), datatype: itemType })],
+      declaredBy: match
+    })
+  }
+
+  getAST(match: P.MatchFor<this>): P.ASTPropertyDefinition {
+    const { type, never, item } = match.groups
+    const arg = new P.ASTVariableExpression(match, { name: instanceCase(SP.typeName(`${item.value}`)) })
+    const body = never
+      ? new P.ASTReturnStatement(match, { value: new P.ASTBooleanLiteral(match, false) })
+      : P.matchAST<MethodBody>(this.getBody(match))
+    return new P.ASTPropertyDefinition(match, {
+      type: P.matchAST<P.ASTTypeExpression>(type),
+      property: list_guard.methodName(match),
+      method: new P.ASTMethodDefinition(match, { args: [arg], body, datatype: "choice" })
+    })
+  }
+
+  /** `canTake` for `add` / `take`, else `canGiveUp` -- the `List` method we override. */
+  static methodName(match: P.MatchFor<list_guard>): "canTake" | "canGiveUp" {
+    return ["add", "take"].includes(`${match.groups.verb.value}`) ? "canTake" : "canGiveUp"
+  }
+}
+classes.addRule(list_guard, {
+  syntax: "(a|an) {type:known_type} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?",
+  tests: [
+    {
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        scope.parse(["a card is a thing", "a pile is a list of cards"].join("\n"), "block")
+      },
+      tests: [
+        [
+          "a pile can take a card if: it is empty",
+          ["Pile.prototype.canTake = function (card) {", "  return spellCore.isEmpty(this)", "}"]
+        ],
+        {
+          title: "an indented body, `the pile` and `the card`",
+          input: [
+            "a pile can add a card if:",
+            "\tif the pile is empty return yes",
+            "\treturn the card is not the last card of the pile"
+          ],
+          output: [
+            "Pile.prototype.canTake = function (card) {",
+            "  if (spellCore.isEmpty(this)) { return true }",
+            "  return (card != spellCore.getItemOf(this, -1))",
+            "}"
+          ]
+        }
+      ]
+    }
+  ]
+})
+classes.addRule(list_guard, {
+  syntax:
+    "(a|an) {type:known_type} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?",
+  tests: [
+    {
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        scope.parse(["a card is a thing", "a pile is a list of cards"].join("\n"), "block")
+      },
+      tests: [
+        [
+          "a pile can give up a card if: the card is its last card",
+          ["Pile.prototype.canGiveUp = function (card) {", "  return (card == spellCore.getItemOf(this, -1))", "}"]
+        ],
+        ["a pile can let go of a card if: yes", ["Pile.prototype.canGiveUp = function (card) {", "  return true", "}"]]
+      ]
+    }
+  ]
+})
+classes.addRule(list_guard, {
+  syntax: "(a|an) {type:known_type} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}",
+  tests: [
+    {
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        scope.parse(["a card is a thing", "a pile is a list of cards"].join("\n"), "block")
+      },
+      tests: [
+        ["a pile can never let go of a card", ["Pile.prototype.canGiveUp = function (card) {", "  return false", "}"]]
       ]
     }
   ]

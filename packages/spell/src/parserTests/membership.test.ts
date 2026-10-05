@@ -6,20 +6,19 @@ import { SP } from "$/spell"
 import { parseSpellProject } from "$/spell/test"
 
 /**
- * Exclusive lists END TO END:  spell compiled, then RUN on `core`'s source.
- * - What `a pile is an exclusive list of cards` does to a running program
- *   (plan doc D7, D8 of precedence-and-types).
+ * Membership and guards END TO END:  spell compiled, then RUN on `core`'s source.
+ * - What `a card belongs to one pile` does to a running program (plan doc D7, D8, Q22 of precedence-and-types),
+ *   and the guards `move` asks (Q23 - Q25).
  * - The runtime alone is `core`'s `src/classes/List.test.ts`;  the parse alone, `grammar.probes.test.ts` (`X1` ...).
  */
-describe("exclusive lists, compiled and run", () => {
+describe("membership, compiled and run", () => {
   const CARDS = [
     "a card is a thing",
     "cards have a name as text",
     "a deck is a list of cards",
-    "a pile is an exclusive list of cards",
-    "a tableau is a pile",
-    "to move a card to a pile",
-    "\tadd the card to the pile"
+    "a pile is a list of cards",
+    "a card belongs to one pile",
+    "a tableau is a pile"
   ]
 
   test("adding to a second pile moves the card;  the deck keeps it;  removing leaves no pile", () => {
@@ -73,6 +72,37 @@ describe("exclusive lists, compiled and run", () => {
     expect(names(stock)).toEqual(["C1", "C2", "C3"])
     expect(names(tableau)).toEqual(["C4"])
     for (const card of (stock as List).getValues()) expect((card as { pile: unknown }).pile).toBe(stock)
+  })
+
+  test("guards:  `move` asks them and answers yes or no;  `add` and `remove` never do", () => {
+    const run = runSpell([
+      ...CARDS,
+      'a tableau can take a card if: its name is "open"',
+      "a tableau can never let go of a card",
+      'the open is a new tableau with name = "open"',
+      'the shut is a new tableau with name = "shut"',
+      "the stock is a new pile",
+      "for each number from 1 to 3",
+      '\tget a new card with name = ("C" + the number)',
+      "\tadd it to the stock",
+      "set card-a to the first card of the stock",
+      "set refused to move card-a to the shut",
+      "set moved to move card-a to the open",
+      "set stuck to move card-a to the stock",
+      "set card-b to the second card of the stock",
+      "add card-b to the shut",
+      "set took to the open can take card-b",
+      "set gave to the shut can give up card-b",
+      "remove card-a from the open"
+    ])
+    const { stock, open, shut, card_a, refused, moved, stuck, took, gave } = run(
+      "stock, open, shut, card_a, refused, moved, stuck, took, gave"
+    )
+    expect([refused, moved, stuck, took, gave]).toEqual([false, true, false, true, false])
+    expect(names(stock)).toEqual(["C2"])
+    expect(names(open)).toEqual([])
+    expect(names(shut)).toEqual(["C3"])
+    expect((card_a as { pile: unknown }).pile).toBe(undefined)
   })
 })
 

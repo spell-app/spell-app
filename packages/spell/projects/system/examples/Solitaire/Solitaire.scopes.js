@@ -212,23 +212,14 @@
       ]
     },
     {
-      path: "project:Solitaire/file:Card.spell/type:Card/property:pile", line: 2,
+      path: "project:Solitaire/file:Card.spell/type:Card/property:pile", line: 4,
       detail: "Pile",
       section: "Pile of playing cards",
       uri: "spell:/@system:examples:Solitaire/Pile.spell",
-      description: "## Pile of playing cards"
+      description: "a card is in one pile at a time:  putting it on another pile takes it off this one"
     },
     {
-      path: "project:Solitaire/file:Card.spell/type:Card/method:move a card to a pile", line: [14, 16],
-      section: "Pile of playing cards",
-      uri: "spell:/@system:examples:Solitaire/Pile.spell",
-      description: "\"move\" a card:  piles are exclusive, so adding it takes it out of its old pile -- then pause a moment\nif you `wait for: move the card to the pile` the move will be animated",
-      rules: [
-        { name: "move_to_$pile", syntax: "move {thisArg:expression} to {callArgs:expression}" }
-      ]
-    },
-    {
-      path: "project:Solitaire/file:Card.spell/type:Card/method:play a card", line: [111, 138],
+      path: "project:Solitaire/file:Card.spell/type:Card/method:play a card", line: [115, 141],
       section: "actions",
       uri: "spell:/@system:examples:Solitaire/Solitaire.spell",
       rules: [
@@ -290,21 +281,21 @@
       description: "## Pile of playing cards"
     },
     {
-      path: "project:Solitaire/file:Pile.spell/type:Pile/property:color", line: [4, 6],
+      path: "project:Solitaire/file:Pile.spell/type:Pile/property:color", line: [6, 8],
       section: "Pile of playing cards"
     },
     {
-      path: "project:Solitaire/file:Pile.spell/type:Pile/property:value", line: [8, 10],
+      path: "project:Solitaire/file:Pile.spell/type:Pile/property:value", line: [10, 12],
       detail: "number",
       section: "Pile of playing cards"
     },
     {
-      path: "project:Solitaire/file:Pile.spell/type:Pile/property:state", line: [19, 23],
+      path: "project:Solitaire/file:Pile.spell/type:Pile/property:state", line: [14, 18],
       detail: "text",
       section: "Pile of playing cards"
     },
     {
-      path: "project:Solitaire/file:Pile.spell/type:Pile/property:name", line: 124,
+      path: "project:Solitaire/file:Pile.spell/type:Pile/property:name", line: 127,
       section: "actions",
       uri: "spell:/@system:examples:Solitaire/Solitaire.spell"
     },
@@ -324,12 +315,12 @@
       section: "Game bits"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Game/property:state", line: [66, 70],
+      path: "project:Solitaire/file:Solitaire.spell/type:Game/property:state", line: [68, 72],
       detail: "list",
       section: "actions"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Game/method:draw a game", line: [218, 254],
+      path: "project:Solitaire/file:Solitaire.spell/type:Game/method:draw a game", line: [221, 257],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -363,14 +354,7 @@
       description: "set up stock pile: unplayed cards"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Stock_Pile/method:can pick up a card", line: 17,
-      section: "set up all piles",
-      rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
-      ]
-    },
-    {
-      path: "project:Solitaire/file:Solitaire.spell/type:Stock_Pile/method:draw a stock-pile", line: [207, 211],
+      path: "project:Solitaire/file:Solitaire.spell/type:Stock_Pile/method:draw a stock-pile", line: [210, 214],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -388,14 +372,7 @@
       description: "set up discards: where played cards go when turning over stock"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Discard_Pile/method:can pick up a card", line: 23,
-      section: "set up all piles",
-      rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
-      ]
-    },
-    {
-      path: "project:Solitaire/file:Solitaire.spell/type:Discard_Pile/method:draw a discard-pile", line: [213, 216],
+      path: "project:Solitaire/file:Solitaire.spell/type:Discard_Pile/method:draw a discard-pile", line: [216, 219],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -413,108 +390,80 @@
       description: "set up foundation piles: where we build up from ace => king"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:can pick up a card", line: 29,
-      section: "set up all piles",
-      rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
-      ]
-    },
-    {
-      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:can play a card", line: [30, 31],
-      section: "set up all piles",
-      rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
-      ]
-    },
-    {
-      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:draw a foundation", line: [193, 200],
+      path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:draw a foundation", line: [196, 203],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/variable:it", line: 38,
+      path: "project:Solitaire/file:Solitaire.spell/variable:it", line: 40,
       detail: "Foundation",
       section: "set up all piles"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Tableau", line: 44,
+      path: "project:Solitaire/file:Solitaire.spell/type:Tableau", line: 46,
       super: "project:Solitaire/file:Pile.spell/type:Pile",
       section: "set up all piles",
       description: "set up tableau piles: vertical piles where we arrange from king to ace"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:can pick up a card", line: 45,
-      section: "set up all piles",
-      rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
-      ]
-    },
-    {
-      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:can play a card", line: [46, 49],
-      section: "set up all piles",
-      rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
-      ]
-    },
-    {
-      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:draw a tableau", line: [202, 205],
+      path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:draw a tableau", line: [205, 208],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/variable:deck", line: 57,
+      path: "project:Solitaire/file:Solitaire.spell/variable:deck", line: 59,
       detail: "Deck",
       section: "set up all piles",
       description: "set up deck of cards"
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/function:debug the game", line: [72, 74],
+      path: "project:Solitaire/file:Solitaire.spell/function:debug the game", line: [74, 76],
       section: "actions",
       rules: [
         { name: "debug_the_game", syntax: "debug the game" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/function:reset the stock pile", line: [76, 81],
+      path: "project:Solitaire/file:Solitaire.spell/function:reset the stock pile", line: [78, 83],
       section: "actions",
       rules: [
         { name: "reset_the_stock_pile", syntax: "reset the stock pile" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/function:play from the stock pile", line: [83, 90],
+      path: "project:Solitaire/file:Solitaire.spell/function:play from the stock pile", line: [85, 92],
       section: "actions",
       rules: [
         { name: "play_from_the_stock_pile", syntax: "play from the stock pile" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/function:deal the cards", line: [92, 109],
+      path: "project:Solitaire/file:Solitaire.spell/function:deal the cards", line: [94, 113],
       section: "actions",
       rules: [
         { name: "deal_the_cards", syntax: "deal the cards" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/function:auto-play", line: [143, 172],
+      path: "project:Solitaire/file:Solitaire.spell/function:auto-play", line: [146, 175],
       section: "actions",
       rules: [
         { name: "auto_play", syntax: "auto-play" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/function:reset the game", line: [174, 176],
+      path: "project:Solitaire/file:Solitaire.spell/function:reset the game", line: [177, 179],
       section: "actions",
       rules: [
         { name: "reset_the_game", syntax: "reset the game" }
       ]
     },
     {
-      path: "project:Solitaire/file:Solitaire.spell/function:cheat", line: [178, 186],
+      path: "project:Solitaire/file:Solitaire.spell/function:cheat", line: [181, 189],
       section: "actions",
       rules: [
         { name: "cheat", syntax: "cheat" }

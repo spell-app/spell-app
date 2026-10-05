@@ -58,7 +58,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   after P3 of precedence-and-types halved it):
   - Card.spell (121 lines) ~12ms, Solitaire.spell (259 lines) ~32ms, whole Solitaire project ~55ms
   - whole project ~60ms after P5 (typed calls, return types), ~59ms after P6 (members),
-    57.4ms after P8 (exclusive lists:  no change)
+    57.4ms after P8 (exclusive lists:  no change), 65.9ms after P10 (membership, guards), against 68.5ms just before it
   - compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
   - `parser.rules` rebuilds after mid-parse `addRule()`s:  35 per project parse
     (38 before P6:  no rule per enumeration), ~1ms total -- not worth optimizing
@@ -279,30 +279,54 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - Then `yarn scopes --builtins`.
 - Adding a TYPE:  its name in `P.BUILT_IN_TYPES` first, then its entry.
 
-## Exclusive lists:  `a pile is an exclusive list of cards`
+## Membership:  `a card belongs to one pile`
 
-- `create_list_type` (`classes.ts`) takes `(exclusive:exclusive)?`:
-  `a pile is an exclusive list of cards`, `create a type called hand as an exclusive list of cards`.
-  - A card is in at most ONE list of the pile FAMILY at a time:  `Pile` and its sub-types (`a tableau is a pile`).
-  - `a deck is a list of cards` is outside it (plan doc D7).
-- Scope:  `exclusive` on the type's `P.TypeScope` (journaled with it, as `claim()` is).
-  - A sub-type finds its family's root with `exclusiveRoot()`.
-  - The item type gains the read-only member naming the root, `TypeScope.declareOwnerMember()`:
-    `pile` on `Card`, `datatype` `Pile`, `exclusive: true`, `declaredBy` the pile's line.
-    - So `the pile of the card` / `its pile` resolve as any member (see "Members"),
-      and go-to-definition lands on that line.
-    - It REPLACES a `pile` another statement declared, e.g. auto-declared by an earlier `set`.
-    - NOT for a built-in item type (`an exclusive list of things`):  the root scope is shared.
-- `set the pile of the card to ...` is refused (`assignment_statement.parse()`):  add the card to a pile instead.
-- Compiles `static exclusive = true` in the class, then the member, patched on after it:
+- `belongs_to_one` (`classes.ts`):  `a card belongs to one pile` -- a card is in at most ONE list of the pile
+  FAMILY at a time:  `Pile` and its sub-types (`a tableau is a pile`).
+  - `a deck is a list of cards` is outside it (plan doc D7):  a card can be in the deck AND one pile.
+  - The list types stay plain:  `a pile is a list of cards`.
+  - `can_belong_to_many`:  `a card can belong to many piles`, the opposite -- what lists do anyway, so nothing.
+- Both types MUST be declared ABOVE it (`parse()` refuses a stub, saying what to write):
+  it compiles to code which needs both classes.  So the live examples say it in `Pile.spell`,
+  just under `a pile is a list of cards`.
+  - Refused too:  a list type of spell's own (`one list`), or a type that isn't a list.
+- Scope:  the item type gains the read-only member naming the list type, `TypeScope.declareOwnerMember()`:
+  `pile` on `Card`, `datatype` `Pile`, `exclusive: true`, `declaredBy` the membership line.
+  - So `the pile of the card` / `its pile` resolve as any member (see "Members"),
+    and go-to-definition lands on that line.
+  - It REPLACES a `pile` another statement declared, e.g. auto-declared by an earlier `set`.
+  - NOT for a built-in item type (`a thing belongs to one bag`):  the root scope is shared.
+  - Nothing on the list type's `TypeScope`:  the member is the whole record.
+- `set the pile of the card to ...` is refused (`assignment_statement.parse()`):  move the card instead.
+- Compiles to two patches, where the line is -- after both classes, NEVER hoisted into them:
+  `Pile.exclusive = true`, then
   `Object.defineProperty(Card.prototype, 'pile', { get() { return Pile.ownerOf(this) }, configurable: true })`.
-  - A `P.ASTPatchedMember`, never hoisted:  it must run after the item type's class,
-    and win over any accessor it has.
-- Declarations:  the type's statement says `exclusive: true`, and the member isn't written.
-  - Loading rebuilds it from that and `itemType` (`SpellDeclarations.loadType()`), if the item type was picked too.
-- Runtime:  `core`'s `List` keeps the owners -- see `packages/core/AGENTS.md`, "Exclusive lists".
-- Probe ledger, `X1` ... `X4` (`probeExclusive()`:  the frozen `Card` / `Deck`, a `Pile.spell` of the probe's own).
-  - Compiled and RUN:  `src/parserTests/exclusiveLists.test.ts`.
+  - `P.ASTPatchedMember`s:  the member must win over any accessor an earlier statement gave it.
+- Declarations:  the member itself, `{ property: "pile", of: "Card", datatype: "Pile", exclusive: true }`.
+  - Loading adds it as written (`SpellDeclarations.loadVariables()`):  no other record needed.
+  - Picking `Card` brings `Pile`, as any property's datatype does.
+- Runtime:  `core`'s `List` keeps the owners -- see `packages/core/AGENTS.md`, "Membership and guards".
+
+## Guards:  `a tableau can take a card if: ...`
+
+- `list_guard` (`classes.ts`) -- what a list type takes, or gives up, when something MOVES (plan doc Q23 - Q25):
+  - `a tableau can (add|take) a card if: ...`
+  - `a stock-pile can (release|remove|give up|let go of) a card if: ...`
+  - `a foundation can never (release|remove|give up|let go of) a card` -- always no
+  - its body answers yes or no, inline or indented;  `the card` is the card, `it` / `its` / `the tableau` the list
+- Compiles to a method of the list's class, hoisted into it like any member, overriding `List`'s yes:
+  `canTake(card) {...}` / `canGiveUp(card) {...}`.  A sub-type inherits it.
+  - No scope record and no declaration:  it's the class's own method, which an importer gets with it.
+- `list_move` (`lists.ts`):  `move the card to the tableau` => `spellCore.move(card, tableau)`.
+  - A statement, or a yes / no (`operandInExpressions`):  `if move the card to the tableau then ...`.
+  - Asks the list of the card's family holding it to give it up, then the target to take it;
+    refused, nothing changes.  A card that belongs to no family:  only the target is asked.
+  - `Priority.overridable`:  a project's own `to move (a card) to (a pile)` wins, e.g. the frozen Solitaire's.
+- Only `move` asks.  `add`, `remove`, `empty` never do:  dealing, gathering cards back, shuffling.
+- Asking without moving:  `can_take` / `can_give_up`, `Negatable` suffixes:
+  `the tableau can take the card` => `spellCore.canTake(tableau, card)`, `cannot give up` negates.
+- Probe ledger, `X1` ... `X9` (`probeMembership()`:  the frozen `Card` / `Deck`, a `Pile.spell` of the probe's own).
+  - Compiled and RUN:  `src/parserTests/membership.test.ts`.
 
 ## File => block => line => statement
 
@@ -378,8 +402,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     from the visible `it`'s `output`, skipping names in use -- so callbacks keep the `it` they captured
   - each new variable holds its value's `datatype` -- see "Datatypes"
   - types:  `create_type`, `create_list_type` (`classes.ts`)
-    - `create_list_type` sets `itemType` and `exclusive` too, and an exclusive list's owner member --
-      see "Exclusive lists"
+    - `create_list_type` sets `itemType` too;  `belongs_to_one` gives the item type its owner member --
+      see "Membership"
     - a type mentioned before its own line is a `stub`,
       which its real declaration later claims (`TypeScope.claim()`, journaled)
   - BEFORE a project's files parse, every type they declare is stubbed (`parser.stubDeclaredTypes()`),
@@ -490,8 +514,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
       unless a key already says, e.g. `type`.
     - a method's `params` (`[{ name: "pile", datatype: "Pile" }]`) and `returns`;
-      a list type's `itemType` and `exclusive` -- only what's known
-      - an exclusive list's owner member goes without saying:  loading rebuilds it
+      a list type's `itemType`;  an owner member's `exclusive` -- only what's known
       - loading rebuilds the `P.ScopeMethod` record;  a key an older compiler didn't write loads as unknown
   - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +
     `provides`

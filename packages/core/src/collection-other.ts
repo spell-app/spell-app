@@ -22,6 +22,16 @@ export type Range = {
 /** Iteration callback shared by `forEach`/`map`/`filter`/`all`/`any`/etc: `(value, item, collection) => ...` */
 export type CollectionIterationCallback = (value: unknown, item: string | number, collection: unknown) => unknown
 
+/** A list with guards, e.g. a `List` -- see `spellCore.move()`, `List.moveHere()`. */
+type Guarded = {
+  /** Move `thing` here, if allowed -- returns whether it moved. */
+  moveHere(thing: unknown): boolean
+  /** Would we take `thing`, moved here? */
+  canTake(thing: unknown): unknown
+  /** Would we give up `thing`, moved elsewhere? */
+  canGiveUp(thing: unknown): unknown
+}
+
 export const collectionOtherMethods = defineSpellCoreModule({
   ////////////////
   // ## composite accessors
@@ -372,6 +382,45 @@ export const collectionOtherMethods = defineSpellCoreModule({
     const itemsToRemove = spellCore.filter(collection, condition)
     if (spellCore.isArrayLike(collection)) spellCore.remove(collection, ...(itemsToRemove as unknown[]))
     else spellCore.removeItemsOf(collection, ...Object.keys(itemsToRemove as object))
+  },
+
+  ////////////////
+  // ## Moving -- a list's guards
+  ////////////////
+
+  /**
+   * Move `thing` to `collection` -- `move the card to the tableau`:  if the list holding it lets it go,
+   * and `collection` takes it.
+   * - Returns whether it moved.  Refused:  nothing changes.  See `List.moveHere()`.
+   * - A plain list has no guards:  `thing` is just added.
+   * - Compiles from `move thing to my-list`, a statement or a yes / no -- see `lists.ts`.
+   */
+  move(thing?: unknown, collection?: unknown): boolean {
+    if (!assert.isArrayLike(collection, "spellCore.move(thing, collection)")) return false
+    const guarded = collection as Partial<Guarded>
+    if (typeof guarded.moveHere === "function") return guarded.moveHere(thing)
+    spellCore.append(collection, thing)
+    return true
+  },
+
+  /**
+   * Would `collection` take `thing`, moved there?  See `List.canTake()`.  A plain list takes anything.
+   * - Compiles from `the tableau can take the card` -- see `lists.ts`.
+   */
+  canTake(collection?: unknown, thing?: unknown): boolean {
+    if (!assert.isArrayLike(collection, "spellCore.canTake(collection)")) return false
+    const guarded = collection as Partial<Guarded>
+    return typeof guarded.canTake === "function" ? !!guarded.canTake(thing) : true
+  },
+
+  /**
+   * Would `collection` give up `thing`, moved elsewhere?  See `List.canGiveUp()`.  A plain list gives up anything.
+   * - Compiles from `the pile can give up the card` -- see `lists.ts`.
+   */
+  canGiveUp(collection?: unknown, thing?: unknown): boolean {
+    if (!assert.isArrayLike(collection, "spellCore.canGiveUp(collection)")) return false
+    const guarded = collection as Partial<Guarded>
+    return typeof guarded.canGiveUp === "function" ? !!guarded.canGiveUp(thing) : true
   },
 
   ////////////////
