@@ -10,27 +10,58 @@
       "Bash(git *)",
       "Edit(//Users/owen/www/spell-app/spell-app-dev/**)"
     ],
-    "additionalDirectories": ["/Users/owen/www/spell-app/spell-app-dev"]
+    "additionalDirectories": [
+      "/Users/owen/www/spell-app/spell-app-dev"
+    ]
   },
   "hooks": {
-    "PreToolUse": [
+    "WorktreeCreate": [
       {
-        "matcher": "Edit|Write|NotebookEdit",
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/shared-path.mjs\"" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree.mjs\" create"
+          }
+        ]
       }
     ],
-    "WorktreeCreate": [
-      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree.mjs\" create" }] }
-    ],
     "WorktreeRemove": [
-      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree.mjs\" remove" }] }
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree.mjs\" remove"
+          }
+        ]
+      }
     ],
     "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/prompt-gate.mjs\"" }] }
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/prompt-gate.mjs\""
+          }
+        ]
+      }
     ],
     "Stop": [
-      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/handoff.mjs\"" }] },
-      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/shared-commit.mjs\"" }] }
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/handoff.mjs\""
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/shared-commit.mjs\""
+          }
+        ]
+      }
     ]
   }
 }
