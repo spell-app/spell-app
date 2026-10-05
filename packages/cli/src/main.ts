@@ -326,6 +326,16 @@ dev
     )
   )
 
+dev
+  .command("agents")
+  .description("the agents' rules:  check every WWOD citation and repo path in WWOD, AGENTS.md, CLAUDE.md and skills")
+  .argument("[verb]", "check (default)")
+  .argument("[files...]", "check:  more files to check, beyond the default set")
+  .option("--json", "check:  print the report as JSON")
+  .action((verb: string | undefined, files: string[], _options, command) =>
+    run(CLI.agentsCommand, [verb ?? "check", ...files], command.optsWithGlobals())
+  )
+
 await program.parseAsync()
 
 /**
