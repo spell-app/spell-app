@@ -1,5 +1,5 @@
 /*
- * Brand docs pages (`components/<tag>.html`):  Spell UI's docs format (`packages/docs/content/templates/spell-ui-docs.html`)
+ * Brand docs pages (`brand/components/<tag>.html`, shared):  Spell UI's docs format (`templates/spell-ui-docs.html`)
  * without its site shell:  the site header, a masthead, then the Examples / Usage / API / Theming tabs.
  * - Layout glue only, after Spell UI's site (`packages/ui/site/_src/site.css`, "Masthead and body"):  colours, fonts
  *   and radii come from the theme.

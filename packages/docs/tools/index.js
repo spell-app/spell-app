@@ -13,7 +13,8 @@
  *     adds the running epics' cards (`RUNNING`)
  *   - Guides:  `guides/**`
  *   - Templates:  `templates/**`, and the "Writing docs" notes (`WRITING_DOCS`, in its skeleton)
- *   - Brand:  `brand/**`
+ *   - Brand:  `brand/**` but the rich Brand index's own (`BRAND_OWN`:  Claude Design's export and its copies, the
+ *     element pages, Compare), in its section 6 (`section`:  the index's own sections hold an id `brand` already)
  * - Paths are from the checkout's root;  links from the page's own folder.
  * - Then tidies the pages like any other (`pages.js` `tidy()`:  link targets, oxfmt), so a re-run with nothing new
  *   changes nothing.
@@ -68,10 +69,15 @@ const BRAND_NOTES = `<ui-section id="files" header="Files" sticky collapsible di
 <ul>
 <li><code>brand/design-system.json</code>:  the design system's push record (<code>spell dev design pushed</code>).</li>
 <li><code>brand/README.md</code>:  what this folder holds.</li>
-<li>More brand pages arrive with P11 (Brand) of epic <code>claude-design</code>, once the <code>design-system</code>
-epic merges.</li>
 </ul>
 </ui-section>`
+
+/**
+ * Brand pages the Brand index lists by hand (claude-design P11:  moved from `packages/brand`), so not in its
+ * generated section:  Claude Design's export and its `.spell.html` copies (`brand-pages.js` `PAGES`), the element
+ * docs pages, Compare, the reference images.
+ */
+const BRAND_OWN = /^brand\/(spell-design-system|components|leonardo)\/|^brand\/compare\.html$/
 
 /**
  * The list pages, each `<area>/index.html`:  section id, title, icon (the rail's, and the home card's), which pages,
@@ -115,10 +121,11 @@ export const LISTS = [
     dir: BRAND,
     title: "Brand",
     icon: "palette",
-    has: (path) => path.startsWith("brand/"),
-    none: "No brand pages yet.",
+    has: (path) => path.startsWith("brand/") && !BRAND_OWN.test(path),
+    section: { id: "pulled", title: "6. From Claude Design" },
+    none: "No pages pulled from Claude Design yet.",
     description:
-      "Spell's brand pages:  built in Claude Design on the Spell design system, brought back with /design pull.",
+      "Spell's brand:  Claude Design's pages beside their Spell UI copies, the ui-brand-* elements, and pages pulled back from Claude Design.",
     lede: "Spell's brand pages:  built in Claude Design on the Spell design system, brought back with <code>/design pull</code>.",
     extra: BRAND_NOTES
   }
@@ -240,8 +247,9 @@ export function areaCards(pages) {
       title: "Brand",
       icon: "palette",
       href: "../brand/index.html",
-      count: plural(of("brand").length, "page"),
-      description: "Spell's brand, built in Claude Design on the Spell design system:  the pony, for now."
+      count: brandCount(pages, of("brand").length),
+      description:
+        "Spell's brand:  Claude Design's pages beside their Spell UI copies, the ui-brand-* elements, and the pony."
     },
     {
       id: "spell-ui",
@@ -305,6 +313,18 @@ ${meta ? `<ui-meta>${meta}</ui-meta>` : ""}
 </ui-content></ui-card>`
 }
 
+/**
+ * The Brand card's count:  Claude Design's pages with a Spell UI copy, the element docs pages, and the other pages
+ * (`others`:  the generated list's), e.g. `13 copies · 11 elements · 1 page`.
+ */
+function brandCount(pages, others) {
+  const copies = pages.filter((page) => /^brand\/spell-design-system\/[^/]+\.spell\.html$/.test(page.path)).length
+  const elements = pages.filter((page) => /^brand\/components\/ui-brand-[\w-]+\.html$/.test(page.path)).length
+  return [`${copies} ${copies === 1 ? "copy" : "copies"}`, plural(elements, "element"), plural(others, "page")].join(
+    " · "
+  )
+}
+
 /** `count` and `noun`, plural unless 1:  `3 guides`, `1 page`. */
 function plural(count, noun) {
   return `${count} ${noun}${count === 1 ? "" : "s"}`
@@ -366,6 +386,7 @@ ${list.extra ?? ""}
 
 /**
  * A list page's section:  a `<ui-section>` with the list's icon, and a card per page.
+ * - id and header:  `list.section`'s when it has one (Brand:  its index has sections of its own), else the list's
  * - Epics:  ALWAYS a card list (`ui-cards.spell-epics`), its first line the page server's slot for the running
  *   epics' cards (`RUNNING`):  they join the merged ones in one list;  open epics before done ones (`epicOrder()`)
  * - open, not `collapsed`:  the list IS the page
@@ -379,7 +400,8 @@ export function listSection(list, pages) {
       ? `<ui-cards class="spell-grid${epics ? " spell-epics" : ""}" stackable>\n${epics ? `${RUNNING}\n` : ""}` +
         `${cards.join("\n")}\n</ui-cards>`
       : `<p class="meta">${text(list.none)}</p>`
-  return `<ui-section id="${list.id}" header="${attr(list.title)}" sticky collapsible dividing>
+  const section = list.section ?? { id: list.id, title: list.title }
+  return `<ui-section id="${section.id}" header="${attr(section.title)}" sticky collapsible dividing>
 <ui-icon slot="icon" name="${list.icon}"></ui-icon>
 ${body}
 </ui-section>`

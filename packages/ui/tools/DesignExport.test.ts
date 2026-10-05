@@ -3,6 +3,7 @@ import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
+import { DesignBrand } from "./DesignBrand.ts"
 import { DesignColor } from "./DesignColor.ts"
 import { DesignExport } from "./DesignExport.ts"
 import { DesignTokens } from "./DesignTokens.ts"
@@ -13,11 +14,15 @@ import type { DesignExportResult, DesignTokensFile, ThemedValue } from "./tools.
 /**
  * The claude.ai design-system export (`yarn design:build`) keeps to the format's rules
  * (`artifact-type/reference/format.md` of the Design System type), and the editor manifests `yarn site:data` writes
- * are current.
+ * are current;  the brand's `<ui-brand-*>` cards come in as a "Brand" group (epic `claude-design`, P11).
  */
 
 const UI = fileURLToPath(new URL("../", import.meta.url))
 const data = JSON.parse(readFileSync(join(UI, "site/_data/components.json"), "utf8")) as SiteDataFile
+const BRAND = join(UI, "../brand")
+const brandData = JSON.parse(readFileSync(join(BRAND, "_data/components.json"), "utf8")) as SiteDataFile
+/** Spell UI's site data with the brand's merged in, as the export sees it */
+let all: SiteDataFile
 let result: DesignExportResult
 let files: Map<string, string>
 let tokens: DesignTokensFile
@@ -25,6 +30,7 @@ let tokens: DesignTokensFile
 beforeAll(() => {
   const exporter = new DesignExport({ data, git: { branch: "main", sha: "abc1234", user: "Test" }, now: new Date(0) })
   result = exporter.build()
+  all = exporter.allData
   files = new Map(result.files.map((file) => [file.path, file.text]))
   tokens = JSON.parse(files.get("tokens.json")!) as DesignTokensFile
 }, 60_000)
@@ -75,6 +81,13 @@ describe("design export:  tokens.json", () => {
     }
   })
 
+  it("names a brand role apart from the `--ui-*` token it would clash with", () => {
+    const colors = new Map(tokens.color.tokens.map((token) => [token.name, token]))
+    expect(colors.get("brand-accent")?.usage).toMatch(/^`--spell-accent`/)
+    expect(colors.get("accent")?.usage).toMatch(/^`--ui-accent`/)
+    expect(colors.has("surface-warm")).toBe(true)
+  })
+
   it("resolves the Spell theme's brand colours", () => {
     const colors = new Map(tokens.color.tokens.map((token) => [token.name, token.value]))
     expect(colors.get("violet-500")).toBe("#7b68e9")
@@ -110,7 +123,7 @@ describe("design export:  tokens.json", () => {
 
 describe("design export:  components", () => {
   it("has a card for every main tag, each with a README and a preview", () => {
-    const mains = data.components.filter((tag) => tag.main).map((tag) => tag.tag)
+    const mains = all.components.filter((tag) => tag.main).map((tag) => tag.tag)
     expect(result.families.map((family) => family.mainTag).toSorted(compare)).toEqual([...mains].toSorted(compare))
     for (const family of result.families) {
       expect(files.has(`components/${family.comp}/README.md`), family.comp).toBe(true)
@@ -143,7 +156,7 @@ describe("design export:  components", () => {
 
   it("gives every tag a Props type and a tag-map entry in index.d.ts", () => {
     const declarations = files.get("components/index.d.ts")!
-    for (const tag of data.components) {
+    for (const tag of all.components) {
       expect(declarations).toContain(`export type ${ElementManifests.pascal(tag.tag)}Props = {`)
       expect(declarations).toContain(`"${tag.tag}": HTMLElement & ${ElementManifests.pascal(tag.tag)}Props`)
     }
@@ -164,6 +177,48 @@ describe("design export:  components", () => {
     const index = JSON.parse(files.get("design-system.json")!) as Record<string, unknown>
     expect(index).toMatchObject({ v: 3, layout: "files", title: "Spell", namespace: "SpellUI", libraries: [] })
     expect(files.has("components/bundle.js")).toBe(false)
+  })
+})
+
+describe("design export:  the brand's cards", () => {
+  it("puts every brand family in a Brand group, last, with its docs page's examples", () => {
+    const brand = result.families.filter((family) => family.group === "Brand")
+    expect(brand.map((family) => family.mainTag).toSorted(compare)).toEqual(
+      brandData.components
+        .filter((tag) => tag.main)
+        .map((tag) => tag.tag)
+        .toSorted(compare)
+    )
+    expect(result.families.at(-1)!.group).toBe("Brand")
+    const logo = files.get("components/BrandLogo/preview.html")!
+    expect(logo).toContain("<ui-brand-logo")
+    expect(files.get("README.md")).toContain("### Brand")
+  })
+
+  it("reads a docs page's examples from its Examples tab, titled by their sections, without comments' styles", () => {
+    const page = `<!-- a <style> named in a comment -->
+<style>.stage { position: relative }</style>
+<ui-tabs><ui-tab value="examples" label="Examples">
+<ui-section id="a" header="Types"><ui-section id="b" header="Phone">
+<ui-docs-example description="x">
+  <ui-brand-phone></ui-brand-phone>
+</ui-docs-example>
+</ui-section></ui-section>
+</ui-tab><ui-tab value="usage" label="Usage"><ui-docs-example><b>not this</b></ui-docs-example></ui-tab></ui-tabs>`
+    const brand = new DesignBrand("/nowhere", brandData)
+    ;(brand as unknown as { pages: Map<string, string> }).pages.set("ui-brand-phone", page)
+    expect(brand.examples("ui-brand-phone")).toEqual([
+      { title: "Phone", markup: "<ui-brand-phone></ui-brand-phone>", source: "brand/components/ui-brand-phone.html" }
+    ])
+    expect(brand.style("ui-brand-phone")).toBe(".stage { position: relative }")
+  })
+
+  it("leave the brand's manifests current (else `yarn site:data` in packages/brand)", () => {
+    const manifests = new ElementManifests(brandData, BRAND, { componentsPath: "components" })
+    const [[elements], [custom]] = manifests.outputs(join(BRAND, "_data"))
+    const written = JSON.parse(readFileSync(elements!, "utf8")) as { modules: unknown[] }
+    expect(written.modules).toEqual(manifests.customElements().modules)
+    expect(readFileSync(custom!, "utf8")).toBe(JSON.stringify(manifests.htmlCustomData(), null, 2) + "\n")
   })
 })
 

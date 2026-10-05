@@ -1,5 +1,5 @@
 /*
- * Spell theme:  the Spell brand (`packages/brand/spell-design-system/`) as a `@spell-app/ui` theme, `@layer ui.theme`.
+ * Spell theme:  the Spell brand (`brand/spell-design-system/`) as a `@spell-app/ui` theme, `@layer ui.theme`.
  * - OUR OWN theme, not a Fomantic port:  `ThemeSheets.OWN`, listed apart from `ThemeSheets.names`.  Applied like
  *   one, ON TOP of `classic.css`, so every classic token a brand value replaces is restated here:  type, the size
  *   ladder, radii, ink, borders, shadows, the whole palette, the message colours, links, focus, highlight.

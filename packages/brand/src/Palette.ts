@@ -14,7 +14,7 @@ import {
 
 /****************
  * ### `Palette`
- * The brand's colour math (`spell-design-system/lib/palette.mjs`, by Claude Design), in TypeScript:  sRGB <-> OKLCH,
+ * The brand's colour math (`brand/spell-design-system/lib/palette.mjs`, by Claude Design), in TypeScript:  sRGB <-> OKLCH,
  * contrast, and 17-step LADDERS made from one seed colour.
  * - OKLCH:  Lightness (0-1), Chroma (colourfulness, 0-~0.37) and Hue (degrees), a model where equal L LOOKS equally
  *   light;  every ladder is built in it.

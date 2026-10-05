@@ -14,7 +14,7 @@
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && echo '<< TSC PASSED\n'",
     "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src components scripts && echo '<< OXLINT PASSED\n'",
     "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src components scripts && echo '<< OXLINT PASSED\n'",
-    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components scripts vite.config.ts vitest.config.ts index.html compare.html _assets/brand-pages.js _assets/brand-pages.css _assets/brand-docs.css && echo '<< OXFMT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components scripts vite.config.ts vite.design.config.ts vitest.config.ts _assets/brand-pages.js _assets/brand-pages.css _assets/brand-docs.css && echo '<< OXFMT PASSED\n'",
     "/////// TESTING": "",
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'"
   },
@@ -30,5 +30,6 @@
   "engines": {
     "node": ">=24.11"
   },
-  "packageManager": "yarn@4.18.0"
+  "packageManager": "yarn@4.18.0",
+  "customElements": "_data/custom-elements.json"
 }

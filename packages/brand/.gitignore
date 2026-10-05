@@ -3,3 +3,6 @@
 
 # Vitest browser mode's failure screenshots and attachments
 .vitest/
+
+# the design bundle's build of the elements (`vite.design.config.ts`):  read by `bundle-spell-ui.js --design`
+dist/

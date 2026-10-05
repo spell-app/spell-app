@@ -465,6 +465,32 @@ function withLocks(files, fn) {
 }
 
 ////////////////
+// ## The brand move
+////////////////
+
+/**
+ * The brand's hand-written pages, moved from `packages/brand/` into the shared `brand/` folder (epic `claude-design`,
+ * P11, 2026-10-05), as Spell UI's site pages moved into `ui/` (Q4:  pages move, code and build outputs stay tracked).
+ * - moved:  the Brand index (`index.html`, merged into P5's `brand/index.html`), `compare.html`, Claude Design's
+ *   export (`spell-design-system/`, its `.spell.html` copies included), `leonardo/`, and the element docs pages
+ *   (`components/*.html`)
+ * - stayed:  the elements' code (`components/<tag>/`), `src/`, `scripts/`, `_assets/`, `_data/`, configs
+ * - git moved them once;  `relocateLinks(text, old, new, BRAND_MOVE)` rewrote their links (and the shared pages'
+ *   links into them)
+ */
+const BRAND_PAGES =
+  /^packages\/brand\/(index\.html|compare\.html|(?:spell-design-system|leonardo)(?:\/.*)?|components\/[^/]+\.html)$/
+
+/** Where repo path `path` went in the brand move, or `undefined` when it didn't move. */
+export function brandPath(path) {
+  const m = BRAND_PAGES.exec(path.replace(/\/$/, ""))
+  return m ? `brand/${m[1]}` : undefined
+}
+
+/** The brand move, for `relocateLink()`:  nothing is settled. */
+export const BRAND_MOVE = { moved: brandPath, settled: () => false }
+
+////////////////
 // ## Repair
 ////////////////
 

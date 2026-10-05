@@ -1,5 +1,0 @@
-html { -webkit-font-smoothing: antialiased; }
-body { margin: 0; background: var(--bg-canvas); color: var(--text-body); font: var(--type-body); }
-a { color: var(--text-accent); text-decoration: none; }
-a:hover { color: var(--accent-hover); text-decoration: underline; text-underline-offset: 3px; }
-::selection { background: var(--spell-lavender); color: var(--spell-aubergine); }
