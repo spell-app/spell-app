@@ -181,6 +181,11 @@ house style every package shares.  Only what's local is below;  a section named 
   - `yarn site:sections [--check] [page...]` -- `scripts/site-sections.ts`:  nests every page's flat level 2 / 3
     headers and headed examples into `<ui-section>`s and writes (or fixes) their ids, `<tab>-<section>-<example>`;
     idempotent.  `site:index`, `site:kitchen` and `site:new` run it on what they write
+  - `yarn design:build [--out <dir>]` (`spell dev design build`) -- `tools/DesignExport.ts`:  the claude.ai design
+    system's files (epic `claude-design`) in `<dir>/project/`, default `build/design-system/` (git-ignored), from
+    `site/_data/components.json`, the element examples and the Spell theme;  `yarn site:data` first after a
+    vocabulary change.  `yarn site:data` also writes `site/_data/custom-elements.json` and `html-custom-data.json`
+    (VS Code autocomplete for `<ui-*>`, `tools/ElementManifests.ts`);  `tools/DesignExport.test.ts` fails while stale
   - `yarn site:check <page...> | --all` -- `tools/SiteCheck.ts`:  loads pages from the page server (Playwright),
     fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an empty toc, phone-width overflow,
     a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK at them

@@ -4,8 +4,9 @@
  * - The plan for them, and every command the repo has:  `packages/docs/content/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
- *   - pass-throughs (`plan-doc`, `goals`, `docs`, `details`, `server`, `window`, `vscode`):  a repo tool run with
- *     its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them directly, so they load no spell
+ *   - pass-throughs (`plan-doc`, `goals`, `docs`, `details`, `design`, `server`, `window`, `vscode`):  a repo tool
+ *     run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them directly, so they
+ *     load no spell
  *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);  run through the
  *     `runBarrel` each entry passes in
  * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
@@ -16,7 +17,8 @@ import { Command } from "commander"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT, type GlobalOptions } from "$/cli/cli.types"
-import { DOCS_VERBS } from "$/cli/dev/passThrough"
+import { DESIGN_VERBS, DOCS_VERBS } from "$/cli/dev/passThrough"
+import { designCommand } from "$/cli/commands/designCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
 import { goalsCommand } from "$/cli/commands/goalsCommand"
@@ -80,6 +82,15 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(detailsCommand, rawArgs("details")))
+
+  dev
+    .command("design")
+    .description("Spell UI's claude.ai design system:  build writes its files (packages/ui, yarn design:build)")
+    .argument("[verb]", DESIGN_VERBS.join(" | "))
+    .argument("[args...]", "the tool's arguments, e.g. build --out /tmp/ds")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(designCommand, rawArgs("design")))
 
   dev
     .command("server")
