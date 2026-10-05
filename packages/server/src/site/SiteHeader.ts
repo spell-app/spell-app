@@ -7,6 +7,7 @@ import {
   LOGO_MARK,
   PROPERTIES,
   SCHEME_KEY,
+  SITE_HOME,
   type SiteProperty
 } from "$/server/site"
 
@@ -17,9 +18,9 @@ import {
  * - In each page and template, right after `<body>`, with `root` = the path from the page to the repo root:
  *   `<spell-site-header root="../.."></spell-site-header>`.  From `file://` its links stay relative;  served by
  *   the page server they're absolute, and server-only properties (Spell UI, App) turn on.
- * - Brand:  the hat mark (`LOGO_MARK`), a link to the docs index.
+ * - Brand:  the hat mark (`LOGO_MARK`), a link to the docs home (`SITE_HOME`), which lights no tab.
  * - Also shows:
- *   - the page's place:  `Docs › Unified Server` (the property, then `document.title`)
+ *   - the page's place:  `Guides › Unified Server` (the property, then `document.title`;  the home:  its title)
  *   - the checkout serving it:  `⎇ <worktree or branch>` (served pages only)
  *   - "open in VS Code":  a `vscode://file/...` link to the page's source
  *   - edit mode (pages the page server serves):  hover a section, edit its source in place -- `<spell-section-editor>`
@@ -106,8 +107,11 @@ export class SiteHeader extends HTMLElement {
     return location.protocol.startsWith("http")
   }
 
-  /** the URL of `property`'s home, or `undefined` where it can't be reached (server-only, from `file://`) */
-  href(property: SiteProperty): string | undefined {
+  /**
+   * the URL of `property`'s home (or the site's, `SITE_HOME`), or `undefined` where it can't be reached
+   * (server-only, from `file://`)
+   */
+  href(property: Pick<SiteProperty, "path" | "serverOnly">): string | undefined {
     if (this.served) return property.path.startsWith("/") ? property.path : `/${property.path}`
     if (property.serverOnly) return undefined
     return `${this.root}/${property.path}`
@@ -158,7 +162,7 @@ export class SiteHeader extends HTMLElement {
     const themeLabel = this.themeLabel()
     shadow.innerHTML = `<style>${STYLE}</style>
 <header part="bar">
-  <a class="brand" href="${escape(this.href(PROPERTIES[0]!) ?? "#")}" title="Spell docs" aria-label="Spell docs">${LOGO_MARK}</a>
+  <a class="brand" href="${escape(this.href({ path: SITE_HOME }) ?? "#")}" title="Spell docs" aria-label="Spell docs">${LOGO_MARK}</a>
   <nav aria-label="Site">${tabs}</nav>
   <div class="crumbs">${crumbs}</div>
   ${badge}${edit}${vscode}

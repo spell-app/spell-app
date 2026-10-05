@@ -20,32 +20,58 @@ export type SiteProperty = {
 }
 
 /**
- * Every property, in header order (Owen, 2026-10-03:  Goals before Spell UI;  2026-10-04:  the Epics tab is back,
- * after a day without:  the docs index's Epics section, lit on plan docs).
- * - Docs leaves plan docs to Epics:  the first match wins
- * - paths since the reorg (claude-design P4, 2026-10-05):  `pages/`, `guides/`, `templates/`, `epics/` at the root;
- *   the old `packages/docs/...` ones still match, for a page an older checkout serves.  P5 reorders the tabs
+ * The docs home, relative to the repo root:  a routing page, a card per property (claude-design P5).  The header's
+ * Spell logo goes there;  no tab is lit on it.
+ */
+export const SITE_HOME = "pages/index.html"
+
+/**
+ * Every property, in header order (Owen, 2026-10-05, Q6 of epic `claude-design`):  Epics · Guides · Brand · Spell UI
+ * · Templates · Goals · App.  The home's cards are in the same order (`packages/docs/tools/index.js` `areaCards()`).
+ * - each docs area lights on its own pages (`docsArea()`):  a plan doc Epics, a guide Guides, a template (the plan
+ *   template under `templates/epics/` too) Templates;  the home and the scratch details pages, none
+ * - each area's list page is its tab's home (`<area>/index.html`)
  */
 export const PROPERTIES: SiteProperty[] = [
-  {
-    name: "Docs",
-    path: "pages/index.html",
-    match: (path) => !isEpic(path) && /\/(?:pages|guides|templates)\/|\/packages\/docs\//.test(path)
-  },
-  { name: "Epics", path: "pages/index.html#epics", match: isEpic },
-  { name: "Goals", path: "goals/index.html", match: (path) => /\/goals\//.test(path) },
+  { name: "Epics", path: "epics/index.html", match: (path) => docsArea(path) === "epics" },
+  { name: "Guides", path: "guides/index.html", match: (path) => docsArea(path) === "guides" },
+  { name: "Brand", path: "brand/index.html", match: (path) => docsArea(path) === "brand" },
   {
     name: "Spell UI",
     path: "/ui/",
     serverOnly: true,
     match: (path) => /^\/ui(\/|$)|\/packages\/ui\/site\//.test(path)
   },
+  { name: "Templates", path: "templates/index.html", match: (path) => docsArea(path) === "templates" },
+  { name: "Goals", path: "goals/index.html", match: (path) => docsArea(path) === "goals" },
   { name: "App", path: "/editor/", serverOnly: true, ownTab: true, match: (path) => /^\/editor(\/|$)/.test(path) }
 ]
 
-/** Whether page path `path` is an epic's:  its plan doc or details pages, under `epics/` (or the old `content/epics/`). */
-function isEpic(path: string): boolean {
-  return /\/epics\//.test(path) && !/\/packages\/(?!docs\/)/.test(path)
+/** A docs area:  a root folder of the checkout (each a link into the shared content repo) with a tab of its own. */
+export type DocsArea = "epics" | "guides" | "brand" | "templates" | "goals"
+
+/**
+ * Which docs area page path `path` (`location.pathname`:  served, or a `file://` path) is in;  `undefined` for the
+ * home (`pages/`) and anything else.
+ * - the area is the FIRST area folder in the path:  `templates/epics/plan.html` is a template, not an epic
+ * - a worktree's page served from the main checkout (`/worktrees/<w>/...`) or opened from disk
+ *   (`.claude/worktrees/<w>/...`):  from inside the worktree, so a worktree named `goals` isn't the Goals area
+ * - older checkouts' paths still land:  `packages/docs/content/<x>` (2026-10-04 .. 10-05) and `packages/docs/<x>`
+ *   (before):  `epics/` (or `plans/`) Epics, `templates/` Templates, the home and `details/` none, the rest Guides
+ * - any other package's files (`packages/ui/...`):  none
+ */
+export function docsArea(path: string): DocsArea | undefined {
+  const inside = path.replace(/^.*\/worktrees\/[^/]+(?=\/)/, "")
+  const old = /\/packages\/docs\/(?:content\/)?(.*)$/.exec(inside)
+  if (old) {
+    const first = old[1]!.split("/")[0]!
+    if (first === "epics" || first === "plans") return "epics"
+    if (first === "templates") return "templates"
+    if (!first || first === "index.html" || first === "details" || first === "tools") return undefined
+    return "guides"
+  }
+  if (/\/packages\//.test(inside)) return undefined
+  return /\/(epics|guides|brand|templates|goals)\//.exec(inside)?.[1] as DocsArea | undefined
 }
 
 /**

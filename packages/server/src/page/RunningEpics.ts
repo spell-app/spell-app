@@ -11,15 +11,15 @@ import type { SRV } from "$/server"
  * - a worktree on older code keeps its plan docs in `packages/docs/content/epics/` (before 2026-10-05) or
  *   `packages/docs/epics/` (before 2026-10-04):  found there too (`EPICS_DIRS`)
  * - Why:  each worktree has its own page server (its own port), and the main one refuses `.claude/...` (a dot
- *   path), so the docs index couldn't show an epic until it merged.
+ *   path), so the epics list couldn't show an epic until it merged.
  * - `/worktrees/<w>/...` serves worktree `<w>`'s files (`StaticHandler` mount, dot files still refused), so a plan
  *   doc's relative assets come from its own worktree.
  * - `/_server/epics`:  the list, as JSON (`RunningEpic[]`).
- * - The docs home (`pages/index.html`):  its `<!-- running-epics -->` marker, first in the Epics card
- *   list, becomes the running epics' cards, rendered on each request:  running and merged epics in ONE list, each
- *   card's title after its state (`stateMark()`).  None running:  nothing.  Opened from disk:  the marker stays a
- *   comment.
- * - Live:  a plan doc's change reloads its page and the index (`watch()`).
+ * - The Epics list page (`epics/index.html`;  the docs home until claude-design P5):  its `<!-- running-epics -->`
+ *   marker, first in the Epics card list, becomes the running epics' cards, rendered on each request:  running and
+ *   merged epics in ONE list, each card's title after its state (`stateMark()`).  None running:  nothing.  Opened
+ *   from disk:  the marker stays a comment.
+ * - Live:  a plan doc's change reloads its page and the list page (`watch()`).
  * - Which docs:  `<name>` === `<w>` (the epic the worktree is for), or any `<name>` the main checkout lacks.  The
  *   rest are stale copies of epics merged before the worktree was cut.
  * - NOTE:  edit mode on a worktree's page isn't offered through here:  `PageEditor` refuses dot paths too.  Its
@@ -32,7 +32,7 @@ export class RunningEpics {
   /** `<root>/.claude/worktrees` */
   readonly worktrees: string
 
-  /** the docs index, whose marker becomes the list */
+  /** the Epics list page, `epics/index.html`, whose marker becomes the list (`spell dev docs index` writes it) */
   readonly index: string
 
   /** the watcher `watch()` started, closed by `close()` */
@@ -41,7 +41,7 @@ export class RunningEpics {
   constructor(root: string) {
     this.root = root
     this.worktrees = join(root, ".claude", "worktrees")
-    this.index = join(root, "pages", "index.html")
+    this.index = join(root, "epics", "index.html")
   }
 
   /**
@@ -76,7 +76,7 @@ export class RunningEpics {
   }
 
   /**
-   * Serve the worktrees, the JSON list, and the list in the docs index, on `web`.
+   * Serve the worktrees, the JSON list, and the list on the Epics page, on `web`.
    * - SIDE EFFECT:  adds a mount, a route and an html hook to `web`
    */
   route(web: SRV.WebServer): this {
@@ -87,7 +87,7 @@ export class RunningEpics {
   }
 
   /**
-   * Reload pages when a worktree's plan doc changes:  that doc's own page, and the docs index (its list).
+   * Reload pages when a worktree's plan doc changes:  that doc's own page, and the Epics page (its list).
    * - SIDE EFFECT:  one recursive `fs.watch` on `.claude/worktrees`, if it exists;  `close()` ends it
    */
   watch(live: SRV.LiveReload): this {
@@ -112,7 +112,7 @@ export class RunningEpics {
   }
 
   /**
-   * `page` (the docs index) with the running epics' cards at its `<!-- running-epics -->` marker:  first in the
+   * `page` (the Epics list page) with the running epics' cards at its `<!-- running-epics -->` marker:  first in the
    * Epics list (`spell dev docs index` puts the marker there);  none running, or no marker:  as is.
    * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one
    * - SAME card markup as `packages/docs/tools/index.js` `epicCard()`:  change both
@@ -161,7 +161,7 @@ export type RunningEpic = {
   updated?: string
 }
 
-/** The marker in the docs index that becomes the "Running epics" section. */
+/** The marker on the Epics list page that becomes the running epics' cards. */
 export const MARKER = "<!-- running-epics -->"
 
 /**
