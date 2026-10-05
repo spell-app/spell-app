@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../../tools/_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../../tools/_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T19:14:44-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
+  <body data-recent-since="2026-10-04T19:35:16-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
     <spell-site-header root="../../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Epic: Review Review</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle right" href="#p7" title="Next:  P7 · Bedtime And Isolate"
+              ><ui-label basic color="orange" icon="circle half stroke" href="#p7" title="P7 · Bedtime And Isolate"
                 >P7</ui-label
               ></span
             >
@@ -842,9 +842,9 @@
                 ><b>Verify:</b> Tests of every package touched; <code>yarn docs:update</code>; an old address redirects;
                 running epics still found</ui-item
               ><ui-item icon="list check" class="plan-to-review"
-                ><b>To review:</b> <a href="#q7">Q7</a>, <a href="#j19">J19</a>, <a href="#j20">J20</a>,
-                <a href="#j21">J21</a>, <a href="#c5">C5</a>, <a href="#c6">C6</a>, <a href="#t1">T1</a>,
-                <a href="#v8">V8</a>, <a href="#v9">V9</a></ui-item
+                ><b>To review:</b> <a href="#j19">J19</a>, <a href="#j20">J20</a>, <a href="#j21">J21</a>,
+                <a href="#c5">C5</a>, <a href="#c6">C6</a>, <a href="#t1">T1</a>, <a href="#v8">V8</a>,
+                <a href="#v9">V9</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -1036,13 +1036,13 @@
             badge="1h"
             id="p7"
             data-phase="7"
-            data-status="todo"
+            data-status="active"
             header="P7 · Bedtime And Isolate"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -1069,7 +1069,10 @@
                 <a href="../../../tools/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
                   ><code>plan-doc.js</code></a
                 >, <code>epics.py</code>, <code>/wtf</code> and <code>/epics</code></ui-item
-              ><ui-item icon="flask"><b>Verify:</b> Skills read end to end; plan-doc tests</ui-item></ui-list
+              ><ui-item icon="flask"><b>Verify:</b> Skills read end to end; plan-doc tests</ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#q17">Q17</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -1181,57 +1184,489 @@
           <ui-list class="plan-items" data-kind="decision" divided relaxed
             ><ui-item
               data-state="attention"
-              data-changed="2026-10-04T14:18:06-04:00"
-              id="q7"
+              data-changed="2026-10-04T21:31:47-04:00"
+              id="q17"
               data-status="open"
-              data-phase="4"
+              data-phase="7"
               ><ui-accordion class="plan-item"
                 ><ui-title
-                  ><a class="plan-id" href="#q7">Q7</a>
-                  <span class="plan-title"
-                    >Should a reload land on the remembered section without unfolding it?</span
-                  > </ui-title
+                  ><a class="plan-id" href="#q17">Q17</a>
+                  <span class="plan-title">/epics is broken: port epics.py now, in P7?</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="7">UPDATE</ui-label></ui-title
                 ><ui-content
                   ><p>
-                    When you reload a plan doc (or VS Code restarts), the page goes back to the section you were
-                    reading: the address holds it, e.g. <code>#p3</code>. Today it scrolls there but leaves the section
-                    folded, as you left it (J9).
+                    <code>/epics</code> fails at once: <code>epics.py</code> imports <code>worktrees.py</code>, which
+                    the <code>commands</code> epic ported to <code>spell dev stock</code> and deleted (<a
+                      href="../../../../../agents/PAPERCUTS.md"
+                      target="src-agents-papercuts-md"
+                      ><code>agents/PAPERCUTS.md</code></a
+                    >, 2026-10-04). P7 has to edit <code>epics.py</code> anyway (its "overnight report" column goes).
                   </p>
                   <ul>
                     <li>
-                      Example: you were reading P3's Goal, folded P3, scrolled on to Questions, and reloaded. The
-                      address says <code>#decisions</code>, so you land on Questions; P3 stays folded.
+                      The commands page already names the target: <code>spell dev plan-doc list [--all] [--json]</code>,
+                      ported from <code>epics.py</code>, with <code>/epics</code> calling it.
                     </li>
                     <li>
-                      The catch: the address follows whatever is at the top of the screen, so after a fold it may name a
-                      section you only scrolled past.
+                      The pieces exist: <code>spell dev stock --json</code> (worktrees, sessions),
+                      <code>yarn plan-doc list --json</code> (status per epic), <code>plan-doc summaries</code> (open
+                      items).
                     </li>
+                    <li>Example of today's by-hand run: three commands and a script gluing them, about 10 minutes.</li>
                   </ul>
-                  <ui-grid class="spell-pros-cons" columns="2" stackable>
-                    <ui-column
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
                       ><ui-segment
-                        ><ui-label attached="top">A · Land without unfolding (recommended)</ui-label>
+                        ><ui-label attached="top">A · Port it in P7 (recommended)</ui-label>
                         <ul>
-                          <li>Your folds stay exactly as you left them.</li>
-                          <li>If the remembered section is folded, you see its title at the top.</li>
+                          <li><code>/epics</code> works again; the python goes. Adds about 1h to P7.</li>
                         </ul></ui-segment
                       ></ui-column
-                    >
-                    <ui-column
+                    ><ui-column
                       ><ui-segment
-                        ><ui-label attached="top">B · Land and unfold it</ui-label>
+                        ><ui-label attached="top">B · Leave it</ui-label>
                         <ul>
-                          <li>You always see the content you were reading.</li>
-                          <li>But a reload can open a section you had folded on purpose.</li>
+                          <li>P7 only fixes its text; <code>/epics</code> stays broken until someone ports it.</li>
                         </ul></ui-segment
                       ></ui-column
-                    >
-                  </ui-grid>
-                  <p><b>Net effect (A):</b></p>
+                    ></ui-grid
+                  >
+                  <p><b>Net effect</b></p>
                   <ul>
-                    <li>no change: a reload keeps your folds</li>
-                  </ul></ui-content
-                ></ui-accordion
+                    <li>Whether <code>/epics</code> works when P7 is done.</li>
+                  </ul>
+                  <div class="plan-reply">
+                    <p>
+                      <b>Reply (2026-10-04):</b> you asked to rethink how /epics works rather than port
+                      <code>epics.py</code> line for line. Five things list epics today, each with part of the picture:
+                    </p>
+                    <ui-table celled compact striped unstackable
+                      ><table>
+                        <thead>
+                          <tr>
+                            <th>What</th>
+                            <th>Where it lives</th>
+                            <th>What it knows</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><code>yarn plan-doc list</code></td>
+                            <td>docs tools</td>
+                            <td>each epic's status, items not reviewed / all</td>
+                          </tr>
+                          <tr>
+                            <td><code>spell dev stock</code> (/worktrees)</td>
+                            <td>CLI</td>
+                            <td>worktrees, commits, sessions and their state, parked work</td>
+                          </tr>
+                          <tr>
+                            <td>the docs index's Epics cards</td>
+                            <td>page server (<code>RunningEpics</code>)</td>
+                            <td>which epics run in a worktree, live</td>
+                          </tr>
+                          <tr>
+                            <td><code>epics.py</code> (/epics)</td>
+                            <td>python, broken</td>
+                            <td>the three above glued together, plus open items per kind</td>
+                          </tr>
+                          <tr>
+                            <td>T1, not built</td>
+                            <td>Review tab start page</td>
+                            <td>open epics with their counts, to pick one to review</td>
+                          </tr>
+                        </tbody>
+                      </table></ui-table
+                    >
+                    <p>
+                      The overlap is the problem: three copies of "find the epics" logic, and T1 would add a fourth.
+                    </p>
+                    <ui-grid class="spell-pros-cons" columns="3" stackable
+                      ><ui-column
+                        ><ui-segment
+                          ><ui-label attached="top">A · One list in plan-doc, two views (recommended)</ui-label>
+                          <ul>
+                            <li>
+                              <code>yarn plan-doc list</code> gains phase, waiting counts, worktree commits and session
+                              (it may import the CLI's session code: <code>docs</code> can import anything).
+                            </li>
+                            <li>/epics prints it as the table you saw today.</li>
+                            <li>
+                              T1's Review start page reads the same list through a route later, so the chat table and
+                              the page always agree.
+                            </li>
+                            <li>
+                              Matches the commands page's target (<code>spell dev plan-doc list</code>); the python
+                              goes.
+                            </li>
+                          </ul></ui-segment
+                        ></ui-column
+                      ><ui-column
+                        ><ui-segment
+                          ><ui-label attached="top">B · /epics becomes a /worktrees view</ui-label>
+                          <ul>
+                            <li>
+                              <code>spell dev stock --epics</code>: stock already joins worktrees, sessions and plans;
+                              it adds phases and counts by running plan-doc.
+                            </li>
+                            <li>/epics and /worktrees share one report. T1 would still need its own list.</li>
+                          </ul></ui-segment
+                        ></ui-column
+                      ><ui-column
+                        ><ui-segment
+                          ><ui-label attached="top">C · /epics opens a page</ui-label>
+                          <ul>
+                            <li>Build T1 now: /epics just shows the Review tab's start page, live, with links.</li>
+                            <li>Most like how you review, but the biggest job (about 3h), and no answer in chat.</li>
+                          </ul></ui-segment
+                        ></ui-column
+                      ></ui-grid
+                    >
+                    <p><b>Net effect</b></p>
+                    <ul>
+                      <li>
+                        A: one source for every epic list; /epics works again in P7 (about 1h); T1 later costs only its
+                        page.
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="plan-reply">
+                    <div class="plan-reply-title">
+                      <b>Claude</b> · <time>2026-10-04 20:49</time> · re: "A · Port it in P7. Maybe maintain
+                      <code>epic.state.json5</code> for each epic, which just lists overall status, waiting for input,
+                      questions: { open: 6, total: 8 }, etc? Would make the <code>/epics</code> command much faster"
+                    </div>
+                    <p>
+                      A state file per epic would work, but I timed every piece and it isn't where
+                      <code>/epics</code> spends its time: reading all 20 plan docs takes about half a second. Most of
+                      the time goes on starting programs (about 1 second for each <code>yarn</code> command) and on
+                      reading the live sessions' transcripts. So porting <code>epics.py</code> into one command (option
+                      A) is what makes <code>/epics</code> fast. A state file would save another 0.3 seconds or so.
+                    </p>
+
+                    <p>
+                      <b>What each piece costs</b> (timed on this machine just now, 20 epics, 7 worktrees, 8 live
+                      sessions):
+                    </p>
+                    <ui-table celled compact striped unstackable
+                      ><table>
+                        <thead>
+                          <tr>
+                            <th>Command</th>
+                            <th>What it does</th>
+                            <th>Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><code>yarn plan-doc</code> (no command)</td>
+                            <td>only starts yarn and node and loads the tool, then prints its usage</td>
+                            <td>1.05 s</td>
+                          </tr>
+                          <tr>
+                            <td><code>yarn plan-doc summary review-review --json</code></td>
+                            <td>reads one plan doc (268 KB)</td>
+                            <td>1.12 s</td>
+                          </tr>
+                          <tr>
+                            <td><code>yarn plan-doc summaries</code> + all 20 plan docs</td>
+                            <td>reads every plan doc</td>
+                            <td>1.22 s</td>
+                          </tr>
+                          <tr>
+                            <td><code>yarn plan-doc list --json</code></td>
+                            <td>every plan doc, plus a git call for each</td>
+                            <td>1.49-1.57 s</td>
+                          </tr>
+                          <tr>
+                            <td><code>spell --help</code></td>
+                            <td>only starts the <code>spell</code> CLI</td>
+                            <td>0.65 s</td>
+                          </tr>
+                          <tr>
+                            <td><code>spell dev session list --json</code></td>
+                            <td>the sessions, read from their transcripts</td>
+                            <td>1.31 s</td>
+                          </tr>
+                          <tr>
+                            <td><code>spell dev stock --json</code></td>
+                            <td>worktrees, branches, sessions, parked work (git calls for each worktree)</td>
+                            <td>2.04-2.54 s</td>
+                          </tr>
+                          <tr>
+                            <td><code>yarn docs:link</code> for one plan doc</td>
+                            <td>the side bar and browser links for one epic</td>
+                            <td>1.09 s each</td>
+                          </tr>
+                        </tbody>
+                      </table></ui-table
+                    >
+                    <ul>
+                      <li>
+                        Reading the plan docs: one doc takes 1.12 s and all 20 take 1.22 s, so the reading itself costs
+                        about 0.2 to 0.5 seconds. The other second is startup, which happens whether a doc or a state
+                        file is read.
+                      </li>
+                      <li>
+                        <code>spell dev stock</code> is the slowest part. It reads every live session's whole transcript
+                        (they run up to 39 MB here: <code>summarizeSession()</code> in
+                        <a href="../../../../cli/src/dev/sessions.ts" target="src-packages-cli-src-dev-sessions-ts"
+                          ><code>packages/cli/src/dev/sessions.ts</code></a
+                        >). The git calls themselves are quick: <code>git status</code> in a worktree takes 0.03 s and
+                        <code>git cherry</code> 0.01 s.
+                      </li>
+                      <li>
+                        Today's <code>/epics</code> by hand runs about 4 commands plus one <code>docs:link</code> per
+                        epic: about 9 seconds of commands for 4 open epics. Claude's own turns (reading the output,
+                        building the table) add most of the 10 minutes you saw.
+                      </li>
+                      <li>
+                        Ported as one command (option A), the same work is one startup (0.7 s), the plan docs (about 0.4
+                        s), the sessions and git (about 1.5 s), and the links built inside the command instead of one
+                        <code>docs:link</code> each: <b>about 2.5 to 3 seconds in all</b>. With a state file, about 0.3
+                        s less.
+                      </li>
+                    </ul>
+
+                    <p><b>What a state file could hold, and what it can't</b></p>
+                    <ul>
+                      <li>
+                        It can hold anything that comes from the plan doc itself: the title, the phases, and the count
+                        of open and total items of each kind. For this epic it would read:
+                        <ui-accordion class="spell-code" styled
+                          ><ui-title>review-review.state.json · 15 lines</ui-title
+                          ><ui-content>
+                            <pre><code class="language-json">{
+  "doc": "sha1:3f9c…",
+  "title": "Review Review",
+  "phases": { "done": 6, "total": 10, "active": "P7 · Bedtime And Isolate", "next": "P8 · Rewrite The Rest" },
+  "items": {
+    "question": { "open": 1, "total": 17 },
+    "judgement": { "open": 21, "total": 37 },
+    "issue": { "open": 3, "total": 6 },
+    "caveat": { "open": 7, "total": 7 },
+    "todo": { "open": 1, "total": 2 },
+    "test": { "open": 13, "total": 13 }
+  },
+  "notReviewed": 44
+}</code></pre>
+                          </ui-content></ui-accordion
+                        >
+                      </li>
+                      <li>
+                        It can't hold the things that change without the plan doc changing. <code>/epics</code> still
+                        has to look these up each time:
+                        <ul>
+                          <li>
+                            the session working on the epic and whether it's busy or <b>waiting for your input</b>:
+                            that's live, in Claude Code's own session files
+                          </li>
+                          <li>
+                            the commits on the epic's branch that aren't in <code>main</code> yet, and the uncommitted
+                            files (git)
+                          </li>
+                          <li>
+                            the marks you left on the page and not sent yet, and whether a review session is listening:
+                            those are in the inbox file, <code>&lt;name&gt;.inbox.json</code>
+                          </li>
+                        </ul>
+                        So "waiting for input" in your list would come from the session, not from the state file.
+                      </li>
+                    </ul>
+
+                    <p><b>Keeping it true</b></p>
+                    <ul>
+                      <li>
+                        Every structured edit goes through one function, <code>edit()</code> in
+                        <a href="../../../tools/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                          ><code>plan-doc.js</code></a
+                        >: <code>add</code>, <code>decide</code>, <code>phase</code>, <code>close</code>,
+                        <code>details</code>, <code>inbox apply</code> and the rest. It already reads the whole doc, so
+                        writing the state file there costs almost nothing (<code>PlanDoc.summary()</code> already has
+                        the numbers).
+                      </li>
+                      <li>
+                        But several things change a plan doc without going through <code>edit()</code>:
+                        <ul>
+                          <li>
+                            Claude editing the prose by hand (the Rules allow it for the summary, Overview and item
+                            details)
+                          </li>
+                          <li>
+                            the page's edit mode (the page server's <code>PageEditor</code> writes the file directly)
+                          </li>
+                          <li>
+                            a git merge, pull or checkout: e.g. merging <code>main</code> into a worktree brings in its
+                            copy
+                          </li>
+                          <li>
+                            <code>yarn docs:update</code> (link targets, formatting) and one-off scripts like the
+                            renames
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        So the state file has to carry a fingerprint of the doc (<code>"doc": "sha1:…"</code> above).
+                        Whoever reads it hashes the doc first (about 1 ms for 268 KB) and, if the fingerprint differs,
+                        reads the doc again and rewrites the file. Then it's a cache: <code>edit()</code> keeps it
+                        fresh, and anything else just makes the next reader rebuild it.
+                      </li>
+                      <li>
+                        A fingerprint of the contents is safer than the file's modification time: copying a folder can
+                        keep old times on new contents.
+                      </li>
+                    </ul>
+
+                    <p><b>Committed or git-ignored, JSON or JSON5</b></p>
+                    <ul>
+                      <li>
+                        Git-ignored, like the inbox file: <code>packages/docs/content/epics/*/*.inbox.json*</code> is
+                        already in <a href="../../../../../.gitignore" target="src-gitignore"><code>.gitignore</code></a
+                        >. A committed state file would conflict every time two worktrees both changed an epic and
+                        merged, as the docs index (<a
+                          href="../../index.html"
+                          target="src-packages-docs-content-index-html"
+                          ><code>index.html</code></a
+                        >) used to. It would also be stale straight after every merge, because merges don't run
+                        <code>edit()</code>.
+                      </li>
+                      <li>
+                        JSON, not JSON5. JSON5 allows comments and unquoted keys, which only help a file people write by
+                        hand, and nobody would write this one. <code>json5</code> is installed (<code>2.2.3</code>, used
+                        by the app, lsp, spell, util and server), but not by the docs tools. Plain JSON needs no import:
+                        <code>RunningEpics</code> (the docs index's Epics cards, in the server package, which imports
+                        nothing) could read it with <code>JSON.parse</code>. The repo's other data files are JSON too
+                        (<code>commands.json</code>, <code>&lt;name&gt;.inbox.json</code>).
+                      </li>
+                      <li>
+                        The name: <code>&lt;name&gt;.state.json</code> beside the doc, e.g.
+                        <code>epics/review-review/review-review.state.json</code>, matching
+                        <a
+                          href="review-review.inbox.json"
+                          target="src-packages-docs-content-epics-review-review-review-review-inbox-json"
+                          ><code>review-review.inbox.json</code></a
+                        >.
+                      </li>
+                    </ul>
+
+                    <p><b>Who else would read it</b></p>
+                    <ul>
+                      <li>
+                        <code>RunningEpics</code>
+                        (<a
+                          href="../../../../server/src/page/RunningEpics.ts"
+                          target="src-packages-server-src-page-runningepics-ts"
+                          ><code>packages/server/src/page/RunningEpics.ts</code></a
+                        >) finds phases today by searching the doc's text, because the server package can't load
+                        <a href="../../../tools/plan-doc.js" target="src-packages-docs-tools-plan-doc-js"
+                          ><code>plan-doc.js</code></a
+                        >. With the state file, its cards could show "1 question waiting". When the file is stale it
+                        can't rebuild it (no
+                        <a href="../../../tools/plan-doc.js" target="src-packages-docs-tools-plan-doc-js"
+                          ><code>plan-doc.js</code></a
+                        >), so it would show phases only until the next edit.
+                      </li>
+                      <li>
+                        The Review tab's start page (todo T1) wants each open epic with its counts. It would be served
+                        by the page server, which keeps running, so it could equally keep the counts in memory and
+                        recheck the fingerprint on each request, without any file.
+                      </li>
+                    </ul>
+
+                    <ui-grid class="spell-pros-cons" columns="3" stackable
+                      ><ui-column
+                        ><ui-segment
+                          ><ui-label attached="top">D · Port it, no state file yet (recommended)</ui-label>
+                          <ul>
+                            <li>
+                              P7 ports <code>epics.py</code> into one command that reads the docs, sessions and git
+                              itself and builds the links: about 2.5 to 3 seconds.
+                            </li>
+                            <li>
+                              The port keeps "read one epic's state" in one function, so a cache can go in later without
+                              touching the rest.
+                            </li>
+                            <li>Add the state file when T1 or the Epics cards need counts, if they do.</li>
+                            <li>
+                              Why recommended: the measured gain now is about 0.3 s, and every new file is one more
+                              thing to keep true.
+                            </li>
+                          </ul>
+                        </ui-segment></ui-column
+                      ><ui-column
+                        ><ui-segment
+                          ><ui-label attached="top">E · Port it, plus a git-ignored state file</ui-label>
+                          <ul>
+                            <li>
+                              As D, plus <code>&lt;name&gt;.state.json</code> beside each doc: written by
+                              <code>edit()</code>, carrying the doc's fingerprint, rebuilt by any reader that finds it
+                              stale.
+                            </li>
+                            <li>The Epics cards on the docs index can show open questions right away.</li>
+                            <li>
+                              About 30 to 45 minutes more in P7 (the file, the check, a
+                              <a href="../../../../../.gitignore" target="src-gitignore"><code>.gitignore</code></a>
+                              line, tests).
+                            </li>
+                          </ul>
+                        </ui-segment></ui-column
+                      ><ui-column
+                        ><ui-segment
+                          ><ui-label attached="top">F · Port it, plus a committed state file</ui-label>
+                          <ul>
+                            <li>As E, but the file is committed, so other machines and the GitHub page see it.</li>
+                            <li>
+                              Conflicts on merges between worktrees, and stale after every merge until the next edit.
+                            </li>
+                          </ul>
+                        </ui-segment></ui-column
+                      ></ui-grid
+                    >
+
+                    <p><b>Net effect (D):</b></p>
+                    <ul>
+                      <li>
+                        <code>/epics</code> works again in P7, as one command taking about 2.5 to 3 seconds instead of
+                        about 9
+                      </li>
+                      <li><code>epics.py</code> is deleted</li>
+                      <li>no new files beside the plan docs; a state file stays an option for T1 or the Epics cards</li>
+                    </ul>
+                  </div>
+                  <div class="plan-reply">
+                    <p>
+                      <b>Reply (2026-10-04):</b> you asked why card D ports /epics to <code>yarn</code> and not the
+                      <code>spell</code> CLI. It shouldn't: D means a <code>spell dev</code> command.
+                    </p>
+                    <ul>
+                      <li>
+                        The repo's rule (root
+                        <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                        >, "Commands"): the CLI drives everything; repo tools are
+                        <code>spell dev &lt;noun&gt; &lt;verb&gt;</code>. The commands page already names the target:
+                        <code>spell dev plan-doc list [--all] [--json]</code>.
+                      </li>
+                      <li>
+                        Why the timings said <code>yarn</code>: they measured today's pieces, which /epics runs through
+                        yarn.
+                      </li>
+                      <li>
+                        The one catch: the code that reads a plan doc lives in
+                        <a href="../../../" target="src-packages-docs"><code>packages/docs</code></a
+                        >, and nothing may import <code>docs</code>. The CLI already handles that:
+                        <code>spell dev stock</code> runs <code>plan-doc.js summaries</code> once, as a child process,
+                        for every doc at once (<code>planSummaries()</code> in
+                        <a href="../../../../cli/src/dev/worktrees.ts" target="src-packages-cli-src-dev-worktrees-ts"
+                          ><code>packages/cli/src/dev/worktrees.ts</code></a
+                        >). The new command does the same, and does sessions, git and links itself, in one process.
+                      </li>
+                    </ul>
+                    <p><b>Net effect</b></p>
+                    <ul>
+                      <li>D: /epics calls <code>spell dev plan-doc list</code>; no yarn, no python; about 2.5-3 s.</li>
+                    </ul>
+                  </div>
+                </ui-content></ui-accordion
               ></ui-item
             ><ui-item data-answered data-state="old" id="q1" data-status="decided"
               ><ui-accordion class="plan-item"
@@ -1555,6 +1990,74 @@
                   ></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-work="spell-doc-runtime.js:  on reload, unfold the section the address names (and its parents), then land on it"
+              data-queued="2026-10-04"
+              data-reviewed="2026-10-04"
+              data-answered
+              data-state="recent"
+              data-changed="2026-10-04T20:46:05-04:00"
+              id="q7"
+              data-status="decided"
+              data-phase="4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q7">Q7</a>
+                  <ui-label
+                    class="plan-review"
+                    size="mini"
+                    basic
+                    color="orange"
+                    title="spell-doc-runtime.js:  on reload, unfold the section the address names (and its parents), then land on it"
+                    >to do</ui-label
+                  >
+                  <span class="plan-title">Should a reload land on the remembered section without unfolding it?</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="7">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block">
+                    <div class="plan-answer-title"><b>Answer</b> · Land and unfold it</div>
+                  </div>
+                  <p>
+                    When you reload a plan doc (or VS Code restarts), the page goes back to the section you were
+                    reading: the address holds it, e.g. <code>#p3</code>. Today it scrolls there but leaves the section
+                    folded, as you left it (J9).
+                  </p>
+                  <ul>
+                    <li>
+                      Example: you were reading P3's Goal, folded P3, scrolled on to Questions, and reloaded. The
+                      address says <code>#decisions</code>, so you land on Questions; P3 stays folded.
+                    </li>
+                    <li>
+                      The catch: the address follows whatever is at the top of the screen, so after a fold it may name a
+                      section you only scrolled past.
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Land without unfolding (recommended)</ui-label>
+                        <ul>
+                          <li>Your folds stay exactly as you left them.</li>
+                          <li>If the remembered section is folded, you see its title at the top.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column data-chosen
+                      ><ui-segment
+                        ><ui-label attached="top">B · Land and unfold it</ui-label>
+                        <ul>
+                          <li>You always see the content you were reading.</li>
+                          <li>But a reload can open a section you had folded on purpose.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    >
+                  </ui-grid>
+                  <p><b>Net effect (A):</b></p>
+                  <ul>
+                    <li>no change: a reload keeps your folds</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ><ui-item data-answered data-state="old" id="q8" data-status="decided"
               ><ui-accordion class="plan-item"
                 ><ui-title
@@ -1818,6 +2321,75 @@
                       </li>
                     </ul>
                   </div></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-answered
+              data-state="recent"
+              data-changed="2026-10-04T20:33:30-04:00"
+              id="q16"
+              data-status="decided"
+              data-phase="7"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q16">Q16</a>
+                  <span class="plan-title"
+                    >/isolate done's pull request: push main first when GitHub's main is behind?</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="7">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><div class="plan-answer-block">
+                    <div class="plan-answer-title">
+                      <b>Answer</b> · C · No PR while main is ahead: /isolate done offers the PR only when GitHub's main
+                      is up to date, else says why it skipped it
+                    </div>
+                  </div>
+                  <p>
+                    P7 makes <code>/isolate done</code> offer a pull request, so an epic's whole change is on one GitHub
+                    page. The catch: GitHub's <code>main</code> is behind your local one (62 commits today), and a
+                    branch cut from local <code>main</code> carries those commits too.
+                  </p>
+                  <ul>
+                    <li>
+                      Example: pushing <code>review-review</code> now and opening a PR against GitHub's
+                      <code>main</code> would list 62 + this epic's commits, most of them other epics'.
+                    </li>
+                    <li>
+                      Pushing anything publishes it (the repo is on GitHub); the skill asks before it pushes, whatever
+                      the answer here.
+                    </li>
+                  </ul>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A · Push main first (recommended)</ui-label>
+                        <ul>
+                          <li>Offer "push main, then the branch, then open the PR": the PR shows only the epic.</li>
+                          <li>Publishes main's other work too.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · Branch only</ui-label>
+                        <ul>
+                          <li>
+                            Push just the branch; the PR lists main's unpushed commits as well until main is pushed.
+                          </li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column data-chosen
+                      ><ui-segment
+                        ><ui-label attached="top">C · No PR while main is ahead</ui-label>
+                        <ul>
+                          <li>Offer the PR only when GitHub's main is up to date; else say why it was skipped.</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p><b>Net effect</b></p>
+                  <ul>
+                    <li>Decides what the PR offer pushes, and what the PR page shows.</li>
+                  </ul></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -2109,13 +2681,12 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item data-state="attention" id="j9" data-status="open"
+            ><ui-item data-changed="2026-10-04T20:46:03-04:00" data-state="recent" id="j9" data-status="canceled"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j9">J9</a>
-                  <span class="plan-title"
-                    >A reload lands on the remembered section without unfolding it</span
-                  > </ui-title
+                  <span class="plan-title">A reload lands on the remembered section without unfolding it</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="7">UPDATE</ui-label></ui-title
                 ><ui-content
                   ><ul>
                     <li>
@@ -3654,7 +4225,7 @@
               ></ui-item
             ><ui-item
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T19:30:04-04:00"
               id="i3"
               data-status="done"
@@ -3662,7 +4233,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i3">I3</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >An item holds one mark: you can't pick an option AND ask about it</span
                   > </ui-title
@@ -3697,7 +4268,7 @@
               ></ui-item
             ><ui-item
               data-reviewed="2026-10-04"
-              data-state="recent"
+              data-state="old"
               data-changed="2026-10-04T19:30:07-04:00"
               id="i4"
               data-status="done"
@@ -3705,7 +4276,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i4">I4</a>
-                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-04</ui-label>
                   <span class="plan-title"
                     >A session that ends without unlisten leaves the page saying someone is reviewing</span
                   > </ui-title
@@ -4778,6 +5349,72 @@
                   ><ui-date><time datetime="2026-10-04T19:36-04:00">2026-10-04 19:36</time></ui-date> P5, P6 and the I3
                   / I4 fix merged into main (dd19f76b, with main's docs reorganisation); main's page server restarted:
                   the review routes answer</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:22-04:00">2026-10-04 20:22</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:33-04:00">2026-10-04 20:33</time></ui-date> Q16 answered: C ·
+                  No PR while main is ahead: /isolate done offers the PR only when GitHub's main is up to date, else
+                  says why it skipped it</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:34-04:00">2026-10-04 20:34</time></ui-date> Q17 reply
+                  added</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:45-04:00">2026-10-04 20:45</time></ui-date> Q7 picked B: Land
+                  and unfold it</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:46-04:00">2026-10-04 20:46</time></ui-date> J9 canceled: Q7
+                  picked B: a reload unfolds the remembered section</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:46-04:00">2026-10-04 20:46</time></ui-date> Q7 to do:
+                  spell-doc-runtime.js: on reload, unfold the section the address names (and its parents), then land on
+                  it</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T20:51-04:00">2026-10-04 20:51</time></ui-date> Q17 reply
+                  added</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T21:31-04:00">2026-10-04 21:31</time></ui-date> Q17 reply
+                  added</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T21:34-04:00">2026-10-04 21:34</time></ui-date> Review: Q7 picked
+                  B (J9 canceled, runtime change queued); Q17 revisited twice (state file, spell CLI), still open;
+                  paused for shared-content's P6 migration</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
