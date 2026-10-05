@@ -14,6 +14,7 @@ import { SRV, type FileTransform, type Handler, type HtmlTransform, type Mount }
  * - hooks:
  *   - `transforms[".ts"]`:  rewrites a file by extension, e.g. `ui`'s smoke server turns `.ts` into JavaScript
  *   - `html`:  rewrites every `.html` page in turn, e.g. inject an import map or `window.SPELL_SERVER`
+ *   - `overlays`:  a URL path served from another one when a file is there (a folder laid over another)
  *   - NOT for a script's `fetch()` (`Sec-Fetch-Dest: empty`):  it gets the file AS IS.  Why:  `<ui-include>` /
  *     `<ui-code>` / `<ui-markdown>` show a file and save it back, and must never see (or write) the injected
  *     live-reload tags.  Navigations, `<script>`s and module imports still get the hooks.
@@ -28,6 +29,14 @@ export class StaticHandler {
 
   /** rewrites by extension (`.ts`), applied before `html` */
   readonly transforms: Record<string, FileTransform>
+
+  /**
+   * OVERLAYS:  each maps a URL path to another one served in its place WHEN a file is there, so one folder lays
+   * over another, e.g. the page server's `/ui/_assets/...` from `packages/ui/site/_assets/` (`UI_SITE`)
+   * - the first overlay that finds a file wins;  none:  the path as asked
+   * - `undefined`:  not this overlay's path
+   */
+  readonly overlays: ((path: string) => string | undefined)[] = []
 
   constructor({ mounts = [], html = [], transforms = {} }: StaticHandlerProps = {}) {
     this.html = html
@@ -60,8 +69,19 @@ export class StaticHandler {
   /**
    * Where URL path `path` leads through the mounts, exactly as `handle()` would serve it;  `undefined`:  no mount.
    * - for routes that act on a page by its URL, e.g. `docs`' details answers (`/worktrees/<w>/...` included)
+   * - an overlay's file first (`overlays`)
    */
   resolve(path: string): SRV.Resolved | undefined {
+    for (const overlay of this.overlays) {
+      const other = overlay(path)
+      const found = other === undefined ? undefined : this.resolveMounted(other)
+      if (found && "file" in found) return found
+    }
+    return this.resolveMounted(path)
+  }
+
+  /** `resolve()` without the overlays:  through the mounts alone. */
+  private resolveMounted(path: string): SRV.Resolved | undefined {
     const mount = this.mounts.find((each) => path.startsWith(each.prefix) || `${path}/` === each.prefix)
     if (!mount) return undefined
     // a mount's own folder without its slash (`/ui`):  redirect like any folder, so its pages' relative links resolve

@@ -5,7 +5,15 @@ import { join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
-import { PageServer, findById, movedDocsPage, renamedPlanDoc, replaceById } from "$/server/page"
+import {
+  PageServer,
+  findById,
+  movedDocsPage,
+  movedUiPage,
+  renamedPlanDoc,
+  replaceById,
+  uiBuildPath
+} from "$/server/page"
 import { ask } from "$/server/test/serve"
 
 /** A page whose formatting an edit must keep, byte for byte. */
@@ -66,9 +74,14 @@ describe("PageServer", () => {
 
   beforeAll(async () => {
     mkdirSync(join(root, "docs"))
+    // Spell UI's two halves:  the pages (`ui/`, a link into the shared repo in a real checkout) and the build
+    mkdirSync(join(root, "ui", "_data"), { recursive: true })
     mkdirSync(join(root, "packages", "ui", "site", "_assets"), { recursive: true })
-    writeFileSync(join(root, "packages", "ui", "site", "button.html"), "<!doctype html><head></head><p>UI</p>\n")
+    mkdirSync(join(root, "packages", "ui", "site", "_data"), { recursive: true })
+    writeFileSync(join(root, "ui", "button.html"), "<!doctype html><head></head><p>UI</p>\n")
+    writeFileSync(join(root, "ui", "_data", "search.json"), `{"from":"pages"}\n`)
     writeFileSync(join(root, "packages", "ui", "site", "_assets", "site.js"), "export {}\n")
+    writeFileSync(join(root, "packages", "ui", "site", "_data", "components.json"), `{"from":"build"}\n`)
     writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["docs"] } }))
     writeFileSync(page, PAGE)
     server = await new PageServer({ root }).start({ port: 0, routes: false })
@@ -170,27 +183,58 @@ describe("PageServer", () => {
     expect(movedDocsPage("/worktrees/w/packages/docs/content/solid/solid-2.html", root)).toBeUndefined()
   })
 
-  it("serves Spell UI's docs, packages/ui/site/, at /ui/:  live pages, assets as is", async () => {
+  it("serves Spell UI's docs at /ui/:  the pages from ui/, live;  the build's _assets/ and _data/ laid over", async () => {
     const page = await ask(port, "GET", "/ui/button.html")
     expect(page.status).toBe(200)
     expect(page.text).toContain("<p>UI</p>")
     expect(page.text).toContain(`<script src="/_server/live.js" defer></script>`)
     expect(page.text).toContain(SRV.FAVICON_LINKS)
     const served = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(page.text)![1]!) as SRV.ServerConfig
-    expect(served.file).toBe("/packages/ui/site/button.html")
+    expect(served.file).toBe("/ui/button.html")
     const script = await ask(port, "GET", "/ui/_assets/site.js")
     expect(script.status).toBe(200)
     expect(script.headers["content-type"]).toMatch(/javascript/)
+    expect((await ask(port, "GET", "/ui/_data/components.json")).text).toBe(`{"from":"build"}\n`)
+    // a file the build lacks:  the pages' own
+    expect((await ask(port, "GET", "/ui/_data/search.json")).text).toBe(`{"from":"pages"}\n`)
     expect((await ask(port, "GET", "/ui")).status).toBe(301)
     expect((await ask(port, "GET", "/ui/missing.html")).status).toBe(404)
+    expect((await ask(port, "GET", "/ui/_assets/missing.js")).status).toBe(404)
   })
 
-  it("reloads /ui/ pages when their files change", async () => {
+  it("serves a worktree's Spell UI docs with ITS build laid over, at /worktrees/<w>/ui/", async () => {
+    const worktree = join(root, ".claude", "worktrees", "w")
+    mkdirSync(join(worktree, "ui"), { recursive: true })
+    mkdirSync(join(worktree, "packages", "ui", "site", "_assets"), { recursive: true })
+    writeFileSync(join(worktree, "ui", "button.html"), "<!doctype html><head></head><p>W</p>\n")
+    writeFileSync(join(worktree, "packages", "ui", "site", "_assets", "site.js"), "// w\n")
+    expect((await ask(port, "GET", "/worktrees/w/ui/button.html")).text).toContain("<p>W</p>")
+    expect((await ask(port, "GET", "/worktrees/w/ui/_assets/site.js")).text).toBe("// w\n")
+    expect(uiBuildPath("/worktrees/w/ui/_data/x.json")).toBe("/worktrees/w/packages/ui/site/_data/x.json")
+    expect(uiBuildPath("/ui/components/x.html")).toBeUndefined()
+  })
+
+  it("redirects old Spell UI page URLs, packages/ui/site/<x>, to /ui/<x> once the old file is gone", async () => {
+    const page = await ask(port, "GET", "/packages/ui/site/button.html?a=1")
+    expect(page.status).toBe(302)
+    expect(page.headers.location).toBe("/ui/button.html?a=1")
+    writeFileSync(join(root, "ui", "index.html"), "<p>home</p>\n")
+    expect((await ask(port, "GET", "/packages/ui/site/")).headers.location).toBe("/ui/")
+    // the build stayed:  served where it is
+    expect((await ask(port, "GET", "/packages/ui/site/_assets/site.js")).status).toBe(200)
+    expect(movedUiPage("/worktrees/w/packages/ui/site/button.html", root)).toBe("/worktrees/w/ui/button.html")
+    expect(movedUiPage("/packages/ui/site/missing.html", root)).toBeUndefined()
+  })
+
+  it("reloads /ui/ pages when their files change, and when the bundle does", async () => {
     const events = await listen(port)
-    const changed = events.next("change", "/packages/ui/site/button.html")
+    const changed = events.next("change", "/ui/button.html")
     await new Promise((done) => setTimeout(done, 100))
-    writeFileSync(join(root, "packages", "ui", "site", "button.html"), "<!doctype html><head></head><p>UI 2</p>\n")
-    expect(await changed).toEqual({ path: "/packages/ui/site/button.html" })
+    writeFileSync(join(root, "ui", "button.html"), "<!doctype html><head></head><p>UI 2</p>\n")
+    expect(await changed).toEqual({ path: "/ui/button.html" })
+    const rebuilt = events.next("change", "/ui/_assets/site.js")
+    writeFileSync(join(root, "packages", "ui", "site", "_assets", "site.js"), "export { }\n")
+    expect(await rebuilt).toEqual({ path: "/ui/_assets/site.js" })
     events.close()
   })
 

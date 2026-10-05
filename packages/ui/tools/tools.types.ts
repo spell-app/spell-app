@@ -235,6 +235,29 @@ export type SmokeResults = {
 export type ImportMap = { imports: Record<string, string> }
 
 ////////////////
+// ## Spell UI site
+////////////////
+
+/**
+ * The Spell UI docs site's HAND-WRITTEN half, from `packages/ui/`:  the checkout's `ui/`, a link into the shared
+ * content repo, `../spell-app-dev/ui/` (claude-design P6, 2026-10-05).
+ * - the pages (`*.html`, `components/`), the layout (`_parts/`), the files examples load (`examples/`), Fomantic's
+ *   images (`images/`) and the site's `README.md`:  ONE copy for every checkout, edited without a commit
+ * - NOT the bundle or the data:  `SITE_BUILD`
+ * - the page server serves it at `/ui/`, with `SITE_BUILD`'s `_assets/` and `_data/` laid over it
+ *   (`packages/server`'s `UI_SITE`), so a page's `_assets/site.js` and `_data/...` links resolve unchanged
+ * - NOTE:  a checkout without the link (`spell dev shared link` not run since merging P6) has no pages
+ */
+export const SITE_PAGES = "../../ui"
+
+/**
+ * The Spell UI docs site's BUILT half, from `packages/ui/`:  what each branch builds and commits.
+ * - `_src/`:  the bundle's entry;  `_assets/`:  the bundle (`yarn site:bundle`)
+ * - `_data/`:  the data (`yarn site:data`), and the hand-kept `pages.json` it's built from
+ */
+export const SITE_BUILD = "site"
+
+////////////////
 // ## Solid host app
 ////////////////
 

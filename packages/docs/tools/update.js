@@ -44,8 +44,8 @@ if (check) {
   const shots = mkdtempSync(join(tmpdir(), "spell-docs-"))
   for (const output of pages) {
     // a Spell UI site page (the `spell-ui-docs` template) loads the site bundle, not `spell-ui.js`:
-    // `yarn site:check` (packages/ui) checks those
-    if (readFileSync(join(ROOT, output), "utf8").includes("ui/site/_assets/site.js")) continue
+    // `yarn site:check` (packages/ui) checks those.  `ui/_assets/` since the pages moved (claude-design P6)
+    if (/\bui\/(?:site\/)?_assets\/site\.js\b/.test(readFileSync(join(ROOT, output), "utf8"))) continue
     const outDir = join(shots, output.replace(/\.html$/, "").replaceAll("/", "--"))
     const run = step(`check ${output}`, "node", [join(TOOLS, "check-spell.js"), output, outDir], {
       capture: true,

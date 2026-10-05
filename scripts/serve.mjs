@@ -6,8 +6,9 @@
  *   if it isn't running;  `spell dev server stop` stops it, and with it the rest.
  * - The EDITOR (vite, the spell app):  the page server's child (`packages/app/src/server/EditorServer.ts`), started
  *   once the page server listens;  this waits for its record, `.spell-server.editor.json`, to answer.
- * - SPELL UI's docs:  static pages the page server itself serves at `/ui/` (`packages/ui/site/`, no dev server);
- *   this checks its bundle answers (`/ui/_assets/site.js`, built by `yarn site:build` in `packages/ui`).
+ * - SPELL UI's docs:  static pages the page server itself serves at `/ui/` (no dev server):  the shared
+ *   pages, `ui/`, with this branch's built `packages/ui/site/_assets/` and `_data/` laid over them;  this checks its
+ *   bundle answers (`/ui/_assets/site.js`, built by `yarn site:build` in `packages/ui`).
  * - Prints one row per server:  name, port, URL, state.  Exit code 1 if any didn't come up.
  * - `node`, so it runs before `yarn install` too;  the page server itself needs this checkout's `node_modules`.
  */

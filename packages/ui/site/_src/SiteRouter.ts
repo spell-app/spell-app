@@ -290,7 +290,8 @@ export class SiteRouter {
 
   /**
    * The page server's file for `url`, from the first page's:  the page's URL and file share their tail
-   * (`/ui/components/x.html` <=> `/packages/ui/site/components/x.html`).
+   * (`/ui/components/x.html` <=> `/ui/components/x.html`, the root's `ui` link;  a worktree's on the main
+   * server:  `/worktrees/<w>/ui/...` <=> `/.claude/worktrees/<w>/ui/...`).
    */
   private serverFile(url: URL): string | undefined {
     if (!this.firstFile) return undefined

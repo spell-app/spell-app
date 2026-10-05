@@ -1,21 +1,22 @@
 /// <reference types="node" />
 
 import { execFileSync } from "node:child_process"
-import { existsSync, mkdirSync, readdirSync, statSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, realpathSync, statSync } from "node:fs"
 import { basename, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright"
 
 import { TocIndex } from "../src/docs-components/ui-docs-toc/TocIndex.ts"
+import { SITE_PAGES } from "./tools.types.ts"
 
 /**
- * Checks the plain-HTML Spell UI docs pages (`site/*.html`, `site/components/ui-<name>.html`) in headless chromium,
- * served by this checkout's page server at `/ui/`.
+ * Checks the plain-HTML Spell UI docs pages (`ui/*.html`, `ui/components/ui-<name>.html`:  the shared
+ * pages, `SITE_PAGES`) in headless chromium, served by this checkout's page server at `/ui/`.
  * - Run:  `yarn site:check <page...>` (in `packages/ui`), or `yarn site:check --all`;  `--out <dir>` for the
  *   screenshots (default `tools/results/site-check/`, git-ignored).
- * - A page is a path (absolute, from the cwd, or from `site/`), a tag (`ui-button` =>
- *   `site/components/ui-button.html`) or a name (`index` => `site/index.html`).
+ * - A page is a path (absolute, from the cwd, or from `ui/`), a tag (`ui-button` =>
+ *   `ui/components/ui-button.html`) or a name (`index` => `ui/index.html`).
  * - Problems (exit 1):
  *   - console errors, page errors, failed requests and responses >= 400 (the favicon too:  the page server has one)
  *   - `ui-*` / `spell-*` elements still undefined once settled;  defined `ui-*` with no shadow root
@@ -35,8 +36,8 @@ export class SiteCheck {
   /** `packages/ui/`. */
   static readonly PACKAGE = fileURLToPath(new URL("..", import.meta.url))
 
-  /** `packages/ui/site/`:  what the page server mounts at `/ui/`. */
-  static readonly SITE = join(SiteCheck.PACKAGE, "site")
+  /** The site's pages, the checkout's `ui/` (`SITE_PAGES`):  what the page server serves at `/ui/`. */
+  static readonly SITE = join(SiteCheck.PACKAGE, SITE_PAGES)
 
   /** Repo root (of this worktree):  where `spell dev server ensure` runs. */
   static readonly REPO = resolve(SiteCheck.PACKAGE, "..", "..")
@@ -131,10 +132,11 @@ export class SiteCheck {
    * Find a page file from what was typed, first match wins:
    * - absolute path
    * - relative to `cwd`
-   * - relative to `site/`
-   * - a tag, `ui-button` => `site/components/ui-button.html`
-   * - a name, `index` => `site/index.html`
-   * - SIDE EFFECT:  exits (2) when nothing matches, or the page isn't under `site/` (the server wouldn't serve it)
+   * - relative to `ui/`
+   * - a tag, `ui-button` => `ui/components/ui-button.html`
+   * - a name, `index` => `ui/index.html`
+   * - a file under the shared repo's `ui/` (`../spell-app-dev/ui/...`) is the same page:  returned under `SITE`
+   * - SIDE EFFECT:  exits (2) when nothing matches, or the page isn't under `ui/` (the server wouldn't serve it)
    */
   static resolvePage(name: string, cwd: string): string {
     const html = name.endsWith(".html") ? name : `${name}.html`
@@ -148,8 +150,9 @@ export class SiteCheck {
         ]
     const file = candidates.find((path) => existsSync(path) && statSync(path).isFile())
     if (!file) return SiteCheck.fail(`no page "${name}";  tried:\n  ${candidates.join("\n  ")}`)
-    if (relative(SiteCheck.SITE, file).startsWith("..")) return SiteCheck.fail(`${file} is not under ${SiteCheck.SITE}`)
-    return file
+    const inside = relative(realpathSync(SiteCheck.SITE), realpathSync(file))
+    if (inside.startsWith("..") || isAbsolute(inside)) return SiteCheck.fail(`${file} is not under ${SiteCheck.SITE}`)
+    return join(SiteCheck.SITE, inside)
   }
 
   /**
@@ -161,7 +164,7 @@ export class SiteCheck {
     return name === "index" && path.includes("/") ? path.replace(/\.html$/, "").replaceAll("/", "-") : name
   }
 
-  /** Every page:  `site/*.html` and `site/components/*.html`, minus `_`-prefixed ones (smoke pages, partials). */
+  /** Every page:  `ui/*.html` and `ui/components/*.html`, minus `_`-prefixed ones (smoke pages, partials). */
   static allPages(): string[] {
     return [SiteCheck.SITE, join(SiteCheck.SITE, "components")].flatMap((folder) =>
       existsSync(folder)
@@ -551,7 +554,7 @@ export class SiteCheck {
 
 /** One page's result, as printed and in the JSON summary. */
 export type PageReport = {
-  /** path under `site/`, e.g. `components/ui-button.html` */
+  /** path under `ui/`, e.g. `components/ui-button.html` */
   page: string
   /** served URL, under `/ui/` */
   url: string
@@ -583,7 +586,7 @@ type SectionState = {
 type CheckContext = {
   /** page file, absolute */
   file: string
-  /** path under `site/`, `/`-separated */
+  /** path under `ui/`, `/`-separated */
   path: string
   /** file name without `.html`:  the screenshots' prefix */
   name: string
@@ -821,8 +824,8 @@ function navState() {
 
 /** Printed on bad arguments and `--help`. */
 const USAGE = `usage:  yarn site:check <page...> | --all  [--out <dir>]
-  page:  a path (absolute, from here, or from site/), a tag (ui-button), or a name (index)
-  --all:  site/*.html + site/components/*.html, minus _-prefixed files
+  page:  a path (absolute, from here, or from ui/), a tag (ui-button), or a name (index)
+  --all:  ui/*.html + ui/components/*.html, minus _-prefixed files
   --out:  screenshot folder (default ${SiteCheck.OUT})`
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await SiteCheck.main()

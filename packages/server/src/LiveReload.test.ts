@@ -25,4 +25,18 @@ describe("LiveReload", () => {
     })
     live.close()
   })
+
+  // Spell UI's built half, laid over its pages at `/ui/` (claude-design P6)
+  it("reports a folder served at another URL path under that path (`servedAt`)", async () => {
+    mkdirSync(join(temp, "at/packages/ui/site/_assets"), { recursive: true })
+    const live = new SRV.LiveReload({ root: join(temp, "at"), debounce: 10, heartbeat: 0 })
+    const send = vi.spyOn(live, "send")
+    live.watch(join(temp, "at/packages/ui/site"), { servedAt: "/ui" })
+    await new Promise((done) => setTimeout(done, 200))
+    writeFileSync(join(temp, "at/packages/ui/site/_assets/site.js"), "export {}")
+    await vi.waitFor(() => expect(send).toHaveBeenCalledWith("change", { path: "/ui/_assets/site.js" }), {
+      timeout: 3000
+    })
+    live.close()
+  })
 })

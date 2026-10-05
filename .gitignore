@@ -20,12 +20,13 @@ PARKED-*.md
 # `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json`):  ignored by the shared
 # content repo's own `.gitignore` (`../spell-app-dev`);  here the whole folders are ignored (`# shared:` block below)
 
-# shared:start  (epics shared-content, claude-design P4:  links into ../spell-app-dev, the shared content repo;  never tracked)
+# shared:start  (epics shared-content, claude-design P4 / P6:  links into ../spell-app-dev, the shared content repo;  never tracked)
 /epics
 /guides
 /pages
 /templates
 /brand
+/ui
 /goals
 /agents
 # the old content link, in checkouts cut before 2026-10-05:  remove with the old-path links (claude-design T1)

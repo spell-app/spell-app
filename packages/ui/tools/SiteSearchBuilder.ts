@@ -6,8 +6,8 @@ import { PageOutline } from "../src/docs-components/ui-docs-search/PageOutline.t
 import type { SiteSearchFile, SiteSearchPage } from "../src/docs-components/docs-components.types.ts"
 
 /**
- * Builds the Spell UI site's search file, `site/_data/search.json` (`SiteSearchFile`):  every page's title and
- * sections, read from the page FILES' markup, for `<ui-docs-search>`'s jumps to other pages.
+ * Builds the Spell UI site's search file, `ui/_data/search.json` (`SiteSearchFile`;  shared, beside the pages):
+ * every page's title and sections, read from the page FILES' markup, for `<ui-docs-search>`'s jumps to other pages.
  * - Run by `yarn site:data` (`scripts/gen-site-data.ts`, through `SiteDataBuilder.searchText()`) beside
  *   `components.json`;  `tools/SiteDataBuilder.test.ts` fails while it's stale:  rerun after adding, renaming or moving
  *   a section (`yarn site:sections` included).
@@ -22,7 +22,7 @@ export class SiteSearchBuilder {
   /** Suffix of every page's `<title>`, dropped when a title falls back to it. */
   static readonly TITLE_SUFFIX = / \| Spell UI$/
 
-  /** `packages/ui/site/`. */
+  /** the site's pages:  the shared `ui/` (`SITE_PAGES`) */
   readonly site: string
 
   constructor(site: string) {

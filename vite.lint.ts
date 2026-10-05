@@ -217,7 +217,8 @@ export const fmtConfig = {
     "**/src/components/ui-markdown/md.bundle.js",
     "**/ui/site/_assets/**",
     "**/ui/site/_data/**",
-    "**/ui/site/**/*.html",
+    // Spell UI's hand-laid-out pages and their `search.json`:  the shared `ui/` at the root (claude-design P6)
+    "ui/**",
     "**/vendor/**",
     "**/packages/*/dist/**",
     "**/packages/*/.vitest/**",

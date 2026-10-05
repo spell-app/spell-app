@@ -24,7 +24,7 @@ import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
-import { BRAND, EPICS, GOALS, GUIDES, HOME, LIST_PAGES, ROOT, TEMPLATES, findPages, tidy } from "./pages.js"
+import { BRAND, EPICS, GOALS, GUIDES, HOME, LIST_PAGES, ROOT, TEMPLATES, UI_PAGES, findPages, tidy } from "./pages.js"
 
 /** The docs home, from the checkout's root. */
 const INDEX = relative(ROOT, HOME)
@@ -46,8 +46,8 @@ const RUNNING = "<!-- running-epics -->"
 /** Days without an update after which an epic with phases left shows as stalled. */
 const STALLED_DAYS = 3
 
-/** Spell UI's component pages (tracked, per branch):  the home's Spell UI count. */
-const UI_COMPONENTS = join(ROOT, "packages/ui/site/components")
+/** Spell UI's component pages (shared, `ui/components/`):  the home's Spell UI count. */
+const UI_COMPONENTS = join(UI_PAGES, "components")
 
 /** The "Writing docs" notes, on the Templates page (the home had them before P5). */
 const WRITING_DOCS = `<ui-section id="writing-docs" header="Writing docs" sticky collapsible dividing collapsed>
@@ -210,7 +210,8 @@ function phaseLabel(section) {
  * - `id`:  the card's id, so the old `pages/index.html#epics` / `#guides` / `#templates` links land on its card
  * - `href`:  from the home's folder;  none for the App, which only the page server has (`/editor/`):  a link there
  *   would break from `file://`, and `doc-links.js --check` can't resolve it
- * - Spell UI:  its site's own page (`packages/ui/site/index.html`);  the top bar's tab opens it at `/ui/`
+ * - Spell UI:  its site's own page (`ui/index.html`, shared;  its bundle needs the page server);  the top bar's tab
+ *   opens it at `/ui/`
  * - `pages`:  every page `describe()`d, so the counts come from the same data as the list pages
  */
 export function areaCards(pages) {
@@ -246,10 +247,10 @@ export function areaCards(pages) {
       id: "spell-ui",
       title: "Spell UI",
       icon: "puzzle piece",
-      href: "../packages/ui/site/index.html",
+      href: "../ui/index.html",
       count: plural(htmlFiles(UI_COMPONENTS).filter((name) => name !== "index.html").length, "component page"),
       description: "Fomantic UI reborn as ui-* custom elements, on Solid 2:  every element, with examples and its API.",
-      meta: "best served at /ui/, by the page server"
+      meta: "served at /ui/, by the page server"
     },
     {
       id: "templates",

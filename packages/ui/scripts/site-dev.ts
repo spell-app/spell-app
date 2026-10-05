@@ -6,7 +6,8 @@
  *   that same build, watched, so what you see is what gets committed.
  * - Starts with `yarn site:bundle` (clears `_assets/`, makes the `icon-packs` link, prints sizes), then Vite's watch
  *   build with the same config (`vite.site.config.ts`):  edits under `src/` or `site/_src/` rebuild in seconds.
- * - Page edits (`*.html`, `_parts/`, `_data/`) need no rebuild:  the page server reloads them itself.
+ * - Page edits (the shared pages, `ui/`:  `*.html`, `_parts/`) and new data (`site/_data/`) need no rebuild:  the
+ *   page server reloads them itself.
  * - NOT watched:  `site:data`, `site:index`, `site:kitchen` (a vocabulary, a family sheet's tokens, an example):
  *   rerun `yarn site:build` for those.
  * - A watch rebuild doesn't clear `_assets/`, so a chunk whose hash changed leaves its old file behind:  run

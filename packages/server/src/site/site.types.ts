@@ -45,7 +45,7 @@ export const PROPERTIES: SiteProperty[] = [
     name: "Spell UI",
     path: "/ui/",
     serverOnly: true,
-    match: (path) => /^\/ui(\/|$)|\/packages\/ui\/site\//.test(path)
+    match: (path) => /^(?:\/worktrees\/[^/]+)?\/ui(\/|$)|\/packages\/ui\/site\//.test(path)
   },
   { name: "Templates", path: "templates/index.html", match: (path) => docsArea(path) === "templates" },
   { name: "Goals", path: "goals/index.html", match: (path) => docsArea(path) === "goals" },

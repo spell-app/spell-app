@@ -221,7 +221,7 @@ In `tools/`:
   `index.html` (the home page:  every goal set), `set/index.html` (a set's contents page), `set/topic/topic.html`
   and `topic.md` (a topic's page and its agent notes).  NEVER copy by hand:  `spell dev goals new-set` / `new`
   fill the `{{placeholders}}` and fix the asset paths.  Rules:  the repo root's `goals/AGENTS.md`.
-- `templates/spell-ui-docs.html` -- a Spell UI docs page (`packages/ui/site/`):  Fomantic's docs layout in `<ui-*>`
+- `templates/spell-ui-docs.html` -- a Spell UI docs page (the shared `ui/`):  Fomantic's docs layout in `<ui-*>`
   widgets (nav, masthead, Examples / Usage / API / Theming tabs, an "On this page" rail), loading the UI site's
   bundle, NOT `spell-ui.js`.  NEVER copy by hand:  `yarn site:new <tag|page>` in `packages/ui`;  how to write one:
   `epics/spell-ui-pages/PAGES.md`;  checked by `yarn site:check` there (`docs update` skips it).
