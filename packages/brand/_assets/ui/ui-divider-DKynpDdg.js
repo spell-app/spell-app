@@ -1,0 +1,1 @@
+import{t as e}from"./ui-divider-DNf7XCxo.js";export{e as UIDivider};

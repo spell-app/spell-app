@@ -42,9 +42,11 @@ export const menuVocabulary = {
       values: UIT.MENU_APPEARANCES,
       description:
         "The look:  `tabular` (tabs on a rule), `pointing` (the active item points at the content), `secondary` " +
-        "(no box, rounded items), `text` (plain words), `segmented` (a bordered group of joined items, the selected " +
-        "one filled with `color`, else the primary colour).  The booleans `tabular`, `pointing`, `secondary`, " +
-        '`text` are aliases:  `appearance="pointing" secondary` ~== `secondary pointing`.'
+        "(no box, rounded items), `text` (plain words), `segmented` (a segmented control:  a bordered group of " +
+        "joined items, the selected one filled with `color`, else the primary colour;  it moves `selected` to the " +
+        "item chosen itself;  `--ui-menu-segmented-*` restyle it as a pill track with a raised thumb).  The " +
+        "booleans `tabular`, `pointing`, `secondary`, `text` are aliases:  " +
+        '`appearance="pointing" secondary` ~== `secondary pointing`.'
     },
     {
       name: "position",
@@ -155,9 +157,11 @@ export const menuVocabulary = {
     {
       name: "ui-select",
       detail: "{ value: string, item: Element, originalEvent?: Event }",
+      cancelable: true,
       description:
         "An interactive item (a link or button) was activated.  `value` is the item's `value`, else its text.  " +
-        "The menu doesn't move `selected` itself."
+        "The menu doesn't move `selected` itself, except a `segmented` one (a single-choice control), which " +
+        "selects the item and unselects the rest:  `preventDefault()` keeps the old choice."
     }
   ],
   slots: [{ name: "", description: "`<ui-item>`s, sub-menus (`<ui-menu position>`), and other content." }],

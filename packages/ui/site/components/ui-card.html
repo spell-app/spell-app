@@ -802,6 +802,14 @@
                 </ui-docs-example>
               </ui-section>
 
+              <ui-section id="examples-variations-dashed" header="Dashed" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Ours, not Fomantic's:  a dashed card is a flat placeholder, its border dashed in `--ui-card-border-color`."
+                >
+                  <ui-card dashed header="Current, for comparison" description="Where the next one will go."></ui-card>
+                </ui-docs-example>
+              </ui-section>
+
               <ui-section id="examples-variations-column-count" header="Column Count" sticky collapsible dividing>
                 <ui-docs-example
                   description="A group of cards can set how many cards should exist in a row:  `columns`."
@@ -1081,6 +1089,11 @@
                   `--ui-card-meta-color` ...) is themed the same way, on the card or above it (see the
                   [content parts](ui-header.html) page). Never set the `--_ui-*`, `--_card-*` or `--_cards-*` names:
                   they're the sheet's private plumbing.
+
+                  A card's border, coloured edge and drop shadow are ONE `box-shadow`, so each shadow token takes
+                  `none` on its own: `--ui-card-shadow: none` drops the drop shadow and keeps the border (set it on the
+                  card or above it, not through `::part(card)`). A link card's hover border is
+                  `--ui-card-hover-border-color`.
                 </script>
               </ui-markdown>
               <ui-code language="css">

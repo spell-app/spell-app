@@ -1,6 +1,7 @@
 import { Converters, NativeFallback, proto, UI } from "$/ui/core"
 
 import { buttonVocabulary } from "./ui-button.vocabulary.en"
+import { HostPress } from "./ui-button.types"
 import { Invoker } from "./Invoker"
 
 /****************
@@ -37,6 +38,7 @@ export class ButtonFallback extends NativeFallback<typeof buttonVocabulary> {
       ? this.create("a", {
           href: disabled ? null : href,
           target: this.attr("target"),
+          download: this.attr("download"),
           rel: this.attr("target") === "_blank" ? "noopener" : null,
           "aria-disabled": disabled ? "true" : null,
           tabindex: disabled ? "-1" : null
@@ -54,6 +56,10 @@ export class ButtonFallback extends NativeFallback<typeof buttonVocabulary> {
       if (toggle) control.setAttribute("aria-pressed", String(control.classList.toggle("active")))
       this.invoke(control, event)
       this.activate()
+    })
+    // `host.click()` presses the control, as in the element (only the host's click reaches the page)
+    this.listen<MouseEvent>(host, "click", (event) => {
+      if (event.composedPath()[0] === host && !disabled && !event.defaultPrevented) HostPress.press(control)
     })
     return [control]
   }

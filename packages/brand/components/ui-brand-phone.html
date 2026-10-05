@@ -1,0 +1,241 @@
+<!doctype html>
+<!--
+  A brand element's docs page, in Spell UI's docs format (`packages/docs/content/templates/spell-ui-docs.html`):  masthead, then
+  Examples / Usage / API / Theming tabs.  Without the Spell UI site's shell:  the site header on top, one page.
+  - Loads `brand-docs.js` (`src/brand-docs.ts`):  the brand bundle + Spell UI's docs widgets;  API and tokens come
+    from `_data/components.json` (`yarn site:data` here).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - The app inside each phone is the page's own markup:  the `.app-*` classes in the `<style>` below, on the theme's
+    tokens, as the Spell App page's Habit Tracker is.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Phone</title>
+    <meta
+      name="description"
+      content="<ui-brand-phone>:  a phone frame around live app content, with a status bar on top."
+    />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <link rel="stylesheet" href="../_assets/brand-docs.css" />
+    <script type="module" src="../_assets/ui/brand-docs.js"></script>
+    <style>
+      /* the app inside the phones:  a title block and cards, as the Spell App page's Habit Tracker */
+      .app-head {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 0 2px;
+        color: var(--spell-text-strong);
+        font: 500 22px/1.1 var(--spell-font-serif);
+      }
+      .app-head > ui-icon {
+        font-size: 30px;
+        color: var(--spell-accent);
+      }
+      .app-card {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: var(--ui-surface);
+        box-shadow: var(--spell-shadow-xs);
+        color: var(--spell-text-body);
+        font: var(--spell-type-body);
+      }
+      .app-card > h4 {
+        margin: 0;
+        color: var(--spell-text-strong);
+        font: 500 17px/1.2 var(--spell-font-serif);
+      }
+      .phones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: start;
+      }
+    </style>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../.."></spell-site-header>
+    <main id="main" class="brand-docs-main">
+      <ui-segment vertical basic class="brand-docs-masthead">
+        <ui-container>
+          <div class="brand-docs-eyebrow"><a href="../index.html">Brand</a> · Components</div>
+          <ui-header level="1" class="brand-docs-title">
+            Brand Phone
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header>A phone frame around live app content, a status bar on top.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="brand-docs-body">
+        <ui-tabs
+          id="brand-docs-tabs"
+          class="brand-docs-tabs"
+          history
+          basic
+          appearance="segmented"
+          alignment="fluid"
+          equal
+        >
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" collapsible dividing>
+              <ui-section id="examples-types-phone" header="Phone" collapsible dividing>
+                <ui-docs-example
+                  description="The Spell App's Build screen preview:  a 300px ivory phone (the raised surface in dark mode), 32px corners, a status bar on top, and the app below it, each child 12px apart.  The app is live:  its checkboxes work."
+                >
+                  <ui-brand-phone>
+                    <div class="app-head">
+                      <ui-icon name="seedling"></ui-icon>
+                      Habit Tracker
+                    </div>
+                    <div class="app-card">
+                      <h4>Today</h4>
+                      <ui-checkbox selected>Drink water</ui-checkbox>
+                      <ui-checkbox>Read 10 pages</ui-checkbox>
+                      <ui-checkbox>Stretch</ui-checkbox>
+                    </div>
+                    <div class="app-card">
+                      <h4>Streak</h4>
+                      5 days
+                    </div>
+                  </ui-brand-phone>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" collapsible dividing>
+              <ui-section id="examples-content-time" header="Time" collapsible dividing>
+                <ui-docs-example description="`time`:  the status bar's clock, any text;  default `9:41`.">
+                  <ui-brand-phone time="10:30">
+                    <div class="app-card">
+                      <h4>Good morning</h4>
+                      Three habits to go.
+                    </div>
+                  </ui-brand-phone>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" collapsible dividing>
+              <ui-section id="examples-states-dimmed" header="Dimmed" collapsible dividing>
+                <ui-docs-example
+                  description="`dimmed`:  fades the phone to 45% while its app is being built (the fade animates over 0.4s, unless the reader prefers reduced motion), and marks it busy for screen readers.  Remove it when the app is ready."
+                >
+                  <div class="phones">
+                    <ui-brand-phone dimmed>
+                      <div class="app-card">
+                        <h4>Building…</h4>
+                        Creating screens.
+                      </div>
+                    </ui-brand-phone>
+                    <ui-brand-phone>
+                      <div class="app-card">
+                        <h4>Ready</h4>
+                        Your app is ready.
+                      </div>
+                    </ui-brand-phone>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" collapsible dividing>
+              <ui-section id="examples-variations-width" header="Width" collapsible dividing>
+                <ui-docs-example
+                  description="`--ui-brand-phone-width`:  the frame's width, border included (default 300px);  never wider than its container.  The app's children stretch to fill it."
+                >
+                  <div class="phones">
+                    <ui-brand-phone style="--ui-brand-phone-width: 220px">
+                      <div class="app-card">
+                        <h4>220px</h4>
+                        A narrow phone.
+                      </div>
+                    </ui-brand-phone>
+                    <ui-brand-phone>
+                      <div class="app-card">
+                        <h4>300px</h4>
+                        The default.
+                      </div>
+                    </ui-brand-phone>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A preview of an app, framed as a phone. Put the app's markup INSIDE it: the frame draws the
+                  device and the status bar, the page styles and wires the app as usual.
+
+                  - Each child is a row of the phone's column, 12px apart: a title block, then cards.
+                  - `dimmed` while the app is being built; remove it when it's ready (the fade animates).
+                  - Size it with `--ui-brand-phone-width`; it never grows past its container.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-brand-phone dimmed>
+                    <div class="app-head">Habit Tracker</div>
+                    <div class="app-card">
+                      <ui-checkbox>Drink water</ui-checkbox>
+                    </div>
+                  </ui-brand-phone>
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A region named "App preview" (`label` renames it; `label=""` makes it a plain frame, for a page
+                    that names the preview itself).
+                  - The status bar is decoration: hidden from screen readers.
+                  - `dimmed` marks the region `aria-busy`, so a screen reader waits for the app to be ready. The page
+                    says when it is (the Spell App page's "Your app is ready." toast).
+                  - The frame takes no focus: Tab goes straight to the app's controls.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="ui-brand-phone"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--ui-brand-phone-*` token on the phone, any ancestor or `:root`. The colours come from the
+                  `spell-brand` theme's roles (`--spell-surface-warm`, `--spell-border-subtle`, `--spell-shadow-md`),
+                  and plain Spell UI tokens without it. Edit a value below to try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="ui-brand-phone" playground>
+                <ui-brand-phone>
+                  <div class="app-head">
+                    <ui-icon name="seedling"></ui-icon>
+                    Habit Tracker
+                  </div>
+                  <div class="app-card">
+                    <h4>Today</h4>
+                    <ui-checkbox>Drink water</ui-checkbox>
+                  </div>
+                </ui-brand-phone>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

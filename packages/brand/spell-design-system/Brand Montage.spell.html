@@ -1,0 +1,562 @@
+<!doctype html>
+<!--
+  Brand Montage, on Spell UI:  the copy of `Brand Montage.dc.html`, a 1600 x 1600 poster of brand moments, scaled
+  down to the window's width (never up), as the original.
+  - Corner blobs (`<ui-brand-blob>`:  the top-left one the original's own `wave`), the tagline lockup (`<ui-brand-logo>`).
+  - The Spell app twice, light and dark side by side:  each panel forces its scheme (`ui-light` / `ui-dark`), so the
+    theme's tokens read right in it whatever the page's.
+  - The brand palette (`<ui-brand-color>`), then three tiles:  the lockup on ivory, the call to action on aubergine,
+    the app icons.  The tiles are brand colours, so they stay light in dark mode (`ui-light`).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brand Montage</title>
+    <meta
+      name="description"
+      content="Brand moments on one poster:  the logo, the app in light and dark, the palette, the lockup, a call to action, the app icons."
+    />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <style>
+      /* page layout only:  every colour, font, radius and shadow comes from the theme's tokens */
+      body {
+        margin: 0;
+        overflow-x: hidden;
+        background: var(--canvas);
+        color: var(--spell-text-body);
+        font: var(--spell-type-body);
+      }
+      :root {
+        /* the poster's lavender wash;  the dark page's canvas */
+        --canvas: light-dark(var(--spell-violet-75), var(--ui-background));
+      }
+
+      /* ## The poster:  1600px square, scaled to the window (`--scale`, set by the script below) */
+      .frame {
+        --scale: 1;
+        width: 100%;
+        height: calc(1600px * var(--scale));
+        overflow: hidden;
+      }
+      .poster {
+        position: relative;
+        width: 1600px;
+        height: 1600px;
+        overflow: hidden;
+        transform-origin: 0 0;
+        scale: var(--scale);
+      }
+      /* the original's top-left wash, exactly:  its 640 x 424 path, flush in the corner */
+      .poster > ui-brand-blob[corner="top-left"] {
+        --ui-brand-blob-width: 640px;
+        --ui-brand-blob-height: 424px;
+      }
+      .poster > ui-brand-blob[corner="top-right"] {
+        --ui-brand-blob-width: 460px;
+        --ui-brand-blob-height: 560px;
+        --ui-brand-blob-x: 230px;
+        --ui-brand-blob-y: -100px;
+      }
+      .poster > ui-brand-blob[corner="bottom-left"] {
+        --ui-brand-blob-width: 560px;
+        --ui-brand-blob-height: 300px;
+        --ui-brand-blob-x: 290px;
+        --ui-brand-blob-y: 170px;
+      }
+      .poster > ui-brand-blob[corner="bottom-right"] {
+        --ui-brand-blob-width: 560px;
+        --ui-brand-blob-height: 300px;
+        --ui-brand-blob-x: 280px;
+        --ui-brand-blob-y: 160px;
+      }
+      .hero {
+        position: relative;
+        height: 500px;
+        display: grid;
+        place-items: center;
+        --ui-brand-logo-height: 250px;
+      }
+
+      /* ## The app, light and dark */
+      .apps {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        padding: 0 32px;
+      }
+      .app {
+        height: 600px;
+        box-sizing: border-box;
+        border-radius: 28px;
+        background: var(--ui-background);
+        box-shadow: var(--spell-shadow-lg);
+        border: 1px solid var(--spell-border-subtle);
+        display: grid;
+        grid-template-columns: 168px minmax(0, 1fr);
+        overflow: hidden;
+        --ui-card-margin-block: 0;
+        --ui-card-shadow: var(--spell-shadow-sm);
+        --ui-card-border-color: var(--spell-border-subtle);
+      }
+      .app > aside {
+        background: light-dark(var(--spell-brand-50), var(--spell-violet-975));
+        border-right: 1px solid var(--spell-border-subtle);
+        padding: 24px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        --ui-brand-logo-height: 34px;
+      }
+      .app > aside > ui-brand-logo {
+        margin: 0 8px;
+        align-self: flex-start;
+      }
+      /* the nav:  icon first, 40px pills, the chosen one tinted (light) or filled purple (dark) */
+      .app > aside > ui-menu {
+        width: 100%;
+        font: 500 15px/1 var(--spell-font-sans);
+        --ui-font-size: 15px;
+        --ui-menu-margin: 0;
+        --ui-menu-item-min-height: 40px;
+        --ui-menu-vertical-item-display: flex;
+        --ui-menu-vertical-icon-float: none;
+        /* the original's 16px glyph centred in an 18px box, then a 12px gap */
+        --ui-menu-vertical-icon-margin: 0 13px 0 1px;
+        --ui-menu-icon-size: 16px;
+        --ui-menu-icon-opacity: 1;
+        --ui-menu-secondary-item-padding: 0 12px;
+        --ui-menu-secondary-vertical-item-margin: 0 0 4px;
+        --ui-menu-secondary-item-radius: 12px;
+        --ui-menu-secondary-item-color: var(--spell-text-body);
+        --ui-menu-secondary-active-background: light-dark(var(--spell-surface-selected), var(--spell-violet-600));
+        --ui-menu-secondary-active-color: light-dark(var(--spell-text-accent), var(--spell-violet-25));
+        --ui-menu-secondary-inline-margin: 0;
+      }
+      .work {
+        padding: 28px 24px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 236px;
+        gap: 20px;
+        align-items: start;
+        min-width: 0;
+      }
+      .build {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+      }
+      .build > header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .build h2 {
+        margin: 0;
+        font: 700 28px/1.1 var(--spell-font-serif);
+        letter-spacing: -0.01em;
+        color: var(--spell-text-strong);
+      }
+      .build header p {
+        margin: 0;
+        font: 400 14px/1.5 var(--spell-font-sans);
+        color: var(--spell-text-muted);
+      }
+      .prompt {
+        padding: 16px 16px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font: 400 16px/1.5 var(--spell-font-serif);
+        color: var(--spell-text-body);
+      }
+      .prompt > ui-button {
+        align-self: flex-end;
+      }
+      .steps {
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        font: 400 15px/1.2 var(--spell-font-sans);
+        color: var(--spell-text-body);
+      }
+      .steps > b {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font: 400 17px/1.2 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+
+      /* ## The phone:  the habit tracker */
+      .phone {
+        border-radius: 30px;
+        background: light-dark(var(--spell-surface-warm), var(--spell-violet-900));
+        border: 1px solid var(--spell-border-subtle);
+        box-shadow: var(--spell-shadow-md);
+        padding: 14px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        --ui-card-radius: 16px;
+        --ui-card-shadow: var(--spell-shadow-xs);
+        --ui-card-border-color: transparent;
+      }
+      .status {
+        display: flex;
+        justify-content: space-between;
+        padding: 0 8px;
+        font: 600 11px/1 var(--spell-font-sans);
+        color: var(--spell-text-strong);
+      }
+      .status > span {
+        display: flex;
+        gap: 4px;
+      }
+      .title {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 0;
+        font: 700 19px/1.1 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+      .title > ui-icon {
+        font-size: 24px;
+        color: var(--spell-accent);
+      }
+      .today,
+      .streak {
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        font: 400 14px/1.2 var(--spell-font-serif);
+        color: var(--spell-text-body);
+      }
+      .today > b,
+      .streak > b {
+        font: 700 15px/1 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+      .streak > b {
+        font-size: 14px;
+      }
+      .today > ui-checkbox {
+        --ui-font-family: var(--spell-font-serif);
+        --ui-font-size: 14px;
+      }
+      .today > ui-button {
+        margin-top: 2px;
+        --ui-font-family: var(--spell-font-serif);
+      }
+      .days {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font: 400 20px/1 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+      .days > ui-icon {
+        font-size: 16px;
+        color: var(--spell-spark);
+      }
+      .streak > ui-rating {
+        --ui-rating-icon-size: 14px;
+        --ui-rating-margin: 0 6px 0 0;
+        --ui-rating-active-color: var(--spell-accent);
+        --ui-rating-inactive-color: var(--spell-accent-soft-hover);
+      }
+
+      /* ## The palette and the tiles */
+      .brand {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr) 1.7fr 2fr 1fr;
+        gap: 16px 20px;
+        padding: 40px 32px 0;
+        align-items: start;
+      }
+      .brand > h3 {
+        grid-column: 1 / span 5;
+        grid-row: 1;
+        margin: 0;
+        padding-top: 12px;
+        font: 700 14px/1 var(--spell-font-sans);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--spell-text-strong);
+      }
+      .swatch {
+        grid-row: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        /* a column's width:  (1600 - 64 padding - 7 x 20 gaps) / 9.7 fractions */
+        --ui-brand-color-size: 144px;
+        --ui-brand-color-radius: 18px;
+      }
+      .swatch > b {
+        font: 700 16px/1.1 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+        text-align: center;
+      }
+      .swatch > code {
+        font: 400 13px/1 var(--spell-font-mono);
+        color: var(--spell-text-muted);
+      }
+      .tile {
+        grid-row: 1 / span 2;
+        position: relative;
+        height: 300px;
+        box-sizing: border-box;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--spell-shadow-sm);
+      }
+      .ivory {
+        background: var(--spell-accent-150);
+        display: grid;
+        place-items: center;
+        --ui-brand-blob-width: 280px;
+        --ui-brand-blob-height: 180px;
+        --ui-brand-blob-x: 40px;
+        --ui-brand-blob-y: 110px;
+        --ui-brand-blob-color: var(--spell-violet-150);
+      }
+      .ivory > ui-brand-blob {
+        border-radius: 50%;
+        overflow: hidden;
+      }
+      .ivory > ui-brand-logo {
+        position: relative;
+        width: 78%;
+        --ui-brand-logo-height: auto;
+      }
+      .cta {
+        padding: 32px;
+        background: var(--spell-violet-900);
+        --ui-brand-blob-width: 300px;
+        --ui-brand-blob-height: 240px;
+        --ui-brand-blob-x: 80px;
+        --ui-brand-blob-y: 120px;
+      }
+      .cta > p {
+        position: relative;
+        margin: 0;
+        white-space: nowrap;
+        font: 400 34px/1.02 var(--spell-font-serif);
+        letter-spacing: -0.01em;
+        color: var(--spell-violet-25);
+      }
+      .icons {
+        background: var(--spell-violet-100);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+      .icons > span {
+        width: 66%;
+        aspect-ratio: 1;
+        border-radius: 22.5%;
+        display: grid;
+        place-items: center;
+        box-shadow: var(--spell-shadow-md);
+        --ui-brand-logo-height: auto;
+      }
+      .icons > span:first-child {
+        background: var(--ui-surface);
+        box-shadow:
+          inset 0 0 0 1px var(--spell-border-default),
+          var(--spell-shadow-md);
+      }
+      .icons > span:last-child {
+        background: var(--spell-violet-900);
+      }
+      .icons ui-brand-logo {
+        width: 72%;
+      }
+    </style>
+  </head>
+  <body>
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="frame" id="frame">
+      <div class="poster">
+        <ui-brand-blob shape="wave" corner="top-left"></ui-brand-blob>
+        <ui-brand-blob corner="top-right"></ui-brand-blob>
+        <ui-brand-blob corner="bottom-left"></ui-brand-blob>
+        <ui-brand-blob corner="bottom-right"></ui-brand-blob>
+
+        <div class="hero"><ui-brand-logo variant="tagline" label="Spell — All magic, no fuss."></ui-brand-logo></div>
+
+        <div class="apps">
+          <div class="app ui-light">
+            <aside>
+              <ui-brand-logo variant="lockup"></ui-brand-logo>
+              <ui-menu vertical secondary fluid aria-label="Spell">
+                <ui-item icon="wand magic sparkles" selected>Build</ui-item>
+                <ui-item icon="calendar outline">Your Apps</ui-item>
+                <ui-item icon="th large">Templates</ui-item>
+                <ui-item icon="cog">Settings</ui-item>
+              </ui-menu>
+            </aside>
+            <div class="work">
+              <div class="build">
+                <header>
+                  <h2>Build your app</h2>
+                  <p>Describe what you want, and Spell turns it into a working app.</p>
+                </header>
+                <ui-card fluid>
+                  <div class="prompt">
+                    Create a habit tracker app with add, done and streaks.
+                    <ui-button circular primary size="small" icon="arrow right" aria-label="Build"></ui-button>
+                  </div>
+                </ui-card>
+                <ui-card fluid>
+                  <div class="steps">
+                    <b><ui-icon name="wand magic sparkles"></ui-icon>Building your app…</b>
+                    <ui-checkbox selected>Planning structure</ui-checkbox>
+                    <ui-checkbox selected>Creating screens</ui-checkbox>
+                    <ui-checkbox selected>Adding functionality</ui-checkbox>
+                    <ui-checkbox>Finalizing your app</ui-checkbox>
+                  </div>
+                </ui-card>
+              </div>
+              <div class="phone">
+                <div class="status">
+                  9:41<span><ui-icon name="signal"></ui-icon><ui-icon name="wifi"></ui-icon><ui-icon name="battery full"></ui-icon></span>
+                </div>
+                <div class="title"><ui-icon name="seedling"></ui-icon>Habit Tracker</div>
+                <ui-card fluid>
+                  <div class="today">
+                    <b>Today</b>
+                    <ui-checkbox selected>Drink water</ui-checkbox>
+                    <ui-checkbox>Read</ui-checkbox>
+                    <ui-checkbox>Move body</ui-checkbox>
+                    <ui-button primary fluid size="small">+ Add habit</ui-button>
+                  </div>
+                </ui-card>
+                <ui-card fluid>
+                  <div class="streak">
+                    <b>Streak</b>
+                    <span class="days"><ui-icon name="bolt"></ui-icon>5 days</span>
+                    <ui-rating icon="circle" max-rating="5" value="4" readonly aria-label="Streak"></ui-rating>
+                  </div>
+                </ui-card>
+              </div>
+            </div>
+          </div>
+
+          <div class="app ui-dark">
+            <aside>
+              <ui-brand-logo variant="lockup"></ui-brand-logo>
+              <ui-menu vertical secondary fluid aria-label="Spell">
+                <ui-item icon="wand magic sparkles" selected>Build</ui-item>
+                <ui-item icon="calendar outline">Your Apps</ui-item>
+                <ui-item icon="th large">Templates</ui-item>
+                <ui-item icon="cog">Settings</ui-item>
+              </ui-menu>
+            </aside>
+            <div class="work">
+              <div class="build">
+                <header>
+                  <h2>Build your app</h2>
+                  <p>Describe what you want, and Spell turns it into a working app.</p>
+                </header>
+                <ui-card fluid>
+                  <div class="prompt">
+                    Create a habit tracker app with add, done and streaks.
+                    <ui-button circular primary size="small" icon="arrow right" aria-label="Build"></ui-button>
+                  </div>
+                </ui-card>
+                <ui-card fluid>
+                  <div class="steps">
+                    <b><ui-icon name="wand magic sparkles"></ui-icon>Building your app…</b>
+                    <ui-checkbox selected>Planning structure</ui-checkbox>
+                    <ui-checkbox selected>Creating screens</ui-checkbox>
+                    <ui-checkbox selected>Adding functionality</ui-checkbox>
+                    <ui-checkbox>Finalizing your app</ui-checkbox>
+                  </div>
+                </ui-card>
+              </div>
+              <div class="phone">
+                <div class="status">
+                  9:41<span><ui-icon name="signal"></ui-icon><ui-icon name="wifi"></ui-icon><ui-icon name="battery full"></ui-icon></span>
+                </div>
+                <div class="title"><ui-icon name="seedling"></ui-icon>Habit Tracker</div>
+                <ui-card fluid>
+                  <div class="today">
+                    <b>Today</b>
+                    <ui-checkbox selected>Drink water</ui-checkbox>
+                    <ui-checkbox>Read</ui-checkbox>
+                    <ui-checkbox>Move body</ui-checkbox>
+                    <ui-button primary fluid size="small">+ Add habit</ui-button>
+                  </div>
+                </ui-card>
+                <ui-card fluid>
+                  <div class="streak">
+                    <b>Streak</b>
+                    <span class="days"><ui-icon name="bolt"></ui-icon>5 days</span>
+                    <ui-rating icon="circle" max-rating="5" value="4" readonly aria-label="Streak"></ui-rating>
+                  </div>
+                </ui-card>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="brand">
+          <h3>Brand palette</h3>
+          <div class="swatch">
+            <ui-brand-color value="#2A1D60" name="Aubergine"></ui-brand-color><b>Aubergine</b><code>#2A1D60</code>
+          </div>
+          <div class="swatch">
+            <ui-brand-color value="#6550CA" name="Purple"></ui-brand-color><b>Purple</b><code>#6550CA</code>
+          </div>
+          <div class="swatch">
+            <ui-brand-color value="#8E96B5" name="House of Owen"></ui-brand-color><b>House of Owen</b><code>#8E96B5</code>
+          </div>
+          <div class="swatch">
+            <ui-brand-color value="#E0DFFF" name="Lavender"></ui-brand-color><b>Lavender</b><code>#E0DFFF</code>
+          </div>
+          <div class="swatch">
+            <ui-brand-color value="#F1E7D4" name="Ivory"></ui-brand-color><b>Ivory</b><code>#F1E7D4</code>
+          </div>
+          <div class="tile ivory ui-light">
+            <ui-brand-blob corner="bottom-left"></ui-brand-blob>
+            <ui-brand-logo variant="tagline" tone="aubergine" label=""></ui-brand-logo>
+          </div>
+          <div class="tile cta">
+            <ui-brand-blob shape="mound" tone="lilac"></ui-brand-blob>
+            <p>Magical tech<br />to realize<br />your visions.</p>
+          </div>
+          <div class="tile icons ui-light">
+            <span><ui-brand-logo variant="mark" tone="aubergine" label="App icon"></ui-brand-logo></span>
+            <span><ui-brand-logo variant="mark" tone="white" label="App icon, reversed"></ui-brand-logo></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="../_assets/ui/brand-ui.js"></script>
+    <script type="module">
+      /*
+       * Behaviour only:  the poster scales to the window's width, never up (the original's `scale`).
+       */
+      const frame = document.getElementById("frame")
+      addEventListener("resize", fit)
+      fit()
+
+      /** `--scale`:  the window's width over the poster's 1600px, at most 1. */
+      function fit() {
+        frame.style.setProperty("--scale", String(Math.min(1, innerWidth / 1600)))
+      }
+    </script>
+  </body>
+</html>

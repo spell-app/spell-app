@@ -3,12 +3,15 @@ import {
   DARK_QUERY,
   EDIT_KEY,
   FAVICON_SVG,
+  forcedScheme,
   LEGACY_SCHEME_KEYS,
   LOGO_MARK,
   PROPERTIES,
+  SCHEME_CLASSES,
   SCHEME_KEY,
   SITE_HOME,
-  type SiteProperty
+  type SiteProperty,
+  type SiteScheme
 } from "$/server/site"
 
 /****************
@@ -30,6 +33,9 @@ import {
  *     `ThemePreference` too);  applied as `ui-light` / `ui-dark` on `<html>` (UI's tokens, `--ui-scheme`) AND inline
  *     `color-scheme` (pages without UI's sheets, and this bar's own `light-dark()`).  Follows the OS while it
  *     changes, and other tabs' switches (`storage`)
+ *   - the icon shows what `<html>` shows:  a page that switches its own scheme (toggles `ui-light` / `ui-dark`, as
+ *     Spell App's pill does) re-draws it too (a `MutationObserver` on `<html>`'s class);  a click then flips from
+ *     what the page shows
  * - Self-contained:  its own shadow DOM and CSS, no UI elements, so it looks the same on every property.
  * - `docked`:  no fixed bar:  a compact row in place, inside the page's own chrome (the Spell UI site's side
  *   column and top bar);  no crumbs (the page shows its own title), no light / dark button (the page has its own),
@@ -73,6 +79,14 @@ export class SiteHeader extends HTMLElement {
     this.render()
   }
 
+  /** the scheme the icon shows now, so `<html>` class changes that keep it re-draw nothing */
+  private drawnTheme?: Theme
+
+  /** watches `<html>`'s class while connected:  a page that switches its own scheme */
+  private readonly pageScheme = new MutationObserver(() => {
+    if (this.shownTheme() !== this.drawnTheme) this.render()
+  })
+
   connectedCallback(): void {
     applyTheme(readTheme())
     installPageStyle(this.docked)
@@ -83,6 +97,7 @@ export class SiteHeader extends HTMLElement {
     document.addEventListener(SiteHeader.PAGE_EVENT, this.onPage)
     this.osDark.addEventListener("change", this.onOsScheme)
     window.addEventListener("storage", this.onStorage)
+    this.pageScheme.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
     if (!this.info && location.protocol.startsWith("http")) void this.ping()
   }
 
@@ -90,6 +105,7 @@ export class SiteHeader extends HTMLElement {
     document.removeEventListener(SiteHeader.PAGE_EVENT, this.onPage)
     this.osDark.removeEventListener("change", this.onOsScheme)
     window.removeEventListener("storage", this.onStorage)
+    this.pageScheme.disconnect()
   }
 
   /** a compact row inside the page's own chrome, not the fixed bar (the `docked` attribute) */
@@ -108,11 +124,18 @@ export class SiteHeader extends HTMLElement {
   }
 
   /**
-   * the URL of `property`'s home (or the site's, `SITE_HOME`), or `undefined` where it can't be reached
-   * (server-only, from `file://`)
+   * The URL of `property`'s home (or the site's, `SITE_HOME`), or `undefined` where it can't be reached
+   * (server-only, from `file://`).
+   * - A worktree's page on the main checkout's server (`/worktrees/<w>/...`) keeps that prefix on repo paths, so a tab
+   *   stays in the worktree:  a property only the branch has (Brand, before it merges) is a 404 on `main`.  A server
+   *   route (`/ui/`, `/editor/`) is the server's own:  never prefixed.
    */
   href(property: Pick<SiteProperty, "path" | "serverOnly">): string | undefined {
-    if (this.served) return property.path.startsWith("/") ? property.path : `/${property.path}`
+    if (this.served) {
+      if (property.path.startsWith("/")) return property.path
+      const worktree = /^\/worktrees\/[^/]+\//.exec(location.pathname)?.[0] ?? "/"
+      return `${worktree}${property.path}`
+    }
     if (property.serverOnly) return undefined
     return `${this.root}/${property.path}`
   }
@@ -158,7 +181,8 @@ export class SiteHeader extends HTMLElement {
     const edit = canEdit
       ? `<button class="tool${editing ? " on" : ""}" data-action="edit" aria-pressed="${editing}" title="Edit sections in place" aria-label="Edit sections in place">${ICONS.pencil}</button>`
       : ""
-    const shown = readTheme() ?? this.osTheme()
+    const shown = this.shownTheme()
+    this.drawnTheme = shown
     const themeLabel = this.themeLabel()
     shadow.innerHTML = `<style>${STYLE}</style>
 <header part="bar">
@@ -179,6 +203,11 @@ export class SiteHeader extends HTMLElement {
     return this.osDark.matches ? "dark" : "light"
   }
 
+  /** the scheme the page shows:  what `<html>`'s classes force (this bar's choice, or the page's own), else the OS's */
+  private shownTheme(): Theme {
+    return forcedScheme(document.documentElement.classList) ?? readTheme() ?? this.osTheme()
+  }
+
   /**
    * The theme button's name:  what the page shows, and what a click does.
    * - `Dark, as the OS (click:  light)` while following the OS
@@ -187,21 +216,21 @@ export class SiteHeader extends HTMLElement {
   private themeLabel(): string {
     const chosen = readTheme()
     const os = this.osTheme()
-    const shown = chosen ?? os
+    const shown = this.shownTheme()
     const next = shown === "dark" ? "light" : "dark"
     const name = { light: "Light", dark: "Dark" }[shown]
-    if (!chosen) return `${name}, as the OS (click:  ${next})`
+    if (!chosen && shown === os) return `${name}, as the OS (click:  ${next})`
     return `${name} (click:  ${next}${next === os ? ", as the OS" : ""})`
   }
 
   /**
-   * Flip the scheme the page shows:  light <-> dark.
+   * Flip the scheme the page shows (`<html>`'s, which a page may have switched itself):  light <-> dark.
    * - Landing on the OS's own scheme FORGETS the choice:  the page follows the OS again.  The one way back to the OS
    *   without an extra state:  a bar has no room for Spell UI's "Match system" switch, and a third "auto" state on
    *   one button makes every other click look like it did nothing.
    */
   private flipTheme(): void {
-    const next: Theme = (readTheme() ?? this.osTheme()) === "dark" ? "light" : "dark"
+    const next: Theme = this.shownTheme() === "dark" ? "light" : "dark"
     const stored = next === this.osTheme() ? undefined : next
     themeFallback = stored
     try {
@@ -242,7 +271,7 @@ export class SiteHeader extends HTMLElement {
 }
 
 /** A chosen color scheme;  `undefined` follows the OS. */
-type Theme = "light" | "dark"
+type Theme = SiteScheme
 
 /** The chosen scheme when storage is blocked:  this page only. */
 let themeFallback: Theme | undefined
@@ -298,8 +327,8 @@ function migrateTheme(storage: Storage): string | null {
  */
 function applyTheme(theme: Theme | undefined): void {
   const root = document.documentElement
-  root.classList.toggle("ui-light", theme === "light")
-  root.classList.toggle("ui-dark", theme === "dark")
+  root.classList.toggle(SCHEME_CLASSES.light, theme === "light")
+  root.classList.toggle(SCHEME_CLASSES.dark, theme === "dark")
   if (theme) root.style.colorScheme = theme
   else root.style.removeProperty("color-scheme")
 }

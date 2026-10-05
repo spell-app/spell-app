@@ -1,0 +1,290 @@
+<!doctype html>
+<!--
+  Flourishes, on Spell UI:  the copy of `Flourishes.dc.html`, the five `<ui-brand-flourish>` variants, one card each.
+  - Each card:  a headline over its art, the variant's badge, and where the brand uses it.
+  - Click a card (or Enter / Space on it) to reseed its flourish:  the seed goes up by one, as the original's.
+  - The pill flips the page's scheme:  `ui-dark` / `ui-light` on `<html>`.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flourishes</title>
+    <meta
+      name="description"
+      content="Swoops and blobs:  the five flourish variants, drawn by one element from a seed;  click a panel to reseed."
+    />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <style>
+      /* page layout only:  every colour, font, radius and shadow comes from the theme's tokens */
+      body {
+        margin: 0;
+        background: var(--ui-background);
+        color: var(--spell-text-body);
+        font: var(--spell-type-body);
+      }
+      main {
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 36px 40px 56px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      main > header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      main > header > div {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-width: 640px;
+      }
+      .eyebrow {
+        font: var(--spell-type-eyebrow);
+        letter-spacing: var(--spell-tracking-eyebrow);
+        text-transform: uppercase;
+        color: var(--spell-text-accent);
+      }
+      h1 {
+        margin: 0;
+        font: var(--spell-type-h1);
+        font-size: 40px;
+        line-height: 1.05;
+        letter-spacing: var(--spell-tracking-display);
+        color: var(--spell-text-strong);
+      }
+      main > header p {
+        margin: 0;
+        line-height: 1.55;
+        color: var(--spell-text-muted);
+      }
+      code {
+        font: var(--spell-type-code);
+        font-size: 13px;
+      }
+
+      /* ## The cards:  two columns (one when narrow), each card 300px high, its flourish under the text */
+      .flourishes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr));
+        gap: 20px;
+        --ui-card-margin-block: 0;
+        --ui-card-radius: 20px;
+        --ui-card-shadow: var(--spell-shadow-sm);
+        --ui-card-border-color: var(--spell-border-subtle);
+      }
+      .panel {
+        position: relative;
+        overflow: hidden;
+        height: 300px;
+        border-radius: var(--ui-card-radius);
+        cursor: pointer;
+        --ink: var(--spell-text-strong);
+        --sub: var(--spell-text-muted);
+      }
+      .panel:focus-visible {
+        outline: none;
+        box-shadow: var(--spell-shadow-focus);
+      }
+      .text {
+        position: relative;
+        padding: 26px 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        /* the original's 330px is the text's own width, padding outside it */
+        box-sizing: content-box;
+        max-width: 330px;
+      }
+      /* the badge:  a mono pill, a hairline ring on the card's colour */
+      .text > ui-label {
+        --ui-font-family: var(--spell-font-mono);
+        --ui-label-font-weight: 600;
+        --ui-label-font-ratio: 0.75;
+        --ui-label-padding-block: 5px;
+        --ui-label-basic-color: var(--spell-text-strong);
+        --ui-label-basic-border: var(--spell-border-default);
+      }
+      /* the headline (the card's header) over its lede (the header's sub header) */
+      .text > ui-header {
+        /* -0.015em of the 30px headline (the host's em is the page's 16px) */
+        letter-spacing: -0.45px;
+        text-wrap: balance;
+        --ui-card-header-font-size: 30px;
+        --ui-card-header-color: var(--ink);
+        --ui-line-height-heading: 1.08;
+        /* a card header pulls itself up by half the BODY line's leading;  the original's headline sits 8px below the badge */
+        --ui-line-height: 1;
+        --ui-header-sub-color: var(--ink);
+        --ui-header-sub-font-size: 17px;
+        --ui-header-sub-margin: 8px 0 0;
+      }
+      .text > ui-header > ui-header {
+        letter-spacing: 0;
+      }
+      .use {
+        position: absolute;
+        left: 28px;
+        bottom: 20px;
+        max-width: 300px;
+        font: 400 12px/1.4 var(--spell-font-sans);
+        color: var(--sub);
+      }
+
+      /* ## Each card's surface:  canvas, card, warm ivory, aubergine (the inverse one, white text) */
+      .canvas {
+        --ui-card-background: var(--ui-background);
+      }
+      .card {
+        --ui-card-background: var(--ui-surface);
+      }
+      .warm {
+        --ui-card-background: var(--spell-surface-warm);
+      }
+      .inverse {
+        --ui-card-background: var(--spell-violet-900);
+      }
+      .inverse .panel {
+        --ink: var(--spell-violet-25);
+        --sub: var(--spell-violet-150);
+      }
+    </style>
+  </head>
+  <body>
+    <spell-site-header root="../../.."></spell-site-header>
+    <main>
+      <header>
+        <div>
+          <div class="eyebrow">Motifs · &lt;ui-brand-flourish&gt;</div>
+          <h1>Swoops and blobs.</h1>
+          <p>
+            Five directions for the decorative layer, drawn by one element from a seed. Colours come from the theme
+            (<code>--spell-line-flourish</code>, <code>--spell-blob</code>, <code>--spell-blob-2</code>), so each
+            theme can restyle them. Click a panel to reseed.
+          </p>
+        </div>
+        <ui-button id="scheme" basic size="small" icon="moon outline">Dark</ui-button>
+      </header>
+
+      <div class="flourishes" id="flourishes">
+        <ui-card fluid class="canvas">
+          <div class="panel" role="button" tabindex="0" aria-label="Reseed blobs">
+            <ui-brand-flourish variant="blobs" seed="3" weight="1.6"></ui-brand-flourish>
+            <div class="text">
+              <ui-label basic>1 · blobs</ui-label>
+              <ui-header>Shape the app as you go.<ui-header>Your idea, your pace.</ui-header></ui-header>
+            </div>
+            <div class="use">Page corners, hero backgrounds. Never behind body copy.</div>
+          </div>
+        </ui-card>
+
+        <ui-card fluid class="card">
+          <div class="panel" role="button" tabindex="0" aria-label="Reseed swoop">
+            <ui-brand-flourish variant="swoop" seed="11" weight="1.8"></ui-brand-flourish>
+            <div class="text">
+              <ui-label basic>2 · swoop</ui-label>
+              <ui-header>Write an app in a sentence.<ui-header>All magic, no fuss.</ui-header></ui-header>
+            </div>
+            <div class="use">Marketing hero — one line, one loop, crossing the fold.</div>
+          </div>
+        </ui-card>
+
+        <ui-card fluid class="canvas">
+          <div class="panel" role="button" tabindex="0" aria-label="Reseed edge curls">
+            <ui-brand-flourish variant="edge-curls" seed="5" weight="1.4"></ui-brand-flourish>
+            <div class="text">
+              <ui-label basic>3 · edge-curls</ui-label>
+              <ui-header>Getting started.<ui-header>From idea to magic.</ui-header></ui-header>
+            </div>
+            <div class="use">Docs pages — thin curls entering from the edges.</div>
+          </div>
+        </ui-card>
+
+        <ui-card fluid class="warm">
+          <div class="panel" role="button" tabindex="0" aria-label="Reseed sparkle trail">
+            <ui-brand-flourish variant="sparkle-trail" seed="8" weight="2.2"></ui-brand-flourish>
+            <div class="text">
+              <ui-label basic>4 · sparkle-trail</ui-label>
+              <ui-header>Building your app…<ui-header>Small steps. Big magic.</ui-header></ui-header>
+            </div>
+            <div class="use">Empty states, loading, “ready” moments.</div>
+          </div>
+        </ui-card>
+
+        <ui-card fluid inverted class="inverse">
+          <div class="panel" role="button" tabindex="0" aria-label="Reseed rising wave">
+            <ui-brand-flourish
+              variant="rising-wave"
+              seed="2"
+              weight="1.6"
+              stroke="var(--spell-violet-300)"
+              fill="var(--spell-violet-300)"
+            ></ui-brand-flourish>
+            <div class="text">
+              <ui-label basic class="ui-light">5 · rising-wave</ui-label>
+              <ui-header
+                >Magical tech to realize your visions.<ui-header>Same magic. Your style.</ui-header></ui-header
+              >
+            </div>
+            <div class="use">Inverse CTA panels and social tiles.</div>
+          </div>
+        </ui-card>
+      </div>
+    </main>
+    <script type="module" src="../_assets/ui/brand-ui.js"></script>
+    <script type="module">
+      /*
+       * Behaviour only:
+       * - a click on a card, or Enter / Space on it, reseeds its flourish (seed + 1)
+       * - the pill flips the scheme on `<html>`, and follows the site header's flip
+       */
+      const flourishes = document.getElementById("flourishes")
+      const scheme = document.getElementById("scheme")
+      const root = document.documentElement
+
+      flourishes.addEventListener("click", (event) => reseed(event.target.closest(".panel")))
+      flourishes.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return
+        event.preventDefault()
+        reseed(event.target.closest(".panel"))
+      })
+      scheme.addEventListener("click", flipScheme)
+      new MutationObserver(showScheme).observe(root, { attributes: true, attributeFilter: ["class", "style"] })
+      showScheme()
+
+      /** The next seed for `panel`'s flourish. */
+      function reseed(panel) {
+        const flourish = panel?.querySelector("ui-brand-flourish")
+        if (flourish) flourish.setAttribute("seed", String(Number(flourish.getAttribute("seed")) + 1))
+      }
+
+      /** The scheme the page shows now. */
+      function shownScheme() {
+        if (root.classList.contains("ui-dark")) return "dark"
+        if (root.classList.contains("ui-light")) return "light"
+        return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      }
+
+      /** Light <-> dark, on `<html>`, as Spell UI's `color-scheme` does it. */
+      function flipScheme() {
+        const next = shownScheme() === "dark" ? "light" : "dark"
+        root.classList.remove("ui-light", "ui-dark")
+        root.classList.add(`ui-${next}`)
+        root.style.colorScheme = next
+      }
+
+      /** The pill offers the other scheme. */
+      function showScheme() {
+        const dark = shownScheme() === "dark"
+        scheme.setAttribute("icon", dark ? "sun outline" : "moon outline")
+        scheme.textContent = dark ? "Light" : "Dark"
+      }
+    </script>
+  </body>
+</html>

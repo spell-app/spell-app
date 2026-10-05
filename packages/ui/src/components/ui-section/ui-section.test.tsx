@@ -828,7 +828,119 @@ describe("<ui-section source>", () => {
   })
 })
 
+describe("<ui-section> end chevron", () => {
+  it('`fold-icon="end"`:  the chevron leaves the button for the far end of the bar, after the actions', async () => {
+    const { title, toggle, foldIcon } = await section(
+      `<ui-section header="H" collapsible fold-icon="end" style="width: 400px">` +
+        `<ui-button slot="actions" size="mini">Edit</ui-button>Body</ui-section>`
+    )
+    expect(shape(toggle)).toEqual(["span.header"])
+    expect(shape(title)).toEqual(["h2.heading", "span.actions", "span.fold icon"])
+    expect(foldIcon!.getAttribute("aria-hidden")).toBe("true")
+    await expect.poll(() => foldIcon!.querySelector("svg")).not.toBeNull()
+    const bar = title.getBoundingClientRect()
+    expect(Math.abs(bar.right - foldIcon!.getBoundingClientRect().right)).toBeLessThan(1)
+  })
+
+  it("folds on a click on the end chevron, as on the button;  turns while folded", async () => {
+    const { host, toggle, foldIcon, content } = await section(
+      `<ui-section header="H" collapsible fold-icon="end">Body</ui-section>`
+    )
+    const seen = record(host)
+    await userEvent.click(foldIcon!)
+    await ElementFixture.tick()
+    expect(seen.map(({ type }) => type)).toEqual(["ui-close"])
+    expect(host.collapsed).toBe(true)
+    expect(toggle.getAttribute("aria-expanded")).toBe("false")
+    await expect.poll(() => folded(content)).toBe(true)
+    await expect.poll(() => getComputedStyle(foldIcon!).rotate).toBe("-90deg")
+  })
+
+  it('`fold-icon="start"` and no attribute:  the chevron stays first in the button', async () => {
+    for (const html of [`fold-icon="start"`, ""]) {
+      const { toggle, title } = await section(`<ui-section header="H" collapsible ${html}>Body</ui-section>`)
+      expect(shape(toggle)).toEqual(["span.fold icon", "span.header"])
+      expect(shape(title)).toEqual(["h2.heading"])
+    }
+  })
+
+  it("without `collapsible`:  no chevron anywhere", async () => {
+    const { foldIcon } = await section(`<ui-section header="H" fold-icon="end">Body</ui-section>`)
+    expect(foldIcon).toBeNull()
+  })
+})
+
+describe("<ui-section> info tip", () => {
+  it("`info`:  a tooltip at the end of the title bar that describes the fold button", async () => {
+    const { title, toggle, heading } = await section(
+      `<ui-section header="Theme" info="The look of an app." collapsible>Body</ui-section>`
+    )
+    const tip = title.querySelector<HTMLElement>("[part~=tip]")!
+    expect(shape(title)).toEqual(["h2.heading", "span.tip"])
+    expect(tip.getAttribute("role")).toBe("tooltip")
+    expect(tip.id).toBe("tip")
+    expect(tip.textContent).toBe("The look of an app.")
+    expect(toggle.getAttribute("aria-describedby")).toBe("tip")
+    expect(heading.hasAttribute("aria-describedby")).toBe(false)
+  })
+
+  it("not collapsible:  the tip describes the heading", async () => {
+    const { heading, toggle } = await section(`<ui-section header="H" info="Tip">Body</ui-section>`)
+    expect(heading.getAttribute("aria-describedby")).toBe("tip")
+    expect(toggle.hasAttribute("aria-describedby")).toBe(false)
+  })
+
+  it("is hidden until the pointer is on the title, or the fold button has keyboard focus", async () => {
+    const { host, title, toggle } = await section(
+      `<ui-section header="H" info="Tip" collapsible>Body</ui-section><button>after</button>`
+    )
+    const tip = title.querySelector<HTMLElement>("[part~=tip]")!
+    expect(getComputedStyle(tip).visibility).toBe("hidden")
+    await userEvent.hover(toggle)
+    await expect.poll(() => getComputedStyle(tip).visibility).toBe("visible")
+    expect(tip.getBoundingClientRect().top).toBeGreaterThanOrEqual(title.getBoundingClientRect().bottom)
+    await userEvent.unhover(toggle)
+    await expect.poll(() => getComputedStyle(tip).visibility).toBe("hidden")
+    host.focus()
+    await userEvent.tab()
+    await expect.poll(() => getComputedStyle(tip).visibility).toBe("visible")
+  })
+
+  it('`slot="info"` is the rich version;  the tip appears when the slot gains a child', async () => {
+    const { host } = await section(`<ui-section header="H">Body</ui-section>`)
+    expect(parts(host).title.querySelector("[part~=tip]")).toBeNull()
+    const rich = document.createElement("span")
+    rich.slot = "info"
+    rich.innerHTML = "A <b>theme</b> is a look."
+    host.append(rich)
+    await expect.poll(() => parts(host).title.querySelector("[part~=tip]")).not.toBeNull()
+    expect(rich.assignedSlot!.closest("[part~=tip]")).not.toBeNull()
+    expect(parts(host).heading.getAttribute("aria-describedby")).toBe("tip")
+  })
+
+  it("`--ui-section-tip-*` tokens reach the tip", async () => {
+    const { title } = await section(
+      `<ui-section header="H" info="Tip" style="--ui-section-tip-background: rgb(1, 2, 3); ` +
+        `--ui-section-tip-color: rgb(4, 5, 6); --ui-section-tip-width: 100px">Body</ui-section>`
+    )
+    const tip = getComputedStyle(title.querySelector("[part~=tip]")!)
+    expect(tip.backgroundColor).toBe("rgb(1, 2, 3)")
+    expect(tip.color).toBe("rgb(4, 5, 6)")
+    expect(tip.maxWidth).toBe("100px")
+  })
+})
+
 describe("<ui-section> native fallback", () => {
+  it("draws the end chevron and the info tip too", async () => {
+    const { host } = await section(`<ui-section header="H" info="Tip" fold-icon="end" collapsible>Body</ui-section>`)
+    await ElementFixture.breakRender(host)
+    const { title, toggle, content } = parts(host)
+    expect(shape(title)).toEqual(["h2.heading", "span.fold icon", "span.tip"])
+    expect(toggle.getAttribute("aria-describedby")).toBe("tip")
+    title.querySelector<HTMLElement>("[part~=fold-icon]")!.click()
+    expect(content.getAttribute("hidden")).toBe("until-found")
+  })
+
   it("renders the same class grammar and pieces when its render throws", async () => {
     const { host } = await section(
       `<ui-section header="H" icon="bug" badge="2" subhead="S" dividing color="teal" collapsible>Body</ui-section>`

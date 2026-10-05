@@ -20,7 +20,8 @@
  * - Marks:  the check and the dash are SVG masks painted in `currentColor` (Fomantic's icon font is gone).
  * - Colours:  `color` tints the CHOSEN state through the remap (`--ui-color` / `-on` / `-hover`):  the filled box
  *   and its mark, the radio bullet, the toggle lane, the slider line.  Uncoloured toggles use `--ui-primary` (as
- *   Fomantic), uncoloured boxes stay white with a dark mark.
+ *   Fomantic), uncoloured boxes stay white with a dark mark, unless a theme sets the CHECKED tokens
+ *   (`--ui-checkbox-checked-background` / `-border-color` / `-mark-color`;  `spell-brand`:  a filled purple circle).
  * - Focus:  Fomantic's focus is a border colour only;  keyboard focus also draws the focus ring around the box
  *   (`:focus-visible`), for WCAG 2.4.7.
  * - Public tokens (`--ui-checkbox-*`, the theming surface) are NEVER declared here:  the token block reads each
@@ -71,6 +72,12 @@
     --_ui-checkbox-radius: var(--ui-checkbox-radius, var(--ui-radius-s));
     --_ui-checkbox-mark-color: var(--ui-checkbox-mark-color, var(--ui-text-selected));
     --_ui-checkbox-mark-size: var(--ui-checkbox-mark-size, 0.8em);
+    --_ui-checkbox-checked-background: var(--ui-checkbox-checked-background, var(--_ui-checkbox-background));
+    --_ui-checkbox-checked-border-color: var(
+      --ui-checkbox-checked-border-color,
+      var(--_ui-checkbox-border-color-hover)
+    );
+    --_ui-checkbox-checked-mark-color: var(--ui-checkbox-checked-mark-color, var(--_ui-checkbox-mark-color));
     --_ui-checkbox-label-color: var(--ui-checkbox-label-color, var(--ui-text-color));
     --_ui-checkbox-label-color-hover: var(--ui-checkbox-label-color-hover, var(--ui-text-hovered));
     --_ui-checkbox-label-color-selected: var(--ui-checkbox-label-color-selected, var(--ui-text-selected));
@@ -400,16 +407,16 @@
     opacity: 1;
   }
   .ui.checkbox > input:checked ~ label {
-    --_checkbox-border: var(--ui-color, var(--_ui-checkbox-border-color-hover));
-    --_checkbox-background: var(--ui-color, var(--_ui-checkbox-background));
-    --_checkbox-mark: var(--ui-color-on, var(--_ui-checkbox-mark-color));
+    --_checkbox-border: var(--ui-color, var(--_ui-checkbox-checked-border-color));
+    --_checkbox-background: var(--ui-color, var(--_ui-checkbox-checked-background));
+    --_checkbox-mark: var(--ui-color-on, var(--_ui-checkbox-checked-mark-color));
   }
   .ui.checkbox > input:indeterminate:not([type="radio"]) ~ label {
     --_checkbox-mark-image: var(--_ui-checkbox-dash);
   }
   .ui.checkbox > input:checked:focus ~ label {
     --_checkbox-border: var(--ui-color-focus, var(--_ui-checkbox-border-color-focus));
-    --_checkbox-background: var(--ui-color-focus, var(--_ui-checkbox-background));
+    --_checkbox-background: var(--ui-color-focus, var(--_ui-checkbox-checked-background));
   }
 
   /* Radio:  the bullet in the colour, on a white box. */

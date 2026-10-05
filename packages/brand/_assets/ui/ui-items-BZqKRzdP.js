@@ -1,0 +1,1 @@
+import{t as e}from"./ui-items-CLk1Wmbj.js";export{e as UIItems};

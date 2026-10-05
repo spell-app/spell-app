@@ -1,0 +1,492 @@
+<!doctype html>
+<!--
+  Logo, on Spell UI:  the copy of `Logo.dc.html`.  Lockups, the mark in four colours, the app icon, and how (not) to
+  use it.
+  - Every drawn logo is a `<ui-brand-logo>` (`variant` + `tone`), sized by `--ui-brand-logo-height`;  the download
+    buttons still point at the outlined files in `assets/logo/`.
+  - The grounds a logo sits on (white, aubergine, ivory ...) are the brand's FIXED colours, as the original's:  they
+    don't follow the page's scheme, only the cards around them do.  A light ground is `ui-light`, so a scheme-aware
+    `tone` (`purple`, `ink`) reads as on a light page there, whatever the page's scheme.
+  - Downloads:  `<ui-button href download>`, as the original's `<a download>`.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Logo</title>
+    <meta name="description" content="The Spell logo:  lockups, the hat mark, app icons, and how not to use them." />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <style>
+      /* page layout only:  every colour, font and radius comes from the theme's tokens */
+      body {
+        margin: 0;
+        background: var(--ui-background);
+        color: var(--spell-text-body);
+        font: var(--spell-type-body);
+      }
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 36px 40px 72px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      main > header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .eyebrow {
+        font: var(--spell-type-eyebrow);
+        letter-spacing: var(--spell-tracking-eyebrow);
+        text-transform: uppercase;
+        color: var(--spell-text-accent);
+      }
+      h1 {
+        margin: 0;
+        font: var(--spell-type-h1);
+        font-size: 40px;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        color: var(--spell-text-strong);
+      }
+      main > header > p {
+        margin: 0;
+        max-width: 620px;
+        line-height: 1.55;
+        color: var(--spell-text-muted);
+      }
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      h2 {
+        margin: 0;
+        padding-top: 8px;
+        border-top: 1px solid var(--spell-border-subtle);
+        font: var(--spell-type-eyebrow);
+        font-size: 11px;
+        letter-spacing: var(--spell-tracking-eyebrow);
+        text-transform: uppercase;
+        color: var(--spell-text-accent);
+      }
+      .note {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--spell-text-muted);
+      }
+
+      /* ## A card:  the ground the logo sits on, then its name, use and download */
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .lockups {
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      }
+      .marks {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+      .rules {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+      ui-card {
+        --ui-card-width: auto;
+        --ui-card-margin-block: 0;
+      }
+      /* the card doesn't clip what's slotted in it (as Fomantic's):  the ground rounds its own top to the card's */
+      .ground {
+        display: grid;
+        place-items: center;
+        border-radius: var(--ui-card-radius) var(--ui-card-radius) 0 0;
+        border-bottom: 1px solid var(--spell-border-subtle);
+      }
+      .lockups .ground {
+        height: 180px;
+      }
+      .marks .ground {
+        aspect-ratio: 1;
+        --ui-brand-logo-height: 86px;
+      }
+      .rules .ground {
+        height: 170px;
+        border-bottom: none;
+      }
+      .caption {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+      }
+      .caption > span {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+      .caption b {
+        font: 700 15px/1.2 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+      .caption small {
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--spell-text-muted);
+      }
+      .caption code {
+        font: 400 12px/1.3 var(--spell-font-mono);
+        color: var(--spell-text-muted);
+      }
+      .caption .do {
+        color: var(--spell-success);
+      }
+      .caption .dont {
+        color: var(--spell-danger);
+      }
+
+      /* the download button:  a soft accent pill (icon only:  a circle) */
+      .caption ui-button {
+        margin-left: auto;
+        flex: none;
+        --ui-button-margin-inline: 0;
+        --ui-button-background: var(--spell-accent-soft);
+        --ui-button-background-hover: var(--spell-accent-soft-hover);
+        --ui-button-background-down: var(--spell-accent-soft-hover);
+        --ui-button-color: var(--spell-text-accent);
+        --ui-button-color-hover: var(--spell-text-accent);
+        --ui-button-color-down: var(--spell-text-accent);
+      }
+
+      /* the brand's fixed grounds */
+      .on-white {
+        background: white;
+      }
+      .on-aubergine {
+        background: var(--spell-violet-900);
+      }
+      .on-ivory {
+        background: var(--spell-accent-150);
+      }
+      .on-night {
+        background: var(--spell-violet-950);
+      }
+      .on-mist {
+        background: var(--spell-violet-50);
+      }
+      .on-lavender {
+        background: var(--spell-violet-150);
+      }
+      .on-grey {
+        background: var(--spell-brand-50);
+      }
+
+      /* ## App icon:  corners 22.5% of the width, the hat ~72% of it */
+      .icons {
+        display: flex;
+        align-items: flex-end;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding: 24px;
+      }
+      .icons figure {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .icon {
+        --size: 80px;
+        width: var(--size);
+        height: var(--size);
+        border-radius: 22.5%;
+        display: grid;
+        place-items: center;
+        --ui-brand-logo-height: calc(var(--size) * 0.72 * 192 / 218);
+      }
+      .icon.on-white {
+        box-shadow:
+          inset 0 0 0 1px var(--spell-border-default),
+          var(--spell-shadow-sm);
+      }
+      .icons figcaption {
+        font: 400 11px/1 var(--spell-font-mono);
+        color: var(--spell-text-muted);
+      }
+
+      /* ## Using it well */
+      .room {
+        background: repeating-linear-gradient(45deg, white 0 6px, var(--spell-violet-100) 6px 7px);
+      }
+      .room > div {
+        padding: 20px;
+        background: white;
+        outline: 1px dashed var(--spell-violet-400);
+        --ui-brand-logo-height: 60px;
+      }
+      .rules .ground {
+        --ui-brand-logo-height: 84px;
+      }
+      .tilted {
+        rotate: -24deg;
+      }
+      /*
+       * A gradient through the hat:  the logo can't take one (its `fill` is `currentColor`;  a `url(#id)` paint
+       * doesn't reach into its shadow root), so the hat is drawn near-black on the ground's colour, `lighten`ed
+       * over the gradient behind it:  the gradient shows through the hat only (issue)
+       */
+      .gradient {
+        display: block;
+        line-height: 0;
+        isolation: isolate;
+        background: linear-gradient(90deg, var(--ui-pink-on-dark), var(--spell-violet-600), var(--ui-blue-on-dark));
+      }
+      .gradient > ui-brand-logo {
+        color: var(--spell-violet-975);
+        background: var(--spell-brand-50);
+        mix-blend-mode: lighten;
+      }
+      .faded {
+        color: var(--spell-brand-500);
+        opacity: 0.8;
+      }
+      .busy {
+        background: var(--spell-brand-400);
+      }
+    </style>
+  </head>
+  <body>
+    <spell-site-header root="../../.."></spell-site-header>
+    <main>
+      <header>
+        <div class="eyebrow">Brand</div>
+        <h1>The Spell logo.</h1>
+        <p>
+          Every file is an outlined SVG, so it looks the same everywhere without the font installed. The hat is centred
+          on the height of the capital letters. Pick a background, then download the colour that suits it.
+        </p>
+      </header>
+
+      <section aria-labelledby="lockups">
+        <h2 id="lockups">Lockups</h2>
+        <div class="grid lockups">
+          <ui-card>
+            <div class="ground on-white ui-light">
+              <ui-brand-logo variant="tagline" tone="aubergine" style="--ui-brand-logo-height: 96px"></ui-brand-logo>
+            </div>
+            <div class="caption">
+              <span><b>Primary</b><small>Default on light backgrounds.</small></span>
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                download
+                href="assets/logo/spell-lockup-tagline-aubergine.svg"
+                >SVG</ui-button
+              >
+            </div>
+          </ui-card>
+          <ui-card>
+            <div class="ground on-aubergine">
+              <ui-brand-logo variant="tagline" tone="white" style="--ui-brand-logo-height: 96px"></ui-brand-logo>
+            </div>
+            <div class="caption">
+              <span><b>Primary, reversed</b><small>On aubergine and dark photos.</small></span>
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                download
+                href="assets/logo/spell-lockup-tagline-white.svg"
+                >SVG</ui-button
+              >
+            </div>
+          </ui-card>
+          <ui-card>
+            <div class="ground on-ivory ui-light">
+              <ui-brand-logo variant="lockup" tone="aubergine" style="--ui-brand-logo-height: 52px"></ui-brand-logo>
+            </div>
+            <div class="caption">
+              <span><b>Wordmark</b><small>Headers and small spaces.</small></span>
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                download
+                href="assets/logo/spell-lockup-aubergine.svg"
+                >SVG</ui-button
+              >
+            </div>
+          </ui-card>
+          <ui-card>
+            <div class="ground on-night">
+              <ui-brand-logo variant="lockup" tone="white" style="--ui-brand-logo-height: 52px"></ui-brand-logo>
+            </div>
+            <div class="caption">
+              <span><b>Wordmark, reversed</b><small>Dark headers and footers.</small></span>
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                download
+                href="assets/logo/spell-lockup-white.svg"
+                >SVG</ui-button
+              >
+            </div>
+          </ui-card>
+        </div>
+      </section>
+
+      <section aria-labelledby="mark">
+        <h2 id="mark">Mark</h2>
+        <div class="grid marks">
+          <ui-card>
+            <div class="ground on-white ui-light"><ui-brand-logo tone="aubergine"></ui-brand-logo></div>
+            <div class="caption">
+              <span><b>Aubergine</b><code>#2A1D60</code></span>
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                aria-label="Download SVG"
+                download
+                href="assets/logo/logo-mark-aubergine.svg"
+              ></ui-button>
+            </div>
+          </ui-card>
+          <ui-card>
+            <div class="ground on-aubergine"><ui-brand-logo tone="white"></ui-brand-logo></div>
+            <div class="caption">
+              <span><b>White</b><code>#FFFFFF</code></span>
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                aria-label="Download SVG"
+                download
+                href="assets/logo/logo-mark-white.svg"
+              ></ui-button>
+            </div>
+          </ui-card>
+          <ui-card>
+            <div class="ground on-mist ui-light"><ui-brand-logo tone="purple"></ui-brand-logo></div>
+            <div class="caption">
+              <span><b>Purple</b><code>#6550CA</code></span>
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                aria-label="Download SVG"
+                download
+                href="assets/logo/logo-mark-purple.svg"
+              ></ui-button>
+            </div>
+          </ui-card>
+          <ui-card>
+            <div class="ground on-night"><ui-brand-logo tone="lilac"></ui-brand-logo></div>
+            <div class="caption">
+              <span><b>Lilac</b><code>#B8B4FF</code></span>
+              <ui-button
+                size="tiny"
+                circular
+                icon="download"
+                aria-label="Download SVG"
+                download
+                href="assets/logo/logo-mark-lilac.svg"
+              ></ui-button>
+            </div>
+          </ui-card>
+        </div>
+      </section>
+
+      <section aria-labelledby="app-icon">
+        <h2 id="app-icon">App icon</h2>
+        <ui-card>
+          <div class="icons">
+          <figure>
+            <span class="icon on-white ui-light" style="--size: 128px"><ui-brand-logo tone="aubergine" label=""></ui-brand-logo></span>
+            <figcaption>128px</figcaption>
+          </figure>
+          <figure>
+            <span class="icon on-white ui-light" style="--size: 80px"><ui-brand-logo tone="aubergine" label=""></ui-brand-logo></span>
+            <figcaption>80px</figcaption>
+          </figure>
+          <figure>
+            <span class="icon on-white ui-light" style="--size: 48px"><ui-brand-logo tone="aubergine" label=""></ui-brand-logo></span>
+            <figcaption>48px</figcaption>
+          </figure>
+          <figure>
+            <span class="icon on-white ui-light" style="--size: 32px"><ui-brand-logo tone="aubergine" label=""></ui-brand-logo></span>
+            <figcaption>32px</figcaption>
+          </figure>
+          <figure>
+            <span class="icon on-aubergine" style="--size: 80px"><ui-brand-logo tone="white" label=""></ui-brand-logo></span>
+            <figcaption>aubergine</figcaption>
+          </figure>
+          <figure>
+            <span class="icon on-lavender ui-light" style="--size: 80px"
+              ><ui-brand-logo tone="aubergine" label=""></ui-brand-logo
+            ></span>
+            <figcaption>lavender</figcaption>
+          </figure>
+          </div>
+        </ui-card>
+        <p class="note">
+          Corners are 22.5% of the icon’s width; the hat fills about three-quarters of its width. Aubergine hat on white
+          is the primary — it’s how the icon will appear most. White on aubergine and aubergine on lavender are
+          alternates.
+        </p>
+      </section>
+
+      <section aria-labelledby="using-it-well">
+        <h2 id="using-it-well">Using it well</h2>
+        <div class="grid rules">
+          <ui-card>
+            <div class="ground room ui-light">
+              <div><ui-brand-logo tone="aubergine" label=""></ui-brand-logo></div>
+            </div>
+            <div class="caption">
+              <span
+                ><b class="do">✓ Give it room</b
+                ><small>Keep clear space around it equal to the height of the hat’s brim.</small></span
+              >
+            </div>
+          </ui-card>
+          <ui-card>
+            <div class="ground on-grey ui-light">
+              <ui-brand-logo class="tilted" tone="aubergine" label=""></ui-brand-logo>
+            </div>
+            <div class="caption">
+              <span><b class="dont">✕ Don’t rotate or tilt</b><small>The hat always sits upright.</small></span>
+            </div>
+          </ui-card>
+          <ui-card>
+            <div class="ground on-grey ui-light">
+              <span class="gradient"><ui-brand-logo tone="current" label=""></ui-brand-logo></span>
+            </div>
+            <div class="caption">
+              <span
+                ><b class="dont">✕ No gradients or effects</b><small>Use one flat colour from the palette.</small></span
+              >
+            </div>
+          </ui-card>
+          <ui-card>
+            <div class="ground busy ui-light">
+              <ui-brand-logo class="faded" tone="current" label=""></ui-brand-logo>
+            </div>
+            <div class="caption">
+              <span
+                ><b class="dont">✕ Keep it readable</b
+                ><small>Never fade it or place it on a busy, low-contrast background.</small></span
+              >
+            </div>
+          </ui-card>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="../_assets/ui/brand-ui.js"></script>
+  </body>
+</html>

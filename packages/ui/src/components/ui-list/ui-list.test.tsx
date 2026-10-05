@@ -409,6 +409,72 @@ describe("<ui-list> tokens from outside", () => {
     const inverted = await list(`inverted style="--ui-list-header-color: ${red}"`, content)
     expect(style(header(inverted.items[0]!)).color).not.toBe(red)
   })
+
+  it("sizes the root by `--ui-list-font-size`, a vertical list too", async () => {
+    const { root, items } = await list(`style="--ui-list-font-size: 13px"`)
+    expect(style(root).fontSize).toBe("13px")
+    expect(style(boxOf(items[0]!)).fontSize).toBe("13px")
+  })
+
+  it("spaces the list by `--ui-list-margin`;  still none before the first / after the last", async () => {
+    const wrapper = await ElementFixture.render(`<div><p>Before</p><ui-list>${ITEMS}</ui-list><p>After</p></div>`)
+    const host = wrapper.querySelector<HTMLElement>("ui-list")!
+    await ElementFixture.settle(host)
+    expect(style(rootOf(host)).marginTop).toBe("16px")
+    host.style.setProperty("--ui-list-margin", "4px")
+    expect([style(rootOf(host)).marginTop, style(rootOf(host)).marginBottom]).toEqual(["4px", "4px"])
+    const { root } = await list(`style="--ui-list-margin: 4px"`)
+    expect([style(root).marginTop, style(root).marginBottom]).toEqual(["0px", "0px"])
+  })
+
+  it("`link` and `selection` set their look THROUGH the public tokens:  a page's colour and padding reach them", async () => {
+    const red = "rgb(255, 0, 0)"
+    const links = `<ui-item link>One</ui-item><ui-item link>Two</ui-item>`
+    const link = await list(`link style="--ui-list-link-color: ${red}; --ui-list-item-color: ${red}"`, links)
+    expect(style(boxOf(link.items[0]!)).color).toBe(red)
+    const selection = await list(`selection style="--ui-list-item-padding-block: 10px; --ui-list-link-color: ${red}"`)
+    expect(style(boxOf(selection.items[1]!)).paddingTop).toBe("10px")
+    expect(style(boxOf(selection.items[1]!)).color).toBe(red)
+    // unset:  the variations' own defaults
+    const plain = await list("link", links)
+    expect(style(boxOf(plain.items[0]!)).color).not.toBe(red)
+    expect(style(boxOf((await list("selection")).items[1]!)).paddingTop).toBe("8px")
+  })
+})
+
+describe("<ui-list> marker tokens", () => {
+  /** An item's marker (`::before`). */
+  function marker(item: Element): CSSStyleDeclaration {
+    return style(boxOf(item), "::before")
+  }
+
+  it("`bulleted` reads `--ui-list-marker-content` and `-margin`;  `--ui-list-marker-size` sizes the marker", async () => {
+    const { items } = await list(`bulleted`)
+    expect(marker(items[0]!).content).toBe('"•"')
+    expect(marker(items[0]!).marginLeft).toBe("-20px")
+    expect(marker(items[0]!).fontSize).toBe("16px")
+    const themed = await list(
+      `bulleted style="--ui-list-marker-content: '–'; --ui-list-marker-margin: 0 0 0 -15px; --ui-list-marker-size: 20px"`
+    )
+    expect(marker(themed.items[0]!).content).toBe('"–"')
+    expect(marker(themed.items[0]!).marginLeft).toBe("-15px")
+    expect(marker(themed.items[0]!).fontSize).toBe("20px")
+  })
+
+  it("a `selected` item's marker takes `--ui-list-marker-active-color`;  the rest keep the marker colour", async () => {
+    const [grey, red] = ["rgb(128, 128, 128)", "rgb(255, 0, 0)"]
+    const { items } = await list(
+      `bulleted style="--ui-list-marker-color: ${grey}; --ui-list-marker-active-color: ${red}"`,
+      `<ui-item>One</ui-item><ui-item selected>Two</ui-item><ui-item link>Three</ui-item><ui-item link selected>Four</ui-item>`
+    )
+    expect(items.map((item) => marker(item).color)).toEqual([grey, red, grey, red])
+    // unset:  the selected item's marker is the marker colour, as before
+    const plain = await list(
+      `bulleted style="--ui-list-marker-color: ${grey}"`,
+      `<ui-item>One</ui-item><ui-item selected>Two</ui-item>`
+    )
+    expect(plain.items.map((item) => marker(item).color)).toEqual([grey, grey])
+  })
 })
 
 describe("<ui-list> ui-select", () => {

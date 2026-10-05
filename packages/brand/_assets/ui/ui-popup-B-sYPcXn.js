@@ -1,0 +1,1 @@
+import{t as e}from"./ui-popup-I9FQkgcR.js";export{e as UIPopup};

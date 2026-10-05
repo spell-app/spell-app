@@ -80,7 +80,7 @@
   margin: 4px 14px 28px 0;
   padding: 26px 28px 20px;
   border: 1px solid var(--goals-stack-edge);
-  border-radius: 14px;
+  border-radius: 16px;
   background:
     radial-gradient(130% 140% at 100% 0%, var(--goals-accent-soft), transparent 58%),
     radial-gradient(90% 120% at 0% 100%, var(--goals-accent-faint), transparent 60%), var(--spell-bg);
@@ -91,15 +91,13 @@
     14px 14px 0 0 var(--goals-stack-edge);
 }
 .goals-hero h1 {
-  margin: 4px 0 10px;
-  font-size: 2.2rem;
-  letter-spacing: -0.015em;
+  margin: 6px 0 10px;
+  font-size: 2.4rem;
 }
+/* the lede:  `spell-doc.css`'s brand lede (italic serif), a little smaller in the box */
 .goals-hero .lede {
   max-width: 62ch;
-  font-size: 1.12rem;
-  color: var(--spell-ink);
-  opacity: 0.86;
+  font-size: 1.2rem;
 }
 .goals-hero ui-list.spell-meta {
   margin: 14px 0 0;
@@ -121,8 +119,8 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  font: 600 0.78rem/1.4 var(--spell-mono);
-  letter-spacing: 0.08em;
+  font: var(--spell-eyebrow-font, 500 11px/1.2 var(--spell-mono));
+  letter-spacing: var(--spell-eyebrow-tracking, 0.14em);
   text-transform: uppercase;
   color: var(--goals-accent-ink);
 }
@@ -396,21 +394,27 @@ ui-steps.goals-loop {
           Quotes
 *******************************/
 
-/* a pull quote:  the author's own words, or a source's */
+/*
+ * a pull quote:  the author's own words, or a source's.  The brand's quote:  an ivory panel, italic serif in the
+ * headings' ink, never a coloured left border
+ */
 blockquote.goals-quote {
   margin: 18px 0;
-  padding: 10px 18px;
-  border-left: 4px solid var(--goals-accent);
-  background: var(--goals-accent-faint);
-  border-radius: 0 10px 10px 0;
-  font-size: 1.08rem;
+  padding: 14px 20px;
+  border-radius: 16px;
+  background: var(--spell-warm, var(--goals-accent-faint));
+  color: var(--spell-heading-ink, inherit);
+  font: italic 400 1.15rem/1.45 var(--spell-serif, serif);
+}
+blockquote.goals-quote :is(em, i, code) {
+  font-style: normal;
 }
 blockquote.goals-quote > p {
   margin: 0;
 }
 blockquote.goals-quote > footer {
   margin-top: 6px;
-  font-size: 0.85rem;
+  font: 400 0.85rem/1.4 var(--spell-sans, sans-serif);
   color: var(--spell-muted);
 }
 

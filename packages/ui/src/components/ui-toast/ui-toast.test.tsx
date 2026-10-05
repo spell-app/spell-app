@@ -559,6 +559,30 @@ describe("UI.toast()", () => {
     expect(element.getAttribute("display-time")).toBe("auto")
   })
 
+  it("keeps every `class` word on the host, so the page can theme ONE toast", async () => {
+    const style = Fixture.render(
+      `<style>ui-toast.ready { --ui-toast-background: rgb(255, 0, 0); --ui-toast-font-size: 14px }</style>`
+    )
+    onTestFinished(() => style.remove())
+    const handle = UI.toast({ message: "Your app is ready.", class: "ready success", displayTime: 0 })
+    const other = UI.toast({ message: "Plain", displayTime: 0 })
+    onTestFinished(() => {
+      UI.toasts.dismiss(handle.id)
+      UI.toasts.dismiss(other.id)
+    })
+    const element = handle.element as Toast
+    await element.ready
+    await ElementFixture.settle(element)
+    expect(element.className).toBe("ready success")
+    expect(element.getAttribute("type")).toBe("success")
+    expect(other.element!.className).toBe("")
+    await (other.element as Toast).ready
+    await ElementFixture.settle(other.element!)
+    const box = (toast: Element) => toast.shadowRoot!.querySelector<HTMLElement>("[part~=box]")!
+    expect(getComputedStyle(box(element)).fontSize).toBe("14px")
+    expect(getComputedStyle(box(other.element!)).fontSize).not.toBe("14px")
+  })
+
   it("puts each position in its own container, and stacks newest on top when asked", async () => {
     const a = UI.toast({ message: "A", position: "bottom left", displayTime: 0 })
     const b = UI.toast({ message: "B", position: "bottom left", displayTime: 0, newestOnTop: true })

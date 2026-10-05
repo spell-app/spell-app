@@ -10,7 +10,7 @@
  *         <div class="thumb" part="thumb" role="slider" tabindex="0" style="--_slider-at: 0.2"></div>
  *         <div class="second thumb" part="thumb" role="slider" …></div>     (`range` only)
  *       </div>
- *       <ul class="auto labels" part="labels" aria-hidden="true">          (`labeled` only)
+ *       <ul class="auto labels" part="labels" aria-hidden="true">          (`labeled` or `ticked`;  every `tick-step`)
  *         <li class="[halftick] label" part="label" style="--_slider-at: 0.25">5</li>
  *       </ul>
  *     </div>
@@ -220,6 +220,36 @@
   .ui.labeled.ticked.slider > .labels .halftick.label::after {
     height: calc(var(--_ui-slider-label-height) / 2);
   }
+
+  /*
+   * Ticks alone (`ticked` without `labeled`;  ours, not Fomantic's):  the labels are empty, the strip as above;  each
+   * tick runs from the track's middle down a half label height, so (the track painting over it) it shows UNDER the
+   * track, as a native range's tick marks.
+   */
+  .ui.ticked.slider:not(.labeled) > .labels {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: var(--_ui-slider-label-height);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transform: translateY(-50%);
+  }
+  .ui.ticked.slider:not(.labeled) > .labels .label {
+    position: absolute;
+    top: 50%;
+    left: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    width: var(--_ui-slider-tick-width);
+    height: calc(var(--_ui-slider-label-height) / 2);
+    padding: 0;
+    background: var(--_ui-slider-tick-color);
+    transform: translateX(-50%);
+  }
 }
 
 /*******************************
@@ -348,6 +378,43 @@
   }
   .ui.labeled.ticked.vertical.right.aligned.slider > .labels .halftick.label::after {
     margin-right: var(--_ui-slider-vertical-tick-distance);
+  }
+
+  /* Ticks alone, reversed or vertical:  anchored from the other end;  upright, beside the track (right of it). */
+  .ui.ticked.reversed.slider:not(.labeled, .vertical) > .labels .label {
+    right: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    left: auto;
+    transform: translateX(50%);
+  }
+  .ui.ticked.vertical.slider:not(.labeled) > .labels {
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 50%;
+    width: var(--_ui-slider-label-height);
+    height: auto;
+    transform: translateX(-50%);
+  }
+  .ui.ticked.vertical.slider:not(.labeled) > .labels .label {
+    top: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    left: 50%;
+    width: calc(var(--_ui-slider-label-height) / 2);
+    height: var(--_ui-slider-tick-width);
+    transform: translateY(-50%);
+  }
+  .ui.ticked.vertical.reversed.slider:not(.labeled) > .labels .label {
+    top: auto;
+    bottom: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    transform: translateY(50%);
   }
 
   /* Hover:  thumbs only while hovered or focused. */

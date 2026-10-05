@@ -11,6 +11,8 @@ export type SliderScaleProps = {
   min: number
   max: number
   step: number
+  /** labels / ticks every this much;  absent or `<= 0` ~== every step */
+  tickStep?: number
 }
 
 ////////////////

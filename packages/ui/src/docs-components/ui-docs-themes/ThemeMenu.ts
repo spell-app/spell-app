@@ -2,7 +2,7 @@ import type { MenuEntry } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import type { SiteDataFile } from "$/ui/docs-components/docs-components.types"
 
-import { CLASSIC, DEFAULT_VALUE, SPELL, type DocsThemesText } from "./ui-docs-themes.types"
+import { CLASSIC, DEFAULT_VALUE, SPELL, SPELL_BRAND, type DocsThemesText } from "./ui-docs-themes.types"
 
 /****************
  * ### `ThemeMenu`
@@ -48,6 +48,7 @@ export class ThemeMenu {
   entries(text: DocsThemesText): MenuEntry[] {
     return [
       { value: SPELL, text: this.title(SPELL), description: text("spellDescription") },
+      { value: SPELL_BRAND, text: this.title(SPELL_BRAND), description: text("spellBrandDescription") },
       { value: DEFAULT_VALUE, text: text("default"), description: text("defaultDescription") },
       { value: CLASSIC, text: this.title(CLASSIC), description: text("classicDescription") },
       { type: "divider", text: "" },

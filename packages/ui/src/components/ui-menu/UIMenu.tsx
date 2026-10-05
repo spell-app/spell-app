@@ -15,6 +15,8 @@ import {
   ITEM_PART,
   ITEM_TYPE,
   SELECTED_STATE,
+  SEGMENTED,
+  type ChoosableItem,
   type ItemController
 } from "./ui-menu.types"
 
@@ -35,7 +37,9 @@ import {
  *   live in `ui-menu.css`).  Items ASK for their context, which is also how the menu learns its item hosts (the
  *   roving set), after they upgrade in any order.
  * - Events:  `ui-select` (`{ value, item, originalEvent }`) when a link / button item is activated -- click, or
- *   Enter / Space on it;  only the TOP menu dispatches it.  The menu never moves `selected` itself.
+ *   Enter / Space on it;  only the TOP menu dispatches it.  A menu never moves `selected` itself, EXCEPT a
+ *   `segmented` one (a single-choice control):  it selects the activated item and unselects the rest, unless a
+ *   listener cancels the `ui-select`.
  ****************/
 export class UIMenu extends UIElement<typeof menuVocabulary> implements UIT.ItemOwner {
   @proto static vocabulary = menuVocabulary
@@ -182,7 +186,21 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements UIT.Item
     if (!item || item.matches(UIT.DISABLED_STATE)) return
     const controller = (item as UIHost).controller as { attrs?: { value?: string } } | undefined
     const value = controller?.attrs?.value ?? item.textContent?.trim() ?? ""
-    this.emit("ui-select", { value, item, originalEvent: event })
+    const chosen = this.emit("ui-select", { value, item, originalEvent: event })
+    if (chosen && this.attrs.appearance === SEGMENTED) this.choose(item)
+  }
+
+  /**
+   * A segmented menu's choice:  `item` becomes the selected item, every other item of this menu tree drops it
+   * (the `active` alias too).
+   * - Only items that asked THIS menu for their context:  a nested component's items stay alone.
+   */
+  private choose(item: Element) {
+    for (const element of this.host.querySelectorAll<ChoosableItem>("*")) {
+      if (!this.asked.has(element)) continue
+      if (element !== item) element.removeAttribute(UIT.ACTIVE)
+      element.selected = element === item
+    }
   }
 
   /** The item host whose link / button root the event went through, if any. */

@@ -87,10 +87,12 @@ export type PageEditResult = { ok: boolean; status: number; etag?: string; error
  *   `{ spell: "history", go: -1 | 1 }`, and routes link clicks (`followInFrame()`):  a frame can't open the tabs
  *   docs links ask for.  Why here:  the view's frame is cross-origin, so the view can't read or move its history itself
  *   - `{ spell: "go", hash }` from the parent is the docs runtime's (`spell-doc-runtime.js` `wireAnchors()`)
+ * - in a same-origin frame of a live page (the brand index's thumbnails, the Compare view's panes):  opens no
+ *   connection, and takes changes from the parent (`__spellLiveChange`), which hands each one down before acting on it
  * - runs once per page
  */
 export function liveClient(): void {
-  const holder = window as unknown as { SPELL_SERVER?: ServerConfig; __spellLive?: boolean }
+  const holder = window as unknown as LiveWindow
   const config = holder.SPELL_SERVER
   if (!config || holder.__spellLive) return
   holder.__spellLive = true
@@ -121,15 +123,15 @@ export function liveClient(): void {
     })
     addEventListener("click", followInFrame, true)
   }
-  const source = new EventSource(config.events)
-  source.addEventListener("change", (event) => {
-    const { path } = JSON.parse((event as MessageEvent<string>).data) as { path: string }
-    if (path === config.file) updating = updating.then(updatePage).catch(reload)
-    else if (/\.css$/.test(path)) swapStyles(path)
-    else if (/\.m?js$/.test(path)) {
-      if (loadsFrom(path)) reload()
-    } else dispatchEvent(new CustomEvent("spell-server:file", { detail: { path } satisfies FileChange }))
-  })
+  holder.__spellLiveChange = onChange
+  // in a same-origin frame of a live page, the parent hands changes down:  no connection of our own
+  if (!liveParent()) {
+    const source = new EventSource(config.events)
+    source.addEventListener("change", (event) => {
+      const { path } = JSON.parse((event as MessageEvent<string>).data) as { path: string }
+      onChange(path)
+    })
+  }
 
   let etag = config.etag
   config.editPage = async ({ id, html, inner, parent, etag: version = etag }) => {
@@ -162,6 +164,36 @@ export function liveClient(): void {
     const body = (await answer.json().catch(() => ({}))) as { etag?: string; error?: string }
     if (answer.ok && path === config.file) etag = body.etag
     return { ok: answer.ok, status: answer.status, etag: body.etag, error: body.error }
+  }
+
+  /** A file changed:  hand it to our same-origin frames first (a reload here drops them anyway), then act on it. */
+  function onChange(path: string) {
+    for (const frame of document.querySelectorAll("iframe")) {
+      try {
+        ;(frame.contentWindow as LiveWindow | null)?.__spellLiveChange?.(path)
+      } catch {
+        // cross-origin:  it has its own connection
+      }
+    }
+    if (path === config!.file) updating = updating.then(updatePage).catch(reload)
+    else if (/\.css$/.test(path)) swapStyles(path)
+    else if (/\.m?js$/.test(path)) {
+      if (loadsFrom(path)) reload()
+    } else dispatchEvent(new CustomEvent("spell-server:file", { detail: { path } satisfies FileChange }))
+  }
+
+  /**
+   * Is this page in a same-origin frame whose page runs live reload?  Then the parent hands us its changes.
+   * - Why:  every connection stays open, and Chrome allows 6 per host:  a page framing 6 served pages (the brand
+   *   index's thumbnails) used them all, and its own scripts never loaded
+   * - a cross-origin parent (VS Code's view) throws or has no `frameElement`:  we keep our own connection
+   */
+  function liveParent(): boolean {
+    try {
+      return !!window.frameElement && !!(window.parent as LiveWindow).__spellLive
+    } catch {
+      return false
+    }
   }
 
   /** reload, keeping the scroll position */
@@ -305,6 +337,18 @@ export function liveClient(): void {
       // storage blocked
     }
   }
+}
+
+/**
+ * What `liveClient()` keeps on `window`.
+ * - `SPELL_SERVER`:  injected by the server (`ServerConfig`)
+ * - `__spellLive`:  the client has run (once per page)
+ * - `__spellLiveChange`:  hand this page a changed file's path:  how a parent passes changes to its same-origin frames
+ */
+type LiveWindow = Window & {
+  SPELL_SERVER?: ServerConfig
+  __spellLive?: boolean
+  __spellLiveChange?: (path: string) => void
 }
 
 /**

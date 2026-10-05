@@ -19,14 +19,22 @@ export class SliderScale {
   /** Step;  `0` ~== any value. */
   readonly step: number
 
-  /** Decimal places of `step`, for rounding. */
+  /** Distance between labels (and ticks):  `tickStep`, else `step`;  `0` ~== one per unit. */
+  readonly tickStep: number
+
+  /** Decimal places of `step` / `tickStep`, for rounding. */
   private readonly decimals: number
 
-  constructor({ min, max, step }: SliderScaleProps) {
+  constructor({ min, max, step, tickStep }: SliderScaleProps) {
     this.min = Number.isFinite(min) ? min : 0
     this.max = Number.isFinite(max) ? Math.max(this.min, max) : this.min
     this.step = Number.isFinite(step) && step > 0 ? step : 0
-    this.decimals = Math.max(SliderScale.decimalsOf(this.step), SliderScale.decimalsOf(this.min))
+    this.tickStep = tickStep !== undefined && Number.isFinite(tickStep) && tickStep > 0 ? tickStep : this.step
+    this.decimals = Math.max(
+      SliderScale.decimalsOf(this.step),
+      SliderScale.decimalsOf(this.tickStep),
+      SliderScale.decimalsOf(this.min)
+    )
   }
 
   /** `value` on the grid, within `min` ... `max`. */
@@ -57,14 +65,14 @@ export class SliderScale {
     return this.snap(value + steps * unit)
   }
 
-  /** Number of intervals between labels:  one per step (per unit, with `step` `0`). */
+  /** Number of intervals between labels:  one per `tickStep` (per unit, with no step). */
   get intervals(): number {
-    return Math.max(1, Math.round((this.max - this.min) / (this.step || 1)))
+    return Math.max(1, Math.round((this.max - this.min) / (this.tickStep || 1)))
   }
 
   /** Value of label `index`. */
   labelValue(index: number): number {
-    return this.round(Math.min(this.max, this.min + index * (this.step || 1)))
+    return this.round(Math.min(this.max, this.min + index * (this.tickStep || 1)))
   }
 
   /**

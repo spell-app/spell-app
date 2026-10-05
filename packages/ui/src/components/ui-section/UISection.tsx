@@ -29,6 +29,7 @@ import {
   CONTENT,
   CONTENT_ID,
   DEPTH_PROPERTY,
+  FOLD_END,
   FOLD_ICON,
   FOLD_ICON_CLASS,
   HEADER,
@@ -45,10 +46,14 @@ import {
   CONTROLS,
   STICK_TOP_PROPERTY,
   SUBHEAD,
+  TIP,
+  TIP_ID,
   TITLE,
   TOGGLE,
+  TOOLTIP,
   TOP_LEVEL,
   UNTIL_FOUND,
+  type FoldIconPlace,
   type SectionVocabulary
 } from "./ui-section.types"
 
@@ -58,9 +63,16 @@ import sectionCSS from "./ui-section.css?inline"
  * ### `<ui-section>`
  * A titled section:  `<section class="ui ... section" part="section">` holding a 1px sentinel, the title bar
  * (`<header class="title">` > `<hN class="heading">` > the toggle around the fold icon, icon and header;  then the
- * badge and actions), the subhead, then `<div class="content">` around the default slot.
- * - Wrappers that would be empty (icon, badge, actions, subhead) aren't rendered:  `SlotContent` watches the
+ * badge, actions, an end fold icon and the info tip), the subhead, then `<div class="content">` around the default
+ * slot.
+ * - Wrappers that would be empty (icon, badge, actions, subhead, tip) aren't rendered:  `SlotContent` watches the
  *   light children.
+ * - `fold-icon="end"`:  the chevron leaves the fold button for the far end of the title bar, after the actions.  It
+ *   stays `aria-hidden` (the button is still the control);  a click on it folds as the button does.  A subclass
+ *   moves the default with `defaultFoldIcon` (`<ui-panel>`:  `end`).
+ * - `info` / `slot="info"`:  a CSS tooltip under the title bar (`role="tooltip"`), shown while the pointer is on the
+ *   heading or the end chevron, or the fold button has keyboard focus.  It describes the fold button
+ *   (`aria-describedby`), else the heading.
  * - Level:  `level`, else the enclosing section's level + 1 (at most `h6`), else 2.  The enclosing section comes
  *   from `PartContext` (`ownsParts:  section`, `:state(in-section)`) WITHOUT barriers, so a section in a segment in
  *   a section still nests;  its level, depth and sticky stack are read from its controller (signals across
@@ -95,6 +107,10 @@ export class UISection extends UIElement<SectionVocabulary> {
   @proto static Host = SourceBodyHost
   // a container:  a click on its text must not jump to the fold button or a link inside
   @proto static delegatesFocus = false
+  @proto static defaultFoldIcon: FoldIconPlace = "start"
+
+  /** Where the fold chevron sits without a `fold-icon` attribute:  `start`;  a subclass may move it. */
+  declare defaultFoldIcon: FoldIconPlace
 
   ////////////////
   // ## State
@@ -235,6 +251,12 @@ export class UISection extends UIElement<SectionVocabulary> {
   /** Has actions (`actions` slot)? */
   readonly hasActions = createMemo(() => this.slots.has(this.slot("actions")))
 
+  /** Has an info tip (`info`, or `slot="info"`)? */
+  readonly hasInfo = createMemo(() => !!this.attrs.info || this.slots.has(this.slot("info")))
+
+  /** The fold chevron sits at the far end of the title bar:  `fold-icon`, else the class's `defaultFoldIcon`. */
+  readonly foldAtEnd = createMemo(() => (this.attrs.foldIcon ?? this.defaultFoldIcon) === FOLD_END)
+
   /** Is the content its own scroll box? */
   scrolls(): boolean {
     return !!this.attrs.scrolling || !!this.attrs.height
@@ -353,7 +375,12 @@ export class UISection extends UIElement<SectionVocabulary> {
         part={this.part("title")}
         style={this.titleStyle()}
       >
-        <Dynamic component={`${HEADING_TAG}${this.level()}`} class={HEADING} part={this.part("heading")}>
+        <Dynamic
+          component={`${HEADING_TAG}${this.level()}`}
+          class={HEADING}
+          part={this.part("heading")}
+          aria-describedby={this.hasInfo() && !this.collapsible() ? TIP_ID : undefined}
+        >
           <Dynamic
             component={this.collapsible() ? UIT.BUTTON : STATIC_TOGGLE_TAG}
             type={this.collapsible() ? UIT.BUTTON : undefined}
@@ -363,13 +390,10 @@ export class UISection extends UIElement<SectionVocabulary> {
             aria-controls={this.collapsible() ? CONTENT_ID : undefined}
             title={this.collapsible() ? this.text(this.folded() ? "unfold" : "fold") : undefined}
             disabled={this.collapsible() && this.attrs.disabled ? true : undefined}
+            aria-describedby={this.hasInfo() && this.collapsible() ? TIP_ID : undefined}
             onClick={this.onToggleClick}
           >
-            <Show when={this.collapsible()}>
-              <span class={FOLD_ICON_CLASS} part={this.part("fold-icon")} aria-hidden={UIT.TRUE}>
-                {this.foldGlyph.svg()}
-              </span>
-            </Show>
+            <Show when={this.collapsible() && !this.foldAtEnd()}>{this.renderFoldIcon()}</Show>
             <Show when={this.hasIcon()}>
               <span class={UIT.ICON} part={this.part("icon")}>
                 <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
@@ -390,7 +414,22 @@ export class UISection extends UIElement<SectionVocabulary> {
             <slot name={this.slot("actions")} />
           </span>
         </Show>
+        <Show when={this.collapsible() && this.foldAtEnd()}>{this.renderFoldIcon(this.onFoldIconClick)}</Show>
+        <Show when={this.hasInfo()}>
+          <span id={TIP_ID} class={TIP} part={this.part("tip")} role={TOOLTIP}>
+            <slot name={this.slot("info")}>{this.attrs.info}</slot>
+          </span>
+        </Show>
       </header>
+    )
+  }
+
+  /** The fold chevron, `aria-hidden` (the button is the control):  in the button, or at the bar's end with `onClick`. */
+  private renderFoldIcon(onClick?: (event: MouseEvent) => void): JSX.Element {
+    return (
+      <span class={FOLD_ICON_CLASS} part={this.part("fold-icon")} aria-hidden={UIT.TRUE} onClick={onClick}>
+        {this.foldGlyph.svg()}
+      </span>
     )
   }
 
@@ -452,6 +491,11 @@ export class UISection extends UIElement<SectionVocabulary> {
   private readonly onToggleClick = (event: MouseEvent) => {
     // a link or control inside a rich `slot="header"` title acts on its own, as in an accordion's title
     if (UISection.fromControl(event)) return
+    this.toggle(event)
+  }
+
+  /** A click on the END chevron, outside the button:  folds as the button does. */
+  private readonly onFoldIconClick = (event: MouseEvent) => {
     this.toggle(event)
   }
 

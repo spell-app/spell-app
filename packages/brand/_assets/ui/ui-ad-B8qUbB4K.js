@@ -1,0 +1,1 @@
+import{t as e}from"./ui-ad-DJ_Pv_kq.js";export{e as UIAd};

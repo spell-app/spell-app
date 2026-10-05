@@ -119,6 +119,22 @@ describe("ui-checkbox.css examples", () => {
     expect(getComputedStyle(root.querySelector("label")!, "::before").borderTopLeftRadius).toBe("6px")
   })
 
+  it("fills a checked box from the CHECKED tokens;  a colour still wins", () => {
+    Sheets.adopt([...foundationCSS, checkboxCSS, colorsCSS, NO_TRANSITIONS])
+    const root = Fixture.render(
+      `<div style="--ui-checkbox-checked-background: rgb(101, 80, 202); --ui-checkbox-checked-mark-color: rgb(255, 255, 255)">
+        <div class="ui checkbox"><input type="checkbox" id="k1" checked><label for="k1">A</label></div>
+        <div class="ui checkbox"><input type="checkbox" id="k2"><label for="k2">B</label></div>
+        <div class="ui green checkbox"><input type="checkbox" id="k3" checked><label for="k3">C</label></div>
+      </div>`
+    )
+    const [checked, unchecked, green] = [...root.querySelectorAll("label")]
+    expect(getComputedStyle(checked!, "::before").backgroundColor).toBe("rgb(101, 80, 202)")
+    expect(getComputedStyle(checked!, "::after").backgroundColor).toBe("rgb(255, 255, 255)")
+    expect(getComputedStyle(unchecked!, "::before").backgroundColor).not.toBe("rgb(101, 80, 202)")
+    expect(getComputedStyle(green!, "::before").backgroundColor).not.toBe("rgb(101, 80, 202)")
+  })
+
   it("scales every part with `size`", () => {
     Sheets.adopt([...foundationCSS, checkboxCSS])
     const root = Fixture.render(EXAMPLES["./examples/variations.html"]!)

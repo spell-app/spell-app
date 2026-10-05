@@ -1,0 +1,360 @@
+<!doctype html>
+<!--
+  A brand element's docs page, in Spell UI's docs format (`packages/docs/content/templates/spell-ui-docs.html`):  masthead, then
+  Examples / Usage / API / Theming tabs.  Without the Spell UI site's shell:  the site header on top, one page.
+  - Loads `brand-docs.js` (`src/brand-docs.ts`):  the brand bundle + Spell UI's docs widgets;  API and tokens come
+    from `_data/components.json` (`yarn site:data` here).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - A blob hangs off a corner of its positioned parent:  every example puts it in a `.stage` (the `<style>` below), a
+    box that is positioned and clips, as a page's hero or card is.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Blob</title>
+    <meta
+      name="description"
+      content="<ui-brand-blob>:  one soft lavender shape tucked into a corner of its parent, half off the edge."
+    />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <link rel="stylesheet" href="../_assets/brand-docs.css" />
+    <script type="module" src="../_assets/ui/brand-docs.js"></script>
+    <style>
+      /* the examples' boxes:  positioned and clipping, as a hero or a card is;  blobs sized to fit them */
+      .stage {
+        position: relative;
+        overflow: hidden;
+        height: 180px;
+        border-radius: 16px;
+        border: 1px solid var(--spell-border-subtle);
+        background: var(--ui-background);
+        --ui-brand-blob-width: 220px;
+        --ui-brand-blob-height: 180px;
+        --ui-brand-blob-x: 80px;
+        --ui-brand-blob-y: 90px;
+      }
+      .stage.hero {
+        height: 300px;
+        --ui-brand-blob-width: 420px;
+        --ui-brand-blob-height: 360px;
+        --ui-brand-blob-x: 160px;
+        --ui-brand-blob-y: 180px;
+      }
+      /* the Theming playground's box:  no blob tokens of its own, so the edited ones reach the blobs */
+      .playground {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: 300px;
+        border-radius: 16px;
+        border: 1px solid var(--spell-border-subtle);
+        background: var(--ui-background);
+      }
+      .stage > p {
+        position: relative;
+        margin: 0;
+        padding: 20px 24px;
+        font: var(--spell-type-ui);
+        color: var(--spell-text-muted);
+      }
+      .stage > h3 {
+        position: relative;
+        margin: 0;
+        padding: 32px 36px 0;
+        max-width: 380px;
+        font: var(--spell-type-h2);
+        color: var(--spell-text-strong);
+      }
+      /* a wave sits flush in its corner:  the poster's 640 x 424 shape at a quarter, no overhang */
+      .stage.wave {
+        --ui-brand-blob-width: 160px;
+        --ui-brand-blob-height: 106px;
+        --ui-brand-blob-x: 0px;
+        --ui-brand-blob-y: 0px;
+      }
+      /* its label clear of a left-hand wave */
+      .stage > p.end {
+        text-align: end;
+      }
+      .stage.inverse {
+        background: var(--spell-violet-900);
+      }
+      .stage.warm {
+        background: var(--spell-accent-150);
+      }
+    </style>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../.."></spell-site-header>
+    <main id="main" class="brand-docs-main">
+      <ui-segment vertical basic class="brand-docs-masthead">
+        <ui-container>
+          <div class="brand-docs-eyebrow"><a href="../index.html">Brand</a> · Components</div>
+          <ui-header level="1" class="brand-docs-title">
+            Brand Blob
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header>One soft lavender shape, tucked into a corner, half off the edge.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="brand-docs-body">
+        <ui-tabs
+          id="brand-docs-tabs"
+          class="brand-docs-tabs"
+          history
+          basic
+          appearance="segmented"
+          alignment="fluid"
+          equal
+        >
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" collapsible dividing>
+              <ui-section id="examples-types-blob" header="Corner blob" collapsible dividing>
+                <ui-docs-example
+                  description="The brand's “lavender blob tucked into a corner”:  the docs hero's, 420 × 360px, hanging 160px past the side and 180px past the bottom.  Never behind body text."
+                >
+                  <div class="stage hero">
+                    <ui-brand-blob></ui-brand-blob>
+                    <h3>Getting started with Spell.</h3>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" collapsible dividing>
+              <ui-section id="examples-content-corner" header="Corner" collapsible dividing>
+                <ui-docs-example
+                  description="`corner`:  `top-left`, `top-right`, `bottom-left` or `bottom-right` (the default).  Two blobs in opposite corners frame a hero."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage">
+                      <ui-brand-blob corner="top-left"></ui-brand-blob>
+                      <p>top-left</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob corner="top-right"></ui-brand-blob>
+                      <p>top-right</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob corner="bottom-left"></ui-brand-blob>
+                      <p>bottom-left</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob corner="bottom-right"></ui-brand-blob>
+                      <p>bottom-right</p>
+                    </div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-shape" header="Shape" collapsible dividing>
+                <ui-docs-example
+                  description="`shape`:  `organic` (the default, a soft egg), `mound`, a hill rising from the edge, its flat side facing out (top corners turn it upside down, left corners mirror it), or `wave`, below."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage">
+                      <ui-brand-blob shape="organic"></ui-brand-blob>
+                      <p>organic</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob shape="mound"></ui-brand-blob>
+                      <p>mound</p>
+                    </div>
+                  </div>
+                  <div class="brand-docs-row">
+                    <div class="stage">
+                      <ui-brand-blob shape="mound" corner="top-left"></ui-brand-blob>
+                      <p>mound, top-left</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob shape="mound" corner="top-right"></ui-brand-blob>
+                      <p>mound, top-right</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob shape="mound" corner="bottom-left"></ui-brand-blob>
+                      <p>mound, bottom-left</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob shape="mound" corner="bottom-right"></ui-brand-blob>
+                      <p>mound, bottom-right</p>
+                    </div>
+                  </div>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="`shape=&quot;wave&quot;`:  the Brand Montage poster's corner wash, an S-curved edge.  It sits FLUSH in its corner (no overhang unless `-x` / `-y` are set), mirrored per corner so its straight edges lie on the box's;  size it with `-width` / `-height` (the poster's:  640 × 424px)."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage wave">
+                      <ui-brand-blob shape="wave" corner="top-left"></ui-brand-blob>
+                      <p class="end">wave, top-left</p>
+                    </div>
+                    <div class="stage wave">
+                      <ui-brand-blob shape="wave" corner="top-right"></ui-brand-blob>
+                      <p>wave, top-right</p>
+                    </div>
+                    <div class="stage wave">
+                      <ui-brand-blob shape="wave" corner="bottom-left"></ui-brand-blob>
+                      <p class="end">wave, bottom-left</p>
+                    </div>
+                    <div class="stage wave">
+                      <ui-brand-blob shape="wave" corner="bottom-right"></ui-brand-blob>
+                      <p>wave, bottom-right</p>
+                    </div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" collapsible dividing>
+              <ui-section id="examples-variations-tone" header="Tone" collapsible dividing>
+                <ui-docs-example
+                  description="`tone`:  `blob` (lavender, the default), `blob-2` (paler, grey-blue), `violet`, `lilac`, or `current` (`currentColor`, here amber).  `blob` and `blob-2` soften in dark mode, as the theme's art roles do."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage">
+                      <ui-brand-blob tone="blob"></ui-brand-blob>
+                      <p>blob</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob tone="blob-2"></ui-brand-blob>
+                      <p>blob-2</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob tone="violet"></ui-brand-blob>
+                      <p>violet</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob tone="lilac"></ui-brand-blob>
+                      <p>lilac</p>
+                    </div>
+                    <div class="stage" style="color: var(--ui-amber, #f69e00)">
+                      <ui-brand-blob tone="current"></ui-brand-blob>
+                      <p>current</p>
+                    </div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-surfaces" header="On a coloured surface" collapsible dividing>
+                <ui-docs-example
+                  description="On aubergine, a `lilac` mound (the Brand Montage's call-to-action tile);  on ivory, a lavender blob.  `--ui-brand-blob-color` sets any colour."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage inverse"><ui-brand-blob shape="mound" tone="lilac"></ui-brand-blob></div>
+                    <div class="stage warm"><ui-brand-blob corner="bottom-left"></ui-brand-blob></div>
+                    <div class="stage" style="--ui-brand-blob-color: var(--spell-accent-150)">
+                      <ui-brand-blob corner="top-right"></ui-brand-blob>
+                    </div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" collapsible dividing>
+                <ui-docs-example
+                  description="`--ui-brand-blob-width` / `-height`:  the shape's size;  `--ui-brand-blob-x` / `-y`:  how far it hangs past the side and the top or bottom edge.  Set them on the blob or any ancestor."
+                >
+                  <div class="brand-docs-row">
+                    <div
+                      class="stage"
+                      style="
+                        --ui-brand-blob-width: 120px;
+                        --ui-brand-blob-height: 100px;
+                        --ui-brand-blob-x: 30px;
+                        --ui-brand-blob-y: 40px;
+                      "
+                    >
+                      <ui-brand-blob></ui-brand-blob>
+                      <p>small</p>
+                    </div>
+                    <div class="stage">
+                      <ui-brand-blob></ui-brand-blob>
+                      <p>medium</p>
+                    </div>
+                    <div
+                      class="stage"
+                      style="
+                        --ui-brand-blob-width: 360px;
+                        --ui-brand-blob-height: 300px;
+                        --ui-brand-blob-x: 160px;
+                        --ui-brand-blob-y: 160px;
+                      "
+                    >
+                      <ui-brand-blob></ui-brand-blob>
+                      <p>large</p>
+                    </div>
+                    <div class="stage" style="--ui-brand-blob-x: 0px; --ui-brand-blob-y: 0px">
+                      <ui-brand-blob></ui-brand-blob>
+                      <p>no overhang</p>
+                    </div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Page art for a hero, a card or a tile. Put it FIRST in a box that is positioned and clips, and give
+                  the content above it a position too, so it paints over the shape.
+
+                  - `corner` picks the corner; the shape hangs past both of its edges, and the box clips it.
+                  - Size it to the box with the `--ui-brand-blob-*` tokens: the defaults suit a 300px hero.
+                  - Several shapes, generated from a seed: `<ui-brand-flourish variant="blobs">`.
+                  - Never behind body copy: a headline, a lede, a call to action at most.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <style>
+                    .hero { position: relative; overflow: hidden; }
+                    .hero > h1 { position: relative; }
+                  </style>
+                  <section class="hero">
+                    <ui-brand-blob corner="top-right"></ui-brand-blob>
+                    <ui-brand-blob corner="bottom-left" tone="blob-2"></ui-brand-blob>
+                    <h1>Getting started.</h1>
+                  </section>
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Decorative: hidden from screen readers (`aria-hidden`), and it takes no clicks or focus. Keep text
+                  contrast against the box's own colour: the shape can sit under the text's edge.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="ui-brand-blob"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--ui-brand-blob-*` token on the blob, any ancestor or `:root`. The colours come from the
+                  `spell-brand` theme's art roles (`--spell-blob`, `--spell-blob-2`); `--ui-brand-blob-color`
+                  overrides `tone`. Edit a value below to try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="ui-brand-blob" playground>
+                <div class="playground">
+                  <ui-brand-blob></ui-brand-blob>
+                  <ui-brand-blob corner="top-left" tone="blob-2"></ui-brand-blob>
+                </div>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

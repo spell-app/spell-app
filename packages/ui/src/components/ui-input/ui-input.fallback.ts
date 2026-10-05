@@ -51,7 +51,8 @@ export class InputFallback extends NativeFallback<typeof inputVocabulary> {
           max: this.attr("max"),
           step: this.attr("step"),
           multiple: this.flag("multiple"),
-          accept: this.attr("accept")
+          accept: this.attr("accept"),
+          inputmode: this.attr("inputmode")
         })
     this.decorate(control, "control")
     const placeholder = this.attr("placeholder")

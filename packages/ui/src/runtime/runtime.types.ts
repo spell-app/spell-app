@@ -362,6 +362,8 @@ export type ToastOptions = {
   /**
    * Fomantic's `class`:  class words for the toast, e.g. `"success"`, `"inverted blue"`;  a consequence word
    * becomes `type`, a hue `color`, `inverted` stays a word
+   * - every word is also kept on the `<ui-toast>` host's `class`, so a page can theme this toast alone:
+   *   `UI.toast({ class: "ready" })` + `ui-toast.ready { --ui-toast-background: ... }`
    */
   class?: string
   /** ms before auto-dismiss (default `3000`);  `0` keeps it until dismissed;  `"auto"` ~== reading time */

@@ -39,6 +39,13 @@ export const markdownVocabulary = {
         "`headingLevelOffset`:  `headingOffset` is WebKit's native `headingoffset`."
     },
     {
+      name: "skip-title",
+      kind: "boolean",
+      description:
+        "Drop the text's leading `#` title (an `h1` first thing in the text), e.g. when the page shows its own " +
+        "headline above a README.  The text itself is unchanged:  `content`, `save()` and the editor keep it."
+    },
+    {
       name: "editable",
       kind: "boolean",
       description:

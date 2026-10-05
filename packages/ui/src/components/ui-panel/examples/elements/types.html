@@ -1,0 +1,38 @@
+<!--
+  `<ui-panel>`'s types, as element markup (no class-grammar twin:  the look needs the section's shadow parts).
+  - `level="5"`:  each panel sits under its example's `h4`, so a default `h2` would break the outline.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Panel</h4>
+    <ui-panel header="Theme" level="5" style="max-width: 320px">
+      <ui-input placeholder="Name, e.g. sunrise" aria-label="Name"></ui-input>
+      <ui-slider min="13" max="19" value="16" aria-label="Text size"></ui-slider>
+    </ui-panel>
+  </section>
+
+  <section>
+    <h4>Sub-panels</h4>
+    <ui-panel header="Color Set" level="5" collapsible style="max-width: 320px">
+      <ui-input placeholder="Name, e.g. brand" aria-label="Set name"></ui-input>
+      <ui-panel header="Tweak" collapsible>
+        <ui-slider min="0" max="200" step="20" value="100" aria-label="Vibrancy"></ui-slider>
+      </ui-panel>
+      <ui-panel header="Presets" collapsible collapsed>
+        <p>Six preset chips.</p>
+      </ui-panel>
+    </ui-panel>
+  </section>
+
+  <section>
+    <h4>Colors</h4>
+    <div class="ui-cluster" style="align-items: start">
+      <ui-panel header="Violet" level="5" color="violet" style="width: 200px">
+        <ui-panel header="Tweak"><p>Any hue.</p></ui-panel>
+      </ui-panel>
+      <ui-panel header="Grey" level="5" color="grey" style="width: 200px">
+        <ui-panel header="Tweak"><p>Sub-panels follow.</p></ui-panel>
+      </ui-panel>
+    </div>
+  </section>
+</div>

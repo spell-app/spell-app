@@ -126,6 +126,7 @@ export class UIInput extends TextControl<Vocabulary> {
           type={this.attrs.type ?? "text"}
           placeholder={this.attrs.placeholder}
           autocomplete={this.attrs.autocomplete as never}
+          inputmode={this.attrs.inputmode}
           disabled={this.isDisabled()}
           readonly={this.attrs.readonly}
           aria-busy={this.attrs.loading ? "true" : undefined}

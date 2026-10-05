@@ -43,7 +43,8 @@ import { VERTICAL, TRUE, GROUP, LABEL, HOME, END, ARROW_DOWN } from "$/ui/compon
 /****************
  * ### `<ui-slider>`
  * A slider in Fomantic's markup:  `<div class="ui … slider" part="slider">` around `<div class="inner">` (track,
- * track fill, one or two `thumb`s) and, when `labeled`, `<ul class="auto labels">`.
+ * track fill, one or two `thumb`s) and, when `labeled` or `ticked`, `<ul class="auto labels">` (empty labels when only
+ * `ticked`:  the sheet draws their ticks).  Labels come every `tick-step` (default `step`).
  * - Thumbs are APG sliders (`role=slider`, `aria-value*`, `aria-orientation`):  no native element has two thumbs or
  *   Fomantic's parts.  A `range`'s thumbs are "Minimum" / "Maximum" inside a `group` named for the host, and each
  *   bounds the other (`preventCrossover`).  The labels are `aria-hidden`:  the thumbs speak their values.
@@ -88,7 +89,8 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
       new SliderScale({
         min: this.attrs.min ?? DEFAULT_MIN,
         max: this.attrs.max ?? DEFAULT_MAX,
-        step: this.attrs.step ?? DEFAULT_STEP
+        step: this.attrs.step ?? DEFAULT_STEP,
+        tickStep: this.attrs.tickStep
       })
   )
 
@@ -271,7 +273,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
           {this.thumb(FIRST)}
           <Show when={this.isRange()}>{this.thumb(SECOND)}</Show>
         </div>
-        <Show when={this.attrs.labeled}>
+        <Show when={this.attrs.labeled || this.attrs.ticked}>
           <ul class={LABELS} part={this.part("labels")} aria-hidden="true">
             <Repeat count={this.scale().intervals + 1}>{(index) => this.label(index)}</Repeat>
           </ul>
@@ -345,18 +347,24 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
     return this.text(thumb === SECOND ? "sliderMaximum" : "sliderMinimum")
   }
 
-  /** Step label `index`:  its text (or a half tick, where labels would crowd), at its ratio. */
+  /**
+   * Step label `index`:  its text (or a half tick, where labels would crowd), at its ratio.
+   * - `ticked` without `labeled`:  an empty label, every one full (no text to crowd);  the sheet draws its tick.
+   */
   private label(index: number): JSX.Element {
     const scale = () => this.scale()
     const value = () => scale().labelValue(index)
-    const full = () => index % scale().gap(this.trackLength.get(), LABEL_DISTANCE) === 0 || index === scale().intervals
+    const full = () =>
+      !this.attrs.labeled ||
+      index % scale().gap(this.trackLength.get(), LABEL_DISTANCE) === 0 ||
+      index === scale().intervals
     return (
       <li
         class={full() ? LABEL : HALF_TICK_LABEL}
         part={this.part("label")}
         style={{ [AT]: String(scale().ratio(value())) }}
       >
-        {full() ? this.valueText(value()) : ""}
+        {full() && this.attrs.labeled ? this.valueText(value()) : ""}
       </li>
     )
   }

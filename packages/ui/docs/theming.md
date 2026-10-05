@@ -421,6 +421,20 @@ every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks an
   run in that very frame (`<ui-docs-themes>`' sun / moon swap) declares itself `!important` in its component layer:
   an earlier layer's `!important` wins.
 
+### Our own theme:  `spell-brand`
+
+`themes/spell-brand.css` is `spell` as Claude Design's brand pages draw it, converging on them (epic
+`design-system`, `packages/docs/content/epics/design-system/design-system.plan.html`).
+
+- Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift;  whether it replaces `spell` is a later
+  call.  Also in `ThemeSheets.OWN`, and in the docs' theme picker as "Spell brand".
+- Adds the brand's own semantic roles that no `--ui-*` token covers, as `--spell-*` `light-dark()` pairs:
+  surfaces (`--spell-surface-tint`, `-warm`, `-selected`, `-code`, `-inverse`), text, accent (`--spell-accent`,
+  `-soft`, `-ring`), borders, status, art (`--spell-blob`, `--spell-line-flourish`), shadows (`--spell-shadow-xs`
+  ... `-lg`), type roles (`--spell-type-eyebrow`, `-lede`, `-spell` ...) and the Polished Ivory ladder.  Read by
+  `packages/brand`'s `<ui-brand-*>` elements and `.spell.html` pages, never by `<ui-*>` elements.
+- The brand pages load it through `packages/brand`'s bundle (`_assets/ui/brand-ui.js`).
+
 ### Fomantic themes
 
 Every other sheet in `themes/` is a port of one of Fomantic's themes (`src/themes/<name>/` in Fomantic):
