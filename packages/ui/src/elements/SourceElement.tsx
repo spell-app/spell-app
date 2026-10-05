@@ -6,6 +6,7 @@ import { SourceError, UI, type SourceErrorKind } from "$/ui/runtime"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 import {
+  SOURCE_FAILURE_KEYS,
   SOURCE_LOADER_TAG,
   SOURCE_MESSAGE_TAG,
   type SourceController,
@@ -89,7 +90,7 @@ export abstract class SourceElement<V extends ComponentVocabulary = ComponentVoc
   readonly failureText = createMemo(() => {
     const failure = this.failure.get()
     if (!failure) return undefined
-    const key = FAILURE_TEXTS[failure.kind] ?? FAILURE_TEXTS.load
+    const key = SOURCE_FAILURE_KEYS[failure.kind] ?? SOURCE_FAILURE_KEYS.load
     return this.text(key as TextKey<V>, { source: this.sourceAttribute() ?? "" })
   })
 
@@ -456,14 +457,6 @@ export abstract class SourceElement<V extends ComponentVocabulary = ComponentVoc
 type SourceAttributes = {
   source?: string | null
   load?: string | null
-}
-
-/** Message text per failure kind (`UIT.SOURCE_TEXTS` keys);  save kinds never show a message. */
-const FAILURE_TEXTS: Partial<Record<SourceErrorKind, string>> & { load: string } = {
-  load: "sourceLoadError",
-  "cross-origin": "sourceCrossOrigin",
-  "file-protocol": "sourceFileProtocol",
-  render: "sourceRenderError"
 }
 
 /** `load` values. */

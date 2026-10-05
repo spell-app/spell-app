@@ -4,7 +4,8 @@
  *   it in `dist/core.js` and each family entry holds only its own classes, sheet, vocabulary and fallback.
  * - Pulls in:
  *   - the element core -- `UIHost`, `UIElement`, `ElementDefinition`, `ContentPart` + `PartContext` (owner
- *     context), `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `IconGlyph`
+ *     context), `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `IconGlyph`, the source layer (`SourceElement`,
+ *     `SourceHost`;  `SourceMarkup`, `SourceBody`, `SourceBodyHost`:  `<ui-section source>` / `<ui-accordion source>`)
  *   - `$/ui/util`, `$/ui/vocabulary` -- foundation JS;  `$/ui/components/components.types` as the namespace `UIT` (`UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.SelectValue` ...)
  *   - from `$/ui/elements`:  `ClassBuilder`, `Shorthand`, `OwnerContext`, `NativeFallback` (the fallbacks' base),
  *     `StickyWatch` (`<ui-sticky>` and `<ui-section sticky>`)
@@ -47,3 +48,6 @@ export * from "$/ui/elements/RootSettings"
 export * from "$/ui/elements/IconGlyph"
 export * from "$/ui/elements/SourceHost"
 export * from "$/ui/elements/SourceElement"
+export * from "$/ui/elements/SourceMarkup"
+export * from "$/ui/elements/SourceBody"
+export * from "$/ui/elements/SourceBodyHost"

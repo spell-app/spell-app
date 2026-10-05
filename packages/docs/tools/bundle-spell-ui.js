@@ -354,6 +354,24 @@ function iconsModule() {
 }
 
 /**
+ * Source of `bundleUrl(dir)`, shared by `spell-ui:emoji` and `spell-ui:lazy`:  the folder `dir` next to the bundle,
+ * or `null` where there's no URL to resolve against.
+ * - NEVER throws while the bundle loads:  an INLINED copy (a claude.ai design system's preview inlines it) has
+ *   `document.currentScript.src === ""`, so `??` wouldn't fall back, and its frame's `location.href` is
+ *   `about:srcdoc`, which no relative URL resolves against.  Epic `claude-design`, P1.
+ * - `null`:  `new URL(x, null)` throws inside the loaders' promise executors, so a lazy script rejects instead
+ */
+const BASE_URL = [
+  `function bundleUrl(dir) {`,
+  `  try {`,
+  `    return new URL(dir, document.currentScript?.src || location.href)`,
+  `  } catch {`,
+  `    return null`,
+  `  }`,
+  `}`
+].join("\n")
+
+/**
  * Source of `spell-ui:emoji`:  `EmojiData.chunkLoader` loads a name chunk as the classic script
  * `emoji/<set>/<letter>.js` next to the bundle, which hands its names to `__spellEmojiChunk()`.
  * - The bundle's own URL (`document.currentScript`, read while it runs) locates the scripts, at any page depth.
@@ -361,7 +379,8 @@ function iconsModule() {
 function emojiModule() {
   return [
     `import { EmojiData } from "@spell-app/ui/ui-emoji"`,
-    `const base = new URL("emoji/", document.currentScript?.src ?? location.href)`,
+    BASE_URL,
+    `const base = bundleUrl("emoji/")`,
     `const waiting = new Map()`,
     `globalThis.__spellEmojiChunk = (set, chunk, names) => waiting.get(set + "/" + chunk)?.(names)`,
     `EmojiData.chunkLoader = (set, chunk) =>`,
@@ -478,7 +497,8 @@ function lazyModule() {
   return [
     `import { CodeHighlighter, SpellLanguage } from "@spell-app/ui/ui-code"`,
     `import { MarkdownRenderer } from "@spell-app/ui/ui-markdown"`,
-    `const base = new URL("lazy/", document.currentScript?.src ?? location.href)`,
+    BASE_URL,
+    `const base = bundleUrl("lazy/")`,
     `const loading = new Map()`,
     `function lazy(name, global) {`,
     `  if (!loading.has(name)) {`,

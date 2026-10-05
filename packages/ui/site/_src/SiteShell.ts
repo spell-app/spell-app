@@ -1,4 +1,4 @@
-import { URL_ATTRIBUTES, URL_SELECTOR } from "$/ui/components/ui-include/ui-include.types"
+import { URL_ATTRIBUTES, URL_SELECTOR } from "$/ui/core"
 
 /****************
  * ### `SiteShell`

@@ -5,7 +5,9 @@
  *   reserves room for a `position: sticky` box).
  * - The Solid layer, on `@spell-app/solid-element`:  `UIHost` / `FormHost` (host bases), `UIElement` (the controller
  *   base), `ElementDefinition` (vocabulary => the fork's props), `FormElement`, `Controlled`, `Cell`,
- *   `SlotContent`, `HostAttribute`, `PartContext` + `ContentPart` (owner context), `IconGlyph`, `ControlLabels`.
+ *   `SlotContent`, `HostAttribute`, `PartContext` + `ContentPart` (owner context), `IconGlyph`, `ControlLabels`,
+ *   `SourceElement` + `SourceHost` (elements showing a text file), `SourceMarkup` (fetched HTML made ready for the
+ *   page), `SourceBody` + `SourceBodyHost` (content loaded from `source` the first time it opens).
  * - NOTE: components never import this barrel:  they import the `$/ui/core` / `$/ui/forms` ENTRIES (`src/core.ts`,
  *   `src/forms.ts`), which split the same files into the two shared chunks of the build.
  * - NOTE: `HotDefinitions` is left out:  dev-only, and a SIDE EFFECT on import (it wraps `UIElement.define`);
@@ -35,6 +37,9 @@ export * from "./RootSettings"
 export * from "./IconGlyph"
 export * from "./SourceHost"
 export * from "./SourceElement"
+export * from "./SourceMarkup"
+export * from "./SourceBody"
+export * from "./SourceBodyHost"
 export * from "./FormHost"
 export * from "./FormElement"
 export * from "./ControlLabels"
